@@ -1,0 +1,57 @@
+import { ExternalLink, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+
+type WaitingRoomPanelProps = {
+  onAccessWaitingRoom: () => void
+  onCancel: () => void
+}
+
+export function WaitingRoomPanel({ onAccessWaitingRoom, onCancel }: WaitingRoomPanelProps) {
+  const [isPreparing, setIsPreparing] = useState(true)
+
+  useEffect(() => {
+    const id = setTimeout(() => setIsPreparing(false), 1600)
+    return () => clearTimeout(id)
+  }, [])
+
+  return (
+    <article className="relative z-10 mt-6 flex min-h-0 flex-1 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/80 px-6 py-8 text-center sm:mt-8 sm:px-10 sm:py-10">
+      {isPreparing ? (
+        <span className="flex flex-col items-center gap-4">
+          <Loader2
+            className="h-10 w-10 animate-spin text-[var(--brand-primary)]"
+            strokeWidth={2}
+          />
+          <p className="text-sm font-medium text-gray-600">Preparando sala de espera...</p>
+        </span>
+      ) : (
+        <span className="flex w-full max-w-md flex-col items-center">
+          <span className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+            <ExternalLink className="h-6 w-6" strokeWidth={2} />
+          </span>
+          <h3 className="text-lg font-bold text-gray-900">Sala de espera pronta</h3>
+          <p className="mt-3 text-sm leading-relaxed text-gray-500">
+            Por segurança, a sala de espera será aberta em uma{' '}
+            <strong className="font-semibold text-gray-700">nova janela</strong> do
+            navegador. Mantenha o paciente neste computador até o médico entrar.
+          </p>
+          <button
+            type="button"
+            onClick={onAccessWaitingRoom}
+            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-[var(--brand-primary)] px-8 py-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
+          >
+            <ExternalLink className="h-4 w-4" strokeWidth={2} />
+            Acessar sala de espera
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="mt-4 text-sm font-medium text-gray-500 transition hover:text-gray-700"
+          >
+            Cancelar atendimento
+          </button>
+        </span>
+      )}
+    </article>
+  )
+}

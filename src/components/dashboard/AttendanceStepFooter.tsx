@@ -1,0 +1,78 @@
+type AttendanceStepFooterProps = {
+  onBack: () => void
+  onContinue?: () => void
+  continueLabel?: string
+  /** Quando true, o botão Continuar fica ativo (cor primária). Caso contrário, permanece em ghost. */
+  continueReady?: boolean
+  /** Bloqueia interação durante carregamento (ex.: consulta de CPF). */
+  continueLoading?: boolean
+  continueType?: 'button' | 'submit'
+  formId?: string
+  backLabel?: string
+  /** Chamado ao clicar em Continuar enquanto ainda faltam campos obrigatórios. */
+  onContinueBlocked?: () => void
+}
+
+export function AttendanceStepFooter({
+  onBack,
+  onContinue,
+  continueLabel = 'Continuar',
+  continueReady = false,
+  continueLoading = false,
+  continueType = 'button',
+  formId,
+  backLabel = 'Voltar',
+  onContinueBlocked,
+}: AttendanceStepFooterProps) {
+  const buttonSizeClass =
+    'w-full min-w-0 rounded-xl px-4 py-3 text-center text-sm font-semibold transition'
+
+  function handleContinueClick(event: React.MouseEvent<HTMLButtonElement>) {
+    if (continueLoading) {
+      event.preventDefault()
+      return
+    }
+
+    if (!continueReady) {
+      event.preventDefault()
+      onContinueBlocked?.()
+      return
+    }
+
+    if (continueType === 'button' && onContinue) {
+      onContinue()
+    }
+  }
+
+  const showContinue = onContinue || continueType === 'submit'
+
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:ml-auto sm:w-full sm:max-w-[22rem]">
+      <button
+        type="button"
+        onClick={onBack}
+        disabled={continueLoading}
+        className={`${buttonSizeClass} border border-gray-200 bg-white text-[var(--brand-primary)] hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60`}
+      >
+        {backLabel}
+      </button>
+      {showContinue ? (
+        <button
+          type={continueReady && continueType === 'submit' ? 'submit' : 'button'}
+          form={continueReady && formId ? formId : undefined}
+          onClick={handleContinueClick}
+          disabled={continueLoading}
+          className={
+            continueReady
+              ? `${buttonSizeClass} bg-[var(--brand-primary)] text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50`
+              : `${buttonSizeClass} border border-gray-200 bg-transparent text-gray-400 hover:border-amber-300 hover:bg-amber-50/50 hover:text-amber-800 disabled:cursor-not-allowed disabled:opacity-50`
+          }
+        >
+          {continueLabel}
+        </button>
+      ) : (
+        <span aria-hidden className="w-full" />
+      )}
+    </div>
+  )
+}
