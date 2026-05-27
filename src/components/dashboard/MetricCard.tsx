@@ -46,7 +46,7 @@ export function MetricCard({
   const Icon = iconMap[id] ?? Users
 
   return (
-    <article className="relative flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+    <article className="relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
       <div
         className={`mb-3 flex h-10 w-10 items-center justify-center rounded-full ${toneStyles[iconTone]}`}
       >

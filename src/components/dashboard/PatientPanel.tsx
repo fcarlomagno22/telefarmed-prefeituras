@@ -25,7 +25,7 @@ export function PatientPanel({
   const isFinish = secondaryAction.variant === 'finish'
 
   return (
-    <article className="relative z-10 mt-6 flex min-h-0 flex-1 flex-col rounded-2xl border border-gray-100 bg-gray-50/60 p-5 sm:p-6">
+    <article className="relative z-10 mt-6 flex min-h-0 flex-1 flex-col rounded-2xl border border-gray-200 bg-gray-50/80 p-5 sm:p-6">
       <header className="flex flex-wrap items-start gap-4">
         <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-100">
           <UserRound className="h-7 w-7 text-[var(--brand-primary)]" strokeWidth={1.75} />

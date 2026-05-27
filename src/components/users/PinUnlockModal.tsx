@@ -175,7 +175,7 @@ export function PinUnlockModal({
           <X className="h-4 w-4" />
         </button>
 
-        <div className="border-b border-gray-100 px-5 pb-3 pt-5 text-center">
+        <div className="border-b border-gray-200 px-5 pb-3 pt-5 text-center">
           <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand-primary-light)] text-[var(--brand-primary)]">
             <Icon className="h-4 w-4" strokeWidth={2.25} />
           </div>

@@ -15,7 +15,7 @@ const barColors = {
 export function ServiceFlowCard() {
   return (
     <section
-      className={`relative ${FLUXO_CARD_HEIGHT_CLASS} overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)]`}
+      className={`relative ${FLUXO_CARD_HEIGHT_CLASS} overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]`}
     >
       <h2 className="relative z-10 text-sm font-semibold text-gray-800">
         Fluxo de Atendimento

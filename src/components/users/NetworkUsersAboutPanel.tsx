@@ -238,7 +238,7 @@ export function NetworkUsersAboutPanel() {
   const { ageDistribution, genderDistribution, topNeighborhoodsByAppointments } = networkUsersAbout
 
   return (
-    <aside className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+    <aside className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
       {illustrationUrl ? (
         <div className="shrink-0 overflow-hidden bg-gradient-to-b from-sky-50/50 to-white px-4 pt-4">
           <img
@@ -256,7 +256,7 @@ export function NetworkUsersAboutPanel() {
         </header>
 
         <div className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <section className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+          <section className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
               Composição por gênero
             </h3>
@@ -265,7 +265,7 @@ export function NetworkUsersAboutPanel() {
             </div>
           </section>
 
-          <section className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+          <section className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
               Faixa etária
             </h3>
@@ -274,7 +274,7 @@ export function NetworkUsersAboutPanel() {
             </div>
           </section>
 
-          <section className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+          <section className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
               Bairros com mais atendimentos
             </h3>
@@ -295,7 +295,7 @@ export function NetworkUsersAboutPanel() {
           </section>
         </div>
 
-        <p className="mt-3 shrink-0 border-t border-gray-100 pt-3 text-center text-[11px] leading-relaxed text-gray-400">
+        <p className="mt-3 shrink-0 border-t border-gray-200 pt-3 text-center text-[11px] leading-relaxed text-gray-400">
           Dados protegidos em conformidade com a LGPD.
         </p>
       </div>

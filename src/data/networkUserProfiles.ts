@@ -108,7 +108,7 @@ const profiles: Record<string, NetworkUserFullProfile> = {
       },
     ],
     registeredAt: '12/03/2024',
-    registrationUnit: 'UBS Centro — Sala de Teleatendimento',
+    registrationUnit: 'UBT Centro — Sala de Teleatendimento',
     notes: 'Paciente com histórico de hipertensão controlada. Preferência por contato no período da tarde.',
   },
   '2': {
@@ -154,7 +154,7 @@ const profiles: Record<string, NetworkUserFullProfile> = {
       },
     ],
     registeredAt: '08/07/2023',
-    registrationUnit: 'UBS Centro — Sala de Teleatendimento',
+    registrationUnit: 'UBT Centro — Sala de Teleatendimento',
     notes: '',
   },
   '3': {
@@ -191,7 +191,7 @@ const profiles: Record<string, NetworkUserFullProfile> = {
       },
     ],
     registeredAt: '22/11/2025',
-    registrationUnit: 'UBS Centro — Sala de Teleatendimento',
+    registrationUnit: 'UBT Centro — Sala de Teleatendimento',
     notes: 'Primeira consulta na rede em novembro de 2025.',
   },
   '4': {
@@ -252,7 +252,7 @@ const profiles: Record<string, NetworkUserFullProfile> = {
       },
     ],
     registeredAt: '05/01/2022',
-    registrationUnit: 'UBS Centro — Sala de Teleatendimento',
+    registrationUnit: 'UBT Centro — Sala de Teleatendimento',
     notes: 'Acompanhamento contínuo de diabetes tipo 2.',
   },
   '5': {
@@ -289,7 +289,7 @@ const profiles: Record<string, NetworkUserFullProfile> = {
       },
     ],
     registeredAt: '18/09/2025',
-    registrationUnit: 'UBS Centro — Sala de Teleatendimento',
+    registrationUnit: 'UBT Centro — Sala de Teleatendimento',
     notes: '',
   },
   '6': {
@@ -335,7 +335,7 @@ const profiles: Record<string, NetworkUserFullProfile> = {
       },
     ],
     registeredAt: '14/06/2021',
-    registrationUnit: 'UBS Centro — Sala de Teleatendimento',
+    registrationUnit: 'UBT Vila Nova — Sala de Teleatendimento',
     notes: '',
   },
   '7': {
@@ -387,7 +387,7 @@ const profiles: Record<string, NetworkUserFullProfile> = {
       },
     ],
     registeredAt: '30/04/2024',
-    registrationUnit: 'UBS Centro — Sala de Teleatendimento',
+    registrationUnit: 'UBT Centro — Sala de Teleatendimento',
     notes: 'Alergia a dipirona informada no cadastro.',
   },
 }
@@ -411,7 +411,7 @@ export function getNetworkUserProfile(user: NetworkUser): NetworkUserFullProfile
     contacts: [],
     consultations: [],
     registeredAt: '—',
-    registrationUnit: 'UBS Centro — Sala de Teleatendimento',
+    registrationUnit: 'UBT Centro — Sala de Teleatendimento',
     notes: '',
   }
 

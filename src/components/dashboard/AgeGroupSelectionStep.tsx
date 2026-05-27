@@ -20,6 +20,7 @@ type AgeGroupSelectionStepProps = {
   onSelect: (group: PatientAgeGroup) => void
   onBack: () => void
   onContinue: () => void
+  embedded?: boolean
 }
 
 export function AgeGroupSelectionStep({
@@ -27,12 +28,14 @@ export function AgeGroupSelectionStep({
   onSelect,
   onBack,
   onContinue,
+  embedded = false,
 }: AgeGroupSelectionStepProps) {
   const [showHints, setShowHints] = useState(false)
   const canContinue = selected !== null
 
   return (
     <AttendanceStepShell
+      embedded={embedded}
       title="Faixa etária do paciente"
       description="Escolha a categoria que melhor descreve o paciente."
       footer={

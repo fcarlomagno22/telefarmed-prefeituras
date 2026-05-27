@@ -25,6 +25,7 @@ export const specialties: Specialty[] = [
   { id: '132', name: 'Ortopedia e Traumatologia', available: true },
   { id: '29', name: 'Otorrinolaringologia', available: true },
   { id: '33', name: 'Psicologia', available: true },
+  { id: '331', name: 'Fonoaudiologia', available: true },
   { id: '32', name: 'Psiquiatria', available: false },
   { id: '37', name: 'Reumatologia', available: false },
   { id: '38', name: 'Urologia', available: true },

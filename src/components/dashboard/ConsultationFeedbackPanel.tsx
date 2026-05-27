@@ -8,14 +8,25 @@ export type ConsultationFeedback = {
 
 const STAR_GRADIENT_ID = 'rating-star-gradient'
 
+export type ConsultationFeedbackProfessional = {
+  photoUrl: string
+  name: string
+  specialty: string
+}
+
 type ConsultationFeedbackPanelProps = {
   onSubmit: (feedback: ConsultationFeedback) => void
-  onSkip: () => void
+  onSkip?: () => void
+  professional?: ConsultationFeedbackProfessional
+  /** Quando false, oculta "Pular avaliação" (avaliação obrigatória). */
+  allowSkip?: boolean
 }
 
 export function ConsultationFeedbackPanel({
   onSubmit,
   onSkip,
+  professional,
+  allowSkip = true,
 }: ConsultationFeedbackPanelProps) {
   const [rating, setRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
@@ -40,10 +51,25 @@ export function ConsultationFeedbackPanel({
         </defs>
       </svg>
 
+      {professional ? (
+        <div className="mb-6 flex flex-col items-center">
+          <img
+            src={professional.photoUrl}
+            alt=""
+            className="h-20 w-20 rounded-full object-cover ring-4 ring-orange-50 sm:h-24 sm:w-24"
+          />
+          <p className="mt-4 text-lg font-bold text-gray-900 sm:text-xl">{professional.name}</p>
+          <p className="mt-1 text-sm font-medium text-gray-500 sm:text-base">
+            {professional.specialty}
+          </p>
+        </div>
+      ) : null}
+
       <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">Como foi o atendimento?</h2>
       <p className="mt-3 text-sm leading-relaxed text-gray-500 sm:text-base">
-        Avalie com estrelas e, se quiser, deixe um comentário sobre o atendimento ou o
-        profissional.
+        {allowSkip
+          ? 'Avalie com estrelas e, se quiser, deixe um comentário sobre o atendimento ou o profissional.'
+          : 'Selecione uma nota com as estrelas para concluir. O comentário é opcional.'}
       </p>
 
       <div
@@ -101,13 +127,15 @@ export function ConsultationFeedbackPanel({
         Enviar avaliação
       </button>
 
-      <button
-        type="button"
-        onClick={onSkip}
-        className="mt-4 text-sm font-medium text-gray-500 underline-offset-2 transition hover:text-gray-700 hover:underline"
-      >
-        Pular avaliação
-      </button>
+      {allowSkip && onSkip ? (
+        <button
+          type="button"
+          onClick={onSkip}
+          className="mt-4 text-sm font-medium text-gray-500 underline-offset-2 transition hover:text-gray-700 hover:underline"
+        >
+          Pular avaliação
+        </button>
+      ) : null}
     </div>
   )
 }

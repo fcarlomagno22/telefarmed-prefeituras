@@ -7,6 +7,14 @@ export const brand = {
   primaryColor: env('VITE_BRAND_COLOR', '#ff6b00'),
   logoUrl: env('VITE_LOGO_URL', '/logo_4.png'),
   backgroundImageUrl: env('VITE_BACKGROUND_IMAGE_URL', '/fundo_login.png'),
+  prefeituraBackgroundImageUrl: env(
+    'VITE_PREFEITURA_BACKGROUND_IMAGE_URL',
+    '/fundo_login_pref.png',
+  ),
+  adminBackgroundImageUrl: env(
+    'VITE_ADMIN_BACKGROUND_IMAGE_URL',
+    '/fundo_painel_admin.png',
+  ),
   appName: env('VITE_APP_NAME', 'Telefarmed'),
   appTagline: env('VITE_APP_TAGLINE', 'Farmácia e Telemedicina'),
   headline: env(
@@ -33,15 +41,36 @@ export const brand = {
   operatorName: env('VITE_OPERATOR_NAME', 'Juliana Silva'),
   operatorRole: env(
     'VITE_OPERATOR_ROLE',
-    'Funcionário público · responsável pelo posto',
+    'Funcionário público · responsável pelo Terminal',
   ),
   operatorFooterLabel: env(
     'VITE_OPERATOR_FOOTER_LABEL',
     'Operador logado',
   ),
+  prefeituraOperatorName: env(
+    'VITE_PREFEITURA_OPERATOR_NAME',
+    'Orlando Santos',
+  ),
+  prefeituraOperatorRole: env(
+    'VITE_PREFEITURA_OPERATOR_ROLE',
+    'Secretário de Saúde',
+  ),
+  prefeituraOperatorFooterLabel: env(
+    'VITE_PREFEITURA_OPERATOR_FOOTER_LABEL',
+    'Operador logado',
+  ),
+  adminOperatorName: env('VITE_ADMIN_OPERATOR_NAME', 'Equipe Telefarmed'),
+  adminOperatorRole: env(
+    'VITE_ADMIN_OPERATOR_ROLE',
+    'Administrador da plataforma',
+  ),
+  adminOperatorFooterLabel: env(
+    'VITE_ADMIN_OPERATOR_FOOTER_LABEL',
+    'Operador logado',
+  ),
   dashboardTitle: env(
     'VITE_DASHBOARD_TITLE',
-    'Posto de atendimento da unidade',
+    'Terminal de atendimento da unidade',
   ),
   dashboardSubtitle: env(
     'VITE_DASHBOARD_SUBTITLE',
@@ -53,7 +82,7 @@ export const brand = {
   ),
   dashboardStationIdleHint: env(
     'VITE_DASHBOARD_STATION_IDLE_HINT',
-    'Chame o próximo paciente. Enquanto houver consulta ativa, este posto fica reservado para essa pessoa.',
+    'Chame o próximo paciente. Enquanto houver consulta ativa, este Terminal fica reservado para essa pessoa.',
   ),
   dashboardFlowImageUrl: env('VITE_DASHBOARD_FLOW_IMAGE_URL', '/fluxo.png'),
   dashboardDoctorsImageUrl: env(
@@ -90,11 +119,33 @@ export const brand = {
     '/usuarios.png',
   ),
   dashboardAgendaImageUrl: env('VITE_DASHBOARD_AGENDA_IMAGE_URL', '/agenda.png'),
+  dashboardConsultasImageUrl: env(
+    'VITE_DASHBOARD_CONSULTAS_IMAGE_URL',
+    '/consultas.png',
+  ),
+  dashboardRelatoriosImageUrl: env(
+    'VITE_DASHBOARD_RELATORIOS_IMAGE_URL',
+    '/relatorios.png',
+  ),
+  dashboardSuporteImageUrl: env('VITE_DASHBOARD_SUPORTE_IMAGE_URL', '/suporte.png'),
+  dashboardCredentialsImageUrl: env(
+    'VITE_DASHBOARD_CREDENTIALS_IMAGE_URL',
+    '/acessos.png',
+  ),
   dashboardPromoImageUrl: env('VITE_DASHBOARD_PROMO_IMAGE_URL', ''),
   dashboardPromoText: env(
     'VITE_DASHBOARD_PROMO_TEXT',
     'Telemedicina que conecta, cuidado que transforma. Atendimento humanizado e tecnologia a serviço da vida.',
   ),
+  waitingRoomTagline: env(
+    'VITE_WAITING_ROOM_TAGLINE',
+    'CUIDANDO DE VOCÊ, ONDE VOCÊ ESTIVER.',
+  ),
+  waitingRoomVideoPosterUrl: env(
+    'VITE_WAITING_ROOM_VIDEO_POSTER_URL',
+    '/medicos_online.png',
+  ),
+  waitingRoomVideoUrl: env('VITE_WAITING_ROOM_VIDEO_URL', ''),
 } as const
 
 export const features = [

@@ -13,8 +13,14 @@ type CpfLookupStepProps = {
   cpf: string
   onChangeCpf: (cpf: string) => void
   onFound: (patient: PatientRegistration) => void
+  onFoundPendingFirstVisit?: (payload: {
+    patient: PatientRegistration
+    specialtyId: string
+    specialtyName: string
+  }) => void
   onNotFound: (cpf: string) => void
   onBack: () => void
+  embedded?: boolean
 }
 
 const inputClass =
@@ -27,8 +33,10 @@ export function CpfLookupStep({
   cpf,
   onChangeCpf,
   onFound,
+  onFoundPendingFirstVisit,
   onNotFound,
   onBack,
+  embedded = false,
 }: CpfLookupStepProps) {
   const [cpfTouched, setCpfTouched] = useState(false)
   const [showHints, setShowHints] = useState(false)
@@ -55,6 +63,21 @@ export function CpfLookupStep({
     setIsSearching(true)
     try {
       const result = await lookupPatientByCpf(cpf)
+      if (result.status === 'found_pending_first_visit') {
+        setLookupMessage(
+          'Consulta agendada pela recepção. Complete o cadastro e tire a foto do paciente.',
+        )
+        if (onFoundPendingFirstVisit) {
+          onFoundPendingFirstVisit({
+            patient: result.patient,
+            specialtyId: result.specialtyId,
+            specialtyName: result.specialtyName,
+          })
+        } else {
+          onFound(result.patient)
+        }
+        return
+      }
       if (result.status === 'found') {
         setLookupMessage('Cadastro encontrado. Confirme seus dados na próxima tela.')
         onFound(result.patient)
@@ -69,6 +92,7 @@ export function CpfLookupStep({
 
   return (
     <AttendanceStepShell
+      embedded={embedded}
       title="CPF do paciente"
       description="Informe o CPF para verificar se o paciente já possui cadastro."
       footer={

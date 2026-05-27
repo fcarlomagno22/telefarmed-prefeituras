@@ -82,6 +82,7 @@ type UserDetailDrawerProps = {
   onSaveContacts: (contacts: PatientContact[]) => void
   onRegisterContact: (channel: ContactChannel, phone: string, note: string) => void
   onAddAnnotation: (text: string) => void
+  extraContextItems?: { label: string; value: string }[]
 }
 
 const tabs: { id: DrawerTab; label: string; icon: typeof UserRound }[] = [
@@ -210,7 +211,7 @@ function SectionCard({
   children: ReactNode
 }) {
   return (
-    <section className="rounded-2xl border border-gray-100 bg-gray-50/60 p-4">
+    <section className="rounded-2xl border border-gray-200 bg-gray-50/80 p-4">
       {title ? (
         <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
           {title}
@@ -240,6 +241,7 @@ export function UserDetailDrawer({
   onSaveContacts,
   onRegisterContact,
   onAddAnnotation,
+  extraContextItems = [],
 }: UserDetailDrawerProps) {
   const [activeTab, setActiveTab] = useState<DrawerTab>('resumo')
   const [entered, setEntered] = useState(false)
@@ -311,8 +313,10 @@ export function UserDetailDrawer({
     setIsEditing(true)
   }, [editSessionKey, user?.id, userEdits])
 
+  const isActive = open || closing
+
   useEffect(() => {
-    if (!open) return
+    if (!isActive) return
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
@@ -325,7 +329,13 @@ export function UserDetailDrawer({
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', onKeyDown)
     }
-  }, [open, onClose])
+  }, [isActive, onClose])
+
+  useEffect(() => {
+    if (!closing) return
+    const fallback = window.setTimeout(() => onTransitionEnd(), 350)
+    return () => window.clearTimeout(fallback)
+  }, [closing, onTransitionEnd])
 
   useEffect(() => {
     if (!photoPreviewOpen) return
@@ -347,7 +357,7 @@ export function UserDetailDrawer({
     setRegisterError(null)
   }, [open, activeTab, user?.id, userEdits])
 
-  if (!open || !user) return null
+  if (!user || !isActive) return null
 
   const profile = getNetworkUserProfile(user)
   const photoUrl = profile.photoDataUrl
@@ -483,11 +493,14 @@ export function UserDetailDrawer({
 
   return createPortal(
     <>
-    <div className="fixed inset-0 z-[9998]">
+    <div
+      className={`fixed inset-0 z-[9998] ${panelVisible ? 'pointer-events-auto' : 'pointer-events-none'}`}
+    >
       <button
         type="button"
+        tabIndex={panelVisible ? 0 : -1}
         className={`absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity duration-300 ${
-          panelVisible ? 'opacity-100' : 'opacity-0'
+          panelVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         aria-label="Fechar detalhes do paciente"
         onClick={onClose}
@@ -505,7 +518,7 @@ export function UserDetailDrawer({
           panelVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
-        <header className="shrink-0 border-b border-gray-100 bg-gradient-to-b from-[var(--brand-primary-light)]/50 to-white px-5 pb-4 pt-4">
+        <header className="shrink-0 border-b border-gray-200 bg-white px-5 pb-4 pt-4">
           <div className="flex items-start gap-4">
             {photoUrl ? (
               <button
@@ -518,12 +531,12 @@ export function UserDetailDrawer({
                   src={photoUrl}
                   alt=""
                   loading="lazy"
-                  className="h-16 w-16 rounded-2xl border-2 border-white object-cover shadow-md transition group-hover:shadow-lg group-hover:ring-2 group-hover:ring-[var(--brand-primary)]/30"
+                  className="h-16 w-16 rounded-2xl border border-gray-200 object-cover shadow-sm transition group-hover:shadow-md group-hover:ring-2 group-hover:ring-[var(--brand-primary)]/20"
                 />
               </button>
             ) : (
               <span
-                className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border-2 border-white text-lg font-bold shadow-md ${user.avatarClassName}`}
+                className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-gray-200 text-lg font-bold shadow-sm ${user.avatarClassName}`}
               >
                 {user.initials}
               </span>
@@ -601,7 +614,7 @@ export function UserDetailDrawer({
         </header>
 
         <nav
-          className="flex w-full shrink-0 gap-1 border-b border-gray-100 bg-white px-2 py-2"
+          className="flex w-full shrink-0 gap-1 border-b border-gray-200 bg-white px-2 py-2"
           aria-label="Seções do paciente"
         >
           {tabs.map((tab) => {
@@ -626,7 +639,7 @@ export function UserDetailDrawer({
         </nav>
 
         {showDrawerSearch ? (
-          <div className="shrink-0 border-b border-gray-100 bg-white px-5 py-3">
+          <div className="shrink-0 border-b border-gray-200 bg-white px-5 py-3">
             <label className="relative block">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
@@ -643,6 +656,16 @@ export function UserDetailDrawer({
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 no-scrollbar">
           {activeTab === 'resumo' && (
             <div className="space-y-4">
+              {extraContextItems.length > 0 ? (
+                <SectionCard title="Vínculo contratual">
+                  <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    {extraContextItems.map((item) => (
+                      <DetailField key={item.label} label={item.label} value={item.value} />
+                    ))}
+                  </dl>
+                </SectionCard>
+              ) : null}
+
               <SectionCard title="Comunicação com o paciente">
                 {lastTeamContact ? (
                   <p className="text-sm text-gray-600">
@@ -988,7 +1011,7 @@ export function UserDetailDrawer({
                 filteredConsultations.map((item) => (
                   <article
                     key={item.id}
-                    className="rounded-2xl border border-gray-100 bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
+                    className="rounded-2xl border border-gray-200 bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -1015,6 +1038,9 @@ export function UserDetailDrawer({
             <div className="space-y-4">
               <SectionCard title="Informações do cadastro">
                 <dl className="grid grid-cols-1 gap-4">
+                  {extraContextItems.map((item) => (
+                    <DetailField key={`cad-${item.label}`} label={item.label} value={item.value} />
+                  ))}
                   <DetailField label="Cadastrado em" value={profile.registeredAt} />
                   <DetailField label="Unidade" value={profile.registrationUnit} />
                   <DetailField label="Total de atendimentos" value={String(user.totalAppointments)} />
@@ -1057,7 +1083,7 @@ export function UserDetailDrawer({
                     {filteredAnnotations.map((item) => (
                       <li
                         key={item.id}
-                        className="rounded-xl border border-gray-100 bg-white p-3.5 shadow-[0_2px_8px_rgba(0,0,0,0.03)]"
+                        className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-[0_2px_8px_rgba(0,0,0,0.03)]"
                       >
                         <p className="text-sm leading-relaxed text-gray-800">{item.text}</p>
                         <p className="mt-2 text-[11px] font-medium text-gray-400">
@@ -1190,7 +1216,7 @@ export function UserDetailDrawer({
         </div>
 
         {isEditing ? (
-          <footer className="flex shrink-0 justify-end gap-2 border-t border-gray-100 bg-white px-5 py-3">
+          <footer className="flex shrink-0 justify-end gap-2 border-t border-gray-200 bg-white px-5 py-3">
             <button
               type="button"
               onClick={handleCancelEdit}

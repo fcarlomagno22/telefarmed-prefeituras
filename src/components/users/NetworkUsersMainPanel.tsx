@@ -10,6 +10,7 @@ import {
   UsersRound,
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
+import { KpiStatCards } from '../ui/KpiStatCards'
 import { Toast } from '../ui/Toast'
 import {
   networkUsers,
@@ -38,8 +39,17 @@ import {
 import type { PatientContact } from '../../data/unitDashboardMock'
 import { getNetworkUserProfile } from '../../data/networkUserProfiles'
 import { getLoggedOperatorName } from '../../utils/sessionUser'
+import {
+  applyNetworkUsersFilters,
+  countActiveNetworkUserFilters,
+  defaultNetworkUsersFilters,
+  getAvailableNeighborhoods,
+  getAvailableRegistrationUnits,
+  type NetworkUsersFilters,
+} from '../../utils/networkUsersFilters'
 import { EditUnlockModal } from './EditUnlockModal'
 import { LgpdUnlockModal } from './LgpdUnlockModal'
+import { NetworkUsersFiltersMenu } from './NetworkUsersFiltersMenu'
 import { UserDetailDrawer } from './UserDetailDrawer'
 
 function formatNumber(value: number) {
@@ -117,6 +127,8 @@ function filterUsers(query: string, users: NetworkUser[]) {
 
 export function NetworkUsersMainPanel() {
   const [search, setSearch] = useState('')
+  const [filters, setFilters] = useState<NetworkUsersFilters>(defaultNetworkUsersFilters)
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [sensitiveDataUnlocked, setSensitiveDataUnlocked] = useState(false)
   const [unlockModalOpen, setUnlockModalOpen] = useState(false)
   const [toast, setToast] = useState<{ message: string } | null>(null)
@@ -128,7 +140,7 @@ export function NetworkUsersMainPanel() {
   const [userEditsMap, setUserEditsMap] = useState<Record<string, UserProfileEdits>>({})
   const [annotationsMap, setAnnotationsMap] = useState<Record<string, UserAnnotation[]>>({})
   const [lastReviewedMap, setLastReviewedMap] = useState<Record<string, string>>({})
-  const [, setChangeLogsMap] = useState<Record<string, ChangeLogEntry[]>>({})
+  const [changeLogsMap, setChangeLogsMap] = useState<Record<string, ChangeLogEntry[]>>({})
   const [contactLogsMap, setContactLogsMap] = useState<Record<string, PatientContactLogEntry[]>>({
     '1': [
       {
@@ -171,14 +183,40 @@ export function NetworkUsersMainPanel() {
     }
   }
 
-  const filteredUsers = useMemo(
-    () => filterUsers(search, networkUsers),
-    [search],
+  const filterContext = useMemo(
+    () => ({
+      userEditsMap,
+      annotationsMap,
+      lastReviewedMap,
+      contactLogsMap,
+      changeLogsMap,
+    }),
+    [userEditsMap, annotationsMap, lastReviewedMap, contactLogsMap, changeLogsMap],
   )
 
-  const { page, pageSize, total } = networkUsersPagination
-  const showingFrom = (page - 1) * pageSize + 1
-  const showingTo = Math.min(page * pageSize, total)
+  const searchedUsers = useMemo(() => filterUsers(search, networkUsers), [search])
+
+  const filteredUsers = useMemo(
+    () => applyNetworkUsersFilters(searchedUsers, filters, filterContext),
+    [searchedUsers, filters, filterContext],
+  )
+
+  const availableNeighborhoods = useMemo(
+    () => getAvailableNeighborhoods(networkUsers),
+    [],
+  )
+
+  const availableRegistrationUnits = useMemo(
+    () => getAvailableRegistrationUnits(networkUsers),
+    [],
+  )
+
+  const activeFilterCount = useMemo(() => countActiveNetworkUserFilters(filters), [filters])
+
+  const { page, pageSize } = networkUsersPagination
+  const totalFiltered = filteredUsers.length
+  const showingFrom = totalFiltered === 0 ? 0 : (page - 1) * pageSize + 1
+  const showingTo = Math.min(page * pageSize, totalFiltered)
 
   function phoneForUser(user: NetworkUser) {
     return userEditsMap[user.id]?.phone ?? user.phone
@@ -306,8 +344,8 @@ export function NetworkUsersMainPanel() {
 
   return (
     <>
-      <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-        <div className="shrink-0 border-b border-gray-100 px-5 py-5 sm:px-6 sm:py-6">
+      <section className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
+        <div className="shrink-0 border-b border-gray-200 px-5 py-5 sm:px-6 sm:py-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <h2 className="text-lg font-bold text-gray-900">Todos os usuários</h2>
@@ -316,7 +354,7 @@ export function NetworkUsersMainPanel() {
               </p>
             </div>
 
-            <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:max-w-xl">
+            <div className="relative flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:max-w-xl">
               <label className="relative min-w-0 flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
@@ -328,46 +366,44 @@ export function NetworkUsersMainPanel() {
                 />
               </label>
               <button
+                id="network-users-filter-trigger"
                 type="button"
-                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                onClick={() => setFiltersOpen((open) => !open)}
+                aria-expanded={filtersOpen}
+                aria-haspopup="dialog"
+                className={[
+                  'relative inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition',
+                  filtersOpen || activeFilterCount > 0
+                    ? 'border-[var(--brand-primary)] bg-[var(--brand-primary-light)] text-[var(--brand-primary)]'
+                    : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
+                ].join(' ')}
               >
                 <Filter className="h-4 w-4" strokeWidth={2} />
                 Filtros
+                {activeFilterCount > 0 ? (
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--brand-primary)] px-1.5 text-[10px] font-bold text-white">
+                    {activeFilterCount}
+                  </span>
+                ) : null}
               </button>
+
+              <NetworkUsersFiltersMenu
+                open={filtersOpen}
+                filters={filters}
+                neighborhoods={availableNeighborhoods}
+                registrationUnits={availableRegistrationUnits}
+                resultCount={filteredUsers.length}
+                onClose={() => setFiltersOpen(false)}
+                onChange={setFilters}
+                onClear={() => setFilters(defaultNetworkUsersFilters)}
+              />
             </div>
           </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {kpiCards.map((card) => {
-              const Icon = card.icon
-              return (
-                <article
-                  key={card.label}
-                  className="group relative flex items-center gap-3 rounded-2xl border border-gray-100/90 bg-gradient-to-b from-white to-gray-50/50 px-4 py-3.5 shadow-[0_2px_16px_rgba(0,0,0,0.04)] transition hover:border-gray-200/90 hover:shadow-[0_4px_24px_rgba(0,0,0,0.06)]"
-                >
-                  <span
-                    className={`absolute inset-x-4 top-0 h-0.5 rounded-full bg-gradient-to-r ${card.topBar} opacity-80`}
-                    aria-hidden
-                  />
-                  <span
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${card.iconGradient} text-white ring-[3px] ${card.iconRing} ${card.iconShadow}`}
-                  >
-                    <Icon className="h-[18px] w-[18px]" strokeWidth={2.25} />
-                  </span>
-                  <span className="min-w-0 flex-1 text-center">
-                    <span className="block text-xs font-medium text-gray-500">{card.label}</span>
-                    <span className="mt-0.5 block text-xl font-bold leading-tight tracking-tight text-gray-900">
-                      {card.value}
-                    </span>
-                    <span className="mt-0.5 block text-xs text-gray-500">{card.suffix}</span>
-                  </span>
-                </article>
-              )
-            })}
-          </div>
+          <KpiStatCards items={[...kpiCards]} className="mt-5" />
         </div>
 
-        <div className="flex shrink-0 items-center justify-end gap-3 border-b border-gray-100 bg-gray-50/60 px-5 py-2 sm:px-6">
+        <div className="flex shrink-0 items-center justify-end gap-3 border-b border-gray-200 bg-gray-50/60 px-5 py-2 sm:px-6">
           {!sensitiveDataUnlocked ? (
             <>
               <span className="mr-auto text-xs text-gray-500">
@@ -397,7 +433,7 @@ export function NetworkUsersMainPanel() {
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-auto">
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
           <table className="w-full table-fixed border-collapse text-left">
             <colgroup>
               <col className="w-[24%]" />
@@ -420,6 +456,13 @@ export function NetworkUsersMainPanel() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-5 py-12 text-center text-sm text-gray-500 sm:px-6">
+                    Nenhum paciente encontrado com os filtros e a busca atuais.
+                  </td>
+                </tr>
+              ) : null}
               {filteredUsers.map((user) => (
                 <tr key={user.id} className="align-middle text-sm text-gray-700 hover:bg-gray-50/80">
                   <td className="px-5 py-4 sm:px-6">
@@ -429,7 +472,7 @@ export function NetworkUsersMainPanel() {
                           src={user.avatarUrl}
                           alt=""
                           loading="lazy"
-                          className="h-10 w-10 shrink-0 rounded-full border border-gray-100 object-cover shadow-sm"
+                          className="h-10 w-10 shrink-0 rounded-full border border-gray-200 object-cover shadow-sm"
                         />
                       ) : (
                         <span
@@ -485,9 +528,14 @@ export function NetworkUsersMainPanel() {
           </table>
         </div>
 
-        <footer className="flex shrink-0 flex-col gap-3 border-t border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <footer className="flex shrink-0 flex-col gap-3 border-t border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p className="text-xs text-gray-500">
-            Mostrando {showingFrom} a {showingTo} de {formatNumber(total)} usuários
+            {totalFiltered === 0
+              ? 'Nenhum usuário na lista filtrada'
+              : `Mostrando ${showingFrom} a ${showingTo} de ${formatNumber(totalFiltered)} usuário${totalFiltered === 1 ? '' : 's'}`}
+            {activeFilterCount > 0 || search.trim()
+              ? ` (de ${formatNumber(networkUsersSummary.totalUsers)} na rede)`
+              : ''}
           </p>
           <nav className="flex items-center gap-1" aria-label="Paginação">
             <button

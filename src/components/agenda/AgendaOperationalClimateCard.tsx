@@ -25,7 +25,7 @@ export function AgendaOperationalClimateCard({
   }, [hourlySlots])
 
   return (
-    <section className="shrink-0 rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+    <section className="shrink-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
       <header>
         <h2 className="text-lg font-bold text-gray-900">Clima operacional</h2>
         <p className="mt-0.5 text-xs text-gray-500">Planeje a equipe pelo volume do dia</p>

@@ -1,11 +1,15 @@
 import { Camera, Loader2, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import type { PatientRegistration } from '../../data/unitDashboardMock'
+import {
+  getPatientPreferredName,
+  type PatientRegistration,
+} from '../../data/unitDashboardMock'
 import { CustomSelect } from '../ui/CustomSelect'
 import { maskCep, maskPhone } from '../../utils/masks'
 import { AttendanceStepFooter } from './AttendanceStepFooter'
 import { AttendanceStepShell } from './AttendanceStepShell'
+import { PatientSocialNameFields } from './PatientSocialNameFields'
 
 type PatientRegistrationConfirmStepProps = {
   data: PatientRegistration
@@ -13,6 +17,10 @@ type PatientRegistrationConfirmStepProps = {
   onSubmit: () => void
   onBack: () => void
   onOpenPhotoCapture: () => void
+  /** Oculta seção de foto (ex.: agendamento pela agenda). */
+  hidePhoto?: boolean
+  continueLabel?: string
+  embedded?: boolean
 }
 
 const inputClass =
@@ -38,6 +46,9 @@ export function PatientRegistrationConfirmStep({
   onSubmit,
   onBack,
   onOpenPhotoCapture,
+  hidePhoto = false,
+  continueLabel = 'Confirmar',
+  embedded = false,
 }: PatientRegistrationConfirmStepProps) {
   const [isLoadingCep, setIsLoadingCep] = useState(false)
   const [cepMessage, setCepMessage] = useState<string | null>(null)
@@ -84,12 +95,17 @@ export function PatientRegistrationConfirmStep({
 
   return (
     <AttendanceStepShell
+      embedded={embedded}
       title="Confirme seu cadastro"
-      description="Você já possui cadastro. Revise telefone, e-mail, endereço e foto se desejar — todos os campos abaixo são opcionais."
+      description={
+        hidePhoto
+          ? 'Você já possui cadastro. Revise telefone, e-mail e endereço e confirme se os dados estão atualizados.'
+          : 'Você já possui cadastro. Revise telefone, e-mail, endereço e foto se desejar — todos os campos abaixo são opcionais.'
+      }
       footer={
         <AttendanceStepFooter
           onBack={onBack}
-          continueLabel="Confirmar"
+          continueLabel={continueLabel}
           continueType="submit"
           formId="patient-confirm-registration-form"
           continueReady
@@ -101,7 +117,7 @@ export function PatientRegistrationConfirmStep({
         onSubmit={handleSubmit}
         className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto no-scrollbar"
       >
-        <section className="shrink-0 rounded-2xl border border-gray-100 bg-white shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
+        <section className="shrink-0 rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
           <div className="overflow-visible rounded-t-2xl bg-gradient-to-r from-[var(--brand-primary-light)] via-orange-50/90 to-gray-50 px-5 py-3.5 sm:px-6 sm:py-4">
             <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-5">
               <div className="relative shrink-0">
@@ -112,7 +128,7 @@ export function PatientRegistrationConfirmStep({
                   >
                     <img
                       src={data.photoDataUrl}
-                      alt={`Foto de ${data.fullName}`}
+                      alt={`Foto de ${getPatientPreferredName(data)}`}
                       className="size-full object-cover object-center"
                     />
                   </div>
@@ -131,33 +147,47 @@ export function PatientRegistrationConfirmStep({
                   Paciente cadastrado
                 </p>
                 <h2 className="mt-0.5 text-lg font-bold leading-tight text-gray-900 sm:text-xl">
-                  {data.fullName}
+                  {getPatientPreferredName(data)}
                 </h2>
+                {data.socialName.trim() ? (
+                  <p className="mt-0.5 text-xs text-gray-600">
+                    Nome civil: <span className="font-medium">{data.fullName}</span>
+                  </p>
+                ) : null}
                 <p className="mt-0.5 font-mono text-sm tracking-wide text-gray-500">{data.cpf}</p>
               </div>
             </div>
           </div>
 
-          <div className="px-5 pb-5 pt-4 sm:px-6 sm:pb-6">
-            <div className="flex flex-col gap-2 border-t border-gray-100 pt-4 sm:flex-row sm:items-center">
-              <button
-                type="button"
-                onClick={onOpenPhotoCapture}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
-              >
-                <Camera className="h-4 w-4 shrink-0" strokeWidth={2} />
-                {data.photoDataUrl ? 'Atualizar foto' : 'Tirar foto'}
-              </button>
-              <button
-                type="button"
-                onClick={onOpenPhotoCapture}
-                disabled={!data.photoDataUrl}
-                className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-transparent px-5 py-2.5 text-sm font-semibold text-gray-600 transition hover:border-amber-300 hover:bg-amber-50/50 hover:text-amber-800 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:hover:border-gray-200 disabled:hover:bg-transparent disabled:hover:text-gray-400"
-              >
-                Capturar novamente
-              </button>
+          {!hidePhoto ? (
+            <div className="px-5 pb-5 pt-4 sm:px-6 sm:pb-6">
+              <div className="flex flex-col gap-2 border-t border-gray-200 pt-4 sm:flex-row sm:items-center">
+                <button
+                  type="button"
+                  onClick={onOpenPhotoCapture}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
+                >
+                  <Camera className="h-4 w-4 shrink-0" strokeWidth={2} />
+                  {data.photoDataUrl ? 'Atualizar foto' : 'Tirar foto'}
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenPhotoCapture}
+                  disabled={!data.photoDataUrl}
+                  className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-transparent px-5 py-2.5 text-sm font-semibold text-gray-600 transition hover:border-amber-300 hover:bg-amber-50/50 hover:text-amber-800 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:hover:border-gray-200 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                >
+                  Capturar novamente
+                </button>
+              </div>
             </div>
-          </div>
+          ) : null}
+        </section>
+
+        <section className="shrink-0">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Identificação
+          </p>
+          <PatientSocialNameFields data={data} onChange={onChange} inputClass={inputClass} />
         </section>
 
         <section className="shrink-0">

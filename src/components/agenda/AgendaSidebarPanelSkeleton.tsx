@@ -21,11 +21,11 @@ function PixelChartRowSkeleton() {
 export function AgendaSidebarPanelSkeleton() {
   return (
     <aside
-      className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto"
+      className="flex w-full flex-col gap-4"
       aria-busy="true"
       aria-label="Carregando painel lateral da agenda"
     >
-      <section className="shrink-0 rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+      <section className="shrink-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
         <Skeleton className="h-6 w-32" />
         <div className="mt-4 space-y-2.5">
           {Array.from({ length: QUICK_ACTION_COUNT }).map((_, index) => (
@@ -35,7 +35,7 @@ export function AgendaSidebarPanelSkeleton() {
                 'flex items-center gap-3 rounded-xl px-4 py-3',
                 index === 0
                   ? 'bg-gray-200/60'
-                  : 'border border-gray-100 bg-gray-50/50',
+                  : 'border border-gray-200 bg-gray-50/60',
               ].join(' ')}
             >
               <Skeleton className="size-9 shrink-0 rounded-lg" />
@@ -48,10 +48,10 @@ export function AgendaSidebarPanelSkeleton() {
         </div>
       </section>
 
-      <section className="shrink-0 rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+      <section className="shrink-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
         <Skeleton className="h-6 w-36" />
 
-        <div className="mt-4 flex items-center justify-between gap-3 border-b border-gray-100 pb-4">
+        <div className="mt-4 flex items-center justify-between gap-3 border-b border-gray-200 pb-4">
           <Skeleton className="h-4 w-36" />
           <Skeleton className="h-8 w-10" />
         </div>
@@ -62,7 +62,7 @@ export function AgendaSidebarPanelSkeleton() {
           ))}
         </div>
 
-        <div className="mt-5 border-t border-gray-100 pt-4">
+        <div className="mt-5 border-t border-gray-200 pt-4">
           <div className="flex items-end justify-between gap-2">
             <Skeleton className="h-4 w-40" />
             <Skeleton className="h-8 w-14" />
@@ -71,7 +71,7 @@ export function AgendaSidebarPanelSkeleton() {
         </div>
       </section>
 
-      <section className="shrink-0 rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+      <section className="shrink-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
         <Skeleton className="h-6 w-40" />
         <Skeleton className="mt-2 h-3 w-48" />
 
@@ -83,13 +83,6 @@ export function AgendaSidebarPanelSkeleton() {
               <Skeleton className="h-3 w-6" />
             </div>
           ))}
-        </div>
-      </section>
-
-      <section className="shrink-0 rounded-xl bg-gray-100/80 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Skeleton className="size-4 shrink-0 rounded" />
-          <Skeleton className="h-3 flex-1 max-w-[220px]" />
         </div>
       </section>
     </aside>

@@ -5,11 +5,11 @@ const TABLE_ROW_COUNT = 7
 export function NetworkUsersMainPanelSkeleton() {
   return (
     <section
-      className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
+      className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]"
       aria-busy="true"
       aria-label="Carregando lista de usuários"
     >
-      <div className="shrink-0 border-b border-gray-100 px-5 py-5 sm:px-6 sm:py-6">
+      <div className="shrink-0 border-b border-gray-200 px-5 py-5 sm:px-6 sm:py-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
             <Skeleton className="h-6 w-40" />
@@ -25,7 +25,7 @@ export function NetworkUsersMainPanelSkeleton() {
           {Array.from({ length: 4 }).map((_, index) => (
             <div
               key={index}
-              className="flex items-center gap-3 rounded-2xl border border-gray-100/90 bg-gray-50/50 px-4 py-3.5"
+              className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-gray-50/50 px-4 py-3.5"
             >
               <Skeleton className="size-10 shrink-0 rounded-xl" />
               <div className="min-w-0 flex-1 space-y-2">
@@ -38,13 +38,13 @@ export function NetworkUsersMainPanelSkeleton() {
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-3 border-b border-gray-100 bg-gray-50/60 px-5 py-3 sm:px-6">
+      <div className="flex shrink-0 items-center gap-3 border-b border-gray-200 bg-gray-50/60 px-5 py-3 sm:px-6">
         <Skeleton className="h-3 w-48 max-w-[60%]" />
         <Skeleton className="ml-auto h-4 w-20" />
       </div>
 
       <div className="min-h-0 flex-1 overflow-hidden px-5 py-3 sm:px-6">
-        <div className="mb-3 flex gap-3 border-b border-gray-100 pb-3">
+        <div className="mb-3 flex gap-3 border-b border-gray-200 pb-3">
           <Skeleton className="h-3 w-[24%]" />
           <Skeleton className="h-3 w-[12%]" />
           <Skeleton className="h-3 w-[12%]" />
@@ -71,7 +71,7 @@ export function NetworkUsersMainPanelSkeleton() {
         </ul>
       </div>
 
-      <footer className="flex shrink-0 flex-col gap-3 border-t border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <footer className="flex shrink-0 flex-col gap-3 border-t border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <Skeleton className="h-3 w-52" />
         <div className="flex items-center gap-1">
           {Array.from({ length: 6 }).map((_, index) => (

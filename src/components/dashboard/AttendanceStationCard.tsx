@@ -1,9 +1,13 @@
-import { Monitor } from 'lucide-react'
+import { Loader2, Monitor } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import type { WaitingQueueEntry } from '../../data/waitingQueueStore'
+import { buildAttendanceStartFromQueueEntry } from '../../utils/triage/buildAttendanceStartFromQueueEntry'
 import { brand } from '../../config/brand'
 import {
   emptyAttendanceSession,
   emptyPatientRegistration,
+  getPatientPreferredName,
   inferAgeGroupFromBirthDate,
   registrationToPatient,
   type AttendanceSession,
@@ -14,7 +18,8 @@ import {
 } from '../../data/unitDashboardMock'
 import { AttendanceFlowStepper, isFlowStepStatus } from './AttendanceFlowStepper'
 import { AgeGroupSelectionStep } from './AgeGroupSelectionStep'
-import { readConsultationLockFromStorage } from '../../hooks/useConsultationSessionGuard'
+import { registerCompletedPatient } from '../../data/patientLookup'
+import { readConsultationLockFromStorage, writeConsultationLockToStorage } from '../../hooks/useConsultationSessionGuard'
 import { ConsultationLockOverlay } from './ConsultationLockOverlay'
 import { CpfLookupStep } from './CpfLookupStep'
 import { PatientPanel } from './PatientPanel'
@@ -26,10 +31,15 @@ import { PatientRegistrationConfirmStep } from './PatientRegistrationConfirmStep
 import { PatientRegistrationForm } from './PatientRegistrationForm'
 import { SpecialtySelectionStep } from './SpecialtySelectionStep'
 import { WaitingRoomPanel } from './WaitingRoomPanel'
+import {
+  clearWaitingRoomSession,
+  formatWaitingRoomScheduledAt,
+  writeWaitingRoomSession,
+} from '../../data/waitingRoomSession'
 
 const statusLabels: Record<StationStatus, { label: string; className: string }> = {
   idle: {
-    label: 'Posto disponível',
+    label: 'Terminal disponível',
     className: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
   },
   specialty: {
@@ -213,7 +223,18 @@ function CardBackgroundImage({ layer }: CardBackgroundImageProps) {
   )
 }
 
-export function AttendanceStationCard() {
+type AttendanceStationCardProps = {
+  queueCallTarget?: WaitingQueueEntry | null
+  onQueueCallHandled?: () => void
+  onAttendanceActiveChange?: (active: boolean) => void
+}
+
+export function AttendanceStationCard({
+  queueCallTarget = null,
+  onQueueCallHandled,
+  onAttendanceActiveChange,
+}: AttendanceStationCardProps) {
+  const navigate = useNavigate()
   const [status, setStatus] = useState<StationStatus>(() =>
     readConsultationLockFromStorage() ? 'waiting_doctor' : 'idle',
   )
@@ -223,6 +244,39 @@ export function AttendanceStationCard() {
   )
   const [patient, setPatient] = useState<RegisteredPatient | null>(null)
   const [photoCaptureOpen, setPhotoCaptureOpen] = useState(false)
+  const [pendingFirstVisit, setPendingFirstVisit] = useState(false)
+  const [isLoadingFromQueue, setIsLoadingFromQueue] = useState(false)
+  const [calledFromQueueName, setCalledFromQueueName] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!queueCallTarget) return
+
+    let cancelled = false
+    setIsLoadingFromQueue(true)
+    setCalledFromQueueName(queueCallTarget.patientName)
+
+    void buildAttendanceStartFromQueueEntry(queueCallTarget).then((start) => {
+      if (cancelled) return
+      setPhotoCaptureOpen(false)
+      setRegistration(start.registration)
+      setSession(start.session)
+      setPendingFirstVisit(start.pendingFirstVisit)
+      setPatient(null)
+      setStatus(start.initialStatus)
+      setIsLoadingFromQueue(false)
+      onQueueCallHandled?.()
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [queueCallTarget, onQueueCallHandled])
+
+  const isAttendanceActive = status !== 'idle' || isLoadingFromQueue
+
+  useEffect(() => {
+    onAttendanceActiveChange?.(isAttendanceActive)
+  }, [isAttendanceActive, onAttendanceActiveChange])
 
   const statusInfo = statusLabels[status]
   const isFlowStep = flowSteps.includes(status)
@@ -235,7 +289,11 @@ export function AttendanceStationCard() {
   )
 
   function resetToIdle() {
+    clearWaitingRoomSession()
+    writeConsultationLockToStorage(false)
     setPhotoCaptureOpen(false)
+    setPendingFirstVisit(false)
+    setCalledFromQueueName(null)
     setStatus('idle')
     setSession(emptyAttendanceSession())
     setRegistration(emptyPatientRegistration())
@@ -243,21 +301,34 @@ export function AttendanceStationCard() {
   }
 
   function goToWaitingRoom(registrationData: PatientRegistration) {
+    if (pendingFirstVisit) {
+      registerCompletedPatient(registrationData)
+      setPendingFirstVisit(false)
+    }
     setRegistration(registrationData)
     setPatient(registrationToPatient(registrationData, session.specialtyName))
     setStatus('waiting_room')
   }
 
   function handleAccessWaitingRoom() {
-    window.open('about:blank', '_blank', 'noopener,noreferrer')
+    writeWaitingRoomSession({
+      patientName: getPatientPreferredName(registration),
+      specialty: session.specialtyName,
+      unitName: unitStation.unitName,
+      scheduledAt: formatWaitingRoomScheduledAt(),
+      professional: 'A definir',
+      estimatedMinutes: 25,
+      queuePosition: 3,
+      queueTotal: 8,
+    })
+    writeConsultationLockToStorage(true)
     setStatus('waiting_doctor')
+    navigate('/sala-de-espera')
   }
 
   return (
     <section
-      className={`relative flex h-full min-h-0 flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] sm:p-8 ${
-        'overflow-hidden'
-      }`}
+      className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)] sm:p-8"
     >
       <header className="relative z-10 flex flex-wrap items-start justify-between gap-4">
         <span>
@@ -280,7 +351,23 @@ export function AttendanceStationCard() {
 
       {isFlowStepStatus(status) ? <AttendanceFlowStepper status={status} /> : null}
 
-      {status === 'idle' && (
+      {calledFromQueueName && isFlowStep && !isLoadingFromQueue ? (
+        <p className="relative z-10 mt-3 rounded-xl border border-orange-200/90 bg-orange-50/90 px-4 py-2.5 text-sm text-orange-900/90">
+          <strong className="font-semibold">{calledFromQueueName}</strong> chamado(a) da
+          fila — especialidade{' '}
+          <strong className="font-semibold">{session.specialtyName}</strong>. Dados
+          carregados automaticamente.
+        </p>
+      ) : null}
+
+      {isLoadingFromQueue ? (
+        <div className="relative z-10 mt-6 flex min-h-0 flex-1 flex-col items-center justify-center gap-3 rounded-2xl border border-orange-100 bg-orange-50/50 px-6 py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--brand-primary)]" />
+          <p className="text-sm font-medium text-gray-700">Carregando dados do paciente…</p>
+        </div>
+      ) : null}
+
+      {!isLoadingFromQueue && status === 'idle' && (
         <article className="relative z-10 mt-6 flex min-h-0 flex-1 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/80 px-6 py-8 text-center sm:mt-8 sm:px-10 sm:py-10">
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-gray-100">
             <Monitor
@@ -289,7 +376,7 @@ export function AttendanceStationCard() {
             />
           </span>
           <h3 className="mt-5 text-lg font-bold text-gray-900 sm:text-xl">
-            Nenhum paciente neste posto
+            Nenhum paciente neste Terminal
           </h3>
           <p className="mt-3 max-w-lg text-base leading-relaxed text-gray-500 sm:text-[17px]">
             {brand.dashboardStationIdleHint}
@@ -304,7 +391,7 @@ export function AttendanceStationCard() {
         </article>
       )}
 
-      {status === 'specialty' && (
+      {!isLoadingFromQueue && status === 'specialty' && (
         <SpecialtySelectionStep
           selectedId={session.specialtyId}
           onSelect={(id, name) =>
@@ -319,11 +406,12 @@ export function AttendanceStationCard() {
         />
       )}
 
-      {status === 'cpf_lookup' && (
+      {!isLoadingFromQueue && status === 'cpf_lookup' && (
         <CpfLookupStep
           cpf={registration.cpf}
           onChangeCpf={(cpf) => setRegistration((prev) => ({ ...prev, cpf }))}
           onFound={(found) => {
+            setPendingFirstVisit(false)
             setRegistration(found)
             setSession((prev) => ({
               ...prev,
@@ -331,7 +419,19 @@ export function AttendanceStationCard() {
             }))
             setStatus('confirm_registration')
           }}
+          onFoundPendingFirstVisit={({ patient, specialtyId, specialtyName }) => {
+            setPendingFirstVisit(true)
+            setRegistration({ ...patient, photoDataUrl: '' })
+            setSession((prev) => ({
+              ...prev,
+              ageGroup: inferAgeGroupFromBirthDate(patient.birthDate),
+              specialtyId,
+              specialtyName,
+            }))
+            setStatus('registration')
+          }}
           onNotFound={(cpf) => {
+            setPendingFirstVisit(false)
             setRegistration({
               ...emptyPatientRegistration(),
               cpf,
@@ -343,7 +443,7 @@ export function AttendanceStationCard() {
         />
       )}
 
-      {status === 'confirm_registration' && (
+      {!isLoadingFromQueue && status === 'confirm_registration' && (
         <PatientRegistrationConfirmStep
           data={registration}
           onChange={setRegistration}
@@ -353,7 +453,7 @@ export function AttendanceStationCard() {
         />
       )}
 
-      {status === 'age_group' && (
+      {!isLoadingFromQueue && status === 'age_group' && (
         <AgeGroupSelectionStep
           selected={session.ageGroup}
           onSelect={(group) =>
@@ -367,18 +467,25 @@ export function AttendanceStationCard() {
         />
       )}
 
-      {status === 'registration' && (
+      {!isLoadingFromQueue && status === 'registration' && (
         <PatientRegistrationForm
           data={registration}
           ageGroup={session.ageGroup ?? 'adult'}
           cpfLocked
+          description={
+            pendingFirstVisit
+              ? `Consulta agendada em ${session.specialtyName}. Revise e complete os dados do paciente antes de seguir.`
+              : undefined
+          }
           onChange={setRegistration}
           onSubmit={() => setStatus('contacts')}
-          onBack={() => setStatus('age_group')}
+          onBack={() =>
+            pendingFirstVisit ? setStatus('cpf_lookup') : setStatus('age_group')
+          }
         />
       )}
 
-      {status === 'contacts' && (
+      {!isLoadingFromQueue && status === 'contacts' && (
         <PatientContactsStep
           data={registration}
           onChange={setRegistration}
@@ -387,7 +494,7 @@ export function AttendanceStationCard() {
         />
       )}
 
-      {status === 'address' && (
+      {!isLoadingFromQueue && status === 'address' && (
         <PatientAddressStep
           data={registration}
           onChange={setRegistration}
@@ -396,9 +503,14 @@ export function AttendanceStationCard() {
         />
       )}
 
-      {status === 'photo' && (
+      {!isLoadingFromQueue && status === 'photo' && (
         <PatientPhotoStep
           photoDataUrl={registration.photoDataUrl}
+          description={
+            pendingFirstVisit
+              ? 'Primeira visita após agendamento: a foto é obrigatória para liberar o atendimento na sala de espera.'
+              : undefined
+          }
           onOpenCapture={() => setPhotoCaptureOpen(true)}
           onContinue={() => goToWaitingRoom(registration)}
           onBack={() => setStatus('address')}
@@ -414,7 +526,7 @@ export function AttendanceStationCard() {
         }}
       />
 
-      {status === 'waiting_room' && (
+      {!isLoadingFromQueue && status === 'waiting_room' && (
         <WaitingRoomPanel
           onAccessWaitingRoom={handleAccessWaitingRoom}
           onCancel={resetToIdle}
@@ -423,7 +535,7 @@ export function AttendanceStationCard() {
 
       <ConsultationLockOverlay active={status === 'waiting_doctor'} onComplete={resetToIdle} />
 
-      {status === 'in_consultation' && patient && (
+      {!isLoadingFromQueue && status === 'in_consultation' && patient && (
         <PatientPanel
           patient={patient}
           hint="Consulta em andamento. Este equipamento está em uso por um único paciente."
@@ -432,7 +544,7 @@ export function AttendanceStationCard() {
             onClick: () => undefined,
           }}
           secondaryAction={{
-            label: 'Finalizar e liberar posto',
+            label: 'Finalizar e liberar Terminal',
             onClick: resetToIdle,
             variant: 'finish',
           }}

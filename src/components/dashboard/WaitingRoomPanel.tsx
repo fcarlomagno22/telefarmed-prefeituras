@@ -1,4 +1,4 @@
-import { ExternalLink, Loader2 } from 'lucide-react'
+import { ArrowRight, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 type WaitingRoomPanelProps = {
@@ -27,20 +27,19 @@ export function WaitingRoomPanel({ onAccessWaitingRoom, onCancel }: WaitingRoomP
       ) : (
         <span className="flex w-full max-w-md flex-col items-center">
           <span className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
-            <ExternalLink className="h-6 w-6" strokeWidth={2} />
+            <ArrowRight className="h-6 w-6" strokeWidth={2} />
           </span>
           <h3 className="text-lg font-bold text-gray-900">Sala de espera pronta</h3>
           <p className="mt-3 text-sm leading-relaxed text-gray-500">
-            Por segurança, a sala de espera será aberta em uma{' '}
-            <strong className="font-semibold text-gray-700">nova janela</strong> do
-            navegador. Mantenha o paciente neste computador até o médico entrar.
+            O paciente será direcionado para a sala de espera virtual neste navegador. Mantenha o
+            equipamento disponível até o médico entrar.
           </p>
           <button
             type="button"
             onClick={onAccessWaitingRoom}
             className="mt-8 inline-flex items-center gap-2 rounded-xl bg-[var(--brand-primary)] px-8 py-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
           >
-            <ExternalLink className="h-4 w-4" strokeWidth={2} />
+            <ArrowRight className="h-4 w-4" strokeWidth={2} />
             Acessar sala de espera
           </button>
           <button

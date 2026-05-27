@@ -29,7 +29,7 @@ export function QuickActionsRow() {
             <li key={action.id}>
               <button
                 type="button"
-                className="group relative flex h-full min-h-[108px] w-full flex-col items-center justify-center rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition hover:border-[var(--brand-primary)]/20 hover:shadow-md"
+                className="group relative flex h-full min-h-[108px] w-full flex-col items-center justify-center rounded-2xl border border-gray-200 bg-white p-4 text-center shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)] transition hover:border-[var(--brand-primary)]/20 hover:shadow-md"
               >
                 <Icon
                   className="mb-2 h-6 w-6 text-[var(--brand-primary)]"

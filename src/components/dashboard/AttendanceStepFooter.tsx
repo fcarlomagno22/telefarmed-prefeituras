@@ -28,20 +28,22 @@ export function AttendanceStepFooter({
     'w-full min-w-0 rounded-xl px-4 py-3 text-center text-sm font-semibold transition'
 
   function handleContinueClick(event: React.MouseEvent<HTMLButtonElement>) {
-    if (continueLoading) {
-      event.preventDefault()
-      return
-    }
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (continueLoading) return
 
     if (!continueReady) {
-      event.preventDefault()
       onContinueBlocked?.()
       return
     }
 
-    if (continueType === 'button' && onContinue) {
-      onContinue()
+    if (continueType === 'submit' && formId) {
+      document.getElementById(formId)?.requestSubmit()
+      return
     }
+
+    onContinue?.()
   }
 
   const showContinue = onContinue || continueType === 'submit'
@@ -58,8 +60,7 @@ export function AttendanceStepFooter({
       </button>
       {showContinue ? (
         <button
-          type={continueReady && continueType === 'submit' ? 'submit' : 'button'}
-          form={continueReady && formId ? formId : undefined}
+          type="button"
           onClick={handleContinueClick}
           disabled={continueLoading}
           className={

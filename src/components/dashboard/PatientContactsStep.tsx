@@ -17,6 +17,7 @@ type PatientContactsStepProps = {
   onChange: (data: PatientRegistration) => void
   onSubmit: () => void
   onBack: () => void
+  embedded?: boolean
 }
 
 const inputClass =
@@ -59,10 +60,14 @@ export function PatientContactsStep({
   onChange,
   onSubmit,
   onBack,
+  embedded = false,
 }: PatientContactsStepProps) {
   const [submitted, setSubmitted] = useState(false)
 
-  const contacts = data.contacts.length > 0 ? data.contacts : [emptyPatientContact()]
+  const contacts =
+    Array.isArray(data.contacts) && data.contacts.length > 0
+      ? data.contacts
+      : [emptyPatientContact()]
 
   function updateContacts(next: PatientContact[]) {
     onChange({ ...data, contacts: next })
@@ -111,6 +116,7 @@ export function PatientContactsStep({
 
   return (
     <AttendanceStepShell
+      embedded={embedded}
       title="Dados de contato"
       description="Cadastre pessoas para contato em caso de necessidade. Você pode adicionar quantos contatos quiser."
       footer={
@@ -144,7 +150,7 @@ export function PatientContactsStep({
                 className="block"
               >
               <article
-                className="rounded-2xl border border-gray-100 bg-gray-50/80 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)]"
+                className="rounded-2xl border border-gray-200 bg-gray-50/80 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_2px_8px_rgba(0,0,0,0.04)]"
               >
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">

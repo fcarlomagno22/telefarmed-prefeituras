@@ -18,6 +18,7 @@ type PatientAddressStepProps = {
   onChange: (data: PatientRegistration) => void
   onSubmit: () => void
   onBack: () => void
+  embedded?: boolean
 }
 
 const inputClass =
@@ -42,6 +43,7 @@ export function PatientAddressStep({
   onChange,
   onSubmit,
   onBack,
+  embedded = false,
 }: PatientAddressStepProps) {
   const [isLoadingCep, setIsLoadingCep] = useState(false)
   const [cepMessage, setCepMessage] = useState<string | null>(null)
@@ -97,6 +99,7 @@ export function PatientAddressStep({
 
   return (
     <AttendanceStepShell
+      embedded={embedded}
       title="Endereço do paciente"
       description="Informe onde o paciente reside para concluir o cadastro."
       footer={

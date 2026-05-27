@@ -71,7 +71,7 @@ export function AttendanceFlowStepper({ status }: AttendanceFlowStepperProps) {
   return (
     <nav
       aria-label="Progresso do atendimento"
-      className="relative z-10 mt-4 shrink-0 rounded-xl border border-gray-100/90 bg-white/95 px-4 py-3 shadow-sm sm:mt-5 sm:px-5"
+      className="relative z-10 mt-4 shrink-0 rounded-xl border border-gray-200 bg-white/95 px-4 py-3 shadow-sm sm:mt-5 sm:px-5"
     >
             <div className="mb-3 flex items-center justify-between gap-3">
         <p className="text-xs font-medium tracking-wide text-gray-500">

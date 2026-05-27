@@ -7,6 +7,8 @@ export type CustomSelectOption = {
   label: string
 }
 
+type CustomSelectSize = 'default' | 'compact'
+
 type CustomSelectProps = {
   value: string
   onChange: (value: string) => void
@@ -14,15 +16,25 @@ type CustomSelectProps = {
   placeholder?: string
   required?: boolean
   className?: string
+  /** Alinha altura com inputs de formulário (`py-2 px-3`, `rounded-lg`). */
+  size?: CustomSelectSize
+  /** Largura mínima do painel (px). O menu usa o maior valor entre o botão e este mínimo. */
+  menuMinWidthPx?: number
 }
 
 const triggerBaseClass =
-  'flex w-full items-center justify-between gap-2 rounded-xl border border-gray-200/80 bg-white py-3 px-4 text-left text-sm outline-none transition focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15'
+  'flex w-full items-center justify-between gap-2 border border-gray-200/80 bg-white text-left text-sm outline-none transition focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15'
+
+const triggerSizeClass: Record<CustomSelectSize, string> = {
+  default: 'rounded-xl py-3 px-4',
+  compact: 'rounded-lg py-2 px-3',
+}
 
 type MenuPosition = {
   top: number
   left: number
   width: number
+  maxHeight: number
 }
 
 export function CustomSelect({
@@ -32,6 +44,8 @@ export function CustomSelect({
   placeholder = 'Selecione',
   required = false,
   className = '',
+  size = 'default',
+  menuMinWidthPx = 208,
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false)
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null)
@@ -47,10 +61,23 @@ export function CustomSelect({
   function updateMenuPosition() {
     if (!triggerRef.current) return
     const rect = triggerRef.current.getBoundingClientRect()
+    const gap = 6
+    const menuMaxHeight = 224
+    const estimatedMenuHeight = Math.min(menuMaxHeight, options.length * 40 + 8)
+    const spaceBelow = window.innerHeight - rect.bottom - gap
+    const spaceAbove = rect.top - gap
+    const placeAbove = estimatedMenuHeight > spaceBelow && spaceAbove > spaceBelow
+    const availableHeight = Math.max(120, placeAbove ? spaceAbove : spaceBelow)
+    const maxHeight = Math.min(menuMaxHeight, availableHeight)
+    const top = placeAbove
+      ? Math.max(gap, rect.top - gap - maxHeight)
+      : rect.bottom + gap
+
     setMenuPosition({
-      top: rect.bottom + 6,
+      top,
       left: rect.left,
-      width: rect.width,
+      width: Math.max(rect.width, menuMinWidthPx),
+      maxHeight,
     })
   }
 
@@ -114,9 +141,10 @@ export function CustomSelect({
               top: menuPosition.top,
               left: menuPosition.left,
               width: menuPosition.width,
-              zIndex: 9999,
+              maxHeight: menuPosition.maxHeight,
+              zIndex: 10050,
             }}
-            className="max-h-56 overflow-auto rounded-xl border border-gray-200/90 bg-white py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+            className="overflow-auto rounded-xl border border-gray-200/90 bg-white py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
           >
             {options.map((opt) => {
               const isSelected = opt.value === value
@@ -127,7 +155,7 @@ export function CustomSelect({
                     role="option"
                     aria-selected={isSelected}
                     onClick={() => selectOption(opt.value)}
-                    className={`flex w-full px-4 py-2.5 text-left text-sm transition ${
+                    className={`flex w-full whitespace-nowrap px-4 py-2.5 text-left text-sm transition ${
                       isSelected
                         ? 'bg-[var(--brand-primary-light)]/60 font-medium text-[var(--brand-primary)]'
                         : 'text-gray-800 hover:bg-gray-50'
@@ -152,9 +180,11 @@ export function CustomSelect({
         aria-expanded={open}
         aria-controls={listboxId}
         onClick={() => setOpen((prev) => !prev)}
-        className={`${triggerBaseClass} ${open ? 'border-[var(--brand-primary)] ring-2 ring-[var(--brand-primary)]/15' : ''} ${className}`}
+        className={`${triggerBaseClass} ${triggerSizeClass[size]} ${open ? 'border-[var(--brand-primary)] ring-2 ring-[var(--brand-primary)]/15' : ''} ${className}`}
       >
-        <span className={isPlaceholder ? 'text-gray-400' : 'text-gray-800'}>
+        <span
+          className={`min-w-0 truncate ${isPlaceholder ? 'text-gray-400' : 'text-gray-800'}`}
+        >
           {displayLabel}
         </span>
         <ChevronDown

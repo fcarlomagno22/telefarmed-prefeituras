@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import {
   ageGroupLabels,
@@ -6,11 +6,13 @@ import {
   type PatientRegistration,
 } from '../../data/unitDashboardMock'
 import { CustomSelect } from '../ui/CustomSelect'
+import { formatDatePtBr, parseBirthDateInput } from '../../utils/calendar'
 import { cpfDigits, isValidCpf } from '../../utils/cpf'
-import { maskCpf, maskPhone } from '../../utils/masks'
+import { maskBirthDate, maskCpf, maskPhone } from '../../utils/masks'
 import { AttendanceFieldHighlight } from './AttendanceFieldHighlight'
 import { AttendanceStepFooter } from './AttendanceStepFooter'
 import { AttendanceStepShell } from './AttendanceStepShell'
+import { PatientSocialNameFields } from './PatientSocialNameFields'
 import {
   getRegistrationMissingFields,
   isRegistrationStepReady,
@@ -29,9 +31,11 @@ type PatientRegistrationFormProps = {
   data: PatientRegistration
   ageGroup: PatientAgeGroup
   cpfLocked?: boolean
+  description?: string
   onChange: (data: PatientRegistration) => void
   onSubmit: () => void
   onBack: () => void
+  embedded?: boolean
 }
 
 const inputClass =
@@ -47,13 +51,22 @@ export function PatientRegistrationForm({
   data,
   ageGroup,
   cpfLocked = false,
+  description,
   onChange,
   onSubmit,
   onBack,
+  embedded = false,
 }: PatientRegistrationFormProps) {
   const [cpfTouched, setCpfTouched] = useState(false)
   const [guardianCpfTouched, setGuardianCpfTouched] = useState(false)
   const [showHints, setShowHints] = useState(false)
+  const [birthDateDisplay, setBirthDateDisplay] = useState(() =>
+    data.birthDate ? formatDatePtBr(data.birthDate) : '',
+  )
+
+  useEffect(() => {
+    setBirthDateDisplay(data.birthDate ? formatDatePtBr(data.birthDate) : '')
+  }, [data.birthDate])
 
   const missingFields = useMemo(
     () => getRegistrationMissingFields(data, ageGroup, cpfLocked),
@@ -106,8 +119,12 @@ export function PatientRegistrationForm({
 
   return (
     <AttendanceStepShell
+      embedded={embedded}
       title="Cadastro do paciente"
-      description={`Paciente: ${ageGroupLabels[ageGroup]}. Preencha os dados para continuar.`}
+      description={
+        description ??
+        `Paciente: ${ageGroupLabels[ageGroup]}. Preencha os dados para continuar.`
+      }
       footer={
         <AttendanceStepFooter
           onBack={onBack}
@@ -140,6 +157,14 @@ export function PatientRegistrationForm({
             </label>
           </AttendanceFieldHighlight>
 
+          <div className="sm:col-span-2">
+            <PatientSocialNameFields
+              data={data}
+              onChange={onChange}
+              inputClass={inputClass}
+            />
+          </div>
+
           <AttendanceFieldHighlight highlight={highlight('cpf')} className="block">
             <label className="block">
             <span className="mb-1.5 block text-xs font-medium text-gray-700">CPF</span>
@@ -168,9 +193,16 @@ export function PatientRegistrationForm({
                 Data de nascimento
               </span>
               <input
-                type="date"
-                value={data.birthDate}
-                onChange={(e) => patch('birthDate', e.target.value)}
+                type="text"
+                inputMode="numeric"
+                value={birthDateDisplay}
+                onChange={(event) => {
+                  const masked = maskBirthDate(event.target.value)
+                  setBirthDateDisplay(masked)
+                  patch('birthDate', parseBirthDateInput(masked))
+                }}
+                placeholder="dd/mm/aaaa"
+                maxLength={10}
                 className={inputClass}
               />
             </label>

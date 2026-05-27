@@ -1,23 +1,57 @@
 import { AttendanceStationCard } from '../components/dashboard/AttendanceStationCard'
 import { HomeHeader } from '../components/dashboard/HomeHeader'
-import { UnitGuideCard } from '../components/dashboard/UnitGuideCard'
+import { UnitWaitingQueueCard } from '../components/dashboard/UnitWaitingQueueCard'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
+import {
+  dashboardPageHeaderWrapClass,
+  dashboardPageScrollPaddingClass,
+  dashboardPageShellClass,
+} from '../components/layout/dashboardPageLayout'
 import { useBrandTheme } from '../hooks/useBrandTheme'
+import { useState } from 'react'
+import type { WaitingQueueEntry } from '../data/waitingQueueStore'
 
 export function HomePage() {
   useBrandTheme()
+  const [queueCallTarget, setQueueCallTarget] = useState<WaitingQueueEntry | null>(null)
+  const [isAttendanceActive, setIsAttendanceActive] = useState(false)
+
+  function handleCallFromQueue(entry: WaitingQueueEntry) {
+    if (isAttendanceActive) return
+    setQueueCallTarget(entry)
+  }
 
   return (
     <DashboardLayout>
-      <div className="flex h-full min-h-0 flex-col">
-        <div className="shrink-0 px-5 pt-5 sm:px-8 sm:pt-6 lg:px-10">
+      <div className={dashboardPageShellClass}>
+        <div className={dashboardPageHeaderWrapClass}>
           <HomeHeader />
         </div>
 
-        <section className="mt-4 grid min-h-0 flex-1 grid-cols-1 grid-rows-2 gap-4 pb-5 sm:mt-6 sm:pb-6 xl:grid-cols-[1fr_320px] xl:grid-rows-1">
-          <AttendanceStationCard />
-          <UnitGuideCard />
-        </section>
+        <div
+          className={[
+            dashboardPageScrollPaddingClass,
+            'mt-4 flex min-h-0 flex-1 flex-col pb-5',
+          ].join(' ')}
+        >
+          <section
+            className={[
+              'grid min-h-0 flex-1 gap-4',
+              'grid-cols-1 grid-rows-[minmax(0,1fr)_minmax(0,1fr)]',
+              'xl:grid-cols-[minmax(0,1fr)_420px] xl:grid-rows-1 xl:items-stretch',
+            ].join(' ')}
+          >
+            <AttendanceStationCard
+              queueCallTarget={queueCallTarget}
+              onQueueCallHandled={() => setQueueCallTarget(null)}
+              onAttendanceActiveChange={setIsAttendanceActive}
+            />
+            <UnitWaitingQueueCard
+              onCallPatient={handleCallFromQueue}
+              callDisabled={isAttendanceActive}
+            />
+          </section>
+        </div>
       </div>
     </DashboardLayout>
   )

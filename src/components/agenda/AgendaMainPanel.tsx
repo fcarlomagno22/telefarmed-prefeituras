@@ -1,18 +1,24 @@
 import {
+  ArrowDownUp,
   ChevronLeft,
   ChevronRight,
-  Eye,
-  FileText,
   Maximize2,
   Minimize2,
   Search,
 } from 'lucide-react'
+import { AgendaAppointmentActionsMenu } from './AgendaAppointmentActionsMenu'
+import { AgendaCancelAppointmentModal } from './AgendaCancelAppointmentModal'
+import { AgendaMarkNoShowModal } from './AgendaMarkNoShowModal'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { brand } from '../../config/brand'
 import type { AppointmentStatus, DayAppointment } from '../../data/agendaMock'
 import type { useAgendaDateNavigation } from '../../hooks/useAgendaDateNavigation'
 import { useNetworkUserDrawer } from '../../hooks/useNetworkUserDrawer'
+import {
+  sortAppointmentsBySpecialty,
+  sortAppointmentsByStatusOrder,
+  sortAppointmentsByTime,
+} from '../../utils/agenda/agendaAppointmentSort'
 import { findNetworkUserForAppointment } from '../../utils/agendaPatientUser'
 import { maskCpfForDisplay, maskPhoneForDisplay } from '../../utils/lgpdDisplay'
 import { AgendaDatePicker } from './AgendaDatePicker'
@@ -81,6 +87,46 @@ function timeColor(status: AppointmentStatus) {
   }
 }
 
+type AgendaTableSortKey = 'time' | 'status' | 'specialty'
+
+function AgendaSortableColumnHeader({
+  label,
+  active,
+  activeTitle,
+  inactiveTitle,
+  onClick,
+  className = '',
+}: {
+  label: string
+  active: boolean
+  activeTitle: string
+  inactiveTitle: string
+  onClick: () => void
+  className?: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={active ? activeTitle : inactiveTitle}
+      className={[
+        'inline-flex items-center justify-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider transition',
+        active
+          ? 'text-[var(--brand-primary)]'
+          : 'text-gray-400 hover:bg-gray-100/80 hover:text-gray-600',
+        className,
+      ].join(' ')}
+    >
+      {label}
+      <ArrowDownUp
+        className={['h-3 w-3 shrink-0', active ? 'opacity-100' : 'opacity-50'].join(' ')}
+        strokeWidth={2.25}
+        aria-hidden
+      />
+    </button>
+  )
+}
+
 function filterAppointmentsByName(query: string, appointments: DayAppointment[]) {
   const trimmed = query.trim()
   if (!trimmed) return appointments
@@ -115,7 +161,14 @@ type AppointmentRowProps = {
   sensitiveDataUnlocked: boolean
   displayCpf: (cpf: string) => string
   displayPhone: (phone: string) => string
+  actionsOpen: boolean
+  onToggleActions: () => void
+  onCloseActions: () => void
   onViewDetails: (appointment: DayAppointment) => void
+  onReschedule: (appointment: DayAppointment) => void
+  onCancel: (appointment: DayAppointment) => void
+  onMarkNoShow: (appointment: DayAppointment) => void
+  onConfirmArrival: (appointment: DayAppointment) => void
 }
 
 function AppointmentRow({
@@ -123,7 +176,14 @@ function AppointmentRow({
   sensitiveDataUnlocked,
   displayCpf,
   displayPhone,
+  actionsOpen,
+  onToggleActions,
+  onCloseActions,
   onViewDetails,
+  onReschedule,
+  onCancel,
+  onMarkNoShow,
+  onConfirmArrival,
 }: AppointmentRowProps) {
   const patient = findNetworkUserForAppointment(appointment)
 
@@ -141,7 +201,7 @@ function AppointmentRow({
               src={patient.avatarUrl}
               alt=""
               loading="lazy"
-              className="h-10 w-10 shrink-0 rounded-full border border-gray-100 object-cover shadow-sm"
+              className="h-10 w-10 shrink-0 rounded-full border border-gray-200 object-cover shadow-sm"
             />
           ) : (
             <span
@@ -178,14 +238,32 @@ function AppointmentRow({
         </div>
       </td>
       <td className="whitespace-nowrap px-4 py-2.5 text-center sm:px-5">
-        <button
-          type="button"
-          onClick={() => onViewDetails(appointment)}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50"
-        >
-          <Eye className="h-3.5 w-3.5 text-gray-500" strokeWidth={2} />
-          Ver detalhes
-        </button>
+        <AgendaAppointmentActionsMenu
+          appointment={appointment}
+          open={actionsOpen}
+          onToggle={onToggleActions}
+          onClose={onCloseActions}
+          onViewDetails={() => {
+            onCloseActions()
+            onViewDetails(appointment)
+          }}
+          onReschedule={() => {
+            onCloseActions()
+            onReschedule(appointment)
+          }}
+          onCancel={() => {
+            onCloseActions()
+            onCancel(appointment)
+          }}
+          onMarkNoShow={() => {
+            onCloseActions()
+            onMarkNoShow(appointment)
+          }}
+          onConfirmArrival={() => {
+            onCloseActions()
+            onConfirmArrival(appointment)
+          }}
+        />
       </td>
     </tr>
   )
@@ -199,6 +277,17 @@ type AgendaAppointmentsTableProps = {
   displayCpf: (cpf: string) => string
   displayPhone: (phone: string) => string
   onViewDetails: (appointment: DayAppointment) => void
+  onReschedule: (appointment: DayAppointment) => void
+  onCancel: (appointment: DayAppointment) => void
+  onMarkNoShow: (appointment: DayAppointment) => void
+  onConfirmArrival: (appointment: DayAppointment) => void
+  openActionsId: string | null
+  onToggleActions: (appointmentId: string) => void
+  onCloseActions: () => void
+  sortKey: AgendaTableSortKey
+  onToggleSortByTime: () => void
+  onToggleSortByStatus: () => void
+  onToggleSortBySpecialty: () => void
 }
 
 function AgendaAppointmentsTable({
@@ -209,13 +298,30 @@ function AgendaAppointmentsTable({
   displayCpf,
   displayPhone,
   onViewDetails,
+  onReschedule,
+  onCancel,
+  onMarkNoShow,
+  onConfirmArrival,
+  openActionsId,
+  onToggleActions,
+  onCloseActions,
+  sortKey,
+  onToggleSortByTime,
+  onToggleSortByStatus,
+  onToggleSortBySpecialty,
 }: AgendaAppointmentsTableProps) {
   return (
     <table className="w-full min-w-[760px] border-collapse text-left">
       <thead className="sticky top-0 z-10 bg-gray-50/95 backdrop-blur-sm">
-        <tr className="border-b border-gray-100">
-          <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:px-5">
-            Horário
+        <tr className="border-b border-gray-200">
+          <th className="px-4 py-2.5 text-left sm:px-5">
+            <AgendaSortableColumnHeader
+              label="Horário"
+              active={sortKey === 'time'}
+              activeTitle="Ordenado por horário"
+              inactiveTitle="Ordenar por horário"
+              onClick={onToggleSortByTime}
+            />
           </th>
           <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:px-5">
             Paciente
@@ -223,11 +329,25 @@ function AgendaAppointmentsTable({
           <th className="px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:px-5">
             Telefone
           </th>
-          <th className="hidden px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:table-cell sm:px-5">
-            Tipo de atendimento
+          <th className="hidden px-4 py-2.5 text-center sm:table-cell sm:px-5">
+            <AgendaSortableColumnHeader
+              label="Especialidade"
+              active={sortKey === 'specialty'}
+              activeTitle="Ordenado por especialidade (clique para voltar ao horário)"
+              inactiveTitle="Ordenar por especialidade"
+              onClick={onToggleSortBySpecialty}
+              className="mx-auto"
+            />
           </th>
-          <th className="px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:px-5">
-            Situação
+          <th className="px-4 py-2.5 text-center sm:px-5">
+            <AgendaSortableColumnHeader
+              label="Situação"
+              active={sortKey === 'status'}
+              activeTitle="Ordenado por situação (clique para voltar ao horário)"
+              inactiveTitle="Ordenar por situação"
+              onClick={onToggleSortByStatus}
+              className="mx-auto"
+            />
           </th>
           <th className="px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-gray-400 sm:px-5">
             Ação
@@ -249,7 +369,14 @@ function AgendaAppointmentsTable({
               sensitiveDataUnlocked={sensitiveDataUnlocked}
               displayCpf={displayCpf}
               displayPhone={displayPhone}
+              actionsOpen={openActionsId === appointment.id}
+              onToggleActions={() => onToggleActions(appointment.id)}
+              onCloseActions={onCloseActions}
               onViewDetails={onViewDetails}
+              onReschedule={onReschedule}
+              onCancel={onCancel}
+              onMarkNoShow={onMarkNoShow}
+              onConfirmArrival={onConfirmArrival}
             />
           ))
         )}
@@ -271,6 +398,13 @@ type AgendaDaySchedulePanelProps = {
   displayCpf: (cpf: string) => string
   displayPhone: (phone: string) => string
   onViewDetails: (appointment: DayAppointment) => void
+  onReschedule: (appointment: DayAppointment) => void
+  onCancel: (appointment: DayAppointment) => void
+  onMarkNoShow: (appointment: DayAppointment) => void
+  onConfirmArrival: (appointment: DayAppointment) => void
+  openActionsId: string | null
+  onToggleActions: (appointmentId: string) => void
+  onCloseActions: () => void
   isFullscreen: boolean
   onToggleFullscreen: () => void
   dayLabel: string
@@ -281,6 +415,10 @@ type AgendaDaySchedulePanelProps = {
   onGoToNextDay: () => void
   onSelectDate: (date: Date) => void
   className?: string
+  sortKey: AgendaTableSortKey
+  onToggleSortByTime: () => void
+  onToggleSortByStatus: () => void
+  onToggleSortBySpecialty: () => void
 }
 
 function AgendaDaySchedulePanel({
@@ -294,6 +432,13 @@ function AgendaDaySchedulePanel({
   displayCpf,
   displayPhone,
   onViewDetails,
+  onReschedule,
+  onCancel,
+  onMarkNoShow,
+  onConfirmArrival,
+  openActionsId,
+  onToggleActions,
+  onCloseActions,
   isFullscreen,
   onToggleFullscreen,
   dayLabel,
@@ -304,9 +449,13 @@ function AgendaDaySchedulePanel({
   onGoToNextDay,
   onSelectDate,
   className = '',
+  sortKey,
+  onToggleSortByTime,
+  onToggleSortByStatus,
+  onToggleSortBySpecialty,
 }: AgendaDaySchedulePanelProps) {
   return (
-    <div className={`flex min-h-0 flex-col ${className}`.trim()}>
+    <div className={`flex h-full min-h-0 flex-col ${className}`.trim()}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-lg font-bold text-gray-900">Agenda do dia</h2>
@@ -373,8 +522,8 @@ function AgendaDaySchedulePanel({
         />
       </label>
 
-      <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-100">
-        <div className="flex shrink-0 items-center justify-end gap-3 border-b border-gray-100 bg-gray-50/60 px-4 py-2 sm:px-5">
+      <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-200">
+        <div className="flex shrink-0 items-center justify-end gap-3 border-b border-gray-200 bg-gray-50/60 px-4 py-2 sm:px-5">
           {!sensitiveDataUnlocked ? (
             <>
               <span className="mr-auto text-xs text-gray-500">
@@ -404,7 +553,15 @@ function AgendaDaySchedulePanel({
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-auto overscroll-contain">
+        <div
+          className={[
+            'min-h-0 flex-1 basis-0 overflow-y-auto overflow-x-auto overscroll-contain',
+            '[-ms-overflow-style:none] [scrollbar-width:thin]',
+            '[&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5',
+            '[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300',
+            '[&::-webkit-scrollbar-track]:bg-transparent',
+          ].join(' ')}
+        >
           <AgendaAppointmentsTable
             filteredAppointments={filteredAppointments}
             showEmptySearchMessage={showEmptySearchMessage}
@@ -413,6 +570,17 @@ function AgendaDaySchedulePanel({
             displayCpf={displayCpf}
             displayPhone={displayPhone}
             onViewDetails={onViewDetails}
+            onReschedule={onReschedule}
+            onCancel={onCancel}
+            onMarkNoShow={onMarkNoShow}
+            onConfirmArrival={onConfirmArrival}
+            openActionsId={openActionsId}
+            onToggleActions={onToggleActions}
+            onCloseActions={onCloseActions}
+            sortKey={sortKey}
+            onToggleSortByTime={onToggleSortByTime}
+            onToggleSortByStatus={onToggleSortByStatus}
+            onToggleSortBySpecialty={onToggleSortBySpecialty}
           />
         </div>
       </div>
@@ -431,12 +599,25 @@ export type AgendaNetworkUserDrawer = Pick<
 
 type AgendaMainPanelProps = {
   agendaDate: AgendaDateNavigation
+  appointments: DayAppointment[]
   networkUserDrawer: AgendaNetworkUserDrawer
+  onRescheduleAppointment: (appointment: DayAppointment) => void
+  onCancelAppointment: (appointment: DayAppointment) => void
+  onMarkNoShowAppointment: (appointment: DayAppointment) => void
+  onOpenReception: (appointment: DayAppointment) => void
 }
 
-export function AgendaMainPanel({ agendaDate, networkUserDrawer }: AgendaMainPanelProps) {
-  const illustrationUrl = brand.dashboardAgendaImageUrl
+export function AgendaMainPanel({
+  agendaDate,
+  appointments,
+  networkUserDrawer,
+  onRescheduleAppointment,
+  onCancelAppointment,
+  onMarkNoShowAppointment,
+  onOpenReception,
+}: AgendaMainPanelProps) {
   const [search, setSearch] = useState('')
+  const [sortKey, setSortKey] = useState<AgendaTableSortKey>('time')
   const {
     sensitiveDataUnlocked,
     setSensitiveDataUnlocked,
@@ -445,15 +626,22 @@ export function AgendaMainPanel({ agendaDate, networkUserDrawer }: AgendaMainPan
     drawerLayer,
   } = networkUserDrawer
 
-  const appointments = agendaDate.dayData.appointments
+  const [openActionsId, setOpenActionsId] = useState<string | null>(null)
+  const [cancelTarget, setCancelTarget] = useState<DayAppointment | null>(null)
+  const [noShowTarget, setNoShowTarget] = useState<DayAppointment | null>(null)
 
-  const filteredAppointments = useMemo(
-    () => filterAppointmentsByName(search, appointments),
-    [search, appointments],
-  )
+  const filteredAppointments = useMemo(() => {
+    const filtered = filterAppointmentsByName(search, appointments)
+    if (sortKey === 'time') return sortAppointmentsByTime(filtered)
+    if (sortKey === 'status') return sortAppointmentsByStatusOrder(filtered)
+    if (sortKey === 'specialty') return sortAppointmentsBySpecialty(filtered)
+    return filtered
+  }, [search, appointments, sortKey])
 
   useEffect(() => {
     setSearch('')
+    setSortKey('time')
+    setOpenActionsId(null)
   }, [agendaDate.selectedDate])
 
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -489,6 +677,26 @@ export function AgendaMainPanel({ agendaDate, networkUserDrawer }: AgendaMainPan
     openUser(findNetworkUserForAppointment(appointment))
   }
 
+  function handleToggleActions(appointmentId: string) {
+    setOpenActionsId((current) => (current === appointmentId ? null : appointmentId))
+  }
+
+  function handleReschedule(appointment: DayAppointment) {
+    onRescheduleAppointment(appointment)
+  }
+
+  function handleConfirmCancel() {
+    if (!cancelTarget) return
+    onCancelAppointment(cancelTarget)
+    setCancelTarget(null)
+  }
+
+  function handleConfirmNoShow() {
+    if (!noShowTarget) return
+    onMarkNoShowAppointment(noShowTarget)
+    setNoShowTarget(null)
+  }
+
   const schedulePanelProps = {
     search,
     onSearchChange: setSearch,
@@ -500,6 +708,13 @@ export function AgendaMainPanel({ agendaDate, networkUserDrawer }: AgendaMainPan
     displayCpf,
     displayPhone,
     onViewDetails: handleViewDetails,
+    onReschedule: handleReschedule,
+    onCancel: setCancelTarget,
+    onMarkNoShow: setNoShowTarget,
+    onConfirmArrival: onOpenReception,
+    openActionsId,
+    onToggleActions: handleToggleActions,
+    onCloseActions: () => setOpenActionsId(null),
     dayLabel: agendaDate.dayLabel,
     isToday: agendaDate.isToday,
     selectedDate: agendaDate.selectedDate,
@@ -507,69 +722,23 @@ export function AgendaMainPanel({ agendaDate, networkUserDrawer }: AgendaMainPan
     onGoToPreviousDay: agendaDate.goToPreviousDay,
     onGoToNextDay: agendaDate.goToNextDay,
     onSelectDate: agendaDate.goToDate,
+    sortKey,
+    onToggleSortByTime: () => setSortKey('time'),
+    onToggleSortByStatus: () =>
+      setSortKey((current) => (current === 'status' ? 'time' : 'status')),
+    onToggleSortBySpecialty: () =>
+      setSortKey((current) => (current === 'specialty' ? 'time' : 'specialty')),
   }
 
   return (
-    <>
-      <section className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+    <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
+      <section className="relative flex h-full min-h-[28rem] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
         <AgendaDaySchedulePanel
           {...schedulePanelProps}
           isFullscreen={false}
           onToggleFullscreen={() => setIsFullscreen(true)}
-          className="min-h-0 flex-1 px-5 py-5 sm:px-6 sm:py-6"
+          className="min-h-0 flex-1 overflow-hidden px-5 py-5 sm:px-6 sm:py-6"
         />
-
-        <div className="shrink-0 border-t border-gray-100 px-5 pt-5 sm:px-6 sm:pt-6 pb-5">
-          <header className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">Histórico de agendas</h2>
-              <p className="mt-1 text-sm text-gray-500">
-                Visualize os atendimentos dos últimos dias.
-              </p>
-            </div>
-            <a
-              href="#"
-              className="shrink-0 text-sm font-semibold text-[var(--brand-primary)] underline-offset-2 transition hover:text-[var(--brand-primary-hover)] hover:underline"
-            >
-              Ver mais
-            </a>
-          </header>
-
-          <div className="mt-4 grid grid-cols-1 gap-4 pb-2 xl:grid-cols-[minmax(0,1fr)_minmax(180px,280px)] xl:items-end xl:gap-6">
-            <ul className="min-w-0 space-y-2">
-              {agendaDate.history.map((day) => (
-                <li
-                  key={day.id}
-                  className="flex flex-col gap-2 rounded-xl border border-gray-100 bg-gray-50/40 px-3 py-2 transition hover:border-gray-200 hover:bg-gray-50/80 sm:flex-row sm:items-center sm:gap-3"
-                >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-[var(--brand-primary)]">
-                    <FileText className="h-4 w-4" strokeWidth={2} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-gray-900">{day.weekdayLabel}</p>
-                    <p className="mt-0.5 text-xs text-gray-500">
-                      {day.total} atendimentos • {day.completed} realizados • {day.noShows}{' '}
-                      faltas
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="shrink-0 self-start text-sm font-semibold text-emerald-600 transition hover:text-emerald-700 sm:self-center"
-                  >
-                    Ver relatório &gt;
-                  </button>
-                </li>
-              ))}
-            </ul>
-
-            <img
-              src={illustrationUrl}
-              alt=""
-              aria-hidden
-              className="pointer-events-none mx-auto h-36 w-auto max-w-[220px] object-contain object-bottom sm:h-40 sm:max-w-[240px] xl:mx-0 xl:ml-auto xl:h-52 xl:max-w-[300px]"
-            />
-          </div>
-        </div>
       </section>
 
       {isFullscreen &&
@@ -580,7 +749,7 @@ export function AgendaMainPanel({ agendaDate, networkUserDrawer }: AgendaMainPan
             aria-modal="true"
             aria-label="Agenda do dia em tela cheia"
           >
-            <article className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
+            <article className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
               <AgendaDaySchedulePanel
                 {...schedulePanelProps}
                 isFullscreen
@@ -592,7 +761,21 @@ export function AgendaMainPanel({ agendaDate, networkUserDrawer }: AgendaMainPan
           document.body,
         )}
 
+      <AgendaCancelAppointmentModal
+        open={cancelTarget !== null}
+        appointment={cancelTarget}
+        onClose={() => setCancelTarget(null)}
+        onConfirm={handleConfirmCancel}
+      />
+
+      <AgendaMarkNoShowModal
+        open={noShowTarget !== null}
+        appointment={noShowTarget}
+        onClose={() => setNoShowTarget(null)}
+        onConfirm={handleConfirmNoShow}
+      />
+
       {drawerLayer}
-    </>
+    </div>
   )
 }

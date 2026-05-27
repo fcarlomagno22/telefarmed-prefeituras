@@ -1,0 +1,1582 @@
+import {
+  CheckSquare,
+  ChevronDown,
+  FileText,
+  MessageSquare,
+  Paperclip,
+  Pencil,
+  Send,
+  Square,
+  Star,
+  Trash2,
+  X,
+} from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import type {
+  SupportMessage,
+  SupportMessageAttachment,
+  SupportMessageDeletedSnapshot,
+  SupportTicket,
+} from '../../data/suporteMock'
+import { getLoggedOperatorName } from '../../utils/sessionUser'
+import { SituationStatusBadge } from '../ui/SituationStatusBadge'
+import { Toast } from '../ui/Toast'
+import {
+  CHAT_ATTACHMENT_ACCEPT,
+  formatChatAttachmentSize,
+  getChatAttachmentType,
+  isAllowedChatAttachment,
+} from './supportChatAttachments'
+import { SupportChatImageLightbox } from './SupportChatImageLightbox'
+import { supportTicketStatusBadgeConfig } from './supportStatusBadgeConfig'
+
+const TYPING_DELAY_MS = 2200
+const MESSAGE_LONG_PRESS_MS = 600
+const DELETE_UNDO_MS = 10000
+const MESSAGE_HIGHLIGHT_MS = 2000
+const DELETED_MESSAGE_LABEL = 'Mensagem apagada'
+const GENERIC_SUPPORT_REPLY =
+  'Obrigado pela mensagem! Recebemos sua solicitação e nossa equipe de suporte já está analisando. Em breve retornaremos com mais informações.'
+
+type SupportTicketDrawerProps = {
+  ticket: SupportTicket | null
+  open: boolean
+  closing: boolean
+  readOnly?: boolean
+  onClose: () => void
+  onTransitionEnd: () => void
+}
+
+type PendingChatFile = {
+  id: string
+  file: File
+  type: 'pdf' | 'image'
+  previewUrl: string | null
+}
+
+function formatMessageTime(date: Date) {
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+    .format(date)
+    .replace(',', '')
+}
+
+function createMessageId() {
+  return `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+}
+
+function revokeMessageAttachmentUrls(messages: SupportMessage[]) {
+  for (const message of messages) {
+    message.attachments?.forEach((attachment) => {
+      if (attachment.url.startsWith('blob:')) {
+        URL.revokeObjectURL(attachment.url)
+      }
+    })
+  }
+}
+
+function revokePendingPreviews(files: PendingChatFile[]) {
+  for (const pending of files) {
+    if (pending.previewUrl) {
+      URL.revokeObjectURL(pending.previewUrl)
+    }
+  }
+}
+
+function ChatImageThumbnail({ attachment }: { attachment: SupportMessageAttachment }) {
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setLightboxOpen(true)}
+        className="group block overflow-hidden rounded-lg border border-gray-200/80 transition hover:border-[var(--brand-primary)]/40 hover:ring-2 hover:ring-[var(--brand-primary)]/20"
+        aria-label={`Abrir imagem ${attachment.name}`}
+      >
+        <img
+          src={attachment.url}
+          alt={attachment.name}
+          className="h-24 w-24 object-cover transition group-hover:brightness-95 sm:h-28 sm:w-28"
+        />
+      </button>
+      {lightboxOpen ? (
+        <SupportChatImageLightbox
+          url={attachment.url}
+          name={attachment.name}
+          onClose={() => setLightboxOpen(false)}
+        />
+      ) : null}
+    </>
+  )
+}
+
+function MessageAttachments({ attachments }: { attachments: SupportMessageAttachment[] }) {
+  return (
+    <div className="mt-2 flex flex-wrap gap-2">
+      {attachments.map((attachment) =>
+        attachment.type === 'image' ? (
+          <ChatImageThumbnail key={attachment.id} attachment={attachment} />
+        ) : (
+          <a
+            key={attachment.id}
+            href={attachment.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex max-w-full items-center gap-2 rounded-lg border border-gray-200/80 bg-white/60 px-3 py-2 transition hover:bg-white"
+          >
+            <FileText className="h-4 w-4 shrink-0 text-[var(--brand-primary)]" />
+            <span className="max-w-[180px] truncate text-xs font-medium text-gray-700 sm:max-w-[220px]">
+              {attachment.name}
+            </span>
+            <span className="shrink-0 text-[10px] text-gray-400">
+              {formatChatAttachmentSize(attachment.size)}
+            </span>
+          </a>
+        ),
+      )}
+    </div>
+  )
+}
+
+function isOwnOperatorMessage(message: SupportMessage) {
+  return message.author === 'operator' && message.authorName === getLoggedOperatorName()
+}
+
+function isSelectableOwnMessage(message: SupportMessage) {
+  return isOwnOperatorMessage(message) && !message.deleted
+}
+
+function isSupportPartnerMessage(message: SupportMessage) {
+  return message.author === 'support' && !message.deleted
+}
+
+function getMessageExcerpt(message: SupportMessage, maxLength = 72) {
+  const text = message.body.trim()
+  if (text) {
+    return text.length <= maxLength ? text : `${text.slice(0, maxLength).trimEnd()}…`
+  }
+  if (message.attachments?.length) {
+    const hasImage = message.attachments.some((item) => item.type === 'image')
+    const hasPdf = message.attachments.some((item) => item.type === 'pdf')
+    if (hasImage && hasPdf) return 'Anexos: imagem e PDF'
+    if (hasImage) return 'Imagem anexada'
+    return 'PDF anexado'
+  }
+  return 'Mensagem sem texto'
+}
+
+function createDeletedSnapshot(message: SupportMessage): SupportMessageDeletedSnapshot {
+  return {
+    body: message.body,
+    editedAt: message.editedAt,
+    attachments: message.attachments,
+  }
+}
+
+function revokeSnapshotAttachments(snapshot: SupportMessageDeletedSnapshot | undefined) {
+  snapshot?.attachments?.forEach((attachment) => {
+    if (attachment.url.startsWith('blob:')) {
+      URL.revokeObjectURL(attachment.url)
+    }
+  })
+}
+
+function isMessageBodyTextTarget(target: EventTarget | null) {
+  if (!(target instanceof Element)) return false
+  return target.closest('[data-message-body]') !== null
+}
+
+function canStartMessageLongPress(target: EventTarget | null) {
+  if (!(target instanceof Element)) return false
+  if (isMessageBodyTextTarget(target)) return false
+  if (target.closest('button, a, textarea, input, [role="menu"]')) return false
+  return true
+}
+
+type MessageBubbleProps = {
+  message: SupportMessage
+  selectionMode: boolean
+  isSelected: boolean
+  onToggleSelect: () => void
+  menuOpen: boolean
+  onToggleMenu: () => void
+  onCloseMenu: () => void
+  isEditing: boolean
+  editDraft: string
+  onEditDraftChange: (value: string) => void
+  onStartEdit: () => void
+  onCancelEdit: () => void
+  onSaveEdit: () => void
+  onDelete: () => void
+  onEnterSelectionMode?: () => void
+}
+
+function MessageBubble({
+  message,
+  selectionMode,
+  isSelected,
+  onToggleSelect,
+  menuOpen,
+  onToggleMenu,
+  onCloseMenu,
+  isEditing,
+  editDraft,
+  onEditDraftChange,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit,
+  onDelete,
+  onEnterSelectionMode,
+}: MessageBubbleProps) {
+  const isSupport = message.author === 'support'
+  const isOwn = isOwnOperatorMessage(message)
+  const isDeleted = message.deleted === true
+  const hasBody = message.body.trim().length > 0
+  const hasAttachments = (message.attachments?.length ?? 0) > 0
+  const canEditText = hasBody
+  const menuRef = useRef<HTMLDivElement>(null)
+  const longPressTimerRef = useRef<number | null>(null)
+
+  if (isDeleted) {
+    return (
+      <article
+        className={[
+          'support-message-in w-fit max-w-[min(100%,28rem)] rounded-2xl px-4 py-3 text-sm sm:max-w-[min(100%,34rem)]',
+          isSupport
+            ? 'bg-gray-100 text-gray-800'
+            : 'bg-[var(--brand-primary-light)]/80 text-gray-800',
+        ].join(' ')}
+      >
+        <p className="text-xs font-semibold text-gray-600">{message.authorName}</p>
+        <p className="mt-1 text-sm italic text-gray-500">{DELETED_MESSAGE_LABEL}</p>
+        <p className="mt-2 text-[10px] font-medium text-gray-400">{message.sentAt}</p>
+      </article>
+    )
+  }
+
+  function clearLongPressTimer() {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+  }
+
+  useEffect(() => () => clearLongPressTimer(), [])
+
+  function handleCardPointerDown(event: React.PointerEvent<HTMLElement>) {
+    if (!isOwn || isDeleted || selectionMode || isEditing || !onEnterSelectionMode) return
+    if (!canStartMessageLongPress(event.target)) return
+
+    clearLongPressTimer()
+    longPressTimerRef.current = window.setTimeout(() => {
+      onEnterSelectionMode()
+      longPressTimerRef.current = null
+    }, MESSAGE_LONG_PRESS_MS)
+  }
+
+  useEffect(() => {
+    if (!menuOpen) return
+
+    function handlePointerDown(event: MouseEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        onCloseMenu()
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') onCloseMenu()
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [menuOpen, onCloseMenu])
+
+  return (
+    <article
+      onPointerDown={handleCardPointerDown}
+      onPointerUp={clearLongPressTimer}
+      onPointerLeave={clearLongPressTimer}
+      onPointerCancel={clearLongPressTimer}
+      onContextMenu={(event) => {
+        if (isOwn && !selectionMode && canStartMessageLongPress(event.target)) {
+          event.preventDefault()
+        }
+      }}
+      className={[
+        'support-message-in relative w-fit max-w-[min(100%,28rem)] rounded-2xl px-4 py-3 text-sm sm:max-w-[min(100%,34rem)]',
+        isSupport
+          ? 'bg-gray-100 text-gray-800'
+          : 'bg-[var(--brand-primary-light)] text-gray-800',
+        selectionMode && isSelected ? 'ring-2 ring-[var(--brand-primary)]/35' : '',
+        isOwn && !selectionMode && !isEditing ? 'select-none' : '',
+      ].join(' ')}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <p className="min-w-0 text-xs font-semibold text-gray-600">{message.authorName}</p>
+        {isOwn && !isDeleted && !isEditing && !selectionMode ? (
+          <div ref={menuRef} className="relative -mr-1 shrink-0">
+            <button
+              type="button"
+              onClick={onToggleMenu}
+              aria-expanded={menuOpen}
+              aria-haspopup="menu"
+              aria-label="Opções da mensagem"
+              className={[
+                'flex h-6 w-6 items-center justify-center rounded-md text-gray-500 transition hover:bg-white/60 hover:text-gray-700',
+                menuOpen ? 'bg-white/60 text-gray-700' : '',
+              ].join(' ')}
+            >
+              <ChevronDown className="h-4 w-4" />
+            </button>
+            {menuOpen ? (
+              <div
+                role="menu"
+                aria-label="Ações da mensagem"
+                className="absolute right-0 top-[calc(100%+0.25rem)] z-20 min-w-[9.5rem] overflow-hidden rounded-xl border border-gray-200/90 bg-white py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+              >
+                <button
+                  type="button"
+                  role="menuitem"
+                  disabled={!canEditText}
+                  onClick={() => {
+                    onCloseMenu()
+                    onStartEdit()
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-800 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-400 disabled:hover:bg-transparent"
+                >
+                  <Pencil className="h-3.5 w-3.5 shrink-0" />
+                  Editar
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    onCloseMenu()
+                    onDelete()
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition hover:bg-red-50"
+                >
+                  <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                  Excluir
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
+      {isEditing ? (
+        <div className="mt-2">
+          <textarea
+            value={editDraft}
+            onChange={(event) => onEditDraftChange(event.target.value)}
+            rows={3}
+            autoFocus
+            className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm leading-relaxed text-gray-800 outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15"
+          />
+          <div className="mt-2 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={onSaveEdit}
+              disabled={!editDraft.trim()}
+              className="rounded-lg bg-[var(--brand-primary)] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Salvar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {hasBody ? (
+            <p
+              data-message-body
+              className="mt-1 cursor-text select-text break-words leading-relaxed"
+              onPointerDown={(event) => event.stopPropagation()}
+            >
+              {message.body}
+            </p>
+          ) : null}
+          {hasAttachments ? <MessageAttachments attachments={message.attachments!} /> : null}
+        </>
+      )}
+
+      {!isEditing ? (
+        <p className="mt-2 text-[10px] font-medium text-gray-400">
+          {message.sentAt}
+          {message.editedAt ? (
+            <span className="text-gray-400"> · editada {message.editedAt}</span>
+          ) : null}
+        </p>
+      ) : null}
+    </article>
+  )
+}
+
+function MessageSelectCheckbox({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean
+  onChange: () => void
+  label: string
+}) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={onChange}
+      className="mt-3 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[var(--brand-primary)] transition hover:bg-gray-100"
+    >
+      {checked ? (
+        <CheckSquare className="h-5 w-5" strokeWidth={2} />
+      ) : (
+        <Square className="h-5 w-5 text-gray-400" strokeWidth={2} />
+      )}
+    </button>
+  )
+}
+
+function ReadOnlyMessageBubble({ message }: { message: SupportMessage }) {
+  const isSupport = message.author === 'support'
+  const isDeleted = message.deleted === true
+  const hasBody = message.body.trim().length > 0
+  const hasAttachments = (message.attachments?.length ?? 0) > 0
+
+  if (isDeleted) {
+    return (
+      <article
+        className={[
+          'support-message-in w-fit max-w-[min(100%,28rem)] rounded-2xl px-4 py-3 text-sm sm:max-w-[min(100%,34rem)]',
+          isSupport ? 'bg-gray-100 text-gray-800' : 'bg-[var(--brand-primary-light)]/80 text-gray-800',
+        ].join(' ')}
+      >
+        <p className="text-xs font-semibold text-gray-600">{message.authorName}</p>
+        <p className="mt-1 text-sm italic text-gray-500">{DELETED_MESSAGE_LABEL}</p>
+        <p className="mt-2 text-[10px] font-medium text-gray-400">{message.sentAt}</p>
+      </article>
+    )
+  }
+
+  return (
+    <article
+      className={[
+        'support-message-in w-fit max-w-[min(100%,28rem)] rounded-2xl px-4 py-3 text-sm sm:max-w-[min(100%,34rem)]',
+        isSupport ? 'bg-gray-100 text-gray-800' : 'bg-[var(--brand-primary-light)] text-gray-800',
+      ].join(' ')}
+    >
+      <p className="text-xs font-semibold text-gray-600">{message.authorName}</p>
+      {hasBody ? <p className="mt-1 break-words leading-relaxed">{message.body}</p> : null}
+      {hasAttachments ? <MessageAttachments attachments={message.attachments!} /> : null}
+      <p className="mt-2 text-[10px] font-medium text-gray-400">{message.sentAt}</p>
+    </article>
+  )
+}
+
+function SupportMessageBubble({
+  message,
+  selectionMode,
+  isSelected,
+  onToggleSelect,
+  menuOpenId,
+  editingId,
+  editDraft,
+  onToggleMenu,
+  onCloseMenu,
+  onEditDraftChange,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit,
+  onDelete,
+  onEnterSelectionMode,
+  isFavorited,
+  onToggleFavorite,
+  isHighlighted,
+  cardRef,
+  readOnly = false,
+}: {
+  message: SupportMessage
+  selectionMode: boolean
+  isSelected: boolean
+  onToggleSelect: (id: string) => void
+  onEnterSelectionMode: (messageId: string) => void
+  isFavorited: boolean
+  onToggleFavorite: () => void
+  isHighlighted: boolean
+  cardRef?: (element: HTMLElement | null) => void
+  menuOpenId: string | null
+  editingId: string | null
+  editDraft: string
+  onToggleMenu: (id: string) => void
+  onCloseMenu: () => void
+  onEditDraftChange: (value: string) => void
+  onStartEdit: (message: SupportMessage) => void
+  onCancelEdit: () => void
+  onSaveEdit: () => void
+  onDelete: (id: string) => void
+  readOnly?: boolean
+}) {
+  if (readOnly) {
+    return <ReadOnlyMessageBubble message={message} />
+  }
+
+  if (isOwnOperatorMessage(message)) {
+    const bubble = (
+      <MessageBubble
+        message={message}
+        selectionMode={selectionMode}
+        isSelected={isSelected}
+        onToggleSelect={() => onToggleSelect(message.id)}
+        menuOpen={menuOpenId === message.id}
+        onToggleMenu={() => onToggleMenu(message.id)}
+        onCloseMenu={onCloseMenu}
+        isEditing={editingId === message.id}
+        editDraft={editDraft}
+        onEditDraftChange={onEditDraftChange}
+        onStartEdit={() => onStartEdit(message)}
+        onCancelEdit={onCancelEdit}
+        onSaveEdit={onSaveEdit}
+        onDelete={() => onDelete(message.id)}
+        onEnterSelectionMode={
+          !selectionMode
+            ? () => onEnterSelectionMode(message.id)
+            : undefined
+        }
+      />
+    )
+
+    if (!selectionMode || message.deleted) return bubble
+
+    return (
+      <div className="flex items-start gap-2">
+        <MessageSelectCheckbox
+          checked={isSelected}
+          onChange={() => onToggleSelect(message.id)}
+          label={isSelected ? 'Desmarcar mensagem' : 'Selecionar mensagem'}
+        />
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => onToggleSelect(message.id)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              onToggleSelect(message.id)
+            }
+          }}
+          className="min-w-0 cursor-pointer rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]/30"
+        >
+          {bubble}
+        </div>
+      </div>
+    )
+  }
+
+  if (isSupportPartnerMessage(message)) {
+    return (
+      <SupportPartnerMessageBubble
+        message={message}
+        isFavorited={isFavorited}
+        onToggleFavorite={onToggleFavorite}
+        isHighlighted={isHighlighted}
+        cardRef={cardRef}
+      />
+    )
+  }
+
+  const hasBody = message.body.trim().length > 0
+  const hasAttachments = (message.attachments?.length ?? 0) > 0
+
+  return (
+    <article
+      className="support-message-in w-fit max-w-[min(100%,28rem)] rounded-2xl bg-[var(--brand-primary-light)] px-4 py-3 text-sm text-gray-800 sm:max-w-[min(100%,34rem)]"
+    >
+      <p className="text-xs font-semibold text-gray-600">{message.authorName}</p>
+      {hasBody ? (
+        <p className="mt-1 break-words leading-relaxed">{message.body}</p>
+      ) : null}
+      {hasAttachments ? <MessageAttachments attachments={message.attachments!} /> : null}
+      <p className="mt-2 text-[10px] font-medium text-gray-400">{message.sentAt}</p>
+    </article>
+  )
+}
+
+function SupportPartnerMessageBubble({
+  message,
+  isFavorited,
+  onToggleFavorite,
+  isHighlighted,
+  cardRef,
+}: {
+  message: SupportMessage
+  isFavorited: boolean
+  onToggleFavorite: () => void
+  isHighlighted: boolean
+  cardRef?: (element: HTMLElement | null) => void
+}) {
+  const hasBody = message.body.trim().length > 0
+  const hasAttachments = (message.attachments?.length ?? 0) > 0
+
+  return (
+    <article
+      ref={cardRef}
+      className={[
+        'support-message-in w-fit max-w-[min(100%,28rem)] rounded-2xl px-4 py-3 text-sm sm:max-w-[min(100%,34rem)]',
+        'bg-gray-100 text-gray-800',
+        isHighlighted ? 'support-message-blink' : '',
+      ].join(' ')}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <p className="min-w-0 text-xs font-semibold text-gray-600">{message.authorName}</p>
+        <button
+          type="button"
+          onClick={onToggleFavorite}
+          aria-label={isFavorited ? 'Remover dos favoritos' : 'Favoritar mensagem'}
+          aria-pressed={isFavorited}
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-gray-400 transition hover:bg-white/70 hover:text-amber-500"
+        >
+          <Star
+            className={`h-4 w-4 ${isFavorited ? 'fill-amber-400 text-amber-500' : ''}`}
+            strokeWidth={2}
+          />
+        </button>
+      </div>
+      {hasBody ? (
+        <p className="mt-1 break-words leading-relaxed">{message.body}</p>
+      ) : null}
+      {hasAttachments ? <MessageAttachments attachments={message.attachments!} /> : null}
+      <p className="mt-2 text-[10px] font-medium text-gray-400">{message.sentAt}</p>
+    </article>
+  )
+}
+
+function SupportFavoritesPanel({
+  favorites,
+  onSelect,
+  onClose,
+}: {
+  favorites: SupportMessage[]
+  onSelect: (messageId: string) => void
+  onClose: () => void
+}) {
+  return (
+    <div className="shrink-0 border-b border-gray-200 bg-amber-50/40">
+      <div className="flex items-center justify-between gap-2 px-5 py-2.5 sm:px-6">
+        <div className="flex items-center gap-2">
+          <Star className="h-4 w-4 fill-amber-400 text-amber-500" strokeWidth={2} />
+          <h3 className="text-xs font-bold uppercase tracking-wide text-gray-700">
+            Mensagens favoritas
+          </h3>
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+            {favorites.length}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-xs font-semibold text-gray-500 transition hover:text-gray-800"
+        >
+          Fechar
+        </button>
+      </div>
+      {favorites.length === 0 ? (
+        <p className="px-5 pb-4 text-xs text-gray-500 sm:px-6">
+          Nenhuma mensagem favoritada. Toque na estrela em uma resposta do suporte para salvar aqui.
+        </p>
+      ) : (
+        <ul className="max-h-44 space-y-1 overflow-y-auto px-3 pb-3 sm:px-4">
+          {favorites.map((message) => (
+            <li key={message.id}>
+              <button
+                type="button"
+                onClick={() => onSelect(message.id)}
+                className="flex w-full flex-col rounded-xl border border-transparent bg-white/80 px-3 py-2.5 text-left transition hover:border-amber-200/80 hover:bg-white hover:shadow-sm"
+              >
+                <span className="line-clamp-2 text-sm leading-snug text-gray-800">
+                  {getMessageExcerpt(message)}
+                </span>
+                <span className="mt-1 text-[10px] font-medium text-gray-400">
+                  {message.authorName} · {message.sentAt}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+function TypingIndicator() {
+  return (
+    <article
+      className="w-fit max-w-[min(100%,28rem)] rounded-2xl bg-gray-100 px-4 py-3 text-sm sm:max-w-[min(100%,34rem)]"
+      aria-live="polite"
+      aria-label="Suporte está digitando"
+    >
+      <p className="text-xs font-semibold text-gray-600">Suporte Telefarmed</p>
+      <div className="mt-2.5 flex items-center gap-1.5">
+        {[0, 1, 2].map((index) => (
+          <span
+            key={index}
+            className="h-2 w-2 rounded-full bg-gray-400"
+            style={{
+              animation: 'support-typing-bounce 1.2s ease-in-out infinite',
+              animationDelay: `${index * 0.18}s`,
+            }}
+          />
+        ))}
+      </div>
+    </article>
+  )
+}
+
+export function SupportTicketDrawer({
+  ticket,
+  open,
+  closing,
+  readOnly = false,
+  onClose,
+  onTransitionEnd,
+}: SupportTicketDrawerProps) {
+  const [entered, setEntered] = useState(false)
+  const [reply, setReply] = useState('')
+  const [messages, setMessages] = useState<SupportMessage[]>([])
+  const [pendingFiles, setPendingFiles] = useState<PendingChatFile[]>([])
+  const [attachmentError, setAttachmentError] = useState<string | null>(null)
+  const [isTyping, setIsTyping] = useState(false)
+  const [isSending, setIsSending] = useState(false)
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editDraft, setEditDraft] = useState('')
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [deleteToast, setDeleteToast] = useState<{ message: string } | null>(null)
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([])
+  const [favoritesPanelOpen, setFavoritesPanelOpen] = useState(false)
+  const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+  const typingTimeoutRef = useRef<number | null>(null)
+  const deleteUndoTimeoutRef = useRef<number | null>(null)
+  const highlightTimeoutRef = useRef<number | null>(null)
+  const pendingUndoIdsRef = useRef<string[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const isActive = open || closing
+
+  useEffect(() => {
+    if (!open) {
+      setEntered(false)
+      return
+    }
+
+    if (ticket) {
+      setMessages([...ticket.messages])
+    }
+    setReply('')
+    setAttachmentError(null)
+    setPendingFiles((prev) => {
+      revokePendingPreviews(prev)
+      return []
+    })
+    setIsTyping(false)
+    setIsSending(false)
+    setMenuOpenId(null)
+    setEditingId(null)
+    setEditDraft('')
+    setSelectionMode(false)
+    setSelectedIds([])
+    setFavoriteIds([])
+    setFavoritesPanelOpen(false)
+    setHighlightedMessageId(null)
+    messageRefs.current.clear()
+
+    const frame = requestAnimationFrame(() => setEntered(true))
+    return () => cancelAnimationFrame(frame)
+  }, [open, ticket?.id])
+
+  useEffect(() => {
+    if (!isActive) return
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key !== 'Escape' || isSending) return
+      if (selectionMode) {
+        exitSelectionMode()
+        return
+      }
+      onClose()
+    }
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isActive, onClose, isSending, selectionMode])
+
+  useEffect(() => {
+    if (!closing) return
+    const fallback = window.setTimeout(() => onTransitionEnd(), 350)
+    return () => window.clearTimeout(fallback)
+  }, [closing, onTransitionEnd])
+
+  useEffect(() => {
+    if (!open) {
+      if (typingTimeoutRef.current !== null) {
+        window.clearTimeout(typingTimeoutRef.current)
+        typingTimeoutRef.current = null
+      }
+      setIsTyping(false)
+      setIsSending(false)
+      setMessages((prev) => {
+        revokeMessageAttachmentUrls(prev)
+        return []
+      })
+      setPendingFiles((prev) => {
+        revokePendingPreviews(prev)
+        return []
+      })
+      setMenuOpenId(null)
+      setEditingId(null)
+      setEditDraft('')
+      setSelectionMode(false)
+      setSelectedIds([])
+      setDeleteToast(null)
+      setFavoriteIds([])
+      setFavoritesPanelOpen(false)
+      setHighlightedMessageId(null)
+      messageRefs.current.clear()
+      pendingUndoIdsRef.current = []
+      if (deleteUndoTimeoutRef.current !== null) {
+        window.clearTimeout(deleteUndoTimeoutRef.current)
+        deleteUndoTimeoutRef.current = null
+      }
+      if (highlightTimeoutRef.current !== null) {
+        window.clearTimeout(highlightTimeoutRef.current)
+        highlightTimeoutRef.current = null
+      }
+    }
+  }, [open])
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, isTyping, pendingFiles])
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current !== null) {
+        window.clearTimeout(typingTimeoutRef.current)
+      }
+      if (highlightTimeoutRef.current !== null) {
+        window.clearTimeout(highlightTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const favoriteMessages = messages.filter(
+    (message) => favoriteIds.includes(message.id) && isSupportPartnerMessage(message),
+  )
+
+  function handleToggleFavorite(messageId: string) {
+    setFavoriteIds((current) =>
+      current.includes(messageId)
+        ? current.filter((id) => id !== messageId)
+        : [...current, messageId],
+    )
+  }
+
+  function startMessageBlink(messageId: string) {
+    setHighlightedMessageId(null)
+
+    requestAnimationFrame(() => {
+      setHighlightedMessageId(messageId)
+
+      if (highlightTimeoutRef.current !== null) {
+        window.clearTimeout(highlightTimeoutRef.current)
+      }
+      highlightTimeoutRef.current = window.setTimeout(() => {
+        setHighlightedMessageId(null)
+        highlightTimeoutRef.current = null
+      }, MESSAGE_HIGHLIGHT_MS)
+    })
+  }
+
+  function scrollToMessage(messageId: string) {
+    const target = messageRefs.current.get(messageId)
+    target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
+  function handleNavigateToFavorite(messageId: string) {
+    setFavoritesPanelOpen(false)
+    exitSelectionMode()
+
+    window.setTimeout(() => {
+      scrollToMessage(messageId)
+      startMessageBlink(messageId)
+    }, 150)
+  }
+
+  const panelVisible = isActive && entered && !closing
+  const canSend = (reply.trim().length > 0 || pendingFiles.length > 0) && !isSending && !isTyping
+
+  function addFiles(files: FileList | File[]) {
+    const incoming = Array.from(files)
+    const valid: PendingChatFile[] = []
+    let rejected = false
+
+    for (const file of incoming) {
+      if (!isAllowedChatAttachment(file)) {
+        rejected = true
+        continue
+      }
+      const type = getChatAttachmentType(file)
+      if (!type) {
+        rejected = true
+        continue
+      }
+      valid.push({
+        id: createMessageId(),
+        file,
+        type,
+        previewUrl: type === 'image' ? URL.createObjectURL(file) : null,
+      })
+    }
+
+    if (rejected) {
+      setAttachmentError(
+        'Alguns arquivos foram ignorados. Envie apenas PDF ou imagem (PNG, JPG, WEBP) com até 10MB.',
+      )
+    } else {
+      setAttachmentError(null)
+    }
+
+    if (valid.length > 0) {
+      setPendingFiles((prev) => [...prev, ...valid])
+    }
+  }
+
+  function removePendingFile(id: string) {
+    setPendingFiles((prev) => {
+      const target = prev.find((file) => file.id === id)
+      if (target?.previewUrl) {
+        URL.revokeObjectURL(target.previewUrl)
+      }
+      return prev.filter((file) => file.id !== id)
+    })
+  }
+
+  function buildAttachmentsFromPending(): SupportMessageAttachment[] {
+    return pendingFiles.map((pending) => ({
+      id: pending.id,
+      name: pending.file.name,
+      type: pending.type,
+      url:
+        pending.previewUrl ??
+        URL.createObjectURL(pending.file),
+      size: pending.file.size,
+    }))
+  }
+
+  function revokeMessageAttachments(message: SupportMessage) {
+    message.attachments?.forEach((attachment) => {
+      if (attachment.url.startsWith('blob:')) {
+        URL.revokeObjectURL(attachment.url)
+      }
+    })
+  }
+
+  function handleToggleMenu(messageId: string) {
+    setMenuOpenId((current) => (current === messageId ? null : messageId))
+  }
+
+  function handleCloseMenu() {
+    setMenuOpenId(null)
+  }
+
+  function handleStartEdit(message: SupportMessage) {
+    setEditingId(message.id)
+    setEditDraft(message.body)
+    setMenuOpenId(null)
+  }
+
+  function handleCancelEdit() {
+    setEditingId(null)
+    setEditDraft('')
+  }
+
+  function handleSaveEdit() {
+    const text = editDraft.trim()
+    if (!editingId || !text) return
+
+    setMessages((prev) =>
+      prev.map((message) =>
+        message.id === editingId
+          ? {
+              ...message,
+              body: text,
+              editedAt: formatMessageTime(new Date()),
+            }
+          : message,
+      ),
+    )
+    setEditingId(null)
+    setEditDraft('')
+  }
+
+  const ownMessageIds = messages.filter(isSelectableOwnMessage).map((message) => message.id)
+  const selectedCount = selectedIds.length
+  const allOwnSelected =
+    ownMessageIds.length > 0 && ownMessageIds.every((id) => selectedIds.includes(id))
+
+  function exitSelectionMode() {
+    setSelectionMode(false)
+    setSelectedIds([])
+    setMenuOpenId(null)
+    setEditingId(null)
+    setEditDraft('')
+  }
+
+  function enterSelectionMode(initialMessageId?: string) {
+    setSelectionMode(true)
+    setSelectedIds(initialMessageId ? [initialMessageId] : [])
+    setMenuOpenId(null)
+    setEditingId(null)
+    setEditDraft('')
+  }
+
+  function handleToggleSelect(messageId: string) {
+    setSelectedIds((current) =>
+      current.includes(messageId)
+        ? current.filter((id) => id !== messageId)
+        : [...current, messageId],
+    )
+  }
+
+  function handleToggleSelectAll() {
+    if (allOwnSelected) {
+      setSelectedIds([])
+      return
+    }
+    setSelectedIds([...ownMessageIds])
+  }
+
+  const clearDeleteUndoTimer = useCallback(() => {
+    if (deleteUndoTimeoutRef.current !== null) {
+      window.clearTimeout(deleteUndoTimeoutRef.current)
+      deleteUndoTimeoutRef.current = null
+    }
+  }, [])
+
+  const commitDeletedMessages = useCallback((ids: string[]) => {
+    if (ids.length === 0) return
+    const idSet = new Set(ids)
+    setMessages((prev) => {
+      prev.forEach((message) => {
+        if (idSet.has(message.id)) {
+          revokeSnapshotAttachments(message.deletedSnapshot)
+        }
+      })
+      return prev.map((message) =>
+        idSet.has(message.id)
+          ? { ...message, deletedSnapshot: undefined }
+          : message,
+      )
+    })
+  }, [])
+
+  const handleDeleteToastClose = useCallback(() => {
+    clearDeleteUndoTimer()
+    if (pendingUndoIdsRef.current.length > 0) {
+      commitDeletedMessages(pendingUndoIdsRef.current)
+      pendingUndoIdsRef.current = []
+    }
+    setDeleteToast(null)
+  }, [clearDeleteUndoTimer, commitDeletedMessages])
+
+  const handleUndoDelete = useCallback(() => {
+    clearDeleteUndoTimer()
+    const ids = new Set(pendingUndoIdsRef.current)
+    pendingUndoIdsRef.current = []
+    setMessages((prev) =>
+      prev.map((message) => {
+        if (!ids.has(message.id) || !message.deletedSnapshot) return message
+        const snapshot = message.deletedSnapshot
+        return {
+          ...message,
+          deleted: false,
+          body: snapshot.body,
+          editedAt: snapshot.editedAt,
+          attachments: snapshot.attachments,
+          deletedSnapshot: undefined,
+        }
+      }),
+    )
+    setDeleteToast(null)
+  }, [clearDeleteUndoTimer])
+
+  function softDeleteMessages(rawIds: string[]) {
+    if (pendingUndoIdsRef.current.length > 0) {
+      commitDeletedMessages(pendingUndoIdsRef.current)
+      pendingUndoIdsRef.current = []
+      clearDeleteUndoTimer()
+    }
+
+    let deletedCount = 0
+    setMessages((prev) => {
+      const idSet = new Set(
+        rawIds.filter((id) => {
+          const message = prev.find((item) => item.id === id)
+          return message && isSelectableOwnMessage(message)
+        }),
+      )
+      if (idSet.size === 0) return prev
+
+      deletedCount = idSet.size
+      pendingUndoIdsRef.current = [...idSet]
+
+      return prev.map((message) => {
+        if (!idSet.has(message.id)) return message
+        return {
+          ...message,
+          deleted: true,
+          deletedSnapshot: createDeletedSnapshot(message),
+          body: '',
+          attachments: undefined,
+        }
+      })
+    })
+
+    if (deletedCount === 0) return
+
+    if (editingId && rawIds.includes(editingId)) {
+      setEditingId(null)
+      setEditDraft('')
+    }
+    setMenuOpenId(null)
+    exitSelectionMode()
+
+    setDeleteToast({
+      message:
+        deletedCount === 1
+          ? 'Mensagem excluída com sucesso.'
+          : 'Mensagens excluídas com sucesso.',
+    })
+
+    clearDeleteUndoTimer()
+    deleteUndoTimeoutRef.current = window.setTimeout(() => {
+      handleDeleteToastClose()
+    }, DELETE_UNDO_MS)
+  }
+
+  function handleDeleteSelected() {
+    if (selectedIds.length === 0) return
+    softDeleteMessages(selectedIds)
+  }
+
+  function handleDeleteMessage(messageId: string) {
+    softDeleteMessages([messageId])
+  }
+
+  function handleSend() {
+    const text = reply.trim()
+    if ((!text && pendingFiles.length === 0) || isSending || isTyping) return
+
+    const attachments = buildAttachmentsFromPending()
+    const operatorMessage: SupportMessage = {
+      id: createMessageId(),
+      author: 'operator',
+      authorName: getLoggedOperatorName(),
+      body: text,
+      sentAt: formatMessageTime(new Date()),
+      attachments: attachments.length > 0 ? attachments : undefined,
+    }
+
+    setMessages((prev) => [...prev, operatorMessage])
+    setReply('')
+    setPendingFiles([])
+    setAttachmentError(null)
+    setIsSending(true)
+    setIsTyping(true)
+
+    typingTimeoutRef.current = window.setTimeout(() => {
+      const supportMessage: SupportMessage = {
+        id: createMessageId(),
+        author: 'support',
+        authorName: 'Suporte Telefarmed',
+        body: GENERIC_SUPPORT_REPLY,
+        sentAt: formatMessageTime(new Date()),
+      }
+      setMessages((prev) => [...prev, supportMessage])
+      setIsTyping(false)
+      setIsSending(false)
+      typingTimeoutRef.current = null
+    }, TYPING_DELAY_MS)
+  }
+
+  if (!isActive || !ticket) return null
+
+  const canReply = !readOnly && ticket.status !== 'encerrado'
+
+  return createPortal(
+    <>
+      <style>{`
+        @keyframes support-typing-bounce {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+          30% { transform: translateY(-5px); opacity: 1; }
+        }
+        @keyframes support-message-in {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .support-message-in {
+          animation: support-message-in 0.3s ease-out;
+        }
+        @keyframes support-message-blink {
+          0%, 100% { opacity: 1; }
+          16.6% { opacity: 0.3; }
+          33.3% { opacity: 1; }
+          50% { opacity: 0.3; }
+          66.6% { opacity: 1; }
+          83.3% { opacity: 0.3; }
+        }
+        .support-message-blink {
+          animation: support-message-blink 2s ease-in-out;
+        }
+      `}</style>
+
+      <div
+        className={`fixed inset-0 z-[9997] ${panelVisible ? 'pointer-events-auto' : 'pointer-events-none'}`}
+      >
+        <button
+          type="button"
+          aria-label="Fechar detalhes do chamado"
+          onClick={onClose}
+          disabled={isSending}
+          tabIndex={panelVisible ? 0 : -1}
+          className={`absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity duration-300 ${
+            panelVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
+          }`}
+        />
+
+        <aside
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="support-ticket-drawer-title"
+          onTransitionEnd={(event) => {
+            if (event.propertyName === 'transform') onTransitionEnd()
+          }}
+          className={`absolute inset-x-0 bottom-0 flex h-[92vh] max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl border-t border-gray-200 bg-white shadow-[0_-16px_48px_rgba(0,0,0,0.14)] transition-transform duration-300 ease-out motion-reduce:transition-none ${
+            panelVisible ? 'translate-y-0' : 'translate-y-full'
+          }`}
+        >
+          <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+          <header className="shrink-0 border-b border-gray-200 px-5 py-4 sm:px-6">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-gray-500">{ticket.number}</p>
+                <h2
+                  id="support-ticket-drawer-title"
+                  className="mt-0.5 text-lg font-bold text-gray-900"
+                >
+                  {ticket.subject}
+                </h2>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <SituationStatusBadge
+                    config={supportTicketStatusBadgeConfig[ticket.status]}
+                  />
+                  <span className="text-xs text-gray-500">{ticket.category}</span>
+                </div>
+                {readOnly && ticket.ubtName ? (
+                  <div className="mt-3 space-y-1 rounded-lg border border-gray-200 bg-gray-50/80 px-3 py-2 text-xs text-gray-600">
+                    <p>
+                      <span className="font-semibold text-gray-800">UBT:</span> {ticket.ubtName}
+                    </p>
+                    {ticket.openedByName ? (
+                      <p>
+                        <span className="font-semibold text-gray-800">Aberto por:</span>{' '}
+                        {ticket.openedByName}
+                        {ticket.openedByRole ? ` · ${ticket.openedByRole}` : ''}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+                {!readOnly ? (
+                  <button
+                    type="button"
+                    onClick={() => setFavoritesPanelOpen((current) => !current)}
+                    className={[
+                      'mt-3 inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition',
+                      favoritesPanelOpen
+                        ? 'border-amber-300 bg-amber-50 text-amber-800'
+                        : 'border-gray-200 bg-white text-gray-600 hover:border-amber-200 hover:bg-amber-50/60 hover:text-amber-800',
+                    ].join(' ')}
+                  >
+                    <Star
+                      className={`h-3.5 w-3.5 ${favoriteIds.length > 0 ? 'fill-amber-400 text-amber-500' : ''}`}
+                      strokeWidth={2}
+                    />
+                    Favoritas
+                    {favoriteIds.length > 0 ? (
+                      <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
+                        {favoriteIds.length}
+                      </span>
+                    ) : null}
+                  </button>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isSending}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 disabled:opacity-50"
+                aria-label="Fechar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </header>
+
+          {!readOnly && favoritesPanelOpen ? (
+            <SupportFavoritesPanel
+              favorites={favoriteMessages}
+              onSelect={handleNavigateToFavorite}
+              onClose={() => setFavoritesPanelOpen(false)}
+            />
+          ) : null}
+
+          {readOnly ? (
+            <p className="shrink-0 border-b border-sky-100 bg-sky-50/80 px-5 py-2.5 text-center text-xs font-medium text-sky-800 sm:px-6">
+              Visualização somente leitura — conversa entre o suporte Telefarmed e a unidade.
+            </p>
+          ) : null}
+
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 sm:px-6">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.author === 'support' ? 'justify-start' : 'justify-end'}`}
+              >
+                <SupportMessageBubble
+                  readOnly={readOnly}
+                  message={message}
+                  selectionMode={selectionMode && isSelectableOwnMessage(message)}
+                  isSelected={selectedIds.includes(message.id)}
+                  onToggleSelect={handleToggleSelect}
+                  onEnterSelectionMode={enterSelectionMode}
+                  isFavorited={favoriteIds.includes(message.id)}
+                  onToggleFavorite={() => handleToggleFavorite(message.id)}
+                  isHighlighted={highlightedMessageId === message.id}
+                  cardRef={
+                    !readOnly && isSupportPartnerMessage(message)
+                      ? (element) => {
+                          if (element) messageRefs.current.set(message.id, element)
+                          else messageRefs.current.delete(message.id)
+                        }
+                      : undefined
+                  }
+                  menuOpenId={menuOpenId}
+                  editingId={editingId}
+                  editDraft={editDraft}
+                  onToggleMenu={handleToggleMenu}
+                  onCloseMenu={handleCloseMenu}
+                  onEditDraftChange={setEditDraft}
+                  onStartEdit={handleStartEdit}
+                  onCancelEdit={handleCancelEdit}
+                  onSaveEdit={handleSaveEdit}
+                  onDelete={handleDeleteMessage}
+                />
+              </div>
+            ))}
+            {!readOnly && isTyping ? (
+              <div className="flex justify-start">
+                <TypingIndicator />
+              </div>
+            ) : null}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {!readOnly && selectionMode ? (
+            <footer className="shrink-0 border-t border-gray-200 bg-gray-50/80 px-5 py-4 sm:px-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm font-semibold text-gray-800">
+                  {selectedCount === 0
+                    ? 'Nenhuma mensagem selecionada'
+                    : selectedCount === 1
+                      ? '1 mensagem selecionada'
+                      : `${selectedCount} mensagens selecionadas`}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleToggleSelectAll}
+                    className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+                  >
+                    {allOwnSelected ? 'Desmarcar todas' : 'Selecionar todas'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={exitSelectionMode}
+                    className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeleteSelected}
+                    disabled={selectedCount === 0}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-red-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Excluir selecionadas
+                  </button>
+                </div>
+              </div>
+            </footer>
+          ) : readOnly ? (
+            <footer className="shrink-0 border-t border-gray-200 bg-gray-50/60 px-5 py-4 text-center text-xs text-gray-600 sm:px-6">
+              Acompanhamento municipal — não é possível enviar mensagens nesta conversa.
+            </footer>
+          ) : canReply ? (
+            <footer className="shrink-0 border-t border-gray-200 px-5 py-4 sm:px-6">
+              <label className="mb-2 flex items-center gap-2 text-xs font-semibold text-gray-600">
+                <MessageSquare className="h-3.5 w-3.5" />
+                Responder como {getLoggedOperatorName()}
+              </label>
+
+              {pendingFiles.length > 0 ? (
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {pendingFiles.map((pending) => (
+                    <div
+                      key={pending.id}
+                      className="flex max-w-full items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5"
+                    >
+                      {pending.type === 'image' && pending.previewUrl ? (
+                        <img
+                          src={pending.previewUrl}
+                          alt=""
+                          className="h-8 w-8 shrink-0 rounded object-cover"
+                        />
+                      ) : (
+                        <FileText className="h-4 w-4 shrink-0 text-[var(--brand-primary)]" />
+                      )}
+                      <span className="max-w-[140px] truncate text-xs text-gray-700">
+                        {pending.file.name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removePendingFile(pending.id)}
+                        disabled={isSending}
+                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-gray-400 transition hover:bg-gray-200 hover:text-gray-700 disabled:opacity-50"
+                        aria-label={`Remover ${pending.file.name}`}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {attachmentError ? (
+                <p className="mb-2 text-xs font-medium text-red-600">{attachmentError}</p>
+              ) : null}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={CHAT_ATTACHMENT_ACCEPT}
+                multiple
+                className="sr-only"
+                onChange={(event) => {
+                  if (event.target.files?.length) addFiles(event.target.files)
+                  event.target.value = ''
+                }}
+              />
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isSending}
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label="Anexar PDF ou imagem"
+                >
+                  <Paperclip className="h-4 w-4" />
+                </button>
+                <textarea
+                  value={reply}
+                  onChange={(e) => setReply(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSend()
+                    }
+                  }}
+                  rows={1}
+                  disabled={isSending}
+                  placeholder="Digite sua mensagem..."
+                  className="h-11 min-h-11 flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm leading-5 text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15 disabled:bg-gray-50"
+                />
+                <button
+                  type="button"
+                  onClick={handleSend}
+                  disabled={!canSend}
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--brand-primary)] text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label="Enviar resposta"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="mt-1.5 text-[10px] text-gray-400">
+                PDF ou imagem (PNG, JPG, WEBP) — máx. 10MB
+              </p>
+            </footer>
+          ) : (
+            <footer className="shrink-0 border-t border-gray-200 px-5 py-4 text-center text-xs text-gray-500 sm:px-6">
+              Este chamado foi encerrado e não aceita novas respostas.
+            </footer>
+          )}
+
+          {!readOnly ? (
+            <Toast
+              anchored
+              message={deleteToast?.message ?? ''}
+              visible={deleteToast !== null}
+              variant="success"
+              durationMs={DELETE_UNDO_MS}
+              actionLabel="Desfazer"
+              onAction={handleUndoDelete}
+              onClose={handleDeleteToastClose}
+            />
+          ) : null}
+          </div>
+        </aside>
+      </div>
+    </>,
+    document.body,
+  )
+}

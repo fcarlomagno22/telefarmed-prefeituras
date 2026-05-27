@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_LOGO_URL: string
   readonly VITE_BACKGROUND_IMAGE_URL: string
   readonly VITE_APP_NAME: string
+  readonly VITE_APP_VERSION?: string
   readonly VITE_APP_TAGLINE: string
   readonly VITE_HEADLINE: string
   readonly VITE_SUBHEADLINE: string

@@ -12,7 +12,7 @@ const roomStatus = {
 
 export function RoomStatusCard() {
   return (
-    <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+    <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
       <header className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-gray-800">Status das Salas</h2>
         <a

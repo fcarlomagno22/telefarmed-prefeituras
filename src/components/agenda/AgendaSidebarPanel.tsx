@@ -1,4 +1,4 @@
-import { Download, Lightbulb, Plus, Printer } from 'lucide-react'
+import { Download, Plus, Printer, UserPlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { AgendaDaySummary, AgendaOperationalClimate } from '../../data/agendaMock'
 import { AgendaDayPixelChart } from './AgendaDayPixelChart'
@@ -7,6 +7,9 @@ import { AgendaOperationalClimateCard } from './AgendaOperationalClimateCard'
 type AgendaSidebarPanelProps = {
   daySummary: AgendaDaySummary
   operationalClimate: AgendaOperationalClimate
+  onScheduleAppointment?: () => void
+  onWalkInReception?: () => void
+  walkInReceptionDisabled?: boolean
   onPrintAgenda?: () => void
   onExportReport?: () => void
   isPreparingPrint?: boolean
@@ -32,6 +35,9 @@ const quickActions = [
 export function AgendaSidebarPanel({
   daySummary,
   operationalClimate,
+  onScheduleAppointment,
+  onWalkInReception,
+  walkInReceptionDisabled = false,
   onPrintAgenda,
   onExportReport,
   isPreparingPrint = false,
@@ -45,13 +51,14 @@ export function AgendaSidebarPanel({
   }, [daySummary.attendanceRate, daySummary.total])
 
   return (
-    <aside className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <section className="shrink-0 rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+    <aside className="flex w-full flex-col gap-4">
+      <section className="shrink-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
         <h2 className="text-lg font-bold text-gray-900">Ações rápidas</h2>
 
         <div className="mt-4 space-y-2.5">
           <button
             type="button"
+            onClick={onScheduleAppointment}
             className="flex w-full items-center gap-3 rounded-xl bg-[var(--brand-primary)] px-4 py-3.5 text-left shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/20">
@@ -60,6 +67,33 @@ export function AgendaSidebarPanel({
             <span>
               <span className="block text-sm font-semibold text-white">Agendar consulta</span>
               <span className="mt-0.5 block text-xs text-white/85">Agendar novo atendimento</span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onWalkInReception}
+            disabled={walkInReceptionDisabled || !onWalkInReception}
+            title={
+              walkInReceptionDisabled
+                ? 'Encaixe presencial disponível apenas na agenda de hoje'
+                : undefined
+            }
+            className={[
+              'flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-left transition',
+              walkInReceptionDisabled || !onWalkInReception
+                ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-60'
+                : 'border-sky-200 bg-gradient-to-r from-sky-50 to-white shadow-sm hover:border-sky-300 hover:from-sky-100/80',
+            ].join(' ')}
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
+              <UserPlus className="h-5 w-5" strokeWidth={2.5} />
+            </span>
+            <span>
+              <span className="block text-sm font-semibold text-sky-900">
+                Recepção presencial
+              </span>
+              <span className="mt-0.5 block text-xs text-sky-700/90">Encaixe sem horário</span>
             </span>
           </button>
 
@@ -101,10 +135,10 @@ export function AgendaSidebarPanel({
         </div>
       </section>
 
-      <section className="shrink-0 rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+      <section className="shrink-0 rounded-2xl border border-gray-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
         <h2 className="text-lg font-bold text-gray-900">Resumo do dia</h2>
 
-        <div className="mt-4 flex items-center justify-between gap-3 border-b border-gray-100 pb-4">
+        <div className="mt-4 flex items-center justify-between gap-3 border-b border-gray-200 pb-4">
           <span className="text-sm text-gray-600">Total de agendamentos</span>
           <span className="text-2xl font-bold tabular-nums text-gray-900">
             {formatStat(daySummary.total)}
@@ -113,7 +147,7 @@ export function AgendaSidebarPanel({
 
         <AgendaDayPixelChart className="mt-4 overflow-visible pt-1" summary={daySummary} />
 
-        <div className="mt-5 border-t border-gray-100 pt-4">
+        <div className="mt-5 border-t border-gray-200 pt-4">
           <div className="flex items-end justify-between gap-2">
             <span className="text-sm text-gray-600">Taxa de comparecimento</span>
             <span
@@ -136,16 +170,6 @@ export function AgendaSidebarPanel({
       </section>
 
       <AgendaOperationalClimateCard operationalClimate={operationalClimate} />
-
-      <section className="shrink-0 rounded-xl bg-sky-50 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Lightbulb className="h-4 w-4 shrink-0 text-sky-600" strokeWidth={2} />
-          <p className="text-xs text-sky-800/90">
-            <span className="font-semibold text-sky-700">Dica: </span>
-            Mantenha a agenda sempre atualizada.
-          </p>
-        </div>
-      </section>
     </aside>
   )
 }

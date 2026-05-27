@@ -126,7 +126,7 @@ export function AgendaDatePicker({
           role="dialog"
           aria-modal="false"
           aria-label="Selecionar data"
-          className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-[min(100vw-2rem,20rem)] overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.18)]"
+          className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-[min(100vw-2rem,20rem)] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.18)]"
         >
           <div className="bg-gradient-to-br from-[var(--brand-primary-light)] via-orange-50 to-white px-4 pb-3 pt-4">
             <div className="flex items-center justify-between gap-2">
@@ -203,7 +203,7 @@ export function AgendaDatePicker({
               })}
             </div>
 
-            <div className="mt-3 flex items-center justify-between gap-2 border-t border-gray-100 pt-3">
+            <div className="mt-3 flex items-center justify-between gap-2 border-t border-gray-200 pt-3">
               <div className="flex items-center gap-3 text-[10px] text-gray-500">
                 <span className="inline-flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-[var(--brand-primary)]" />

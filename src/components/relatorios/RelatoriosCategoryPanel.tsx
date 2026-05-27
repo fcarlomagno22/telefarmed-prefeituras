@@ -1,0 +1,417 @@
+import { ArrowLeft, Filter, RotateCcw, Search, Table2 } from 'lucide-react'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
+import type { ReportCategoryConfig } from '../../config/reportsCategories'
+import {
+  defaultRelatoriosPeriod,
+  getColumnsForCategory,
+  relatoriosOperatorOptions,
+  relatoriosSpecialtyOptions,
+  relatoriosStationOptions,
+  relatoriosStatusOptionsByCategory,
+  relatoriosUnitOptions,
+} from '../../data/relatoriosMock'
+import { unitStation } from '../../data/unitDashboardMock'
+import { CustomSelect } from '../ui/CustomSelect'
+import { CompactDateRangePicker } from '../ui/CompactDateRangePicker'
+import { Toast, type ToastVariant } from '../ui/Toast'
+import { ExportFormatMenu, type ExportFormat } from '../ui/ExportFormatMenu'
+import { KpiStatCards } from '../ui/KpiStatCards'
+import {
+  defaultRelatoriosFilters,
+  formatCellValue,
+  getRowsForCategory,
+  type RelatoriosFilters,
+} from '../../utils/relatoriosFilters'
+import { computeKpisForCategory } from '../../utils/relatoriosKpiCards'
+import {
+  exportRelatoriosExcel,
+  exportRelatoriosPdf,
+} from '../../utils/relatorios/relatoriosExport'
+
+const PAGE_SIZE = 8
+
+type RelatoriosCategoryPanelProps = {
+  category: ReportCategoryConfig
+}
+
+function FilterField({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-xs font-semibold text-gray-600">{label}</label>
+      {children}
+    </div>
+  )
+}
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat('pt-BR').format(value)
+}
+
+function columnAlignClass(index: number) {
+  return index === 0 ? 'text-left' : 'text-center'
+}
+
+function formatPeriodLabel(start: string, end: string) {
+  if (!start && !end) return 'Todo o período'
+  if (start && end) {
+    const fmt = (iso: string) => {
+      const [y, m, d] = iso.split('-')
+      return `${d}/${m}/${y}`
+    }
+    return `${fmt(start)} a ${fmt(end)}`
+  }
+  return start || end
+}
+
+export function RelatoriosCategoryPanel({ category }: RelatoriosCategoryPanelProps) {
+  const initialFilters: RelatoriosFilters = {
+    ...defaultRelatoriosFilters,
+    periodStart: defaultRelatoriosPeriod.start,
+    periodEnd: defaultRelatoriosPeriod.end,
+  }
+
+  const [draftFilters, setDraftFilters] = useState<RelatoriosFilters>(initialFilters)
+  const [appliedFilters, setAppliedFilters] = useState<RelatoriosFilters>(initialFilters)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
+
+  const columns = useMemo(() => getColumnsForCategory(category.id), [category.id])
+
+  const filteredRows = useMemo(
+    () =>
+      getRowsForCategory(category.id, {
+        ...appliedFilters,
+        generalSearch: draftFilters.generalSearch,
+      }),
+    [category.id, appliedFilters, draftFilters.generalSearch],
+  )
+
+  const kpis = useMemo(
+    () => computeKpisForCategory(category.id, filteredRows),
+    [category.id, filteredRows],
+  )
+
+  const totalFiltered = filteredRows.length
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / PAGE_SIZE))
+  const safePage = Math.min(currentPage, totalPages)
+  const paginatedRows = useMemo(() => {
+    const start = (safePage - 1) * PAGE_SIZE
+    return filteredRows.slice(start, start + PAGE_SIZE)
+  }, [filteredRows, safePage])
+
+  const showingFrom = totalFiltered === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1
+  const showingTo = Math.min(safePage * PAGE_SIZE, totalFiltered)
+
+  const statusOptions = relatoriosStatusOptionsByCategory[category.id]
+  const showPeriod = category.id !== 'gestao' && category.id !== 'usuarios'
+  const showOperator = category.id === 'posto'
+  const showStation = category.id === 'posto'
+  const showSpecialty =
+    category.id === 'posto' || category.id === 'consultas' || category.id === 'medicos'
+  const showStatus =
+    category.id === 'posto' ||
+    category.id === 'consultas' ||
+    category.id === 'usuarios'
+  const showUnit = category.id !== 'gestao'
+
+  const showToast = useCallback((message: string, variant: ToastVariant) => {
+    setToast(null)
+    requestAnimationFrame(() => setToast({ message, variant }))
+  }, [])
+
+  function updateDraft<K extends keyof RelatoriosFilters>(key: K, value: RelatoriosFilters[K]) {
+    setDraftFilters((prev) => ({ ...prev, [key]: value }))
+    if (key === 'generalSearch') setCurrentPage(1)
+  }
+
+  function applyFilters() {
+    setAppliedFilters({ ...draftFilters })
+    setCurrentPage(1)
+    showToast('Filtros aplicados', 'success')
+  }
+
+  function clearFilters() {
+    setDraftFilters(initialFilters)
+    setAppliedFilters(initialFilters)
+    setCurrentPage(1)
+    showToast('Filtros limpos', 'success')
+  }
+
+  function buildExportContext() {
+    return {
+      category,
+      columns,
+      rows: filteredRows,
+      periodLabel: formatPeriodLabel(appliedFilters.periodStart, appliedFilters.periodEnd),
+      unitLabel: unitStation.unitName,
+    }
+  }
+
+  function handleExport(format: ExportFormat) {
+    if (totalFiltered === 0) {
+      showToast('Nenhum registro encontrado para exportar.', 'error')
+      return
+    }
+    try {
+      const context = buildExportContext()
+      if (format === 'pdf') {
+        exportRelatoriosPdf(context)
+      } else {
+        exportRelatoriosExcel(context)
+      }
+      showToast('Relatório gerado', 'success')
+    } catch {
+      showToast('Não foi possível gerar o relatório. Tente novamente.', 'error')
+    }
+  }
+
+  const selectClass = 'py-2.5'
+
+  return (
+    <>
+      <div className="flex shrink-0 flex-col gap-4">
+        <Link
+          to="/relatorios"
+          className="inline-flex w-fit items-center gap-2 text-sm font-medium text-gray-600 transition hover:text-[var(--brand-primary)]"
+        >
+          <ArrowLeft className="h-4 w-4" strokeWidth={2} />
+          Voltar aos relatórios
+        </Link>
+
+        <section className="shrink-0 rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
+          <header className="flex items-center gap-2 border-b border-gray-200 px-5 py-4 sm:px-6">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--brand-primary-light)] text-[var(--brand-primary)]">
+              <Filter className="h-4 w-4" strokeWidth={2} />
+            </span>
+            <h2 className="text-base font-bold text-gray-900">Filtros de busca</h2>
+          </header>
+
+          <div className="px-5 py-5 sm:px-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {showPeriod ? (
+                <FilterField label="Período">
+                  <CompactDateRangePicker
+                    start={draftFilters.periodStart}
+                    end={draftFilters.periodEnd}
+                    onStartChange={(value) => updateDraft('periodStart', value)}
+                    onEndChange={(value) => updateDraft('periodEnd', value)}
+                  />
+                </FilterField>
+              ) : null}
+
+              {showUnit ? (
+                <FilterField label="Unidade">
+                  <CustomSelect
+                    value={draftFilters.unit}
+                    onChange={(value) => updateDraft('unit', value)}
+                    options={relatoriosUnitOptions}
+                    className={selectClass}
+                  />
+                </FilterField>
+              ) : null}
+
+              {showOperator ? (
+                <FilterField label="Operador">
+                  <CustomSelect
+                    value={draftFilters.operator}
+                    onChange={(value) => updateDraft('operator', value)}
+                    options={relatoriosOperatorOptions}
+                    className={selectClass}
+                  />
+                </FilterField>
+              ) : null}
+
+              {showStation ? (
+                <FilterField label="Computador">
+                  <CustomSelect
+                    value={draftFilters.station}
+                    onChange={(value) => updateDraft('station', value)}
+                    options={relatoriosStationOptions}
+                    className={selectClass}
+                  />
+                </FilterField>
+              ) : null}
+
+              {showSpecialty ? (
+                <FilterField label="Especialidade">
+                  <CustomSelect
+                    value={draftFilters.specialty}
+                    onChange={(value) => updateDraft('specialty', value)}
+                    options={relatoriosSpecialtyOptions}
+                    className={selectClass}
+                  />
+                </FilterField>
+              ) : null}
+
+              {showStatus ? (
+                <FilterField label="Status">
+                  <CustomSelect
+                    value={draftFilters.status}
+                    onChange={(value) => updateDraft('status', value)}
+                    options={statusOptions}
+                    className={selectClass}
+                  />
+                </FilterField>
+              ) : null}
+
+              <div
+                className={
+                  showPeriod && showUnit
+                    ? 'col-span-1 sm:col-span-2 xl:col-span-4'
+                    : 'col-span-1 sm:col-span-2 xl:col-span-2'
+                }
+              >
+                <FilterField label="Busca geral">
+                  <label className="relative block">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="search"
+                      value={draftFilters.generalSearch}
+                      onChange={(e) => updateDraft('generalSearch', e.target.value)}
+                      placeholder="Paciente, protocolo, médico, bairro..."
+                      className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15"
+                    />
+                  </label>
+                </FilterField>
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-col items-end gap-2 border-t border-gray-200 pt-5 sm:flex-row sm:items-center sm:justify-end">
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                <RotateCcw className="h-4 w-4" strokeWidth={2} />
+                Limpar filtros
+              </button>
+              <button
+                type="button"
+                onClick={applyFilters}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
+              >
+                <Search className="h-4 w-4" strokeWidth={2} />
+                Aplicar filtros
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <KpiStatCards items={kpis} />
+
+        <section className="flex min-h-[24rem] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
+          <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4 sm:px-6">
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--brand-primary-light)] text-[var(--brand-primary)]">
+                <Table2 className="h-4 w-4" strokeWidth={2} />
+              </span>
+              <h2 className="text-base font-bold text-gray-900">Resultados</h2>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <ExportFormatMenu
+                resultCount={totalFiltered}
+                itemSingular="registro"
+                itemPlural="registros"
+                onSelect={handleExport}
+              />
+              <span className="text-sm text-gray-500">
+                <span className="font-semibold text-gray-800">
+                  {formatNumber(totalFiltered)}
+                </span>{' '}
+                registro{totalFiltered === 1 ? '' : 's'}
+              </span>
+            </div>
+          </header>
+
+          <div className="min-h-0 flex-1 overflow-auto">
+            <table className="w-full min-w-[640px] border-collapse text-sm">
+              <thead className="sticky top-0 z-10 bg-gray-50/95 backdrop-blur-sm">
+                <tr>
+                  {columns.map((col, colIndex) => (
+                    <th
+                      key={col.key}
+                      className={[
+                        'border-b border-gray-200 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500',
+                        columnAlignClass(colIndex),
+                      ].join(' ')}
+                    >
+                      {col.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedRows.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="px-4 py-16 text-center text-sm text-gray-500"
+                    >
+                      Nenhum registro encontrado. Ajuste os filtros e clique em{' '}
+                      <span className="font-semibold text-gray-700">Aplicar filtros</span>.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedRows.map((row, rowIndex) => (
+                    <tr
+                      key={`${rowIndex}-${String(row.id ?? rowIndex)}`}
+                      className="border-b border-gray-50 transition hover:bg-orange-50/30"
+                    >
+                      {columns.map((col, colIndex) => (
+                        <td
+                          key={col.key}
+                          className={['px-4 py-3 text-gray-700', columnAlignClass(colIndex)].join(
+                            ' ',
+                          )}
+                        >
+                          {formatCellValue(col.key, row[col.key])}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {totalFiltered > 0 ? (
+            <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-5 py-3 sm:px-6">
+              <p className="text-xs text-gray-500">
+                Exibindo {showingFrom}–{showingTo} de {formatNumber(totalFiltered)}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={safePage <= 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition enabled:hover:bg-gray-50 disabled:opacity-40"
+                >
+                  Anterior
+                </button>
+                <span className="text-xs text-gray-500">
+                  Página {safePage} de {totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={safePage >= totalPages}
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 transition enabled:hover:bg-gray-50 disabled:opacity-40"
+                >
+                  Próxima
+                </button>
+              </div>
+            </footer>
+          ) : null}
+        </section>
+      </div>
+
+      <Toast
+        message={toast?.message ?? ''}
+        visible={toast !== null}
+        variant={toast?.variant}
+        onClose={() => setToast(null)}
+      />
+    </>
+  )
+}

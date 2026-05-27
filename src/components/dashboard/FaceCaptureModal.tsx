@@ -159,7 +159,7 @@ export function FaceCaptureModal({ open, onClose, onCapture }: FaceCaptureModalP
           <X className="h-4 w-4" />
         </button>
 
-        <div className="border-b border-gray-100 px-5 pb-3 pt-5 text-center">
+        <div className="border-b border-gray-200 px-5 pb-3 pt-5 text-center">
           <h2 id="face-capture-title" className="text-base font-bold text-gray-900">
             Foto de cadastro
           </h2>

@@ -130,7 +130,7 @@ export function ConsultationLockOverlay({
                 Aguardando o médico
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-gray-500 sm:text-base">
-                A sala de espera foi aberta em outra janela. Mantenha esta página aberta até o
+                O paciente está na sala de espera virtual. Mantenha esta página aberta até o
                 atendimento encerrar.
               </p>
 

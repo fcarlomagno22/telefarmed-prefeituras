@@ -12,6 +12,9 @@ type PinInputProps = {
   disabled?: boolean
   autoFocus?: boolean
   id?: string
+  label?: string
+  toggleVisibleLabel?: string
+  toggleHiddenLabel?: string
 }
 
 export function PinInput({
@@ -23,6 +26,9 @@ export function PinInput({
   disabled = false,
   autoFocus = false,
   id = 'lgpd-pin',
+  label = 'Senha da unidade',
+  toggleVisibleLabel = 'Ver senha',
+  toggleHiddenLabel = 'Ocultar senha',
 }: PinInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
@@ -93,7 +99,7 @@ export function PinInput({
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <label htmlFor={`${id}-0`} className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Senha da unidade
+          {label}
         </label>
         <button
           type="button"
@@ -102,7 +108,7 @@ export function PinInput({
           aria-pressed={visible}
         >
           {visible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-          {visible ? 'Ocultar senha' : 'Ver senha'}
+          {visible ? toggleHiddenLabel : toggleVisibleLabel}
         </button>
       </div>
 

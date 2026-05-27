@@ -22,7 +22,7 @@ export function LoginPage() {
           </header>
 
           <div className="flex flex-1 flex-col items-center justify-center py-6">
-            <LoginForm />
+            <LoginForm portal="ubt" />
           </div>
         </div>
 

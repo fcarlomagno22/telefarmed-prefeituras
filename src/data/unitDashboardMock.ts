@@ -34,6 +34,8 @@ export const emptyPatientContact = (): PatientContact => ({
 
 export type PatientRegistration = {
   fullName: string
+  /** Nome pelo qual o paciente prefere ser chamado (opcional). */
+  socialName: string
   cpf: string
   birthDate: string
   gender: string
@@ -54,6 +56,7 @@ export type PatientRegistration = {
 
 export const emptyPatientRegistration = (): PatientRegistration => ({
   fullName: '',
+  socialName: '',
   cpf: '',
   birthDate: '',
   gender: '',
@@ -93,8 +96,51 @@ export type RegisteredPatient = {
 }
 
 export const unitStation = {
-  unitName: 'UBS Centro — Sala de Teleatendimento',
+  unitName: 'UBT Centro — Sala de Teleatendimento',
   stationLabel: 'Computador 01',
+}
+
+/** Nome de tratamento: nome social, se informado; caso contrário, nome civil. */
+export function getPatientPreferredName(
+  data: Pick<PatientRegistration, 'fullName' | 'socialName'>,
+) {
+  const social = data.socialName?.trim() ?? ''
+  const fullName = data.fullName?.trim() ?? ''
+  return social || fullName
+}
+
+/** Garante campos string/contatos mesmo quando o cadastro veio parcial (ex.: localStorage). */
+export function normalizePatientRegistration(
+  data: Partial<PatientRegistration> & { cpf: string },
+): PatientRegistration {
+  const base = emptyPatientRegistration()
+  const contacts =
+    Array.isArray(data.contacts) && data.contacts.length > 0
+      ? data.contacts.map((contact) => ({ ...contact }))
+      : base.contacts
+
+  return {
+    ...base,
+    ...data,
+    cpf: data.cpf,
+    fullName: data.fullName ?? '',
+    socialName: data.socialName ?? '',
+    birthDate: data.birthDate ?? '',
+    gender: data.gender ?? '',
+    phone: data.phone ?? '',
+    email: data.email ?? '',
+    guardianName: data.guardianName ?? '',
+    guardianCpf: data.guardianCpf ?? '',
+    zipCode: data.zipCode ?? '',
+    street: data.street ?? '',
+    number: data.number ?? '',
+    complement: data.complement ?? '',
+    neighborhood: data.neighborhood ?? '',
+    city: data.city ?? '',
+    state: data.state ?? '',
+    photoDataUrl: data.photoDataUrl ?? '',
+    contacts,
+  }
 }
 
 export function registrationToPatient(
@@ -108,7 +154,7 @@ export function registrationToPatient(
       : data.cpf
 
   return {
-    name: data.fullName,
+    name: getPatientPreferredName(data),
     document: maskedCpf,
     specialty: specialtyName,
     protocol: `ATD-${Date.now().toString().slice(-6)}`,
@@ -161,7 +207,7 @@ export const unitGuideSteps = [
   },
   {
     step: 4,
-    title: 'Finalize e libere o posto',
+    title: 'Finalize e libere o Terminal',
     description: 'Encerre a consulta para atender o próximo paciente.',
   },
 ]

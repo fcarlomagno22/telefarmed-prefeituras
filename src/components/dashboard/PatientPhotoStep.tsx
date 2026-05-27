@@ -6,6 +6,7 @@ import { AttendanceStepShell } from './AttendanceStepShell'
 
 type PatientPhotoStepProps = {
   photoDataUrl: string
+  description?: string
   onOpenCapture: () => void
   onContinue: () => void
   onBack: () => void
@@ -13,6 +14,7 @@ type PatientPhotoStepProps = {
 
 export function PatientPhotoStep({
   photoDataUrl,
+  description,
   onOpenCapture,
   onContinue,
   onBack,
@@ -23,7 +25,10 @@ export function PatientPhotoStep({
   return (
     <AttendanceStepShell
       title="Foto de cadastro"
-      description="Registre uma foto do rosto do paciente para identificação no atendimento."
+      description={
+        description ??
+        'Registre uma foto do rosto do paciente para identificação no atendimento.'
+      }
       footer={
         <AttendanceStepFooter
           onBack={onBack}

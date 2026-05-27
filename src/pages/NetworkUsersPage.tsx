@@ -5,6 +5,11 @@ import { NetworkUsersAboutPanelSkeleton } from '../components/users/NetworkUsers
 import { NetworkUsersMainPanel } from '../components/users/NetworkUsersMainPanel'
 import { NetworkUsersMainPanelSkeleton } from '../components/users/NetworkUsersMainPanelSkeleton'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
+import {
+  dashboardPageHeaderWrapClass,
+  dashboardPageScrollPaddingClass,
+  dashboardPageShellClass,
+} from '../components/layout/dashboardPageLayout'
 import { unitStation } from '../data/unitDashboardMock'
 import { useBrandTheme } from '../hooks/useBrandTheme'
 import { usePageSkeletonLoading } from '../hooks/usePageSkeletonLoading'
@@ -17,8 +22,8 @@ export function NetworkUsersPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex h-full min-h-0 flex-col">
-        <div className="shrink-0 px-5 pt-5 sm:px-8 sm:pt-6 lg:px-10">
+      <div className={dashboardPageShellClass}>
+        <div className={dashboardPageHeaderWrapClass}>
           {isLoading ? (
             <DashboardPageHeaderSkeleton />
           ) : (
@@ -29,19 +34,35 @@ export function NetworkUsersPage() {
           )}
         </div>
 
-        <section className="mt-4 grid min-h-0 flex-1 grid-cols-1 gap-4 pb-5 sm:mt-6 sm:pb-6 xl:grid-cols-[1fr_320px] xl:grid-rows-1">
-          {isLoading ? (
-            <>
-              <NetworkUsersMainPanelSkeleton />
-              <NetworkUsersAboutPanelSkeleton />
-            </>
-          ) : (
-            <>
-              <NetworkUsersMainPanel />
-              <NetworkUsersAboutPanel />
-            </>
-          )}
-        </section>
+        <div
+          className={[
+            dashboardPageScrollPaddingClass,
+            'mt-4 flex min-h-0 flex-1 flex-col pb-5',
+          ].join(' ')}
+        >
+          <section
+            className={[
+              'grid min-h-0 flex-1 gap-4',
+              'xl:grid xl:grid-cols-[minmax(0,1fr)_320px] xl:grid-rows-1 xl:items-stretch',
+            ].join(' ')}
+          >
+            {isLoading ? (
+              <>
+                <div className="flex h-full min-h-0 min-w-0 flex-col [&>section]:h-full [&>section]:min-h-0 [&>section]:flex-1">
+                  <NetworkUsersMainPanelSkeleton />
+                </div>
+                <div className="flex h-full min-h-0 min-w-0 flex-col">
+                  <NetworkUsersAboutPanelSkeleton />
+                </div>
+              </>
+            ) : (
+              <>
+                <NetworkUsersMainPanel />
+                <NetworkUsersAboutPanel />
+              </>
+            )}
+          </section>
+        </div>
       </div>
     </DashboardLayout>
   )

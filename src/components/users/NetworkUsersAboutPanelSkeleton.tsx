@@ -2,7 +2,7 @@ import { Skeleton } from '../ui/Skeleton'
 
 function ChartBlockSkeleton({ rows = 4 }: { rows?: number }) {
   return (
-    <section className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+    <section className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
       <Skeleton className="h-3 w-36" />
       <div className="mt-3 flex items-center gap-4">
         <Skeleton className="size-[5.5rem] shrink-0 rounded-full" />
@@ -22,7 +22,7 @@ function ChartBlockSkeleton({ rows = 4 }: { rows?: number }) {
 
 function BarsBlockSkeleton({ rows = 4 }: { rows?: number }) {
   return (
-    <section className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+    <section className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
       <Skeleton className="h-3 w-28" />
       <ul className="mt-3 space-y-2.5">
         {Array.from({ length: rows }).map((_, index) => (
@@ -41,7 +41,7 @@ function BarsBlockSkeleton({ rows = 4 }: { rows?: number }) {
 
 function VerticalBarsBlockSkeleton({ columns = 5 }: { columns?: number }) {
   return (
-    <section className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+    <section className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
       <Skeleton className="h-3 w-44" />
       <Skeleton className="mt-1 h-3 w-20" />
       <div className="mt-4 flex h-32 items-end justify-between gap-1.5">
@@ -60,7 +60,7 @@ function VerticalBarsBlockSkeleton({ columns = 5 }: { columns?: number }) {
 export function NetworkUsersAboutPanelSkeleton() {
   return (
     <aside
-      className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
+      className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]"
       aria-busy="true"
       aria-label="Carregando painel sobre os usuários"
     >
