@@ -13,11 +13,13 @@ const PDF_ZOOM_STEP = 0.25
 type ConsultationChatAttachmentViewerProps = {
   attachment: ConsultationChatAttachment
   onClose: () => void
+  tourTargetId?: string
 }
 
 export function ConsultationChatAttachmentViewer({
   attachment,
   onClose,
+  tourTargetId,
 }: ConsultationChatAttachmentViewerProps) {
   const isImage = attachment.type === 'image'
   const [imageZoom, setImageZoom] = useState(1)
@@ -70,7 +72,10 @@ export function ConsultationChatAttachmentViewer({
   }, [isImage, clampImageZoom, clampPdfZoom])
 
   return createPortal(
-    <div className="fixed inset-0 z-[10000] flex flex-col bg-gray-950/95">
+    <div
+      data-tour={tourTargetId}
+      className="fixed inset-0 z-[10000] flex flex-col bg-gray-950/95"
+    >
       <header className="relative z-10 flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6">
         <p className="min-w-0 truncate text-sm font-medium text-white">{attachment.name}</p>
 

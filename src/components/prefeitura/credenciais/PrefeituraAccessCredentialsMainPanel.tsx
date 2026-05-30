@@ -112,7 +112,7 @@ export function PrefeituraAccessCredentialsMainPanel({
   function requestDeactivateUser(user: PrefeituraAccessCredentialUser) {
     if (user.status === 'inativo') {
       closeMenu()
-      showSuccessToast('Usuário já está desativado.')
+      showSuccessToast('Usuário já está bloqueado.')
       return
     }
     closeMenu()

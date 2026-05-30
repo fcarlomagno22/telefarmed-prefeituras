@@ -9,6 +9,7 @@ const originLabels: Record<PrefeituraNotificationOrigin, string> = {
   telefarmed: 'Telefarmed',
   ubt: 'UBT',
   contract_manager: 'Gestão municipal',
+  profissional: 'Corpo clínico',
 }
 
 const audienceLabels: Record<PrefeituraNotificationAudience, string> = {
@@ -16,6 +17,9 @@ const audienceLabels: Record<PrefeituraNotificationAudience, string> = {
   ubt_all: 'UBT inteira',
   ubt_responsible: 'Responsável',
   ubt_user: 'Usuário específico',
+  medico_all: 'Todos os médicos',
+  medico_plantao: 'Plantão atual',
+  medico_especialidade: 'Por especialidade',
 }
 
 export function getPrefeituraNotificationOriginLabel(origin: PrefeituraNotificationOrigin) {
@@ -82,6 +86,14 @@ export function buildPrefeituraNotificationOriginBadge(
       text: 'text-blue-700',
       accent: 'bg-blue-500',
       lineGlow: 'shadow-[0_0_8px_rgba(59,130,246,0.45)]',
+    }
+  }
+  if (origin === 'profissional') {
+    return {
+      label: 'Corpo clínico',
+      text: 'text-violet-700',
+      accent: 'bg-violet-500',
+      lineGlow: 'shadow-[0_0_8px_rgba(139,92,246,0.45)]',
     }
   }
   return {

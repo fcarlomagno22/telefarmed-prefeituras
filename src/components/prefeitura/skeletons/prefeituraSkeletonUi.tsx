@@ -58,6 +58,7 @@ export function DashCardSkeleton({
   className = '',
   bodyClassName = 'p-4',
   showAction = false,
+  action,
   children,
 }: {
   titleWidth?: string
@@ -65,6 +66,7 @@ export function DashCardSkeleton({
   className?: string
   bodyClassName?: string
   showAction?: boolean
+  action?: ReactNode
   children: ReactNode
 }) {
   return (
@@ -81,7 +83,8 @@ export function DashCardSkeleton({
           <Skeleton className={`h-4 ${titleWidth}`} />
           <Skeleton className={`h-3 ${subtitleWidth}`} />
         </div>
-        {showAction ? <Skeleton className="h-8 w-28 shrink-0 rounded-lg" /> : null}
+        {action ??
+          (showAction ? <Skeleton className="h-8 w-28 shrink-0 rounded-lg" /> : null)}
       </header>
       <div className={['min-h-0 flex-1', bodyClassName].join(' ')}>{children}</div>
     </article>

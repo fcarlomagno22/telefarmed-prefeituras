@@ -1,5 +1,6 @@
 import { Building2, ChevronLeft, ChevronRight, Filter, Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { forwardRef, useImperativeHandle, useMemo, useState, type ReactNode } from 'react'
+import { PROFISSIONAL_SUPORTE_TOUR_DEMO_TICKET_ID } from '../../config/profissionalSuporteTour'
 import {
   supportPagination,
   supportTickets,
@@ -57,19 +58,37 @@ function filterTickets(
   })
 }
 
+export type SuporteMainPanelHandle = {
+  openDemoTicket: () => void
+  closeTicketDrawer: () => void
+  resetFilters: () => void
+}
+
 type SuporteMainPanelProps = {
   tickets?: SupportTicket[]
   showUbtColumn?: boolean
   readOnlyChat?: boolean
+  replyAsSupport?: boolean
   defaultOpenOnly?: boolean
+  pageSize?: number
+  toolbarActions?: ReactNode
+  tourLockDrawerClose?: boolean
 }
 
-export function SuporteMainPanel({
-  tickets = supportTickets,
-  showUbtColumn = false,
-  readOnlyChat = false,
-  defaultOpenOnly = false,
-}: SuporteMainPanelProps) {
+export const SuporteMainPanel = forwardRef<SuporteMainPanelHandle, SuporteMainPanelProps>(
+  function SuporteMainPanel(
+    {
+      tickets = supportTickets,
+      showUbtColumn = false,
+      readOnlyChat = false,
+      replyAsSupport = false,
+      defaultOpenOnly = false,
+      pageSize = supportPagination.pageSize,
+      toolbarActions,
+      tourLockDrawerClose = false,
+    },
+    ref,
+  ) {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<SupportTicketStatus | ''>('')
   const [openOnly, setOpenOnly] = useState(defaultOpenOnly)
@@ -78,8 +97,6 @@ export function SuporteMainPanel({
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerClosing, setDrawerClosing] = useState(false)
-
-  const pageSize = supportPagination.pageSize
 
   const filteredTickets = useMemo(
     () => filterTickets(search, statusFilter, tickets, openOnly),
@@ -104,6 +121,7 @@ export function SuporteMainPanel({
   }
 
   function closeDrawer() {
+    if (tourLockDrawerClose) return
     setDrawerClosing(true)
   }
 
@@ -115,11 +133,43 @@ export function SuporteMainPanel({
     }
   }
 
+  function resetFilters() {
+    setSearch('')
+    setStatusFilter('')
+    setOpenOnly(defaultOpenOnly)
+    setFilterOpen(false)
+    setCurrentPage(1)
+  }
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      openDemoTicket: () => {
+        const demoTicket = tickets.find((ticket) => ticket.id === PROFISSIONAL_SUPORTE_TOUR_DEMO_TICKET_ID)
+        if (!demoTicket) return
+        resetFilters()
+        openTicket(demoTicket)
+      },
+      closeTicketDrawer: () => {
+        if (!drawerOpen && !drawerClosing) return
+        setDrawerClosing(true)
+      },
+      resetFilters,
+    }),
+    [defaultOpenOnly, drawerClosing, drawerOpen, tickets],
+  )
+
   return (
     <>
-      <section className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
+      <section
+        data-tour="suporte-main-panel"
+        className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]"
+      >
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4 sm:px-6">
-          <label className="relative min-w-0 flex-1 sm:max-w-md">
+          <label
+            data-tour="suporte-search"
+            className="relative min-w-0 flex-1 sm:max-w-md"
+          >
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="search"
@@ -172,6 +222,7 @@ export function SuporteMainPanel({
             <div className="relative">
             <button
               id="suporte-status-filter-trigger"
+              data-tour="suporte-status-filter"
               type="button"
               onClick={() => setFilterOpen((open) => !open)}
               aria-expanded={filterOpen}
@@ -196,10 +247,15 @@ export function SuporteMainPanel({
               }}
             />
             </div>
+
+            {toolbarActions}
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+        <div
+          data-tour="suporte-table"
+          className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
+        >
           <table className="w-full table-fixed border-collapse text-left">
             <thead className="sticky top-0 z-10 bg-gray-50">
               <tr className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
@@ -226,6 +282,9 @@ export function SuporteMainPanel({
               {paginatedTickets.map((ticket) => (
                 <tr
                   key={ticket.id}
+                  {...(ticket.id === PROFISSIONAL_SUPORTE_TOUR_DEMO_TICKET_ID
+                    ? { 'data-tour': 'suporte-view-ticket' }
+                    : {})}
                   className="cursor-pointer text-sm text-gray-700 transition hover:bg-gray-50/80"
                   onClick={() => openTicket(ticket)}
                 >
@@ -272,7 +331,10 @@ export function SuporteMainPanel({
           </table>
         </div>
 
-        <footer className="flex shrink-0 flex-col gap-3 border-t border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <footer
+          data-tour="suporte-pagination"
+          className="flex shrink-0 flex-col gap-3 border-t border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6"
+        >
           <p className="text-xs text-gray-500">
             {totalFiltered === 0
               ? 'Nenhum chamado na lista'
@@ -321,9 +383,12 @@ export function SuporteMainPanel({
         open={drawerOpen}
         closing={drawerClosing}
         readOnly={readOnlyChat}
+        replyAsSupport={replyAsSupport}
         onClose={closeDrawer}
         onTransitionEnd={handleDrawerTransitionEnd}
+        tourLockClose={tourLockDrawerClose}
       />
     </>
   )
-}
+},
+)

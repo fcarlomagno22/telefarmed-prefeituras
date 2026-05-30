@@ -32,6 +32,8 @@ export type SupportMessage = {
   attachments?: SupportMessageAttachment[]
 }
 
+export type SupportTicketSource = 'ubt' | 'prefeitura' | 'profissional'
+
 export type SupportTicket = {
   id: string
   number: string
@@ -42,6 +44,10 @@ export type SupportTicket = {
   openedAt: string
   category: string
   messages: SupportMessage[]
+  /** Canal de abertura — visão central Telefarmed. */
+  source?: SupportTicketSource
+  /** Prefeitura contratante — visão central e municipal. */
+  municipalityName?: string
   /** Preenchido na visão municipal — unidade que abriu o chamado. */
   ubtId?: string
   ubtName?: string

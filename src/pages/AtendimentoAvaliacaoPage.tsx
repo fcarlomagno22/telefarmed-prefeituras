@@ -4,6 +4,7 @@ import { PatientConsultationFeedbackFlow } from '../components/attendance/patien
 import type { PatientConsultationFeedback } from '../components/attendance/patient/patientConsultationFeedbackTypes'
 import { readAttendanceSession } from '../data/attendanceSession'
 import { brand } from '../config/brand'
+import { ubtRoutes } from '../config/ubtRoutes'
 import { useBrandTheme } from '../hooks/useBrandTheme'
 import { writeConsultationLockToStorage } from '../hooks/useConsultationSessionGuard'
 import { isValidAttendanceId } from '../utils/generateAttendanceId'
@@ -19,7 +20,7 @@ export function AtendimentoAvaliacaoPage() {
 
   const finishFlow = useCallback(() => {
     writeConsultationLockToStorage(false)
-    navigate('/triagem', { replace: true })
+    navigate(ubtRoutes.triagem, { replace: true })
   }, [navigate])
 
   function handleSubmit(_feedback: PatientConsultationFeedback) {

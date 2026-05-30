@@ -3,7 +3,9 @@ import lottie from 'lottie-web'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { brand } from '../config/brand'
+import { resolveDefaultAdminHomePath } from '../config/adminPageAccess'
 import { portals, type PortalId } from '../config/portals'
+import { useOptionalAdminAuth } from '../contexts/AdminAuthContext'
 import { useBrandTheme } from '../hooks/useBrandTheme'
 
 const ubtTransitionLottiePath = `${import.meta.env.BASE_URL}online_doctor.json`
@@ -20,7 +22,9 @@ type LoginTransitionLocationState = {
 function resolvePortal(pathname: string, state: LoginTransitionLocationState | null): PortalId {
   if (state?.portal) return state.portal
   if (pathname.startsWith('/admin')) return 'admin'
+  if (pathname.startsWith('/profissional')) return 'profissional'
   if (pathname.startsWith('/prefeitura')) return 'prefeitura'
+  if (pathname.startsWith('/ubt')) return 'ubt'
   return 'ubt'
 }
 
@@ -28,6 +32,7 @@ export function LoginTransitionPage() {
   useBrandTheme()
   const navigate = useNavigate()
   const location = useLocation()
+  const adminAuth = useOptionalAdminAuth()
   const lottieRef = useRef<HTMLDivElement>(null)
   const [activeStep, setActiveStep] = useState(0)
   const [progress, setProgress] = useState(0)
@@ -39,9 +44,16 @@ export function LoginTransitionPage() {
   const portalConfig = portals[portal]
   const transitionSteps = portalConfig.transitionSteps
   const totalMs = STEP_MS * transitionSteps.length + 480
+  const homePath =
+    portal === 'admin'
+      ? resolveDefaultAdminHomePath(adminAuth?.user ?? null)
+      : portalConfig.homePath
 
   const displayName =
-    locationState?.displayName?.trim() || brand.dashboardUserName
+    locationState?.displayName?.trim() ||
+    (portal === 'profissional'
+      ? brand.profissionalDashboardUserName
+      : brand.dashboardUserName)
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours()
@@ -51,7 +63,9 @@ export function LoginTransitionPage() {
   }, [])
 
   const transitionLottiePath =
-    portal === 'ubt' ? ubtTransitionLottiePath : prefeituraTransitionLottiePath
+    portal === 'prefeitura'
+      ? prefeituraTransitionLottiePath
+      : ubtTransitionLottiePath
 
   useEffect(() => {
     if (!lottieRef.current) return
@@ -100,14 +114,14 @@ export function LoginTransitionPage() {
   useEffect(() => {
     const exitTimer = window.setTimeout(() => setIsExiting(true), totalMs)
     const navigateTimer = window.setTimeout(() => {
-      navigate(portalConfig.homePath, { replace: true })
+      navigate(homePath, { replace: true })
     }, totalMs + EXIT_MS)
 
     return () => {
       window.clearTimeout(exitTimer)
       window.clearTimeout(navigateTimer)
     }
-  }, [navigate, portalConfig.homePath, totalMs])
+  }, [navigate, homePath, totalMs])
 
   return (
     <div

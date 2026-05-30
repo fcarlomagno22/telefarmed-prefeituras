@@ -15,6 +15,8 @@ export type AccessCredentialUser = {
   avatarClassName: string
   avatarUrl?: string
   hasPassword: boolean
+  /** PIN de 6 dígitos para autorizar ações sensíveis (opcional). */
+  hasAuthorizationPin?: boolean
   pagePermissions: Record<SystemPageId, PermissionAction[]>
   /** Visão municipal — unidade vinculada ao acesso. */
   ubtId?: string
@@ -54,6 +56,7 @@ export const initialAccessCredentialUsers: AccessCredentialUser[] = [
     initials: 'JS',
     avatarClassName: 'bg-orange-100 text-orange-700',
     hasPassword: true,
+    hasAuthorizationPin: true,
     pagePermissions: buildPresetPagePermissions('administrador'),
   }),
   withDefaultUbt({

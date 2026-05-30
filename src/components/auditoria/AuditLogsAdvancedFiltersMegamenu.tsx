@@ -8,7 +8,15 @@ import {
   RotateCcw,
   Search,
 } from 'lucide-react'
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
 import { createPortal } from 'react-dom'
 import {
   auditCriticalityOptions,
@@ -19,6 +27,11 @@ import {
 } from '../../utils/auditLogsAdvancedFilters'
 import { CompactDatePicker } from '../ui/CompactDatePicker'
 import { CustomSelect } from '../ui/CustomSelect'
+import {
+  getAuditUbtFilterOptions,
+  patchAuditPrefeituraFilter,
+} from '../../utils/auditLogs/auditLogTenantFilters'
+import { useAuditLogsScopeContext } from './AuditLogsScopeContext'
 
 type AuditLogsAdvancedFiltersMegamenuProps = {
   open: boolean
@@ -36,6 +49,8 @@ const selectClass =
   'py-1.5 px-2.5 text-xs rounded-lg focus:ring-1 focus:ring-[var(--brand-primary)]/20'
 
 const AUDIT_ADVANCED_FILTERS_TRIGGER_ID = 'audit-advanced-filters-trigger'
+const PANEL_VIEWPORT_MARGIN = 16
+const PANEL_MAX_WIDTH = 920
 
 function GroupTitle({ children }: { children: ReactNode }) {
   return (
@@ -157,9 +172,14 @@ export function AuditLogsAdvancedFiltersMegamenu({
   onCancel,
   onClear,
 }: AuditLogsAdvancedFiltersMegamenuProps) {
+  const { scope, dataset } = useAuditLogsScopeContext()
+  const showPlatformFilter = scope === 'admin'
+  const showPrefeituraFilter = scope === 'admin'
   const panelRef = useRef<HTMLDivElement>(null)
   const [draft, setDraft] = useState(filters)
   const [panelStyle, setPanelStyle] = useState<CSSProperties | null>(null)
+  const showUbtFilter =
+    (scope === 'admin' && Boolean(draft.prefeitura)) || scope === 'prefeitura'
 
   useLayoutEffect(() => {
     if (!open) {
@@ -172,9 +192,19 @@ export function AuditLogsAdvancedFiltersMegamenu({
       if (!trigger) return false
 
       const rect = trigger.getBoundingClientRect()
-      const width = Math.min(920, window.innerWidth - 24)
-      const left = Math.min(Math.max(12, rect.left), window.innerWidth - width - 12)
-      const maxHeight = Math.max(240, window.innerHeight - rect.bottom - 20)
+      const width = Math.min(
+        PANEL_MAX_WIDTH,
+        window.innerWidth - PANEL_VIEWPORT_MARGIN * 2,
+      )
+      // Alinha a borda direita do painel ao botão; evita colar no canto da tela.
+      const left = Math.min(
+        Math.max(PANEL_VIEWPORT_MARGIN, rect.right - width),
+        window.innerWidth - width - PANEL_VIEWPORT_MARGIN,
+      )
+      const maxHeight = Math.max(
+        240,
+        window.innerHeight - rect.bottom - PANEL_VIEWPORT_MARGIN,
+      )
 
       setPanelStyle({
         position: 'fixed',
@@ -203,11 +233,25 @@ export function AuditLogsAdvancedFiltersMegamenu({
     if (open) setDraft(filters)
   }, [open, filters])
 
+  const scopedUbtOptions = useMemo(() => {
+    if (scope === 'prefeitura' && dataset.filterOptions.ubts) {
+      return [...dataset.filterOptions.ubts]
+    }
+    return getAuditUbtFilterOptions(draft.prefeitura)
+  }, [dataset.filterOptions.ubts, draft.prefeitura, scope])
+
   function patch<K extends keyof AuditLogsAdvancedFilters>(
     key: K,
     value: AuditLogsAdvancedFilters[K],
   ) {
     setDraft((prev) => ({ ...prev, [key]: value }))
+  }
+
+  function patchPrefeitura(prefeituraKey: string) {
+    setDraft((prev) => ({
+      ...prev,
+      ...patchAuditPrefeituraFilter(prefeituraKey, prev.ubt),
+    }))
   }
 
   function handleApply() {
@@ -288,6 +332,36 @@ export function AuditLogsAdvancedFiltersMegamenu({
                 className={selectClass}
               />
             </CompactField>
+            {showPlatformFilter ? (
+              <CompactField label="Plataforma" className="col-span-2">
+                <CustomSelect
+                  value={draft.platform}
+                  onChange={(value) => patch('platform', value)}
+                  options={[...auditLogsAdvancedFilterOptions.platforms]}
+                  className={selectClass}
+                />
+              </CompactField>
+            ) : null}
+            {showPrefeituraFilter ? (
+              <CompactField label="Prefeitura" className="col-span-2">
+                <CustomSelect
+                  value={draft.prefeitura}
+                  onChange={patchPrefeitura}
+                  options={[...auditLogsAdvancedFilterOptions.prefeituras]}
+                  className={selectClass}
+                />
+              </CompactField>
+            ) : null}
+            {showUbtFilter ? (
+              <CompactField label="UBT" className="col-span-2">
+                <CustomSelect
+                  value={draft.ubt}
+                  onChange={(value) => patch('ubt', value)}
+                  options={scopedUbtOptions}
+                  className={selectClass}
+                />
+              </CompactField>
+            ) : null}
           </FilterColumn>
 
           <FilterColumn title="Tipo de evento">

@@ -37,6 +37,7 @@ export type PrefeituraCredentialUbtOption = {
   ubtName: string
   raKey: string
   raLabel: string
+  contractingEntityId?: string
 }
 
 export const prefeituraCredentialsRaFilterOptions = [

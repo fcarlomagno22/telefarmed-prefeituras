@@ -17,6 +17,7 @@ export type PinUnlockModalProps = {
   submitLabel: string
   pinCompleteHint?: string
   icon: LucideIcon
+  verifyPin?: (pin: string) => Promise<boolean>
 }
 
 function statusMessage(
@@ -40,12 +41,14 @@ export function PinUnlockModal({
   submitLabel,
   pinCompleteHint = 'Senha completa. Confirme para continuar.',
   icon: Icon,
+  verifyPin,
 }: PinUnlockModalProps) {
   const [pin, setPin] = useState('')
   const [error, setError] = useState(false)
   const [pinVisible, setPinVisible] = useState(false)
   const [isLoadingLottie, setIsLoadingLottie] = useState(true)
   const [lottieFailed, setLottieFailed] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
 
   const lottieContainerRef = useRef<HTMLDivElement>(null)
   const animationRef = useRef<AnimationItem | null>(null)
@@ -130,23 +133,37 @@ export function PinUnlockModal({
     }
   }, [pin.length, error, open])
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    if (pin.length !== 6) return
+    if (pin.length !== 6 || isVerifying) return
 
-    if (pin === LGPD_UNIT_ACCESS_PIN) {
-      setError(false)
-      animationRef.current?.goToAndPlay(26, true)
-      window.setTimeout(() => {
-        onSuccess()
-        onClose()
-      }, 550)
-      return
+    setIsVerifying(true)
+
+    try {
+      let accepted = false
+
+      if (verifyPin) {
+        accepted = await verifyPin(pin)
+      } else {
+        accepted = pin === LGPD_UNIT_ACCESS_PIN
+      }
+
+      if (accepted) {
+        setError(false)
+        animationRef.current?.goToAndPlay(26, true)
+        window.setTimeout(() => {
+          onSuccess()
+          onClose()
+        }, 550)
+        return
+      }
+
+      setError(true)
+      setPin('')
+      animationRef.current?.goToAndPlay(0, true)
+    } finally {
+      setIsVerifying(false)
     }
-
-    setError(true)
-    setPin('')
-    animationRef.current?.goToAndPlay(0, true)
   }
 
   if (!open) return null

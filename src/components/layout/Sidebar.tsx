@@ -1,6 +1,7 @@
 import { LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { brand } from '../../config/brand'
+import { ubtRoutes } from '../../config/ubtRoutes'
 import { defaultSidebarItems } from '../../config/sidebarNav'
 import { SidebarNavItem, type SidebarNavSection } from './SidebarNavItem'
 import {
@@ -12,6 +13,7 @@ type SidebarProps = {
   items?: typeof defaultSidebarItems
   sections?: SidebarNavSection[]
   logoutPath?: string
+  onLogout?: () => void | Promise<void>
   /** Chave de localStorage para seções recolhidas (padrão: prefeitura). */
   collapsedSectionsStorageKey?: string
 }
@@ -29,13 +31,18 @@ function SidebarNavList({ items }: { items: typeof defaultSidebarItems }) {
 export function Sidebar({
   items,
   sections,
-  logoutPath = '/login',
+  logoutPath = ubtRoutes.login,
+  onLogout,
   collapsedSectionsStorageKey = PREFEITURA_SIDEBAR_COLLAPSED_STORAGE_KEY,
 }: SidebarProps) {
   const navigate = useNavigate()
   const flatItems = items ?? defaultSidebarItems
 
-  function handleLogout() {
+  async function handleLogout() {
+    if (onLogout) {
+      await onLogout()
+      return
+    }
     navigate(logoutPath, { replace: true })
   }
 

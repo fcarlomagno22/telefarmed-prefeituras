@@ -1,8 +1,10 @@
 import { useCallback, useRef, useState } from 'react'
+import { AdminPageHeader } from '../admin/AdminPageHeader'
 import { AuditLogsMainPanel } from './AuditLogsMainPanel'
 import { AuditLogsMainPanelSkeleton } from './AuditLogsMainPanelSkeleton'
 import { AuditLogsOverviewRow } from './AuditLogsOverviewRow'
 import { AuditLogsOverviewRowSkeleton } from './AuditLogsOverviewRowSkeleton'
+import { AuditLogsScopeProvider } from './AuditLogsScopeContext'
 import {
   dashboardPageHeaderWrapClass,
   dashboardPageScrollPaddingClass,
@@ -15,14 +17,42 @@ import {
   defaultAuditLogsAdvancedFilters,
   type AuditLogsAdvancedFilters,
 } from '../../utils/auditLogsAdvancedFilters'
+import type { AuditLogScope } from '../../types/auditLogScope'
 
-export function AuditLogsPageContent() {
+const scopeHeaderCopy: Record<
+  AuditLogScope,
+  { title: string; subtitle: string; adminSection?: string; adminDescription?: string }
+> = {
+  ubt: {
+    title: 'Logs de auditoria',
+    subtitle: 'Rastreabilidade e registro de ações realizadas na unidade UBT.',
+  },
+  prefeitura: {
+    title: 'Logs de auditoria',
+    subtitle:
+      'Rastreabilidade na rede municipal e nas UBTs vinculadas — ações de gestores, operadores e unidades.',
+  },
+  admin: {
+    title: 'Auditoria global',
+    subtitle: '',
+    adminSection: 'Governança',
+    adminDescription:
+      'Visão unificada de todos os eventos em Admin Telefarmed, prefeituras, UBTs e fluxos de atendimento — tudo o que acontece na plataforma.',
+  },
+}
+
+type AuditLogsPageContentProps = {
+  scope: AuditLogScope
+}
+
+export function AuditLogsPageContent({ scope }: AuditLogsPageContentProps) {
   const isLoading = usePageSkeletonLoading(1200)
   const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false)
   const [advancedFilters, setAdvancedFilters] = useState<AuditLogsAdvancedFilters>(
-    defaultAuditLogsAdvancedFilters,
+    () => defaultAuditLogsAdvancedFilters(),
   )
   const mainPanelRef = useRef<HTMLDivElement>(null)
+  const headerCopy = scopeHeaderCopy[scope]
 
   const handleViewAllCritical = useCallback(() => {
     setAdvancedFilters((prev) => ({ ...prev, criticality: 'critical' }))
@@ -35,7 +65,7 @@ export function AuditLogsPageContent() {
   }, [])
 
   return (
-    <>
+    <AuditLogsScopeProvider scope={scope}>
       {advancedFiltersOpen ? (
         <button
           type="button"
@@ -49,11 +79,14 @@ export function AuditLogsPageContent() {
         <div className={dashboardPageHeaderWrapClass}>
           {isLoading ? (
             <DashboardPageHeaderSkeleton />
-          ) : (
-            <DashboardPageHeader
-              title="Logs de auditoria"
-              subtitle="Rastreabilidade e registro de ações realizadas no sistema"
+          ) : scope === 'admin' ? (
+            <AdminPageHeader
+              sectionLabel={headerCopy.adminSection ?? 'Governança'}
+              title={headerCopy.title}
+              description={headerCopy.adminDescription ?? ''}
             />
+          ) : (
+            <DashboardPageHeader title={headerCopy.title} subtitle={headerCopy.subtitle} />
           )}
         </div>
 
@@ -86,6 +119,6 @@ export function AuditLogsPageContent() {
           )}
         </div>
       </div>
-    </>
+    </AuditLogsScopeProvider>
   )
 }

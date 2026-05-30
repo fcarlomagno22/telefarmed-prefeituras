@@ -58,6 +58,7 @@ export type KpiStatCardItem = {
 
 const KPI_GRID_LAYOUT = {
   responsive: 'grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4',
+  'grid-2x2': 'grid grid-cols-2 gap-2 sm:gap-3',
   'grid-3x2': 'grid h-full min-h-0 grid-cols-3 grid-rows-2 gap-3',
 } as const
 
@@ -76,6 +77,8 @@ type KpiStatCardsProps = {
   onItemClick?: (index: number, item: KpiStatCardItem) => void
   /** No layout 3x2: ícone na esquerda e título centralizado na 1a linha. */
   stackedHeaderIconLeft?: boolean
+  /** Ícone acima; rótulo, valor e legenda centralizados (grade responsiva). */
+  variant?: 'default' | 'centered'
 }
 
 export function KpiStatCards({
@@ -86,9 +89,11 @@ export function KpiStatCards({
   updateKey,
   onItemClick,
   stackedHeaderIconLeft = false,
+  variant = 'default',
 }: KpiStatCardsProps) {
   const fill = useKpiFillAnimation(animated, updateKey)
   const stacked = layout === 'grid-3x2'
+  const columnLayout = stacked || variant === 'centered'
 
   return (
     <div
@@ -121,14 +126,16 @@ export function KpiStatCards({
           <CardTag
             key={card.label}
             type={interactive ? 'button' : undefined}
-            title={stacked ? `${card.label}: ${card.value}. ${card.suffix}` : undefined}
+            title={
+              columnLayout ? `${card.label}: ${card.value}. ${card.suffix}` : undefined
+            }
             onClick={interactive ? () => onItemClick?.(index, card) : undefined}
             className={[
               'group relative w-full rounded-2xl border border-gray-200 bg-gradient-to-b from-white to-gray-50/50 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)] transition',
-              stacked
-                ? stackedHeaderIconLeft
+              columnLayout
+                ? stacked && stackedHeaderIconLeft
                   ? 'flex min-h-0 flex-col px-3 py-3 text-center'
-                  : 'flex min-h-0 flex-col items-center justify-center px-3 py-4 text-center'
+                  : 'flex flex-col items-center justify-center px-4 py-4 text-center'
                 : 'flex items-center gap-3 px-4 py-3.5 text-left',
               interactive
                 ? 'cursor-pointer hover:border-[var(--brand-primary)]/35 hover:shadow-[0_4px_24px_rgba(255,107,0,0.08)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-primary)]'
@@ -136,11 +143,11 @@ export function KpiStatCards({
             ].join(' ')}
           >
             <span
-              className={`absolute top-0 h-0.5 origin-left rounded-full bg-gradient-to-r ${card.topBar} ${stacked ? 'inset-x-2.5' : 'inset-x-4'}`}
+              className={`absolute top-0 h-0.5 origin-left rounded-full bg-gradient-to-r ${card.topBar} ${columnLayout && stacked ? 'inset-x-2.5' : 'inset-x-4'}`}
               aria-hidden
               style={topBarStyle}
             />
-            {stacked && stackedHeaderIconLeft ? (
+            {columnLayout && stacked && stackedHeaderIconLeft ? (
               <span className="grid w-full grid-cols-[2.25rem_minmax(0,1fr)_2.25rem] items-center gap-2">
                 <span
                   className={[
@@ -157,6 +164,18 @@ export function KpiStatCards({
                 </span>
                 <span aria-hidden />
               </span>
+            ) : columnLayout ? (
+              <span
+                className={[
+                  'flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white ring-[3px]',
+                  card.iconGradient,
+                  card.iconRing,
+                  card.iconShadow,
+                  'h-10 w-10',
+                ].join(' ')}
+              >
+                <Icon className="h-[18px] w-[18px]" strokeWidth={2.25} />
+              </span>
             ) : (
               <span
                 className={[
@@ -170,12 +189,16 @@ export function KpiStatCards({
                 <Icon className="h-[18px] w-[18px]" strokeWidth={2.25} />
               </span>
             )}
-            <span className={stacked ? 'mt-2 min-w-0 w-full' : 'min-w-0 flex-1 text-center'}>
-              {!stackedHeaderIconLeft || !stacked ? (
+            <span
+              className={
+                columnLayout ? 'mt-2 min-w-0 w-full text-center' : 'min-w-0 flex-1 text-center'
+              }
+            >
+              {!(stacked && stackedHeaderIconLeft) ? (
                 <span
                   className={[
                     'block font-medium text-gray-500',
-                    stacked ? 'text-xs leading-snug' : 'text-xs',
+                    columnLayout ? 'text-xs leading-snug' : 'text-xs',
                   ].join(' ')}
                 >
                   {card.label}
@@ -183,10 +206,7 @@ export function KpiStatCards({
               ) : null}
               <span
                 key={animated ? `${updateKey ?? 'init'}-${card.value}` : card.value}
-                className={[
-                  'mt-0.5 block font-bold leading-tight tracking-tight text-gray-900',
-                  stacked ? 'text-xl' : 'text-xl',
-                ].join(' ')}
+                className="mt-0.5 block text-xl font-bold leading-tight tracking-tight text-gray-900"
                 style={valueStyle}
               >
                 {card.value}
@@ -194,7 +214,7 @@ export function KpiStatCards({
               <span
                 className={[
                   'mt-0.5 block text-gray-500',
-                  stacked ? 'line-clamp-2 text-[11px] leading-snug' : 'text-xs',
+                  columnLayout ? 'text-xs leading-snug' : 'text-xs',
                 ].join(' ')}
               >
                 {card.suffix}

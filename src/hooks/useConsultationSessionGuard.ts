@@ -1,6 +1,15 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type RefObject } from 'react'
 
 export const CONSULTATION_LOCK_STORAGE_KEY = 'telefarmed:consultation-lock'
+
+export type ConsultationBlockReason = 'back' | 'reload' | 'reload-shortcut'
+
+export type UseConsultationSessionGuardOptions = {
+  /** Toast ou outro feedback em vez do modal padrão. */
+  onBlocked?: (reason: ConsultationBlockReason) => void
+  /** Quando true, libera navegação (ex.: após finalizar consulta). */
+  allowNavigationRef?: RefObject<boolean>
+}
 
 function isReloadShortcut(event: KeyboardEvent): boolean {
   if (event.key === 'F5') return true
@@ -31,16 +40,28 @@ export function writeConsultationLockToStorage(active: boolean) {
   }
 }
 
-export function useConsultationSessionGuard(active: boolean) {
+export function useConsultationSessionGuard(
+  active: boolean,
+  options?: UseConsultationSessionGuardOptions,
+) {
   const [showBlockModal, setShowBlockModal] = useState(false)
+  const onBlocked = options?.onBlocked
+  const allowNavigationRef = options?.allowNavigationRef
 
   const dismissBlockModal = useCallback(() => {
     setShowBlockModal(false)
   }, [])
 
-  const openBlockModal = useCallback(() => {
-    setShowBlockModal(true)
-  }, [])
+  const notifyBlocked = useCallback(
+    (reason: ConsultationBlockReason) => {
+      if (onBlocked) {
+        onBlocked(reason)
+        return
+      }
+      setShowBlockModal(true)
+    },
+    [onBlocked],
+  )
 
   useEffect(() => {
     writeConsultationLockToStorage(active)
@@ -54,9 +75,22 @@ export function useConsultationSessionGuard(active: boolean) {
       | undefined
 
     if (navEntry?.type === 'reload') {
-      openBlockModal()
+      notifyBlocked('reload')
     }
-  }, [active, openBlockModal])
+  }, [active, notifyBlocked])
+
+  useEffect(() => {
+    if (!active) return
+
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+      if (allowNavigationRef?.current) return
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [active, allowNavigationRef])
 
   useEffect(() => {
     if (!active) return
@@ -69,7 +103,7 @@ export function useConsultationSessionGuard(active: boolean) {
 
     function handlePopState() {
       pushLockState()
-      openBlockModal()
+      notifyBlocked('back')
     }
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -77,7 +111,7 @@ export function useConsultationSessionGuard(active: boolean) {
 
       event.preventDefault()
       event.stopPropagation()
-      openBlockModal()
+      notifyBlocked('reload-shortcut')
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -87,7 +121,7 @@ export function useConsultationSessionGuard(active: boolean) {
       window.removeEventListener('popstate', handlePopState)
       window.removeEventListener('keydown', handleKeyDown, true)
     }
-  }, [active, openBlockModal])
+  }, [active, notifyBlocked])
 
-  return { showBlockModal, dismissBlockModal, openBlockModal }
+  return { showBlockModal, dismissBlockModal }
 }

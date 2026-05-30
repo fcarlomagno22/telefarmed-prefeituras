@@ -4,6 +4,7 @@ import {
   Building2,
   Headphones,
   Key,
+  Layers,
   LayoutDashboard,
   Receipt,
   ScrollText,
@@ -48,6 +49,14 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     description:
       'Base consolidada de pacientes, médicos e operadores dos municípios contratantes.',
     icon: Users,
+    end: true,
+  },
+  {
+    to: '/admin/escala',
+    label: 'Gestão de Escala',
+    description:
+      'Plantões por prefeitura e UBT, médico titular e fila de reserva se alguém faltar.',
+    icon: Layers,
     end: true,
   },
   {
@@ -123,7 +132,12 @@ export const adminSidebarSections: SidebarNavSection[] = [
     id: 'gestao',
     label: 'Gestão',
     items: adminSidebarItems.filter((item) =>
-      ['/admin/financeiro', '/admin/notificacoes', '/admin/suporte'].includes(item.to),
+      [
+        '/admin/escala',
+        '/admin/financeiro',
+        '/admin/notificacoes',
+        '/admin/suporte',
+      ].includes(item.to),
     ),
   },
   {

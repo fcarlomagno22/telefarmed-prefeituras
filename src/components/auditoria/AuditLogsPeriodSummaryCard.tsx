@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { auditLogsHourlyActivity, auditLogsSummary } from '../../data/auditLogsMock'
 import {
   auditOverviewCardBodyClass,
   auditOverviewCardClass,
   auditOverviewCardSubtitleClass,
   auditOverviewCardTitleClass,
 } from './auditOverviewCardStyles'
+import { useAuditLogsScopeContext } from './AuditLogsScopeContext'
 
 const CHART_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)'
 const BAR_MIN_PERCENT = 12
@@ -27,9 +27,11 @@ function useChartAnimation(delayMs = 80) {
 }
 
 export function AuditLogsPeriodSummaryCard() {
+  const { dataset } = useAuditLogsScopeContext()
+  const { hourlyActivity, summary } = dataset
   const animate = useChartAnimation()
-  const maxCount = Math.max(...auditLogsHourlyActivity.map((p) => p.count))
-  const peakIndex = auditLogsHourlyActivity.findIndex((p) => p.count === maxCount)
+  const maxCount = Math.max(...hourlyActivity.map((p) => p.count))
+  const peakIndex = hourlyActivity.findIndex((p) => p.count === maxCount)
 
   return (
     <section className={auditOverviewCardClass}>
@@ -39,9 +41,9 @@ export function AuditLogsPeriodSummaryCard() {
           <p className={auditOverviewCardSubtitleClass}>Últimas 24 horas</p>
         </div>
         <p className="shrink-0 text-right text-xl font-bold tabular-nums text-gray-900">
-          {formatNumber(auditLogsSummary.totalEvents)}
+          {formatNumber(summary.totalEvents)}
           <span className="ml-1 block text-xs font-semibold text-emerald-600 sm:ml-0 sm:inline">
-            {auditLogsSummary.totalEventsTrend}
+            {summary.totalEventsTrend}
           </span>
         </p>
       </div>
@@ -50,10 +52,10 @@ export function AuditLogsPeriodSummaryCard() {
         <div
           className="flex min-h-[5.5rem] flex-1 flex-col justify-end"
           role="img"
-          aria-label={`Atividade por hora nas últimas 24 horas. Pico às ${auditLogsSummary.peakHourLabel} com ${formatNumber(auditLogsSummary.peakHourCount)} eventos.`}
+          aria-label={`Atividade por hora nas últimas 24 horas. Pico às ${summary.peakHourLabel} com ${formatNumber(summary.peakHourCount)} eventos.`}
         >
           <div className="flex h-full min-h-0 items-end gap-0.5 sm:gap-1">
-            {auditLogsHourlyActivity.map((point, index) => {
+            {hourlyActivity.map((point, index) => {
               const isPeak = index === peakIndex
               const heightPercent =
                 maxCount > 0
@@ -108,31 +110,31 @@ export function AuditLogsPeriodSummaryCard() {
           <dl className="grid grid-cols-3 gap-2 text-center">
             <div>
               <dt className="text-[10px] text-gray-500">Usuários ativos</dt>
-              <dd className="mt-0.5 text-sm font-bold text-gray-900">{auditLogsSummary.activeUsers}</dd>
+              <dd className="mt-0.5 text-sm font-bold text-gray-900">{summary.activeUsers}</dd>
               <dd className="text-[10px] font-medium text-emerald-600">
-                {auditLogsSummary.activeUsersTrend}
+                {summary.activeUsersTrend}
               </dd>
             </div>
             <div>
               <dt className="text-[10px] text-gray-500">Críticos</dt>
               <dd className="mt-0.5 text-sm font-bold text-gray-900">
-                {auditLogsSummary.criticalEvents}
+                {summary.criticalEvents}
               </dd>
               <dd className="text-[10px] font-medium text-red-600">
-                {auditLogsSummary.criticalEventsTrend}
+                {summary.criticalEventsTrend}
               </dd>
             </div>
             <div>
               <dt className="text-[10px] text-gray-500">Sucesso</dt>
-              <dd className="mt-0.5 text-sm font-bold text-gray-900">{auditLogsSummary.successRate}</dd>
+              <dd className="mt-0.5 text-sm font-bold text-gray-900">{summary.successRate}</dd>
               <dd className="text-[10px] font-medium text-emerald-600">
-                {auditLogsSummary.successRateTrend}
+                {summary.successRateTrend}
               </dd>
             </div>
           </dl>
           <p className="mt-1.5 text-center text-[10px] text-gray-400">
-            Pico às {auditLogsSummary.peakHourLabel} ·{' '}
-            {formatNumber(auditLogsSummary.peakHourCount)} eventos
+            Pico às {summary.peakHourLabel} ·{' '}
+            {formatNumber(summary.peakHourCount)} eventos
           </p>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { AlertTriangle, ChevronRight, ShieldAlert } from 'lucide-react'
-import { auditLogsByType, auditLogsCriticalBreakdown } from '../../data/auditLogsMock'
 import { AuditEventsByTypeBarChart } from './AuditEventsByTypeBarChart'
 import { AuditLogsPeriodSummaryCard } from './AuditLogsPeriodSummaryCard'
+import { useAuditLogsScopeContext } from './AuditLogsScopeContext'
 import {
   auditOverviewCardBodyClass,
   auditOverviewCardClass,
@@ -18,6 +18,9 @@ type AuditLogsOverviewRowProps = {
 }
 
 export function AuditLogsOverviewRow({ onViewAllCritical }: AuditLogsOverviewRowProps) {
+  const { dataset } = useAuditLogsScopeContext()
+  const { byType, criticalBreakdown } = dataset
+
   return (
     <div className="grid w-full min-w-0 shrink-0 grid-cols-1 gap-3 lg:min-h-[17.5rem] lg:grid-cols-3 lg:items-stretch lg:gap-4">
       <AuditLogsPeriodSummaryCard />
@@ -29,10 +32,10 @@ export function AuditLogsOverviewRow({ onViewAllCritical }: AuditLogsOverviewRow
         </div>
 
         <div className={auditOverviewCardBodyClass}>
-          <AuditEventsByTypeBarChart slices={auditLogsByType} className="min-h-[5.5rem] flex-1" />
+          <AuditEventsByTypeBarChart slices={byType} className="min-h-[5.5rem] flex-1" />
 
           <ul className="mt-auto grid shrink-0 grid-cols-5 gap-1.5">
-            {auditLogsByType.map((item) => (
+            {byType.map((item) => (
               <li
                 key={item.key}
                 className="flex min-h-[3rem] min-w-0 flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50/80 px-1 py-1.5 text-center"
@@ -73,7 +76,7 @@ export function AuditLogsOverviewRow({ onViewAllCritical }: AuditLogsOverviewRow
         </div>
 
         <ul className="mt-3 grid min-h-0 flex-1 auto-rows-fr grid-cols-3 gap-2">
-          {auditLogsCriticalBreakdown.map((item) => {
+          {criticalBreakdown.map((item) => {
             const isPermission = item.key === 'permissions'
             return (
               <li

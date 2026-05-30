@@ -1,13 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ConsultationChatPanel } from '../components/attendance/ConsultationChatPanel'
 import {
   ConsultationDocumentsPanel,
   type ConsultationDocumentItem,
 } from '../components/attendance/ConsultationDocumentsPanel'
-import { appendConsultationDocument, removeConsultationDocument } from '../data/attendanceSession'
-import { createExamOrderDocument, createPrescriptionDocument } from '../data/consultationDocuments'
-import { doctorConsultationCardClass } from '../components/attendance/doctor/doctorConsultationUi'
+import { DoctorConsultationEndConfirmModal } from '../components/attendance/doctor/DoctorConsultationEndConfirmModal'
 import { DoctorConsultationHeader } from '../components/attendance/doctor/DoctorConsultationHeader'
 import { DoctorConsultationStatusFooter } from '../components/attendance/doctor/DoctorConsultationStatusFooter'
 import { DoctorConsultationVideoStage } from '../components/attendance/doctor/DoctorConsultationVideoStage'
@@ -15,17 +13,36 @@ import { buildDoctorRecordPatientProfile } from '../components/attendance/doctor
 import { DoctorExamRequestModal } from '../components/attendance/doctor/DoctorExamRequestModal'
 import { DoctorPrescriptionModal } from '../components/attendance/doctor/DoctorPrescriptionModal'
 import { DoctorPatientRecordPanel } from '../components/attendance/doctor/DoctorPatientRecordPanel'
-import { DOCTOR_CONSULTATION_PAGE_BG } from '../components/attendance/doctor/doctorConsultationUi'
+import {
+  DOCTOR_CONSULTATION_PAGE_BG,
+  doctorConsultationCardClass,
+} from '../components/attendance/doctor/doctorConsultationUi'
 import { useConsultationElapsed } from '../components/attendance/patient/useConsultationElapsed'
+import { Toast } from '../components/ui/Toast'
+import { profissionalRoutes } from '../config/profissionalRoutes'
+import { ubtRoutes } from '../config/ubtRoutes'
+import { appendConsultationDocument, removeConsultationDocument } from '../data/attendanceSession'
 import {
   buildAttendanceSessionFromWaitingRoom,
   readAttendanceSession,
   writeAttendanceSession,
   type AttendanceSession,
 } from '../data/attendanceSession'
+import { createExamOrderDocument, createPrescriptionDocument } from '../data/consultationDocuments'
+import {
+  completeProfissionalQueueAttendance,
+  isProfissionalAttendanceOrigin,
+} from '../data/profissionalQueueStore'
 import { readWaitingRoomSession } from '../data/waitingRoomSession'
 import { useBrandTheme } from '../hooks/useBrandTheme'
+import {
+  useConsultationSessionGuard,
+  writeConsultationLockToStorage,
+} from '../hooks/useConsultationSessionGuard'
 import { isValidAttendanceId } from '../utils/generateAttendanceId'
+
+const DOCTOR_NAV_BLOCK_TOAST_MESSAGE =
+  'Para sair, clique em Finalizar consulta. Voltar, recarregar ou trocar de página não é permitido durante o atendimento.'
 
 function formatStartedAtLabel(session: AttendanceSession) {
   const started = new Date(session.startedAtIso)
@@ -49,6 +66,9 @@ export function AtendimentoMedicoPage() {
   const [examRequestOpen, setExamRequestOpen] = useState(false)
   const [prescriptionOpen, setPrescriptionOpen] = useState(false)
   const [consultationDocuments, setConsultationDocuments] = useState<ConsultationDocumentItem[]>([])
+  const [navBlockToastVisible, setNavBlockToastVisible] = useState(false)
+  const [finishConfirmOpen, setFinishConfirmOpen] = useState(false)
+  const allowLeaveRef = useRef(false)
 
   const session = useMemo(() => {
     if (!isValidAttendanceId(attendanceId)) return null
@@ -61,6 +81,25 @@ export function AtendimentoMedicoPage() {
     return built
   }, [attendanceId])
 
+  const guardActive = Boolean(session)
+
+  const showNavBlockToast = useCallback(() => {
+    setNavBlockToastVisible(true)
+  }, [])
+
+  const dismissNavBlockToast = useCallback(() => {
+    setNavBlockToastVisible(false)
+  }, [])
+
+  useConsultationSessionGuard(guardActive, {
+    onBlocked: showNavBlockToast,
+    allowNavigationRef: allowLeaveRef,
+  })
+
+  useEffect(() => {
+    if (session) writeConsultationLockToStorage(true)
+  }, [session])
+
   useEffect(() => {
     if (!session) {
       setConsultationDocuments([])
@@ -71,13 +110,34 @@ export function AtendimentoMedicoPage() {
 
   const elapsed = useConsultationElapsed(session?.startedAtIso ?? new Date().toISOString())
 
-  const handleFinishConsultation = useCallback(() => {
-    navigate('/consultas', { replace: true })
-  }, [navigate])
+  const handleRequestFinishConsultation = useCallback(() => {
+    setFinishConfirmOpen(true)
+  }, [])
+
+  const handleConfirmFinishConsultation = useCallback(() => {
+    setFinishConfirmOpen(false)
+    allowLeaveRef.current = true
+    writeConsultationLockToStorage(false)
+
+    const fromProfissional = isProfissionalAttendanceOrigin()
+
+    if (attendanceId) {
+      completeProfissionalQueueAttendance(attendanceId)
+    }
+
+    if (fromProfissional) {
+      navigate(profissionalRoutes.agenda, {
+        replace: true,
+        state: { agendaTab: 'fila' },
+      })
+      return
+    }
+    navigate(ubtRoutes.consultas, { replace: true })
+  }, [attendanceId, navigate])
 
   const handleSwitchToPatientView = useCallback(() => {
-    navigate(`/atendimento/${attendanceId}`)
-  }, [attendanceId, navigate])
+    showNavBlockToast()
+  }, [showNavBlockToast])
 
   const handleExamRequestSigned = useCallback(() => {
     if (!session) return
@@ -101,15 +161,23 @@ export function AtendimentoMedicoPage() {
   )
 
   if (!isValidAttendanceId(attendanceId) || !session) {
-    return <Navigate to="/consultas" replace />
+    return (
+      <Navigate
+        to={
+          isProfissionalAttendanceOrigin()
+            ? profissionalRoutes.agenda
+            : ubtRoutes.consultas
+        }
+        replace
+      />
+    )
   }
 
   const patientAge = '28 anos'
   const patientGender = 'Feminino'
   const patientAgeGender = `${patientAge} • ${patientGender}`
 
-  const patientBirthDateIso =
-    session.patientBirthDateIso ?? '1998-03-15'
+  const patientBirthDateIso = session.patientBirthDateIso ?? '1998-03-15'
   const patientCity = session.patientCity ?? 'Campinas, SP'
 
   const recordPatientProfile = buildDoctorRecordPatientProfile({
@@ -129,7 +197,7 @@ export function AtendimentoMedicoPage() {
           elapsed={elapsed}
           startedAtLabel={formatStartedAtLabel(session)}
           onSwitchToPatientView={handleSwitchToPatientView}
-          onFinishConsultation={handleFinishConsultation}
+          onFinishConsultation={handleRequestFinishConsultation}
           onRequestExam={() => setExamRequestOpen(true)}
           onIssuePrescription={() => setPrescriptionOpen(true)}
         />
@@ -202,6 +270,21 @@ export function AtendimentoMedicoPage() {
           specialty: session.doctorSpecialty,
           crm: session.doctorCrm,
         }}
+      />
+
+      <DoctorConsultationEndConfirmModal
+        open={finishConfirmOpen}
+        patientName={session.patientName}
+        onCancel={() => setFinishConfirmOpen(false)}
+        onConfirm={handleConfirmFinishConsultation}
+      />
+
+      <Toast
+        message={DOCTOR_NAV_BLOCK_TOAST_MESSAGE}
+        visible={navBlockToastVisible}
+        onClose={dismissNavBlockToast}
+        variant="error"
+        durationMs={5500}
       />
     </div>
   )

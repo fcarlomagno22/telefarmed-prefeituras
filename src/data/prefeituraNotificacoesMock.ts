@@ -8,6 +8,7 @@ export type PrefeituraNotificationOrigin =
   | 'telefarmed'
   | 'ubt'
   | 'contract_manager'
+  | 'profissional'
 
 /** Para quem a notificação foi endereçada. */
 export type PrefeituraNotificationAudience =
@@ -15,6 +16,9 @@ export type PrefeituraNotificationAudience =
   | 'ubt_all'
   | 'ubt_responsible'
   | 'ubt_user'
+  | 'medico_all'
+  | 'medico_plantao'
+  | 'medico_especialidade'
 
 export type PrefeituraNotificationPriority = 'normal' | 'important'
 
@@ -32,6 +36,12 @@ export type PrefeituraNotification = {
   senderLabel: string
   recipientLabel: string
   priority: PrefeituraNotificationPriority
+  /** Destinatário direto (portal profissional). */
+  professionalId?: string
+  /** Remetente profissional (envios do corpo clínico). */
+  senderProfessionalId?: string
+  /** Filtro de especialidade quando audience é medico_especialidade. */
+  specialtyFilter?: string
 }
 
 export type PrefeituraNotificacoesOriginSlice = {

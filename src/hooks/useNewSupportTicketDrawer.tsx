@@ -2,7 +2,12 @@ import { useCallback, useState } from 'react'
 import { NewSupportTicketDrawer } from '../components/suporte/NewSupportTicketDrawer'
 import { Toast } from '../components/ui/Toast'
 
-export function useNewSupportTicketDrawer() {
+type UseNewSupportTicketDrawerOptions = {
+  tourLockClose?: boolean
+}
+
+export function useNewSupportTicketDrawer(options: UseNewSupportTicketDrawerOptions = {}) {
+  const { tourLockClose = false } = options
   const [open, setOpen] = useState(false)
   const [closing, setClosing] = useState(false)
   const [toast, setToast] = useState<{ message: string } | null>(null)
@@ -38,6 +43,7 @@ export function useNewSupportTicketDrawer() {
         onClose={requestClose}
         onTransitionEnd={handleTransitionEnd}
         onSubmitted={handleSubmitted}
+        tourLockClose={tourLockClose}
       />
       <Toast
         message={toast?.message ?? ''}
@@ -50,6 +56,7 @@ export function useNewSupportTicketDrawer() {
 
   return {
     openDrawer,
+    requestClose,
     drawerElement,
   }
 }

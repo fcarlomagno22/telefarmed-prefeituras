@@ -8,6 +8,11 @@ import { maskCpf } from '../../utils/masks'
 
 type LoginFormProps = {
   onSubmit?: (credentials: { cpf: string; password: string }) => void
+  /** Autenticação real (ex.: painel admin). Só navega após sucesso. */
+  authenticate?: (credentials: {
+    cpf: string
+    password: string
+  }) => Promise<{ displayName: string }>
   /** Card sobre foto de fundo com filtro (login centralizado). */
   variant?: 'default' | 'overlay'
   portal?: PortalId
@@ -24,6 +29,7 @@ const cardClassByVariant = {
 
 export function LoginForm({
   onSubmit,
+  authenticate,
   variant = 'default',
   portal = 'ubt',
   showCopyrightInCard = false,
@@ -35,23 +41,42 @@ export function LoginForm({
   const [showPassword, setShowPassword] = useState(false)
   const [cpfTouched, setCpfTouched] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const cpfInvalid = cpfTouched && cpf.length > 0 && !isValidCpf(cpf)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setCpfTouched(true)
+    setSubmitError(null)
     if (!isValidCpf(cpf)) return
 
     setIsLoading(true)
     try {
       onSubmit?.({ cpf, password })
+
+      let displayName =
+        portal === 'profissional'
+          ? brand.profissionalDashboardUserName
+          : brand.dashboardUserName
+
+      if (authenticate) {
+        const result = await authenticate({ cpf, password })
+        displayName = result.displayName
+      }
+
       navigate(portalConfig.transitionPath, {
         state: {
-          displayName: brand.dashboardUserName,
+          displayName,
           portal,
         },
       })
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Não foi possível entrar. Tente novamente.'
+      setSubmitError(message)
     } finally {
       setIsLoading(false)
     }
@@ -145,6 +170,15 @@ export function LoginForm({
             </button>
           </span>
         </label>
+
+        {submitError ? (
+          <p
+            role="alert"
+            className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-center text-xs text-red-700"
+          >
+            {submitError}
+          </p>
+        ) : null}
 
         <button
           type="submit"

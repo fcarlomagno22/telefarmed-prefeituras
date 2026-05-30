@@ -5,10 +5,12 @@ const TABLE_ROW_COUNT = 6
 
 type SuporteMainPanelSkeletonProps = {
   showUbtColumn?: boolean
+  showToolbarAction?: boolean
 }
 
 export function SuporteMainPanelSkeleton({
   showUbtColumn = false,
+  showToolbarAction = false,
 }: SuporteMainPanelSkeletonProps) {
   const columnCount = showUbtColumn ? 7 : 6
   const headerWidths = showUbtColumn
@@ -28,6 +30,7 @@ export function SuporteMainPanelSkeleton({
             <Skeleton className="h-10 w-[8.5rem] rounded-xl" />
           ) : null}
           <Skeleton className="h-10 w-40 rounded-xl" />
+          {showToolbarAction ? <Skeleton className="h-10 w-44 rounded-xl" /> : null}
         </div>
       </div>
 

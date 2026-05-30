@@ -1,6 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { reportCategories } from '../../config/reportsCategories'
+import { ubtRelatoriosCategoryPath } from '../../config/ubtRoutes'
 import { relatoriosCategoryGridClass } from './relatoriosPageLayout'
 
 export function RelatoriosCategoryGrid() {
@@ -11,7 +12,7 @@ export function RelatoriosCategoryGrid() {
           return (
             <Link
               key={category.id}
-              to={`/relatorios/${category.id}`}
+              to={ubtRelatoriosCategoryPath(category.id)}
               className="group flex h-full min-h-[9rem] flex-col justify-between rounded-2xl border border-gray-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)] transition hover:border-[var(--brand-primary)]/25 hover:shadow-[0_4px_20px_rgba(255,107,0,0.12)] sm:min-h-[10rem] sm:p-6 xl:min-h-0 xl:p-7"
             >
               <div className="flex shrink-0 items-start justify-between gap-3">

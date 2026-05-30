@@ -12,6 +12,7 @@ const statusOptions: { value: SupportTicketStatus | ''; label: string }[] = [
 type SuporteStatusFilterMenuProps = {
   open: boolean
   value: SupportTicketStatus | ''
+  triggerId?: string
   onClose: () => void
   onChange: (value: SupportTicketStatus | '') => void
 }
@@ -19,6 +20,7 @@ type SuporteStatusFilterMenuProps = {
 export function SuporteStatusFilterMenu({
   open,
   value,
+  triggerId = 'suporte-status-filter-trigger',
   onClose,
   onChange,
 }: SuporteStatusFilterMenuProps) {
@@ -29,7 +31,7 @@ export function SuporteStatusFilterMenu({
 
     function handlePointerDown(event: MouseEvent) {
       const target = event.target as Node
-      const trigger = document.getElementById('suporte-status-filter-trigger')
+      const trigger = document.getElementById(triggerId)
       if (
         panelRef.current?.contains(target) ||
         trigger?.contains(target)
@@ -49,7 +51,7 @@ export function SuporteStatusFilterMenu({
       document.removeEventListener('mousedown', handlePointerDown)
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [open, onClose])
+  }, [open, onClose, triggerId])
 
   if (!open) return null
 

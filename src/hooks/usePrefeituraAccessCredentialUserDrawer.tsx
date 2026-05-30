@@ -146,7 +146,7 @@ export function usePrefeituraAccessCredentialUserDrawer() {
         prev.map((item) => (item.id === user.id ? { ...item, status: 'inativo' } : item)),
       )
       if (open && editingUser?.id === user.id) setClosing(true)
-      setToast({ message: 'Usuário desativado com sucesso.', variant: 'success' })
+      setToast({ message: 'Usuário bloqueado com sucesso.', variant: 'success' })
       return
     }
 

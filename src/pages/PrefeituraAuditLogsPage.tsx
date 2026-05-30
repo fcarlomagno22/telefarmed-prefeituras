@@ -1,5 +1,5 @@
 import { AuditLogsPageContent } from '../components/auditoria/AuditLogsPageContent'
 
 export function PrefeituraAuditLogsPage() {
-  return <AuditLogsPageContent />
+  return <AuditLogsPageContent scope="prefeitura" />
 }

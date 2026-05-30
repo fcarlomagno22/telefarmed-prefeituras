@@ -7,6 +7,10 @@ export const brand = {
   primaryColor: env('VITE_BRAND_COLOR', '#ff6b00'),
   logoUrl: env('VITE_LOGO_URL', '/logo_4.png'),
   backgroundImageUrl: env('VITE_BACKGROUND_IMAGE_URL', '/fundo_login.png'),
+  profissionalBackgroundImageUrl: env(
+    'VITE_PROFISSIONAL_BACKGROUND_IMAGE_URL',
+    '/login_prof.png',
+  ),
   prefeituraBackgroundImageUrl: env(
     'VITE_PREFEITURA_BACKGROUND_IMAGE_URL',
     '/fundo_login_pref.png',
@@ -32,6 +36,38 @@ export const brand = {
   welcomeSubtitle: env(
     'VITE_WELCOME_SUBTITLE',
     'Acesse com seu usuário para continuar',
+  ),
+  profissionalHeadline: env(
+    'VITE_PROFISSIONAL_HEADLINE',
+    'Seu plantão, sua fila, seu atendimento em um só lugar.',
+  ),
+  profissionalSubheadline: env(
+    'VITE_PROFISSIONAL_SUBHEADLINE',
+    'Agenda dos dias designados, chamada de pacientes e gestão da sua atuação profissional.',
+  ),
+  profissionalWelcomeTitle: env(
+    'VITE_PROFISSIONAL_WELCOME_TITLE',
+    'Painel do Profissional',
+  ),
+  profissionalWelcomeSubtitle: env(
+    'VITE_PROFISSIONAL_WELCOME_SUBTITLE',
+    'Acesse com seu CPF e senha cadastrados',
+  ),
+  profissionalDashboardUserName: env(
+    'VITE_PROFISSIONAL_DASHBOARD_USER_NAME',
+    'Profissional',
+  ),
+  profissionalOperatorName: env(
+    'VITE_PROFISSIONAL_OPERATOR_NAME',
+    'Dra. Ana Martins',
+  ),
+  profissionalOperatorRole: env(
+    'VITE_PROFISSIONAL_OPERATOR_ROLE',
+    'Médica · Clínica Médica',
+  ),
+  profissionalOperatorFooterLabel: env(
+    'VITE_PROFISSIONAL_OPERATOR_FOOTER_LABEL',
+    'Profissional logado',
   ),
   copyright: env(
     'VITE_COPYRIGHT',
@@ -164,5 +200,24 @@ export const features = [
   {
     icon: 'network' as const,
     text: 'Saúde pública conectada com você e com a comunidade',
+  },
+]
+
+export const profissionalFeatures = [
+  {
+    icon: 'calendar' as const,
+    text: 'Agenda e fila dos plantões em que você está designado',
+  },
+  {
+    icon: 'stethoscope' as const,
+    text: 'Teleconsulta com prontuário, receitas e pedidos de exame',
+  },
+  {
+    icon: 'clipboard' as const,
+    text: 'Atendimentos realizados e documentos emitidos por você',
+  },
+  {
+    icon: 'receipt' as const,
+    text: 'Recebimentos, notas fiscais e contrato de prestação',
   },
 ]

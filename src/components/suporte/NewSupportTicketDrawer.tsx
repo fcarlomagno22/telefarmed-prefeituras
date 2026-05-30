@@ -33,6 +33,7 @@ type NewSupportTicketDrawerProps = {
   onClose: () => void
   onTransitionEnd: () => void
   onSubmitted: () => void
+  tourLockClose?: boolean
 }
 
 function FieldLabel({
@@ -74,6 +75,7 @@ export function NewSupportTicketDrawer({
   onClose,
   onTransitionEnd,
   onSubmitted,
+  tourLockClose = false,
 }: NewSupportTicketDrawerProps) {
   const [entered, setEntered] = useState(false)
   const [category, setCategory] = useState('')
@@ -194,6 +196,15 @@ export function NewSupportTicketDrawer({
 
   if (!isActive) return null
 
+  function handleCloseAttempt(event?: React.SyntheticEvent) {
+    if (tourLockClose) {
+      event?.preventDefault()
+      event?.stopPropagation()
+      return
+    }
+    onClose()
+  }
+
   return createPortal(
     <div
       className={`fixed inset-0 z-[9997] ${panelVisible ? 'pointer-events-auto' : 'pointer-events-none'}`}
@@ -204,11 +215,12 @@ export function NewSupportTicketDrawer({
           panelVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         aria-label="Fechar novo chamado"
-        onClick={onClose}
+        onClick={handleCloseAttempt}
         tabIndex={panelVisible ? 0 : -1}
       />
 
       <aside
+        data-tour="suporte-new-ticket-drawer"
         role="dialog"
         aria-modal="true"
         aria-labelledby="new-support-ticket-title"
@@ -226,7 +238,7 @@ export function NewSupportTicketDrawer({
             </h2>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCloseAttempt}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800"
               aria-label="Fechar"
             >

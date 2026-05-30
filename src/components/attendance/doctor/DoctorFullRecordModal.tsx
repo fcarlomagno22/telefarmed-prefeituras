@@ -17,6 +17,7 @@ type DoctorFullRecordModalProps = {
   doctorSpecialty: string
   patient: DoctorRecordPatientProfile
   notes: DoctorRecordNote[]
+  tourTargetId?: string
 }
 
 export function DoctorFullRecordModal({
@@ -25,6 +26,7 @@ export function DoctorFullRecordModal({
   doctorSpecialty,
   patient,
   notes,
+  tourTargetId,
 }: DoctorFullRecordModalProps) {
   const [previewAttachment, setPreviewAttachment] = useState<ConsultationChatAttachment | null>(
     null,
@@ -65,6 +67,7 @@ export function DoctorFullRecordModal({
         onClick={onClose}
       >
         <div
+          data-tour={tourTargetId}
           className="flex h-[90vh] w-[90vw] flex-col overflow-hidden rounded-2xl border border-gray-200/90 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.25)]"
           onClick={(event) => event.stopPropagation()}
         >

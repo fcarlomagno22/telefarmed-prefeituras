@@ -1,6 +1,8 @@
 import { brand } from './brand'
+import { profissionalRoutes } from './profissionalRoutes'
+import { ubtRoutes } from './ubtRoutes'
 
-export type PortalId = 'ubt' | 'prefeitura' | 'admin'
+export type PortalId = 'ubt' | 'prefeitura' | 'admin' | 'profissional'
 
 export type PortalConfig = {
   id: PortalId
@@ -17,9 +19,9 @@ export type PortalConfig = {
 export const portals: Record<PortalId, PortalConfig> = {
   ubt: {
     id: 'ubt',
-    loginPath: '/ubt/login',
-    transitionPath: '/entrando',
-    homePath: '/agenda',
+    loginPath: ubtRoutes.login,
+    transitionPath: ubtRoutes.entrando,
+    homePath: ubtRoutes.agenda,
     welcomeTitle: brand.welcomeTitle,
     welcomeSubtitle: brand.welcomeSubtitle,
     transitionTitle: 'Entrando no painel operacional',
@@ -63,6 +65,23 @@ export const portals: Record<PortalId, PortalConfig> = {
       'Validando credenciais',
       'Conectando ao painel admin',
       'Carregando prefeituras vinculadas',
+      'Preparando seu painel',
+    ],
+  },
+  profissional: {
+    id: 'profissional',
+    loginPath: profissionalRoutes.login,
+    transitionPath: profissionalRoutes.entrando,
+    homePath: profissionalRoutes.agenda,
+    welcomeTitle: brand.profissionalWelcomeTitle,
+    welcomeSubtitle: brand.profissionalWelcomeSubtitle,
+    transitionTitle: 'Entrando no painel profissional',
+    transitionSubtitle:
+      'Carregando sua agenda e fila de atendimento. Só um instante.',
+    transitionSteps: [
+      'Validando credenciais',
+      'Carregando seus plantões designados',
+      'Preparando fila de pacientes',
       'Preparando seu painel',
     ],
   },

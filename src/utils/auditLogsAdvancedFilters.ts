@@ -8,6 +8,9 @@ export type AuditLogsAdvancedFilters = {
   userId: string
   userType: string
   unit: string
+  prefeitura: string
+  ubt: string
+  platform: string
   action: string
   eventCategory: string
   criticality: AuditCriticalityLevel
@@ -28,6 +31,9 @@ export const defaultAuditLogsAdvancedFilters = (): AuditLogsAdvancedFilters => (
   userId: '',
   userType: '',
   unit: '',
+  prefeitura: '',
+  ubt: '',
+  platform: '',
   action: '',
   eventCategory: '',
   criticality: 'all',
@@ -59,6 +65,26 @@ export const auditLogsAdvancedFilterOptions = {
     { value: '', label: 'Todas as unidades' },
     { value: 'ubt-central', label: 'UBT Central' },
     { value: 'ubt-norte', label: 'UBT Norte' },
+    { value: 'ubt-sul', label: 'UBT Sul' },
+  ],
+  platforms: [
+    { value: '', label: 'Todas as plataformas' },
+    { value: 'admin', label: 'Admin Telefarmed' },
+    { value: 'prefeitura', label: 'Prefeitura' },
+    { value: 'ubt', label: 'UBT' },
+    { value: 'atendimento', label: 'Atendimento' },
+  ],
+  prefeituras: [
+    { value: '', label: 'Todas as prefeituras' },
+    { value: 'brasilia', label: 'Brasília' },
+    { value: 'campinas', label: 'Campinas' },
+    { value: 'sorocaba', label: 'Sorocaba' },
+  ],
+  ubts: [
+    { value: '', label: 'Todas as UBTs' },
+    { value: 'ubt-centro-historico', label: 'UBT Centro Histórico' },
+    { value: 'ubt-norte-i', label: 'UBT Norte I' },
+    { value: 'ubt-taguatinga', label: 'UBT Taguatinga' },
     { value: 'ubt-sul', label: 'UBT Sul' },
   ],
   actions: [

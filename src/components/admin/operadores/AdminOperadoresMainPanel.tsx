@@ -1,6 +1,6 @@
 import { Building2, Search, ShieldCheck, UserCheck, Users } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
-import type { AdminOperatorRow } from '../../../data/adminOperadoresMock'
+import type { AdminOperatorRow, AdminOperatorScope } from '../../../data/adminOperadoresMock'
 import type { PrefeituraCredentialUbtOption } from '../../../data/prefeituraAccessCredentialsMock'
 import { AccessCredentialActionsPopover } from '../../credenciais/AccessCredentialActionsPopover'
 import { TransferCredentialUbtModal } from '../../credenciais/TransferCredentialUbtModal'
@@ -22,6 +22,10 @@ type AdminOperadoresMainPanelProps = {
   >
   /** Sem borda/radius próprios — card pai inclui abas no topo. */
   embedded?: boolean
+  /** Restringe a lista a um portal (oculta filtro de escopo). */
+  fixedScope?: AdminOperatorScope
+  panelTitle?: string
+  panelDescription?: string
 }
 
 function formatNumber(value: number) {
@@ -50,10 +54,15 @@ export function AdminOperadoresMainPanel({
   ubtOptions,
   userDrawer,
   embedded = false,
+  fixedScope,
+  panelTitle = 'Operadores',
+  panelDescription = 'Usuários UBT/prefeitura agregados com último acesso, unidade e perfil operacional.',
 }: AdminOperadoresMainPanelProps) {
   const { openView, requestPinAction } = userDrawer
   const [search, setSearch] = useState('')
-  const [scopeFilter, setScopeFilter] = useState<'all' | 'UBT' | 'Prefeitura'>('all')
+  const [scopeFilter, setScopeFilter] = useState<'all' | 'UBT' | 'Prefeitura'>(
+    fixedScope ?? 'all',
+  )
   const [profileFilter, setProfileFilter] = useState('')
   const [menuUserId, setMenuUserId] = useState<string | null>(null)
   const [transferUser, setTransferUser] = useState<AdminOperatorRow | null>(null)
@@ -74,9 +83,11 @@ export function AdminOperadoresMainPanel({
     [rows],
   )
 
+  const effectiveScopeFilter = fixedScope ?? scopeFilter
+
   const filteredRows = useMemo(
-    () => filterRows(rows, search, scopeFilter, profileFilter),
-    [rows, search, scopeFilter, profileFilter],
+    () => filterRows(rows, search, effectiveScopeFilter, profileFilter),
+    [rows, search, effectiveScopeFilter, profileFilter],
   )
 
   const kpiCards = useMemo(
@@ -130,11 +141,21 @@ export function AdminOperadoresMainPanel({
   function requestDeactivateUser(user: AdminOperatorRow) {
     if (user.status === 'inativo') {
       closeMenu()
-      showSuccessToast('Usuário já está desativado.')
+      showSuccessToast('Usuário já está bloqueado.')
       return
     }
     closeMenu()
     requestPinAction('deactivate', user)
+  }
+
+  function requestReactivateUser(user: AdminOperatorRow) {
+    if (user.status === 'ativo') {
+      closeMenu()
+      showSuccessToast('Usuário já está desbloqueado.')
+      return
+    }
+    closeMenu()
+    requestPinAction('reactivate', user)
   }
 
   function requestEditUser(user: AdminOperatorRow) {
@@ -170,25 +191,25 @@ export function AdminOperadoresMainPanel({
         <div className="shrink-0 border-b border-gray-200 px-5 py-5 sm:px-6 sm:py-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Operadores</h2>
-              <p className="mt-1 text-sm text-gray-500">
-                Usuários UBT/prefeitura agregados com último acesso, unidade e perfil operacional.
-              </p>
+              <h2 className="text-lg font-bold text-gray-900">{panelTitle}</h2>
+              <p className="mt-1 text-sm text-gray-500">{panelDescription}</p>
             </div>
             <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:max-w-4xl lg:justify-end">
-              <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Escopo
-                <CustomSelect
-                  value={scopeFilter}
-                  onChange={(value) => setScopeFilter(value as 'all' | 'UBT' | 'Prefeitura')}
-                  options={[
-                    { value: 'all', label: 'Todos' },
-                    { value: 'UBT', label: 'UBT' },
-                    { value: 'Prefeitura', label: 'Prefeitura' },
-                  ]}
-                  className="min-w-[140px] text-left normal-case"
-                />
-              </label>
+              {!fixedScope ? (
+                <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Escopo
+                  <CustomSelect
+                    value={scopeFilter}
+                    onChange={(value) => setScopeFilter(value as 'all' | 'UBT' | 'Prefeitura')}
+                    options={[
+                      { value: 'all', label: 'Todos' },
+                      { value: 'UBT', label: 'UBT' },
+                      { value: 'Prefeitura', label: 'Prefeitura' },
+                    ]}
+                    className="min-w-[140px] text-left normal-case"
+                  />
+                </label>
+              ) : null}
               <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
                 Perfil
                 <CustomSelect
@@ -294,6 +315,7 @@ export function AdminOperadoresMainPanel({
                         onEdit={() => requestEditUser(row)}
                         onTransferUbt={() => requestTransferUbt(row)}
                         onDeactivate={() => requestDeactivateUser(row)}
+                        onReactivate={() => requestReactivateUser(row)}
                         onDelete={() => requestDeleteUser(row)}
                       />
                     </div>

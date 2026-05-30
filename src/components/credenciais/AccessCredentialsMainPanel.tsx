@@ -51,7 +51,7 @@ export function AccessCredentialsMainPanel({ userDrawer }: AccessCredentialsMain
   function requestDeactivateUser(user: AccessCredentialUser) {
     if (user.status === 'inativo') {
       closeMenu()
-      showSuccessToast('Usuário já está desativado.')
+      showSuccessToast('Usuário já está bloqueado.')
       return
     }
     closeMenu()
@@ -119,7 +119,7 @@ export function AccessCredentialsMainPanel({ userDrawer }: AccessCredentialsMain
       setUsers((prev) =>
         prev.map((item) => (item.id === user.id ? { ...item, status: 'inativo' } : item)),
       )
-      showSuccessToast('Usuário desativado com sucesso.')
+      showSuccessToast('Usuário bloqueado com sucesso.')
     } else {
       setUsers((prev) => prev.filter((item) => item.id !== user.id))
       showSuccessToast('Usuário excluído com sucesso.')

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { brand } from '../config/brand'
+import { ubtRoutes } from '../config/ubtRoutes'
 import { useBrandTheme } from '../hooks/useBrandTheme'
 import {
   clearWaitingRoomSession,
@@ -100,7 +101,7 @@ export function SalaDeEsperaPage() {
     } catch {
       // ignore
     }
-    window.location.assign('/triagem')
+    window.location.assign(ubtRoutes.triagem)
   }
 
   function handleEnterConsultation() {

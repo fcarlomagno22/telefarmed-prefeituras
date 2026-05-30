@@ -1,17 +1,19 @@
 import { useMemo, type ReactNode } from 'react'
 import { useUbtUnreadInbox } from '../../contexts/UbtNotificacoesContext'
 import { defaultSidebarItems } from '../../config/sidebarNav'
+import { ubtRoutes } from '../../config/ubtRoutes'
 import { OperatorFooter, type OperatorFooterProps } from './OperatorFooter'
 import { Sidebar } from './Sidebar'
 import type { SidebarNavItemProps, SidebarNavSection } from './SidebarNavItem'
 
-const UBT_NOTIFICACOES_PATH = '/notificacoes'
+const UBT_NOTIFICACOES_PATH = ubtRoutes.notificacoes
 
 type DashboardLayoutProps = {
   children: ReactNode
   sidebarItems?: SidebarNavItemProps[]
   sidebarSections?: SidebarNavSection[]
   logoutPath?: string
+  onLogout?: () => void | Promise<void>
   footer?: OperatorFooterProps
   collapsedSectionsStorageKey?: string
 }
@@ -21,6 +23,7 @@ export function DashboardLayout({
   sidebarItems,
   sidebarSections,
   logoutPath,
+  onLogout,
   footer,
   collapsedSectionsStorageKey,
 }: DashboardLayoutProps) {
@@ -44,6 +47,7 @@ export function DashboardLayout({
           items={sidebarSections ? undefined : resolvedSidebarItems}
           sections={sidebarSections}
           logoutPath={logoutPath}
+          onLogout={onLogout}
           collapsedSectionsStorageKey={collapsedSectionsStorageKey}
         />
 

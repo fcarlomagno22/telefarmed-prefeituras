@@ -1,4 +1,4 @@
-import { Ban, Eye, EyeOff, Pencil, Trash2, X } from 'lucide-react'
+import { Ban, Eye, EyeOff, Pencil, Trash2, UserCheck, X } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -16,6 +16,7 @@ import type { AccessCredentialUser, CredentialUserStatus } from '../../data/acce
 import type { PrefeituraCredentialUbtOption } from '../../data/prefeituraAccessCredentialsMock'
 import { isResponsibleUbtRole, RESPONSIBLE_UBT_ROLE } from '../../data/prefeituraAccessCredentialsMock'
 import { CustomSelect } from '../ui/CustomSelect'
+import { PinInput } from '../ui/PinInput'
 
 export type AccessCredentialDrawerMode = 'create' | 'edit' | 'edit_permissions' | 'view'
 
@@ -35,12 +36,20 @@ type AccessCredentialUserDrawerProps = {
     viewActions?: {
       onEditPermissions: () => void
       onDeactivate: () => void
+      onUnblock?: () => void
       onDelete: () => void
     }
   }
   onClose: () => void
   onTransitionEnd: () => void
-  onSave: (user: AccessCredentialUser, meta?: { contractingEntityId?: string }) => void
+  onSave: (
+    user: AccessCredentialUser,
+    meta?: {
+      contractingEntityId?: string
+      password?: string
+      authorizationPin?: string | null
+    },
+  ) => void | Promise<void>
 }
 
 function FieldLabel({
@@ -62,6 +71,7 @@ const inputClass =
   'w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15'
 
 const MIN_PASSWORD_LENGTH = 6
+const PIN_LENGTH = 6
 
 function PasswordField({
   label,
@@ -175,6 +185,12 @@ export function AccessCredentialUserDrawer({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [changePassword, setChangePassword] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [pin, setPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
+  const [pinVisible, setPinVisible] = useState(false)
+  const [confirmPinVisible, setConfirmPinVisible] = useState(false)
+  const [changePin, setChangePin] = useState(false)
+  const [pinError, setPinError] = useState<string | null>(null)
 
   const isActive = open || closing
   const isViewMode = mode === 'view'
@@ -186,6 +202,7 @@ export function AccessCredentialUserDrawer({
   const skipPasswordOnCreate = Boolean(municipalConfig?.skipPasswordOnCreate)
   const showPasswordFields =
     !isViewMode && ((isCreateMode && !skipPasswordOnCreate) || changePassword || mustSetPassword)
+  const showPinFields = !isViewMode && !isEditPermissionsMode
 
   const filteredUbtOptions =
     isMunicipal && usesContractingEntitySelection && selectedContractingEntityId
@@ -206,6 +223,12 @@ export function AccessCredentialUserDrawer({
     setShowPassword(false)
     setShowConfirmPassword(false)
     setPasswordError(null)
+    setPin('')
+    setConfirmPin('')
+    setPinVisible(false)
+    setConfirmPinVisible(false)
+    setChangePin(false)
+    setPinError(null)
 
     if (editingUser) {
       setName(editingUser.name)
@@ -309,6 +332,18 @@ export function AccessCredentialUserDrawer({
     return null
   }
 
+  function validateOptionalPinFields(): string | null {
+    if (!showPinFields) return null
+    if (pin.length === 0 && confirmPin.length === 0) return null
+    if (pin.length !== PIN_LENGTH) {
+      return 'Se informar, a senha de autorização deve ter 6 dígitos.'
+    }
+    if (pin !== confirmPin) {
+      return 'As senhas de autorização não coincidem.'
+    }
+    return null
+  }
+
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
     const trimmedName = name.trim()
@@ -324,12 +359,20 @@ export function AccessCredentialUserDrawer({
     }
     setPasswordError(null)
 
+    const pinValidationError = validateOptionalPinFields()
+    if (pinValidationError) {
+      setPinError(pinValidationError)
+      return
+    }
+    setPinError(null)
+
     const hasAnyPermission = systemPages.some((page) => pagePermissions[page.id].length > 0)
     if (!hasAnyPermission) return
 
     const resolvedLevel = inferAccessLevelFromPermissions(pagePermissions)
     const paletteIndex = trimmedName.length % avatarPalette.length
     const passwordWasSet = showPasswordFields && password.length > 0
+    const pinWasSet = pin.length === PIN_LENGTH && pin === confirmPin
 
     const responsible = isMunicipal && (isUbtResponsible || isResponsibleUbtRole(trimmedRole))
     const selectedUbt = filteredUbtOptions.find(
@@ -350,6 +393,9 @@ export function AccessCredentialUserDrawer({
         (isCreateMode && skipPasswordOnCreate)
           ? false
           : passwordWasSet || (editingUser?.hasPassword ?? false),
+      hasAuthorizationPin:
+        pinWasSet ||
+        (Boolean(editingUser?.hasAuthorizationPin) && !changePin),
       pagePermissions: responsible
         ? buildPresetPagePermissions('administrador')
         : { ...pagePermissions },
@@ -360,11 +406,21 @@ export function AccessCredentialUserDrawer({
       isUbtResponsible: responsible,
     }
 
-    onSave(payload, {
+    void onSave(payload, {
       contractingEntityId:
         isMunicipal && usesContractingEntitySelection && isCreateMode
           ? selectedContractingEntityId
           : undefined,
+      password:
+        showPasswordFields && password.length >= MIN_PASSWORD_LENGTH
+          ? password
+          : undefined,
+      authorizationPin:
+        pin.length === PIN_LENGTH && pin === confirmPin
+          ? pin
+          : changePin && pin.length === 0
+            ? null
+            : undefined,
     })
   }
 
@@ -387,6 +443,7 @@ export function AccessCredentialUserDrawer({
 
   const passwordValid =
     isEditPermissionsMode || !showPasswordFields || validatePasswordFields() === null
+  const pinValid = !showPinFields || validateOptionalPinFields() === null
   const ubtSelected =
     !isMunicipal || isViewMode || isEditPermissionsMode || selectedUbtId.length > 0
   const contractingEntitySelected =
@@ -407,6 +464,7 @@ export function AccessCredentialUserDrawer({
     ubtSelected &&
     systemPages.some((page) => pagePermissions[page.id].length > 0) &&
     passwordValid &&
+    pinValid &&
     (isEditPermissionsMode ||
       !showPasswordFields ||
       (password.length > 0 && confirmPassword.length > 0))
@@ -626,6 +684,7 @@ export function AccessCredentialUserDrawer({
             </section>
 
             {!isViewMode && !isEditPermissionsMode ? (
+            <>
             <section>
               <h3 className="text-sm font-bold text-gray-900">Senha de acesso</h3>
               {isEditMode && editingUser ? (
@@ -700,14 +759,85 @@ export function AccessCredentialUserDrawer({
                 </div>
               ) : null}
             </section>
+
+            <section>
+              <h3 className="text-sm font-bold text-gray-900">Senha de autorização</h3>
+              <p className="mt-1 text-xs text-gray-500">
+                Senha numérica de 6 dígitos para confirmar ações sensíveis (opcional).
+              </p>
+              {isEditMode && editingUser?.hasAuthorizationPin ? (
+                <label className="mt-3 flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={changePin}
+                    onChange={(e) => {
+                      setChangePin(e.target.checked)
+                      setPin('')
+                      setConfirmPin('')
+                      setPinError(null)
+                    }}
+                    className="h-4 w-4 rounded border-gray-300 text-[var(--brand-primary)]"
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Alterar senha de 6 dígitos
+                  </span>
+                </label>
+              ) : null}
+              {isEditMode && editingUser?.hasAuthorizationPin && !changePin ? (
+                <p className="mt-2 text-xs text-gray-500">PIN de autorização já cadastrado.</p>
+              ) : (
+                <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 sm:items-start sm:gap-x-12 lg:max-w-4xl xl:gap-x-20">
+                  <PinInput
+                    id="credential-authorization-pin"
+                    label="Senha de autorização (6 dígitos)"
+                    value={pin}
+                    onChange={(value) => {
+                      setPin(value)
+                      setPinError(null)
+                    }}
+                    visible={pinVisible}
+                    onToggleVisible={() => setPinVisible((v) => !v)}
+                    error={Boolean(pinError)}
+                  />
+                  <PinInput
+                    id="credential-authorization-pin-confirm"
+                    label="Confirmar senha de autorização"
+                    value={confirmPin}
+                    onChange={(value) => {
+                      setConfirmPin(value)
+                      setPinError(null)
+                    }}
+                    visible={confirmPinVisible}
+                    onToggleVisible={() => setConfirmPinVisible((v) => !v)}
+                    error={Boolean(pinError)}
+                  />
+                  {pinError ? (
+                    <p className="sm:col-span-2 text-xs font-medium text-red-600" role="alert">
+                      {pinError}
+                    </p>
+                  ) : null}
+                </div>
+              )}
+            </section>
+            </>
             ) : (
-              <section>
-                <h3 className="text-sm font-bold text-gray-900">Senha de acesso</h3>
-                <p className="mt-2 text-sm text-gray-600">
-                  {editingUser?.hasPassword
-                    ? 'Senha cadastrada para acesso ao painel.'
-                    : 'Nenhuma senha cadastrada.'}
-                </p>
+              <section className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">Senha de acesso</h3>
+                  <p className="mt-2 text-sm text-gray-600">
+                    {editingUser?.hasPassword
+                      ? 'Senha cadastrada para acesso ao painel.'
+                      : 'Nenhuma senha cadastrada.'}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">Senha de autorização</h3>
+                  <p className="mt-2 text-sm text-gray-600">
+                    {editingUser?.hasAuthorizationPin
+                      ? 'PIN de 6 dígitos cadastrado.'
+                      : 'Nenhum PIN cadastrado.'}
+                  </p>
+                </div>
               </section>
             )}
 
@@ -821,15 +951,26 @@ export function AccessCredentialUserDrawer({
                     <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
                     Editar páginas e autorizações
                   </button>
-                  <button
-                    type="button"
-                    onClick={municipalConfig.viewActions.onDeactivate}
-                    disabled={status === 'inativo'}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <Ban className="h-3.5 w-3.5" strokeWidth={2} />
-                    Desativar usuário
-                  </button>
+                  {status === 'inativo' && municipalConfig.viewActions.onUnblock ? (
+                    <button
+                      type="button"
+                      onClick={municipalConfig.viewActions.onUnblock}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-100"
+                    >
+                      <UserCheck className="h-3.5 w-3.5" strokeWidth={2} />
+                      Desbloquear usuário
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={municipalConfig.viewActions.onDeactivate}
+                      disabled={status === 'inativo'}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Ban className="h-3.5 w-3.5" strokeWidth={2} />
+                      Bloquear usuário
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={municipalConfig.viewActions.onDelete}

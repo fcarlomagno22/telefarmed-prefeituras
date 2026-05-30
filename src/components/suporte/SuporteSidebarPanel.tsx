@@ -239,7 +239,10 @@ export function SuporteSidebarPanel({
     monthlyTotal ?? statusSummary.reduce((sum, item) => sum + item.count, 0)
 
   return (
-    <aside className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
+    <aside
+      data-tour="suporte-sidebar"
+      className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]"
+    >
       {illustrationUrl ? (
         <div className="shrink-0 overflow-hidden bg-white px-4 pt-4 pb-2">
           <img
@@ -251,7 +254,10 @@ export function SuporteSidebarPanel({
       ) : null}
 
       <div className="min-h-0 flex-1 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <section className={`p-5 ${illustrationUrl ? 'border-t border-gray-200' : ''}`}>
+        <section
+          data-tour="suporte-status-summary"
+          className={`p-5 ${illustrationUrl ? 'border-t border-gray-200' : ''}`}
+        >
           <h2 className="text-base font-bold text-gray-900">{summaryTitle}</h2>
           <ul className="mt-4 space-y-3">
             {statusSummary.map((item) => (
@@ -270,7 +276,10 @@ export function SuporteSidebarPanel({
           </ul>
         </section>
 
-        <section className="border-t border-gray-200 p-5">
+        <section
+          data-tour="suporte-priority-chart"
+          className="border-t border-gray-200 p-5"
+        >
           <h2 className="text-base font-bold text-gray-900">Chamados por prioridade</h2>
           <div className="mt-4">
             <PriorityDonut slices={priorityDistribution} />

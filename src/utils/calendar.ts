@@ -24,6 +24,14 @@ export function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1)
 }
 
+export function addCalendarMonths(date: Date, months: number) {
+  return new Date(date.getFullYear(), date.getMonth() + months, 1)
+}
+
+export function isSameCalendarMonth(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()
+}
+
 export function buildCalendarGrid(viewDate: Date): CalendarCell[] {
   const monthStart = startOfMonth(viewDate)
   const monthEnd = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0)

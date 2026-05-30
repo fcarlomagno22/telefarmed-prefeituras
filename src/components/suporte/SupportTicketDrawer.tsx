@@ -2,6 +2,7 @@ import {
   CheckSquare,
   ChevronDown,
   FileText,
+  Lock,
   MessageSquare,
   Paperclip,
   Pencil,
@@ -19,7 +20,13 @@ import type {
   SupportMessageDeletedSnapshot,
   SupportTicket,
 } from '../../data/suporteMock'
+import { brand } from '../../config/brand'
 import { getLoggedOperatorName } from '../../utils/sessionUser'
+import { SupportTicketCloseConfirmModal } from './SupportTicketCloseConfirmModal'
+import {
+  SUPPORT_SOURCE_BADGE_WIDTH,
+  supportSourceBadgeConfig,
+} from './supportSourceBadgeConfig'
 import { SituationStatusBadge } from '../ui/SituationStatusBadge'
 import { Toast } from '../ui/Toast'
 import {
@@ -44,8 +51,18 @@ type SupportTicketDrawerProps = {
   open: boolean
   closing: boolean
   readOnly?: boolean
+  /** Resposta da equipe Telefarmed (painel admin). */
+  replyAsSupport?: boolean
+  /** Enviar novas mensagens no chat (padrão: !readOnly e chamado aberto). */
+  canReply?: boolean
+  /** Editar, excluir ou selecionar mensagens próprias (padrão: !readOnly). */
+  canManageMessages?: boolean
+  /** Encerrar chamado no painel admin (padrão: replyAsSupport e chamado aberto). */
+  canCloseTicket?: boolean
+  onTicketUpdate?: (ticket: SupportTicket) => void
   onClose: () => void
   onTransitionEnd: () => void
+  tourLockClose?: boolean
 }
 
 type PendingChatFile = {
@@ -146,12 +163,23 @@ function MessageAttachments({ attachments }: { attachments: SupportMessageAttach
   )
 }
 
-function isOwnOperatorMessage(message: SupportMessage) {
+function getSupportAgentName() {
+  return brand.adminOperatorName
+}
+
+function isOwnAgentMessage(message: SupportMessage, replyAsSupport: boolean) {
+  if (replyAsSupport) {
+    return (
+      message.author === 'support' &&
+      (message.authorName === getSupportAgentName() ||
+        message.authorName === 'Suporte Telefarmed')
+    )
+  }
   return message.author === 'operator' && message.authorName === getLoggedOperatorName()
 }
 
-function isSelectableOwnMessage(message: SupportMessage) {
-  return isOwnOperatorMessage(message) && !message.deleted
+function isSelectableOwnMessage(message: SupportMessage, replyAsSupport: boolean) {
+  return isOwnAgentMessage(message, replyAsSupport) && !message.deleted
 }
 
 function isSupportPartnerMessage(message: SupportMessage) {
@@ -235,9 +263,10 @@ function MessageBubble({
   onSaveEdit,
   onDelete,
   onEnterSelectionMode,
-}: MessageBubbleProps) {
+  replyAsSupport = false,
+}: MessageBubbleProps & { replyAsSupport?: boolean }) {
   const isSupport = message.author === 'support'
-  const isOwn = isOwnOperatorMessage(message)
+  const isOwn = isOwnAgentMessage(message, replyAsSupport)
   const isDeleted = message.deleted === true
   const hasBody = message.body.trim().length > 0
   const hasAttachments = (message.attachments?.length ?? 0) > 0
@@ -515,6 +544,7 @@ function SupportMessageBubble({
   isHighlighted,
   cardRef,
   readOnly = false,
+  replyAsSupport = false,
 }: {
   message: SupportMessage
   selectionMode: boolean
@@ -536,15 +566,17 @@ function SupportMessageBubble({
   onSaveEdit: () => void
   onDelete: (id: string) => void
   readOnly?: boolean
+  replyAsSupport?: boolean
 }) {
   if (readOnly) {
     return <ReadOnlyMessageBubble message={message} />
   }
 
-  if (isOwnOperatorMessage(message)) {
+  if (isOwnAgentMessage(message, replyAsSupport)) {
     const bubble = (
       <MessageBubble
         message={message}
+        replyAsSupport={replyAsSupport}
         selectionMode={selectionMode}
         isSelected={isSelected}
         onToggleSelect={() => onToggleSelect(message.id)}
@@ -757,10 +789,18 @@ export function SupportTicketDrawer({
   open,
   closing,
   readOnly = false,
+  replyAsSupport = false,
+  canReply: canReplyProp,
+  canManageMessages: canManageMessagesProp,
+  canCloseTicket: canCloseTicketProp,
+  onTicketUpdate,
   onClose,
   onTransitionEnd,
+  tourLockClose = false,
 }: SupportTicketDrawerProps) {
   const [entered, setEntered] = useState(false)
+  const [ticketStatus, setTicketStatus] = useState<SupportTicket['status']>('em_andamento')
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false)
   const [reply, setReply] = useState('')
   const [messages, setMessages] = useState<SupportMessage[]>([])
   const [pendingFiles, setPendingFiles] = useState<PendingChatFile[]>([])
@@ -794,7 +834,9 @@ export function SupportTicketDrawer({
 
     if (ticket) {
       setMessages([...ticket.messages])
+      setTicketStatus(ticket.status)
     }
+    setCloseConfirmOpen(false)
     setReply('')
     setAttachmentError(null)
     setPendingFiles((prev) => {
@@ -1048,7 +1090,9 @@ export function SupportTicketDrawer({
     setEditDraft('')
   }
 
-  const ownMessageIds = messages.filter(isSelectableOwnMessage).map((message) => message.id)
+  const ownMessageIds = messages
+    .filter((message) => isSelectableOwnMessage(message, replyAsSupport))
+    .map((message) => message.id)
   const selectedCount = selectedIds.length
   const allOwnSelected =
     ownMessageIds.length > 0 && ownMessageIds.every((id) => selectedIds.includes(id))
@@ -1151,7 +1195,7 @@ export function SupportTicketDrawer({
       const idSet = new Set(
         rawIds.filter((id) => {
           const message = prev.find((item) => item.id === id)
-          return message && isSelectableOwnMessage(message)
+          return message && isSelectableOwnMessage(message, replyAsSupport)
         }),
       )
       if (idSet.size === 0) return prev
@@ -1205,8 +1249,26 @@ export function SupportTicketDrawer({
   function handleSend() {
     const text = reply.trim()
     if ((!text && pendingFiles.length === 0) || isSending || isTyping) return
+    if (!canReply) return
 
     const attachments = buildAttachmentsFromPending()
+
+    if (replyAsSupport) {
+      const supportMessage: SupportMessage = {
+        id: createMessageId(),
+        author: 'support',
+        authorName: getSupportAgentName(),
+        body: text,
+        sentAt: formatMessageTime(new Date()),
+        attachments: attachments.length > 0 ? attachments : undefined,
+      }
+      setMessages((prev) => [...prev, supportMessage])
+      setReply('')
+      setPendingFiles([])
+      setAttachmentError(null)
+      return
+    }
+
     const operatorMessage: SupportMessage = {
       id: createMessageId(),
       author: 'operator',
@@ -1238,9 +1300,56 @@ export function SupportTicketDrawer({
     }, TYPING_DELAY_MS)
   }
 
+  function handleConfirmCloseTicket() {
+    if (!ticket || ticketStatus === 'encerrado') return
+
+    const closedAt = formatMessageTime(new Date())
+    const closeMessage: SupportMessage = {
+      id: createMessageId(),
+      author: 'support',
+      authorName: getSupportAgentName(),
+      body: 'Chamado encerrado pela equipe Telefarmed. Se precisar de novo suporte, abra um novo chamado na sua unidade.',
+      sentAt: closedAt,
+    }
+    const nextMessages = [...messages, closeMessage]
+
+    setMessages(nextMessages)
+    setTicketStatus('encerrado')
+    setCloseConfirmOpen(false)
+    setReply('')
+    setPendingFiles((prev) => {
+      revokePendingPreviews(prev)
+      return []
+    })
+    setIsSending(false)
+    setIsTyping(false)
+
+    onTicketUpdate?.({
+      ...ticket,
+      status: 'encerrado',
+      lastUpdate: closedAt,
+      messages: nextMessages,
+    })
+  }
+
   if (!isActive || !ticket) return null
 
-  const canReply = !readOnly && ticket.status !== 'encerrado'
+  const ticketOpen = ticketStatus !== 'encerrado'
+  const canManageMessages = canManageMessagesProp ?? !readOnly
+  const canReply = (canReplyProp ?? !readOnly) && ticketOpen
+  const canCloseTicket = (canCloseTicketProp ?? replyAsSupport) && ticketOpen
+  const messagesReadOnly = readOnly || !canManageMessages
+  const showViewOnlyComposerNotice =
+    replyAsSupport && ticketOpen && !canReply && !readOnly
+
+  function handleCloseAttempt(event?: React.SyntheticEvent) {
+    if (tourLockClose) {
+      event?.preventDefault()
+      event?.stopPropagation()
+      return
+    }
+    onClose()
+  }
 
   return createPortal(
     <>
@@ -1275,7 +1384,7 @@ export function SupportTicketDrawer({
         <button
           type="button"
           aria-label="Fechar detalhes do chamado"
-          onClick={onClose}
+          onClick={handleCloseAttempt}
           disabled={isSending}
           tabIndex={panelVisible ? 0 : -1}
           className={`absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity duration-300 ${
@@ -1284,6 +1393,7 @@ export function SupportTicketDrawer({
         />
 
         <aside
+          data-tour="suporte-ticket-drawer"
           role="dialog"
           aria-modal="true"
           aria-labelledby="support-ticket-drawer-title"
@@ -1295,7 +1405,10 @@ export function SupportTicketDrawer({
           }`}
         >
           <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-          <header className="shrink-0 border-b border-gray-200 px-5 py-4 sm:px-6">
+          <header
+            data-tour="suporte-ticket-drawer-header"
+            className="shrink-0 border-b border-gray-200 px-5 py-4 sm:px-6"
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-gray-500">{ticket.number}</p>
@@ -1307,15 +1420,39 @@ export function SupportTicketDrawer({
                 </h2>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <SituationStatusBadge
-                    config={supportTicketStatusBadgeConfig[ticket.status]}
+                    config={supportTicketStatusBadgeConfig[ticketStatus]}
                   />
+                  {ticket.source ? (
+                    <SituationStatusBadge
+                      config={supportSourceBadgeConfig[ticket.source]}
+                      widthClass={SUPPORT_SOURCE_BADGE_WIDTH}
+                    />
+                  ) : null}
                   <span className="text-xs text-gray-500">{ticket.category}</span>
                 </div>
-                {readOnly && ticket.ubtName ? (
+                {(readOnly || replyAsSupport) &&
+                (ticket.source || ticket.municipalityName || ticket.ubtName) ? (
                   <div className="mt-3 space-y-1 rounded-lg border border-gray-200 bg-gray-50/80 px-3 py-2 text-xs text-gray-600">
-                    <p>
-                      <span className="font-semibold text-gray-800">UBT:</span> {ticket.ubtName}
-                    </p>
+                    {ticket.source ? (
+                      <p className="flex flex-wrap items-center gap-2">
+                        <span className="font-semibold text-gray-800">Origem:</span>
+                        <SituationStatusBadge
+                          config={supportSourceBadgeConfig[ticket.source]}
+                          widthClass={SUPPORT_SOURCE_BADGE_WIDTH}
+                        />
+                      </p>
+                    ) : null}
+                    {ticket.municipalityName ? (
+                      <p>
+                        <span className="font-semibold text-gray-800">Prefeitura:</span>{' '}
+                        {ticket.municipalityName}
+                      </p>
+                    ) : null}
+                    {ticket.ubtName ? (
+                      <p>
+                        <span className="font-semibold text-gray-800">UBT:</span> {ticket.ubtName}
+                      </p>
+                    ) : null}
                     {ticket.openedByName ? (
                       <p>
                         <span className="font-semibold text-gray-800">Aberto por:</span>{' '}
@@ -1325,7 +1462,7 @@ export function SupportTicketDrawer({
                     ) : null}
                   </div>
                 ) : null}
-                {!readOnly ? (
+                {!readOnly && !replyAsSupport ? (
                   <button
                     type="button"
                     onClick={() => setFavoritesPanelOpen((current) => !current)}
@@ -1349,19 +1486,32 @@ export function SupportTicketDrawer({
                   </button>
                 ) : null}
               </div>
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={isSending}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 disabled:opacity-50"
-                aria-label="Fechar"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                {canCloseTicket ? (
+                  <button
+                    type="button"
+                    onClick={() => setCloseConfirmOpen(true)}
+                    disabled={isSending}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:border-red-300 hover:bg-red-100 disabled:opacity-50"
+                  >
+                    <Lock className="h-3.5 w-3.5" strokeWidth={2} />
+                    Encerrar chamado
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleCloseAttempt}
+                  disabled={isSending}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 disabled:opacity-50"
+                  aria-label="Fechar"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </div>
           </header>
 
-          {!readOnly && favoritesPanelOpen ? (
+          {!readOnly && !replyAsSupport && favoritesPanelOpen ? (
             <SupportFavoritesPanel
               favorites={favoriteMessages}
               onSelect={handleNavigateToFavorite}
@@ -1374,17 +1524,29 @@ export function SupportTicketDrawer({
               Visualização somente leitura — conversa entre o suporte Telefarmed e a unidade.
             </p>
           ) : null}
+          {showViewOnlyComposerNotice ? (
+            <p className="shrink-0 border-b border-amber-100 bg-amber-50/90 px-5 py-2.5 text-center text-xs font-medium text-amber-900 sm:px-6">
+              Você pode visualizar esta conversa, mas não tem permissão para enviar mensagens ou encerrar o
+              chamado.
+            </p>
+          ) : null}
 
-          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 sm:px-6">
+          <div
+            data-tour="suporte-ticket-drawer-chat"
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 sm:px-6"
+          >
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.author === 'support' ? 'justify-start' : 'justify-end'}`}
               >
                 <SupportMessageBubble
-                  readOnly={readOnly}
+                  readOnly={messagesReadOnly}
+                  replyAsSupport={replyAsSupport}
                   message={message}
-                  selectionMode={selectionMode && isSelectableOwnMessage(message)}
+                  selectionMode={
+                    selectionMode && isSelectableOwnMessage(message, replyAsSupport)
+                  }
                   isSelected={selectedIds.includes(message.id)}
                   onToggleSelect={handleToggleSelect}
                   onEnterSelectionMode={enterSelectionMode}
@@ -1392,7 +1554,9 @@ export function SupportTicketDrawer({
                   onToggleFavorite={() => handleToggleFavorite(message.id)}
                   isHighlighted={highlightedMessageId === message.id}
                   cardRef={
-                    !readOnly && isSupportPartnerMessage(message)
+                    canManageMessages &&
+                    !replyAsSupport &&
+                    isSupportPartnerMessage(message)
                       ? (element) => {
                           if (element) messageRefs.current.set(message.id, element)
                           else messageRefs.current.delete(message.id)
@@ -1412,7 +1576,7 @@ export function SupportTicketDrawer({
                 />
               </div>
             ))}
-            {!readOnly && isTyping ? (
+            {canReply && isTyping ? (
               <div className="flex justify-start">
                 <TypingIndicator />
               </div>
@@ -1420,7 +1584,7 @@ export function SupportTicketDrawer({
             <div ref={messagesEndRef} />
           </div>
 
-          {!readOnly && selectionMode ? (
+          {canManageMessages && selectionMode ? (
             <footer className="shrink-0 border-t border-gray-200 bg-gray-50/80 px-5 py-4 sm:px-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm font-semibold text-gray-800">
@@ -1461,11 +1625,18 @@ export function SupportTicketDrawer({
             <footer className="shrink-0 border-t border-gray-200 bg-gray-50/60 px-5 py-4 text-center text-xs text-gray-600 sm:px-6">
               Acompanhamento municipal — não é possível enviar mensagens nesta conversa.
             </footer>
+          ) : showViewOnlyComposerNotice ? (
+            <footer className="shrink-0 border-t border-gray-200 bg-gray-50/60 px-5 py-4 text-center text-xs text-gray-600 sm:px-6">
+              Sem permissão de escrita neste chamado. Solicite acesso de inserção ou edição em Suporte ao
+              administrador.
+            </footer>
           ) : canReply ? (
             <footer className="shrink-0 border-t border-gray-200 px-5 py-4 sm:px-6">
               <label className="mb-2 flex items-center gap-2 text-xs font-semibold text-gray-600">
                 <MessageSquare className="h-3.5 w-3.5" />
-                Responder como {getLoggedOperatorName()}
+                {replyAsSupport
+                  ? `Responder como ${getSupportAgentName()}`
+                  : `Responder como ${getLoggedOperatorName()}`}
               </label>
 
               {pendingFiles.length > 0 ? (
@@ -1555,13 +1726,13 @@ export function SupportTicketDrawer({
                 PDF ou imagem (PNG, JPG, WEBP) — máx. 10MB
               </p>
             </footer>
-          ) : (
+          ) : ticketStatus === 'encerrado' ? (
             <footer className="shrink-0 border-t border-gray-200 px-5 py-4 text-center text-xs text-gray-500 sm:px-6">
               Este chamado foi encerrado e não aceita novas respostas.
             </footer>
-          )}
+          ) : null}
 
-          {!readOnly ? (
+          {canManageMessages ? (
             <Toast
               anchored
               message={deleteToast?.message ?? ''}
@@ -1576,6 +1747,15 @@ export function SupportTicketDrawer({
           </div>
         </aside>
       </div>
+
+      {replyAsSupport ? (
+        <SupportTicketCloseConfirmModal
+          open={closeConfirmOpen}
+          ticketNumber={ticket.number}
+          onCancel={() => setCloseConfirmOpen(false)}
+          onConfirm={handleConfirmCloseTicket}
+        />
+      ) : null}
     </>,
     document.body,
   )

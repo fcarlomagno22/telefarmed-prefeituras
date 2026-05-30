@@ -1,4 +1,4 @@
-import { ArrowRightLeft, Ban, Eye, MoreVertical, Pencil, Trash2 } from 'lucide-react'
+import { ArrowRightLeft, Ban, Eye, MoreVertical, Pencil, Trash2, UserCheck } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import type { AccessCredentialUser } from '../../data/accessCredentialsMock'
@@ -12,6 +12,7 @@ type AccessCredentialActionsPopoverProps = {
   onEdit: () => void
   onTransferUbt?: () => void
   onDeactivate: () => void
+  onReactivate?: () => void
   onDelete: () => void
 }
 
@@ -31,6 +32,7 @@ export function AccessCredentialActionsPopover({
   onEdit,
   onTransferUbt,
   onDeactivate,
+  onReactivate,
   onDelete,
 }: AccessCredentialActionsPopoverProps) {
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -132,16 +134,28 @@ export function AccessCredentialActionsPopover({
             Alterar UBT
           </button>
         ) : null}
-        <button
-          type="button"
-          role="menuitem"
-          className={`${menuItemClass} disabled:cursor-not-allowed disabled:opacity-40`}
-          onClick={onDeactivate}
-          disabled={user.status === 'inativo'}
-        >
-          <Ban className="h-4 w-4 shrink-0 text-gray-500" strokeWidth={2} />
-          Desativar usuário
-        </button>
+        {user.status === 'inativo' && onReactivate ? (
+          <button
+            type="button"
+            role="menuitem"
+            className={`${menuItemClass} font-semibold text-emerald-700 hover:bg-emerald-50`}
+            onClick={onReactivate}
+          >
+            <UserCheck className="h-4 w-4 shrink-0" strokeWidth={2} />
+            Desbloquear usuário
+          </button>
+        ) : (
+          <button
+            type="button"
+            role="menuitem"
+            className={`${menuItemClass} disabled:cursor-not-allowed disabled:opacity-40`}
+            onClick={onDeactivate}
+            disabled={user.status === 'inativo'}
+          >
+            <Ban className="h-4 w-4 shrink-0 text-gray-500" strokeWidth={2} />
+            Bloquear usuário
+          </button>
+        )}
         <button
           type="button"
           role="menuitem"

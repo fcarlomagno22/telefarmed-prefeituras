@@ -1,13 +1,6 @@
 import { Filter, Search, UserRound, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { unitStation } from '../../data/unitDashboardMock'
-import {
-  auditLogsFilterOptions,
-  auditLogsPageOne,
-  auditLogsPagination,
-  auditLogsSummary,
-  type AuditLogEntry,
-} from '../../data/auditLogsMock'
+import type { AuditLogEntry } from '../../data/auditLogsMock'
 import {
   exportAuditLogsExcel,
   exportAuditLogsPdf,
@@ -18,27 +11,77 @@ import {
   auditCriticalityOptions,
   type AuditLogsAdvancedFilters,
 } from '../../utils/auditLogsAdvancedFilters'
+import {
+  getAuditUbtFilterOptions,
+  patchAuditPrefeituraFilter,
+} from '../../utils/auditLogs/auditLogTenantFilters'
 import { filterAuditLogEntries } from '../../utils/auditLogs/filterAuditLogEntries'
 import { getLoggedOperatorName } from '../../utils/sessionUser'
 import { CustomSelect } from '../ui/CustomSelect'
 import { Toast, type ToastVariant } from '../ui/Toast'
 import { AuditLogsAdvancedFiltersMegamenu } from './AuditLogsAdvancedFiltersMegamenu'
 import { AuditLogsExportMenu, type AuditLogsExportFormat } from './AuditLogsExportMenu'
+import { useAuditLogsScopeContext } from './AuditLogsScopeContext'
+import {
+  auditLogPlatformBadgeClass,
+  auditLogPlatformLabels,
+} from './auditLogPlatformConfig'
+import {
+  formatAuditPrefeituraLabel,
+  formatAuditUbtLabel,
+  type AuditLogTenantColumnMode,
+} from './auditLogTenantDisplay'
 import { AuditLogSeverityIcon, actionToneStyles } from './auditLogStyles'
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
 }
 
-function AuditLogRow({ entry }: { entry: AuditLogEntry }) {
+function AuditLogRow({
+  entry,
+  showPlatformColumn,
+  tenantColumnMode,
+}: {
+  entry: AuditLogEntry
+  showPlatformColumn: boolean
+  tenantColumnMode: AuditLogTenantColumnMode
+}) {
   const actionStyle = actionToneStyles[entry.actionTone]
 
   return (
     <tr className="text-sm text-gray-700 hover:bg-gray-50/80">
-      <td className="w-10 px-3 py-3.5 align-middle sm:px-4">
-        <AuditLogSeverityIcon severity={entry.severity} />
+      <td className="w-10 px-3 py-3.5 text-center align-middle sm:px-4">
+        <div className="flex justify-center">
+          <AuditLogSeverityIcon severity={entry.severity} />
+        </div>
       </td>
-      <td className="whitespace-nowrap px-3 py-3.5 align-middle tabular-nums">
+      {showPlatformColumn ? (
+        <td className="whitespace-nowrap px-3 py-3.5 text-center align-middle">
+          <span
+            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${auditLogPlatformBadgeClass[entry.platform]}`}
+          >
+            {auditLogPlatformLabels[entry.platform]}
+          </span>
+        </td>
+      ) : null}
+      {tenantColumnMode === 'full' ? (
+        <td className="min-w-[8.5rem] px-3 py-3.5 text-center align-middle">
+          <span className="block text-xs font-semibold text-gray-900">
+            {formatAuditPrefeituraLabel(entry.prefeituraName)}
+          </span>
+          <span className="mt-0.5 block text-[11px] text-gray-500">
+            {entry.ubtName ? entry.ubtName : 'Sem UBT'}
+          </span>
+        </td>
+      ) : null}
+      {tenantColumnMode === 'ubt' ? (
+        <td className="min-w-[7.5rem] px-3 py-3.5 align-middle text-center">
+          <span className="text-xs font-medium text-gray-800">
+            {formatAuditUbtLabel(entry.ubtName)}
+          </span>
+        </td>
+      ) : null}
+      <td className="whitespace-nowrap px-3 py-3.5 text-center align-middle tabular-nums">
         <span className="block text-xs font-medium text-gray-900">{entry.dateTime}</span>
       </td>
       <td className="min-w-[8.5rem] px-3 py-3.5 text-center align-middle">
@@ -96,6 +139,49 @@ export function AuditLogsMainPanel({
   advancedFilters,
   onAdvancedFiltersChange,
 }: AuditLogsMainPanelProps) {
+  const { scope, dataset } = useAuditLogsScopeContext()
+  const {
+    pageOne,
+    pagination,
+    summary,
+    filterOptions,
+    exportUnitLabel,
+    showPlatformColumn,
+    tenantColumnMode,
+  } = dataset
+
+  const prefeituraFilterOptions = filterOptions.prefeituras
+  const prefeituraPortalUbtOptions = filterOptions.ubts
+
+  const scopedUbtFilterOptions = useMemo(
+    () => getAuditUbtFilterOptions(advancedFilters.prefeitura),
+    [advancedFilters.prefeitura],
+  )
+
+  const showPrefeituraToolbarFilter = scope === 'admin' && Boolean(prefeituraFilterOptions)
+  const showUbtToolbarFilter =
+    (scope === 'admin' &&
+      Boolean(prefeituraFilterOptions) &&
+      Boolean(advancedFilters.prefeitura)) ||
+    (scope === 'prefeitura' && Boolean(prefeituraPortalUbtOptions))
+
+  const handlePrefeituraFilterChange = useCallback(
+    (prefeituraKey: string) => {
+      onAdvancedFiltersChange({
+        ...advancedFilters,
+        ...patchAuditPrefeituraFilter(prefeituraKey, advancedFilters.ubt),
+      })
+    },
+    [advancedFilters, onAdvancedFiltersChange],
+  )
+
+  const handleUbtFilterChange = useCallback(
+    (ubtKey: string) => {
+      onAdvancedFiltersChange({ ...advancedFilters, ubt: ubtKey })
+    },
+    [advancedFilters, onAdvancedFiltersChange],
+  )
+
   const [search, setSearch] = useState('')
   const [userFilter, setUserFilter] = useState('')
   const [actionFilter, setActionFilter] = useState('')
@@ -105,19 +191,30 @@ export function AuditLogsMainPanel({
   const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
 
   const isCriticalView = advancedFilters.criticality === 'critical'
-  const pageSize = auditLogsPagination.pageSize
+  const pageSize = pagination.pageSize
+  const tableColSpan =
+    8 +
+    (showPlatformColumn ? 1 : 0) +
+    (tenantColumnMode === 'full' || tenantColumnMode === 'ubt' ? 1 : 0)
 
   const filteredEntries = useMemo(
-    () => filterAuditLogEntries(auditLogsPageOne, advancedFilters, search),
-    [advancedFilters, search],
+    () => filterAuditLogEntries(pageOne, advancedFilters, search),
+    [advancedFilters, pageOne, search],
   )
 
   const total = useMemo(() => {
     if (filteredEntries.length === 0) return 0
-    if (isCriticalView && !search.trim()) return auditLogsSummary.criticalEvents
+    if (isCriticalView && !search.trim()) return summary.criticalEvents
     if (advancedFilters.criticality !== 'all') return filteredEntries.length
-    return auditLogsPagination.total
-  }, [advancedFilters.criticality, filteredEntries.length, isCriticalView, search])
+    return pagination.total
+  }, [
+    advancedFilters.criticality,
+    filteredEntries.length,
+    isCriticalView,
+    pagination.total,
+    search,
+    summary.criticalEvents,
+  ])
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const showingFrom = filteredEntries.length === 0 ? 0 : 1
@@ -145,27 +242,61 @@ export function AuditLogsMainPanel({
 
   const filterSummaryLines = useMemo(() => {
     const lines: string[] = []
-    const user = labelFromFilterOptions(auditLogsFilterOptions.users, userFilter)
+    const user = labelFromFilterOptions(filterOptions.users, userFilter)
     if (user && user !== 'Todos os usuários') lines.push(`Usuário: ${user}`)
-    const action = labelFromFilterOptions(auditLogsFilterOptions.actions, actionFilter)
+    const action = labelFromFilterOptions(filterOptions.actions, actionFilter)
     if (action && action !== 'Todas as ações') lines.push(`Ação: ${action}`)
-    const module = labelFromFilterOptions(auditLogsFilterOptions.modules, moduleFilter)
+    const module = labelFromFilterOptions(filterOptions.modules, moduleFilter)
     if (module && module !== 'Todos os módulos') lines.push(`Módulo: ${module}`)
-    const period = labelFromFilterOptions(auditLogsFilterOptions.periods, periodFilter)
+    const period = labelFromFilterOptions(filterOptions.periods, periodFilter)
     if (period && period !== 'Período') lines.push(`Período: ${period}`)
     const query = search.trim()
     if (query) lines.push(`Busca: “${query}”`)
     if (advancedFilters.criticality !== 'all' && criticalityLabel) {
       lines.push(`Criticidade: ${criticalityLabel}`)
     }
+    if (prefeituraFilterOptions) {
+      const prefeitura = labelFromFilterOptions(
+        prefeituraFilterOptions,
+        advancedFilters.prefeitura,
+      )
+      if (prefeitura && prefeitura !== 'Todas as prefeituras') {
+        lines.push(`Prefeitura: ${prefeitura}`)
+      }
+    }
+    const ubtOptionsForSummary =
+      scope === 'prefeitura' && prefeituraPortalUbtOptions
+        ? prefeituraPortalUbtOptions
+        : scopedUbtFilterOptions
+    if (advancedFilters.ubt) {
+      const ubt = labelFromFilterOptions(ubtOptionsForSummary, advancedFilters.ubt)
+      if (
+        ubt &&
+        ubt !== 'Todas as UBTs' &&
+        ubt !== 'Todas as UBTs da prefeitura' &&
+        ubt !== 'Todas as UBTs da rede'
+      ) {
+        lines.push(`UBT: ${ubt}`)
+      }
+    }
     return lines
   }, [
     actionFilter,
+    prefeituraFilterOptions,
+    prefeituraPortalUbtOptions,
+    scopedUbtFilterOptions,
+    scope,
     advancedFilters.criticality,
+    advancedFilters.prefeitura,
+    advancedFilters.ubt,
     criticalityLabel,
     moduleFilter,
     periodFilter,
     search,
+    filterOptions.actions,
+    filterOptions.modules,
+    filterOptions.periods,
+    filterOptions.users,
     userFilter,
   ])
 
@@ -174,7 +305,9 @@ export function AuditLogsMainPanel({
       entries: filteredEntries,
       filterSummaryLines,
       operatorName: getLoggedOperatorName(),
-      unitLabel: unitStation.unitName,
+      unitLabel: exportUnitLabel,
+      showPlatformColumn,
+      tenantColumnMode,
     }
   }
 
@@ -199,7 +332,8 @@ export function AuditLogsMainPanel({
     }
   }
 
-  const selectClass = 'py-2 text-sm'
+  const toolbarFieldClass = 'min-w-0 flex-1'
+  const toolbarSelectClass = 'w-full text-sm'
 
   return (
     <>
@@ -213,50 +347,94 @@ export function AuditLogsMainPanel({
             <p className="mt-0.5 text-sm text-gray-500">
               {isCriticalView
                 ? 'Apenas eventos classificados como críticos nas últimas 24 horas.'
-                : 'Registro completo de ações realizadas no sistema.'}
+                : scope === 'admin'
+                  ? 'Todos os eventos de Admin, prefeituras, UBTs e atendimento em um único registro.'
+                  : scope === 'prefeitura'
+                    ? 'Ações na rede municipal e nas UBTs vinculadas ao contrato.'
+                    : 'Registro completo de ações realizadas na unidade UBT.'}
             </p>
           </div>
           <AuditLogsExportMenu resultCount={exportResultCount} onSelect={handleExport} />
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 xl:flex-row xl:items-center">
-          <label className="relative min-w-0 flex-1">
+        <div
+          className="mt-4 flex w-full min-w-0 items-center gap-2"
+          role="toolbar"
+          aria-label="Filtros da tabela de auditoria"
+        >
+          <label className="relative min-w-0 flex-[1.35]">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por usuário, ação, página..."
+              placeholder={
+                scope === 'admin'
+                  ? 'Buscar por prefeitura, UBT, usuário, ação...'
+                  : 'Buscar por usuário, ação, página...'
+              }
               className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15"
             />
           </label>
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:flex xl:shrink-0 xl:gap-2">
+          <div className={toolbarFieldClass}>
             <CustomSelect
               value={userFilter}
               onChange={setUserFilter}
-              options={[...auditLogsFilterOptions.users]}
-              className={selectClass}
+              options={[...filterOptions.users]}
+              className={toolbarSelectClass}
             />
+          </div>
+          <div className={toolbarFieldClass}>
             <CustomSelect
               value={actionFilter}
               onChange={setActionFilter}
-              options={[...auditLogsFilterOptions.actions]}
-              className={selectClass}
+              options={[...filterOptions.actions]}
+              className={toolbarSelectClass}
             />
+          </div>
+          <div className={toolbarFieldClass}>
             <CustomSelect
               value={moduleFilter}
               onChange={setModuleFilter}
-              options={[...auditLogsFilterOptions.modules]}
-              className={selectClass}
+              options={[...filterOptions.modules]}
+              className={toolbarSelectClass}
             />
+          </div>
+          <div className={toolbarFieldClass}>
             <CustomSelect
               value={periodFilter}
               onChange={setPeriodFilter}
-              options={[...auditLogsFilterOptions.periods]}
-              className={selectClass}
+              options={[...filterOptions.periods]}
+              className={toolbarSelectClass}
             />
           </div>
+
+          {showPrefeituraToolbarFilter && prefeituraFilterOptions ? (
+            <div className={toolbarFieldClass}>
+              <CustomSelect
+                value={advancedFilters.prefeitura}
+                onChange={handlePrefeituraFilterChange}
+                options={[...prefeituraFilterOptions]}
+                className={toolbarSelectClass}
+              />
+            </div>
+          ) : null}
+
+          {showUbtToolbarFilter ? (
+            <div className={toolbarFieldClass}>
+              <CustomSelect
+                value={advancedFilters.ubt}
+                onChange={handleUbtFilterChange}
+                options={[
+                  ...(scope === 'prefeitura' && prefeituraPortalUbtOptions
+                    ? prefeituraPortalUbtOptions
+                    : scopedUbtFilterOptions),
+                ]}
+                className={toolbarSelectClass}
+              />
+            </div>
+          ) : null}
 
           <button
             id="audit-advanced-filters-trigger"
@@ -265,13 +443,13 @@ export function AuditLogsMainPanel({
             aria-controls="audit-advanced-filters-megamenu"
             onClick={() => onAdvancedOpenChange(!advancedOpen)}
             className={[
-              'inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition',
+              'inline-flex h-[2.625rem] shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border px-4 text-sm font-semibold transition',
               advancedOpen || advancedFilters.criticality !== 'all'
                 ? 'border-[var(--brand-primary)] bg-[var(--brand-primary-light)] text-[var(--brand-primary)]'
                 : 'border-[var(--brand-primary)] bg-white text-[var(--brand-primary)] hover:bg-[var(--brand-primary-light)]',
             ].join(' ')}
           >
-            <Filter className="h-4 w-4" strokeWidth={2} />
+            <Filter className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
             Filtros avançados
           </button>
         </div>
@@ -295,14 +473,16 @@ export function AuditLogsMainPanel({
         ) : null}
       </header>
 
-      <AuditLogsAdvancedFiltersMegamenu
-        open={advancedOpen}
-        filters={advancedFilters}
-        onChange={onAdvancedFiltersChange}
-        onApply={() => onAdvancedOpenChange(false)}
-        onCancel={() => onAdvancedOpenChange(false)}
-        onClear={() => setCurrentPage(1)}
-      />
+      {advancedOpen ? (
+        <AuditLogsAdvancedFiltersMegamenu
+          open={advancedOpen}
+          filters={advancedFilters}
+          onChange={onAdvancedFiltersChange}
+          onApply={() => onAdvancedOpenChange(false)}
+          onCancel={() => onAdvancedOpenChange(false)}
+          onClear={() => setCurrentPage(1)}
+        />
+      ) : null}
 
       <div
         data-audit-logs-table-scroll
@@ -314,11 +494,30 @@ export function AuditLogsMainPanel({
           '[&::-webkit-scrollbar-track]:bg-transparent',
         ].join(' ')}
       >
-        <table className="w-full min-w-[1100px] border-collapse text-left">
+        <table
+          className={`w-full border-collapse text-center ${
+            tenantColumnMode === 'full'
+              ? 'min-w-[1320px]'
+              : showPlatformColumn
+                ? 'min-w-[1200px]'
+                : tenantColumnMode === 'ubt'
+                  ? 'min-w-[1150px]'
+                  : 'min-w-[1100px]'
+          }`}
+        >
           <thead className="sticky top-0 z-10 bg-gray-50">
             <tr className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-              <th className="w-10 px-3 py-3 sm:px-4" aria-label="Status" />
-              <th className="px-3 py-3">Data e hora</th>
+              <th className="w-10 px-3 py-3 text-center sm:px-4" aria-label="Status" />
+              {showPlatformColumn ? (
+                <th className="px-3 py-3 text-center">Plataforma</th>
+              ) : null}
+              {tenantColumnMode === 'full' ? (
+                <th className="px-3 py-3 text-center">Prefeitura / UBT</th>
+              ) : null}
+              {tenantColumnMode === 'ubt' ? (
+                <th className="px-3 py-3 text-center">UBT</th>
+              ) : null}
+              <th className="px-3 py-3 text-center">Data e hora</th>
               <th className="px-3 py-3 text-center">Usuário</th>
               <th className="px-3 py-3 text-center">Ação realizada</th>
               <th className="px-3 py-3 text-center">Página / Módulo</th>
@@ -330,12 +529,19 @@ export function AuditLogsMainPanel({
           <tbody className="divide-y divide-gray-100 bg-white">
             {filteredEntries.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-sm text-gray-500">
+                <td colSpan={tableColSpan} className="px-6 py-12 text-center text-sm text-gray-500">
                   Nenhum evento encontrado com os filtros selecionados.
                 </td>
               </tr>
             ) : (
-              filteredEntries.map((entry) => <AuditLogRow key={entry.id} entry={entry} />)
+              filteredEntries.map((entry) => (
+                <AuditLogRow
+                  key={entry.id}
+                  entry={entry}
+                  showPlatformColumn={showPlatformColumn}
+                  tenantColumnMode={tenantColumnMode}
+                />
+              ))
             )}
           </tbody>
         </table>

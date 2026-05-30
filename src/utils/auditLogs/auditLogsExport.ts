@@ -1,9 +1,11 @@
 import { brand } from '../../config/brand'
+import type { AuditLogEntry, AuditLogSeverity } from '../../data/auditLogsMock'
+import { auditLogPlatformLabels } from '../../components/auditoria/auditLogPlatformConfig'
 import {
-  auditLogsFilterOptions,
-  type AuditLogEntry,
-  type AuditLogSeverity,
-} from '../../data/auditLogsMock'
+  formatAuditPrefeituraLabel,
+  formatAuditUbtLabel,
+} from '../../components/auditoria/auditLogTenantDisplay'
+import type { AuditLogTenantColumnMode } from '../../types/auditLogScope'
 import { downloadWindowAsPdf, pdfFilenameFromLabel } from '../htmlDocumentToPdf'
 
 export type AuditLogsExportContext = {
@@ -11,6 +13,8 @@ export type AuditLogsExportContext = {
   filterSummaryLines: string[]
   operatorName: string
   unitLabel: string
+  showPlatformColumn?: boolean
+  tenantColumnMode?: AuditLogTenantColumnMode
 }
 
 const SEVERITY_LABELS: Record<AuditLogSeverity, string> = {
@@ -84,11 +88,29 @@ function buildAuditLogsReportHtml(context: AuditLogsExportContext) {
           .join('')}</ul></div>`
       : ''
 
+  const platformHeader = context.showPlatformColumn ? '<th>Plataforma</th>' : ''
+  const tenantHeader =
+    context.tenantColumnMode === 'full'
+      ? '<th>Prefeitura</th><th>UBT</th>'
+      : context.tenantColumnMode === 'ubt'
+        ? '<th>UBT</th>'
+        : ''
   const tableRows = context.entries
     .map((entry) => {
       const severityClass = `severity-${entry.severity}`
+      const platformCell = context.showPlatformColumn
+        ? `<td>${escapeHtml(auditLogPlatformLabels[entry.platform])}</td>`
+        : ''
+      const tenantCells =
+        context.tenantColumnMode === 'full'
+          ? `<td>${escapeHtml(formatAuditPrefeituraLabel(entry.prefeituraName))}</td><td>${escapeHtml(formatAuditUbtLabel(entry.ubtName))}</td>`
+          : context.tenantColumnMode === 'ubt'
+            ? `<td>${escapeHtml(formatAuditUbtLabel(entry.ubtName))}</td>`
+            : ''
       return `<tr>
         <td class="${severityClass}">${escapeHtml(SEVERITY_LABELS[entry.severity])}</td>
+        ${platformCell}
+        ${tenantCells}
         <td>${escapeHtml(entry.dateTime)}</td>
         <td>${escapeHtml(entry.userName)}<br/><span style="color:#6b7280;font-size:10px">${escapeHtml(entry.userRole)}</span></td>
         <td>${escapeHtml(entry.actionLabel)}<br/><span style="color:#6b7280;font-size:10px">${escapeHtml(entry.httpMethod)}</span></td>
@@ -137,6 +159,8 @@ function buildAuditLogsReportHtml(context: AuditLogsExportContext) {
         <thead>
           <tr>
             <th>Severidade</th>
+            ${platformHeader}
+            ${tenantHeader}
             <th>Data e hora</th>
             <th>Usuário</th>
             <th>Ação</th>
@@ -215,6 +239,9 @@ function csvCell(value: string | number) {
 export function exportAuditLogsExcel(context: AuditLogsExportContext) {
   const header = [
     'Severidade',
+    ...(context.showPlatformColumn ? ['Plataforma'] : []),
+    ...(context.tenantColumnMode === 'full' ? ['Prefeitura', 'UBT'] : []),
+    ...(context.tenantColumnMode === 'ubt' ? ['UBT'] : []),
     'Data e hora',
     'Usuário',
     'Função',
@@ -231,6 +258,14 @@ export function exportAuditLogsExcel(context: AuditLogsExportContext) {
 
   const rows = context.entries.map((entry) => [
     SEVERITY_LABELS[entry.severity],
+    ...(context.showPlatformColumn ? [auditLogPlatformLabels[entry.platform]] : []),
+    ...(context.tenantColumnMode === 'full'
+      ? [
+          formatAuditPrefeituraLabel(entry.prefeituraName),
+          formatAuditUbtLabel(entry.ubtName),
+        ]
+      : []),
+    ...(context.tenantColumnMode === 'ubt' ? [formatAuditUbtLabel(entry.ubtName)] : []),
     entry.dateTime,
     entry.userName,
     entry.userRole,

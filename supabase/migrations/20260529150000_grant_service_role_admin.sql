@@ -1,0 +1,9 @@
+GRANT USAGE ON SCHEMA public TO service_role;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.usuarios_admin TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.sessoes_refresh_admin TO service_role;
+
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO service_role;

@@ -2,6 +2,7 @@ import { ArrowLeft, Filter, RotateCcw, Search, Table2 } from 'lucide-react'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { ReportCategoryConfig } from '../../config/reportsCategories'
+import { ubtRoutes } from '../../config/ubtRoutes'
 import {
   defaultRelatoriosPeriod,
   getColumnsForCategory,
@@ -172,7 +173,7 @@ export function RelatoriosCategoryPanel({ category }: RelatoriosCategoryPanelPro
     <>
       <div className="flex shrink-0 flex-col gap-4">
         <Link
-          to="/relatorios"
+          to={ubtRoutes.relatorios}
           className="inline-flex w-fit items-center gap-2 text-sm font-medium text-gray-600 transition hover:text-[var(--brand-primary)]"
         >
           <ArrowLeft className="h-4 w-4" strokeWidth={2} />

@@ -1,3 +1,5 @@
+import { ubtRoutes } from './ubtRoutes'
+
 export type PermissionAction = 'visualizar' | 'inserir' | 'editar' | 'excluir'
 
 export type AccessLevelId = 'administrador' | 'operador' | 'editor' | 'visualizador'
@@ -34,43 +36,43 @@ export const systemPages: SystemPageDefinition[] = [
     id: 'triagem',
     label: 'Triagem',
     description: 'Terminal de atendimento e fluxo de telemedicina',
-    route: '/triagem',
+    route: ubtRoutes.triagem,
   },
   {
     id: 'agenda',
     label: 'Agenda',
     description: 'Agendamentos e calendário da unidade',
-    route: '/agenda',
+    route: ubtRoutes.agenda,
   },
   {
     id: 'consultas',
     label: 'Consultas',
     description: 'Histórico e gestão de atendimentos',
-    route: '/consultas',
+    route: ubtRoutes.consultas,
   },
   {
     id: 'usuarios',
     label: 'Usuários da rede',
     description: 'Pacientes atendidos na rede',
-    route: '/usuarios',
+    route: ubtRoutes.usuarios,
   },
   {
     id: 'relatorios',
     label: 'Relatórios',
     description: 'Indicadores e exportações',
-    route: '/relatorios',
+    route: ubtRoutes.relatorios,
   },
   {
     id: 'suporte',
     label: 'Suporte técnico',
     description: 'Chamados e atendimento ao operador',
-    route: '/suporte',
+    route: ubtRoutes.suporte,
   },
   {
     id: 'credenciais',
     label: 'Credenciais de acesso',
     description: 'Gestão de usuários e permissões',
-    route: '/credenciais',
+    route: ubtRoutes.credenciais,
   },
 ]
 

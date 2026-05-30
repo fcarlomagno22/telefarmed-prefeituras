@@ -12,6 +12,7 @@ import {
 } from '../components/layout/dashboardPageLayout'
 import { DashboardPageHeader } from '../components/users/DashboardPageHeader'
 import { getReportCategory } from '../config/reportsCategories'
+import { ubtRoutes } from '../config/ubtRoutes'
 import { useBrandTheme } from '../hooks/useBrandTheme'
 
 export function RelatoriosCategoryPage() {
@@ -20,7 +21,7 @@ export function RelatoriosCategoryPage() {
   const category = getReportCategory(categoryId)
 
   if (!category) {
-    return <Navigate to="/relatorios" replace />
+    return <Navigate to={ubtRoutes.relatorios} replace />
   }
 
   const Icon = category.icon

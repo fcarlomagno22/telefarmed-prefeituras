@@ -7,7 +7,7 @@ export function AuditLogsPage() {
 
   return (
     <DashboardLayout>
-      <AuditLogsPageContent />
+      <AuditLogsPageContent scope="ubt" />
     </DashboardLayout>
   )
 }
