@@ -2,13 +2,21 @@ import type { PrefeituraPortalPageId } from './prefeituraCredenciaisConfig'
 import { prefeituraPortalPages } from './prefeituraCredenciaisConfig'
 import type { PermissionAction } from './accessCredentials'
 import type { PrefeituraAuthUser } from '../lib/mockAuth/prefeituraAuthMock'
+import { prefeituraRoutes } from './prefeituraRoutes'
+import { getDedicatedPortal } from './portalHost'
 
-const PREFEITURA_PATH_PREFIX = '/prefeitura'
+const PREFEITURA_LEGACY_PREFIX = '/prefeitura'
+
+function normalizePrefeituraPathname(pathname: string): string {
+  if (getDedicatedPortal() === 'prefeitura') return pathname
+  if (pathname.startsWith(PREFEITURA_LEGACY_PREFIX)) {
+    return pathname.slice(PREFEITURA_LEGACY_PREFIX.length) || '/'
+  }
+  return pathname
+}
 
 export function resolvePrefeituraPageIdFromPath(pathname: string): PrefeituraPortalPageId | null {
-  const normalized = pathname.startsWith(PREFEITURA_PATH_PREFIX)
-    ? pathname.slice(PREFEITURA_PATH_PREFIX.length) || '/'
-    : pathname
+  const normalized = normalizePrefeituraPathname(pathname)
 
   const segment = normalized.replace(/^\//, '').split('/')[0] ?? ''
 
@@ -58,17 +66,17 @@ export function prefeituraUserCanViewPage(
 export function resolveDefaultPrefeituraHomePath(
   user: PrefeituraAuthUser | null | undefined,
 ): string {
-  if (!user) return '/prefeitura/dashboard'
+  if (!user) return prefeituraRoutes.dashboard
 
   const preferred = prefeituraPortalPages.find((page) => prefeituraUserCanViewPage(user, page.id))
-  return preferred?.route ?? '/prefeitura/dashboard'
+  return preferred?.route ?? prefeituraRoutes.dashboard
 }
 
 export function resolveFirstAccessiblePrefeituraPath(
   user: PrefeituraAuthUser | null | undefined,
 ): string | null {
   if (!user) return null
-  if (prefeituraUserIsAdministrador(user)) return '/prefeitura/dashboard'
+  if (prefeituraUserIsAdministrador(user)) return prefeituraRoutes.dashboard
 
   const page = prefeituraPortalPages.find((candidate) =>
     prefeituraUserCanViewPage(user, candidate.id),

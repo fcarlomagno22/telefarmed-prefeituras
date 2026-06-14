@@ -1,22 +1,46 @@
-/** Rotas do portal UBT (acessadas após `/ubt/login`). */
+import { portalPath } from './portalHost'
+
+/** Rotas do portal UBT (subdomínio dedicado: `/login`; local: `/ubt/login`). */
 export const ubtRoutes = {
-  login: '/ubt/login',
-  entrando: '/ubt/entrando',
-  triagem: '/ubt/triagem',
-  agenda: '/ubt/agenda',
-  consultas: '/ubt/consultas',
-  usuarios: '/ubt/usuarios',
-  notificacoes: '/ubt/notificacoes',
-  suporte: '/ubt/suporte',
-  credenciais: '/ubt/credenciais',
-  auditoria: '/ubt/auditoria',
-  salaDeEspera: '/ubt/sala-de-espera',
+  get login() {
+    return portalPath('ubt', '/login')
+  },
+  get entrando() {
+    return portalPath('ubt', '/entrando')
+  },
+  get triagem() {
+    return portalPath('ubt', '/triagem')
+  },
+  get agenda() {
+    return portalPath('ubt', '/agenda')
+  },
+  get consultas() {
+    return portalPath('ubt', '/consultas')
+  },
+  get usuarios() {
+    return portalPath('ubt', '/usuarios')
+  },
+  get notificacoes() {
+    return portalPath('ubt', '/notificacoes')
+  },
+  get suporte() {
+    return portalPath('ubt', '/suporte')
+  },
+  get credenciais() {
+    return portalPath('ubt', '/credenciais')
+  },
+  get auditoria() {
+    return portalPath('ubt', '/auditoria')
+  },
+  get salaDeEspera() {
+    return portalPath('ubt', '/sala-de-espera')
+  },
 } as const
 
 export function ubtAtendimentoPath(codigo: string) {
-  return `/ubt/atendimento/${encodeURIComponent(codigo)}`
+  return portalPath('ubt', `/atendimento/${encodeURIComponent(codigo)}`)
 }
 
 export function ubtAtendimentoAvaliacaoPath(codigo: string) {
-  return `/ubt/atendimento/${encodeURIComponent(codigo)}/avaliacao`
+  return portalPath('ubt', `/atendimento/${encodeURIComponent(codigo)}/avaliacao`)
 }

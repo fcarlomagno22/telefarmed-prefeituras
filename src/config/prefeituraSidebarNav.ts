@@ -16,10 +16,11 @@ import type {
   SidebarNavItemProps,
   SidebarNavSection,
 } from '../components/layout/SidebarNavItem'
+import { prefeituraRoutes } from './prefeituraRoutes'
 
 const visaoGeral: SidebarNavItemProps[] = [
   {
-    to: '/prefeitura/dashboard',
+    to: prefeituraRoutes.dashboard,
     label: 'Dashboard',
     icon: LayoutDashboard,
     end: true,
@@ -28,31 +29,31 @@ const visaoGeral: SidebarNavItemProps[] = [
 
 const redeEOperacao: SidebarNavItemProps[] = [
   {
-    to: '/prefeitura/rede',
+    to: prefeituraRoutes.rede,
     label: 'UBTs',
     icon: Network,
     end: true,
   },
   {
-    to: '/prefeitura/monitor',
+    to: prefeituraRoutes.monitor,
     label: 'Monitor Operacional',
     icon: Activity,
     end: true,
   },
   {
-    to: '/prefeitura/consultas',
+    to: prefeituraRoutes.consultas,
     label: 'Consultas',
     icon: ClipboardList,
     end: true,
   },
   {
-    to: '/prefeitura/agendas',
+    to: prefeituraRoutes.agendas,
     label: 'Agenda',
     icon: CalendarDays,
     end: true,
   },
   {
-    to: '/prefeitura/usuarios',
+    to: prefeituraRoutes.usuarios,
     label: 'Pacientes',
     icon: Users,
     end: true,
@@ -61,13 +62,13 @@ const redeEOperacao: SidebarNavItemProps[] = [
 
 const contratoEIndicadores: SidebarNavItemProps[] = [
   {
-    to: '/prefeitura/contrato',
+    to: prefeituraRoutes.contrato,
     label: 'Gestão de Contrato',
     icon: FileSignature,
     end: true,
   },
   {
-    to: '/prefeitura/relatorios',
+    to: prefeituraRoutes.relatorios,
     label: 'Relatórios',
     icon: BarChart3,
     end: true,
@@ -76,13 +77,13 @@ const contratoEIndicadores: SidebarNavItemProps[] = [
 
 const comunicacao: SidebarNavItemProps[] = [
   {
-    to: '/prefeitura/notificacoes',
+    to: prefeituraRoutes.notificacoes,
     label: 'Notificações',
     icon: Bell,
     end: true,
   },
   {
-    to: '/prefeitura/suporte',
+    to: prefeituraRoutes.suporte,
     label: 'Suporte',
     icon: Headphones,
     end: true,
@@ -91,13 +92,13 @@ const comunicacao: SidebarNavItemProps[] = [
 
 const governanca: SidebarNavItemProps[] = [
   {
-    to: '/prefeitura/credenciais',
+    to: prefeituraRoutes.credenciais,
     label: 'Credenciais de acesso',
     icon: Key,
     end: true,
   },
   {
-    to: '/prefeitura/auditoria',
+    to: prefeituraRoutes.auditoria,
     label: 'Logs de Auditoria',
     icon: ScrollText,
     end: true,

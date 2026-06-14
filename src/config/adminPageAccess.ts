@@ -2,14 +2,22 @@ import type { AdminPortalPageId } from './adminCredenciaisConfig'
 import { adminPortalPages } from './adminCredenciaisConfig'
 import type { PermissionAction } from './accessCredentials'
 import type { AdminAuthUser } from '../lib/mockAuth/adminAuthMock'
+import { adminRoutes } from './adminRoutes'
+import { getDedicatedPortal } from './portalHost'
 
-const ADMIN_PATH_PREFIX = '/admin'
+const ADMIN_LEGACY_PREFIX = '/admin'
+
+function normalizeAdminPathname(pathname: string): string {
+  if (getDedicatedPortal() === 'admin') return pathname
+  if (pathname.startsWith(ADMIN_LEGACY_PREFIX)) {
+    return pathname.slice(ADMIN_LEGACY_PREFIX.length) || '/'
+  }
+  return pathname
+}
 
 /** Mapeia rotas do painel admin para o ID da página nas permissões. */
 export function resolveAdminPageIdFromPath(pathname: string): AdminPortalPageId | null {
-  const normalized = pathname.startsWith(ADMIN_PATH_PREFIX)
-    ? pathname.slice(ADMIN_PATH_PREFIX.length) || '/'
-    : pathname
+  const normalized = normalizeAdminPathname(pathname)
 
   const segment = normalized.replace(/^\//, '').split('/')[0] ?? ''
 
@@ -60,17 +68,17 @@ export function adminUserIsAdministrator(user: AdminAuthUser | null | undefined)
 }
 
 export function resolveDefaultAdminHomePath(user: AdminAuthUser | null | undefined): string {
-  if (!user) return '/admin/dashboard'
+  if (!user) return adminRoutes.dashboard
 
   const preferred = adminPortalPages.find((page) => adminUserCanViewPage(user, page.id))
-  return preferred?.route ?? '/admin/dashboard'
+  return preferred?.route ?? adminRoutes.dashboard
 }
 
 export function resolveFirstAccessibleAdminPath(
   user: AdminAuthUser | null | undefined,
 ): string | null {
   if (!user) return null
-  if (user.isMaster) return '/admin/dashboard'
+  if (user.isMaster) return adminRoutes.dashboard
 
   const page = adminPortalPages.find((candidate) => adminUserCanViewPage(user, candidate.id))
   return page?.route ?? null

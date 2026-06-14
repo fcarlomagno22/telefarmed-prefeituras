@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import type { SidebarNavSection } from '../components/layout/SidebarNavItem'
 import type { SidebarNavItemProps } from '../components/layout/SidebarNavItem'
+import { adminRoutes } from './adminRoutes'
 
 export type AdminSidebarNavItem = SidebarNavItemProps & {
   description: string
@@ -22,7 +23,7 @@ export type AdminSidebarNavItem = SidebarNavItemProps & {
 
 export const adminNavItems: AdminSidebarNavItem[] = [
   {
-    to: '/admin/dashboard',
+    to: adminRoutes.dashboard,
     label: 'Dashboard',
     description:
       'Visão consolidada de todas as prefeituras, contratos e indicadores da operação em tempo real.',
@@ -30,7 +31,7 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     end: true,
   },
   {
-    to: '/admin/clientes',
+    to: adminRoutes.clientes,
     label: 'Clientes',
     description:
       'Cadastro, contratos e vínculos das prefeituras atendidas na plataforma Telefarmed.',
@@ -38,7 +39,7 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     end: true,
   },
   {
-    to: '/admin/monitor-operacional',
+    to: adminRoutes.monitorOperacional,
     label: 'Monitor Operacional',
     description:
       'Painel operacional em tempo real de toda a rede: filas, SLA e situação por região.',
@@ -46,7 +47,7 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     end: true,
   },
   {
-    to: '/admin/pacientes',
+    to: adminRoutes.pacientes,
     label: 'Pacientes',
     description:
       'Base consolidada de pacientes dos municípios contratantes na plataforma Telefarmed.',
@@ -54,7 +55,7 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     end: true,
   },
   {
-    to: '/admin/operadores',
+    to: adminRoutes.operadores,
     label: 'Operadores',
     description:
       'Operadores UBT vinculados aos contratos e unidades da rede municipal.',
@@ -62,7 +63,7 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     end: true,
   },
   {
-    to: '/admin/profissionais',
+    to: adminRoutes.profissionais,
     label: 'Profissionais',
     description:
       'Fila de candidaturas do portal e profissionais ativos após aprovação e finalização.',
@@ -70,7 +71,7 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     end: true,
   },
   {
-    to: '/admin/escala',
+    to: adminRoutes.escala,
     label: 'Gestão de Escala',
     description:
       'Plantões por prefeitura e UBT, médico titular e fila de reserva se alguém faltar.',
@@ -78,7 +79,7 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     end: true,
   },
   {
-    to: '/admin/financeiro',
+    to: adminRoutes.financeiro,
     label: 'Financeiro',
     description:
       'Faturamento, consumo de pacotes, repasses e indicadores financeiros por contrato.',
@@ -86,7 +87,7 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     end: true,
   },
   {
-    to: '/admin/notificacoes',
+    to: adminRoutes.notificacoes,
     label: 'Notificações',
     description:
       'Comunicados, avisos e campanhas enviados às prefeituras e unidades da rede.',
@@ -94,7 +95,7 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     end: true,
   },
   {
-    to: '/admin/suporte',
+    to: adminRoutes.suporte,
     label: 'Suporte',
     description:
       'Central de chamados das prefeituras e UBTs com a equipe Telefarmed.',
@@ -102,7 +103,7 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     end: true,
   },
   {
-    to: '/admin/auditoria',
+    to: adminRoutes.auditoria,
     label: 'Auditoria',
     description:
       'Logs de auditoria e rastreabilidade de ações em toda a plataforma.',
@@ -110,7 +111,7 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     end: true,
   },
   {
-    to: '/admin/credenciais',
+    to: adminRoutes.credenciais,
     label: 'Credenciais',
     description:
       'Acessos internos Telefarmed e credenciais de gestores e operadores dos clientes.',
@@ -118,7 +119,7 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     end: true,
   },
   {
-    to: '/admin/configuracoes',
+    to: adminRoutes.configuracoes,
     label: 'Configurações',
     description:
       'Parâmetros globais, branding, políticas e preferências do sistema.',
@@ -135,39 +136,36 @@ export const adminSidebarSections: SidebarNavSection[] = [
   {
     id: 'visao-geral',
     label: 'Visão geral',
-    items: adminSidebarItems.filter((item) => item.to === '/admin/dashboard'),
+    items: adminSidebarItems.filter((item) => item.to === adminRoutes.dashboard),
   },
   {
     id: 'operacao',
     label: 'Operação',
     items: adminSidebarItems.filter((item) =>
-      ['/admin/clientes', '/admin/monitor-operacional'].includes(item.to),
+      [adminRoutes.clientes, adminRoutes.monitorOperacional].includes(item.to),
     ),
   },
   {
     id: 'pessoas',
     label: 'Pessoas',
     items: adminSidebarItems.filter((item) =>
-      ['/admin/pacientes', '/admin/operadores', '/admin/profissionais'].includes(item.to),
+      [adminRoutes.pacientes, adminRoutes.operadores, adminRoutes.profissionais].includes(item.to),
     ),
   },
   {
     id: 'gestao',
     label: 'Gestão',
     items: adminSidebarItems.filter((item) =>
-      [
-        '/admin/escala',
-        '/admin/financeiro',
-        '/admin/notificacoes',
-        '/admin/suporte',
-      ].includes(item.to),
+      [adminRoutes.escala, adminRoutes.financeiro, adminRoutes.notificacoes, adminRoutes.suporte].includes(
+        item.to,
+      ),
     ),
   },
   {
     id: 'seguranca',
     label: 'Governança e segurança',
     items: adminSidebarItems.filter((item) =>
-      ['/admin/auditoria', '/admin/credenciais', '/admin/configuracoes'].includes(item.to),
+      [adminRoutes.auditoria, adminRoutes.credenciais, adminRoutes.configuracoes].includes(item.to),
     ),
   },
 ]

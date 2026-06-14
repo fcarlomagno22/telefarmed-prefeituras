@@ -81,6 +81,10 @@ import { AtendimentoMedicoPage } from './pages/AtendimentoMedicoPage'
 import { VerificarDocumentoPage } from './pages/VerificarDocumentoPage'
 import { VidaPlusPage } from './pages/VidaPlusPage'
 import { vidaPlusRoutes } from './config/vidaPlusRoutes'
+import { getDedicatedPortal } from './config/portalHost'
+import { adminRoutes } from './config/adminRoutes'
+import { prefeituraRoutes } from './config/prefeituraRoutes'
+import { DedicatedPortalRoutes } from './routes/DedicatedPortalRoutes'
 
 const AdminNotificacoesPage = lazy(() =>
   import('./pages/AdminNotificacoesPage').then((module) => ({
@@ -108,9 +112,15 @@ function LegacyAtendimentoRedirect() {
 }
 
 function App() {
+  const dedicatedPortal = getDedicatedPortal()
+
   return (
     <BrowserRouter>
       <Routes>
+        {dedicatedPortal ? (
+          <DedicatedPortalRoutes portal={dedicatedPortal} />
+        ) : (
+          <>
         <Route path="/" element={<RootPage />} />
         <Route path={vidaPlusRoutes.home} element={<VidaPlusPage />} />
         <Route path="/sala-de-espera" element={<Navigate to={ubtRoutes.salaDeEspera} replace />} />
@@ -128,14 +138,14 @@ function App() {
               <Route path="dashboard" element={<AdminDashboardPage />} />
               <Route path="clientes" element={<AdminClientesPage />} />
               <Route path="monitor-operacional" element={<AdminMonitorPage />} />
-              <Route path="monitor" element={<Navigate to="/admin/monitor-operacional" replace />} />
-              <Route path="pessoas" element={<Navigate to="/admin/pacientes" replace />} />
+              <Route path="monitor" element={<Navigate to={adminRoutes.monitorOperacional} replace />} />
+              <Route path="pessoas" element={<Navigate to={adminRoutes.pacientes} replace />} />
               <Route path="pacientes" element={<AdminPacientesPage />} />
               <Route path="operadores" element={<AdminOperadoresPage />} />
               <Route path="profissionais" element={<AdminProfissionaisPage />} />
-              <Route path="medicos" element={<Navigate to="/admin/profissionais" replace />} />
+              <Route path="medicos" element={<Navigate to={adminRoutes.profissionais} replace />} />
               <Route path="escala" element={<AdminEscalaPage />} />
-              <Route path="gestao-escala" element={<Navigate to="/admin/escala" replace />} />
+              <Route path="gestao-escala" element={<Navigate to={adminRoutes.escala} replace />} />
               <Route
                 path="financeiro"
                 element={
@@ -219,7 +229,7 @@ function App() {
               <Route path="monitor" element={<PrefeituraMonitorPage />} />
               <Route path="consultas" element={<PrefeituraConsultasPage />} />
               <Route path="agendas" element={<PrefeituraAgendasPage />} />
-              <Route path="agenda" element={<Navigate to="/prefeitura/agendas" replace />} />
+              <Route path="agenda" element={<Navigate to={prefeituraRoutes.agendas} replace />} />
               <Route path="usuarios" element={<PrefeituraUsuariosPage />} />
               <Route path="auditoria" element={<PrefeituraAuditLogsPage />} />
               <Route path="suporte" element={<PrefeituraSuportePage />} />
@@ -228,7 +238,7 @@ function App() {
               <Route path="relatorios" element={<PrefeituraRelatoriosPage />} />
               <Route path="relatorios/:categoryId" element={<PrefeituraRelatoriosCategoryPage />} />
               <Route path="notificacoes" element={<PrefeituraNotificacoesPage />} />
-              <Route path="alertas" element={<Navigate to="/prefeitura/notificacoes" replace />} />
+              <Route path="alertas" element={<Navigate to={prefeituraRoutes.notificacoes} replace />} />
               <Route path="*" element={<PrefeituraHomeRedirect />} />
             </Route>
           </Route>
@@ -272,6 +282,8 @@ function App() {
             </Route>
           </Route>
         </Route>
+          </>
+        )}
       </Routes>
     </BrowserRouter>
   )

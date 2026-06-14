@@ -3,13 +3,20 @@ import { systemPages } from './accessCredentials'
 import type { PermissionAction } from './accessCredentials'
 import type { UbtAuthUser } from '../lib/mockAuth/ubtAuthMock'
 import { ubtRoutes } from './ubtRoutes'
+import { getDedicatedPortal } from './portalHost'
 
-const UBT_PATH_PREFIX = '/ubt'
+const UBT_LEGACY_PREFIX = '/ubt'
+
+function normalizeUbtPathname(pathname: string): string {
+  if (getDedicatedPortal() === 'ubt') return pathname
+  if (pathname.startsWith(UBT_LEGACY_PREFIX)) {
+    return pathname.slice(UBT_LEGACY_PREFIX.length) || '/'
+  }
+  return pathname
+}
 
 export function resolveUbtPageIdFromPath(pathname: string): SystemPageId | null {
-  const normalized = pathname.startsWith(UBT_PATH_PREFIX)
-    ? pathname.slice(UBT_PATH_PREFIX.length) || '/'
-    : pathname
+  const normalized = normalizeUbtPathname(pathname)
 
   const segment = normalized.replace(/^\//, '').split('/')[0] ?? ''
 

@@ -3,6 +3,7 @@ import {
   type AccessLevelId,
   type PermissionAction,
 } from './accessCredentials'
+import { adminRoutes } from './adminRoutes'
 
 export type AdminPortalPageId =
   | 'dashboard'
@@ -30,73 +31,97 @@ export const adminPortalPages: AdminPortalPageDefinition[] = [
     id: 'dashboard',
     label: 'Dashboard',
     description: 'Visão consolidada da operação',
-    route: '/admin/dashboard',
+    get route() {
+      return adminRoutes.dashboard
+    },
   },
   {
     id: 'clientes',
     label: 'Clientes',
     description: 'Prefeituras e contratos',
-    route: '/admin/clientes',
+    get route() {
+      return adminRoutes.clientes
+    },
   },
   {
     id: 'monitor',
     label: 'Monitor operacional',
     description: 'Filas e SLA em tempo real',
-    route: '/admin/monitor-operacional',
+    get route() {
+      return adminRoutes.monitorOperacional
+    },
   },
   {
     id: 'pessoas',
     label: 'Pessoas',
     description: 'Pacientes e operadores UBT',
-    route: '/admin/pacientes',
+    get route() {
+      return adminRoutes.pacientes
+    },
   },
   {
     id: 'profissionais',
     label: 'Profissionais',
     description: 'Candidaturas e profissionais ativos',
-    route: '/admin/profissionais',
+    get route() {
+      return adminRoutes.profissionais
+    },
   },
   {
     id: 'gestaoEscala',
     label: 'Gestão de Escala',
     description: 'Escalas médicas e plantões',
-    route: '/admin/escala',
+    get route() {
+      return adminRoutes.escala
+    },
   },
   {
     id: 'financeiro',
     label: 'Financeiro',
     description: 'Faturamento e repasses',
-    route: '/admin/financeiro',
+    get route() {
+      return adminRoutes.financeiro
+    },
   },
   {
     id: 'notificacoes',
     label: 'Notificações',
     description: 'Comunicados à rede',
-    route: '/admin/notificacoes',
+    get route() {
+      return adminRoutes.notificacoes
+    },
   },
   {
     id: 'suporte',
     label: 'Suporte',
     description: 'Chamados da plataforma',
-    route: '/admin/suporte',
+    get route() {
+      return adminRoutes.suporte
+    },
   },
   {
     id: 'auditoria',
     label: 'Auditoria',
     description: 'Logs e rastreabilidade',
-    route: '/admin/auditoria',
+    get route() {
+      return adminRoutes.auditoria
+    },
   },
   {
     id: 'credenciais',
     label: 'Credenciais',
     description: 'Gestão de acessos',
-    route: '/admin/credenciais',
+    get route() {
+      return adminRoutes.credenciais
+    },
   },
   {
     id: 'configuracoes',
     label: 'Configurações',
     description: 'Parâmetros globais',
-    route: '/admin/configuracoes',
+    get route() {
+      return adminRoutes.configuracoes
+    },
   },
 ]
 

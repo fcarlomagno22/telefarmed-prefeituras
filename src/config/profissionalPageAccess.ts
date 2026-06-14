@@ -3,15 +3,22 @@ import { profissionalPortalPages } from './profissionalCredenciaisConfig'
 import type { PermissionAction } from './accessCredentials'
 import type { ProfissionalAuthUser } from '../lib/services/profissional/auth'
 import { profissionalRoutes } from './profissionalRoutes'
+import { getDedicatedPortal } from './portalHost'
 
-const PROFISSIONAL_PATH_PREFIX = '/profissional'
+const PROFISSIONAL_LEGACY_PREFIX = '/profissional'
+
+function normalizeProfissionalPathname(pathname: string): string {
+  if (getDedicatedPortal() === 'profissional') return pathname
+  if (pathname.startsWith(PROFISSIONAL_LEGACY_PREFIX)) {
+    return pathname.slice(PROFISSIONAL_LEGACY_PREFIX.length) || '/'
+  }
+  return pathname
+}
 
 export function resolveProfissionalPageIdFromPath(
   pathname: string,
 ): ProfissionalPortalPageId | null {
-  const normalized = pathname.startsWith(PROFISSIONAL_PATH_PREFIX)
-    ? pathname.slice(PROFISSIONAL_PATH_PREFIX.length) || '/'
-    : pathname
+  const normalized = normalizeProfissionalPathname(pathname)
 
   const segment = normalized.replace(/^\//, '').split('/')[0] ?? ''
 

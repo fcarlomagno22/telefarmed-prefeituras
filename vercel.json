@@ -23,25 +23,25 @@
     {
       "source": "/",
       "has": [{ "type": "host", "value": "admin.telefarmed.com.br" }],
-      "destination": "/admin/login",
+      "destination": "/login",
       "permanent": false
     },
     {
       "source": "/",
       "has": [{ "type": "host", "value": "prefeitura.telefarmed.com.br" }],
-      "destination": "/prefeitura/login",
+      "destination": "/login",
       "permanent": false
     },
     {
       "source": "/",
       "has": [{ "type": "host", "value": "profissional.telefarmed.com.br" }],
-      "destination": "/profissional/login",
+      "destination": "/login",
       "permanent": false
     },
     {
       "source": "/",
       "has": [{ "type": "host", "value": "ubt.telefarmed.com.br" }],
-      "destination": "/ubt/login",
+      "destination": "/login",
       "permanent": false
     }
   ]

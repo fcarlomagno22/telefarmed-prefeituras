@@ -1,20 +1,48 @@
-/** Rotas do portal do profissional de saúde (acessadas após `/profissional/login`). */
+import { portalPath } from './portalHost'
+
+/** Rotas do portal profissional (subdomínio dedicado: `/login`; local: `/profissional/login`). */
 export const profissionalRoutes = {
-  login: '/profissional/login',
-  cadastro: '/profissional/cadastro',
-  minhaCandidatura: '/profissional/cadastro/minha-candidatura',
-  finalizarCadastro: '/profissional/finalizar-cadastro',
-  entrando: '/profissional/entrando',
-  agenda: '/profissional/agenda',
-  atendimentos: '/profissional/atendimentos',
-  escala: '/profissional/escala',
-  financeiro: '/profissional/financeiro',
-  avaliacao: '/profissional/avaliacao',
-  suporte: '/profissional/suporte',
-  notificacoes: '/profissional/notificacoes',
-  perfil: '/profissional/perfil',
+  get login() {
+    return portalPath('profissional', '/login')
+  },
+  get cadastro() {
+    return portalPath('profissional', '/cadastro')
+  },
+  get minhaCandidatura() {
+    return portalPath('profissional', '/cadastro/minha-candidatura')
+  },
+  get finalizarCadastro() {
+    return portalPath('profissional', '/finalizar-cadastro')
+  },
+  get entrando() {
+    return portalPath('profissional', '/entrando')
+  },
+  get agenda() {
+    return portalPath('profissional', '/agenda')
+  },
+  get atendimentos() {
+    return portalPath('profissional', '/atendimentos')
+  },
+  get escala() {
+    return portalPath('profissional', '/escala')
+  },
+  get financeiro() {
+    return portalPath('profissional', '/financeiro')
+  },
+  get avaliacao() {
+    return portalPath('profissional', '/avaliacao')
+  },
+  get suporte() {
+    return portalPath('profissional', '/suporte')
+  },
+  get notificacoes() {
+    return portalPath('profissional', '/notificacoes')
+  },
+  get perfil() {
+    return portalPath('profissional', '/perfil')
+  },
 } as const
 
 export function profissionalAtendimentoSessaoPath(codigo: string) {
-  return `/profissional/atendimento/${encodeURIComponent(codigo)}`
+  return portalPath('profissional', `/atendimento/${encodeURIComponent(codigo)}`)
 }

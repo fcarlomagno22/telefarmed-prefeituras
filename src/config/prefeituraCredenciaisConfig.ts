@@ -3,6 +3,7 @@ import {
   type AccessLevelId,
   type PermissionAction,
 } from './accessCredentials'
+import { prefeituraRoutes } from './prefeituraRoutes'
 
 export type PrefeituraPortalPageId =
   | 'dashboard'
@@ -30,73 +31,97 @@ export const prefeituraPortalPages: PrefeituraPortalPageDefinition[] = [
     id: 'dashboard',
     label: 'Dashboard',
     description: 'Visão consolidada da operação municipal',
-    route: '/prefeitura/dashboard',
+    get route() {
+      return prefeituraRoutes.dashboard
+    },
   },
   {
     id: 'rede',
     label: 'UBTs',
     description: 'Rede de unidades e cobertura territorial',
-    route: '/prefeitura/rede',
+    get route() {
+      return prefeituraRoutes.rede
+    },
   },
   {
     id: 'monitor',
     label: 'Monitor operacional',
     description: 'Filas e SLA em tempo real',
-    route: '/prefeitura/monitor',
+    get route() {
+      return prefeituraRoutes.monitor
+    },
   },
   {
     id: 'consultas',
     label: 'Consultas',
     description: 'Histórico e gestão de atendimentos',
-    route: '/prefeitura/consultas',
+    get route() {
+      return prefeituraRoutes.consultas
+    },
   },
   {
     id: 'agendas',
     label: 'Agenda',
     description: 'Agendamentos e calendário municipal',
-    route: '/prefeitura/agendas',
+    get route() {
+      return prefeituraRoutes.agendas
+    },
   },
   {
     id: 'usuarios',
     label: 'Pacientes',
     description: 'Usuários atendidos na rede municipal',
-    route: '/prefeitura/usuarios',
+    get route() {
+      return prefeituraRoutes.usuarios
+    },
   },
   {
     id: 'contrato',
     label: 'Gestão de contrato',
     description: 'Contrato Telefarmed e consumo do pacote',
-    route: '/prefeitura/contrato',
+    get route() {
+      return prefeituraRoutes.contrato
+    },
   },
   {
     id: 'relatorios',
     label: 'Relatórios',
     description: 'Indicadores e exportações',
-    route: '/prefeitura/relatorios',
+    get route() {
+      return prefeituraRoutes.relatorios
+    },
   },
   {
     id: 'notificacoes',
     label: 'Notificações',
     description: 'Comunicados à rede municipal',
-    route: '/prefeitura/notificacoes',
+    get route() {
+      return prefeituraRoutes.notificacoes
+    },
   },
   {
     id: 'suporte',
     label: 'Suporte',
     description: 'Chamados e atendimento ao gestor',
-    route: '/prefeitura/suporte',
+    get route() {
+      return prefeituraRoutes.suporte
+    },
   },
   {
     id: 'credenciais',
     label: 'Credenciais de acesso',
     description: 'Gestão de usuários do portal municipal',
-    route: '/prefeitura/credenciais',
+    get route() {
+      return prefeituraRoutes.credenciais
+    },
   },
   {
     id: 'auditoria',
     label: 'Logs de auditoria',
     description: 'Rastreabilidade de ações no portal',
-    route: '/prefeitura/auditoria',
+    get route() {
+      return prefeituraRoutes.auditoria
+    },
   },
 ]
 

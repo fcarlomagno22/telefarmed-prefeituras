@@ -1,8 +1,11 @@
 import { brand } from './brand'
 import { profissionalRoutes } from './profissionalRoutes'
 import { ubtRoutes } from './ubtRoutes'
+import { adminRoutes } from './adminRoutes'
+import { prefeituraRoutes } from './prefeituraRoutes'
+import type { PortalId } from './portalHost'
 
-export type PortalId = 'ubt' | 'prefeitura' | 'admin' | 'profissional'
+export type { PortalId }
 
 export type PortalConfig = {
   id: PortalId
@@ -36,9 +39,9 @@ export const portals: Record<PortalId, PortalConfig> = {
   },
   prefeitura: {
     id: 'prefeitura',
-    loginPath: '/prefeitura/login',
-    transitionPath: '/prefeitura/entrando',
-    homePath: '/prefeitura/dashboard',
+    loginPath: prefeituraRoutes.login,
+    transitionPath: prefeituraRoutes.entrando,
+    homePath: prefeituraRoutes.dashboard,
     welcomeTitle: 'Painel de Gestão Pública',
     welcomeSubtitle: 'Acesse com suas credenciais',
     transitionTitle: 'Entrando no painel municipal',
@@ -53,9 +56,9 @@ export const portals: Record<PortalId, PortalConfig> = {
   },
   admin: {
     id: 'admin',
-    loginPath: '/admin/login',
-    transitionPath: '/admin/entrando',
-    homePath: '/admin/dashboard',
+    loginPath: adminRoutes.login,
+    transitionPath: adminRoutes.entrando,
+    homePath: adminRoutes.dashboard,
     welcomeTitle: 'Painel Admin',
     welcomeSubtitle: 'Gestão das prefeituras na plataforma',
     transitionTitle: 'Entrando no painel administrativo',
