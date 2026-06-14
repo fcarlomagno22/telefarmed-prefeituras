@@ -1,4 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
+import { useState } from 'react'
+import { AdminPasswordRecoveryDrawer } from '../components/admin/login/AdminPasswordRecoveryDrawer'
 import { LoginBackdrop } from '../components/login/LoginBackdrop'
 import { LoginForm } from '../components/login/LoginForm'
 import {
@@ -16,12 +18,30 @@ export function AdminLoginPage() {
   useBrandTheme()
   const location = useLocation()
   const { login, isAuthenticated, isBootstrapping, user } = useAdminAuth()
+  const [recoveryOpen, setRecoveryOpen] = useState(false)
+  const [recoveryClosing, setRecoveryClosing] = useState(false)
 
   if (!isBootstrapping && isAuthenticated) {
     return <Navigate to={resolveDefaultAdminHomePath(user)} replace />
   }
 
   const redirectFrom = (location.state as { from?: string } | null)?.from
+
+  function openRecoveryDrawer() {
+    setRecoveryClosing(false)
+    setRecoveryOpen(true)
+  }
+
+  function closeRecoveryDrawer() {
+    setRecoveryClosing(true)
+  }
+
+  function handleRecoveryTransitionEnd() {
+    if (recoveryClosing) {
+      setRecoveryClosing(false)
+      setRecoveryOpen(false)
+    }
+  }
 
   return (
     <LoginBackdrop tone="admin">
@@ -30,6 +50,7 @@ export function AdminLoginPage() {
           portal="admin"
           variant="overlay"
           showCopyrightInCard
+          onForgotPasswordClick={openRecoveryDrawer}
           authenticate={async ({ cpf, password }) => {
             try {
               const loggedUser = await login({
@@ -54,6 +75,13 @@ export function AdminLoginPage() {
           }}
         />
       </main>
+
+      <AdminPasswordRecoveryDrawer
+        open={recoveryOpen && !recoveryClosing}
+        closing={recoveryClosing}
+        onClose={closeRecoveryDrawer}
+        onTransitionEnd={handleRecoveryTransitionEnd}
+      />
     </LoginBackdrop>
   )
 }

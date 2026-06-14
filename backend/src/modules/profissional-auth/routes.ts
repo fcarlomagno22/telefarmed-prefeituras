@@ -6,7 +6,18 @@ import {
   logoutProfissional,
   refreshProfissionalSession,
 } from './service.js'
-import { loginBodySchema } from './schemas.js'
+import {
+  loginBodySchema,
+  profissionalPasswordRecoveryCompleteSchema,
+  profissionalPasswordRecoveryRequestSchema,
+  profissionalPasswordRecoveryVerifySchema,
+} from './schemas.js'
+import {
+  completeProfissionalPasswordRecovery,
+  mapProfissionalPasswordRecoveryError,
+  requestProfissionalPasswordRecovery,
+  verifyProfissionalPasswordRecoveryCode,
+} from './password-recovery.service.js'
 import { mapProfissionalAuthError, requireProfissionalAuth } from './middleware.js'
 import {
   auditAuthLoginFailure,
@@ -131,5 +142,59 @@ export async function registerProfissionalAuthRoutes(app: FastifyInstance): Prom
     }
 
     return reply.send({ pagePermissions: user.pagePermissions })
+  })
+
+  app.post('/recuperacao-senha/solicitar', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    handler: async (request, reply) => {
+      const parsed = profissionalPasswordRecoveryRequestSchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Informe um CPF válido.', code: 'INVALID_CPF' })
+      }
+
+      try {
+        const result = await requestProfissionalPasswordRecovery(parsed.data.cpf)
+        return reply.send(result)
+      } catch (error) {
+        const mapped = mapProfissionalPasswordRecoveryError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  })
+
+  app.post('/recuperacao-senha/verificar-codigo', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    handler: async (request, reply) => {
+      const parsed = profissionalPasswordRecoveryVerifySchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos.' })
+      }
+
+      try {
+        const result = await verifyProfissionalPasswordRecoveryCode(parsed.data)
+        return reply.send(result)
+      } catch (error) {
+        const mapped = mapProfissionalPasswordRecoveryError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  })
+
+  app.post('/recuperacao-senha/concluir', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    handler: async (request, reply) => {
+      const parsed = profissionalPasswordRecoveryCompleteSchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos.' })
+      }
+
+      try {
+        await completeProfissionalPasswordRecovery(parsed.data)
+        return reply.send({ ok: true })
+      } catch (error) {
+        const mapped = mapProfissionalPasswordRecoveryError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
   })
 }

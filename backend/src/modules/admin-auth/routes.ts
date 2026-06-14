@@ -8,7 +8,19 @@ import {
   refreshAdminSession,
   verifyAdminAuthorizationPin,
 } from './service.js'
-import { loginBodySchema, verifyAdminPinBodySchema } from './schemas.js'
+import {
+  loginBodySchema,
+  adminPasswordRecoveryCompleteSchema,
+  adminPasswordRecoveryRequestSchema,
+  adminPasswordRecoveryVerifySchema,
+  verifyAdminPinBodySchema,
+} from './schemas.js'
+import {
+  completeAdminPasswordRecovery,
+  mapAdminPasswordRecoveryError,
+  requestAdminPasswordRecovery,
+  verifyAdminPasswordRecoveryCode,
+} from './password-recovery.service.js'
 import { mapAuthError, requireAdminAuth } from './middleware.js'
 import {
   auditAuthLoginFailure,
@@ -141,5 +153,59 @@ export async function registerAdminAuthRoutes(app: FastifyInstance): Promise<voi
       }
       return reply.status(500).send({ error: 'Erro interno.' })
     }
+  })
+
+  app.post('/recuperacao-senha/solicitar', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    handler: async (request, reply) => {
+      const parsed = adminPasswordRecoveryRequestSchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Informe um CPF válido.', code: 'INVALID_CPF' })
+      }
+
+      try {
+        const result = await requestAdminPasswordRecovery(parsed.data.cpf)
+        return reply.send(result)
+      } catch (error) {
+        const mapped = mapAdminPasswordRecoveryError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  })
+
+  app.post('/recuperacao-senha/verificar-codigo', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    handler: async (request, reply) => {
+      const parsed = adminPasswordRecoveryVerifySchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos.' })
+      }
+
+      try {
+        const result = await verifyAdminPasswordRecoveryCode(parsed.data)
+        return reply.send(result)
+      } catch (error) {
+        const mapped = mapAdminPasswordRecoveryError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  })
+
+  app.post('/recuperacao-senha/concluir', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    handler: async (request, reply) => {
+      const parsed = adminPasswordRecoveryCompleteSchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos.' })
+      }
+
+      try {
+        await completeAdminPasswordRecovery(parsed.data)
+        return reply.send({ ok: true })
+      } catch (error) {
+        const mapped = mapAdminPasswordRecoveryError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
   })
 }

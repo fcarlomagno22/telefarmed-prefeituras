@@ -18,6 +18,7 @@ type LoginFormProps = {
   portal?: PortalId
   /** Exibe o copyright no rodapé do card (login centralizado). */
   showCopyrightInCard?: boolean
+  onForgotPasswordClick?: () => void
   /** Conteúdo extra abaixo de "Esqueceu sua senha?" (ex.: links do portal profissional). */
   cardFooter?: ReactNode
 }
@@ -36,6 +37,7 @@ export function LoginForm({
   portal = 'ubt',
   showCopyrightInCard = false,
   cardFooter,
+  onForgotPasswordClick,
 }: LoginFormProps) {
   const navigate = useNavigate()
   const portalConfig = portals[portal]
@@ -193,14 +195,25 @@ export function LoginForm({
       </form>
 
       <p className="mt-6 text-center">
-        <a
-          href="#"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--brand-primary)] transition hover:underline"
-          onClick={(e) => e.preventDefault()}
-        >
-          <Lock className="h-3.5 w-3.5" strokeWidth={2} />
-          Esqueceu sua senha?
-        </a>
+        {onForgotPasswordClick ? (
+          <button
+            type="button"
+            onClick={onForgotPasswordClick}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--brand-primary)] transition hover:underline"
+          >
+            <Lock className="h-3.5 w-3.5" strokeWidth={2} />
+            Esqueceu sua senha?
+          </button>
+        ) : (
+          <a
+            href="#"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--brand-primary)] transition hover:underline"
+            onClick={(e) => e.preventDefault()}
+          >
+            <Lock className="h-3.5 w-3.5" strokeWidth={2} />
+            Esqueceu sua senha?
+          </a>
+        )}
       </p>
 
       {cardFooter ? (

@@ -7,7 +7,19 @@ import {
   refreshUbtSession,
   verifyUbtAuthorizationPin,
 } from './service.js'
-import { loginBodySchema, verifyUbtPinBodySchema } from './schemas.js'
+import {
+  loginBodySchema,
+  ubtPasswordRecoveryCompleteSchema,
+  ubtPasswordRecoveryRequestSchema,
+  ubtPasswordRecoveryVerifySchema,
+  verifyUbtPinBodySchema,
+} from './schemas.js'
+import {
+  completeUbtPasswordRecovery,
+  mapUbtPasswordRecoveryError,
+  requestUbtPasswordRecovery,
+  verifyUbtPasswordRecoveryCode,
+} from './password-recovery.service.js'
 import { mapUbtAuthError, requireUbtAuth } from './middleware.js'
 import {
   auditAuthLoginFailure,
@@ -212,5 +224,59 @@ export async function registerUbtAuthRoutes(app: FastifyInstance): Promise<void>
       const mapped = mapUbtAuthError(error)
       return reply.status(mapped.statusCode).send(mapped.body)
     }
+  })
+
+  app.post('/recuperacao-senha/solicitar', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    handler: async (request, reply) => {
+      const parsed = ubtPasswordRecoveryRequestSchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Informe um CPF válido.', code: 'INVALID_CPF' })
+      }
+
+      try {
+        const result = await requestUbtPasswordRecovery(parsed.data.cpf)
+        return reply.send(result)
+      } catch (error) {
+        const mapped = mapUbtPasswordRecoveryError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  })
+
+  app.post('/recuperacao-senha/verificar-codigo', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    handler: async (request, reply) => {
+      const parsed = ubtPasswordRecoveryVerifySchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos.' })
+      }
+
+      try {
+        const result = await verifyUbtPasswordRecoveryCode(parsed.data)
+        return reply.send(result)
+      } catch (error) {
+        const mapped = mapUbtPasswordRecoveryError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  })
+
+  app.post('/recuperacao-senha/concluir', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    handler: async (request, reply) => {
+      const parsed = ubtPasswordRecoveryCompleteSchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos.' })
+      }
+
+      try {
+        await completeUbtPasswordRecovery(parsed.data)
+        return reply.send({ ok: true })
+      } catch (error) {
+        const mapped = mapUbtPasswordRecoveryError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
   })
 }

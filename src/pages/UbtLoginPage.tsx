@@ -1,6 +1,8 @@
 import { Navigate } from 'react-router-dom'
+import { useState } from 'react'
 import { FeaturePanel } from '../components/login/FeaturePanel'
 import { LoginForm } from '../components/login/LoginForm'
+import { UbtPasswordRecoveryDrawer } from '../components/ubt/login/UbtPasswordRecoveryDrawer'
 import { brand } from '../config/brand'
 import { resolveDefaultUbtHomePath } from '../config/ubtPageAccess'
 import { useUbtAuth } from '../contexts/UbtAuthContext'
@@ -11,9 +13,27 @@ import { cpfDigits } from '../utils/cpf'
 export function UbtLoginPage() {
   useBrandTheme()
   const { login, isAuthenticated, isBootstrapping, user } = useUbtAuth()
+  const [recoveryOpen, setRecoveryOpen] = useState(false)
+  const [recoveryClosing, setRecoveryClosing] = useState(false)
 
   if (!isBootstrapping && isAuthenticated) {
     return <Navigate to={resolveDefaultUbtHomePath(user)} replace />
+  }
+
+  function openRecoveryDrawer() {
+    setRecoveryClosing(false)
+    setRecoveryOpen(true)
+  }
+
+  function closeRecoveryDrawer() {
+    setRecoveryClosing(true)
+  }
+
+  function handleRecoveryTransitionEnd() {
+    if (recoveryClosing) {
+      setRecoveryClosing(false)
+      setRecoveryOpen(false)
+    }
   }
 
   return (
@@ -34,6 +54,7 @@ export function UbtLoginPage() {
           <div className="flex flex-1 flex-col items-center justify-center py-6">
             <LoginForm
               portal="ubt"
+              onForgotPasswordClick={openRecoveryDrawer}
               authenticate={async ({ cpf, password }) => {
                 try {
                   const authUser = await login({
@@ -56,6 +77,13 @@ export function UbtLoginPage() {
           {brand.copyright}
         </footer>
       </main>
+
+      <UbtPasswordRecoveryDrawer
+        open={recoveryOpen && !recoveryClosing}
+        closing={recoveryClosing}
+        onClose={closeRecoveryDrawer}
+        onTransitionEnd={handleRecoveryTransitionEnd}
+      />
     </div>
   )
 }

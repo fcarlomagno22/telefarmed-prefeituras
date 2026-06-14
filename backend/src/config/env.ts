@@ -29,11 +29,22 @@ const envSchema = z.object({
     .url('LIVEKIT_URL deve ser uma URL válida (ex.: wss://seu-projeto.livekit.cloud)'),
   LIVEKIT_API_KEY: z.string().min(1, 'LIVEKIT_API_KEY é obrigatório'),
   LIVEKIT_API_SECRET: z.string().min(1, 'LIVEKIT_API_SECRET é obrigatório'),
+  SMTP_HOST: z.string().min(1, 'SMTP_HOST é obrigatório'),
+  SMTP_PORT: z.coerce.number().int().positive('SMTP_PORT deve ser um número positivo'),
+  SMTP_SECURE: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true' || v === '1'),
+  SMTP_USER: z.string().min(1, 'SMTP_USER é obrigatório'),
+  SMTP_PASS: z.string().min(1, 'SMTP_PASS é obrigatório'),
+  SMTP_FROM: z.string().optional(),
 })
 
-export type Env = z.infer<typeof envSchema>
+export type Env = z.infer<typeof envSchema> & {
+  SMTP_FROM: string
+}
 
-export const env: Env = envSchema.parse({
+const parsedEnv = envSchema.parse({
   NODE_ENV: envValue('NODE_ENV'),
   PORT: envValue('PORT'),
   SUPABASE_URL: envValue('SUPABASE_URL'),
@@ -45,6 +56,17 @@ export const env: Env = envSchema.parse({
   LIVEKIT_URL: envValue('LIVEKIT_URL'),
   LIVEKIT_API_KEY: envValue('LIVEKIT_API_KEY'),
   LIVEKIT_API_SECRET: envValue('LIVEKIT_API_SECRET'),
+  SMTP_HOST: envValue('SMTP_HOST'),
+  SMTP_PORT: envValue('SMTP_PORT'),
+  SMTP_SECURE: envValue('SMTP_SECURE'),
+  SMTP_USER: envValue('SMTP_USER'),
+  SMTP_PASS: envValue('SMTP_PASS'),
+  SMTP_FROM: envValue('SMTP_FROM'),
 })
+
+export const env: Env = {
+  ...parsedEnv,
+  SMTP_FROM: parsedEnv.SMTP_FROM ?? `Telefarmed <${parsedEnv.SMTP_USER}>`,
+}
 
 export const isProduction = env.NODE_ENV === 'production'

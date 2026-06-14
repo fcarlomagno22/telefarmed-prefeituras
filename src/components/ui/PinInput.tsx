@@ -1,13 +1,14 @@
 import { Eye, EyeOff } from 'lucide-react'
 import { useEffect, useRef, type ClipboardEvent } from 'react'
 
-const PIN_LENGTH = 6
+const DEFAULT_PIN_LENGTH = 6
 
 type PinInputProps = {
   value: string
   onChange: (value: string) => void
   visible: boolean
   onToggleVisible: () => void
+  length?: number
   error?: boolean
   disabled?: boolean
   autoFocus?: boolean
@@ -22,6 +23,7 @@ export function PinInput({
   onChange,
   visible,
   onToggleVisible,
+  length = DEFAULT_PIN_LENGTH,
   error = false,
   disabled = false,
   autoFocus = false,
@@ -32,7 +34,7 @@ export function PinInput({
 }: PinInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
-  const digits = value.padEnd(PIN_LENGTH, ' ').slice(0, PIN_LENGTH).split('')
+  const digits = value.padEnd(length, ' ').slice(0, length).split('')
 
   useEffect(() => {
     if (!autoFocus || disabled) return
@@ -41,16 +43,16 @@ export function PinInput({
   }, [autoFocus, disabled])
 
   function focusIndex(index: number) {
-    const clamped = Math.max(0, Math.min(PIN_LENGTH - 1, index))
+    const clamped = Math.max(0, Math.min(length - 1, index))
     inputRefs.current[clamped]?.focus()
     inputRefs.current[clamped]?.select()
   }
 
   function updateDigit(index: number, digit: string) {
     const next = value.split('')
-    while (next.length < PIN_LENGTH) next.push('')
+    while (next.length < length) next.push('')
     next[index] = digit
-    onChange(next.join('').replace(/\s/g, '').slice(0, PIN_LENGTH))
+    onChange(next.join('').replace(/\s/g, '').slice(0, length))
   }
 
   function handleChange(index: number, raw: string) {
@@ -61,14 +63,14 @@ export function PinInput({
     }
 
     if (cleaned.length > 1) {
-      const merged = (value + cleaned).replace(/\D/g, '').slice(0, PIN_LENGTH)
+      const merged = (value + cleaned).replace(/\D/g, '').slice(0, length)
       onChange(merged)
-      focusIndex(Math.min(merged.length, PIN_LENGTH - 1))
+      focusIndex(Math.min(merged.length, length - 1))
       return
     }
 
     updateDigit(index, cleaned[0]!)
-    if (index < PIN_LENGTH - 1) focusIndex(index + 1)
+    if (index < length - 1) focusIndex(index + 1)
   }
 
   function handleKeyDown(index: number, key: string) {
@@ -84,16 +86,18 @@ export function PinInput({
     }
 
     if (key === 'ArrowLeft' && index > 0) focusIndex(index - 1)
-    if (key === 'ArrowRight' && index < PIN_LENGTH - 1) focusIndex(index + 1)
+    if (key === 'ArrowRight' && index < length - 1) focusIndex(index + 1)
   }
 
   function handlePaste(event: ClipboardEvent) {
     event.preventDefault()
-    const pasted = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, PIN_LENGTH)
+    const pasted = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, length)
     if (!pasted) return
     onChange(pasted)
-    focusIndex(Math.min(pasted.length, PIN_LENGTH - 1))
+    focusIndex(Math.min(pasted.length, length - 1))
   }
+
+  const compact = length > 6
 
   return (
     <div className="space-y-3">
@@ -113,12 +117,13 @@ export function PinInput({
       </div>
 
       <div
-        className={`flex justify-center gap-2 sm:gap-2.5 ${error ? 'animate-[pin-shake_0.45s_ease-in-out]' : ''}`}
+        className={`flex justify-center gap-1.5 sm:gap-2 ${error ? 'animate-[pin-shake_0.45s_ease-in-out]' : ''} ${compact ? 'flex-wrap px-1' : ''}`}
         onPaste={handlePaste}
       >
         {digits.map((digit, index) => {
           const filled = Boolean(digit.trim())
-          const isActive = value.length === index || (value.length === PIN_LENGTH && index === PIN_LENGTH - 1)
+          const isActive =
+            value.length === index || (value.length === length && index === length - 1)
 
           return (
             <input
@@ -136,7 +141,9 @@ export function PinInput({
               onChange={(event) => handleChange(index, event.target.value)}
               onKeyDown={(event) => handleKeyDown(index, event.key)}
               onFocus={(event) => event.target.select()}
-              className={`h-12 w-11 rounded-xl border-2 bg-white text-center text-lg font-bold text-gray-900 outline-none transition sm:h-14 sm:w-12 ${
+              className={`rounded-xl border-2 bg-white text-center font-bold text-gray-900 outline-none transition ${
+                compact ? 'h-11 w-9 text-base sm:h-12 sm:w-10' : 'h-12 w-11 text-lg sm:h-14 sm:w-12'
+              } ${
                 error
                   ? 'border-red-300 bg-red-50/50 focus:border-red-400 focus:ring-2 focus:ring-red-200'
                   : filled

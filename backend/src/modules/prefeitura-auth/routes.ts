@@ -7,7 +7,19 @@ import {
   refreshPrefeituraSession,
   verifyPrefeituraAuthorizationPin,
 } from './service.js'
-import { loginBodySchema, verifyPrefeituraPinBodySchema } from './schemas.js'
+import {
+  loginBodySchema,
+  prefeituraPasswordRecoveryCompleteSchema,
+  prefeituraPasswordRecoveryRequestSchema,
+  prefeituraPasswordRecoveryVerifySchema,
+  verifyPrefeituraPinBodySchema,
+} from './schemas.js'
+import {
+  completePrefeituraPasswordRecovery,
+  mapPrefeituraPasswordRecoveryError,
+  requestPrefeituraPasswordRecovery,
+  verifyPrefeituraPasswordRecoveryCode,
+} from './password-recovery.service.js'
 import { mapPrefeituraAuthError, requirePrefeituraAuth } from './middleware.js'
 import {
   auditAuthLoginFailure,
@@ -146,5 +158,59 @@ export async function registerPrefeituraAuthRoutes(app: FastifyInstance): Promis
       const mapped = mapPrefeituraAuthError(error)
       return reply.status(mapped.statusCode).send(mapped.body)
     }
+  })
+
+  app.post('/recuperacao-senha/solicitar', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    handler: async (request, reply) => {
+      const parsed = prefeituraPasswordRecoveryRequestSchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Informe um CPF válido.', code: 'INVALID_CPF' })
+      }
+
+      try {
+        const result = await requestPrefeituraPasswordRecovery(parsed.data.cpf)
+        return reply.send(result)
+      } catch (error) {
+        const mapped = mapPrefeituraPasswordRecoveryError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  })
+
+  app.post('/recuperacao-senha/verificar-codigo', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    handler: async (request, reply) => {
+      const parsed = prefeituraPasswordRecoveryVerifySchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos.' })
+      }
+
+      try {
+        const result = await verifyPrefeituraPasswordRecoveryCode(parsed.data)
+        return reply.send(result)
+      } catch (error) {
+        const mapped = mapPrefeituraPasswordRecoveryError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  })
+
+  app.post('/recuperacao-senha/concluir', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    handler: async (request, reply) => {
+      const parsed = prefeituraPasswordRecoveryCompleteSchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos.' })
+      }
+
+      try {
+        await completePrefeituraPasswordRecovery(parsed.data)
+        return reply.send({ ok: true })
+      } catch (error) {
+        const mapped = mapPrefeituraPasswordRecoveryError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
   })
 }

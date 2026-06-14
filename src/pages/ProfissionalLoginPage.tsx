@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation } from 'react-router-dom'
 import { MinhaCandidaturaDrawer } from '../components/landing/medicoCadastro/MinhaCandidaturaDrawer'
 import { FeaturePanel } from '../components/login/FeaturePanel'
 import { LoginForm } from '../components/login/LoginForm'
+import { ProfissionalPasswordRecoveryDrawer } from '../components/profissional/login/ProfissionalPasswordRecoveryDrawer'
 import { brand } from '../config/brand'
 import { profissionalRoutes } from '../config/profissionalRoutes'
 import { resolveDefaultProfissionalHomePath } from '../config/profissionalPageAccess'
@@ -21,6 +22,8 @@ export function ProfissionalLoginPage() {
   const location = useLocation()
   const [minhaCandidaturaOpen, setMinhaCandidaturaOpen] = useState(false)
   const [minhaCandidaturaClosing, setMinhaCandidaturaClosing] = useState(false)
+  const [recoveryOpen, setRecoveryOpen] = useState(false)
+  const [recoveryClosing, setRecoveryClosing] = useState(false)
 
   useEffect(() => {
     const state = location.state as LoginLocationState | null
@@ -50,6 +53,22 @@ export function ProfissionalLoginPage() {
     }
   }
 
+  function openRecoveryDrawer() {
+    setRecoveryClosing(false)
+    setRecoveryOpen(true)
+  }
+
+  function closeRecoveryDrawer() {
+    setRecoveryClosing(true)
+  }
+
+  function handleRecoveryTransitionEnd() {
+    if (recoveryClosing) {
+      setRecoveryClosing(false)
+      setRecoveryOpen(false)
+    }
+  }
+
   return (
     <div className="flex min-h-screen bg-[#f5f6f8] lg:flex-row">
       <FeaturePanel variant="profissional" />
@@ -59,6 +78,7 @@ export function ProfissionalLoginPage() {
           <div className="flex flex-1 flex-col items-center justify-center py-6">
             <LoginForm
               portal="profissional"
+              onForgotPasswordClick={openRecoveryDrawer}
               authenticate={async ({ cpf, password }) => {
                 try {
                   const authUser = await login({
@@ -111,6 +131,13 @@ export function ProfissionalLoginPage() {
         closing={minhaCandidaturaClosing}
         onClose={closeMinhaCandidaturaDrawer}
         onTransitionEnd={handleMinhaCandidaturaTransitionEnd}
+      />
+
+      <ProfissionalPasswordRecoveryDrawer
+        open={recoveryOpen && !recoveryClosing}
+        closing={recoveryClosing}
+        onClose={closeRecoveryDrawer}
+        onTransitionEnd={handleRecoveryTransitionEnd}
       />
     </div>
   )
