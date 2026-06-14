@@ -84,7 +84,7 @@ import { vidaPlusRoutes } from './config/vidaPlusRoutes'
 import { getDedicatedPortal } from './config/portalHost'
 import { adminRoutes } from './config/adminRoutes'
 import { prefeituraRoutes } from './config/prefeituraRoutes'
-import { DedicatedPortalRoutes } from './routes/DedicatedPortalRoutes'
+import { dedicatedPortalRoutes } from './routes/DedicatedPortalRoutes'
 
 const AdminNotificacoesPage = lazy(() =>
   import('./pages/AdminNotificacoesPage').then((module) => ({
@@ -118,7 +118,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         {dedicatedPortal ? (
-          <DedicatedPortalRoutes portal={dedicatedPortal} />
+          <>{dedicatedPortalRoutes(dedicatedPortal)}</>
         ) : (
           <>
         <Route path="/" element={<RootPage />} />

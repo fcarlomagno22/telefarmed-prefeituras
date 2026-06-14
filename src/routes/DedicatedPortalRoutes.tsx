@@ -94,17 +94,12 @@ const AdminFinanceiroPage = lazy(() =>
   })),
 )
 
-type DedicatedPortalRoutesProps = {
-  portal: PortalId
-}
-
 function SharedPublicRoutes() {
   return <Route path="/verificar/:codigo" element={<VerificarDocumentoPage />} />
 }
 
-function AdminDedicatedRoutes() {
-  return (
-    <>
+export const adminDedicatedRoutes = (
+  <>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/admin/*" element={<PrefixedLegacyRedirect portal="admin" />} />
       <Route element={<AdminRoutesShell />}>
@@ -163,12 +158,10 @@ function AdminDedicatedRoutes() {
       {SharedPublicRoutes()}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </>
-  )
-}
+)
 
-function PrefeituraDedicatedRoutes() {
-  return (
-    <>
+export const prefeituraDedicatedRoutes = (
+  <>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/prefeitura/*" element={<PrefixedLegacyRedirect portal="prefeitura" />} />
       <Route element={<PrefeituraRoutesShell />}>
@@ -201,12 +194,10 @@ function PrefeituraDedicatedRoutes() {
       {SharedPublicRoutes()}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </>
-  )
-}
+)
 
-function ProfissionalDedicatedRoutes() {
-  return (
-    <>
+export const profissionalDedicatedRoutes = (
+  <>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/profissional/*" element={<PrefixedLegacyRedirect portal="profissional" />} />
       <Route element={<ProfissionalRoutesShell />}>
@@ -237,12 +228,10 @@ function ProfissionalDedicatedRoutes() {
       {SharedPublicRoutes()}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </>
-  )
-}
+)
 
-function UbtDedicatedRoutes() {
-  return (
-    <>
+export const ubtDedicatedRoutes = (
+  <>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/ubt/*" element={<PrefixedLegacyRedirect portal="ubt" />} />
       <Route element={<UbtRoutesShell />}>
@@ -284,19 +273,18 @@ function UbtDedicatedRoutes() {
       {SharedPublicRoutes()}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </>
-  )
-}
+)
 
-export function DedicatedPortalRoutes({ portal }: DedicatedPortalRoutesProps) {
+export function dedicatedPortalRoutes(portal: PortalId) {
   switch (portal) {
     case 'admin':
-      return <AdminDedicatedRoutes />
+      return adminDedicatedRoutes
     case 'prefeitura':
-      return <PrefeituraDedicatedRoutes />
+      return prefeituraDedicatedRoutes
     case 'profissional':
-      return <ProfissionalDedicatedRoutes />
+      return profissionalDedicatedRoutes
     case 'ubt':
-      return <UbtDedicatedRoutes />
+      return ubtDedicatedRoutes
     default:
       return null
   }
