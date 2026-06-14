@@ -7,6 +7,17 @@ const PORTAL_HOSTS: Record<string, PortalId> = {
   'ubt.telefarmed.com.br': 'ubt',
 }
 
+export const PORTAL_DOCUMENT_TITLES: Record<PortalId, string> = {
+  prefeitura: 'Telefarmed | Gestão Administrativa',
+  ubt: 'Telefarmed | Atendimento',
+  profissional: 'Telefarmed | Painel Profissional',
+  admin: 'Telefarmed | Painel Admin',
+}
+
+export function getPortalDocumentTitle(portal: PortalId): string {
+  return PORTAL_DOCUMENT_TITLES[portal]
+}
+
 function normalizeHostname(hostname: string): string {
   return hostname.toLowerCase().split(':')[0] ?? hostname
 }

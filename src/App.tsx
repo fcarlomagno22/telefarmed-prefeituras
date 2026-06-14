@@ -85,6 +85,8 @@ import { getDedicatedPortal } from './config/portalHost'
 import { adminRoutes } from './config/adminRoutes'
 import { prefeituraRoutes } from './config/prefeituraRoutes'
 import { dedicatedPortalRoutes } from './routes/DedicatedPortalRoutes'
+import { useDedicatedPortalDocumentTitle } from './hooks/useDedicatedPortalDocumentTitle'
+import type { PortalId } from './config/portalHost'
 
 const AdminNotificacoesPage = lazy(() =>
   import('./pages/AdminNotificacoesPage').then((module) => ({
@@ -111,11 +113,17 @@ function LegacyAtendimentoRedirect() {
   return <Navigate to={ubtAtendimentoPath(attendanceId)} replace />
 }
 
+function DedicatedPortalDocumentTitle({ portal }: { portal: PortalId }) {
+  useDedicatedPortalDocumentTitle(portal)
+  return null
+}
+
 function App() {
   const dedicatedPortal = getDedicatedPortal()
 
   return (
     <BrowserRouter>
+      {dedicatedPortal ? <DedicatedPortalDocumentTitle portal={dedicatedPortal} /> : null}
       <Routes>
         {dedicatedPortal ? (
           <>{dedicatedPortalRoutes(dedicatedPortal)}</>
