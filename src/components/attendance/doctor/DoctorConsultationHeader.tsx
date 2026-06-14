@@ -1,10 +1,9 @@
-import { ArrowRightLeft, ClipboardList, FileText, PhoneOff, Pill } from 'lucide-react'
+import { ClipboardList, FileText, PhoneOff, Pill } from 'lucide-react'
 
 type DoctorConsultationHeaderProps = {
   elapsed: string
   startedAtLabel: string
   onFinishConsultation?: () => void
-  onSwitchToPatientView?: () => void
   onRequestExam?: () => void
   onIssuePrescription?: () => void
   onIssueAtestado?: () => void
@@ -14,7 +13,6 @@ export function DoctorConsultationHeader({
   elapsed,
   startedAtLabel,
   onFinishConsultation,
-  onSwitchToPatientView,
   onRequestExam,
   onIssuePrescription,
   onIssueAtestado,
@@ -40,16 +38,6 @@ export function DoctorConsultationHeader({
 
         <div className="flex flex-col items-stretch gap-2 sm:items-end">
           <div className="flex flex-wrap items-center justify-end gap-2">
-            {onSwitchToPatientView ? (
-              <button
-                type="button"
-                onClick={onSwitchToPatientView}
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 sm:text-sm"
-              >
-                <ArrowRightLeft className="h-4 w-4 text-gray-500" strokeWidth={2} />
-                Visão paciente
-              </button>
-            ) : null}
             <button
               type="button"
               onClick={onRequestExam}

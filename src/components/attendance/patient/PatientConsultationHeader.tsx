@@ -1,12 +1,9 @@
-import { ArrowRightLeft } from 'lucide-react'
-
 type PatientConsultationHeaderProps = {
   elapsed: string
   startedAtLabel: string
   datePill: string
   timePill: string
   onEndConsultation?: () => void
-  onSwitchToDoctorView?: () => void
 }
 
 export function PatientConsultationHeader({
@@ -15,7 +12,6 @@ export function PatientConsultationHeader({
   datePill,
   timePill,
   onEndConsultation,
-  onSwitchToDoctorView,
 }: PatientConsultationHeaderProps) {
   return (
     <header className="shrink-0 bg-white pb-3 pt-4">
@@ -44,14 +40,6 @@ export function PatientConsultationHeader({
             <span className="rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-medium tabular-nums text-gray-700 shadow-sm">
               {timePill}
             </span>
-            <button
-              type="button"
-              onClick={onSwitchToDoctorView}
-              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
-            >
-              <ArrowRightLeft className="h-4 w-4" strokeWidth={2} />
-              Trocar para médico
-            </button>
             <button
               type="button"
               onClick={onEndConsultation}

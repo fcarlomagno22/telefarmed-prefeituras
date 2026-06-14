@@ -115,10 +115,6 @@ export function AtendimentoPacientePage() {
     navigate(ubtAtendimentoAvaliacaoPath(attendanceId))
   }, [attendanceId, navigate])
 
-  const handleSwitchToDoctorView = useCallback(() => {
-    // Visão do médico fica no portal profissional autenticado.
-  }, [])
-
   if (!token) {
     return <Navigate to={ubtRoutes.salaDeEspera} replace />
   }
@@ -162,7 +158,6 @@ export function AtendimentoPacientePage() {
           startedAtLabel={formatStartedAtLabel(session)}
           datePill={formatDatePill(now)}
           timePill={formatTimePill(now)}
-          onSwitchToDoctorView={handleSwitchToDoctorView}
           onEndConsultation={handleRequestEndConsultation}
         />
 

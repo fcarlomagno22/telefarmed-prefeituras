@@ -156,10 +156,6 @@ export function AtendimentoMedicoPage() {
     }
   }, [accessToken, codigo, navigate, sessao])
 
-  const handleSwitchToPatientView = useCallback(() => {
-    showNavBlockToast()
-  }, [showNavBlockToast])
-
   const handleSendChatMessage = useCallback(
     async (text: string) => {
       if (!accessToken || !sessao) return
@@ -360,7 +356,6 @@ export function AtendimentoMedicoPage() {
         <DoctorConsultationHeader
           elapsed={elapsed}
           startedAtLabel={formatStartedAtLabel(attendanceSession.startedAtIso)}
-          onSwitchToPatientView={handleSwitchToPatientView}
           onFinishConsultation={handleRequestFinishConsultation}
           onRequestExam={() => setExamRequestOpen(true)}
           onIssuePrescription={() => setPrescriptionOpen(true)}
