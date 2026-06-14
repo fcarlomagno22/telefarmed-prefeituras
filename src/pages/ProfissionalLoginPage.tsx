@@ -56,15 +56,6 @@ export function ProfissionalLoginPage() {
 
       <main className="relative flex min-h-screen flex-1 flex-col overflow-hidden">
         <div className="relative z-10 flex flex-1 flex-col px-6 py-8 sm:px-12 lg:px-14 lg:py-12 xl:px-20">
-          <header className="mx-auto w-full max-w-lg pt-2 text-center lg:pt-4">
-            <h1 className="text-base font-bold leading-snug text-[var(--brand-primary)] sm:text-[17px] lg:text-lg">
-              {brand.profissionalHeadline}
-            </h1>
-            <p className="mx-auto mt-1.5 max-w-md text-[11px] leading-relaxed text-gray-500 sm:text-xs">
-              {brand.profissionalSubheadline}
-            </p>
-          </header>
-
           <div className="flex flex-1 flex-col items-center justify-center py-6">
             <LoginForm
               portal="profissional"
