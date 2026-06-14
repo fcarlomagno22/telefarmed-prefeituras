@@ -57,7 +57,12 @@ export async function fetchCnpjReceitaFederal(cnpj: string): Promise<BrasilApiCn
 
   let response: Response
   try {
-    response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`)
+    response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`, {
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': 'Telefarmed/1.0 (+https://telefarmed.com.br)',
+      },
+    })
   } catch {
     throw new CnpjReceitaFederalLookupError(
       'Falha de conexão ao consultar a Receita Federal. Verifique sua internet e tente novamente.',

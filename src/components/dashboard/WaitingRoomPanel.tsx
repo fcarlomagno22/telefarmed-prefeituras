@@ -4,9 +4,16 @@ import { useEffect, useState } from 'react'
 type WaitingRoomPanelProps = {
   onAccessWaitingRoom: () => void
   onCancel: () => void
+  loading?: boolean
+  error?: string | null
 }
 
-export function WaitingRoomPanel({ onAccessWaitingRoom, onCancel }: WaitingRoomPanelProps) {
+export function WaitingRoomPanel({
+  onAccessWaitingRoom,
+  onCancel,
+  loading = false,
+  error = null,
+}: WaitingRoomPanelProps) {
   const [isPreparing, setIsPreparing] = useState(true)
 
   useEffect(() => {
@@ -34,13 +41,23 @@ export function WaitingRoomPanel({ onAccessWaitingRoom, onCancel }: WaitingRoomP
             O paciente será direcionado para a sala de espera virtual neste navegador. Mantenha o
             equipamento disponível até o médico entrar.
           </p>
+          {error ? (
+            <p role="alert" className="mt-4 text-sm font-medium text-red-600">
+              {error}
+            </p>
+          ) : null}
           <button
             type="button"
             onClick={onAccessWaitingRoom}
-            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-[var(--brand-primary)] px-8 py-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
+            disabled={loading}
+            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-[var(--brand-primary)] px-8 py-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
           >
-            <ArrowRight className="h-4 w-4" strokeWidth={2} />
-            Acessar sala de espera
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} />
+            ) : (
+              <ArrowRight className="h-4 w-4" strokeWidth={2} />
+            )}
+            {loading ? 'Abrindo sala…' : 'Acessar sala de espera'}
           </button>
           <button
             type="button"

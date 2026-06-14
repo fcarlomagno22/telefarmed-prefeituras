@@ -3,7 +3,7 @@ import {
   CircleAlert,
   Info,
 } from 'lucide-react'
-import type { AuditLogActionTone, AuditLogSeverity } from '../../data/auditLogsMock'
+import type { AuditLogActionTone, AuditLogSeverity } from '../../types/auditLogs'
 
 export const actionToneStyles: Record<
   AuditLogActionTone,

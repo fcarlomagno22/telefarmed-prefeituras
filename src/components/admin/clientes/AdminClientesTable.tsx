@@ -1,35 +1,63 @@
-import { ChevronDown, ChevronRight, EllipsisVertical, Search } from 'lucide-react'
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react'
+import { ChevronDown, ChevronRight, Search } from 'lucide-react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import {
-  adminClienteContratoTipoLabels,
   adminClientesStatusFilterOptions,
-  adminClientesSummary,
   type AdminClienteContrato,
   type AdminClienteRow,
-} from '../../../data/adminClientesMock'
+  type AdminClienteStatus,
+} from '../../../types/adminClientes'
+import { useAdminAuth } from '../../../contexts/AdminAuthContext'
+import { useAdminClientesClinicoCatalog } from '../../../hooks/useAdminClientesClinicoCatalog'
+import {
+  resolveClienteContratoTipoLabel,
+  useAdminClientesContratoCatalog,
+} from '../../../hooks/useAdminClientesContratoCatalog'
+import { useAdminClientesPin } from '../../../hooks/useAdminClientesPin'
+import { canAdminDeleteClientesAndContratos } from '../../../config/adminClientesDeleteAuthorization'
+import {
+  createClienteContrato,
+  deleteClienteContrato,
+  deleteClienteEntidade,
+  isAdminClientesApiError,
+  updateClienteContrato,
+  updateClienteContratoStatus,
+  updateClienteEntidade,
+  updateClienteEntidadeContacts,
+  updateClienteEntidadeStatus,
+} from '../../../lib/services/admin/clientes'
+import { maskCnpj } from '../../../utils/masks'
+import { buildCreateContratoPayloadFromForm } from './adminClienteContratoForm'
+import { buildUpdateContratoPayloadFromForm } from './adminClienteContratoForm'
+import type { AddContratoFormState } from './adminClienteContratoForm'
+import type { ClientePinAction } from '../../../hooks/useAdminClientesPin'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { DashCard } from '../../prefeitura/prefeituraDashboardUi'
 import { AdminClienteContratoActionsMenu } from './AdminClienteContratoActionsMenu'
+import { AdminClienteEntidadeActionsMenu } from './AdminClienteEntidadeActionsMenu'
+import { AdminClienteEntidadeDeleteConfirmModal } from './AdminClienteEntidadeDeleteConfirmModal'
+import { AdminClienteEntidadeStatusModal } from './AdminClienteEntidadeStatusModal'
+import { AdminClienteContratoDeleteConfirmModal } from './AdminClienteContratoDeleteConfirmModal'
 import { AdminClienteAddContratoDrawer } from './AdminClienteAddContratoDrawer'
+import { AdminClienteUbtsDrawer } from './AdminClienteUbtsDrawer'
 import { AdminClienteContratoConfirmModal } from './AdminClienteContratoConfirmModal'
 import { AdminClienteContratoDrawer } from './AdminClienteContratoDrawer'
 import { AdminClienteEntidadeDrawer } from './AdminClienteEntidadeDrawer'
 import { AdminClienteContratoStatusBadge } from './AdminClienteContratoStatusBadge'
 import { AdminClienteStatusBadge } from './AdminClienteStatusBadge'
-import {
-  applyContratoAction,
-  formatContratoUtilizacao,
-  type AdminClienteContratoAction,
-} from './adminClienteContratoActions'
-import {
-  ADMIN_CLIENTE_TABLE_COL_COUNT,
-  formatAdminClientesNumber,
-} from './adminClientesUi'
+import { formatContratoUtilizacao, type AdminClienteContratoAction } from './adminClienteContratoActions'
+import { ADMIN_CLIENTE_TABLE_COL_COUNT, formatAdminClientesNumber } from './adminClientesUi'
 
 type AdminClientesTableProps = {
   rows: AdminClienteRow[]
   searchQuery: string
   onSearchChange: (value: string) => void
+  statusFilter: string
+  onStatusFilterChange: (value: string) => void
+  onUpsertRow: (row: AdminClienteRow) => void
+  onRemoveRow: (entidadeId: string) => void
+  onReload: () => Promise<void>
+  onToast: (message: string) => void
+  isLoading?: boolean
 }
 
 type PendingContratoAction = {
@@ -40,11 +68,40 @@ type PendingContratoAction = {
   action: AdminClienteContratoAction
 }
 
-function ClienteLogo({ hue, name }: { hue: number; name: string }) {
+type PendingEntidadeDelete = {
+  clienteId: string
+  prefeitura: string
+}
+
+type PendingContratoDelete = {
+  clienteId: string
+  contratoId: string
+  prefeitura: string
+  contratoLabel: string
+}
+
+function ClienteLogo({
+  hue,
+  name,
+  logoUrl,
+}: {
+  hue: number
+  name: string
+  logoUrl?: string
+}) {
   const initial = name.trim().charAt(0).toUpperCase()
+  if (logoUrl) {
+    return (
+      <img
+        src={logoUrl}
+        alt=""
+        className="h-9 w-9 shrink-0 rounded-xl border border-gray-200 object-cover shadow-sm"
+      />
+    )
+  }
   return (
     <span
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white shadow-sm"
       style={{ background: `hsl(${hue} 65% 45%)` }}
       aria-hidden
     >
@@ -75,17 +132,33 @@ function ContactCell({
   )
 }
 
-function getContratoLabel(contrato: AdminClienteContrato) {
-  return `${adminClienteContratoTipoLabels[contrato.tipo]} · assinado em ${contrato.dataAssinatura}`
+function getContratoLabel(contrato: AdminClienteContrato, contratoTipoLabels: Record<string, string>) {
+  return `${resolveClienteContratoTipoLabel(contratoTipoLabels, contrato.tipo)} · assinado em ${contrato.dataAssinatura}`
+}
+
+const CONTRATO_PIN_ACTION: Record<AdminClienteContratoAction, ClientePinAction> = {
+  suspender: 'contrato_suspender',
+  reativar: 'contrato_reativar',
+  encerrar: 'contrato_encerrar',
 }
 
 export function AdminClientesTable({
   rows,
   searchQuery,
   onSearchChange,
+  statusFilter,
+  onStatusFilterChange,
+  onUpsertRow,
+  onRemoveRow,
+  onReload,
+  onToast,
+  isLoading = false,
 }: AdminClientesTableProps) {
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [clientes, setClientes] = useState(rows)
+  const { getAccessToken, user } = useAdminAuth()
+  const canDeleteClientes = canAdminDeleteClientesAndContratos(user?.cpf)
+  const { specialties, professions } = useAdminClientesClinicoCatalog()
+  const { labelById: contratoTipoLabels } = useAdminClientesContratoCatalog()
+  const { requestPin, pinModal } = useAdminClientesPin()
   const [expandedClienteId, setExpandedClienteId] = useState<string | null>(null)
   const [openEntityMenuId, setOpenEntityMenuId] = useState<string | null>(null)
   const [openContratoMenuKey, setOpenContratoMenuKey] = useState<string | null>(null)
@@ -94,15 +167,19 @@ export function AdminClientesTable({
   const [addContratoCliente, setAddContratoCliente] = useState<AdminClienteRow | null>(null)
   const [addContratoDrawerClosing, setAddContratoDrawerClosing] = useState(false)
   const [pendingAction, setPendingAction] = useState<PendingContratoAction | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<PendingEntidadeDelete | null>(null)
+  const [pendingStatusChange, setPendingStatusChange] = useState<AdminClienteRow | null>(null)
+  const [pendingContratoDelete, setPendingContratoDelete] = useState<PendingContratoDelete | null>(
+    null,
+  )
   const [viewContrato, setViewContrato] = useState<{
     cliente: AdminClienteRow
     contrato: AdminClienteContrato
   } | null>(null)
+  const [viewUbtsCliente, setViewUbtsCliente] = useState<AdminClienteRow | null>(null)
+  const [viewUbtsDrawerClosing, setViewUbtsDrawerClosing] = useState(false)
   const [viewDrawerClosing, setViewDrawerClosing] = useState(false)
-  const [successToast, setSuccessToast] = useState<string | null>(null)
-
   useEffect(() => {
-    setClientes(rows)
     setExpandedClienteId(null)
     setOpenEntityMenuId(null)
     setOpenContratoMenuKey(null)
@@ -112,20 +189,15 @@ export function AdminClientesTable({
     setAddContratoDrawerClosing(false)
     setViewContrato(null)
     setViewDrawerClosing(false)
+    setViewUbtsCliente(null)
+    setViewUbtsDrawerClosing(false)
   }, [rows])
 
-  useEffect(() => {
-    if (!successToast) return
-    const timeout = window.setTimeout(() => setSuccessToast(null), 2800)
-    return () => window.clearTimeout(timeout)
-  }, [successToast])
-
-  const filteredRows = useMemo(() => {
-    if (statusFilter === 'all') return clientes
-    return clientes.filter((row) => row.status === statusFilter)
-  }, [clientes, statusFilter])
-
-  const totalLabel = formatAdminClientesNumber(adminClientesSummary.totalCadastrados)
+  const totalLabel = formatAdminClientesNumber(rows.length)
+  const listSubtitle =
+    statusFilter === 'all'
+      ? `${totalLabel} entidades cadastradas`
+      : `${totalLabel} entidade${rows.length === 1 ? '' : 's'} neste filtro`
 
   const toggleExpand = useCallback((clienteId: string) => {
     setExpandedClienteId((current) => (current === clienteId ? null : clienteId))
@@ -133,25 +205,6 @@ export function AdminClientesTable({
   }, [])
 
   const closeContratoMenu = useCallback(() => setOpenContratoMenuKey(null), [])
-
-  useEffect(() => {
-    function handleDocumentClick(event: MouseEvent) {
-      const target = event.target as HTMLElement | null
-      if (target?.closest('[data-entity-menu-root="true"]')) return
-      setOpenEntityMenuId(null)
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setOpenEntityMenuId(null)
-    }
-
-    document.addEventListener('mousedown', handleDocumentClick)
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', handleDocumentClick)
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [])
 
   const requestContratoAction = useCallback(
     (
@@ -163,42 +216,97 @@ export function AdminClientesTable({
         clienteId: cliente.id,
         contratoId: contrato.id,
         prefeitura: cliente.prefeitura,
-        contratoLabel: getContratoLabel(contrato),
+        contratoLabel: getContratoLabel(contrato, contratoTipoLabels),
         action,
       })
     },
-    [],
+    [contratoTipoLabels],
   )
 
   const confirmContratoAction = useCallback(() => {
     if (!pendingAction) return
 
-    setClientes((current) =>
-      current.map((cliente) => {
-        if (cliente.id !== pendingAction.clienteId) return cliente
-        return {
-          ...cliente,
-          contratos: cliente.contratos.map((contrato) => {
-            if (contrato.id !== pendingAction.contratoId) return contrato
-            return applyContratoAction(contrato, pendingAction.action)
-          }),
-        }
-      }),
-    )
+    const snapshot = pendingAction
     setPendingAction(null)
     setOpenContratoMenuKey(null)
-  }, [pendingAction])
+
+    requestPin({
+      action: CONTRATO_PIN_ACTION[snapshot.action],
+      label: `${snapshot.prefeitura} · ${snapshot.contratoLabel}`,
+      onConfirmed: async (pin) => {
+        const token = getAccessToken()
+        if (!token) return
+
+        try {
+          const row = await updateClienteContratoStatus(
+            token,
+            snapshot.contratoId,
+            pin,
+            snapshot.action,
+          )
+          onUpsertRow(row)
+          await onReload()
+          onToast('Status do contrato atualizado.')
+        } catch (error) {
+          const message = isAdminClientesApiError(error)
+            ? error.message
+            : 'Não foi possível atualizar o contrato.'
+          onToast(message)
+          throw error
+        }
+      },
+    })
+  }, [getAccessToken, onReload, onToast, onUpsertRow, pendingAction, requestPin])
+
+  const confirmEntidadeStatusChange = useCallback(
+    (nextStatus: AdminClienteStatus) => {
+      if (!pendingStatusChange) return
+
+      const snapshot = pendingStatusChange
+      setPendingStatusChange(null)
+
+      requestPin({
+        action: 'save_entidade_status',
+        label: snapshot.prefeitura,
+        onConfirmed: async (pin) => {
+          const token = getAccessToken()
+          if (!token) return
+
+          try {
+            const row = await updateClienteEntidadeStatus(token, snapshot.id, {
+              pin,
+              status: nextStatus,
+            })
+            onUpsertRow(row)
+            if (viewEntity?.id === snapshot.id) {
+              setViewEntity(row)
+            }
+            await onReload()
+            onToast('Status atualizado com sucesso.')
+          } catch (error) {
+            const message = isAdminClientesApiError(error)
+              ? error.message
+              : 'Não foi possível atualizar o status.'
+            onToast(message)
+          }
+        },
+      })
+    },
+    [getAccessToken, onReload, onToast, onUpsertRow, pendingStatusChange, requestPin, viewEntity?.id],
+  )
 
   return (
     <>
+      <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">
       <DashCard
-        className="w-full min-w-0 max-w-full flex-1"
+        className="h-full min-h-0 w-full min-w-0 max-w-full flex-1"
         title="Clientes Cadastrados"
-        subtitle={`${totalLabel} entidades cadastradas`}
-        bodyClassName="min-w-0 p-0"
+        subtitle={listSubtitle}
+        bodyClassName="flex min-h-0 flex-1 flex-col p-0"
         fillHeight
+        aria-busy={isLoading}
       >
-        <div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-3 sm:flex-row sm:items-center">
+        <div className="flex shrink-0 flex-col gap-3 border-b border-gray-100 px-4 py-3 sm:flex-row sm:items-center">
           <label className="relative min-w-0 flex-1">
             <Search
               className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
@@ -214,7 +322,7 @@ export function AdminClientesTable({
           </label>
           <CustomSelect
             value={statusFilter}
-            onChange={setStatusFilter}
+            onChange={onStatusFilterChange}
             options={[...adminClientesStatusFilterOptions]}
             size="compact"
             className="w-full shrink-0 sm:w-[11rem]"
@@ -222,7 +330,7 @@ export function AdminClientesTable({
           />
         </div>
 
-        <div className="min-w-0 flex-1 overflow-auto">
+        <div className="min-h-0 min-w-0 flex-1 overflow-auto overscroll-y-contain">
           <table className="w-full min-w-[48rem] text-left text-sm">
             <thead>
               <tr className="border-b border-gray-200 bg-slate-50/90 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
@@ -238,7 +346,7 @@ export function AdminClientesTable({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredRows.length === 0 ? (
+              {rows.length === 0 ? (
                 <tr>
                   <td
                     colSpan={ADMIN_CLIENTE_TABLE_COL_COUNT}
@@ -249,7 +357,7 @@ export function AdminClientesTable({
                 </tr>
               ) : null}
 
-              {filteredRows.map((row) => {
+              {rows.map((row) => {
                 const expanded = expandedClienteId === row.id
 
                 return (
@@ -279,7 +387,7 @@ export function AdminClientesTable({
                               <ChevronRight className="h-4 w-4" strokeWidth={2.25} />
                             )}
                           </span>
-                          <ClienteLogo hue={row.logoHue} name={row.prefeitura} />
+                          <ClienteLogo hue={row.logoHue} name={row.prefeitura} logoUrl={row.logoUrl} />
                           <div className="min-w-0">
                             <p className="font-semibold text-gray-900">{row.prefeitura}</p>
                             <p className="text-xs text-gray-500">{row.subtitle}</p>
@@ -292,7 +400,7 @@ export function AdminClientesTable({
                         </p>
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-center text-xs tabular-nums text-gray-600">
-                        {row.cnpj}
+                        {maskCnpj(row.cnpj)}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-xs text-gray-700">
                         {row.municipio} / {row.uf}
@@ -312,56 +420,35 @@ export function AdminClientesTable({
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <div
-                          className="relative inline-flex"
-                          data-entity-menu-root="true"
-                          onClick={(event) => event.stopPropagation()}
-                        >
-                          <button
-                            type="button"
-                            title="Ações da entidade"
-                            onClick={() =>
-                              setOpenEntityMenuId((current) => (current === row.id ? null : row.id))
-                            }
-                            className="rounded-lg p-1.5 text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
-                            aria-haspopup="menu"
-                            aria-expanded={openEntityMenuId === row.id}
-                          >
-                            <EllipsisVertical className="h-4 w-4" strokeWidth={2} />
-                          </button>
-
-                          {openEntityMenuId === row.id ? (
-                            <div
-                              role="menu"
-                              className="absolute right-0 top-9 z-20 w-44 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.14)]"
-                            >
-                              <button
-                                type="button"
-                                role="menuitem"
-                                className="block w-full px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-50"
-                                onClick={() => {
-                                  setOpenEntityMenuId(null)
-                                  setViewEntity(row)
-                                  setViewEntityDrawerClosing(false)
-                                }}
-                              >
-                                Visualizar
-                              </button>
-                              <button
-                                type="button"
-                                role="menuitem"
-                                className="block w-full px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-50"
-                                onClick={() => {
-                                  setOpenEntityMenuId(null)
-                                  setAddContratoCliente(row)
-                                  setAddContratoDrawerClosing(false)
-                                }}
-                              >
-                                Adicionar Contratos
-                              </button>
-                            </div>
-                          ) : null}
-                        </div>
+                        <AdminClienteEntidadeActionsMenu
+                          open={openEntityMenuId === row.id}
+                          canDelete={canDeleteClientes}
+                          onToggle={() =>
+                            setOpenEntityMenuId((current) => (current === row.id ? null : row.id))
+                          }
+                          onClose={() => setOpenEntityMenuId(null)}
+                          onView={() => {
+                            setViewEntity(row)
+                            setViewEntityDrawerClosing(false)
+                          }}
+                          onViewUbts={() => {
+                            setViewUbtsCliente(row)
+                            setViewUbtsDrawerClosing(false)
+                          }}
+                          onAddContrato={() => {
+                            setAddContratoCliente(row)
+                            setAddContratoDrawerClosing(false)
+                          }}
+                          onChangeStatus={() => {
+                            setPendingStatusChange(row)
+                          }}
+                          onDelete={() => {
+                            setPendingDelete({
+                              clienteId: row.id,
+                              prefeitura: row.prefeitura,
+                            })
+                          }}
+                        />
                       </td>
                     </tr>
 
@@ -377,11 +464,13 @@ export function AdminClientesTable({
                             </p>
                           ) : (
                             <div className="min-w-0 max-w-full overflow-x-auto rounded-xl border border-gray-200 bg-white">
-                              <table className="w-full min-w-[36rem] text-center text-sm">
+                              <table className="w-full min-w-[52rem] text-center text-sm">
                                 <thead>
                                   <tr className="border-b border-gray-100 bg-[var(--app-surface-muted)] text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                                    <th className="px-4 py-2.5 text-center">Nome do contrato</th>
                                     <th className="px-4 py-2.5 text-center">Data da assinatura</th>
                                     <th className="px-4 py-2.5 text-center">Tipo de contrato</th>
+                                    <th className="px-4 py-2.5 text-center">Quantidade contratada</th>
                                     <th className="px-4 py-2.5 text-center">Utilização</th>
                                     <th className="px-4 py-2.5 text-center">Status</th>
                                     <th className="px-4 py-2.5 text-center">Ação</th>
@@ -390,13 +479,23 @@ export function AdminClientesTable({
                                 <tbody className="divide-y divide-gray-100">
                                   {row.contratos.map((contrato) => {
                                     const menuKey = `${row.id}:${contrato.id}`
+                                    const consultasContratadas =
+                                      contrato.detalhes?.consultasContratadas ?? null
                                     return (
                                       <tr key={contrato.id} className="text-gray-800">
+                                        <td className="px-4 py-2.5 text-center text-xs font-medium text-gray-800">
+                                          {contrato.numero?.trim() || '—'}
+                                        </td>
                                         <td className="whitespace-nowrap px-4 py-2.5 text-center text-xs text-gray-700">
                                           {contrato.dataAssinatura}
                                         </td>
                                         <td className="px-4 py-2.5 text-center text-xs font-medium text-gray-800">
-                                          {adminClienteContratoTipoLabels[contrato.tipo]}
+                                          {resolveClienteContratoTipoLabel(contratoTipoLabels, contrato.tipo)}
+                                        </td>
+                                        <td className="px-4 py-2.5 text-center text-xs text-gray-700">
+                                          {consultasContratadas == null
+                                            ? '—'
+                                            : formatAdminClientesNumber(consultasContratadas)}
                                         </td>
                                         <td className="px-4 py-2.5 text-center text-xs text-gray-700">
                                           {formatContratoUtilizacao(contrato)}
@@ -412,6 +511,7 @@ export function AdminClientesTable({
                                           <AdminClienteContratoActionsMenu
                                             contrato={contrato}
                                             open={openContratoMenuKey === menuKey}
+                                            canDelete={canDeleteClientes}
                                             onToggle={() =>
                                               setOpenContratoMenuKey((current) =>
                                                 current === menuKey ? null : menuKey,
@@ -421,6 +521,14 @@ export function AdminClientesTable({
                                             onSelectAction={(action) =>
                                               requestContratoAction(row, contrato, action)
                                             }
+                                            onDeleteContrato={() => {
+                                              setPendingContratoDelete({
+                                                clienteId: row.id,
+                                                contratoId: contrato.id,
+                                                prefeitura: row.prefeitura,
+                                                contratoLabel: getContratoLabel(contrato, contratoTipoLabels),
+                                              })
+                                            }}
                                             onViewContrato={() => {
                                               setViewContrato({ cliente: row, contrato })
                                               setViewDrawerClosing(false)
@@ -444,6 +552,88 @@ export function AdminClientesTable({
           </table>
         </div>
       </DashCard>
+      </div>
+
+      <AdminClienteEntidadeDeleteConfirmModal
+        open={pendingDelete !== null}
+        prefeitura={pendingDelete?.prefeitura ?? ''}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (!pendingDelete) return
+          const snapshot = pendingDelete
+          setPendingDelete(null)
+
+          requestPin({
+            action: 'delete_entidade',
+            label: snapshot.prefeitura,
+            onConfirmed: async (pin) => {
+              const token = getAccessToken()
+              if (!token) return
+
+              try {
+                await deleteClienteEntidade(token, snapshot.clienteId, pin)
+                onRemoveRow(snapshot.clienteId)
+                if (viewEntity?.id === snapshot.clienteId) {
+                  setViewEntity(null)
+                  setViewEntityDrawerClosing(false)
+                }
+                if (addContratoCliente?.id === snapshot.clienteId) {
+                  setAddContratoCliente(null)
+                  setAddContratoDrawerClosing(false)
+                }
+                await onReload()
+                onToast('Entidade excluída com sucesso.')
+              } catch (error) {
+                const message = isAdminClientesApiError(error)
+                  ? error.message
+                  : 'Não foi possível excluir a entidade.'
+                onToast(message)
+              }
+            },
+          })
+        }}
+      />
+
+      <AdminClienteContratoDeleteConfirmModal
+        open={pendingContratoDelete !== null}
+        prefeitura={pendingContratoDelete?.prefeitura ?? ''}
+        contratoLabel={pendingContratoDelete?.contratoLabel ?? ''}
+        onCancel={() => setPendingContratoDelete(null)}
+        onConfirm={() => {
+          if (!pendingContratoDelete) return
+          const snapshot = pendingContratoDelete
+          setPendingContratoDelete(null)
+
+          requestPin({
+            action: 'delete_contrato',
+            label: `${snapshot.prefeitura} · ${snapshot.contratoLabel}`,
+            onConfirmed: async (pin) => {
+              const token = getAccessToken()
+              if (!token) return
+
+              try {
+                const updated = await deleteClienteContrato(
+                  token,
+                  snapshot.contratoId,
+                  pin,
+                )
+                onUpsertRow(updated)
+                if (viewContrato?.contrato.id === snapshot.contratoId) {
+                  setViewContrato(null)
+                  setViewDrawerClosing(false)
+                }
+                await onReload()
+                onToast('Contrato excluído com sucesso.')
+              } catch (error) {
+                const message = isAdminClientesApiError(error)
+                  ? error.message
+                  : 'Não foi possível excluir o contrato.'
+                onToast(message)
+              }
+            },
+          })
+        }}
+      />
 
       <AdminClienteContratoConfirmModal
         open={pendingAction !== null}
@@ -454,35 +644,80 @@ export function AdminClientesTable({
         onConfirm={confirmContratoAction}
       />
 
+      <AdminClienteEntidadeStatusModal
+        open={pendingStatusChange !== null}
+        prefeitura={pendingStatusChange?.prefeitura ?? ''}
+        currentStatus={pendingStatusChange?.status ?? 'ativa'}
+        onCancel={() => setPendingStatusChange(null)}
+        onConfirm={confirmEntidadeStatusChange}
+      />
+
       <AdminClienteEntidadeDrawer
         open={viewEntity !== null && !viewEntityDrawerClosing}
         closing={viewEntityDrawerClosing}
         cliente={viewEntity}
+        onSaveCadastro={(clienteId, payload) => {
+          const cliente = viewEntity
+          if (!cliente) return
+
+          requestPin({
+            action: 'save_entidade_edit',
+            label: cliente.prefeitura,
+            onConfirmed: async (pin) => {
+              const token = getAccessToken()
+              if (!token) return
+
+              try {
+                const row = await updateClienteEntidade(token, clienteId, {
+                  pin,
+                  ...payload,
+                })
+                onUpsertRow(row)
+                setViewEntity(row)
+                await onReload()
+                onToast('Dados cadastrais atualizados com sucesso.')
+              } catch (error) {
+                const message = isAdminClientesApiError(error)
+                  ? error.message
+                  : 'Não foi possível atualizar os dados cadastrais.'
+                onToast(message)
+                throw error
+              }
+            },
+          })
+        }}
         onSaveContacts={(clienteId, contacts) => {
-          setClientes((current) =>
-            current.map((item) =>
-              item.id === clienteId
-                ? {
-                    ...item,
-                    gestor: contacts.gestor,
-                    contatoContrato: contacts.contrato,
-                    contatoTi: contacts.ti,
-                    contatoSaude: contacts.saude,
-                  }
-                : item,
-            ),
-          )
-          setViewEntity((current) =>
-            current && current.id === clienteId
-              ? {
-                  ...current,
+          const cliente = viewEntity
+          if (!cliente) return
+
+          requestPin({
+            action: 'save_entidade_contacts',
+            label: cliente.prefeitura,
+            onConfirmed: async (pin) => {
+              const token = getAccessToken()
+              if (!token) return
+
+              try {
+                const row = await updateClienteEntidadeContacts(token, clienteId, {
+                  pin,
                   gestor: contacts.gestor,
                   contatoContrato: contacts.contrato,
                   contatoTi: contacts.ti,
                   contatoSaude: contacts.saude,
-                }
-              : current,
-          )
+                })
+                onUpsertRow(row)
+                setViewEntity(row)
+                await onReload()
+                onToast('Contatos atualizados com sucesso.')
+              } catch (error) {
+                const message = isAdminClientesApiError(error)
+                  ? error.message
+                  : 'Não foi possível atualizar os contatos.'
+                onToast(message)
+                throw error
+              }
+            },
+          })
         }}
         onClose={() => setViewEntityDrawerClosing(true)}
         onTransitionEnd={() => {
@@ -498,6 +733,49 @@ export function AdminClientesTable({
         closing={viewDrawerClosing}
         cliente={viewContrato?.cliente ?? null}
         contrato={viewContrato?.contrato ?? null}
+        onSaveContrato={(contratoId, form) =>
+          new Promise((resolve, reject) => {
+            const snapshot = viewContrato
+            if (!snapshot) {
+              reject(new Error('Contrato não encontrado.'))
+              return
+            }
+
+            requestPin({
+              action: 'save_contrato_edit',
+              label: `${snapshot.cliente.prefeitura} · ${resolveClienteContratoTipoLabel(contratoTipoLabels, snapshot.contrato.tipo)}`,
+              onConfirmed: async (pin) => {
+                const token = getAccessToken()
+                if (!token) {
+                  reject(new Error('Sessão expirada. Faça login novamente.'))
+                  return
+                }
+
+                try {
+                  const payload = buildUpdateContratoPayloadFromForm(form, pin, specialties)
+                  const row = await updateClienteContrato(token, contratoId, payload)
+                  onUpsertRow(row)
+                  const updatedContrato = row.contratos.find((item) => item.id === contratoId)
+                  if (updatedContrato) {
+                    setViewContrato({ cliente: row, contrato: updatedContrato })
+                  }
+                  if (viewEntity?.id === row.id) {
+                    setViewEntity(row)
+                  }
+                  await onReload()
+                  onToast('Contrato atualizado com sucesso.')
+                  resolve()
+                } catch (error) {
+                  const message = isAdminClientesApiError(error)
+                    ? error.message
+                    : 'Não foi possível atualizar o contrato.'
+                  onToast(message)
+                  reject(new Error(message))
+                }
+              },
+            })
+          })
+        }
         onClose={() => setViewDrawerClosing(true)}
         onTransitionEnd={() => {
           if (viewDrawerClosing) {
@@ -507,10 +785,25 @@ export function AdminClientesTable({
         }}
       />
 
+      <AdminClienteUbtsDrawer
+        open={viewUbtsCliente !== null && !viewUbtsDrawerClosing}
+        closing={viewUbtsDrawerClosing}
+        cliente={viewUbtsCliente}
+        onClose={() => setViewUbtsDrawerClosing(true)}
+        onTransitionEnd={() => {
+          if (viewUbtsDrawerClosing) {
+            setViewUbtsDrawerClosing(false)
+            setViewUbtsCliente(null)
+          }
+        }}
+      />
+
       <AdminClienteAddContratoDrawer
         open={addContratoCliente !== null && !addContratoDrawerClosing}
         closing={addContratoDrawerClosing}
         cliente={addContratoCliente}
+        professions={professions}
+        specialties={specialties}
         onClose={() => setAddContratoDrawerClosing(true)}
         onTransitionEnd={() => {
           if (addContratoDrawerClosing) {
@@ -518,39 +811,51 @@ export function AdminClientesTable({
             setAddContratoCliente(null)
           }
         }}
-        onSubmit={({ contrato, contatoContrato }) => {
+        onSubmit={(form: AddContratoFormState) => {
           if (!addContratoCliente) return
-          setClientes((current) =>
-            current.map((item) =>
-              item.id === addContratoCliente.id
-                ? {
-                    ...item,
-                    contatoContrato,
-                    contratos: [contrato, ...item.contratos],
-                  }
-                : item,
-            ),
-          )
-          setViewEntity((current) =>
-            current && current.id === addContratoCliente.id
-              ? {
-                  ...current,
-                  contatoContrato,
-                  contratos: [contrato, ...current.contratos],
+          const clienteSnapshot = addContratoCliente
+
+          requestPin({
+            action: 'save_contrato_create',
+            label: clienteSnapshot.prefeitura,
+            onConfirmed: async (pin) => {
+              const token = getAccessToken()
+              if (!token) {
+                onToast('Sessão expirada. Faça login novamente.')
+                throw new Error('Sessão expirada.')
+              }
+
+              try {
+                const payload = buildCreateContratoPayloadFromForm(
+                  clienteSnapshot,
+                  form,
+                  pin,
+                  specialties,
+                )
+                const row = await createClienteContrato(token, clienteSnapshot.id, payload)
+                onUpsertRow(row)
+                if (viewEntity?.id === clienteSnapshot.id) {
+                  setViewEntity(row)
                 }
-              : current,
-          )
-          setSuccessToast('Novo contrato cadastrado com sucesso.')
+                await onReload()
+                setExpandedClienteId(clienteSnapshot.id)
+                setAddContratoDrawerClosing(true)
+                setAddContratoCliente(null)
+                onToast('Novo contrato cadastrado com sucesso.')
+              } catch (error) {
+                onToast(
+                  isAdminClientesApiError(error)
+                    ? error.message
+                    : 'Não foi possível salvar o contrato. Verifique os dados e tente novamente.',
+                )
+                throw error
+              }
+            },
+          })
         }}
       />
 
-      {successToast ? (
-        <div className="pointer-events-none fixed bottom-6 right-6 z-[10000]">
-          <div className="rounded-xl border border-emerald-300 bg-emerald-500 px-4 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(16,185,129,0.35)]">
-            {successToast}
-          </div>
-        </div>
-      ) : null}
+      {pinModal}
     </>
   )
 }

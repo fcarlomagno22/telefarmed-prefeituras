@@ -1,54 +1,46 @@
 import { ChevronLeft, ChevronRight, Filter, Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import {
-  adminSupportPagination,
-  adminSupportSourceLabels,
-  adminSupportTickets,
-} from '../../../data/adminSuporteMock'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { SupportTicket, SupportTicketSource, SupportTicketStatus } from '../../../data/suporteMock'
+import { useAdminAuth } from '../../../contexts/AdminAuthContext'
+import {
+  closeSupportTicket,
+  deleteSupportMessage,
+  fetchSupportTicket,
+  fetchSupportTickets,
+  isAdminSuporteApiError,
+  sendSupportReply,
+  updateSupportMessage,
+} from '../../../lib/services/admin/suporte'
+import { useAdminPageAccess } from '../../../hooks/useAdminPageAccess'
 import { SuporteStatusFilterMenu } from '../../suporte/SuporteStatusFilterMenu'
 import { SupportTicketDrawer } from '../../suporte/SupportTicketDrawer'
-import { useAdminPageAccess } from '../../../hooks/useAdminPageAccess'
 import { AdminSuporteTicketsTable } from './AdminSuporteTicketsTable'
+
+const PAGE_SIZE = 10
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
 }
 
-function filterAdminTickets(
-  query: string,
-  status: SupportTicketStatus | '',
-  source: SupportTicketSource | '',
-  tickets: SupportTicket[],
-  openOnly: boolean,
-  awaitingOnly: boolean,
-) {
-  const normalized = query.trim().toLowerCase()
-  return tickets.filter((ticket) => {
-    if (openOnly && ticket.status === 'encerrado') return false
-    if (awaitingOnly && ticket.status !== 'aguardando_resposta') return false
-    if (status && ticket.status !== status) return false
-    if (source && ticket.source !== source) return false
-    if (!normalized) return true
-    const haystack = [
-      ticket.number,
-      ticket.subject,
-      ticket.category,
-      ticket.municipalityName ?? '',
-      ticket.ubtName ?? '',
-      ticket.openedByName ?? '',
-      ticket.source ? adminSupportSourceLabels[ticket.source] : '',
-    ]
-      .join(' ')
-      .toLowerCase()
-    return haystack.includes(normalized)
-  })
+type AdminSuporteMainPanelProps = {
+  awaitingCount: number
+  onNotify: (message: string, variant?: 'success' | 'error') => void
+  onRefreshKpis: () => Promise<void> | void
 }
 
-export function AdminSuporteMainPanel() {
+export function AdminSuporteMainPanel({
+  awaitingCount,
+  onNotify,
+  onRefreshKpis,
+}: AdminSuporteMainPanelProps) {
   const { pageAccess } = useAdminPageAccess('suporte')
-  const [tickets, setTickets] = useState<SupportTicket[]>(adminSupportTickets)
+  const { getAccessToken } = useAdminAuth()
+  const [tickets, setTickets] = useState<SupportTicket[]>([])
+  const [total, setTotal] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const [isLoadingTickets, setIsLoadingTickets] = useState(true)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<SupportTicketStatus | ''>('')
   const [sourceFilter, setSourceFilter] = useState<SupportTicketSource | ''>('')
   const [openOnly, setOpenOnly] = useState(true)
@@ -56,44 +48,103 @@ export function AdminSuporteMainPanel() {
   const [filterOpen, setFilterOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null)
+  const [isLoadingTicket, setIsLoadingTicket] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerClosing, setDrawerClosing] = useState(false)
+  const hasLoadedTicketsRef = useRef(false)
 
-  const awaitingCount = useMemo(
-    () => tickets.filter((ticket) => ticket.status === 'aguardando_resposta').length,
-    [tickets],
-  )
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search), 300)
+    return () => window.clearTimeout(timer)
+  }, [search])
 
-  const pageSize = adminSupportPagination.pageSize
+  const loadTickets = useCallback(async () => {
+    const token = getAccessToken()
+    if (!token) {
+      setIsLoadingTickets(false)
+      return
+    }
 
-  const filteredTickets = useMemo(
-    () =>
-      filterAdminTickets(
-        search,
-        statusFilter,
-        sourceFilter,
-        tickets,
+    if (!hasLoadedTicketsRef.current) {
+      setIsLoadingTickets(true)
+    }
+    try {
+      const result = await fetchSupportTickets(token, {
+        search: debouncedSearch,
+        status: statusFilter || undefined,
+        source: sourceFilter || undefined,
         openOnly,
         awaitingOnly,
-      ),
-    [awaitingOnly, openOnly, search, sourceFilter, statusFilter, tickets],
+        page: currentPage,
+        pageSize: PAGE_SIZE,
+      })
+      setTickets(result.tickets)
+      setTotal(result.total)
+      setTotalPages(result.totalPages)
+      hasLoadedTicketsRef.current = true
+    } catch (error) {
+      const message = isAdminSuporteApiError(error)
+        ? error.message
+        : 'Não foi possível carregar os chamados.'
+      onNotify(message, 'error')
+    } finally {
+      setIsLoadingTickets(false)
+    }
+  }, [
+    awaitingOnly,
+    currentPage,
+    debouncedSearch,
+    getAccessToken,
+    onNotify,
+    openOnly,
+    sourceFilter,
+    statusFilter,
+  ])
+
+  useEffect(() => {
+    void loadTickets()
+  }, [loadTickets])
+
+  const safePage = Math.min(currentPage, totalPages)
+  const showingFrom = total === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1
+  const showingTo = Math.min(safePage * PAGE_SIZE, total)
+
+  const applyTicketUpdate = useCallback(
+    (updated: SupportTicket) => {
+      setTickets((current) =>
+        current.map((ticket) => (ticket.id === updated.id ? { ...ticket, ...updated } : ticket)),
+      )
+      setSelectedTicket((current) => (current?.id === updated.id ? updated : current))
+    },
+    [],
   )
 
-  const totalFiltered = filteredTickets.length
-  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize))
-  const safePage = Math.min(currentPage, totalPages)
-  const paginatedTickets = useMemo(() => {
-    const start = (safePage - 1) * pageSize
-    return filteredTickets.slice(start, start + pageSize)
-  }, [filteredTickets, safePage, pageSize])
+  const refreshAfterMutation = useCallback(async () => {
+    await Promise.all([loadTickets(), onRefreshKpis()])
+  }, [loadTickets, onRefreshKpis])
 
-  const showingFrom = totalFiltered === 0 ? 0 : (safePage - 1) * pageSize + 1
-  const showingTo = Math.min(safePage * pageSize, totalFiltered)
+  async function openTicket(ticket: SupportTicket) {
+    const token = getAccessToken()
+    if (!token) return
 
-  function openTicket(ticket: SupportTicket) {
-    setSelectedTicket(ticket)
     setDrawerClosing(false)
     setDrawerOpen(true)
+    setSelectedTicket(ticket)
+    setIsLoadingTicket(true)
+
+    try {
+      const full = await fetchSupportTicket(token, ticket.id)
+      setSelectedTicket(full)
+    } catch (error) {
+      const message = isAdminSuporteApiError(error)
+        ? error.message
+        : 'Não foi possível abrir o chamado.'
+      onNotify(message, 'error')
+      setDrawerOpen(false)
+      setSelectedTicket(null)
+    } finally {
+      setIsLoadingTicket(false)
+    }
   }
 
   function closeDrawer() {
@@ -108,12 +159,45 @@ export function AdminSuporteMainPanel() {
     }
   }
 
-  function handleTicketUpdate(updated: SupportTicket) {
-    setTickets((current) =>
-      current.map((ticket) => (ticket.id === updated.id ? updated : ticket)),
-    )
-    setSelectedTicket((current) => (current?.id === updated.id ? updated : current))
-  }
+  const supportApi = useMemo(() => {
+    if (!selectedTicket) return undefined
+
+    const ticketId = selectedTicket.id
+
+    return {
+      onSendReply: async (body: string, files: File[]) => {
+        const token = getAccessToken()
+        if (!token) throw new Error('Sessão expirada.')
+        const updated = await sendSupportReply(token, ticketId, body, files)
+        applyTicketUpdate(updated)
+        void refreshAfterMutation()
+        return updated
+      },
+      onEditMessage: async (messageId: string, body: string) => {
+        const token = getAccessToken()
+        if (!token) throw new Error('Sessão expirada.')
+        const updated = await updateSupportMessage(token, ticketId, messageId, body)
+        applyTicketUpdate(updated)
+        return updated
+      },
+      onDeleteMessage: async (messageId: string) => {
+        const token = getAccessToken()
+        if (!token) throw new Error('Sessão expirada.')
+        const updated = await deleteSupportMessage(token, ticketId, messageId)
+        applyTicketUpdate(updated)
+        return updated
+      },
+      onCloseTicket: async () => {
+        const token = getAccessToken()
+        if (!token) throw new Error('Sessão expirada.')
+        const updated = await closeSupportTicket(token, ticketId)
+        applyTicketUpdate(updated)
+        await refreshAfterMutation()
+        return updated
+      },
+      onError: (message: string) => onNotify(message, 'error'),
+    }
+  }, [applyTicketUpdate, getAccessToken, onNotify, refreshAfterMutation, selectedTicket])
 
   return (
     <>
@@ -174,6 +258,7 @@ export function AdminSuporteMainPanel() {
                 onClick={() => {
                   setOpenOnly(false)
                   setAwaitingOnly(false)
+                  setStatusFilter('')
                   setCurrentPage(1)
                 }}
                 className={[
@@ -190,6 +275,7 @@ export function AdminSuporteMainPanel() {
                 onClick={() => {
                   setOpenOnly(true)
                   setAwaitingOnly(false)
+                  setStatusFilter('')
                   setCurrentPage(1)
                 }}
                 className={[
@@ -252,13 +338,19 @@ export function AdminSuporteMainPanel() {
           </div>
         </div>
 
-        <AdminSuporteTicketsTable tickets={paginatedTickets} onOpenTicket={openTicket} />
+        {isLoadingTickets ? (
+          <div className="flex flex-1 items-center justify-center py-16 text-sm text-gray-500">
+            Carregando chamados…
+          </div>
+        ) : (
+          <AdminSuporteTicketsTable tickets={tickets} onOpenTicket={openTicket} />
+        )}
 
         <footer className="flex shrink-0 flex-col gap-3 border-t border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p className="text-xs text-gray-500">
-            {totalFiltered === 0
+            {total === 0
               ? 'Nenhum chamado na lista'
-              : `Mostrando ${showingFrom} a ${showingTo} de ${formatNumber(totalFiltered)} chamado${totalFiltered === 1 ? '' : 's'}`}
+              : `Mostrando ${showingFrom} a ${showingTo} de ${formatNumber(total)} chamado${total === 1 ? '' : 's'}`}
           </p>
           <nav className="flex items-center gap-1" aria-label="Paginação de chamados">
             <button
@@ -303,10 +395,11 @@ export function AdminSuporteMainPanel() {
         open={drawerOpen}
         closing={drawerClosing}
         replyAsSupport
+        isLoading={isLoadingTicket}
         canReply={pageAccess.canInsert}
         canManageMessages={pageAccess.canEdit || pageAccess.canDelete}
         canCloseTicket={pageAccess.canEdit}
-        onTicketUpdate={handleTicketUpdate}
+        supportApi={supportApi}
         onClose={closeDrawer}
         onTransitionEnd={handleDrawerTransitionEnd}
       />

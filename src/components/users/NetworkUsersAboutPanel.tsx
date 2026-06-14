@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { brand } from '../../config/brand'
 import {
   networkUsersAbout,
+  type NetworkUsersAbout,
   type NetworkUsersAgeSlice,
   type NetworkUsersGenderSlice,
   type NetworkUsersNeighborhoodSlice,
@@ -233,9 +234,10 @@ function TopNeighborhoodBars({ slices }: { slices: NetworkUsersNeighborhoodSlice
   )
 }
 
-export function NetworkUsersAboutPanel() {
+export function NetworkUsersAboutPanel({ about }: { about?: NetworkUsersAbout | null }) {
   const illustrationUrl = brand.dashboardUsersAboutImageUrl
-  const { ageDistribution, genderDistribution, topNeighborhoodsByAppointments } = networkUsersAbout
+  const data = about ?? networkUsersAbout
+  const { ageDistribution, genderDistribution, topNeighborhoodsByAppointments } = data
 
   return (
     <aside className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">

@@ -4,6 +4,7 @@ import {
   ChevronRight,
   ClipboardCheck,
   FileText,
+  Loader2,
   Stethoscope,
   Users,
   X,
@@ -11,27 +12,48 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  adminClienteContratoTipoLabels,
   type AdminClienteRow,
-} from '../../../../data/adminClientesMock'
+} from '../../../../types/adminClientes'
 import { getAdminEntidadeCidadeOptions } from '../../../../data/adminEntidadeCidades'
-import { specialties } from '../../../../data/specialties'
+import { useAdminClientesClinicoCatalog } from '../../../../hooks/useAdminClientesClinicoCatalog'
+import {
+  getClienteContratoTipoOption,
+  useAdminClientesContratoCatalog,
+} from '../../../../hooks/useAdminClientesContratoCatalog'
 import { fetchIbgeCitiesByUf, fetchIbgeStates } from '../../../../data/ibgeLocalidadesApi'
-import { maskBirthDate, maskCnpj, maskCurrencyBrl, maskPhone } from '../../../../utils/masks'
+import {
+  CnpjReceitaFederalLookupError,
+  fetchEmpresaDataByCnpjReceitaFederal,
+} from '../../../../utils/cnpj/fetchCnpjReceitaFederal'
+import { maskBirthDate, maskCnpj, maskCurrencyBrl, maskIntegerPtBr, maskPhone } from '../../../../utils/masks'
+import { AttendanceFieldHighlight } from '../../../dashboard/AttendanceFieldHighlight'
 import { CustomSelect } from '../../../ui/CustomSelect'
 import { AdminClienteStatusBadge } from '../AdminClienteStatusBadge'
+import { AdminClienteContratoPacientesTerritorioField } from '../AdminClienteContratoPacientesTerritorioField'
+import {
+  AdminClienteContratoEspecialidadesPanel,
+  getVisibleSpecialtiesForContratoForm,
+} from '../AdminClienteContratoEspecialidadesPanel'
+import {
+  selectAllVisibleSpecialties,
+  setSpecialtiesSelectionForProfession,
+  toggleProfessionInContratoForm,
+} from '../adminClienteContratoCatalogUtils'
+import { hasPositiveCurrency } from '../adminClienteContratoForm'
+import { groupSpecialtiesBySelectedProfessions } from '../adminClienteContratoPricing'
 import { AdminEntidadeCadastroFlowStepper } from './AdminEntidadeCadastroFlowStepper'
+import { EntidadeLogoCropCard } from './EntidadeLogoCropCard'
 import {
   adminEntidadeCadastroFlowSteps,
-  adminEntidadeContratoTipoOptions,
   adminEntidadeStatusOptions,
   adminEntidadeTelefoneTipoOptions,
   adminEntidadeUfOptions,
-  buildAdminClienteRowFromCadastroForm,
   createEmptyAdminEntidadeCadastroForm,
   isPacoteOuMensal,
   resolveAdminEntidadeCadastroStepIndex,
   validateAdminEntidadeCadastroStep,
+  isAdminEntidadeCadastroStepReady,
+  resolveFirstInvalidCadastroStep,
   type AdminEntidadeCadastroFormState,
   type AdminEntidadeCadastroStep,
 } from './adminEntidadeCadastroTypes'
@@ -49,16 +71,77 @@ const sectionCardClass = 'rounded-2xl border border-gray-200/80 bg-white px-4 py
 const fieldsetClass = 'rounded-2xl border border-gray-200/80 bg-white px-4 py-4 shadow-sm'
 const legendClass = 'px-1 text-[11px] font-bold uppercase tracking-wide text-gray-600'
 
-const sortedSpecialties = [...specialties].sort((a, b) =>
-  a.name.localeCompare(b.name, 'pt-BR'),
-)
+const batchLoteActionButtonClass =
+  'inline-flex h-10 shrink-0 items-center justify-center rounded-xl px-3 text-xs font-semibold whitespace-nowrap'
+
+function hasCurrencyInput(value: string) {
+  return value.replace(/\D/g, '').length > 0
+}
+
+function applyBatchValueToPrecos(
+  precos: Record<string, string>,
+  targetIds: string[],
+  batchVal: string,
+) {
+  const next = { ...precos }
+  let applied = 0
+  let skipped = 0
+
+  for (const id of targetIds) {
+    if (hasPositiveCurrency(next[id] ?? '')) {
+      skipped += 1
+      continue
+    }
+    next[id] = batchVal
+    applied += 1
+  }
+
+  return { next, applied, skipped }
+}
+
+function buildExcedenteBatchFeedback(
+  batchVal: string,
+  applied: number,
+  skipped: number,
+  scope: 'all' | 'selected',
+): string {
+  if (applied === 0 && skipped > 0) {
+    return scope === 'all'
+      ? 'Todas as especialidades já tinham excedente definido. Nenhum campo foi alterado.'
+      : 'Todas as incluídas no lote já tinham excedente. Nenhum campo foi alterado.'
+  }
+  if (applied === 0) {
+    return 'Nenhuma especialidade elegível para receber o excedente em lote.'
+  }
+  if (skipped === 0) {
+    return scope === 'all'
+      ? `Valor ${batchVal} aplicado em ${applied} excedente(s) vazio(s) do contrato.`
+      : `Valor ${batchVal} aplicado em ${applied} especialidade(s) do lote sem excedente.`
+  }
+  return scope === 'all'
+    ? `Valor ${batchVal} aplicado em ${applied} excedente(s) vazio(s). ${skipped} já tinham valor e foram mantidos.`
+    : `Valor ${batchVal} aplicado em ${applied} do lote sem excedente. ${skipped} com valor anterior mantido(s).`
+}
+
+function setExcedenteLoteSelection(
+  current: Set<string>,
+  specialtyIds: string[],
+  selected: boolean,
+): Set<string> {
+  const next = new Set(current)
+  for (const specialtyId of specialtyIds) {
+    if (selected) next.add(specialtyId)
+    else next.delete(specialtyId)
+  }
+  return next
+}
 
 type AdminEntidadeCadastroDrawerProps = {
   open: boolean
   closing: boolean
   onClose: () => void
   onTransitionEnd: () => void
-  onComplete: (row: AdminClienteRow) => void
+  onSubmit: (form: AdminEntidadeCadastroFormState) => Promise<void>
 }
 
 function patchForm(
@@ -66,6 +149,22 @@ function patchForm(
   patch: Partial<AdminEntidadeCadastroFormState>,
 ): AdminEntidadeCadastroFormState {
   return { ...current, ...patch }
+}
+
+function normalizeCityName(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .trim()
+    .toLowerCase()
+}
+
+function resolveMunicipioInList(cidade: string, cities: string[]) {
+  if (!cidade.trim()) return ''
+  const exact = cities.find((item) => item === cidade)
+  if (exact) return exact
+  const normalized = normalizeCityName(cidade)
+  return cities.find((item) => normalizeCityName(item) === normalized) ?? cidade
 }
 
 function ReviewRow({ label, value }: { label: string; value: string }) {
@@ -82,12 +181,24 @@ export function AdminEntidadeCadastroDrawer({
   closing,
   onClose,
   onTransitionEnd,
-  onComplete,
+  onSubmit,
 }: AdminEntidadeCadastroDrawerProps) {
+  const { professions, specialties: catalogSpecialties } = useAdminClientesClinicoCatalog()
+  const { contractTypes } = useAdminClientesContratoCatalog()
+  const contratoTipoOptions = useMemo(
+    () => contractTypes.map((item) => ({ value: item.id, label: item.label })),
+    [contractTypes],
+  )
+  const sortedSpecialties = useMemo(
+    () => [...catalogSpecialties].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')),
+    [catalogSpecialties],
+  )
   const [entered, setEntered] = useState(false)
   const [step, setStep] = useState<AdminEntidadeCadastroStep>('entidade')
   const [form, setForm] = useState<AdminEntidadeCadastroFormState>(createEmptyAdminEntidadeCadastroForm)
   const [stepError, setStepError] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const stepErrorRef = useRef<HTMLParagraphElement>(null)
 
   const isActive = open || closing
   const panelVisible = isActive && entered && !closing
@@ -95,20 +206,58 @@ export function AdminEntidadeCadastroDrawer({
   const stepIndex = resolveAdminEntidadeCadastroStepIndex(step)
   const isFirstStep = stepIndex === 0
   const isLastStep = step === 'revisao'
-  const pacoteOuMensal = isPacoteOuMensal(form.contratoTipo)
+  const pacoteOuMensal = isPacoteOuMensal(form.contratoModalidade)
+  const selectedContratoTipo = getClienteContratoTipoOption(contractTypes, form.contratoTipo)
+  const canAdvance = useMemo(
+    () => isAdminEntidadeCadastroStepReady(step, form),
+    [step, form],
+  )
+
+  const visibleSpecialties = useMemo(
+    () => getVisibleSpecialtiesForContratoForm(sortedSpecialties, form.professionIds),
+    [sortedSpecialties, form.professionIds],
+  )
 
   const selectedSpecialties = useMemo(
     () => sortedSpecialties.filter((item) => form.specialtyIds.has(item.id)),
-    [form.specialtyIds],
+    [form.specialtyIds, sortedSpecialties],
   )
 
   const [batchSpecialtyValue, setBatchSpecialtyValue] = useState('')
+  const [batchExcedenteValue, setBatchExcedenteValue] = useState('')
+  const [batchExcedenteFeedback, setBatchExcedenteFeedback] = useState<string | null>(null)
+  const [excedenteLoteIds, setExcedenteLoteIds] = useState<Set<string>>(() => new Set())
+
+  const groupedExcedenteSpecialties = useMemo(
+    () => groupSpecialtiesBySelectedProfessions(sortedSpecialties, form.professionIds, professions),
+    [sortedSpecialties, form.professionIds, professions],
+  )
 
   const [ufOptions, setUfOptions] = useState(adminEntidadeUfOptions)
   const [cidadeOptions, setCidadeOptions] = useState(() => getAdminEntidadeCidadeOptions(form.uf))
   const [citiesLoading, setCitiesLoading] = useState(false)
+  const [cnpjLookupLoading, setCnpjLookupLoading] = useState(false)
+  const [cnpjLookupError, setCnpjLookupError] = useState<string | null>(null)
+  const [highlightStatusInicial, setHighlightStatusInicial] = useState(false)
   const citiesCacheRef = useRef(new Map<string, string[]>())
   const statesFetchedRef = useRef(false)
+  const lastFetchedCnpjRef = useRef('')
+  const cnpjDigits = form.cnpj.replace(/\D/g, '')
+
+  useEffect(() => {
+    if (!open || contractTypes.length === 0) return
+    setForm((current) => {
+      const selected = getClienteContratoTipoOption(contractTypes, current.contratoTipo)
+      if (selected) return current
+      const first = contractTypes[0]
+      if (!first) return current
+      return {
+        ...current,
+        contratoTipo: first.id,
+        contratoModalidade: first.modalidade,
+      }
+    })
+  }, [open, contractTypes])
 
   useEffect(() => {
     if (!open) {
@@ -118,6 +267,15 @@ export function AdminEntidadeCadastroDrawer({
 
     setStep('entidade')
     setStepError(null)
+    setIsSaving(false)
+    setCnpjLookupError(null)
+    setCnpjLookupLoading(false)
+    setHighlightStatusInicial(false)
+    lastFetchedCnpjRef.current = ''
+    setBatchSpecialtyValue('')
+    setBatchExcedenteValue('')
+    setBatchExcedenteFeedback(null)
+    setExcedenteLoteIds(new Set())
     setForm(createEmptyAdminEntidadeCadastroForm())
 
     const frame = requestAnimationFrame(() => {
@@ -196,6 +354,67 @@ export function AdminEntidadeCadastroDrawer({
   }, [open, step, form.uf])
 
   useEffect(() => {
+    if (!open || step !== 'entidade') return
+    if (cnpjDigits.length !== 14) {
+      if (cnpjDigits.length < 14) lastFetchedCnpjRef.current = ''
+      return
+    }
+    if (lastFetchedCnpjRef.current === cnpjDigits) return
+
+    let cancelled = false
+    lastFetchedCnpjRef.current = cnpjDigits
+
+    async function lookupCnpj() {
+      setCnpjLookupLoading(true)
+      setCnpjLookupError(null)
+      try {
+        const data = await fetchEmpresaDataByCnpjReceitaFederal(form.cnpj)
+        if (cancelled) return
+
+        let municipio = data.cidade
+        if (data.uf) {
+          const cached = citiesCacheRef.current.get(data.uf)
+          let cities = cached
+          if (!cities?.length) {
+            try {
+              cities = await fetchIbgeCitiesByUf(data.uf)
+              citiesCacheRef.current.set(data.uf, cities)
+            } catch {
+              cities = getAdminEntidadeCidadeOptions(data.uf).map((option) => option.value)
+            }
+          }
+          municipio = resolveMunicipioInList(data.cidade, cities)
+        }
+
+        setForm((prev) => ({
+          ...prev,
+          cnpj: data.cnpj || prev.cnpj,
+          razaoSocial: data.razaoSocial || prev.razaoSocial,
+          uf: data.uf || prev.uf,
+          municipio: municipio || prev.municipio,
+          nome: prev.nome.trim() ? prev.nome : municipio || data.nomeFantasia || prev.nome,
+        }))
+        setHighlightStatusInicial(true)
+      } catch (error) {
+        if (cancelled) return
+        lastFetchedCnpjRef.current = ''
+        const message =
+          error instanceof CnpjReceitaFederalLookupError
+            ? error.message
+            : 'Não foi possível consultar o CNPJ. Tente novamente.'
+        setCnpjLookupError(message)
+      } finally {
+        if (!cancelled) setCnpjLookupLoading(false)
+      }
+    }
+
+    void lookupCnpj()
+    return () => {
+      cancelled = true
+    }
+  }, [open, step, cnpjDigits, form.cnpj])
+
+  useEffect(() => {
     if (!isActive) return
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -219,11 +438,19 @@ export function AdminEntidadeCadastroDrawer({
   }, [closing, onTransitionEnd])
 
   function updateForm(patch: Partial<AdminEntidadeCadastroFormState>) {
+    setStepError(null)
     setForm((current) => patchForm(current, patch))
   }
 
   function handleUfChange(uf: string) {
     setForm((current) => ({ ...current, uf, municipio: '' }))
+  }
+
+  function updatePrecoProfissao(professionId: string, value: string) {
+    setForm((current) => ({
+      ...current,
+      precosProfissao: { ...current.precosProfissao, [professionId]: value },
+    }))
   }
 
   function updatePrecoEspecialidade(specialtyId: string, value: string) {
@@ -241,6 +468,92 @@ export function AdminEntidadeCadastroDrawer({
         [specialtyId]: value,
       },
     }))
+  }
+
+  function updateExcedentePrecoProfissao(professionId: string, value: string) {
+    setForm((current) => ({
+      ...current,
+      excedentePrecosProfissao: {
+        ...current.excedentePrecosProfissao,
+        [professionId]: value,
+      },
+    }))
+  }
+
+  function toggleExcedenteLote(id: string) {
+    setExcedenteLoteIds((current) => {
+      const next = new Set(current)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+    setBatchExcedenteFeedback(null)
+  }
+
+  function selectAllExcedenteLote() {
+    setExcedenteLoteIds(new Set(selectedSpecialties.map((item) => item.id)))
+    setBatchExcedenteFeedback(null)
+  }
+
+  function clearAllExcedenteLote() {
+    setExcedenteLoteIds(new Set())
+    setBatchExcedenteFeedback(null)
+  }
+
+  function toggleExcedenteLoteForProfession(specialtyIds: string[], selectAll: boolean) {
+    setExcedenteLoteIds((current) => setExcedenteLoteSelection(current, specialtyIds, selectAll))
+    setBatchExcedenteFeedback(null)
+  }
+
+  function applyBatchExcedenteToAll() {
+    if (!hasCurrencyInput(batchExcedenteValue)) {
+      setBatchExcedenteFeedback('Informe o valor em lote antes de aplicar.')
+      return
+    }
+    if (selectedSpecialties.length === 0) {
+      setBatchExcedenteFeedback('Volte ao passo anterior e marque as especialidades do contrato.')
+      return
+    }
+
+    const targetIds = selectedSpecialties.map((item) => item.id)
+    const { next, applied, skipped } = applyBatchValueToPrecos(
+      form.excedentePrecosEspecialidade,
+      targetIds,
+      batchExcedenteValue,
+    )
+    setForm((current) => ({ ...current, excedentePrecosEspecialidade: next }))
+    setExcedenteLoteIds(new Set(targetIds))
+    setBatchExcedenteFeedback(
+      buildExcedenteBatchFeedback(batchExcedenteValue, applied, skipped, 'all'),
+    )
+  }
+
+  function applyBatchExcedenteToSelected() {
+    if (!hasCurrencyInput(batchExcedenteValue)) {
+      setBatchExcedenteFeedback('Informe o valor em lote antes de aplicar.')
+      return
+    }
+    if (excedenteLoteIds.size === 0) {
+      setBatchExcedenteFeedback(
+        'Marque “Incluir no lote” nas especialidades que devem receber o excedente.',
+      )
+      return
+    }
+
+    const targetIds = [...excedenteLoteIds]
+    const { next, applied, skipped } = applyBatchValueToPrecos(
+      form.excedentePrecosEspecialidade,
+      targetIds,
+      batchExcedenteValue,
+    )
+    setForm((current) => ({ ...current, excedentePrecosEspecialidade: next }))
+    setBatchExcedenteFeedback(
+      buildExcedenteBatchFeedback(batchExcedenteValue, applied, skipped, 'selected'),
+    )
+  }
+
+  function toggleProfession(professionId: string) {
+    setForm((current) => toggleProfessionInContratoForm(current, professionId, sortedSpecialties))
   }
 
   function toggleSpecialty(id: string) {
@@ -267,10 +580,7 @@ export function AdminEntidadeCadastroDrawer({
   }
 
   function selectAllSpecialties() {
-    setForm((current) => ({
-      ...current,
-      specialtyIds: new Set(sortedSpecialties.map((item) => item.id)),
-    }))
+    setForm((current) => selectAllVisibleSpecialties(current, visibleSpecialties))
   }
 
   function clearAllSpecialties() {
@@ -280,6 +590,25 @@ export function AdminEntidadeCadastroDrawer({
       precosEspecialidade: {},
       excedentePrecosEspecialidade: {},
     }))
+  }
+
+  function toggleAllSpecialtiesForProfession(
+    _professionId: string,
+    specialtyIds: string[],
+    selectAll: boolean,
+  ) {
+    setForm((current) =>
+      setSpecialtiesSelectionForProfession(current, specialtyIds, selectAll),
+    )
+  }
+
+  function showStepValidationError(targetStep: AdminEntidadeCadastroStep, error: string) {
+    setStep(targetStep)
+    setStepError(error)
+    requestAnimationFrame(() => {
+      stepErrorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      stepErrorRef.current?.focus()
+    })
   }
 
   function goBack() {
@@ -292,7 +621,7 @@ export function AdminEntidadeCadastroDrawer({
     setStepError(null)
     const error = validateAdminEntidadeCadastroStep(step, form)
     if (error) {
-      setStepError(error)
+      showStepValidationError(step, error)
       return
     }
 
@@ -300,10 +629,31 @@ export function AdminEntidadeCadastroDrawer({
     if (next) setStep(next.id)
   }
 
-  function handleSubmit() {
-    const row = buildAdminClienteRowFromCadastroForm(form)
-    onComplete(row)
-    onClose()
+  async function handleSubmit() {
+    setStepError(null)
+
+    const invalid = resolveFirstInvalidCadastroStep(form)
+    if (invalid) {
+      showStepValidationError(invalid.step, invalid.error)
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      await onSubmit(form)
+      onClose()
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Não foi possível concluir o cadastro.'
+      setStep('revisao')
+      setStepError(message)
+      requestAnimationFrame(() => {
+        stepErrorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        stepErrorRef.current?.focus()
+      })
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   if (!isActive) return null
@@ -365,15 +715,6 @@ export function AdminEntidadeCadastroDrawer({
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-5 py-4 sm:px-6">
           <AdminEntidadeCadastroFlowStepper step={step} />
 
-          {stepError ? (
-            <p
-              role="alert"
-              className="shrink-0 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-            >
-              {stepError}
-            </p>
-          ) : null}
-
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             {step === 'entidade' ? (
               <section className={`${drawerPanelShell} min-h-0 flex-1 overflow-y-auto p-5 sm:p-6`}>
@@ -381,11 +722,40 @@ export function AdminEntidadeCadastroDrawer({
                   <div className={sectionCardClass}>
                     <p className={sectionTitleClass}>Identificação</p>
                     <p className={sectionHintClass}>
-                      Razão social, CNPJ e localização. A lista de cidades segue a UF selecionada.
+                      CNPJ, razão social e localização. Logo opcional, exibido na lista.
                     </p>
                   </div>
+
+                  <EntidadeLogoCropCard
+                    value={form.logoDataUrl}
+                    onChange={(logoDataUrl) => updateForm({ logoDataUrl })}
+                    entityName={form.nome}
+                  />
+
                   <div className="grid gap-3 lg:grid-cols-12">
-                    <label className="min-w-0 lg:col-span-8">
+                    <label className="relative min-w-0 lg:col-span-3">
+                      <span className={labelClass}>CNPJ</span>
+                      <input
+                        className={`${inputClass} pr-10`}
+                        value={form.cnpj}
+                        onChange={(e) => {
+                          const cnpj = maskCnpj(e.target.value)
+                          const digits = cnpj.replace(/\D/g, '')
+                          if (digits.length < 14) lastFetchedCnpjRef.current = ''
+                          setCnpjLookupError(null)
+                          updateForm({ cnpj })
+                        }}
+                        placeholder="00.000.000/0001-00"
+                        inputMode="numeric"
+                      />
+                      {cnpjLookupLoading ? (
+                        <Loader2
+                          className="pointer-events-none absolute right-3 top-[1.85rem] h-4 w-4 animate-spin text-gray-400"
+                          aria-hidden
+                        />
+                      ) : null}
+                    </label>
+                    <label className="min-w-0 lg:col-span-9">
                       <span className={labelClass}>Razão social da entidade</span>
                       <input
                         className={inputClass}
@@ -394,17 +764,15 @@ export function AdminEntidadeCadastroDrawer({
                         placeholder="Razão social completa"
                       />
                     </label>
-                    <label className="min-w-0 lg:col-span-4">
-                      <span className={labelClass}>CNPJ</span>
-                      <input
-                        className={inputClass}
-                        value={form.cnpj}
-                        onChange={(e) => updateForm({ cnpj: maskCnpj(e.target.value) })}
-                        placeholder="00.000.000/0001-00"
-                        inputMode="numeric"
-                      />
-                    </label>
                   </div>
+                  {cnpjLookupError ? (
+                    <p role="alert" className="text-xs text-red-600">
+                      {cnpjLookupError}
+                    </p>
+                  ) : null}
+                  {cnpjLookupLoading && !cnpjLookupError ? (
+                    <p className="text-xs text-gray-500">Consultando CNPJ na Receita Federal…</p>
+                  ) : null}
 
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-12">
                     <label className="min-w-0 lg:col-span-3">
@@ -448,20 +816,31 @@ export function AdminEntidadeCadastroDrawer({
                         placeholder="Ex.: Brasília"
                       />
                     </label>
-                    <label className="lg:col-span-5">
-                      <span className={labelClass}>Status inicial</span>
-                      <CustomSelect
-                        value={form.status}
-                        onChange={(value) =>
-                          updateForm({
-                            status: value as AdminEntidadeCadastroFormState['status'],
-                          })
-                        }
-                        options={adminEntidadeStatusOptions}
-                        size="compact"
-                        className="w-full"
-                      />
-                    </label>
+                    <AttendanceFieldHighlight
+                      highlight={highlightStatusInicial}
+                      className="lg:col-span-5"
+                    >
+                      <label className="block">
+                        <span className={labelClass}>Status inicial</span>
+                        <CustomSelect
+                          value={form.status}
+                          onChange={(value) => {
+                            setHighlightStatusInicial(false)
+                            updateForm({
+                              status: value as AdminEntidadeCadastroFormState['status'],
+                            })
+                          }}
+                          options={adminEntidadeStatusOptions}
+                          size="compact"
+                          className="w-full"
+                        />
+                        {highlightStatusInicial ? (
+                          <p className="mt-1.5 text-xs font-medium text-amber-800">
+                            Confira o status da entidade antes de continuar.
+                          </p>
+                        ) : null}
+                      </label>
+                    </AttendanceFieldHighlight>
                     <label className="sm:col-span-2 lg:col-span-12">
                       <span className={labelClass}>Subtítulo / tipo</span>
                       <input
@@ -471,16 +850,6 @@ export function AdminEntidadeCadastroDrawer({
                         placeholder="Prefeitura Municipal"
                       />
                     </label>
-                  </div>
-
-                  <div className="mt-auto flex justify-center">
-                    <img
-                      src="/city.png"
-                      alt=""
-                      aria-hidden
-                      style={{ opacity: 0.25 }}
-                      className="max-h-[min(55rem,60vh)] w-full max-w-[920px] object-contain object-bottom"
-                    />
                   </div>
                 </div>
               </section>
@@ -723,12 +1092,19 @@ export function AdminEntidadeCadastroDrawer({
                       <span className={labelClass}>Tipo de contrato</span>
                       <CustomSelect
                         value={form.contratoTipo}
-                        onChange={(value) =>
+                        onChange={(value) => {
+                          const selected = getClienteContratoTipoOption(contractTypes, value)
                           updateForm({
-                            contratoTipo: value as AdminEntidadeCadastroFormState['contratoTipo'],
+                            contratoTipo: value,
+                            contratoModalidade:
+                              selected?.modalidade ?? form.contratoModalidade,
                           })
+                        }}
+                        options={
+                          contratoTipoOptions.length
+                            ? contratoTipoOptions
+                            : [{ value: form.contratoTipo, label: 'Carregando…' }]
                         }
-                        options={adminEntidadeContratoTipoOptions}
                         size="compact"
                         className="w-full"
                       />
@@ -762,17 +1138,17 @@ export function AdminEntidadeCadastroDrawer({
                         <label className="lg:col-span-3">
                           <span className={labelClass}>
                             Consultas contratadas
-                            {form.contratoTipo === 'mensal' ? ' (mensal)' : ' (pacote)'}
+                            {form.contratoModalidade === 'mensal' ? ' (mensal)' : ' (pacote)'}
                           </span>
                           <input
                             className={inputClass}
                             value={form.consultasContratadas}
                             onChange={(e) =>
                               updateForm({
-                                consultasContratadas: e.target.value.replace(/\D/g, ''),
+                                consultasContratadas: maskIntegerPtBr(e.target.value),
                               })
                             }
-                            placeholder="Ex.: 5000"
+                            placeholder="Ex.: 5.000"
                             inputMode="numeric"
                           />
                         </label>
@@ -784,6 +1160,12 @@ export function AdminEntidadeCadastroDrawer({
                       </p>
                     )}
                   </div>
+                  <AdminClienteContratoPacientesTerritorioField
+                    checked={form.aceitaPacientesOutrosMunicipios}
+                    onChange={(checked) =>
+                      updateForm({ aceitaPacientesOutrosMunicipios: checked })
+                    }
+                  />
                 </div>
               </section>
             ) : null}
@@ -793,19 +1175,20 @@ export function AdminEntidadeCadastroDrawer({
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-end justify-between gap-3">
                     <div className={sectionCardClass}>
-                      <p className={sectionTitleClass}>Especialidades e valores</p>
+                      <p className={sectionTitleClass}>Profissões, especialidades e valores</p>
                       <p className={sectionHintClass}>
-                        Marque as especialidades autorizadas e informe o valor de cada consulta —
-                        inclusive em contratos sob demanda.
+                        Selecione as profissões autorizadas e, em seguida, marque as especialidades
+                        com o valor de cada consulta.
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
                         onClick={selectAllSpecialties}
-                        className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+                        disabled={visibleSpecialties.length === 0}
+                        className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition enabled:hover:bg-gray-50 disabled:opacity-50"
                       >
-                        Selecionar todas
+                        Selecionar todas visíveis
                       </button>
                       <button
                         type="button"
@@ -816,110 +1199,85 @@ export function AdminEntidadeCadastroDrawer({
                       </button>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                    <p className="text-xs font-medium text-gray-500">
-                      {form.specialtyIds.size} de {sortedSpecialties.length} especialidades
-                      selecionadas
-                    </p>
-                    <div className="flex flex-wrap items-end gap-2">
-                      <label className="flex items-center gap-2">
-                        <span className={labelClass}>Valor em lote</span>
-                        <input
-                          className={`${inputClass} w-32`}
-                          value={batchSpecialtyValue}
-                          onChange={(e) =>
-                            setBatchSpecialtyValue(maskCurrencyBrl(e.target.value))
-                          }
-                          placeholder="R$ 0,00"
-                          inputMode="numeric"
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        disabled={!batchSpecialtyValue || form.specialtyIds.size === 0}
-                        onClick={() => {
-                          if (!batchSpecialtyValue) return
-                          setForm((current) => {
-                            if (current.specialtyIds.size === 0) return current
-                            const nextPrecos = { ...current.precosEspecialidade }
-                            for (const specialtyId of current.specialtyIds) {
-                              nextPrecos[specialtyId] = batchSpecialtyValue
-                            }
-                            return { ...current, precosEspecialidade: nextPrecos }
-                          })
-                        }}
-                        className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition enabled:hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        Aplicar a todas selecionadas
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!batchSpecialtyValue || form.specialtyIds.size === 0}
-                        onClick={() => {
-                          if (!batchSpecialtyValue) return
-                          setForm((current) => {
-                            if (current.specialtyIds.size === 0) return current
-                            const nextPrecos = { ...current.precosEspecialidade }
-                            for (const specialtyId of current.specialtyIds) {
-                              if (!nextPrecos[specialtyId]) {
-                                nextPrecos[specialtyId] = batchSpecialtyValue
+                  <AdminClienteContratoEspecialidadesPanel
+                    professions={professions}
+                    specialties={sortedSpecialties}
+                    professionIds={form.professionIds}
+                    specialtyIds={form.specialtyIds}
+                    precosProfissao={form.precosProfissao}
+                    precosEspecialidade={form.precosEspecialidade}
+                    onToggleProfession={toggleProfession}
+                    onToggleSpecialty={toggleSpecialty}
+                    onToggleAllSpecialtiesForProfession={toggleAllSpecialtiesForProfession}
+                    onPrecoProfissaoChange={(professionId, value) =>
+                      updatePrecoProfissao(professionId, maskCurrencyBrl(value))
+                    }
+                    onPrecoChange={(specialtyId, value) =>
+                      updatePrecoEspecialidade(specialtyId, maskCurrencyBrl(value))
+                    }
+                    inputClass={inputClass}
+                    labelClass={labelClass}
+                    batchControls={
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                        <p className="text-xs font-medium text-gray-500">
+                          {form.specialtyIds.size} de {visibleSpecialties.length} especialidade(s)
+                          visível(is) selecionada(s)
+                        </p>
+                        <div className="flex flex-wrap items-end gap-2">
+                          <label className="flex items-center gap-2">
+                            <span className={labelClass}>Valor em lote</span>
+                            <input
+                              className={`${inputClass} w-32`}
+                              value={batchSpecialtyValue}
+                              onChange={(e) =>
+                                setBatchSpecialtyValue(maskCurrencyBrl(e.target.value))
                               }
-                            }
-                            return { ...current, precosEspecialidade: nextPrecos }
-                          })
-                        }}
-                        className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition enabled:hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        Preencher apenas as em branco
-                      </button>
-                    </div>
-                  </div>
-                  <ul className="grid gap-2 sm:grid-cols-2">
-                    {sortedSpecialties.map((specialty) => {
-                      const checked = form.specialtyIds.has(specialty.id)
-                      return (
-                        <li key={specialty.id}>
-                          <div
-                            className={[
-                              'rounded-lg border px-3 py-2.5 transition',
-                              checked
-                                ? 'border-[var(--brand-primary)]/35 bg-[var(--brand-primary-light)]/40'
-                                : 'border-gray-200 bg-white',
-                            ].join(' ')}
+                              placeholder="R$ 0,00"
+                              inputMode="numeric"
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            disabled={!batchSpecialtyValue || form.specialtyIds.size === 0}
+                            onClick={() => {
+                              if (!batchSpecialtyValue) return
+                              setForm((current) => {
+                                if (current.specialtyIds.size === 0) return current
+                                const nextPrecos = { ...current.precosEspecialidade }
+                                for (const specialtyId of current.specialtyIds) {
+                                  nextPrecos[specialtyId] = batchSpecialtyValue
+                                }
+                                return { ...current, precosEspecialidade: nextPrecos }
+                              })
+                            }}
+                            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition enabled:hover:bg-gray-50 disabled:opacity-50"
                           >
-                            <label className="flex cursor-pointer items-center gap-2.5">
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() => toggleSpecialty(specialty.id)}
-                                className="h-4 w-4 shrink-0 rounded border-gray-300 text-[var(--brand-primary)] focus:ring-[var(--brand-primary)]"
-                              />
-                              <span className="min-w-0 flex-1 text-sm font-medium text-gray-800">
-                                {specialty.name}
-                              </span>
-                            </label>
-                            {checked ? (
-                              <label className="mt-2 block">
-                                <span className={labelClass}>Valor da consulta</span>
-                                <input
-                                  className={inputClass}
-                                  value={form.precosEspecialidade[specialty.id] ?? ''}
-                                  onChange={(e) =>
-                                    updatePrecoEspecialidade(
-                                      specialty.id,
-                                      maskCurrencyBrl(e.target.value),
-                                    )
+                            Aplicar a todas selecionadas
+                          </button>
+                          <button
+                            type="button"
+                            disabled={!batchSpecialtyValue || form.specialtyIds.size === 0}
+                            onClick={() => {
+                              if (!batchSpecialtyValue) return
+                              setForm((current) => {
+                                if (current.specialtyIds.size === 0) return current
+                                const nextPrecos = { ...current.precosEspecialidade }
+                                for (const specialtyId of current.specialtyIds) {
+                                  if (!nextPrecos[specialtyId]) {
+                                    nextPrecos[specialtyId] = batchSpecialtyValue
                                   }
-                                  placeholder="R$ 0,00"
-                                  inputMode="numeric"
-                                />
-                              </label>
-                            ) : null}
-                          </div>
-                        </li>
-                      )
-                    })}
-                  </ul>
+                                }
+                                return { ...current, precosEspecialidade: nextPrecos }
+                              })
+                            }}
+                            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition enabled:hover:bg-gray-50 disabled:opacity-50"
+                          >
+                            Preencher apenas as em branco
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  />
                 </div>
               </section>
             ) : null}
@@ -959,30 +1317,236 @@ export function AdminEntidadeCadastroDrawer({
                         </span>
                       </label>
                       {form.permiteUltrapassar ? (
-                        <ul className="grid gap-2 sm:grid-cols-2">
-                          {selectedSpecialties.map((specialty) => (
-                            <li key={specialty.id}>
-                              <label className="block rounded-lg border border-gray-200 bg-white px-3 py-2.5">
-                                <span className="block text-sm font-medium text-gray-800">
-                                  {specialty.name}
-                                </span>
-                                <span className={labelClass}>Valor de excedente</span>
+                        <>
+                          <p className="text-sm text-gray-600">
+                            Informe o excedente padrão por profissão. Especialidades podem ter valor
+                            próprio ou herdar o padrão da profissão.
+                          </p>
+                          <div className="rounded-lg border border-gray-200 bg-white p-3">
+                            <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
+                              Excedente padrão por profissão
+                            </p>
+                            <ul className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                              {professions
+                                .filter((item) => form.professionIds.has(item.id))
+                                .map((profession) => (
+                                  <li key={profession.id}>
+                                    <label className="block rounded-lg border border-gray-200 px-3 py-2">
+                                      <span className="block text-sm font-medium text-gray-800">
+                                        {profession.name}
+                                      </span>
+                                      <span className={labelClass}>Valor padrão</span>
+                                      <input
+                                        className={`${inputClass} mt-1`}
+                                        value={form.excedentePrecosProfissao[profession.id] ?? ''}
+                                        onChange={(e) =>
+                                          updateExcedentePrecoProfissao(
+                                            profession.id,
+                                            maskCurrencyBrl(e.target.value),
+                                          )
+                                        }
+                                        placeholder="R$ 0,00"
+                                        inputMode="numeric"
+                                      />
+                                    </label>
+                                  </li>
+                                ))}
+                            </ul>
+                          </div>
+
+                          <div className="flex flex-wrap items-end justify-between gap-3">
+                            <p className="text-xs font-medium text-gray-500">
+                              {excedenteLoteIds.size} de {selectedSpecialties.length} especialidade(s)
+                              no lote
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={selectAllExcedenteLote}
+                                disabled={selectedSpecialties.length === 0}
+                                className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition enabled:hover:bg-gray-50 disabled:opacity-50"
+                              >
+                                Incluir todas no lote
+                              </button>
+                              <button
+                                type="button"
+                                onClick={clearAllExcedenteLote}
+                                disabled={excedenteLoteIds.size === 0}
+                                className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition enabled:hover:bg-gray-50 disabled:opacity-50"
+                              >
+                                Remover todas do lote
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="rounded-lg border border-gray-200 bg-slate-50/70 p-3">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                              Edição em massa de excedente
+                            </p>
+                            <div className="mt-2 flex flex-wrap items-end gap-2">
+                              <label className="min-w-[180px] flex-1">
+                                <span className={labelClass}>Valor em lote</span>
                                 <input
                                   className={inputClass}
-                                  value={form.excedentePrecosEspecialidade[specialty.id] ?? ''}
-                                  onChange={(e) =>
-                                    updateExcedentePrecoEspecialidade(
-                                      specialty.id,
-                                      maskCurrencyBrl(e.target.value),
-                                    )
-                                  }
+                                  value={batchExcedenteValue}
+                                  onChange={(e) => {
+                                    setBatchExcedenteValue(maskCurrencyBrl(e.target.value))
+                                    setBatchExcedenteFeedback(null)
+                                  }}
                                   placeholder="R$ 0,00"
                                   inputMode="numeric"
                                 />
                               </label>
-                            </li>
-                          ))}
-                        </ul>
+                              <div className="flex shrink-0 flex-wrap gap-2">
+                                <button
+                                  type="button"
+                                  onClick={applyBatchExcedenteToAll}
+                                  className={[
+                                    batchLoteActionButtonClass,
+                                    'border border-gray-200 bg-white text-gray-700 transition hover:bg-gray-50',
+                                  ].join(' ')}
+                                >
+                                  Aplicar em todas
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={applyBatchExcedenteToSelected}
+                                  className={[batchLoteActionButtonClass, 'btn-brand-gradient'].join(' ')}
+                                >
+                                  Aplicar nas selecionadas
+                                </button>
+                              </div>
+                            </div>
+                            <p className="mt-2 text-xs text-gray-500">
+                              {excedenteLoteIds.size === 0
+                                ? 'Nenhuma incluída no lote. Use “Incluir no lote” na lista ou Aplicar em todas.'
+                                : `${excedenteLoteIds.size} especialidade(s) no lote. O valor preenche só excedentes ainda em R$ 0,00.`}
+                            </p>
+                            {batchExcedenteFeedback ? (
+                              <p
+                                className={[
+                                  'mt-2 rounded-lg px-3 py-2 text-xs font-medium',
+                                  batchExcedenteFeedback.includes('aplicado') ||
+                                  batchExcedenteFeedback.includes('mantid')
+                                    ? 'bg-emerald-50 text-emerald-800'
+                                    : 'bg-amber-50 text-amber-800',
+                                ].join(' ')}
+                                role="status"
+                              >
+                                {batchExcedenteFeedback}
+                              </p>
+                            ) : null}
+                          </div>
+
+                          <div className="space-y-4">
+                            {groupedExcedenteSpecialties.map(({ profession, specialties: groupSpecialties }) => {
+                              const groupSelectedSpecialties = groupSpecialties.filter((specialty) =>
+                                form.specialtyIds.has(specialty.id),
+                              )
+                              const groupSpecialtyIds = groupSelectedSpecialties.map((item) => item.id)
+                              const allGroupInLote =
+                                groupSpecialtyIds.length > 0 &&
+                                groupSpecialtyIds.every((id) => excedenteLoteIds.has(id))
+                              const someGroupInLote = groupSpecialtyIds.some((id) =>
+                                excedenteLoteIds.has(id),
+                              )
+
+                              return (
+                                <div
+                                  key={profession.id}
+                                  className="rounded-lg border border-gray-100 bg-slate-50/40 p-3"
+                                >
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
+                                      {profession.name}
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                      <button
+                                        type="button"
+                                        disabled={allGroupInLote || groupSpecialtyIds.length === 0}
+                                        onClick={() =>
+                                          toggleExcedenteLoteForProfession(groupSpecialtyIds, true)
+                                        }
+                                        className="text-xs font-semibold text-[var(--brand-primary)] transition enabled:hover:underline disabled:cursor-not-allowed disabled:text-gray-400"
+                                      >
+                                        Marcar todas
+                                      </button>
+                                      <span className="text-xs text-gray-300" aria-hidden>
+                                        |
+                                      </span>
+                                      <button
+                                        type="button"
+                                        disabled={!someGroupInLote}
+                                        onClick={() =>
+                                          toggleExcedenteLoteForProfession(groupSpecialtyIds, false)
+                                        }
+                                        className="text-xs font-semibold text-gray-600 transition enabled:hover:underline disabled:cursor-not-allowed disabled:text-gray-400"
+                                      >
+                                        Desmarcar todas
+                                      </button>
+                                    </div>
+                                  </div>
+                                  <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+                                    {groupSelectedSpecialties.map((specialty) => {
+                                      const excedente =
+                                        form.excedentePrecosEspecialidade[specialty.id] ?? ''
+                                      const inLote = excedenteLoteIds.has(specialty.id)
+                                      const professionDefault =
+                                        form.excedentePrecosProfissao[profession.id] ?? ''
+
+                                      return (
+                                        <li
+                                          key={specialty.id}
+                                          className={[
+                                            'rounded-lg border px-3 py-2 transition',
+                                            inLote
+                                              ? 'border-[var(--brand-primary)]/25 bg-orange-50/40'
+                                              : 'border-gray-200 bg-white',
+                                          ].join(' ')}
+                                        >
+                                          <div className="flex items-center justify-between gap-2">
+                                            <p className="text-sm font-medium text-gray-800">
+                                              {specialty.name}
+                                            </p>
+                                            <label className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                                              <input
+                                                type="checkbox"
+                                                checked={inLote}
+                                                onChange={() => toggleExcedenteLote(specialty.id)}
+                                              />
+                                              Incluir no lote
+                                            </label>
+                                          </div>
+                                          <label className="mt-2 block">
+                                            <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">
+                                              Valor excedente
+                                            </span>
+                                            <input
+                                              className={`${inputClass} mt-1`}
+                                              value={excedente}
+                                              onChange={(e) =>
+                                                updateExcedentePrecoEspecialidade(
+                                                  specialty.id,
+                                                  maskCurrencyBrl(e.target.value),
+                                                )
+                                              }
+                                              placeholder={
+                                                professionDefault
+                                                  ? `Padrão: ${professionDefault}`
+                                                  : 'R$ 0,00'
+                                              }
+                                              inputMode="numeric"
+                                            />
+                                          </label>
+                                        </li>
+                                      )
+                                    })}
+                                  </ul>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </>
                       ) : (
                         <p className="text-sm text-gray-500">
                           Com a ultrapassagem desativada, novas consultas além do limite serão
@@ -1011,6 +1575,20 @@ export function AdminEntidadeCadastroDrawer({
                       Entidade
                     </h3>
                     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      <div className="rounded-lg border border-gray-100 bg-slate-50/80 px-3 py-2 sm:col-span-2 lg:col-span-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                          Logo
+                        </p>
+                        {form.logoDataUrl ? (
+                          <img
+                            src={form.logoDataUrl}
+                            alt=""
+                            className="mt-2 h-14 w-14 rounded-xl border border-gray-200 object-cover"
+                          />
+                        ) : (
+                          <p className="mt-1 text-sm font-medium text-gray-500">Não enviado</p>
+                        )}
+                      </div>
                       <ReviewRow label="Nome" value={form.nome} />
                       <ReviewRow label="Subtítulo" value={form.subtitulo} />
                       <ReviewRow label="Razão social" value={form.razaoSocial} />
@@ -1058,11 +1636,19 @@ export function AdminEntidadeCadastroDrawer({
                     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                       <ReviewRow
                         label="Tipo"
-                        value={adminClienteContratoTipoLabels[form.contratoTipo]}
+                        value={(selectedContratoTipo?.label ?? form.contratoTipo) || '—'}
                       />
                       <ReviewRow label="Numero" value={form.numeroContrato} />
                       <ReviewRow label="Inicio da vigencia" value={form.vigenciaInicio} />
                       <ReviewRow label="Fim da vigencia" value={form.vigenciaFim} />
+                      <ReviewRow
+                        label="Pacientes de outros municípios"
+                        value={
+                          form.aceitaPacientesOutrosMunicipios
+                            ? 'Aceitos'
+                            : 'Apenas do município contratante'
+                        }
+                      />
                       {pacoteOuMensal ? (
                         <>
                           <ReviewRow
@@ -1085,6 +1671,25 @@ export function AdminEntidadeCadastroDrawer({
                         />
                       )}
                     </div>
+                  </section>
+                  <section className="space-y-2">
+                    <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-gray-500">
+                      <Stethoscope className="h-3.5 w-3.5" />
+                      Profissões ({form.professionIds.size})
+                    </h3>
+                    <ul className="flex flex-wrap gap-2">
+                      {professions
+                        .filter((item) => form.professionIds.has(item.id))
+                        .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+                        .map((profession) => (
+                          <li
+                            key={profession.id}
+                            className="rounded-lg border border-gray-100 bg-slate-50/80 px-3 py-1.5 text-sm font-medium text-gray-800"
+                          >
+                            {profession.name}
+                          </li>
+                        ))}
+                    </ul>
                   </section>
                   <section className="space-y-2">
                     <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-gray-500">
@@ -1116,11 +1721,24 @@ export function AdminEntidadeCadastroDrawer({
           </div>
         </div>
 
-        <footer className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-gray-200/80 bg-white/90 px-5 py-3.5 backdrop-blur sm:px-6">
+        <footer className="shrink-0 space-y-3 border-t border-gray-200/80 bg-white/90 px-5 py-3.5 backdrop-blur sm:px-6">
+          {stepError ? (
+            <p
+              ref={stepErrorRef}
+              role="alert"
+              tabIndex={-1}
+              className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 outline-none"
+            >
+              {stepError}
+            </p>
+          ) : null}
+
+          <div className="flex flex-wrap items-center justify-between gap-2">
           <button
             type="button"
             onClick={isFirstStep ? onClose : goBack}
-            className="inline-flex h-11 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+            disabled={isSaving}
+            className="inline-flex h-11 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <ChevronLeft className="h-4 w-4" strokeWidth={2} />
             {isFirstStep ? 'Cancelar' : 'Voltar'}
@@ -1129,22 +1747,31 @@ export function AdminEntidadeCadastroDrawer({
           {isLastStep ? (
             <button
               type="button"
-              onClick={handleSubmit}
-              className="btn-brand-gradient inline-flex h-11 items-center gap-2 rounded-xl px-8 text-sm font-semibold shadow-[0_8px_20px_rgba(255,107,0,0.22)]"
+              onClick={() => void handleSubmit()}
+              disabled={isSaving || !canAdvance}
+              aria-disabled={isSaving || !canAdvance}
+              className="btn-brand-gradient inline-flex h-11 items-center gap-2 rounded-xl px-8 text-sm font-semibold shadow-[0_8px_20px_rgba(255,107,0,0.22)] disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none"
             >
-              <ClipboardCheck className="h-4 w-4" strokeWidth={2.25} />
-              Concluir cadastro
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.25} />
+              ) : (
+                <ClipboardCheck className="h-4 w-4" strokeWidth={2.25} />
+              )}
+              {isSaving ? 'Salvando…' : 'Concluir cadastro'}
             </button>
           ) : (
             <button
               type="button"
               onClick={goNext}
-              className="btn-brand-gradient inline-flex h-11 items-center gap-2 rounded-xl px-6 text-sm font-semibold shadow-[0_8px_20px_rgba(255,107,0,0.22)]"
+              disabled={isSaving || !canAdvance}
+              aria-disabled={isSaving || !canAdvance}
+              className="btn-brand-gradient inline-flex h-11 items-center gap-2 rounded-xl px-6 text-sm font-semibold shadow-[0_8px_20px_rgba(255,107,0,0.22)] disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none"
             >
               Continuar
               <ChevronRight className="h-4 w-4" strokeWidth={2} />
             </button>
           )}
+          </div>
         </footer>
       </aside>
     </div>,

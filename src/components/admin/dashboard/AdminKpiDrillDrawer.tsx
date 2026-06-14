@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { adminKpiDrillTitles, type AdminKpiDrillKind } from '../../../data/adminDashboardMock'
+import { adminKpiDrillTitles, type AdminKpiDrillKind } from '../../../types/adminDashboard'
 
 export type AdminKpiDrillRow = {
   label: string

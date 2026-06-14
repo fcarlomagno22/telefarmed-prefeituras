@@ -4,23 +4,28 @@ import { Skeleton } from '../../ui/Skeleton'
 const KPI_SKELETON_GRID = {
   responsive: 'grid grid-cols-1 gap-4',
   'grid-3x2': 'grid h-full min-h-0 grid-cols-3 grid-rows-2 gap-3',
+  'grid-1x6': 'grid w-full min-w-0 grid-cols-6 gap-2 sm:gap-3',
 } as const
 
 export function KpiCardsRowSkeleton({
   count,
   className = 'gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6',
   layout = 'responsive',
+  variant = 'default',
 }: {
   count: number
   className?: string
   layout?: keyof typeof KPI_SKELETON_GRID
+  variant?: 'default' | 'centered'
 }) {
   const gridClass =
     layout === 'grid-3x2'
       ? KPI_SKELETON_GRID['grid-3x2']
-      : [KPI_SKELETON_GRID.responsive, className].filter(Boolean).join(' ')
+      : layout === 'grid-1x6'
+        ? KPI_SKELETON_GRID['grid-1x6']
+        : [KPI_SKELETON_GRID.responsive, className].filter(Boolean).join(' ')
 
-  const stacked = layout === 'grid-3x2'
+  const stacked = layout === 'grid-3x2' || layout === 'grid-1x6' || variant === 'centered'
 
   return (
     <div className={gridClass}>

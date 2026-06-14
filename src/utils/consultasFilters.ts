@@ -1,4 +1,5 @@
 import type { ConsultationRecord } from '../data/consultasMock'
+import { getDefaultConsultasPeriod } from './consultasPeriod'
 import { onlyDigits } from './lgpdDisplay'
 
 export type ConsultasFilters = {
@@ -200,9 +201,10 @@ export function applyConsultasFilters(
 }
 
 export function countActiveConsultasFilters(filters: ConsultasFilters): number {
+  const defaultPeriod = getDefaultConsultasPeriod()
   let count = 0
-  if (filters.periodStart !== defaultConsultasFilters.periodStart) count += 1
-  if (filters.periodEnd !== defaultConsultasFilters.periodEnd) count += 1
+  if (filters.periodStart !== defaultPeriod.start) count += 1
+  if (filters.periodEnd !== defaultPeriod.end) count += 1
   if (filters.specialty) count += 1
   if (filters.doctor) count += 1
   if (filters.neighborhood) count += 1

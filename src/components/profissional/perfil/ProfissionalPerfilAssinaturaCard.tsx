@@ -42,9 +42,12 @@ export function ProfissionalPerfilAssinaturaCard({
   const {
     certificado: cert,
     vincularOpen,
+    isSubmittingA1,
+    a1Error,
     openVincularModal,
     closeVincularModal,
     vincularCertificadoConselho,
+    enviarCertificadoA1,
   } = useProfissionalPerfilCertificado({ profile })
   const status = profissionalPerfilCertificadoStatusConfig[cert.status]
 
@@ -55,7 +58,7 @@ export function ProfissionalPerfilAssinaturaCard({
   )
 
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [selectedFileName, setSelectedFileName] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [certPassword, setCertPassword] = useState('')
 
   const isConselhoAtivo = cert.modo === 'conselho_nuvem' && cert.status === 'ativo'
@@ -186,7 +189,7 @@ export function ProfissionalPerfilAssinaturaCard({
           className="sr-only"
           onChange={(e) => {
             const file = e.target.files?.[0]
-            if (file && isCertificadoFile(file)) setSelectedFileName(file.name)
+            if (file && isCertificadoFile(file)) setSelectedFile(file)
             e.target.value = ''
           }}
         />
@@ -198,8 +201,8 @@ export function ProfissionalPerfilAssinaturaCard({
         >
           <CloudUpload className="h-4 w-4 text-[var(--brand-primary)]" aria-hidden />
           <span className="mt-1 text-[11px] text-gray-700">
-            {selectedFileName ? (
-              <span className="font-semibold text-gray-900">{selectedFileName}</span>
+            {selectedFile ? (
+              <span className="font-semibold text-gray-900">{selectedFile.name}</span>
             ) : (
               'Selecionar .pfx ou .p12'
             )}
@@ -220,11 +223,23 @@ export function ProfissionalPerfilAssinaturaCard({
 
         <button
           type="button"
-          disabled={!selectedFileName || !certPassword.trim()}
+          disabled={!selectedFile || !certPassword.trim() || isSubmittingA1}
+          onClick={() => {
+            if (!selectedFile || !certPassword.trim()) return
+            void enviarCertificadoA1(selectedFile, certPassword.trim())
+              .then(() => {
+                setSelectedFile(null)
+                setCertPassword('')
+              })
+              .catch(() => {
+                // erro exibido via a1Error
+              })
+          }}
           className="w-full rounded-lg border border-[var(--brand-primary)]/40 bg-white py-1.5 text-[11px] font-semibold text-[var(--brand-primary)] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Enviar certificado A1
+          {isSubmittingA1 ? 'Enviando…' : 'Enviar certificado A1'}
         </button>
+        {a1Error ? <p className="text-[10px] text-red-600">{a1Error}</p> : null}
       </section>
 
       <p className="pt-1 text-[10px] text-gray-500">

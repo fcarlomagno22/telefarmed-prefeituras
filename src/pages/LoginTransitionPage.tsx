@@ -4,8 +4,15 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { brand } from '../config/brand'
 import { resolveDefaultAdminHomePath } from '../config/adminPageAccess'
+import { consumeAdminPostLoginRedirect } from '../lib/auth/adminPostLoginRedirect'
+import { resolveDefaultPrefeituraHomePath } from '../config/prefeituraPageAccess'
 import { portals, type PortalId } from '../config/portals'
 import { useOptionalAdminAuth } from '../contexts/AdminAuthContext'
+import { useOptionalPrefeituraAuth } from '../contexts/PrefeituraAuthContext'
+import { useOptionalProfissionalAuth } from '../contexts/ProfissionalAuthContext'
+import { useOptionalUbtAuth } from '../contexts/UbtAuthContext'
+import { resolveDefaultUbtHomePath } from '../config/ubtPageAccess'
+import { resolveDefaultProfissionalHomePath } from '../config/profissionalPageAccess'
 import { useBrandTheme } from '../hooks/useBrandTheme'
 
 const ubtTransitionLottiePath = `${import.meta.env.BASE_URL}online_doctor.json`
@@ -33,6 +40,9 @@ export function LoginTransitionPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const adminAuth = useOptionalAdminAuth()
+  const prefeituraAuth = useOptionalPrefeituraAuth()
+  const ubtAuth = useOptionalUbtAuth()
+  const profissionalAuth = useOptionalProfissionalAuth()
   const lottieRef = useRef<HTMLDivElement>(null)
   const [activeStep, setActiveStep] = useState(0)
   const [progress, setProgress] = useState(0)
@@ -44,16 +54,27 @@ export function LoginTransitionPage() {
   const portalConfig = portals[portal]
   const transitionSteps = portalConfig.transitionSteps
   const totalMs = STEP_MS * transitionSteps.length + 480
+  const adminPostLoginRedirect =
+    portal === 'admin' ? consumeAdminPostLoginRedirect() : null
+
   const homePath =
     portal === 'admin'
-      ? resolveDefaultAdminHomePath(adminAuth?.user ?? null)
-      : portalConfig.homePath
+      ? (adminPostLoginRedirect ?? resolveDefaultAdminHomePath(adminAuth?.user ?? null))
+      : portal === 'prefeitura'
+        ? resolveDefaultPrefeituraHomePath(prefeituraAuth?.user ?? null)
+        : portal === 'profissional'
+          ? resolveDefaultProfissionalHomePath(profissionalAuth?.user ?? null)
+          : portal === 'ubt'
+            ? resolveDefaultUbtHomePath(ubtAuth?.user ?? null)
+            : portalConfig.homePath
 
   const displayName =
     locationState?.displayName?.trim() ||
     (portal === 'profissional'
-      ? brand.profissionalDashboardUserName
-      : brand.dashboardUserName)
+      ? (profissionalAuth?.user?.nome ?? brand.profissionalDashboardUserName)
+      : portal === 'ubt'
+        ? (ubtAuth?.user?.nome ?? brand.dashboardUserName)
+        : brand.dashboardUserName)
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours()

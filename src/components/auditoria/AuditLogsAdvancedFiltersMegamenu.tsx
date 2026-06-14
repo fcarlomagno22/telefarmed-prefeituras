@@ -17,16 +17,16 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react'
-import { createPortal } from 'react-dom'
 import {
   auditCriticalityOptions,
-  auditLogsAdvancedFilterOptions,
   defaultAuditLogsAdvancedFilters,
   type AuditCriticalityLevel,
   type AuditLogsAdvancedFilters,
 } from '../../utils/auditLogsAdvancedFilters'
+import { FLOATING_POPOVER_Z_INDEX } from '../../config/overlayLayers'
 import { CompactDatePicker } from '../ui/CompactDatePicker'
 import { CustomSelect } from '../ui/CustomSelect'
+import { FloatingOverlayPortal } from '../ui/FloatingOverlayPortal'
 import {
   getAuditUbtFilterOptions,
   patchAuditPrefeituraFilter,
@@ -173,6 +173,7 @@ export function AuditLogsAdvancedFiltersMegamenu({
   onClear,
 }: AuditLogsAdvancedFiltersMegamenuProps) {
   const { scope, dataset } = useAuditLogsScopeContext()
+  const filterOptions = dataset.filterOptions
   const showPlatformFilter = scope === 'admin'
   const showPrefeituraFilter = scope === 'admin'
   const panelRef = useRef<HTMLDivElement>(null)
@@ -212,6 +213,8 @@ export function AuditLogsAdvancedFiltersMegamenu({
         left,
         width,
         maxHeight,
+        zIndex: FLOATING_POPOVER_Z_INDEX - 1,
+        pointerEvents: 'auto',
       })
       return true
     }
@@ -234,11 +237,11 @@ export function AuditLogsAdvancedFiltersMegamenu({
   }, [open, filters])
 
   const scopedUbtOptions = useMemo(() => {
-    if (scope === 'prefeitura' && dataset.filterOptions.ubts) {
-      return [...dataset.filterOptions.ubts]
+    if (scope === 'prefeitura' && filterOptions.ubts) {
+      return [...filterOptions.ubts]
     }
-    return getAuditUbtFilterOptions(draft.prefeitura)
-  }, [dataset.filterOptions.ubts, draft.prefeitura, scope])
+    return getAuditUbtFilterOptions(draft.prefeitura, filterOptions)
+  }, [draft.prefeitura, filterOptions, scope])
 
   function patch<K extends keyof AuditLogsAdvancedFilters>(
     key: K,
@@ -250,7 +253,7 @@ export function AuditLogsAdvancedFiltersMegamenu({
   function patchPrefeitura(prefeituraKey: string) {
     setDraft((prev) => ({
       ...prev,
-      ...patchAuditPrefeituraFilter(prefeituraKey, prev.ubt),
+      ...patchAuditPrefeituraFilter(prefeituraKey, prev.ubt, filterOptions),
     }))
   }
 
@@ -268,14 +271,15 @@ export function AuditLogsAdvancedFiltersMegamenu({
 
   if (!open || !panelStyle) return null
 
-  return createPortal(
+  return (
+    <FloatingOverlayPortal>
     <div
       ref={panelRef}
       id="audit-advanced-filters-megamenu"
       role="region"
       aria-label="Filtros avançados de auditoria"
       style={panelStyle}
-      className="z-[100] flex flex-col overflow-hidden rounded-xl border-2 border-[var(--brand-primary)] bg-white shadow-[0_6px_24px_rgba(255,107,0,0.1)]"
+      className="pointer-events-auto flex flex-col overflow-hidden rounded-xl border-2 border-[var(--brand-primary)] bg-white shadow-[0_6px_24px_rgba(255,107,0,0.1)]"
     >
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-3 sm:p-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-0 lg:divide-x lg:divide-gray-100">
@@ -311,7 +315,7 @@ export function AuditLogsAdvancedFiltersMegamenu({
               <CustomSelect
                 value={draft.userId}
                 onChange={(value) => patch('userId', value)}
-                options={[...auditLogsAdvancedFilterOptions.users]}
+                options={[...(filterOptions.users ?? [])]}
                 placeholder="Selecione"
                 className={selectClass}
               />
@@ -320,7 +324,7 @@ export function AuditLogsAdvancedFiltersMegamenu({
               <CustomSelect
                 value={draft.userType}
                 onChange={(value) => patch('userType', value)}
-                options={[...auditLogsAdvancedFilterOptions.userTypes]}
+                options={[...(filterOptions.userTypes ?? [])]}
                 className={selectClass}
               />
             </CompactField>
@@ -328,7 +332,7 @@ export function AuditLogsAdvancedFiltersMegamenu({
               <CustomSelect
                 value={draft.unit}
                 onChange={(value) => patch('unit', value)}
-                options={[...auditLogsAdvancedFilterOptions.units]}
+                options={[...(filterOptions.units ?? [])]}
                 className={selectClass}
               />
             </CompactField>
@@ -337,7 +341,7 @@ export function AuditLogsAdvancedFiltersMegamenu({
                 <CustomSelect
                   value={draft.platform}
                   onChange={(value) => patch('platform', value)}
-                  options={[...auditLogsAdvancedFilterOptions.platforms]}
+                  options={[...(filterOptions.platforms ?? [])]}
                   className={selectClass}
                 />
               </CompactField>
@@ -347,7 +351,7 @@ export function AuditLogsAdvancedFiltersMegamenu({
                 <CustomSelect
                   value={draft.prefeitura}
                   onChange={patchPrefeitura}
-                  options={[...auditLogsAdvancedFilterOptions.prefeituras]}
+                  options={[...(filterOptions.prefeituras ?? [])]}
                   className={selectClass}
                 />
               </CompactField>
@@ -369,15 +373,7 @@ export function AuditLogsAdvancedFiltersMegamenu({
               <CustomSelect
                 value={draft.action}
                 onChange={(value) => patch('action', value)}
-                options={[...auditLogsAdvancedFilterOptions.actions]}
-                className={selectClass}
-              />
-            </CompactField>
-            <CompactField label="Categoria">
-              <CustomSelect
-                value={draft.eventCategory}
-                onChange={(value) => patch('eventCategory', value)}
-                options={[...auditLogsAdvancedFilterOptions.eventCategories]}
+                options={[...(filterOptions.actions ?? [])]}
                 className={selectClass}
               />
             </CompactField>
@@ -396,7 +392,7 @@ export function AuditLogsAdvancedFiltersMegamenu({
                 <CustomSelect
                   value={draft.module}
                   onChange={(value) => patch('module', value)}
-                  options={[...auditLogsAdvancedFilterOptions.modules]}
+                  options={[...(filterOptions.modules ?? [])]}
                   className={selectClass}
                 />
               </CompactField>
@@ -437,7 +433,7 @@ export function AuditLogsAdvancedFiltersMegamenu({
                 <CustomSelect
                   value={draft.serverResponse}
                   onChange={(value) => patch('serverResponse', value)}
-                  options={[...auditLogsAdvancedFilterOptions.serverResponses]}
+                  options={[...(filterOptions.serverResponses ?? [])]}
                   className={selectClass}
                 />
               </CompactField>
@@ -454,7 +450,7 @@ export function AuditLogsAdvancedFiltersMegamenu({
                 <CustomSelect
                   value={draft.outcome}
                   onChange={(value) => patch('outcome', value)}
-                  options={[...auditLogsAdvancedFilterOptions.outcomes]}
+                    options={[...(filterOptions.outcomes ?? [])]}
                   className={selectClass}
                 />
               </CompactField>
@@ -491,7 +487,7 @@ export function AuditLogsAdvancedFiltersMegamenu({
           </button>
         </div>
       </footer>
-    </div>,
-    document.body,
+    </div>
+    </FloatingOverlayPortal>
   )
 }

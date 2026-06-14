@@ -1,11 +1,15 @@
 import {
+  AlertCircle,
+  CheckCheck,
   CheckSquare,
   ChevronDown,
+  Clock,
   FileText,
   Lock,
   MessageSquare,
   Paperclip,
   Pencil,
+  RotateCcw,
   Send,
   Square,
   Star,
@@ -35,7 +39,12 @@ import {
   getChatAttachmentType,
   isAllowedChatAttachment,
 } from './supportChatAttachments'
-import { SupportChatImageLightbox } from './SupportChatImageLightbox'
+import { ConsultationChatAttachmentViewer } from '../attendance/ConsultationChatAttachmentViewer'
+import {
+  isSupportMediaOverlayOpen,
+  SupportChatImageLightbox,
+} from './SupportChatImageLightbox'
+import { SupportMessageBody } from './supportMessageText'
 import { supportTicketStatusBadgeConfig } from './supportStatusBadgeConfig'
 
 const TYPING_DELAY_MS = 2200
@@ -46,11 +55,33 @@ const DELETED_MESSAGE_LABEL = 'Mensagem apagada'
 const GENERIC_SUPPORT_REPLY =
   'Obrigado pela mensagem! Recebemos sua solicitação e nossa equipe de suporte já está analisando. Em breve retornaremos com mais informações.'
 
+function countOperatorMessages(messages: SupportMessage[]) {
+  return messages.filter((message) => message.author === 'operator' && !message.deleted).length
+}
+
+function hasGenericSupportAck(messages: SupportMessage[]) {
+  return messages.some((message) => message.body === GENERIC_SUPPORT_REPLY && !message.deleted)
+}
+
+function shouldSendGenericSupportAck(messages: SupportMessage[], includePendingOperator = false) {
+  const operatorCount = countOperatorMessages(messages) + (includePendingOperator ? 1 : 0)
+  return operatorCount === 1 && !hasGenericSupportAck(messages)
+}
+
+type SupportTicketDrawerApiHandlers = {
+  onSendReply: (body: string, files: File[]) => Promise<SupportTicket>
+  onEditMessage: (messageId: string, body: string) => Promise<SupportTicket>
+  onDeleteMessage: (messageId: string) => Promise<SupportTicket>
+  onCloseTicket: () => Promise<SupportTicket>
+  onError?: (message: string) => void
+}
+
 type SupportTicketDrawerProps = {
   ticket: SupportTicket | null
   open: boolean
   closing: boolean
   readOnly?: boolean
+  isLoading?: boolean
   /** Resposta da equipe Telefarmed (painel admin). */
   replyAsSupport?: boolean
   /** Enviar novas mensagens no chat (padrão: !readOnly e chamado aberto). */
@@ -59,6 +90,7 @@ type SupportTicketDrawerProps = {
   canManageMessages?: boolean
   /** Encerrar chamado no painel admin (padrão: replyAsSupport e chamado aberto). */
   canCloseTicket?: boolean
+  supportApi?: SupportTicketDrawerApiHandlers
   onTicketUpdate?: (ticket: SupportTicket) => void
   onClose: () => void
   onTransitionEnd: () => void
@@ -87,6 +119,61 @@ function formatMessageTime(date: Date) {
 
 function createMessageId() {
   return `msg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+}
+
+function createPendingMessageId() {
+  return `pending-${createMessageId()}`
+}
+
+function isOutboundDeliveryStatus(
+  status: SupportMessage['deliveryStatus'],
+): status is 'pending' | 'failed' {
+  return status === 'pending' || status === 'failed'
+}
+
+function messageContentMatches(a: SupportMessage, b: SupportMessage) {
+  if (a.author !== b.author) return false
+  if (a.body.trim() !== b.body.trim()) return false
+  return (a.attachments?.length ?? 0) === (b.attachments?.length ?? 0)
+}
+
+function mergeServerMessagesWithOptimistic(
+  local: SupportMessage[],
+  server: SupportMessage[],
+): SupportMessage[] {
+  const outbound = local.filter((message) => isOutboundDeliveryStatus(message.deliveryStatus))
+  if (outbound.length === 0) return [...server]
+
+  const stillOutbound = outbound.filter((optimistic) => {
+    if (optimistic.deliveryStatus === 'failed') return true
+    return !server.some((serverMessage) => messageContentMatches(optimistic, serverMessage))
+  })
+
+  return [...server, ...stillOutbound]
+}
+
+async function attachmentsToFiles(
+  attachments: SupportMessageAttachment[] | undefined,
+): Promise<File[]> {
+  if (!attachments?.length) return []
+
+  const files: File[] = []
+  for (const attachment of attachments) {
+    if (!attachment.url.startsWith('blob:')) continue
+    try {
+      const response = await fetch(attachment.url)
+      const blob = await response.blob()
+      files.push(
+        new File([blob], attachment.name, {
+          type: blob.type || (attachment.type === 'pdf' ? 'application/pdf' : 'image/jpeg'),
+        }),
+      )
+    } catch {
+      return []
+    }
+  }
+
+  return files.length === attachments.length ? files : []
 }
 
 function revokeMessageAttachmentUrls(messages: SupportMessage[]) {
@@ -135,6 +222,44 @@ function ChatImageThumbnail({ attachment }: { attachment: SupportMessageAttachme
   )
 }
 
+function ChatPdfAttachment({ attachment }: { attachment: SupportMessageAttachment }) {
+  const [viewerOpen, setViewerOpen] = useState(false)
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setViewerOpen(true)}
+        className="inline-flex max-w-full items-center gap-2 rounded-lg border border-gray-200/80 bg-white/60 px-3 py-2 text-left transition hover:border-[var(--brand-primary)]/30 hover:bg-white"
+        aria-label={`Visualizar PDF ${attachment.name}`}
+      >
+        <FileText className="h-4 w-4 shrink-0 text-[var(--brand-primary)]" />
+        <span className="min-w-0">
+          <span className="block max-w-[180px] truncate text-xs font-medium text-gray-700 sm:max-w-[220px]">
+            {attachment.name}
+          </span>
+          <span className="text-[10px] text-gray-400">
+            PDF · Toque para visualizar
+            {attachment.size > 0 ? ` · ${formatChatAttachmentSize(attachment.size)}` : ''}
+          </span>
+        </span>
+      </button>
+      {viewerOpen ? (
+        <ConsultationChatAttachmentViewer
+          attachment={{
+            id: attachment.id,
+            type: 'pdf',
+            url: attachment.url,
+            name: attachment.name,
+            size: attachment.size,
+          }}
+          onClose={() => setViewerOpen(false)}
+        />
+      ) : null}
+    </>
+  )
+}
+
 function MessageAttachments({ attachments }: { attachments: SupportMessageAttachment[] }) {
   return (
     <div className="mt-2 flex flex-wrap gap-2">
@@ -142,21 +267,7 @@ function MessageAttachments({ attachments }: { attachments: SupportMessageAttach
         attachment.type === 'image' ? (
           <ChatImageThumbnail key={attachment.id} attachment={attachment} />
         ) : (
-          <a
-            key={attachment.id}
-            href={attachment.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex max-w-full items-center gap-2 rounded-lg border border-gray-200/80 bg-white/60 px-3 py-2 transition hover:bg-white"
-          >
-            <FileText className="h-4 w-4 shrink-0 text-[var(--brand-primary)]" />
-            <span className="max-w-[180px] truncate text-xs font-medium text-gray-700 sm:max-w-[220px]">
-              {attachment.name}
-            </span>
-            <span className="shrink-0 text-[10px] text-gray-400">
-              {formatChatAttachmentSize(attachment.size)}
-            </span>
-          </a>
+          <ChatPdfAttachment key={attachment.id} attachment={attachment} />
         ),
       )}
     </div>
@@ -179,7 +290,55 @@ function isOwnAgentMessage(message: SupportMessage, replyAsSupport: boolean) {
 }
 
 function isSelectableOwnMessage(message: SupportMessage, replyAsSupport: boolean) {
-  return isOwnAgentMessage(message, replyAsSupport) && !message.deleted
+  return (
+    isOwnAgentMessage(message, replyAsSupport) &&
+    !message.deleted &&
+    message.deliveryStatus !== 'pending'
+  )
+}
+
+function MessageDeliveryStatus({
+  status,
+  onRetry,
+}: {
+  status: SupportMessage['deliveryStatus']
+  onRetry?: () => void
+}) {
+  if (!status || status === 'sent') {
+    return (
+      <span className="inline-flex items-center text-gray-400" aria-label="Enviada">
+        <CheckCheck className="h-3 w-3" strokeWidth={2.25} />
+      </span>
+    )
+  }
+
+  if (status === 'pending') {
+    return (
+      <span className="inline-flex items-center gap-1 text-gray-400" aria-label="Enviando">
+        <Clock className="h-3 w-3 animate-pulse" strokeWidth={2.25} />
+        <span>Enviando…</span>
+      </span>
+    )
+  }
+
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1.5 text-red-500">
+      <span className="inline-flex items-center gap-1">
+        <AlertCircle className="h-3 w-3 shrink-0" strokeWidth={2.25} />
+        <span>Falha ao enviar</span>
+      </span>
+      {onRetry ? (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="inline-flex items-center gap-0.5 rounded-md px-1 py-0.5 font-semibold text-red-600 transition hover:bg-red-50"
+        >
+          <RotateCcw className="h-3 w-3" strokeWidth={2.25} />
+          Tentar novamente
+        </button>
+      ) : null}
+    </span>
+  )
 }
 
 function isSupportPartnerMessage(message: SupportMessage) {
@@ -245,6 +404,7 @@ type MessageBubbleProps = {
   onSaveEdit: () => void
   onDelete: () => void
   onEnterSelectionMode?: () => void
+  onRetrySend?: () => void
 }
 
 function MessageBubble({
@@ -263,14 +423,16 @@ function MessageBubble({
   onSaveEdit,
   onDelete,
   onEnterSelectionMode,
+  onRetrySend,
   replyAsSupport = false,
 }: MessageBubbleProps & { replyAsSupport?: boolean }) {
   const isSupport = message.author === 'support'
   const isOwn = isOwnAgentMessage(message, replyAsSupport)
   const isDeleted = message.deleted === true
+  const isPending = message.deliveryStatus === 'pending'
   const hasBody = message.body.trim().length > 0
   const hasAttachments = (message.attachments?.length ?? 0) > 0
-  const canEditText = hasBody
+  const canEditText = hasBody && !isPending && message.deliveryStatus !== 'failed'
   const menuRef = useRef<HTMLDivElement>(null)
   const longPressTimerRef = useRef<number | null>(null)
 
@@ -350,11 +512,13 @@ function MessageBubble({
           : 'bg-[var(--brand-primary-light)] text-gray-800',
         selectionMode && isSelected ? 'ring-2 ring-[var(--brand-primary)]/35' : '',
         isOwn && !selectionMode && !isEditing ? 'select-none' : '',
+        isPending ? 'opacity-90' : '',
+        message.deliveryStatus === 'failed' ? 'ring-1 ring-red-200/80' : '',
       ].join(' ')}
     >
       <div className="flex items-start justify-between gap-2">
         <p className="min-w-0 text-xs font-semibold text-gray-600">{message.authorName}</p>
-        {isOwn && !isDeleted && !isEditing && !selectionMode ? (
+        {isOwn && !isDeleted && !isEditing && !selectionMode && !isPending ? (
           <div ref={menuRef} className="relative -mr-1 shrink-0">
             <button
               type="button"
@@ -436,25 +600,30 @@ function MessageBubble({
       ) : (
         <>
           {hasBody ? (
-            <p
-              data-message-body
-              className="mt-1 cursor-text select-text break-words leading-relaxed"
+            <SupportMessageBody
+              body={message.body}
               onPointerDown={(event) => event.stopPropagation()}
-            >
-              {message.body}
-            </p>
+            />
           ) : null}
           {hasAttachments ? <MessageAttachments attachments={message.attachments!} /> : null}
         </>
       )}
 
       {!isEditing ? (
-        <p className="mt-2 text-[10px] font-medium text-gray-400">
-          {message.sentAt}
-          {message.editedAt ? (
-            <span className="text-gray-400"> · editada {message.editedAt}</span>
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+          <p className="text-[10px] font-medium text-gray-400">
+            {message.sentAt}
+            {message.editedAt ? (
+              <span className="text-gray-400"> · editada {message.editedAt}</span>
+            ) : null}
+          </p>
+          {isOwn ? (
+            <MessageDeliveryStatus
+              status={message.deliveryStatus ?? 'sent'}
+              onRetry={message.deliveryStatus === 'failed' ? onRetrySend : undefined}
+            />
           ) : null}
-        </p>
+        </div>
       ) : null}
     </article>
   )
@@ -516,7 +685,7 @@ function ReadOnlyMessageBubble({ message }: { message: SupportMessage }) {
       ].join(' ')}
     >
       <p className="text-xs font-semibold text-gray-600">{message.authorName}</p>
-      {hasBody ? <p className="mt-1 break-words leading-relaxed">{message.body}</p> : null}
+      {hasBody ? <SupportMessageBody body={message.body} /> : null}
       {hasAttachments ? <MessageAttachments attachments={message.attachments!} /> : null}
       <p className="mt-2 text-[10px] font-medium text-gray-400">{message.sentAt}</p>
     </article>
@@ -539,6 +708,7 @@ function SupportMessageBubble({
   onSaveEdit,
   onDelete,
   onEnterSelectionMode,
+  onRetrySend,
   isFavorited,
   onToggleFavorite,
   isHighlighted,
@@ -565,6 +735,7 @@ function SupportMessageBubble({
   onCancelEdit: () => void
   onSaveEdit: () => void
   onDelete: (id: string) => void
+  onRetrySend?: (message: SupportMessage) => void
   readOnly?: boolean
   replyAsSupport?: boolean
 }) {
@@ -590,6 +761,7 @@ function SupportMessageBubble({
         onCancelEdit={onCancelEdit}
         onSaveEdit={onSaveEdit}
         onDelete={() => onDelete(message.id)}
+        onRetrySend={onRetrySend ? () => onRetrySend(message) : undefined}
         onEnterSelectionMode={
           !selectionMode
             ? () => onEnterSelectionMode(message.id)
@@ -645,9 +817,7 @@ function SupportMessageBubble({
       className="support-message-in w-fit max-w-[min(100%,28rem)] rounded-2xl bg-[var(--brand-primary-light)] px-4 py-3 text-sm text-gray-800 sm:max-w-[min(100%,34rem)]"
     >
       <p className="text-xs font-semibold text-gray-600">{message.authorName}</p>
-      {hasBody ? (
-        <p className="mt-1 break-words leading-relaxed">{message.body}</p>
-      ) : null}
+      {hasBody ? <SupportMessageBody body={message.body} /> : null}
       {hasAttachments ? <MessageAttachments attachments={message.attachments!} /> : null}
       <p className="mt-2 text-[10px] font-medium text-gray-400">{message.sentAt}</p>
     </article>
@@ -694,9 +864,7 @@ function SupportPartnerMessageBubble({
           />
         </button>
       </div>
-      {hasBody ? (
-        <p className="mt-1 break-words leading-relaxed">{message.body}</p>
-      ) : null}
+      {hasBody ? <SupportMessageBody body={message.body} /> : null}
       {hasAttachments ? <MessageAttachments attachments={message.attachments!} /> : null}
       <p className="mt-2 text-[10px] font-medium text-gray-400">{message.sentAt}</p>
     </article>
@@ -789,10 +957,12 @@ export function SupportTicketDrawer({
   open,
   closing,
   readOnly = false,
+  isLoading = false,
   replyAsSupport = false,
   canReply: canReplyProp,
   canManageMessages: canManageMessagesProp,
   canCloseTicket: canCloseTicketProp,
+  supportApi,
   onTicketUpdate,
   onClose,
   onTransitionEnd,
@@ -833,7 +1003,7 @@ export function SupportTicketDrawer({
     }
 
     if (ticket) {
-      setMessages([...ticket.messages])
+      setMessages([...(ticket.messages ?? [])])
       setTicketStatus(ticket.status)
     }
     setCloseConfirmOpen(false)
@@ -860,10 +1030,17 @@ export function SupportTicketDrawer({
   }, [open, ticket?.id])
 
   useEffect(() => {
+    if (!open || !ticket || isLoading) return
+    setMessages((current) => mergeServerMessagesWithOptimistic(current, ticket.messages ?? []))
+    setTicketStatus(ticket.status)
+  }, [isLoading, open, ticket])
+
+  useEffect(() => {
     if (!isActive) return
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key !== 'Escape' || isSending) return
+      if (event.key !== 'Escape') return
+      if (isSupportMediaOverlayOpen()) return
       if (selectionMode) {
         exitSelectionMode()
         return
@@ -879,7 +1056,7 @@ export function SupportTicketDrawer({
       document.body.style.overflow = previousOverflow
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isActive, onClose, isSending, selectionMode])
+  }, [isActive, onClose, selectionMode])
 
   useEffect(() => {
     if (!closing) return
@@ -984,7 +1161,7 @@ export function SupportTicketDrawer({
   }
 
   const panelVisible = isActive && entered && !closing
-  const canSend = (reply.trim().length > 0 || pendingFiles.length > 0) && !isSending && !isTyping
+  const canSend = (reply.trim().length > 0 || pendingFiles.length > 0) && !isTyping
 
   function addFiles(files: FileList | File[]) {
     const incoming = Array.from(files)
@@ -1074,6 +1251,24 @@ export function SupportTicketDrawer({
   function handleSaveEdit() {
     const text = editDraft.trim()
     if (!editingId || !text) return
+
+    if (supportApi) {
+      void (async () => {
+        try {
+          const updated = await supportApi.onEditMessage(editingId, text)
+          setMessages([...updated.messages])
+          setTicketStatus(updated.status)
+          onTicketUpdate?.(updated)
+          setEditingId(null)
+          setEditDraft('')
+        } catch (error) {
+          supportApi.onError?.(
+            error instanceof Error ? error.message : 'Não foi possível editar a mensagem.',
+          )
+        }
+      })()
+      return
+    }
 
     setMessages((prev) =>
       prev.map((message) =>
@@ -1184,6 +1379,61 @@ export function SupportTicketDrawer({
   }, [clearDeleteUndoTimer])
 
   function softDeleteMessages(rawIds: string[]) {
+    if (supportApi) {
+      const localOnlyIds = rawIds.filter((messageId) => {
+        const message = messages.find((item) => item.id === messageId)
+        return message != null && isOutboundDeliveryStatus(message.deliveryStatus)
+      })
+      const serverIds = rawIds.filter((messageId) => !localOnlyIds.includes(messageId))
+
+      if (localOnlyIds.length > 0) {
+        setMessages((prev) => {
+          prev.forEach((message) => {
+            if (localOnlyIds.includes(message.id)) {
+              revokeMessageAttachments(message)
+            }
+          })
+          return prev.filter((message) => !localOnlyIds.includes(message.id))
+        })
+        if (editingId && localOnlyIds.includes(editingId)) {
+          setEditingId(null)
+          setEditDraft('')
+        }
+        setMenuOpenId(null)
+        exitSelectionMode()
+      }
+
+      if (serverIds.length === 0) return
+
+      void (async () => {
+        try {
+          let updated = ticket!
+          for (const messageId of serverIds) {
+            updated = await supportApi.onDeleteMessage(messageId)
+          }
+          setMessages((current) =>
+            mergeServerMessagesWithOptimistic(
+              current.filter((message) => !localOnlyIds.includes(message.id)),
+              updated.messages,
+            ),
+          )
+          setTicketStatus(updated.status)
+          onTicketUpdate?.(updated)
+          if (editingId && serverIds.includes(editingId)) {
+            setEditingId(null)
+            setEditDraft('')
+          }
+          setMenuOpenId(null)
+          exitSelectionMode()
+        } catch (error) {
+          supportApi.onError?.(
+            error instanceof Error ? error.message : 'Não foi possível excluir a mensagem.',
+          )
+        }
+      })()
+      return
+    }
+
     if (pendingUndoIdsRef.current.length > 0) {
       commitDeletedMessages(pendingUndoIdsRef.current)
       pendingUndoIdsRef.current = []
@@ -1246,10 +1496,87 @@ export function SupportTicketDrawer({
     softDeleteMessages([messageId])
   }
 
+  function performOutboundSend(pendingId: string, text: string, files: File[]) {
+    if (!supportApi) return
+
+    void (async () => {
+      try {
+        const updated = await supportApi.onSendReply(text, files)
+        setMessages((current) => {
+          const optimistic = current.find((message) => message.id === pendingId)
+          if (optimistic) revokeMessageAttachments(optimistic)
+          const withoutSent = current.filter((message) => message.id !== pendingId)
+          return mergeServerMessagesWithOptimistic(withoutSent, updated.messages)
+        })
+        setTicketStatus(updated.status)
+        onTicketUpdate?.(updated)
+      } catch (error) {
+        setMessages((current) =>
+          current.map((message) =>
+            message.id === pendingId
+              ? { ...message, deliveryStatus: 'failed' as const }
+              : message,
+          ),
+        )
+        supportApi.onError?.(
+          error instanceof Error ? error.message : 'Não foi possível enviar a resposta.',
+        )
+      }
+    })()
+  }
+
+  function handleRetrySend(message: SupportMessage) {
+    if (!supportApi || message.deliveryStatus !== 'failed') return
+
+    void (async () => {
+      const files = await attachmentsToFiles(message.attachments)
+      if ((message.attachments?.length ?? 0) > 0 && files.length !== (message.attachments?.length ?? 0)) {
+        supportApi.onError?.('Não foi possível recuperar os anexos. Envie novamente.')
+        return
+      }
+
+      setMessages((current) =>
+        current.map((item) =>
+          item.id === message.id
+            ? {
+                ...item,
+                deliveryStatus: 'pending' as const,
+                sentAt: formatMessageTime(new Date()),
+              }
+            : item,
+        ),
+      )
+
+      performOutboundSend(message.id, message.body, files)
+    })()
+  }
+
   function handleSend() {
     const text = reply.trim()
-    if ((!text && pendingFiles.length === 0) || isSending || isTyping) return
+    if ((!text && pendingFiles.length === 0) || isTyping) return
     if (!canReply) return
+
+    if (supportApi) {
+      const pendingId = createPendingMessageId()
+      const snapshotFiles = pendingFiles.map((pending) => pending.file)
+      const attachments = buildAttachmentsFromPending()
+      const optimisticMessage: SupportMessage = {
+        id: pendingId,
+        author: replyAsSupport ? 'support' : 'operator',
+        authorName: replyAsSupport ? getSupportAgentName() : getLoggedOperatorName(),
+        body: text,
+        sentAt: formatMessageTime(new Date()),
+        attachments: attachments.length > 0 ? attachments : undefined,
+        deliveryStatus: 'pending',
+      }
+
+      setMessages((prev) => [...prev, optimisticMessage])
+      setReply('')
+      setPendingFiles([])
+      setAttachmentError(null)
+      performOutboundSend(pendingId, text, snapshotFiles)
+      return
+    }
 
     const attachments = buildAttachmentsFromPending()
 
@@ -1282,6 +1609,11 @@ export function SupportTicketDrawer({
     setReply('')
     setPendingFiles([])
     setAttachmentError(null)
+
+    if (!shouldSendGenericSupportAck(messages, true)) {
+      return
+    }
+
     setIsSending(true)
     setIsTyping(true)
 
@@ -1302,6 +1634,30 @@ export function SupportTicketDrawer({
 
   function handleConfirmCloseTicket() {
     if (!ticket || ticketStatus === 'encerrado') return
+
+    if (supportApi) {
+      void (async () => {
+        try {
+          const updated = await supportApi.onCloseTicket()
+          setMessages([...updated.messages])
+          setTicketStatus(updated.status)
+          setCloseConfirmOpen(false)
+          setReply('')
+          setPendingFiles((prev) => {
+            revokePendingPreviews(prev)
+            return []
+          })
+          setIsSending(false)
+          setIsTyping(false)
+          onTicketUpdate?.(updated)
+        } catch (error) {
+          supportApi.onError?.(
+            error instanceof Error ? error.message : 'Não foi possível encerrar o chamado.',
+          )
+        }
+      })()
+      return
+    }
 
     const closedAt = formatMessageTime(new Date())
     const closeMessage: SupportMessage = {
@@ -1339,8 +1695,7 @@ export function SupportTicketDrawer({
   const canReply = (canReplyProp ?? !readOnly) && ticketOpen
   const canCloseTicket = (canCloseTicketProp ?? replyAsSupport) && ticketOpen
   const messagesReadOnly = readOnly || !canManageMessages
-  const showViewOnlyComposerNotice =
-    replyAsSupport && ticketOpen && !canReply && !readOnly
+  const showViewOnlyComposerNotice = ticketOpen && !canReply && !readOnly
 
   function handleCloseAttempt(event?: React.SyntheticEvent) {
     if (tourLockClose) {
@@ -1385,7 +1740,6 @@ export function SupportTicketDrawer({
           type="button"
           aria-label="Fechar detalhes do chamado"
           onClick={handleCloseAttempt}
-          disabled={isSending}
           tabIndex={panelVisible ? 0 : -1}
           className={`absolute inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity duration-300 ${
             panelVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
@@ -1491,7 +1845,6 @@ export function SupportTicketDrawer({
                   <button
                     type="button"
                     onClick={() => setCloseConfirmOpen(true)}
-                    disabled={isSending}
                     className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:border-red-300 hover:bg-red-100 disabled:opacity-50"
                   >
                     <Lock className="h-3.5 w-3.5" strokeWidth={2} />
@@ -1501,7 +1854,6 @@ export function SupportTicketDrawer({
                 <button
                   type="button"
                   onClick={handleCloseAttempt}
-                  disabled={isSending}
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 disabled:opacity-50"
                   aria-label="Fechar"
                 >
@@ -1533,8 +1885,13 @@ export function SupportTicketDrawer({
 
           <div
             data-tour="suporte-ticket-drawer-chat"
-            className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 sm:px-6"
+            className="relative min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 sm:px-6"
           >
+            {isLoading ? (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-[1px]">
+                <p className="text-sm font-medium text-gray-500">Carregando conversa…</p>
+              </div>
+            ) : null}
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -1573,6 +1930,7 @@ export function SupportTicketDrawer({
                   onCancelEdit={handleCancelEdit}
                   onSaveEdit={handleSaveEdit}
                   onDelete={handleDeleteMessage}
+                  onRetrySend={supportApi ? handleRetrySend : undefined}
                 />
               </div>
             ))}
@@ -1661,7 +2019,6 @@ export function SupportTicketDrawer({
                       <button
                         type="button"
                         onClick={() => removePendingFile(pending.id)}
-                        disabled={isSending}
                         className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-gray-400 transition hover:bg-gray-200 hover:text-gray-700 disabled:opacity-50"
                         aria-label={`Remover ${pending.file.name}`}
                       >
@@ -1692,7 +2049,6 @@ export function SupportTicketDrawer({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={isSending}
                   className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Anexar PDF ou imagem"
                 >
@@ -1708,7 +2064,6 @@ export function SupportTicketDrawer({
                     }
                   }}
                   rows={1}
-                  disabled={isSending}
                   placeholder="Digite sua mensagem..."
                   className="h-11 min-h-11 flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm leading-5 text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15 disabled:bg-gray-50"
                 />

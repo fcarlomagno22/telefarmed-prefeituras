@@ -1,7 +1,7 @@
 import { Building2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { AdminMunicipalityRow } from '../../../data/adminDashboardMock'
+import type { AdminMunicipalityRow } from '../../../types/adminDashboard'
 import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
 import { prefeituraSlaBadgeConfig } from '../../prefeitura/prefeituraDashboardUi'
 import {

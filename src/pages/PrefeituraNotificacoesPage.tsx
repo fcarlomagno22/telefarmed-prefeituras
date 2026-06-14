@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react'
-import { usePrefeituraNotificationsState } from '../contexts/PrefeituraNotificacoesContext'
+import { useCallback, useMemo, useState } from 'react'
+import { usePrefeituraNotificacoes, usePrefeituraNotificationsState } from '../contexts/PrefeituraNotificacoesContext'
 import { PrefeituraRedeBroadcastDrawer } from '../components/prefeitura/rede/PrefeituraRedeBroadcastDrawer'
 import { PrefeituraNotificacoesMainPanel } from '../components/prefeitura/notificacoes/PrefeituraNotificacoesMainPanel'
 import { PrefeituraNotificacoesMainPanelSkeleton } from '../components/prefeitura/notificacoes/PrefeituraNotificacoesMainPanelSkeleton'
@@ -13,14 +13,18 @@ import {
 } from '../components/layout/dashboardPageLayout'
 import { KpiStatCards } from '../components/ui/KpiStatCards'
 import { Toast, type ToastVariant } from '../components/ui/Toast'
-import { prefeituraNotificacoesKpiCards } from '../data/prefeituraNotificacoesMock'
+import { buildPrefeituraNotificacoesKpiCards } from '../utils/notificacoes/portalNotificacoesKpiCards'
 import { DashboardPageHeader } from '../components/users/DashboardPageHeader'
 import { DashboardPageHeaderSkeleton } from '../components/users/DashboardPageHeaderSkeleton'
 import { usePageSkeletonLoading } from '../hooks/usePageSkeletonLoading'
+import { isBackendApiEnabled } from '../lib/api/config'
 import { KpiCardsRowSkeleton } from '../components/prefeitura/skeletons/prefeituraSkeletonUi'
 
 export function PrefeituraNotificacoesPage() {
-  const isLoading = usePageSkeletonLoading(1200)
+  const { kpis, isLoading: isContextLoading } = usePrefeituraNotificacoes()
+  const mockSkeletonLoading = usePageSkeletonLoading(1200)
+  const isLoading = isBackendApiEnabled() ? isContextLoading : mockSkeletonLoading
+  const kpiCards = useMemo(() => buildPrefeituraNotificacoesKpiCards(kpis), [kpis])
   const [notifications, setNotifications] = usePrefeituraNotificationsState()
   const [composeOpen, setComposeOpen] = useState(false)
   const [composeClosing, setComposeClosing] = useState(false)
@@ -74,7 +78,7 @@ export function PrefeituraNotificacoesPage() {
             />
           ) : (
             <KpiStatCards
-              items={prefeituraNotificacoesKpiCards}
+              items={kpiCards}
               className="shrink-0 sm:grid-cols-2 xl:grid-cols-4"
             />
           )}

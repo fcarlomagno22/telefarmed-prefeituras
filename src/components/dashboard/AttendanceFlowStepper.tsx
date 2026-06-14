@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { StationStatus } from '../../data/unitDashboardMock'
+import type { StationStatus } from '../../types/attendance'
 
 const flowSteps = [
   { id: 'specialty', label: 'Especialidade' },

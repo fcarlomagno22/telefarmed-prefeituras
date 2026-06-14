@@ -5,7 +5,7 @@ import {
   emptyPatientContact,
   type PatientContact,
   type PatientRegistration,
-} from '../../data/unitDashboardMock'
+} from '../../types/attendance'
 import { CustomSelect } from '../ui/CustomSelect'
 import { maskPhone } from '../../utils/masks'
 import { AttendanceFieldHighlight } from './AttendanceFieldHighlight'

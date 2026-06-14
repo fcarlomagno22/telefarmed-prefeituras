@@ -1,12 +1,19 @@
-import { medicoCadastroFormSteps, type MedicoCadastroFormStepId } from '../../../config/medicoCadastroForm'
+import type {
+  MedicoCadastroFormStep,
+  MedicoCadastroFormStepId,
+} from '../../../config/medicoCadastroForm'
 
 type MedicoCadastroFormStepperProps = {
   currentStep: MedicoCadastroFormStepId
+  steps: MedicoCadastroFormStep[]
 }
 
-export function MedicoCadastroFormStepper({ currentStep }: MedicoCadastroFormStepperProps) {
-  const activeIndex = medicoCadastroFormSteps.findIndex((step) => step.id === currentStep)
-  const progress = ((activeIndex + 1) / medicoCadastroFormSteps.length) * 100
+export function MedicoCadastroFormStepper({
+  currentStep,
+  steps,
+}: MedicoCadastroFormStepperProps) {
+  const activeIndex = steps.findIndex((step) => step.id === currentStep)
+  const progress = ((activeIndex + 1) / steps.length) * 100
 
   return (
     <nav aria-label="Etapas do cadastro" className="shrink-0 border-b border-gray-100 px-5 py-4 sm:px-6">
@@ -15,10 +22,10 @@ export function MedicoCadastroFormStepper({ currentStep }: MedicoCadastroFormSte
           Etapa{' '}
           <span className="font-bold tabular-nums text-gray-800">{activeIndex + 1}</span>
           <span className="text-gray-400"> / </span>
-          <span className="tabular-nums text-gray-800">{medicoCadastroFormSteps.length}</span>
+          <span className="tabular-nums text-gray-800">{steps.length}</span>
         </span>
         <span className="font-semibold text-[var(--brand-primary)]">
-          {medicoCadastroFormSteps[activeIndex]?.label}
+          {steps[activeIndex]?.label}
         </span>
       </div>
 
@@ -29,12 +36,12 @@ export function MedicoCadastroFormStepper({ currentStep }: MedicoCadastroFormSte
           role="progressbar"
           aria-valuenow={activeIndex + 1}
           aria-valuemin={1}
-          aria-valuemax={medicoCadastroFormSteps.length}
+          aria-valuemax={steps.length}
         />
       </div>
 
       <ol className="mt-3 hidden gap-2 sm:flex">
-        {medicoCadastroFormSteps.map((step, index) => {
+        {steps.map((step, index) => {
           const isActive = step.id === currentStep
           const isDone = index < activeIndex
 

@@ -32,6 +32,23 @@ export const defaultAdminEscalaOpenFilters = (): AdminEscalaOpenFilters => ({
   search: '',
 })
 
+export function countActiveAdminEscalaFilters(filters: AdminEscalaOpenFilters): number {
+  const defaults = defaultAdminEscalaOpenFilters()
+  let count = 0
+  if (filters.search.trim()) count += 1
+  if (filters.specialty !== defaults.specialty) count += 1
+  if (filters.dateFrom) count += 1
+  if (filters.dateTo) count += 1
+  if (filters.turn !== defaults.turn) count += 1
+  if (filters.modality !== defaults.modality) count += 1
+  if (filters.assignmentMode !== defaults.assignmentMode) count += 1
+  if (filters.fillStatus !== defaults.fillStatus) count += 1
+  if (filters.status !== defaults.status) count += 1
+  if (filters.minAmountReais.trim()) count += 1
+  if (filters.maxAmountReais.trim()) count += 1
+  return count
+}
+
 function parseAmountReais(value: string) {
   return parseBrlCurrencyInput(value)
 }

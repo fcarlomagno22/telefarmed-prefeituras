@@ -1,10 +1,54 @@
+import { useEffect, useState } from 'react'
+import { Link, Navigate, useLocation } from 'react-router-dom'
+import { MinhaCandidaturaDrawer } from '../components/landing/medicoCadastro/MinhaCandidaturaDrawer'
 import { FeaturePanel } from '../components/login/FeaturePanel'
 import { LoginForm } from '../components/login/LoginForm'
 import { brand } from '../config/brand'
+import { profissionalRoutes } from '../config/profissionalRoutes'
+import { resolveDefaultProfissionalHomePath } from '../config/profissionalPageAccess'
+import { useProfissionalAuth } from '../contexts/ProfissionalAuthContext'
 import { useBrandTheme } from '../hooks/useBrandTheme'
+import { ProfissionalAuthApiError } from '../lib/services/profissional/auth'
+import { cpfDigits } from '../utils/cpf'
+
+type LoginLocationState = {
+  openMinhaCandidatura?: boolean
+}
 
 export function ProfissionalLoginPage() {
   useBrandTheme()
+  const { login, isAuthenticated, isBootstrapping, user } = useProfissionalAuth()
+  const location = useLocation()
+  const [minhaCandidaturaOpen, setMinhaCandidaturaOpen] = useState(false)
+  const [minhaCandidaturaClosing, setMinhaCandidaturaClosing] = useState(false)
+
+  useEffect(() => {
+    const state = location.state as LoginLocationState | null
+    if (state?.openMinhaCandidatura) {
+      setMinhaCandidaturaOpen(true)
+      setMinhaCandidaturaClosing(false)
+    }
+  }, [location.state])
+
+  if (!isBootstrapping && isAuthenticated) {
+    return <Navigate to={resolveDefaultProfissionalHomePath(user)} replace />
+  }
+
+  function openMinhaCandidaturaDrawer() {
+    setMinhaCandidaturaClosing(false)
+    setMinhaCandidaturaOpen(true)
+  }
+
+  function closeMinhaCandidaturaDrawer() {
+    setMinhaCandidaturaClosing(true)
+  }
+
+  function handleMinhaCandidaturaTransitionEnd() {
+    if (minhaCandidaturaClosing) {
+      setMinhaCandidaturaClosing(false)
+      setMinhaCandidaturaOpen(false)
+    }
+  }
 
   return (
     <div className="flex min-h-screen bg-[#f5f6f8] lg:flex-row">
@@ -22,7 +66,47 @@ export function ProfissionalLoginPage() {
           </header>
 
           <div className="flex flex-1 flex-col items-center justify-center py-6">
-            <LoginForm portal="profissional" />
+            <LoginForm
+              portal="profissional"
+              authenticate={async ({ cpf, password }) => {
+                try {
+                  const authUser = await login({
+                    cpf: cpfDigits(cpf),
+                    password,
+                  })
+                  return { displayName: authUser.nome }
+                } catch (error) {
+                  if (error instanceof ProfissionalAuthApiError) {
+                    throw error
+                  }
+                  throw new ProfissionalAuthApiError('Não foi possível concluir o login.', 0)
+                }
+              }}
+              cardFooter={
+                <p>
+                  É profissional de saúde e ainda não integra nossa rede?{' '}
+                  <Link
+                    to={profissionalRoutes.cadastro}
+                    className="font-semibold text-[var(--brand-primary)] underline-offset-2 transition hover:underline"
+                  >
+                    Candidate-se e faça seu cadastro
+                  </Link>
+                </p>
+              }
+            />
+
+            <p className="mt-6 w-full max-w-md text-center text-sm leading-relaxed text-gray-600">
+              Solicitamos ajustes no seu cadastro?
+              <span className="mt-1 block">
+                <button
+                  type="button"
+                  onClick={openMinhaCandidaturaDrawer}
+                  className="font-semibold text-[var(--brand-primary)] underline-offset-2 transition hover:underline"
+                >
+                  Enviar informações complementares
+                </button>
+              </span>
+            </p>
           </div>
         </div>
 
@@ -30,6 +114,13 @@ export function ProfissionalLoginPage() {
           {brand.copyright}
         </footer>
       </main>
+
+      <MinhaCandidaturaDrawer
+        open={minhaCandidaturaOpen && !minhaCandidaturaClosing}
+        closing={minhaCandidaturaClosing}
+        onClose={closeMinhaCandidaturaDrawer}
+        onTransitionEnd={handleMinhaCandidaturaTransitionEnd}
+      />
     </div>
   )
 }

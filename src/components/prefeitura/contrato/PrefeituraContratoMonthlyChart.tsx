@@ -1,5 +1,5 @@
 import { useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import type { PrefeituraContratoMonthlyRow } from '../../../data/prefeituraContratoMock'
+import type { PrefeituraContratoMonthlyRow } from '../../../types/prefeituraContrato'
 import { formatPrefeituraNumber } from '../prefeituraDashboardUi'
 import { PREF_CHART_EASE, usePrefeituraChartAnimation } from '../prefeituraChartAnimation'
 

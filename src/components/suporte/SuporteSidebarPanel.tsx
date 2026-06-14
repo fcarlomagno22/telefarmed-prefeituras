@@ -138,6 +138,21 @@ function MonthlyTrendChart({
   monthlyTotal: number
 }) {
   const animate = useChartFillAnimation(120)
+
+  if (trend.length === 0) {
+    return (
+      <div>
+        <div className="flex items-baseline gap-2">
+          <span className="text-3xl font-bold tabular-nums text-gray-900">{monthlyTotal}</span>
+          <span className="text-sm text-gray-500">Total de chamados</span>
+        </div>
+        <div className="mt-3 flex h-[72px] items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50/80">
+          <p className="text-xs font-medium text-gray-500">Nenhum chamado aberto no período</p>
+        </div>
+      </div>
+    )
+  }
+
   const maxCount = Math.max(...trend.map((p) => p.count), 1)
   const width = 240
   const height = LINE_CHART_HEIGHT

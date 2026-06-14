@@ -21,8 +21,8 @@ export function ProfissionalFinalizarCadastroPageContent() {
             </p>
           </header>
 
-          <div className="flex flex-1 flex-col items-center justify-center py-6">
-            <ProfissionalFinalizarCadastroForm />
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center py-6">
+            <ProfissionalFinalizarCadastroForm className="min-h-[480px]" />
           </div>
 
           <p className="mx-auto max-w-lg text-center text-[11px] text-gray-500 sm:text-xs">

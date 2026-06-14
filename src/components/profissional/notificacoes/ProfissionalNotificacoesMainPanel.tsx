@@ -1,6 +1,7 @@
 import { CheckCheck, Eye, Search } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PrefeituraNotification } from '../../../data/prefeituraNotificacoesMock'
+import { useProfissionalNotificacoesOptional } from '../../../contexts/ProfissionalNotificacoesContext'
 import { dashboardMainPanelSurfaceClass } from '../../layout/dashboardPageLayout'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
@@ -31,13 +32,6 @@ const originOptions = [
   { value: 'profissional', label: 'Corpo clínico' },
 ]
 
-function normalizeSearch(value: string) {
-  return value
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-}
-
 const TABLE_COLUMN_COUNT = 8
 
 function priorityLabel(priority: PrefeituraNotification['priority']) {
@@ -53,12 +47,15 @@ export function ProfissionalNotificacoesMainPanel({
   notifications,
   onNotificationsChange,
 }: ProfissionalNotificacoesMainPanelProps) {
+  const notificacoesContext = useProfissionalNotificacoesOptional()
+  const applyListFilters = notificacoesContext?.applyListFilters
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [originFilter, setOriginFilter] = useState<OriginFilter>('all')
   const [detailOpen, setDetailOpen] = useState(false)
   const [detailNotification, setDetailNotification] = useState<PrefeituraNotification | null>(null)
   const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
+  const skipInitialFilters = useRef(true)
 
   const showToast = useCallback((message: string, variant: ToastVariant) => {
     setToast(null)
@@ -67,30 +64,39 @@ export function ProfissionalNotificacoesMainPanel({
 
   const dismissToast = useCallback(() => setToast(null), [])
 
-  const filteredNotifications = useMemo(() => {
-    const query = normalizeSearch(search.trim())
+  useEffect(() => {
+    if (!applyListFilters) return
 
-    return [...notifications]
-      .filter((item) => {
-        if (item.direction !== 'inbox') return false
-        if (item.origin === 'ubt') return false
-        if (originFilter !== 'all' && item.origin !== originFilter) return false
+    if (skipInitialFilters.current) {
+      skipInitialFilters.current = false
+      return
+    }
 
-        if (statusFilter === 'unread' && !isPrefeituraNotificationUnread(item)) return false
-        if (statusFilter === 'read' && isPrefeituraNotificationUnread(item)) return false
+    const timer = window.setTimeout(
+      () => {
+        void applyListFilters({
+          origin: originFilter === 'all' ? undefined : originFilter,
+          read: statusFilter,
+          search: search.trim() || undefined,
+          page: 1,
+          pageSize: 100,
+        })
+      },
+      search.trim() ? 300 : 0,
+    )
 
-        if (!query) return true
-        const haystack = normalizeSearch(
-          `${item.title} ${item.body} ${item.senderLabel} ${item.recipientLabel}`,
-        )
-        return haystack.includes(query)
-      })
-      .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())
-  }, [notifications, search, statusFilter, originFilter])
+    return () => window.clearTimeout(timer)
+  }, [search, statusFilter, originFilter, applyListFilters])
 
-  const unreadInList = filteredNotifications.filter(isPrefeituraNotificationUnread).length
+  const listTotal = notificacoesContext?.listTotal ?? notifications.length
+  const isListLoading = notificacoesContext?.isListLoading ?? false
+  const unreadInList = notifications.filter(isPrefeituraNotificationUnread).length
 
   function markAsRead(id: string) {
+    if (notificacoesContext) {
+      void notificacoesContext.markAsRead(id)
+      return
+    }
     onNotificationsChange(
       notifications.map((item) =>
         item.id === id && item.direction === 'inbox' && item.readAt === null
@@ -101,9 +107,19 @@ export function ProfissionalNotificacoesMainPanel({
   }
 
   function markAllInboxRead() {
-    const unreadCount = notifications.filter(isPrefeituraNotificationUnread).length
+    const unreadCount = notificacoesContext?.kpis.unreadCount ?? unreadInList
     if (unreadCount === 0) {
       showToast('Não há mensagens não lidas na caixa de entrada.', 'warning')
+      return
+    }
+
+    if (notificacoesContext) {
+      void notificacoesContext.markAllInboxRead().then((count) => {
+        showToast(
+          `${count} notificação${count === 1 ? '' : 'ões'} marcada${count === 1 ? '' : 's'} como lida${count === 1 ? '' : 's'}.`,
+          'success',
+        )
+      })
       return
     }
 
@@ -150,9 +166,10 @@ export function ProfissionalNotificacoesMainPanel({
             <div>
               <h2 className="text-base font-bold text-gray-900">Central de notificações</h2>
               <p className="mt-0.5 text-sm text-gray-500">
-                {filteredNotifications.length} mensagem
-                {filteredNotifications.length === 1 ? ' recebida' : 's recebidas'}
+                {listTotal} mensagem
+                {listTotal === 1 ? ' recebida' : 's recebidas'}
                 {unreadInList > 0 ? ` · ${unreadInList} não lida${unreadInList === 1 ? '' : 's'}` : ''}
+                {isListLoading ? ' · atualizando…' : ''}
               </p>
             </div>
             <button
@@ -194,7 +211,12 @@ export function ProfissionalNotificacoesMainPanel({
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-white">
+        <div
+          className={[
+            'min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-white transition-opacity',
+            isListLoading ? 'pointer-events-none opacity-60' : '',
+          ].join(' ')}
+        >
           <table className="w-full table-fixed border-collapse text-sm">
             <colgroup>
               <col style={{ width: '8%' }} />
@@ -219,17 +241,19 @@ export function ProfissionalNotificacoesMainPanel({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
-              {filteredNotifications.length === 0 ? (
+              {notifications.length === 0 ? (
                 <tr>
                   <td
                     colSpan={TABLE_COLUMN_COUNT}
                     className="px-5 py-16 text-center text-sm text-gray-500 sm:px-6"
                   >
-                    Nenhuma notificação para os filtros aplicados.
+                    {isListLoading
+                      ? 'Carregando notificações…'
+                      : 'Nenhuma notificação para os filtros aplicados.'}
                   </td>
                 </tr>
               ) : (
-                filteredNotifications.map((item) => {
+                notifications.map((item) => {
                   const unread = isPrefeituraNotificationUnread(item)
 
                   return (
@@ -327,9 +351,9 @@ export function ProfissionalNotificacoesMainPanel({
 
         <footer className="shrink-0 border-t border-gray-200 bg-white px-5 py-3 sm:px-6">
           <p className="text-xs text-gray-500">
-            {filteredNotifications.length === 0
+            {notifications.length === 0
               ? 'Nenhuma mensagem na lista filtrada'
-              : `${filteredNotifications.length} notificação${filteredNotifications.length === 1 ? '' : 'ões'} exibida${filteredNotifications.length === 1 ? '' : 's'}`}
+              : `${notifications.length} notificação${notifications.length === 1 ? '' : 'ões'} exibida${notifications.length === 1 ? '' : 's'}`}
           </p>
         </footer>
       </section>

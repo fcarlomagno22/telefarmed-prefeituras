@@ -13,28 +13,27 @@ import {
 import { DashboardLayout } from '../components/layout/DashboardLayout'
 import { KpiStatCards } from '../components/ui/KpiStatCards'
 import { Toast, type ToastVariant } from '../components/ui/Toast'
-import { brand } from '../config/brand'
-import { currentUbtUnit } from '../config/ubtSession'
-import { computeUbtNotificacoesKpiCards } from '../data/ubtNotificacoesMock'
-import type { PrefeituraNotification } from '../data/prefeituraNotificacoesMock'
-import { useUbtNotificationsState } from '../contexts/UbtNotificacoesContext'
+import {
+  useUbtNotificacoes,
+  useUbtNotificationsState,
+} from '../contexts/UbtNotificacoesContext'
+import type { CreateUbtBroadcastPayload } from '../lib/services/ubt/notificacoes'
+import { isUbtNotificacoesApiError } from '../lib/services/ubt/notificacoes'
+import { buildUbtNotificacoesKpiCards } from '../utils/notificacoes/portalNotificacoesKpiCards'
 import { DashboardPageHeader } from '../components/users/DashboardPageHeader'
 import { DashboardPageHeaderSkeleton } from '../components/users/DashboardPageHeaderSkeleton'
-import { usePageSkeletonLoading } from '../hooks/usePageSkeletonLoading'
 import { useBrandTheme } from '../hooks/useBrandTheme'
 import { KpiCardsRowSkeleton } from '../components/prefeitura/skeletons/prefeituraSkeletonUi'
 
-const operatorSender = `${currentUbtUnit.name} · ${brand.operatorName}`
-
 export function UbtNotificacoesPage() {
   useBrandTheme()
-  const isLoading = usePageSkeletonLoading(1200)
+  const { kpis, isLoading, sendBroadcast } = useUbtNotificacoes()
   const [notifications, setNotifications] = useUbtNotificationsState()
   const [composeOpen, setComposeOpen] = useState(false)
   const [composeClosing, setComposeClosing] = useState(false)
   const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
 
-  const kpiCards = useMemo(() => computeUbtNotificacoesKpiCards(notifications), [notifications])
+  const kpiCards = useMemo(() => buildUbtNotificacoesKpiCards(kpis), [kpis])
 
   const openCompose = useCallback(() => {
     setComposeClosing(false)
@@ -57,29 +56,23 @@ export function UbtNotificacoesPage() {
     requestAnimationFrame(() => setToast({ message, variant }))
   }, [])
 
-  const handleSendToGestao = useCallback(
-    (payload: { title: string; body: string; priority: 'normal' | 'important' }) => {
-      const now = new Date().toISOString()
-      const newNotification: PrefeituraNotification = {
-        id: `ubt-sent-${Date.now()}`,
-        direction: 'sent',
-        origin: 'ubt',
-        audience: 'contract_manager',
-        title: payload.title,
-        body: payload.body,
-        sentAt: now,
-        readAt: now,
-        unitId: currentUbtUnit.id,
-        unitName: currentUbtUnit.name,
-        senderLabel: operatorSender,
-        recipientLabel: 'Gestão do contrato municipal',
-        priority: payload.priority,
+  const handleSendBroadcast = useCallback(
+    async (payload: CreateUbtBroadcastPayload) => {
+      try {
+        await sendBroadcast(payload)
+        showToast('Notificação enviada aos profissionais da unidade.', 'success')
+      } catch (error) {
+        const message =
+          error instanceof Error && error.message
+            ? error.message
+            : isUbtNotificacoesApiError(error)
+              ? error.message
+              : 'Não foi possível enviar a notificação.'
+        showToast(message, 'error')
+        throw error
       }
-
-      setNotifications((prev) => [newNotification, ...prev])
-      showToast('Notificação enviada para a gestão municipal.', 'success')
     },
-    [setNotifications, showToast],
+    [sendBroadcast, showToast],
   )
 
   return (
@@ -92,7 +85,7 @@ export function UbtNotificacoesPage() {
             ) : (
               <DashboardPageHeader
                 title="Notificações"
-                subtitle="Leia comunicados da Telefarmed e da gestão municipal; envie mensagens apenas para a administração do contrato"
+                subtitle="Leia comunicados da Telefarmed e da gestão municipal; envie mensagens para profissionais vinculados à unidade"
               />
             )}
           </div>
@@ -152,7 +145,7 @@ export function UbtNotificacoesPage() {
         closing={composeClosing}
         onClose={closeCompose}
         onTransitionEnd={handleComposeTransitionEnd}
-        onSend={handleSendToGestao}
+        onSend={handleSendBroadcast}
       />
 
       <Toast

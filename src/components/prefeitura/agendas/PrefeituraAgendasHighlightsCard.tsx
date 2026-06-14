@@ -1,5 +1,4 @@
 import { AlertTriangle, Award, TrendingDown, TrendingUp } from 'lucide-react'
-import { prefeituraAgendasHighlights } from '../../../data/prefeituraAgendasMock'
 import type { HighlightItem } from '../../../data/prefeituraAgendasMock'
 import { prefeituraAgendasBottomCardHeightClass } from './prefeituraAgendasUi'
 
@@ -29,7 +28,11 @@ const highlightConfig: Record<
   },
 }
 
-export function PrefeituraAgendasHighlightsCard() {
+type PrefeituraAgendasHighlightsCardProps = {
+  highlights: HighlightItem[]
+}
+
+export function PrefeituraAgendasHighlightsCard({ highlights }: PrefeituraAgendasHighlightsCardProps) {
   return (
     <article
       className={[
@@ -41,27 +44,33 @@ export function PrefeituraAgendasHighlightsCard() {
         <h3 className="text-sm font-bold text-gray-900">Unidades em Destaque</h3>
       </header>
       <ul className="flex min-h-0 flex-1 flex-col gap-0 divide-y divide-gray-50 p-2">
-        {prefeituraAgendasHighlights.map((item) => {
-          const config = highlightConfig[item.tone]
-          const Icon = config.icon
+        {highlights.length === 0 ? (
+          <li className="px-2 py-8 text-center text-sm text-gray-500">
+            Sem destaques para a semana selecionada.
+          </li>
+        ) : (
+          highlights.map((item) => {
+            const config = highlightConfig[item.tone]
+            const Icon = config.icon
 
-          return (
-            <li key={item.id} className="flex items-start gap-3 px-2 py-3">
-              <span
-                className={[
-                  'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1',
-                  config.iconWrap,
-                ].join(' ')}
-              >
-                <Icon className={`h-4 w-4 ${config.iconColor}`} strokeWidth={2} />
-              </span>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-gray-900">{item.title}</p>
-                <p className="mt-0.5 text-xs text-gray-600">{item.subtitle}</p>
-              </div>
-            </li>
-          )
-        })}
+            return (
+              <li key={item.id} className="flex items-start gap-3 px-2 py-3">
+                <span
+                  className={[
+                    'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1',
+                    config.iconWrap,
+                  ].join(' ')}
+                >
+                  <Icon className={`h-4 w-4 ${config.iconColor}`} strokeWidth={2} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-gray-900">{item.title}</p>
+                  <p className="mt-0.5 text-xs text-gray-600">{item.subtitle}</p>
+                </div>
+              </li>
+            )
+          })
+        )}
       </ul>
     </article>
   )

@@ -1,6 +1,6 @@
 import { Clock3, ListOrdered, Megaphone, UserRound } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import type { WaitingQueueEntry } from '../../data/waitingQueueStore'
+import { useMemo } from 'react'
+import type { WaitingQueueEntry } from '../../types/waitingQueue'
 import { useWaitingQueue } from '../../hooks/useWaitingQueue'
 import { buildQueueEntryMeta } from '../../utils/waitingQueueDisplay'
 import { isAppointmentSlotPriority } from '../../utils/waitingQueueSort'
@@ -122,26 +122,41 @@ function QueueRow({ entry, position, canCall, now, callDisabled, onCall }: Queue
 
 type UnitWaitingQueueCardProps = {
   onCallPatient: (entry: WaitingQueueEntry) => void
+  onCallNextPatient: () => void
   callDisabled?: boolean
+  isCalling?: boolean
+  callError?: string | null
+  calledName?: string | null
 }
 
 export function UnitWaitingQueueCard({
   onCallPatient,
+  onCallNextPatient,
   callDisabled = false,
+  isCalling = false,
+  callError = null,
+  calledName = null,
 }: UnitWaitingQueueCardProps) {
-  const { ordered, priorityCount, now, removeEntry } = useWaitingQueue()
-  const [calledName, setCalledName] = useState<string | null>(null)
+  const { ordered, priorityCount, now, refresh, isLoading, loadError } = useWaitingQueue()
 
   const localClock = useMemo(() => formatLocalClock(now), [now])
 
   const callableEntryId = ordered[0]?.id ?? null
 
   function handleCall(entry: WaitingQueueEntry) {
-    if (callDisabled || entry.status !== 'aguardando') return
-    setCalledName(entry.patientName)
-    removeEntry(entry.id)
-    onCallPatient(entry)
-    window.setTimeout(() => setCalledName(null), 4000)
+    if (callDisabled || entry.status !== 'aguardando' || isCalling) return
+    if (entry.id === callableEntryId) {
+      onCallNextPatient()
+    } else {
+      onCallPatient(entry)
+    }
+    void refresh()
+  }
+
+  function handleCallNext() {
+    if (callDisabled || isCalling || ordered.length === 0) return
+    onCallNextPatient()
+    void refresh()
   }
 
   return (
@@ -184,7 +199,22 @@ export function UnitWaitingQueueCard({
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2 sm:px-4">
-        {ordered.length === 0 ? (
+        {loadError ? (
+          <div className="flex h-full flex-col items-center justify-center gap-2 px-2 py-10 text-center">
+            <p className="text-sm font-medium text-red-700">{loadError}</p>
+            <button
+              type="button"
+              onClick={() => void refresh()}
+              className="text-xs font-semibold text-[var(--brand-primary)] underline"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        ) : isLoading && ordered.length === 0 ? (
+          <div className="flex h-full items-center justify-center py-10 text-sm text-gray-500">
+            Carregando fila…
+          </div>
+        ) : ordered.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-2 py-10 text-center">
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-gray-400 ring-1 ring-orange-100">
               <UserRound className="h-6 w-6" strokeWidth={1.75} />
@@ -204,7 +234,7 @@ export function UnitWaitingQueueCard({
                 position={index + 1}
                 canCall={entry.id === callableEntryId}
                 now={now}
-                callDisabled={callDisabled}
+                callDisabled={callDisabled || isCalling}
                 onCall={handleCall}
               />
             ))}
@@ -212,21 +242,47 @@ export function UnitWaitingQueueCard({
         )}
       </div>
 
-      <footer className="shrink-0 border-t border-orange-100/60 px-4 py-3 text-center sm:px-5">
-        {calledName ? (
-          <p className="truncate text-xs font-semibold text-[var(--brand-primary)]">
-            Chamando {calledName}…
-          </p>
-        ) : callDisabled ? (
-          <p className="text-xs font-medium leading-relaxed text-amber-800">
-            Terminal em uso — finalize o atendimento atual para chamar o próximo da fila.
-          </p>
-        ) : (
-          <p className="text-xs font-medium leading-relaxed text-gray-600">
-            Use <span className="text-[var(--brand-primary)]">Chamar</span> no primeiro da
-            lista para iniciar o atendimento no Terminal.
-          </p>
-        )}
+      <footer className="shrink-0 border-t border-orange-100/60 px-4 py-3 sm:px-5">
+        {ordered.length > 0 ? (
+          <button
+            type="button"
+            onClick={handleCallNext}
+            disabled={callDisabled || isCalling}
+            className={[
+              'mb-2 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm transition',
+              callDisabled || isCalling
+                ? 'cursor-not-allowed bg-gray-200 text-gray-400'
+                : 'bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)]',
+            ].join(' ')}
+          >
+            <Megaphone className="h-4 w-4" strokeWidth={2} />
+            Chamar próximo
+          </button>
+        ) : null}
+
+        <div className="text-center">
+          {callError ? (
+            <p className="truncate text-xs font-medium text-red-700">{callError}</p>
+          ) : calledName ? (
+            <p className="truncate text-xs font-semibold text-[var(--brand-primary)]">
+              Chamando {calledName}…
+            </p>
+          ) : callDisabled ? (
+            <p className="text-xs font-medium leading-relaxed text-amber-800">
+              Terminal em uso — finalize o atendimento atual para chamar o próximo da fila.
+            </p>
+          ) : ordered.length > 0 ? (
+            <p className="text-xs font-medium leading-relaxed text-gray-600">
+              A ordem é definida automaticamente pelo sistema. Use{' '}
+              <span className="text-[var(--brand-primary)]">Chamar próximo</span> ou o botão no
+              primeiro da lista.
+            </p>
+          ) : (
+            <p className="text-xs font-medium leading-relaxed text-gray-600">
+              Confirme a chegada na agenda para incluir pacientes na fila.
+            </p>
+          )}
+        </div>
       </footer>
     </aside>
   )

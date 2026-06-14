@@ -1,4 +1,4 @@
-import { AlertTriangle, Clock, ShieldAlert, User, X } from 'lucide-react'
+import { AlertTriangle, Clock, ShieldAlert, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -6,7 +6,8 @@ import {
   adminNocTeams,
   type AdminNocIncident,
   type AdminNocStatus,
-} from '../../../data/adminDashboardMock'
+} from '../../../types/adminDashboard'
+import type { AdminDashboardNocPatchParams } from '../../../lib/api/admin/dashboard'
 
 type AdminNocDrawerProps = {
   open: boolean
@@ -14,6 +15,7 @@ type AdminNocDrawerProps = {
   incidents: AdminNocIncident[]
   onClose: () => void
   onTransitionEnd: () => void
+  onIncidentPatch?: (incidentId: string, patch: AdminDashboardNocPatchParams) => void | Promise<void>
 }
 
 type StatusFilter = 'all' | AdminNocStatus
@@ -48,6 +50,7 @@ export function AdminNocDrawer({
   incidents,
   onClose,
   onTransitionEnd,
+  onIncidentPatch,
 }: AdminNocDrawerProps) {
   const [entered, setEntered] = useState(false)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
@@ -262,17 +265,49 @@ export function AdminNocDrawer({
                       </div>
 
                       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-100 bg-white px-3 py-2.5">
-                        <span className="inline-flex items-center gap-1.5 text-xs text-gray-700">
-                          <User className="h-3.5 w-3.5 text-gray-400" />
-                          <span className="font-semibold">
-                            {incident.assignee ?? 'Sem responsável'}
-                          </span>
-                        </span>
+                        <label className="flex min-w-[160px] flex-1 items-center gap-2 text-xs">
+                          <span className="font-semibold text-gray-500">Responsável:</span>
+                          <input
+                            type="text"
+                            defaultValue={incident.assignee ?? ''}
+                            placeholder="Nome do responsável"
+                            className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-800"
+                            onBlur={(event) => {
+                              const next = event.target.value.trim()
+                              const current = incident.assignee?.trim() ?? ''
+                              if (next === current) return
+                              void onIncidentPatch?.(incident.id, {
+                                assignee: next.length ? next : null,
+                              })
+                            }}
+                            aria-label={`Responsável do incidente ${incident.id}`}
+                          />
+                        </label>
+                        <label className="flex items-center gap-2 text-xs">
+                          <span className="font-semibold text-gray-500">Status:</span>
+                          <select
+                            className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-800"
+                            value={incident.status}
+                            onChange={(event) => {
+                              void onIncidentPatch?.(incident.id, {
+                                status: event.target.value as AdminNocStatus,
+                              })
+                            }}
+                            aria-label={`Status do incidente ${incident.id}`}
+                          >
+                            <option value="open">Aberto</option>
+                            <option value="in_progress">Em tratamento</option>
+                            <option value="resolved">Resolvido</option>
+                          </select>
+                        </label>
                         <label className="flex items-center gap-2 text-xs">
                           <span className="font-semibold text-gray-500">Time:</span>
                           <select
                             className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-800"
-                            defaultValue={incident.team}
+                            value={incident.team}
+                            onChange={(event) => {
+                              void onIncidentPatch?.(incident.id, { team: event.target.value })
+                            }}
                             aria-label={`Atribuir time do incidente ${incident.id}`}
                           >
                             {adminNocTeams.map((team) => (

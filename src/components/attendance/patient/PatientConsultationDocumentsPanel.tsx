@@ -1,21 +1,24 @@
 import { ConsultationDocumentsPanel } from '../ConsultationDocumentsPanel'
-import type { ConsultationDocumentItem } from '../ConsultationDocumentsPanel'
+import { usePublicDocumentos } from '../../../hooks/usePublicDocumentos'
 import { patientConsultationCardClass } from './patientConsultationUi'
 
 type PatientConsultationDocumentsPanelProps = {
-  documents?: ConsultationDocumentItem[]
+  token?: string
   className?: string
 }
 
 export function PatientConsultationDocumentsPanel({
-  documents = [],
+  token,
   className,
 }: PatientConsultationDocumentsPanelProps) {
+  const { documents, downloadDocument } = usePublicDocumentos(token)
+
   return (
     <ConsultationDocumentsPanel
       cardClassName={patientConsultationCardClass}
       className={className}
-      documents={documents}
+      documents={token ? documents : []}
+      onDownloadDocument={(doc) => void downloadDocument(doc)}
     />
   )
 }

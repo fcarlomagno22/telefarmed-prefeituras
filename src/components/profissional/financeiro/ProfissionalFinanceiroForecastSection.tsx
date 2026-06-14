@@ -1,13 +1,7 @@
 import { BarChart3 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import {
-  buildProfissionalBillingShifts,
-  filterBillingShiftsByCompetence,
-} from '../../../utils/profissional/buildProfissionalBillingShifts'
-import { computeProfissionalFinanceiroStats } from '../../../utils/profissional/computeProfissionalFinanceiroStats'
 import { formatProfissionalCurrency } from '../../../utils/profissional/formatProfissionalCurrency'
 import { parseCompetenceKey } from '../../../utils/profissional/profissionalCompetence'
-import { profissionalFinanceiroAvailableCompetences } from '../../../data/profissionalFinanceiroMock'
 import { profissionalFinanceiroPanelClass } from './profissionalFinanceiroUi'
 
 const CHART_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)'
@@ -15,6 +9,13 @@ const CHART_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)'
 type MonthForecastRow = {
   key: string
   monthLabel: string
+  realizados: number
+  previstos: number
+  total: number
+}
+
+type ForecastInputRow = {
+  key: string
   realizados: number
   previstos: number
   total: number
@@ -39,23 +40,26 @@ function useChartFillAnimation(delayMs = 60) {
   return animate
 }
 
-export function ProfissionalFinanceiroForecastSection() {
-  const allShifts = useMemo(() => buildProfissionalBillingShifts(), [])
+type ProfissionalFinanceiroForecastSectionProps = {
+  rows: ForecastInputRow[]
+}
+
+export function ProfissionalFinanceiroForecastSection({
+  rows: inputRows,
+}: ProfissionalFinanceiroForecastSectionProps) {
   const animate = useChartFillAnimation(80)
 
   const rows = useMemo((): MonthForecastRow[] => {
-    return profissionalFinanceiroAvailableCompetences.map((key) => {
-      const shifts = filterBillingShiftsByCompetence(allShifts, key)
-      const stats = computeProfissionalFinanceiroStats(shifts)
-      return {
-        key,
-        monthLabel: formatMonthShortLabel(key),
-        realizados: stats.forecastCents,
-        previstos: Math.max(0, stats.potentialCents - stats.forecastCents),
-        total: stats.potentialCents,
-      }
-    })
-  }, [allShifts])
+    return [...inputRows]
+      .sort((a, b) => a.key.localeCompare(b.key))
+      .map((row) => ({
+        key: row.key,
+        monthLabel: formatMonthShortLabel(row.key),
+        realizados: row.realizados,
+        previstos: row.previstos,
+        total: row.total,
+      }))
+  }, [inputRows])
 
   const periodTotal = rows.reduce((sum, row) => sum + row.total, 0)
   const periodRealized = rows.reduce((sum, row) => sum + row.realizados, 0)
@@ -74,7 +78,7 @@ export function ProfissionalFinanceiroForecastSection() {
             <h3 className="text-sm font-bold text-gray-900">Previsão por mês</h3>
           </div>
           <p className="mt-2 text-xs leading-relaxed text-gray-500">
-            Realizado vs. previsto em cada competência.
+            Repasses por competência com base em consultas concluídas.
           </p>
         </div>
         <dl className="shrink-0 text-right">
@@ -90,16 +94,20 @@ export function ProfissionalFinanceiroForecastSection() {
         </dl>
       </div>
 
-      <ul className="mt-4 space-y-2.5" aria-label="Previsão por competência">
-        {rows.map((row, index) => (
-          <MonthForecastBarRow
-            key={row.key}
-            row={row}
-            animate={animate}
-            animationDelay={`${index * 0.1}s`}
-          />
-        ))}
-      </ul>
+      {rows.length === 0 ? (
+        <p className="mt-4 text-xs text-gray-500">Nenhuma competência com repasse ainda.</p>
+      ) : (
+        <ul className="mt-4 space-y-2.5" aria-label="Previsão por competência">
+          {rows.map((row, index) => (
+            <MonthForecastBarRow
+              key={row.key}
+              row={row}
+              animate={animate}
+              animationDelay={`${index * 0.1}s`}
+            />
+          ))}
+        </ul>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center justify-center gap-4 border-t border-gray-100 pt-3 text-[11px] font-medium text-gray-500">
         <span className="inline-flex items-center gap-2">

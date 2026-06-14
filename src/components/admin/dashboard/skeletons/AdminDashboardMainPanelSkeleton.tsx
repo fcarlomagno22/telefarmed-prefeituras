@@ -7,6 +7,7 @@ import { adminDashboardTopRowSectionClass } from '../adminDashboardUi'
 import {
   AdminDashboardHeaderSkeleton,
   AdminDashboardKpiGridSkeleton,
+  AdminHourlyChartPanelSkeleton,
   AdminMunicipalitiesTableSkeleton,
   AdminNocCentralPanelSkeleton,
   AdminOperationalSummaryPanelSkeleton,
@@ -26,6 +27,8 @@ export function AdminDashboardMainPanelSkeleton() {
       >
         <AdminDashboardHeaderSkeleton />
 
+        <AdminDashboardKpiGridSkeleton className="w-full" />
+
         <div className="grid gap-4 xl:grid-cols-12">
           <section
             className={[
@@ -35,7 +38,7 @@ export function AdminDashboardMainPanelSkeleton() {
             ].join(' ')}
           >
             <div className="flex min-h-0 lg:col-span-4">
-              <AdminDashboardKpiGridSkeleton className="h-full w-full" />
+              <AdminHourlyChartPanelSkeleton className="h-full w-full" />
             </div>
 
             <div

@@ -1,6 +1,7 @@
 import { Send } from 'lucide-react'
 import { useMemo } from 'react'
-import { prefeituraNotificacoesOriginSlices } from '../../../data/prefeituraNotificacoesMock'
+import { usePrefeituraNotificacoes } from '../../../contexts/PrefeituraNotificacoesContext'
+import { computePrefeituraNotificacoesOriginSlices } from '../../../utils/notificacoes/prefeituraNotificacoesOriginSlices'
 import { PrefeituraNotificacoesIllustration } from './PrefeituraNotificacoesIllustration'
 import { buildPrefeituraNotificationOriginBadge } from './prefeituraNotificacoesUi'
 import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
@@ -16,10 +17,15 @@ function formatNumber(value: number) {
 export function PrefeituraNotificacoesSidebarPanel({
   onCompose,
 }: PrefeituraNotificacoesSidebarPanelProps) {
-  const totalUnread = prefeituraNotificacoesOriginSlices.reduce((sum, slice) => sum + slice.unread, 0)
+  const { notifications } = usePrefeituraNotificacoes()
+  const originSlices = useMemo(
+    () => computePrefeituraNotificacoesOriginSlices(notifications),
+    [notifications],
+  )
+  const totalUnread = originSlices.reduce((sum, slice) => sum + slice.unread, 0)
   const totalMessages = useMemo(
-    () => prefeituraNotificacoesOriginSlices.reduce((sum, slice) => sum + slice.count, 0),
-    [],
+    () => originSlices.reduce((sum, slice) => sum + slice.count, 0),
+    [originSlices],
   )
 
   return (
@@ -59,7 +65,7 @@ export function PrefeituraNotificacoesSidebarPanel({
         </header>
 
         <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-y-contain p-3">
-          {prefeituraNotificacoesOriginSlices.map((slice) => {
+          {originSlices.map((slice) => {
             const badge = buildPrefeituraNotificationOriginBadge(slice.key)
 
             return (

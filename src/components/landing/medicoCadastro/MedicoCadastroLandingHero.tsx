@@ -8,7 +8,7 @@ const features = [
     icon: Home,
     title: 'Atenda de onde estiver',
     description:
-      'Trabalhe 100% online, no conforto da sua casa, com total flexibilidade de horários.',
+      'Trabalhe 100% online, no conforto da sua casa ou consultório, com total flexibilidade de horários.',
   },
   {
     icon: DollarSign,

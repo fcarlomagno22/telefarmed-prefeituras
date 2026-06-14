@@ -3,6 +3,7 @@ import { useLocation, useSearchParams } from 'react-router-dom'
 import { ProfissionalAvaliacaoChartsSidebar } from '../components/profissional/avaliacao/ProfissionalAvaliacaoChartsSidebar'
 import { ProfissionalAvaliacaoMainPanel } from '../components/profissional/avaliacao/ProfissionalAvaliacaoMainPanel'
 import { ProfissionalOnboardingTour } from '../components/profissional/onboarding/ProfissionalOnboardingTour'
+import { ProfissionalTourInviteModal } from '../components/profissional/onboarding/ProfissionalTourInviteModal'
 import { ProfissionalPageHeader } from '../components/profissional/ProfissionalPageHeader'
 import {
   profissionalAtendimentosColumnFillClass,
@@ -16,17 +17,23 @@ import {
   dashboardPageShellClass,
 } from '../components/layout/dashboardPageLayout'
 import {
-  profissionalAvaliacaoTourFirstVisitBody,
   type ProfissionalAvaliacaoTourStep,
 } from '../config/profissionalAvaliacaoTour'
+import { profissionalTourInviteMeta } from '../config/profissionalTourInvite'
 import { findProfissionalNavByPathname } from '../config/profissionalSidebarNav'
-import { profissionalAvaliacoesReviews } from '../data/profissionalAvaliacoesMock'
+import { useProfissionalAvaliacaoPage } from '../hooks/useProfissionalAvaliacaoPage'
 import { useProfissionalAvaliacaoTour } from '../hooks/useProfissionalAvaliacaoTour'
 import type { ProfissionalAvaliacoesFilters } from '../types/profissionalAvaliacoes'
+import { defaultProfissionalAvaliacoesFilters } from '../utils/profissional/filterProfissionalAvaliacoes'
+import { computeProfissionalAvaliacoesStats } from '../utils/profissional/computeProfissionalAvaliacoesStats'
+import { shouldShowPortalPageLoadingBlock } from '../utils/portal/portalPageLoading'
+import { ProfissionalAvaliacaoMainPanelSkeleton } from '../components/profissional/skeletons/ProfissionalAvaliacaoMainPanelSkeleton'
+import { ProfissionalAvaliacaoChartsSidebarSkeleton } from '../components/profissional/skeletons/ProfissionalAvaliacaoChartsSidebarSkeleton'
 import {
-  defaultProfissionalAvaliacoesFilters,
-  filterProfissionalAvaliacoes,
-} from '../utils/profissional/filterProfissionalAvaliacoes'
+  resolveProfissionalAvaliacaoTourReviews,
+  resolveProfissionalAvaliacaoTourSummary,
+} from '../utils/profissional/profissionalTourDemoFallbacks'
+import { profissionalAvaliacoesReviews } from '../data/profissionalAvaliacoesMock'
 
 const fallbackMeta = {
   title: 'Avaliação',
@@ -65,10 +72,7 @@ export function ProfissionalAvaliacaoPage() {
     resetAvaliacaoFilters(),
   )
 
-  const filteredReviews = useMemo(
-    () => filterProfissionalAvaliacoes(profissionalAvaliacoesReviews, filters),
-    [filters],
-  )
+  const avaliacoes = useProfissionalAvaliacaoPage(filters)
 
   const handleTourStepActive = useCallback((step: ProfissionalAvaliacaoTourStep) => {
     if (step.id === 'welcome' || LIST_TOUR_STEP_IDS.has(step.id)) {
@@ -110,9 +114,31 @@ export function ProfissionalAvaliacaoPage() {
     onBeforeAdvance: handleTourBeforeAdvance,
   })
 
+  const displayReviews = useMemo(
+    () => resolveProfissionalAvaliacaoTourReviews(avaliacoes.reviews, filters, tour.active),
+    [avaliacoes.reviews, filters, tour.active],
+  )
+
+  const displaySummary = useMemo(
+    () => resolveProfissionalAvaliacaoTourSummary(avaliacoes.summary, tour.active),
+    [avaliacoes.summary, tour.active],
+  )
+
+  const displayStats = useMemo(() => {
+    if (tour.active && !avaliacoes.summary) {
+      return computeProfissionalAvaliacoesStats(profissionalAvaliacoesReviews)
+    }
+    return avaliacoes.stats
+  }, [avaliacoes.stats, avaliacoes.summary, tour.active])
+
+  const showLoadingBlock = shouldShowPortalPageLoadingBlock(
+    avaliacoes.isLoading,
+    avaliacoes.reviews.length > 0 || avaliacoes.summary != null,
+  )
+
   return (
     <>
-      <div className={dashboardPageShellClass} aria-label={meta.title}>
+      <div className={dashboardPageShellClass} aria-label={meta.title} aria-busy={showLoadingBlock}>
         <div className={dashboardPageHeaderWrapClass}>
           <ProfissionalPageHeader
             title={meta.title}
@@ -139,29 +165,51 @@ export function ProfissionalAvaliacaoPage() {
               'mt-4 pb-5',
             ].join(' ')}
           >
+            {avaliacoes.loadError && !avaliacoes.isLoading ? (
+              <div className="col-span-full rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                {avaliacoes.loadError}
+              </div>
+            ) : null}
+
             <div className={profissionalAtendimentosColumnScrollClass}>
               <div className={profissionalAtendimentosColumnFillClass}>
-                <ProfissionalAvaliacaoMainPanel filters={filters} onFiltersChange={setFilters} />
+                {showLoadingBlock ? (
+                  <ProfissionalAvaliacaoMainPanelSkeleton />
+                ) : (
+                  <ProfissionalAvaliacaoMainPanel
+                    filters={filters}
+                    onFiltersChange={setFilters}
+                    reviews={displayReviews}
+                    summary={displaySummary}
+                  />
+                )}
               </div>
             </div>
 
             <div className={profissionalAtendimentosColumnScrollClass}>
               <div className={profissionalAtendimentosColumnFillClass}>
-                <ProfissionalAvaliacaoChartsSidebar reviews={filteredReviews} />
+                {showLoadingBlock ? (
+                  <ProfissionalAvaliacaoChartsSidebarSkeleton />
+                ) : (
+                  <ProfissionalAvaliacaoChartsSidebar stats={displayStats} />
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
 
+      <ProfissionalTourInviteModal
+        open={tour.inviteOpen}
+        {...profissionalTourInviteMeta.avaliacao}
+        onStart={tour.acceptInvite}
+        onDismiss={tour.dismissInvite}
+      />
+
       <ProfissionalOnboardingTour
         open={tour.active}
         title={tour.step.title}
-        body={
-          tour.isMandatorySession && tour.step.id === 'welcome'
-            ? profissionalAvaliacaoTourFirstVisitBody
-            : tour.step.body
-        }
+        body={tour.step.body}
         hint={tour.step.hint}
         stepIndex={tour.stepIndex}
         totalSteps={tour.totalSteps}

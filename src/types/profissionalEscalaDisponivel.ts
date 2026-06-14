@@ -1,3 +1,5 @@
+import type { EscalaRepasseRule } from '../../types/adminEscala'
+
 export type ProfissionalEscalaDisponivelStatus = 'disponivel' | 'reservado_mim'
 
 export type ProfissionalEscalaModality = 'tele' | 'presencial'
@@ -23,8 +25,13 @@ export type ProfissionalEscalaDisponivel = {
   distanceKm: number | null
   amountCents: number
   vacancies: number
+  repasseRule: EscalaRepasseRule
   status: ProfissionalEscalaDisponivelStatus
   notes?: string
+  /** Preenchido em plantões reservados/confirmados (meus-plantões). */
+  plantaoId?: string
+  inscricaoId?: string
+  plantaoStatus?: string
 }
 
 export type ProfissionalEscalaFilters = {

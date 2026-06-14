@@ -1,20 +1,26 @@
 import type { DayAppointment } from '../../data/agendaMock'
-import { lookupPatientByCpf } from '../../data/patientLookup'
-import type { WaitingQueueEntry } from '../../data/waitingQueueStore'
+import type { PatientLookupContext, PatientLookupResult } from '../../types/patientLookup'
+import type { WaitingQueueEntry } from '../../types/waitingQueue'
 import {
+  emptyPatientRegistration,
   inferAgeGroupFromBirthDate,
   type AttendanceSession,
   type PatientRegistration,
   type StationStatus,
-} from '../../data/unitDashboardMock'
-import { buildReceptionRegistrationFromAppointment } from '../agenda/buildReceptionDraftFromAppointment'
-import { resolveSpecialtyFromServiceType } from '../agenda/resolveSpecialtyFromServiceType'
+} from '../../types/attendance'
+import { buildReceptionSessionFromAppointment } from '../agenda/buildReceptionDraftFromAppointment'
 
 export type AttendanceStartFromQueue = {
   registration: PatientRegistration
   session: AttendanceSession
   initialStatus: StationStatus
   pendingFirstVisit: boolean
+  patientId?: string
+}
+
+export type BuildAttendanceStartFromQueueOptions = {
+  lookupByCpf: (cpf: string, context?: PatientLookupContext) => Promise<PatientLookupResult>
+  loadByPacienteId?: (pacienteId: string) => Promise<PatientRegistration | null>
 }
 
 function queueEntryToAppointment(entry: WaitingQueueEntry): DayAppointment {
@@ -25,78 +31,103 @@ function queueEntryToAppointment(entry: WaitingQueueEntry): DayAppointment {
     patientCpf: entry.patientCpf,
     patientPhone: entry.patientPhone ?? '',
     serviceType: entry.serviceType,
-    status: entry.status ?? 'aguardando',
+    specialtyId: entry.specialtyId,
+    status: 'aguardando',
+    pacienteId: entry.pacienteId,
   }
 }
 
-function mergeRegistration(
-  base: PatientRegistration,
-  patch: PatientRegistration,
-): PatientRegistration {
+function buildSession(entry: WaitingQueueEntry, registration: PatientRegistration): AttendanceSession {
+  const appointment = queueEntryToAppointment(entry)
+  const fromAppointment = buildReceptionSessionFromAppointment(appointment, registration)
+
   return {
-    ...base,
-    ...patch,
-    fullName: patch.fullName || base.fullName,
-    socialName: patch.socialName.trim() ? patch.socialName : base.socialName,
-    cpf: patch.cpf || base.cpf,
-    phone: patch.phone || base.phone,
-    contacts:
-      patch.contacts.length > 0 && patch.contacts[0]?.name
-        ? patch.contacts.map((c) => ({ ...c }))
-        : base.contacts,
+    specialtyId: entry.specialtyId || fromAppointment.specialtyId,
+    specialtyName: fromAppointment.specialtyName || entry.serviceType,
+    ageGroup:
+      inferAgeGroupFromBirthDate(registration.birthDate) ?? fromAppointment.ageGroup,
+  }
+}
+
+function buildResult(
+  registration: PatientRegistration,
+  session: AttendanceSession,
+  initialStatus: StationStatus,
+  pendingFirstVisit: boolean,
+  patientId?: string,
+): AttendanceStartFromQueue {
+  return {
+    registration,
+    session: {
+      ...session,
+      ageGroup: inferAgeGroupFromBirthDate(registration.birthDate) ?? session.ageGroup,
+    },
+    initialStatus,
+    pendingFirstVisit,
+    patientId,
   }
 }
 
 export async function buildAttendanceStartFromQueueEntry(
   entry: WaitingQueueEntry,
+  options: BuildAttendanceStartFromQueueOptions,
 ): Promise<AttendanceStartFromQueue> {
-  const appointment = queueEntryToAppointment(entry)
-  let registration = buildReceptionRegistrationFromAppointment(appointment)
-  const specialty = resolveSpecialtyFromServiceType(entry.serviceType)
+  const fallbackSession = buildSession(entry, {
+    ...emptyPatientRegistration(),
+    fullName: entry.patientName,
+    cpf: entry.patientCpf,
+    phone: entry.patientPhone ?? '',
+  })
 
-  const session: AttendanceSession = {
-    specialtyId: specialty?.id ?? '',
-    specialtyName: specialty?.name ?? entry.serviceType,
-    ageGroup: registration.birthDate
-      ? inferAgeGroupFromBirthDate(registration.birthDate)
-      : null,
+  if (entry.pacienteId && options.loadByPacienteId) {
+    const loaded = await options.loadByPacienteId(entry.pacienteId)
+    if (loaded) {
+      return buildResult(
+        loaded,
+        buildSession(entry, loaded),
+        'confirm_registration',
+        false,
+        entry.pacienteId,
+      )
+    }
   }
 
-  const lookup = await lookupPatientByCpf(entry.patientCpf)
+  const lookup = await options.lookupByCpf(entry.patientCpf)
 
   if (lookup.status === 'found_pending_first_visit') {
-    return {
-      registration: { ...lookup.patient, photoDataUrl: '' },
-      session: {
-        ...session,
-        specialtyId: lookup.specialtyId || session.specialtyId,
-        specialtyName: lookup.specialtyName || session.specialtyName,
-        ageGroup:
-          inferAgeGroupFromBirthDate(lookup.patient.birthDate) ?? session.ageGroup,
+    return buildResult(
+      { ...lookup.patient, photoDataUrl: '' },
+      {
+        ...fallbackSession,
+        specialtyId: lookup.specialtyId || fallbackSession.specialtyId,
+        specialtyName: lookup.specialtyName || fallbackSession.specialtyName,
+        ageGroup: inferAgeGroupFromBirthDate(lookup.patient.birthDate) ?? fallbackSession.ageGroup,
       },
-      initialStatus: 'registration',
-      pendingFirstVisit: true,
-    }
+      'registration',
+      true,
+      lookup.patientId,
+    )
   }
 
   if (lookup.status === 'found') {
-    registration = mergeRegistration(registration, lookup.patient)
-    return {
-      registration,
-      session: {
-        ...session,
-        ageGroup:
-          inferAgeGroupFromBirthDate(registration.birthDate) ?? session.ageGroup,
-      },
-      initialStatus: 'confirm_registration',
-      pendingFirstVisit: false,
-    }
+    return buildResult(
+      lookup.patient,
+      buildSession(entry, lookup.patient),
+      'confirm_registration',
+      false,
+      lookup.patientId,
+    )
   }
 
-  return {
-    registration,
-    session,
-    initialStatus: registration.fullName.trim() ? 'confirm_registration' : 'cpf_lookup',
-    pendingFirstVisit: false,
-  }
+  return buildResult(
+    {
+      ...emptyPatientRegistration(),
+      fullName: entry.patientName,
+      cpf: entry.patientCpf,
+      phone: entry.patientPhone ?? '',
+    },
+    fallbackSession,
+    entry.patientName.trim() ? 'confirm_registration' : 'cpf_lookup',
+    false,
+  )
 }

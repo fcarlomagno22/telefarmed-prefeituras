@@ -42,3 +42,22 @@ export function formatProfissionalEscalaDurationLabel(shift: ProfissionalEscalaD
 export function modalityIcon(modality: ProfissionalEscalaModality) {
   return modality === 'tele' ? Video : Building2
 }
+
+/** Rótulo de local/modalidade na escala profissional (evita "UBT · Telemedicina"). */
+export function profissionalEscalaLocationLabel(shift: ProfissionalEscalaDisponivel) {
+  if (shift.modality === 'tele') {
+    return {
+      primary: 'Modalidade Telemedicina',
+      secondary: null as string | null,
+    }
+  }
+  return {
+    primary: shift.unitName?.trim() || 'Presencial',
+    secondary: shift.fullAddress?.trim() || shift.city?.trim() || null,
+  }
+}
+
+export function profissionalEscalaPlantaoSubtitle(shift: ProfissionalEscalaDisponivel) {
+  if (shift.modality === 'tele') return 'Modalidade Telemedicina'
+  return shift.unitName
+}

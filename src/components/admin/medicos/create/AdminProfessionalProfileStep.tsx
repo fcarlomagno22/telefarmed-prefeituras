@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import type { AdminProfessionalCategory } from '../../../../data/adminMedicosMock'
+import type { AdminProfessionalCategory } from '../../../../types/adminMedicos'
 import { CustomSelect } from '../../../ui/CustomSelect'
 import { AttendanceFieldHighlight } from '../../../dashboard/AttendanceFieldHighlight'
 import { AttendanceStepFooter } from '../../../dashboard/AttendanceStepFooter'
@@ -23,14 +23,26 @@ type AdminProfessionalProfileStepProps = {
 const inputClass =
   'w-full rounded-xl border border-gray-200/80 bg-white py-3 px-4 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15'
 
-type ProfileFieldKey = 'fullName' | 'specialty' | 'councilNumber' | 'councilUf'
+type ProfileFieldKey =
+  | 'fullName'
+  | 'cpf'
+  | 'email'
+  | 'specialty'
+  | 'councilNumber'
+  | 'councilUf'
+  | 'password'
+  | 'passwordConfirm'
 
 function getProfileMissingFields(draft: AdminProfessionalCreateDraft): ProfileFieldKey[] {
   const missing: ProfileFieldKey[] = []
   if (draft.fullName.trim().length < 3) missing.push('fullName')
+  if (draft.cpf.replace(/\D/g, '').length !== 11) missing.push('cpf')
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draft.email.trim())) missing.push('email')
   if (!draft.specialty.trim()) missing.push('specialty')
   if (draft.councilNumber.replace(/\D/g, '').length < 3) missing.push('councilNumber')
   if (draft.councilUf.trim().length !== 2) missing.push('councilUf')
+  if (draft.password.length < 6) missing.push('password')
+  if (draft.password !== draft.passwordConfirm) missing.push('passwordConfirm')
   return missing
 }
 
@@ -120,6 +132,47 @@ export function AdminProfessionalProfileStep({
             </label>
           </AttendanceFieldHighlight>
 
+          <AttendanceFieldHighlight highlight={highlight('cpf')} className="block">
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-medium text-gray-700">CPF</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={draft.cpf}
+                onChange={(e) => patch('cpf', e.target.value.replace(/[^\d./-]/g, ''))}
+                placeholder="000.000.000-00"
+                autoComplete="off"
+                className={inputClass}
+              />
+            </label>
+          </AttendanceFieldHighlight>
+
+          <AttendanceFieldHighlight highlight={highlight('email')} className="block">
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-medium text-gray-700">E-mail de acesso</span>
+              <input
+                type="email"
+                value={draft.email}
+                onChange={(e) => patch('email', e.target.value)}
+                placeholder="nome@email.com"
+                autoComplete="email"
+                className={inputClass}
+              />
+            </label>
+          </AttendanceFieldHighlight>
+
+          <label className="block sm:col-span-2">
+            <span className="mb-1.5 block text-xs font-medium text-gray-700">Telefone (opcional)</span>
+            <input
+              type="tel"
+              value={draft.phone}
+              onChange={(e) => patch('phone', e.target.value)}
+              placeholder="(11) 99999-9999"
+              autoComplete="tel"
+              className={inputClass}
+            />
+          </label>
+
           <label className="block sm:col-span-2">
             <span className="mb-1.5 block text-xs font-medium text-gray-700">Profissão</span>
             <CustomSelect
@@ -173,6 +226,38 @@ export function AdminProfessionalProfileStep({
                 options={brazilianStates.map((uf) => ({ value: uf, label: uf }))}
                 placeholder="UF"
                 className="py-2.5 px-2 text-center text-sm"
+              />
+            </label>
+          </AttendanceFieldHighlight>
+
+          <AttendanceFieldHighlight highlight={highlight('password')} className="block">
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-medium text-gray-700">Senha de acesso</span>
+              <input
+                type="password"
+                value={draft.password}
+                onChange={(e) => patch('password', e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="6 dígitos"
+                inputMode="numeric"
+                autoComplete="new-password"
+                className={inputClass}
+              />
+            </label>
+          </AttendanceFieldHighlight>
+
+          <AttendanceFieldHighlight highlight={highlight('passwordConfirm')} className="block">
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-medium text-gray-700">Confirmar senha</span>
+              <input
+                type="password"
+                value={draft.passwordConfirm}
+                onChange={(e) =>
+                  patch('passwordConfirm', e.target.value.replace(/\D/g, '').slice(0, 6))
+                }
+                placeholder="Repita a senha"
+                inputMode="numeric"
+                autoComplete="new-password"
+                className={inputClass}
               />
             </label>
           </AttendanceFieldHighlight>

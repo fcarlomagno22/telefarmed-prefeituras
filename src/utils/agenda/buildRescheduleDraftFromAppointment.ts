@@ -6,10 +6,10 @@ import {
   inferAgeGroupFromBirthDate,
   type AttendanceSession,
   type PatientRegistration,
-} from '../../data/unitDashboardMock'
+} from '../../types/attendance'
 import { findNetworkUserForAppointment } from '../agendaPatientUser'
 import type { ScheduleAppointmentInitialState } from '../../components/agenda/schedule/scheduleAppointmentTypes'
-import { resolveSpecialtyFromServiceType } from './resolveSpecialtyFromServiceType'
+import { resolveAppointmentSpecialty } from './resolveAppointmentSpecialty'
 
 function birthDateToIso(birthDate: string) {
   if (!birthDate || birthDate === '—') return ''
@@ -26,8 +26,8 @@ export function buildRescheduleDraftFromAppointment(
   selectedDay: Date,
 ): ScheduleAppointmentInitialState {
   const networkUser = findNetworkUserForAppointment(appointment)
-  const specialty = resolveSpecialtyFromServiceType(appointment.serviceType)
-  const doctors = specialty ? getDoctorsForSpecialty(specialty.id) : []
+  const specialty = resolveAppointmentSpecialty(appointment)
+  const doctors = specialty.specialtyId ? getDoctorsForSpecialty(specialty.specialtyId) : []
   const defaultDoctor = doctors[0]
 
   const registration: PatientRegistration = {
@@ -40,8 +40,8 @@ export function buildRescheduleDraftFromAppointment(
   }
 
   const session: AttendanceSession = {
-    specialtyId: specialty?.id ?? '',
-    specialtyName: specialty?.name ?? appointment.serviceType,
+    specialtyId: specialty.specialtyId,
+    specialtyName: specialty.specialtyName,
     ageGroup: registration.birthDate
       ? inferAgeGroupFromBirthDate(registration.birthDate)
       : null,

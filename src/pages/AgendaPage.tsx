@@ -16,71 +16,128 @@ import {
 import { DashboardPageHeader } from '../components/users/DashboardPageHeader'
 import { DashboardPageHeaderSkeleton } from '../components/users/DashboardPageHeaderSkeleton'
 import type { DayAppointment } from '../data/agendaMock'
-import { unitStation } from '../data/unitDashboardMock'
 import { useAgendaDateNavigation } from '../hooks/useAgendaDateNavigation'
-import { useAgendaDayAppointments } from '../hooks/useAgendaDayAppointments'
 import { useAgendaReceptionDrawer } from '../hooks/useAgendaReceptionDrawer'
 import { useAgendaWalkInReceptionDrawer } from '../hooks/useAgendaWalkInReceptionDrawer'
 import { useBrandTheme } from '../hooks/useBrandTheme'
 import { useNetworkUserDrawer } from '../hooks/useNetworkUserDrawer'
-import { usePageSkeletonLoading } from '../hooks/usePageSkeletonLoading'
 import { useScheduleAppointmentDrawer } from '../hooks/useScheduleAppointmentDrawer'
-import { getAgendaDoctorShifts } from '../data/agendaDoctorShiftMock'
+import { useUbtAgendaMutations } from '../hooks/useUbtAgendaMutations'
+import { useUbtAgendaPage } from '../hooks/useUbtAgendaPage'
+import { useUbtAuth } from '../contexts/UbtAuthContext'
+import {
+  fetchUbtPacienteConsultas,
+  fetchUbtPacienteDetail,
+  fetchUbtPacienteRow,
+} from '../lib/services/ubt/pacientes'
 import { openAgendaPrintView, openAgendaReportPrintView } from '../utils/agenda/agendaPrintHtml'
-import { enqueueWalkInReception } from '../data/waitingQueueStore'
+import { loadUbtPacienteDrawerData } from '../utils/ubtPacientesDetail'
 import { getLoggedOperatorName } from '../utils/sessionUser'
+import { toDateKey } from '../utils/agendaDate'
 
 export function AgendaPage() {
   useBrandTheme()
-  const isLoading = usePageSkeletonLoading(2000)
+  const { getAccessToken } = useUbtAuth()
   const agendaDate = useAgendaDateNavigation()
-  const agendaDay = useAgendaDayAppointments(agendaDate.selectedDate)
-  const networkUserDrawer = useNetworkUserDrawer()
+  const agendaDay = useUbtAgendaPage(agendaDate.selectedDate)
+
+  const {
+    reload,
+    reloadMonthIndicators,
+    appointments,
+    summary,
+    operationalClimate,
+    history,
+    doctorShifts,
+    unitLabel,
+    isLoading,
+    loadError,
+    hasAppointmentsOnDate,
+    cancelAppointment,
+    markNoShowAppointment,
+    confirmArrival,
+    updatingAppointmentId,
+    addAppointment,
+    checkInToFila,
+  } = agendaDay
+
+  const navigation = useMemo(
+    () => ({ ...agendaDate, history }),
+    [agendaDate, history],
+  )
+
+  const loadPacienteDetail = useCallback(
+    async (pacienteId: string) => {
+      const token = getAccessToken()
+      if (!token) {
+        throw new Error('Sessão expirada.')
+      }
+
+      return loadUbtPacienteDrawerData(
+        (id) => fetchUbtPacienteRow(token, id),
+        (id) => fetchUbtPacienteDetail(token, id),
+        pacienteId,
+        (id) => fetchUbtPacienteConsultas(token, id),
+      )
+    },
+    [getAccessToken],
+  )
+
+  const networkUserDrawer = useNetworkUserDrawer({ loadPacienteDetail, getAccessToken })
+  const mutations = useUbtAgendaMutations()
   const [isPreparingPrint, setIsPreparingPrint] = useState(false)
+
   const scheduleDrawer = useScheduleAppointmentDrawer({
-    onRescheduled: (appointmentId, patch) => {
-      agendaDay.patchAppointment(appointmentId, {
-        time: patch.time,
-        serviceType: patch.serviceType,
-        status: 'agendado',
+    initialDate: agendaDate.selectedDate,
+    onRescheduled: async (appointmentId, patch, sessionMeta) => {
+      if (!sessionMeta.profissionalId || !sessionMeta.especialidadeId) return
+      await mutations.rescheduleConsulta(appointmentId, {
+        profissionalId: sessionMeta.profissionalId,
+        especialidadeId: sessionMeta.especialidadeId,
+        data: toDateKey(sessionMeta.selectedDate),
+        hora: patch.time,
       })
+      await reload({ silent: true })
+    },
+    onScheduled: async (payload) => {
+      await mutations.scheduleConsulta(payload)
+      await reload({ silent: true })
     },
   })
 
   const receptionDrawer = useAgendaReceptionDrawer({
     onReceived: (appointment) => {
-      agendaDay.confirmArrival(appointment)
+      void confirmArrival(appointment)
     },
   })
 
   const walkInDrawer = useAgendaWalkInReceptionDrawer({
     selectedDate: agendaDate.selectedDate,
-    existingAppointments: agendaDay.appointments,
+    existingAppointments: appointments,
     onCompleted: (appointment) => {
-      agendaDay.addAppointment(appointment)
-      enqueueWalkInReception(appointment)
+      addAppointment(appointment)
+      void checkInToFila(appointment.id)
     },
+    onRegisterWalkIn: mutations.registerWalkIn,
   })
-
-  const unitLabel = unitStation.unitName.split('—')[0]?.trim() ?? unitStation.unitName
 
   const printOptions = useMemo(
     () => ({
-      appointments: agendaDay.appointments,
+      appointments,
       dayLabel: agendaDate.dayLabel,
       unitLabel,
-      summary: agendaDay.summary,
+      summary,
       sensitiveDataUnlocked: networkUserDrawer.sensitiveDataUnlocked,
       operatorName: getLoggedOperatorName(),
-      operationalClimate: agendaDay.operationalClimate,
-      doctorShifts: getAgendaDoctorShifts(agendaDate.selectedDate),
+      operationalClimate,
+      doctorShifts,
     }),
     [
-      agendaDay.appointments,
-      agendaDay.operationalClimate,
-      agendaDay.summary,
+      appointments,
+      doctorShifts,
+      operationalClimate,
+      summary,
       agendaDate.dayLabel,
-      agendaDate.selectedDate,
       networkUserDrawer.sensitiveDataUnlocked,
       unitLabel,
     ],
@@ -115,6 +172,13 @@ export function AgendaPage() {
     [agendaDate.selectedDate, scheduleDrawer],
   )
 
+  const handleMonthChange = useCallback(
+    (year: number, month: number) => {
+      void reloadMonthIndicators(year, month)
+    },
+    [reloadMonthIndicators],
+  )
+
   return (
     <DashboardLayout>
       <div className={dashboardPageShellClass}>
@@ -129,6 +193,12 @@ export function AgendaPage() {
           )}
         </div>
 
+        {loadError ? (
+          <div className="mx-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {loadError}
+          </div>
+        ) : null}
+
         <div className={[dashboardPageScrollPaddingClass, agendaPageBodyClass].join(' ')}>
           <section className={agendaTwoColumnLayoutClass}>
             <div className={agendaMainColumnClass}>
@@ -136,13 +206,16 @@ export function AgendaPage() {
                 <AgendaMainPanelSkeleton />
               ) : (
                 <AgendaMainPanel
-                  agendaDate={agendaDate}
-                  appointments={agendaDay.appointments}
+                  agendaDate={navigation}
+                  appointments={appointments}
+                  updatingAppointmentId={updatingAppointmentId}
                   networkUserDrawer={networkUserDrawer}
                   onRescheduleAppointment={handleRescheduleAppointment}
-                  onCancelAppointment={agendaDay.cancelAppointment}
-                  onMarkNoShowAppointment={agendaDay.markNoShowAppointment}
+                  onCancelAppointment={(appointment) => void cancelAppointment(appointment)}
+                  onMarkNoShowAppointment={(appointment) => void markNoShowAppointment(appointment)}
                   onOpenReception={receptionDrawer.openReception}
+                  hasAppointmentsOnDate={hasAppointmentsOnDate}
+                  onMonthChange={handleMonthChange}
                 />
               )}
             </div>
@@ -152,8 +225,11 @@ export function AgendaPage() {
                 <AgendaSidebarPanelSkeleton />
               ) : (
                 <AgendaSidebarPanel
-                  daySummary={agendaDay.summary}
-                  operationalClimate={agendaDay.operationalClimate}
+                  daySummary={summary}
+                  operationalClimate={operationalClimate}
+                  history={history}
+                  selectedDateKey={toDateKey(agendaDate.selectedDate)}
+                  onSelectHistoryDay={agendaDate.goToDateKey}
                   onScheduleAppointment={scheduleDrawer.openDrawer}
                   onWalkInReception={walkInDrawer.openWalkInReception}
                   walkInReceptionDisabled={!agendaDate.isToday}
@@ -170,7 +246,6 @@ export function AgendaPage() {
       {scheduleDrawer.drawerElement}
       {receptionDrawer.modalElement}
       {walkInDrawer.drawerElement}
-      {networkUserDrawer.drawerLayer}
     </DashboardLayout>
   )
 }

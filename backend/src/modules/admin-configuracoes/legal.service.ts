@@ -183,6 +183,14 @@ export async function setLegalDocumentPublished(
 }
 
 export async function deleteLegalDocument(id: string): Promise<void> {
+  if ((PRESET_LEGAL_DOCUMENT_IDS as readonly string[]).includes(id)) {
+    throw new ConfiguracoesError(
+      'Documentos legais padrão da plataforma não podem ser excluídos.',
+      'FORBIDDEN',
+      403,
+    )
+  }
+
   const { data, error } = await supabaseAdmin
     .from('config_documentos_legais')
     .delete()

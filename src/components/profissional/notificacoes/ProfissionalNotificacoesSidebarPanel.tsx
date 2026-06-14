@@ -37,11 +37,11 @@ export function ProfissionalNotificacoesSidebarPanel({
           <div className="min-w-0">
             <h2 className="text-sm font-bold text-gray-900">Somente leitura</h2>
             <p className="mt-1 text-xs leading-relaxed text-gray-600">
-              Você recebe avisos da Telefarmed, da gestão municipal e de outros médicos do plantão.
-              Não é possível enviar notificações por este canal.
+              Você recebe comunicados apenas da Telefarmed. Este canal não permite enviar
+              notificações.
             </p>
             <p className="mt-2 text-[10px] leading-snug text-gray-500">
-              Para falar com a Telefarmed, use a área de Suporte.
+              Para falar com a operadora, use Suporte técnico.
             </p>
           </div>
         </div>

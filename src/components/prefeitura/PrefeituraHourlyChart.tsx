@@ -13,9 +13,16 @@ const HEIGHT = 104
 type PrefeituraHourlyChartProps = {
   data: PrefeituraHourlyPoint[]
   animationKey: string
+  ariaLabel?: string
+  emptyMessage?: string
 }
 
-export function PrefeituraHourlyChart({ data, animationKey }: PrefeituraHourlyChartProps) {
+export function PrefeituraHourlyChart({
+  data,
+  animationKey,
+  ariaLabel = 'Gráfico de consultas por hora na rede',
+  emptyMessage = 'Sem consultas no recorte selecionado',
+}: PrefeituraHourlyChartProps) {
   const animate = usePrefeituraChartAnimation(120, animationKey)
 
   const { areaPath, linePath, peak, points } = useMemo(() => {
@@ -65,7 +72,7 @@ export function PrefeituraHourlyChart({ data, animationKey }: PrefeituraHourlyCh
   if (data.length === 0) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-gray-500">
-        Sem consultas no recorte selecionado
+        {emptyMessage}
       </div>
     )
   }
@@ -77,7 +84,7 @@ export function PrefeituraHourlyChart({ data, animationKey }: PrefeituraHourlyCh
         className="h-full w-full"
         preserveAspectRatio="xMidYMid meet"
         role="img"
-        aria-label="Gráfico de consultas por hora na rede"
+        aria-label={ariaLabel}
       >
         <defs>
           <linearGradient id={svgIds.fill} x1="0" y1="0" x2="0" y2="1">

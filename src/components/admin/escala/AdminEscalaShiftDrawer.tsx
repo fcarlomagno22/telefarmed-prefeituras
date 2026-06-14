@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { adminEscalaDoctorOptions } from '../../../data/adminEscalaMock'
+import { getAdminEscalaDoctorOptions } from '../../../data/adminEscalaCatalog'
 import type { AdminEscalaScheduleMode, AdminEscalaShift, AdminEscalaShiftStatus } from '../../../types/adminEscala'
 import {
   adminEscalaWeekdayOptions,
@@ -73,9 +73,9 @@ function createEmptyShift(): AdminEscalaShift {
   const stamp = now.toISOString()
   return {
     id: `esc-${Date.now()}`,
-    primaryDoctorId: adminEscalaDoctorOptions[0]?.value ?? '1',
+    primaryDoctorId: getAdminEscalaDoctorOptions()[0]?.value ?? '',
     backupDoctorIds: [],
-    specialty: adminEscalaDoctorOptions[0]?.specialty ?? 'Clínico Geral',
+    specialty: getAdminEscalaDoctorOptions()[0]?.specialty ?? 'Clínico Geral',
     modality: 'tele',
     startAt: start.toISOString(),
     endAt: end.toISOString(),
@@ -186,7 +186,7 @@ export function AdminEscalaShiftDrawer({
 
   const backupOptions = useMemo(() => {
     const used = new Set([draft.primaryDoctorId, ...draft.backupDoctorIds])
-    return adminEscalaDoctorOptions.filter((d) => !used.has(d.value))
+    return getAdminEscalaDoctorOptions().filter((d) => !used.has(d.value))
   }, [draft.primaryDoctorId, draft.backupDoctorIds])
 
   const scopePreview = formatAdminEscalaScopeSummary(draft)
@@ -587,7 +587,7 @@ export function AdminEscalaShiftDrawer({
             <CustomSelect
               value={draft.primaryDoctorId}
               onChange={(value) => {
-                const doctor = adminEscalaDoctorOptions.find((d) => d.value === value)
+                const doctor = getAdminEscalaDoctorOptions().find((d) => d.value === value)
                 setDraft({
                   ...draft,
                   primaryDoctorId: value,
@@ -595,7 +595,7 @@ export function AdminEscalaShiftDrawer({
                   backupDoctorIds: draft.backupDoctorIds.filter((id) => id !== value),
                 })
               }}
-              options={adminEscalaDoctorOptions.map((d) => ({
+              options={getAdminEscalaDoctorOptions().map((d) => ({
                 value: d.value,
                 label: `${d.label} · ${d.specialty}`,
               }))}

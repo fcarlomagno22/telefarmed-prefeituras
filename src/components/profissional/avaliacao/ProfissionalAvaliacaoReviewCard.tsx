@@ -2,6 +2,7 @@ import { AlertTriangle, CalendarClock, Quote } from 'lucide-react'
 import type { ProfissionalPatientReview } from '../../../types/profissionalAvaliacoes'
 import { formatProfissionalReviewDateTime } from '../../../utils/profissional/formatProfissionalReviewDateTime'
 import { isProfissionalCriticalRating } from '../../../utils/profissional/profissionalAvaliacoesCritical'
+import { getProfissionalStarColors } from '../../../utils/profissional/profissionalStarRatingColors'
 import { ProfissionalStarRating } from './ProfissionalStarRating'
 import { profissionalAvaliacoesCriticalBadgeClass } from './profissionalAvaliacoesUi'
 
@@ -15,6 +16,7 @@ export function ProfissionalAvaliacaoReviewCard({
   tourDataTarget,
 }: ProfissionalAvaliacaoReviewCardProps) {
   const isCritical = isProfissionalCriticalRating(review.rating)
+  const starColors = getProfissionalStarColors(review.rating)
   const { full: evaluatedAt } = formatProfissionalReviewDateTime(review.createdAtIso)
 
   return (
@@ -27,12 +29,7 @@ export function ProfissionalAvaliacaoReviewCard({
       ].join(' ')}
     >
       <div
-        className={[
-          'h-1 w-full',
-          isCritical
-            ? 'bg-gradient-to-r from-red-500 via-red-400 to-orange-300'
-            : 'bg-gradient-to-r from-[var(--brand-primary)] via-orange-400 to-amber-300',
-        ].join(' ')}
+        className={['h-1 w-full bg-gradient-to-r', starColors.topBarClass].join(' ')}
         aria-hidden
       />
 
@@ -44,13 +41,13 @@ export function ProfissionalAvaliacaoReviewCard({
               alt={review.patientName}
               className={[
                 'h-14 w-14 rounded-2xl object-cover shadow-md ring-2',
-                isCritical ? 'ring-red-100' : 'ring-orange-50',
+                isCritical ? 'ring-red-100' : starColors.ringClass,
               ].join(' ')}
             />
             <span
               className={[
                 'absolute -bottom-1 -right-1 flex h-6 min-w-6 items-center justify-center rounded-lg px-1 text-[10px] font-bold tabular-nums text-white shadow-sm',
-                isCritical ? 'bg-red-500' : 'bg-[var(--brand-primary)]',
+                starColors.badgeClass,
               ].join(' ')}
               aria-label={`${review.rating} estrelas`}
             >

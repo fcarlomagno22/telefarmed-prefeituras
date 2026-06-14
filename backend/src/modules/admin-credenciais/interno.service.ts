@@ -2,7 +2,6 @@ import { supabaseAdmin } from '../../db/supabase.js'
 import { normalizeCpf } from '../../lib/cpf.js'
 import { hashPassword } from '../../lib/password.js'
 import { CredenciaisError } from './errors.js'
-import { applyLoginUnlockPatch } from './login-lock.js'
 import {
   avatarClassForId,
   formatCpfDisplay,

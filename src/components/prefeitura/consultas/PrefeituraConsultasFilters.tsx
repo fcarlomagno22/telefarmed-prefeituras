@@ -15,6 +15,8 @@ type PrefeituraConsultasFiltersProps = {
   onRegionChange: (value: string) => void
   onPeriodStartChange: (value: string) => void
   onPeriodEndChange: (value: string) => void
+  unitOptions?: Array<{ value: string; label: string }>
+  regionOptions?: Array<{ value: string; label: string }>
 }
 
 export function PrefeituraConsultasFilters({
@@ -26,6 +28,8 @@ export function PrefeituraConsultasFilters({
   onRegionChange,
   onPeriodStartChange,
   onPeriodEndChange,
+  unitOptions = [...prefeituraConsultasUnitFilterOptions],
+  regionOptions = [...prefeituraConsultasRegionFilterOptions],
 }: PrefeituraConsultasFiltersProps) {
   return (
     <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
@@ -45,7 +49,7 @@ export function PrefeituraConsultasFilters({
           <CustomSelect
             value={unit}
             onChange={onUnitChange}
-            options={[...prefeituraConsultasUnitFilterOptions]}
+            options={unitOptions}
             placeholder="Selecione uma unidade"
           />
         </div>
@@ -54,7 +58,7 @@ export function PrefeituraConsultasFilters({
           <CustomSelect
             value={region}
             onChange={onRegionChange}
-            options={[...prefeituraConsultasRegionFilterOptions]}
+            options={regionOptions}
             placeholder="Selecione uma região"
           />
         </div>

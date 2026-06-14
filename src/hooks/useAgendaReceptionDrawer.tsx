@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { AgendaReceptionModal } from '../components/agenda/reception/AgendaReceptionModal'
 import type { DayAppointment } from '../data/agendaMock'
-import type { PatientRegistration } from '../data/unitDashboardMock'
+import type { PatientRegistration } from '../types/attendance'
 
 type UseAgendaReceptionDrawerOptions = {
   onReceived: (appointment: DayAppointment, registration: PatientRegistration) => void

@@ -11,6 +11,7 @@ import {
   profissionalAtendimentosColumnScrollClass,
 } from '../components/profissional/atendimentos/profissionalAtendimentosPageLayout'
 import { ProfissionalOnboardingTour } from '../components/profissional/onboarding/ProfissionalOnboardingTour'
+import { ProfissionalTourInviteModal } from '../components/profissional/onboarding/ProfissionalTourInviteModal'
 import { ProfissionalPageHeader } from '../components/profissional/ProfissionalPageHeader'
 import {
   dashboardPageFillScrollAreaClass,
@@ -20,12 +21,11 @@ import {
 } from '../components/layout/dashboardPageLayout'
 import {
   profissionalAtendimentosDrawerTourStepIds,
-  profissionalAtendimentosTourFirstVisitBody,
   PROFISSIONAL_ATENDIMENTOS_TOUR_PREVIEW_ATTACHMENT_ID,
   type ProfissionalAtendimentosTourStep,
 } from '../config/profissionalAtendimentosTour'
+import { profissionalTourInviteMeta } from '../config/profissionalTourInvite'
 import { findProfissionalNavByPathname } from '../config/profissionalSidebarNav'
-import { profissionalAtendimentosRecords } from '../data/profissionalAtendimentosMock'
 import { useProfissionalAtendimentosTour } from '../hooks/useProfissionalAtendimentosTour'
 import type { ProfissionalAttendanceRecord } from '../types/profissionalAtendimentos'
 
@@ -59,12 +59,15 @@ export function ProfissionalAtendimentosPage() {
   const forceTourStart = searchParams.get('tour') === 'atendimentos'
   const mainPanelRef = useRef<ProfissionalAtendimentosMainPanelHandle>(null)
 
-  const [filteredRecords, setFilteredRecords] = useState<ProfissionalAttendanceRecord[]>(
-    profissionalAtendimentosRecords,
-  )
+  const [filteredRecords, setFilteredRecords] = useState<ProfissionalAttendanceRecord[]>([])
+  const [listLoading, setListLoading] = useState(true)
 
   const handleFilteredRecordsChange = useCallback((records: ProfissionalAttendanceRecord[]) => {
     setFilteredRecords(records)
+  }, [])
+
+  const handleListLoadingChange = useCallback((loading: boolean) => {
+    setListLoading(loading)
   }, [])
 
   const handleTourStepActive = useCallback((step: ProfissionalAtendimentosTourStep) => {
@@ -170,27 +173,32 @@ export function ProfissionalAtendimentosPage() {
               <ProfissionalAtendimentosMainPanel
                 ref={mainPanelRef}
                 onFilteredRecordsChange={handleFilteredRecordsChange}
+                onLoadingChange={handleListLoadingChange}
                 tourLockDrawerClose={tourLockDrawerClose}
+                tourActive={tour.active}
               />
             </div>
           </div>
 
           <div className={profissionalAtendimentosColumnScrollClass}>
             <div className={profissionalAtendimentosColumnFillClass}>
-              <ProfissionalAtendimentosChartsSidebar records={filteredRecords} />
+              <ProfissionalAtendimentosChartsSidebar records={filteredRecords} isLoading={listLoading} />
             </div>
           </div>
         </div>
       </div>
 
+      <ProfissionalTourInviteModal
+        open={tour.inviteOpen}
+        {...profissionalTourInviteMeta.atendimentos}
+        onStart={tour.acceptInvite}
+        onDismiss={tour.dismissInvite}
+      />
+
       <ProfissionalOnboardingTour
         open={tour.active}
         title={tour.step.title}
-        body={
-          tour.isMandatorySession && tour.step.id === 'welcome'
-            ? profissionalAtendimentosTourFirstVisitBody
-            : tour.step.body
-        }
+        body={tour.step.body}
         hint={tour.step.hint}
         stepIndex={tour.stepIndex}
         totalSteps={tour.totalSteps}

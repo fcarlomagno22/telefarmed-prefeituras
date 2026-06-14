@@ -1,6 +1,7 @@
 import { PROFISSIONAL_SHIFT_AMOUNT_CENTS } from '../../config/profissionalShiftRates'
-import { getUbtById } from '../../data/adminEscalaRecipients'
+import { getUbtById } from '../../data/adminEscalaCatalog'
 import type { AdminEscalaShift } from '../../types/adminEscala'
+import { createDefaultRepasseRule } from '../adminEscala/repasseRule'
 import { computeAdminEscalaFillStatus, enrichAdminEscalaShiftTiming } from './escalaShiftMeta'
 
 export function defaultLocationForUbt(ubtId: string | undefined) {
@@ -32,6 +33,7 @@ export function normalizeAdminEscalaShift(raw: Partial<AdminEscalaShift> & Pick<
   const shift: AdminEscalaShift = {
     id: raw.id,
     batchId: raw.batchId,
+    contratoEntidadeId: raw.contratoEntidadeId ?? null,
     assignmentMode,
     primaryDoctorId: raw.primaryDoctorId ?? '',
     backupDoctorIds: raw.backupDoctorIds ?? [],
@@ -48,6 +50,9 @@ export function normalizeAdminEscalaShift(raw: Partial<AdminEscalaShift> & Pick<
     vacancies,
     totalVacancies,
     amountCents: raw.amountCents ?? PROFISSIONAL_SHIFT_AMOUNT_CENTS,
+    repasseRule:
+      raw.repasseRule ??
+      createDefaultRepasseRule(raw.amountCents ?? PROFISSIONAL_SHIFT_AMOUNT_CENTS),
     unitName: raw.unitName?.trim() || loc.unitName,
     city: raw.city?.trim() || loc.city,
     cityUf: raw.cityUf?.trim() || loc.cityUf,

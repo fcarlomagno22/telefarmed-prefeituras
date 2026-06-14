@@ -3,6 +3,7 @@ const ADMIN_PAGE_IDS = [
   'clientes',
   'monitor',
   'pessoas',
+  'profissionais',
   'gestaoEscala',
   'financeiro',
   'notificacoes',

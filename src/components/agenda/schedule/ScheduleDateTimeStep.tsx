@@ -8,23 +8,19 @@ import {
   UserRound,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { agendaToday } from '../../../data/agendaMock'
 import {
-  countAvailableSlots,
-  countSpecialtyAvailableSlotsOnDay,
-  countTotalAvailableSlots,
-  getDoctorAvailableSlots,
-  getDoctorById,
-  getDoctorScheduleOverview,
-  getDoctorsAvailableOnDay,
-  getNextAvailableDayForDoctor,
   getNextScheduleDays,
-  searchScheduleDoctors,
-} from '../../../data/scheduleDoctorsMock'
-import { formatAgendaDayLabel, isSameDay } from '../../../utils/agendaDate'
+  useUbtScheduleCatalog,
+} from '../../../hooks/useUbtScheduleCatalog'
+import type { ScheduleDoctor, ScheduleTimeSlot } from '../../../data/scheduleDoctorsMock'
+import { formatAgendaDayLabel, isSameDay, toDateKey } from '../../../utils/agendaDate'
 import { AttendanceFieldHighlight } from '../../dashboard/AttendanceFieldHighlight'
 import { AttendanceStepFooter } from '../../dashboard/AttendanceStepFooter'
 import { AttendanceStepShell } from '../../dashboard/AttendanceStepShell'
+import {
+  AttendanceStepLoadingPanel,
+  ScheduleDayChipsSkeleton,
+} from '../../dashboard/AttendanceStepLoadingPanel'
 
 type ScheduleDateTimeStepProps = {
   specialtyId: string
@@ -33,10 +29,11 @@ type ScheduleDateTimeStepProps = {
   selectedDoctorId: string
   selectedTime: string
   onSelectDate: (date: Date) => void
-  onSelectDoctor: (doctorId: string) => void
+  onSelectDoctor: (doctorId: string, doctorName?: string) => void
   onSelectTime: (time: string) => void
   onBack: () => void
   onContinue: () => void
+  isSubmitting?: boolean
 }
 
 type ScheduleViewMode = 'by_day' | 'by_doctor'
@@ -61,42 +58,220 @@ export function ScheduleDateTimeStep({
   onSelectTime,
   onBack,
   onContinue,
+  isSubmitting = false,
 }: ScheduleDateTimeStepProps) {
+  const catalog = useUbtScheduleCatalog()
   const [viewMode, setViewMode] = useState<ScheduleViewMode>('by_day')
   const [doctorSearch, setDoctorSearch] = useState('')
   const [showHints, setShowHints] = useState(false)
+  const [doctorsForSpecialty, setDoctorsForSpecialty] = useState<ScheduleDoctor[]>([])
+  const [slots, setSlots] = useState<ScheduleTimeSlot[]>([])
+  const [doctorScheduleOverview, setDoctorScheduleOverview] = useState<
+    Array<{ date: Date; worksThisDay: boolean; availableSlots: number }>
+  >([])
+  const [daySlotCounts, setDaySlotCounts] = useState<Map<string, number>>(new Map())
+  const [doctorsAvailableOnSelectedDay, setDoctorsAvailableOnSelectedDay] = useState<
+    ScheduleDoctor[]
+  >([])
+  const [doctorDaySlotCounts, setDoctorDaySlotCounts] = useState<Map<string, number>>(new Map())
+  const [doctorTotalUpcoming, setDoctorTotalUpcoming] = useState<Map<string, number>>(new Map())
+  const [isLoadingDayCounts, setIsLoadingDayCounts] = useState(false)
+  const [isLoadingDoctorsOnDay, setIsLoadingDoctorsOnDay] = useState(false)
+  const [isLoadingDoctorList, setIsLoadingDoctorList] = useState(false)
+  const [isLoadingDoctorOverview, setIsLoadingDoctorOverview] = useState(false)
+  const [isLoadingDoctorTotals, setIsLoadingDoctorTotals] = useState(false)
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false)
+
+  const scheduleStart = useMemo(() => {
+    const today = new Date()
+    today.setHours(12, 0, 0, 0)
+    return today
+  }, [])
 
   const scheduleDays = useMemo(
-    () => getNextScheduleDays(SCHEDULE_DAY_COUNT, agendaToday),
-    [],
+    () => getNextScheduleDays(SCHEDULE_DAY_COUNT, scheduleStart),
+    [scheduleStart],
   )
 
-  const doctorsForSpecialty = useMemo(
-    () => searchScheduleDoctors(doctorSearch, specialtyId),
-    [doctorSearch, specialtyId],
+  useEffect(() => {
+    if (!specialtyId) {
+      setDoctorsForSpecialty([])
+      return
+    }
+    let cancelled = false
+    setIsLoadingDoctorList(true)
+    void catalog.getDoctorsForSpecialty(specialtyId, toDateKey(selectedDate)).then((doctors) => {
+      if (cancelled) return
+      const normalized = doctorSearch.trim().toLowerCase()
+      const filtered = normalized
+        ? doctors.filter(
+            (doctor) =>
+              doctor.name.toLowerCase().includes(normalized) ||
+              doctor.specialtyName.toLowerCase().includes(normalized) ||
+              doctor.crm.toLowerCase().includes(normalized),
+          )
+        : doctors
+      setDoctorsForSpecialty(filtered)
+      setIsLoadingDoctorList(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [catalog, doctorSearch, selectedDate, specialtyId])
+
+  useEffect(() => {
+    if (!selectedDoctorId) {
+      setSlots([])
+      setIsLoadingSlots(false)
+      return
+    }
+    let cancelled = false
+    setIsLoadingSlots(true)
+    void catalog
+      .getDoctorAvailableSlots(selectedDoctorId, toDateKey(selectedDate))
+      .then((result) => {
+        if (!cancelled) setSlots(result)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingSlots(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [catalog, selectedDate, selectedDoctorId])
+
+  useEffect(() => {
+    if (!selectedDoctorId) {
+      setDoctorScheduleOverview([])
+      setIsLoadingDoctorOverview(false)
+      return
+    }
+    let cancelled = false
+    setIsLoadingDoctorOverview(true)
+    void catalog
+      .getDoctorScheduleOverview(selectedDoctorId, scheduleStart, SCHEDULE_DAY_COUNT)
+      .then((result) => {
+        if (!cancelled) setDoctorScheduleOverview(result)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingDoctorOverview(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [catalog, scheduleStart, selectedDoctorId])
+
+  useEffect(() => {
+    if (!specialtyId) {
+      setDaySlotCounts(new Map())
+      setIsLoadingDayCounts(false)
+      return
+    }
+    let cancelled = false
+    setIsLoadingDayCounts(true)
+    void Promise.all(
+      scheduleDays.map(async (date) => {
+        const count = await catalog.countSpecialtyAvailableSlotsOnDay(specialtyId, date)
+        return [toDateKey(date), count] as const
+      }),
+    )
+      .then((entries) => {
+        if (!cancelled) setDaySlotCounts(new Map(entries))
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingDayCounts(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [catalog, scheduleDays, specialtyId])
+
+  useEffect(() => {
+    if (!specialtyId) {
+      setDoctorsAvailableOnSelectedDay([])
+      setIsLoadingDoctorsOnDay(false)
+      return
+    }
+    let cancelled = false
+    setIsLoadingDoctorsOnDay(true)
+    void catalog.getDoctorsForSpecialty(specialtyId, toDateKey(selectedDate)).then(async (doctors) => {
+      const available: ScheduleDoctor[] = []
+      for (const doctor of doctors) {
+        const doctorSlots = await catalog.getDoctorAvailableSlots(doctor.id, toDateKey(selectedDate))
+        if (doctorSlots.some((slot) => slot.available)) available.push(doctor)
+      }
+      if (!cancelled) setDoctorsAvailableOnSelectedDay(available)
+    }).finally(() => {
+      if (!cancelled) setIsLoadingDoctorsOnDay(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [catalog, selectedDate, specialtyId])
+
+  useEffect(() => {
+    if (!doctorsAvailableOnSelectedDay.length) {
+      setDoctorDaySlotCounts(new Map())
+      return
+    }
+    let cancelled = false
+    void Promise.all(
+      doctorsAvailableOnSelectedDay.map(async (doctor) => {
+        const doctorSlots = await catalog.getDoctorAvailableSlots(
+          doctor.id,
+          toDateKey(selectedDate),
+        )
+        return [doctor.id, doctorSlots.filter((slot) => slot.available).length] as const
+      }),
+    ).then((entries) => {
+      if (!cancelled) setDoctorDaySlotCounts(new Map(entries))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [catalog, doctorsAvailableOnSelectedDay, selectedDate])
+
+  useEffect(() => {
+    if (!doctorsForSpecialty.length) {
+      setDoctorTotalUpcoming(new Map())
+      setIsLoadingDoctorTotals(false)
+      return
+    }
+    let cancelled = false
+    setIsLoadingDoctorTotals(true)
+    void Promise.all(
+      doctorsForSpecialty.map(async (doctor) => {
+        const overview = await catalog.getDoctorScheduleOverview(
+          doctor.id,
+          scheduleStart,
+          SCHEDULE_DAY_COUNT,
+        )
+        const total = overview.reduce((sum, day) => sum + day.availableSlots, 0)
+        return [doctor.id, total] as const
+      }),
+    )
+      .then((entries) => {
+        if (!cancelled) setDoctorTotalUpcoming(new Map(entries))
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingDoctorTotals(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [catalog, doctorsForSpecialty, scheduleStart])
+
+  const selectedDoctor = selectedDoctorId
+    ? doctorsForSpecialty.find((doctor) => doctor.id === selectedDoctorId) ??
+      doctorsAvailableOnSelectedDay.find((doctor) => doctor.id === selectedDoctorId)
+    : undefined
+
+  const availableSlotCount = useMemo(
+    () => slots.filter((slot) => slot.available).length,
+    [slots],
   )
 
-  const selectedDoctor = selectedDoctorId ? getDoctorById(selectedDoctorId) : undefined
-
-  const doctorScheduleOverview = useMemo(
-    () =>
-      selectedDoctorId
-        ? getDoctorScheduleOverview(selectedDoctorId, agendaToday, SCHEDULE_DAY_COUNT)
-        : [],
-    [selectedDoctorId],
-  )
-
-  const slots = selectedDoctorId
-    ? getDoctorAvailableSlots(selectedDoctorId, selectedDate)
-    : []
-
-  const availableSlotCount = slots.filter((slot) => slot.available).length
   const canContinue = Boolean(selectedDoctorId && selectedTime)
-
-  const doctorsAvailableOnSelectedDay = useMemo(
-    () => getDoctorsAvailableOnDay(specialtyId, selectedDate),
-    [specialtyId, selectedDate],
-  )
 
   useEffect(() => {
     if (viewMode !== 'by_day' || !selectedDoctorId) return
@@ -119,25 +294,20 @@ export function ScheduleDateTimeStep({
   useEffect(() => {
     if (viewMode !== 'by_doctor' || !selectedDoctorId) return
 
-    const overview = getDoctorScheduleOverview(
-      selectedDoctorId,
-      agendaToday,
-      SCHEDULE_DAY_COUNT,
+    const selectedDayInfo = doctorScheduleOverview.find((day) =>
+      isSameDay(day.date, selectedDate),
     )
-    const selectedDayInfo = overview.find((day) => isSameDay(day.date, selectedDate))
 
     if (selectedDayInfo?.worksThisDay && selectedDayInfo.availableSlots > 0) return
 
-    const nextDay = getNextAvailableDayForDoctor(
-      selectedDoctorId,
-      agendaToday,
-      SCHEDULE_DAY_COUNT,
-    )
+    const nextDay = doctorScheduleOverview.find(
+      (day) => day.worksThisDay && day.availableSlots > 0,
+    )?.date
     if (nextDay && !isSameDay(nextDay, selectedDate)) {
       onSelectDate(nextDay)
       onSelectTime('')
     }
-  }, [viewMode, selectedDoctorId, selectedDate, onSelectDate, onSelectTime])
+  }, [viewMode, selectedDoctorId, selectedDate, doctorScheduleOverview, onSelectDate, onSelectTime])
 
   function handleViewModeChange(mode: ScheduleViewMode) {
     setViewMode(mode)
@@ -154,20 +324,21 @@ export function ScheduleDateTimeStep({
     onSelectTime('')
   }
 
-  function handleSelectDoctorByDay(doctorId: string) {
-    onSelectDoctor(doctorId)
+  function handleSelectDoctorByDay(doctor: ScheduleDoctor) {
+    onSelectDoctor(doctor.id, doctor.name)
     onSelectTime('')
   }
 
-  function handleSelectDoctorByDoctorMode(doctorId: string) {
-    onSelectDoctor(doctorId)
+  async function handleSelectDoctorByDoctorMode(doctor: ScheduleDoctor) {
+    onSelectDoctor(doctor.id, doctor.name)
     onSelectTime('')
 
-    const nextDay = getNextAvailableDayForDoctor(
-      doctorId,
-      agendaToday,
+    const overview = await catalog.getDoctorScheduleOverview(
+      doctor.id,
+      scheduleStart,
       SCHEDULE_DAY_COUNT,
     )
+    const nextDay = overview.find((day) => day.worksThisDay && day.availableSlots > 0)?.date
     if (nextDay) onSelectDate(nextDay)
   }
 
@@ -222,7 +393,7 @@ export function ScheduleDateTimeStep({
   }
 
   function renderDoctorListItem(
-    doctor: NonNullable<ReturnType<typeof getDoctorById>>,
+    doctor: ScheduleDoctor,
     options: { isSelected: boolean; slotsOnDay: number; onSelect: () => void },
   ) {
     const { isSelected, slotsOnDay, onSelect } = options
@@ -251,7 +422,7 @@ export function ScheduleDateTimeStep({
   }
 
   function renderDoctorCard(
-    doctor: NonNullable<ReturnType<typeof getDoctorById>>,
+    doctor: ScheduleDoctor,
     options: { isSelected: boolean; badge: string; onSelect: () => void },
   ) {
     const { isSelected, badge, onSelect } = options
@@ -320,6 +491,12 @@ export function ScheduleDateTimeStep({
           </p>
         ) : null}
 
+        {isLoadingSlots ? (
+          <AttendanceStepLoadingPanel
+            compact
+            message="Carregando horários disponíveis…"
+          />
+        ) : (
         <AttendanceFieldHighlight
           highlight={showHints && !selectedTime}
           className={compact ? 'flex min-h-0 flex-1 flex-col overflow-hidden' : undefined}
@@ -368,6 +545,7 @@ export function ScheduleDateTimeStep({
             </ul>
           </div>
         </AttendanceFieldHighlight>
+        )}
 
         {selectedTime ? (
           <p
@@ -390,6 +568,28 @@ export function ScheduleDateTimeStep({
       ? `Em ${specialtyName}, escolha primeiro a data, depois o médico disponível nesse dia e o horário.`
       : `Em ${specialtyName}, escolha o médico e veja os dias e horários em que ele atende.`
 
+  if (!specialtyId) {
+    return (
+      <AttendanceStepShell
+        hideScrollbar
+        title="Data, médico e horário"
+        description="Selecione uma especialidade antes de escolher data e horário."
+        footer={
+          <AttendanceStepFooter
+            onBack={onBack}
+            onContinue={() => undefined}
+            continueLabel="Agendar"
+            continueReady={false}
+          />
+        }
+      >
+        <p className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Volte ao passo anterior e escolha a especialidade do contrato.
+        </p>
+      </AttendanceStepShell>
+    )
+  }
+
   return (
     <AttendanceStepShell
       hideScrollbar
@@ -399,8 +599,9 @@ export function ScheduleDateTimeStep({
         <AttendanceStepFooter
           onBack={onBack}
           onContinue={onContinue}
-          continueLabel="Agendar"
+          continueLabel={isSubmitting ? 'Agendando…' : 'Agendar'}
           continueReady={canContinue}
+          continueLoading={isSubmitting}
           onContinueBlocked={() => setShowHints(true)}
         />
       }
@@ -455,10 +656,12 @@ export function ScheduleDateTimeStep({
               </p>
 
               <div className="schedule-days-scroll -mx-1 flex flex-nowrap gap-2 overflow-x-auto scroll-smooth px-1 pb-2">
-                {scheduleDays.map((date) => {
-                  const slotsOnDay = countSpecialtyAvailableSlotsOnDay(specialtyId, date)
-                  const doctorsOnDay = getDoctorsAvailableOnDay(specialtyId, date).length
-                  const isToday = isSameDay(date, agendaToday)
+                {isLoadingDayCounts ? (
+                  <ScheduleDayChipsSkeleton />
+                ) : (
+                  scheduleDays.map((date) => {
+                  const slotsOnDay = daySlotCounts.get(toDateKey(date)) ?? 0
+                  const isToday = isSameDay(date, scheduleStart)
 
                   return renderDayChip(date, {
                     selected: isSameDay(date, selectedDate),
@@ -466,14 +669,15 @@ export function ScheduleDateTimeStep({
                     subtitle:
                       slotsOnDay > 0
                         ? isToday
-                          ? `Hoje · ${doctorsOnDay} méd.`
-                          : `${doctorsOnDay} méd.`
+                          ? `Hoje · ${slotsOnDay} vagas`
+                          : `${slotsOnDay} vagas`
                         : isToday
                           ? 'Hoje'
                           : undefined,
                     onClick: () => handleSelectDateByDay(date),
                   })
-                })}
+                })
+                )}
               </div>
 
               <p className="mt-2 text-xs text-gray-500">{formatAgendaDayLabel(selectedDate)}</p>
@@ -484,7 +688,9 @@ export function ScheduleDateTimeStep({
                 Profissionais com horário livre em {formatAgendaDayLabel(selectedDate)}.
               </p>
 
-              {doctorsAvailableOnSelectedDay.length === 0 ? (
+              {isLoadingDoctorsOnDay ? (
+                <AttendanceStepLoadingPanel message="Buscando médicos com horário livre nesta data…" />
+              ) : doctorsAvailableOnSelectedDay.length === 0 ? (
                 <p className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50/80 px-4 py-5 text-center text-sm text-gray-500">
                   Nenhum médico com horário livre nesta data. Escolha outro dia ou use{' '}
                   <strong className="text-gray-700">Agenda do médico</strong>.
@@ -507,11 +713,11 @@ export function ScheduleDateTimeStep({
                       className="flex min-h-0 flex-1 flex-col space-y-2 overflow-y-auto no-scrollbar"
                     >
                       {doctorsAvailableOnSelectedDay.map((doctor) => {
-                        const slotsOnDay = countAvailableSlots(doctor.id, selectedDate)
+                        const slotsOnDay = doctorDaySlotCounts.get(doctor.id) ?? 0
                         return renderDoctorListItem(doctor, {
                           isSelected: doctor.id === selectedDoctorId,
                           slotsOnDay,
-                          onSelect: () => handleSelectDoctorByDay(doctor.id),
+                          onSelect: () => handleSelectDoctorByDay(doctor),
                         })
                       })}
                     </AttendanceFieldHighlight>
@@ -566,24 +772,25 @@ export function ScheduleDateTimeStep({
                 highlight={showHints && !selectedDoctorId}
                 className="max-h-[14rem] space-y-2 overflow-y-auto no-scrollbar"
               >
-                {doctorsForSpecialty.length === 0 ? (
+                {isLoadingDoctorList || isLoadingDoctorTotals ? (
+                  <AttendanceStepLoadingPanel
+                    compact
+                    message="Carregando médicos da especialidade…"
+                  />
+                ) : doctorsForSpecialty.length === 0 ? (
                   <p className="rounded-xl border border-dashed border-gray-200 bg-white px-4 py-6 text-center text-sm text-gray-500">
                     Nenhum médico encontrado para esta especialidade.
                   </p>
                 ) : (
                   doctorsForSpecialty.map((doctor) => {
-                    const totalUpcoming = countTotalAvailableSlots(
-                      doctor.id,
-                      agendaToday,
-                      SCHEDULE_DAY_COUNT,
-                    )
+                    const totalUpcoming = doctorTotalUpcoming.get(doctor.id) ?? 0
                     return renderDoctorCard(doctor, {
                       isSelected: doctor.id === selectedDoctorId,
                       badge:
                         totalUpcoming > 0
                           ? `${totalUpcoming} vagas em 30 dias`
                           : 'Sem vagas',
-                      onSelect: () => handleSelectDoctorByDoctorMode(doctor.id),
+                      onSelect: () => handleSelectDoctorByDoctorMode(doctor),
                     })
                   })
                 )}
@@ -604,7 +811,10 @@ export function ScheduleDateTimeStep({
                   </p>
 
                   <div className="schedule-days-scroll -mx-1 mt-3 flex flex-nowrap gap-2 overflow-x-auto scroll-smooth px-1 pb-2">
-                    {doctorScheduleOverview.map((day) =>
+                    {isLoadingDoctorOverview ? (
+                      <ScheduleDayChipsSkeleton />
+                    ) : (
+                      doctorScheduleOverview.map((day) =>
                       renderDayChip(day.date, {
                         selected: isSameDay(day.date, selectedDate),
                         slotsOnDay: day.availableSlots,
@@ -615,6 +825,7 @@ export function ScheduleDateTimeStep({
                           onSelectTime('')
                         },
                       }),
+                    )
                     )}
                   </div>
 

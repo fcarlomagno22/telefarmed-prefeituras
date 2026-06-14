@@ -12,14 +12,6 @@ import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
 import { Toast, type ToastVariant } from '../../ui/Toast'
 import { prefeituraSlaBadgeConfig } from '../prefeituraDashboardUi'
 
-const unitNameByFilter: Record<string, string> = {
-  ubt_centro: 'UBT Centro',
-  ubt_norte: 'UBT Norte',
-  ubt_sul: 'UBT Sul',
-  ubt_leste: 'UBT Leste',
-  ubt_oeste: 'UBT Oeste',
-}
-
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
 }
@@ -73,9 +65,8 @@ export function PrefeituraConsultasMainPanel({
     const query = normalizeSearch(search.trim())
 
     return rows.filter((row) => {
-      if (unitFilter && unitFilter !== 'todas') {
-        const expectedName = unitNameByFilter[unitFilter]
-        if (expectedName && row.name !== expectedName) return false
+      if (unitFilter && unitFilter !== 'todas' && row.id !== unitFilter) {
+        return false
       }
       if (regionFilter && regionFilter !== 'todas' && row.regionKey !== regionFilter) return false
       if (!query) return true

@@ -1,8 +1,9 @@
 import { Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { lookupPatientByCpf } from '../../data/patientLookup'
-import type { PatientRegistration } from '../../data/unitDashboardMock'
+import type { PatientLookupContext, PatientLookupResult } from '../../types/patientLookup'
+import type { PatientRegistration } from '../../types/attendance'
+import { isUbtPacientesApiError } from '../../lib/services/ubt/pacientes'
 import { cpfDigits, isValidCpf } from '../../utils/cpf'
 import { maskCpf } from '../../utils/masks'
 import { AttendanceFieldHighlight } from './AttendanceFieldHighlight'
@@ -12,15 +13,18 @@ import { AttendanceStepShell } from './AttendanceStepShell'
 type CpfLookupStepProps = {
   cpf: string
   onChangeCpf: (cpf: string) => void
-  onFound: (patient: PatientRegistration) => void
+  onFound: (patient: PatientRegistration, meta?: { patientId?: string }) => void
   onFoundPendingFirstVisit?: (payload: {
     patient: PatientRegistration
     specialtyId: string
     specialtyName: string
+    patientId?: string
   }) => void
   onNotFound: (cpf: string) => void
   onBack: () => void
   embedded?: boolean
+  lookupByCpf: (cpf: string, context?: PatientLookupContext) => Promise<PatientLookupResult>
+  lookupContext?: PatientLookupContext
 }
 
 const inputClass =
@@ -37,6 +41,8 @@ export function CpfLookupStep({
   onNotFound,
   onBack,
   embedded = false,
+  lookupByCpf,
+  lookupContext,
 }: CpfLookupStepProps) {
   const [cpfTouched, setCpfTouched] = useState(false)
   const [showHints, setShowHints] = useState(false)
@@ -62,7 +68,7 @@ export function CpfLookupStep({
 
     setIsSearching(true)
     try {
-      const result = await lookupPatientByCpf(cpf)
+      const result = await lookupByCpf(cpf, lookupContext)
       if (result.status === 'found_pending_first_visit') {
         setLookupMessage(
           'Consulta agendada pela recepção. Complete o cadastro e tire a foto do paciente.',
@@ -72,19 +78,32 @@ export function CpfLookupStep({
             patient: result.patient,
             specialtyId: result.specialtyId,
             specialtyName: result.specialtyName,
+            patientId: result.patientId,
           })
         } else {
-          onFound(result.patient)
+          onFound(result.patient, { patientId: result.patientId })
         }
         return
       }
       if (result.status === 'found') {
         setLookupMessage('Cadastro encontrado. Confirme seus dados na próxima tela.')
-        onFound(result.patient)
+        onFound(result.patient, { patientId: result.patientId })
         return
       }
       setLookupMessage('Paciente sem cadastro. Você será direcionado ao formulário.')
       onNotFound(cpf)
+    } catch (error) {
+      if (isUbtPacientesApiError(error) && error.code === 'CONTRACT_INACTIVE') {
+        setLookupMessage(
+          'Esta entidade ainda não possui contrato ativo. Cadastre o contrato no Admin → Clientes antes de recepcionar pacientes.',
+        )
+        return
+      }
+      if (isUbtPacientesApiError(error)) {
+        setLookupMessage(error.message)
+        return
+      }
+      setLookupMessage('Não foi possível consultar o CPF. Tente novamente.')
     } finally {
       setIsSearching(false)
     }
@@ -93,8 +112,8 @@ export function CpfLookupStep({
   return (
     <AttendanceStepShell
       embedded={embedded}
-      title="CPF do paciente"
-      description="Informe o CPF para verificar se o paciente já possui cadastro."
+      title="Identificação do paciente"
+      description="Informe o CPF para localizar o cadastro ou iniciar um novo."
       footer={
         <AttendanceStepFooter
           onBack={onBack}
@@ -116,31 +135,28 @@ export function CpfLookupStep({
         onSubmit={handleSubmit}
         className="flex min-h-0 flex-1 flex-col"
       >
-        <AttendanceFieldHighlight
-          highlight={showHints && !cpfValid}
-          className="block"
-        >
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-medium text-gray-700">CPF</span>
-          <input
-            type="text"
-            required
-            inputMode="numeric"
-            value={cpf}
-            onChange={(e) => {
-              setLookupMessage(null)
-              onChangeCpf(maskCpf(e.target.value))
-            }}
-            onBlur={() => setCpfTouched(true)}
-            placeholder="000.000.000-00"
-            maxLength={14}
-            disabled={isSearching}
-            className={cpfInvalid ? inputErrorClass : inputClass}
-          />
-          {cpfInvalid ? (
-            <p className="mt-1.5 text-xs text-red-600">{cpfErrorMessage}</p>
-          ) : null}
-        </label>
+        <AttendanceFieldHighlight highlight={showHints && !cpfValid} className="block">
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-medium text-gray-700">CPF</span>
+            <input
+              type="text"
+              required
+              inputMode="numeric"
+              value={cpf}
+              onChange={(e) => {
+                setLookupMessage(null)
+                onChangeCpf(maskCpf(e.target.value))
+              }}
+              onBlur={() => setCpfTouched(true)}
+              placeholder="000.000.000-00"
+              maxLength={14}
+              disabled={isSearching}
+              className={cpfInvalid ? inputErrorClass : inputClass}
+            />
+            {cpfInvalid ? (
+              <p className="mt-1.5 text-xs text-red-600">{cpfErrorMessage}</p>
+            ) : null}
+          </label>
         </AttendanceFieldHighlight>
 
         {isSearching ? (
@@ -155,7 +171,6 @@ export function CpfLookupStep({
             {lookupMessage}
           </p>
         ) : null}
-
       </form>
     </AttendanceStepShell>
   )

@@ -1,10 +1,10 @@
 # Telefarmed — Prefeituras
 
-Frontend do sistema web com página de login configurável por variáveis de ambiente.
+Monorepo: **frontend** na raiz (`src/`) e **backend** em [`backend/`](backend/README.md) (API Fastify + migrations Supabase).
 
-## Configuração
+## Configuração do frontend
 
-Copie `.env.example` para `.env` e ajuste os valores:
+Copie `.env.example` para `.env` na raiz e ajuste os valores:
 
 | Variável | Descrição |
 |----------|-----------|
@@ -22,11 +22,12 @@ Para imagens locais, coloque os arquivos em `public/` e referencie com caminho a
 ## Desenvolvimento
 
 ```bash
-npm install
-npm run dev
+npm install          # instala frontend + backend (postinstall)
+npm run dev:api      # API :3001 (terminal 1)
+npm run dev          # frontend :5173 (terminal 2)
 ```
 
-Acesse [http://localhost:5173](http://localhost:5173).
+Configure o backend em `backend/.env` (veja `backend/.env.example`). Acesse [http://localhost:5173](http://localhost:5173).
 
 ## Build
 

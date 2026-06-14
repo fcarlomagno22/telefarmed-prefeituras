@@ -9,12 +9,13 @@ type AdminEscalaComposeDrawerProps = {
   closing: boolean
   editingBatch: AdminEscalaShift[] | null
   allShifts: AdminEscalaShift[]
+  isSaving?: boolean
   onClose: () => void
   onTransitionEnd: () => void
   onSaved: (
     shifts: AdminEscalaShift[],
     options?: { replaceBatchId?: string; removeShiftIds?: string[] },
-  ) => void
+  ) => void | boolean | Promise<void | boolean>
 }
 
 export function AdminEscalaComposeDrawer({
@@ -22,21 +23,19 @@ export function AdminEscalaComposeDrawer({
   closing,
   editingBatch,
   allShifts,
+  isSaving = false,
   onClose,
   onTransitionEnd,
   onSaved,
 }: AdminEscalaComposeDrawerProps) {
   const [entered, setEntered] = useState(false)
-  const [composeStep, setComposeStep] = useState<1 | 2>(1)
   const isActive = open || closing
-  const isScopeStep = composeStep === 1
   const panelVisible = isActive && entered && !closing
   const isEdit = editingBatch !== null && editingBatch.length > 0
 
   useEffect(() => {
     if (!open) {
       setEntered(false)
-      setComposeStep(1)
       return
     }
     const frame = requestAnimationFrame(() => {
@@ -73,7 +72,7 @@ export function AdminEscalaComposeDrawer({
     >
       <button
         type="button"
-        className={`absolute inset-0 bg-gray-950/50 backdrop-blur-md transition-opacity duration-300 ${
+        className={`absolute inset-0 bg-gray-950/55 backdrop-blur-sm transition-opacity duration-300 ${
           panelVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         aria-label="Fechar montagem de escala"
@@ -90,50 +89,37 @@ export function AdminEscalaComposeDrawer({
           if (event.propertyName === 'transform') onTransitionEnd()
         }}
         className={[
-          'absolute inset-x-0 bottom-0 flex w-full flex-col overflow-hidden rounded-t-[1.25rem] bg-[#f8f9fb] shadow-[0_-24px_80px_rgba(0,0,0,0.22)] transition-transform duration-300 ease-out',
-          isScopeStep ? 'h-auto max-h-[96dvh]' : 'h-[96dvh] max-h-[96dvh]',
-          panelVisible ? 'translate-y-0' : 'translate-y-full',
+          'absolute inset-x-2 bottom-2 flex h-[94dvh] max-h-[940px] flex-col overflow-hidden rounded-2xl bg-white shadow-[0_32px_80px_rgba(0,0,0,0.28)] transition-transform duration-300 ease-out sm:inset-x-4 sm:bottom-4 lg:inset-x-8 lg:bottom-6',
+          panelVisible ? 'translate-y-0' : 'translate-y-[105%]',
         ].join(' ')}
       >
-        <header className="flex shrink-0 items-center justify-between gap-4 border-b border-gray-200/70 bg-white px-5 py-4 sm:px-8">
-          <div className="min-w-0">
-            <h2
-              id="admin-escala-compose-title"
-              className="text-base font-bold tracking-tight text-gray-900 sm:text-lg"
-            >
-              {isEdit ? 'Editar escala do período' : 'Montar escala do período'}
-            </h2>
-            <p className="mt-0.5 text-xs text-gray-500 sm:text-sm">
-              Cobertura, especialidades, programação e equipe — em um único fluxo.
-            </p>
-          </div>
+        <header className="flex shrink-0 items-center justify-between gap-4 border-b border-gray-100 px-5 py-4 sm:px-8">
+          <h2
+            id="admin-escala-compose-title"
+            className="text-lg font-bold tracking-tight text-gray-900"
+          >
+            {isEdit ? 'Editar escala' : 'Nova escala'}
+          </h2>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-500 ring-1 ring-gray-200/80 hover:bg-gray-50"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
             aria-label="Fechar"
           >
             <X className="h-5 w-5" />
           </button>
         </header>
 
-        <div
-          className={[
-            'flex flex-col overflow-hidden p-3 sm:p-4 lg:p-5',
-            isScopeStep ? 'shrink-0' : 'min-h-0 flex-1',
-          ].join(' ')}
-        >
-          <AdminEscalaComposeContent
-            key={editingBatch?.[0]?.batchId ?? 'new'}
-            editingBatch={editingBatch}
-            allShifts={allShifts}
-            onActiveStepChange={setComposeStep}
-            onSaved={(shifts, options) => {
-              onSaved(shifts, options)
-              onClose()
-            }}
-          />
-        </div>
+        <AdminEscalaComposeContent
+          key={editingBatch?.[0]?.batchId ?? 'new'}
+          editingBatch={editingBatch}
+          allShifts={allShifts}
+          isSaving={isSaving}
+          onSaved={async (shifts, options) => {
+            const saved = await onSaved(shifts, options)
+            if (saved !== false) onClose()
+          }}
+        />
       </aside>
     </div>,
     document.body,

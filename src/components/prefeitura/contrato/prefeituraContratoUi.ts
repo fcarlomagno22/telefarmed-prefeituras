@@ -1,8 +1,58 @@
 import type { PrefeituraContratoMonthKpis } from '../../../data/prefeituraContratoMonthConsultations'
-import type { PrefeituraContratoMonthlyRow } from '../../../data/prefeituraContratoMock'
+import type {
+  PrefeituraContratoInfo,
+  PrefeituraContratoMonthlyRow,
+} from '../../../types/prefeituraContrato'
 import type { PrefeituraConsultasKpi } from '../../../data/prefeituraConsultasMock'
 import type { SituationStatusBadgeStyle } from '../../ui/SituationStatusBadge'
 import { formatPrefeituraNumber } from '../prefeituraDashboardUi'
+
+export function resolvePrefeituraContratoModality(info: PrefeituraContratoInfo) {
+  return info.modalidade ?? 'mensal'
+}
+
+export function getCurrentPrefeituraContratoMonthKey(reference = new Date()) {
+  return `${reference.getFullYear()}-${String(reference.getMonth() + 1).padStart(2, '0')}`
+}
+
+export function buildPrefeituraContratoPackageChartLabel(info: PrefeituraContratoInfo) {
+  const quantity = formatPrefeituraNumber(info.monthlyPackageConsultations)
+  const modalidade = resolvePrefeituraContratoModality(info)
+  if (modalidade === 'mensal') return `${quantity} contratadas/mês`
+  if (modalidade === 'pacote_fechado') return `${quantity} consultas no contrato`
+  return 'Sob demanda'
+}
+
+export function formatPrefeituraContratoMonthlyContracted(
+  row: PrefeituraContratoMonthlyRow,
+  info: PrefeituraContratoInfo,
+) {
+  if (resolvePrefeituraContratoModality(info) !== 'mensal') return '—'
+  return formatPrefeituraNumber(row.contracted)
+}
+
+export function computePrefeituraContratoMonthlyUsagePercent(
+  row: PrefeituraContratoMonthlyRow,
+  info: PrefeituraContratoInfo,
+) {
+  const modalidade = resolvePrefeituraContratoModality(info)
+  const base =
+    modalidade === 'mensal'
+      ? row.contracted
+      : modalidade === 'pacote_fechado'
+        ? info.monthlyPackageConsultations
+        : 0
+  if (base <= 0) return 0
+  return Math.min(100, Math.round((row.performed / base) * 10000) / 100)
+}
+
+export function buildPrefeituraContratoPackageQuantityLabel(info: PrefeituraContratoInfo) {
+  const quantity = formatPrefeituraNumber(info.monthlyPackageConsultations)
+  const modalidade = resolvePrefeituraContratoModality(info)
+  if (modalidade === 'mensal') return `${quantity} consultas`
+  if (modalidade === 'pacote_fechado') return `${quantity} consultas no contrato`
+  return 'Sob demanda'
+}
 
 export const prefeituraContratoOutcomeBadge: Record<
   PrefeituraContratoMonthlyRow['outcome'],

@@ -11,10 +11,12 @@ import {
   createInternoCredential,
   deactivateInternoCredential,
   deleteInternoCredential,
+  fetchInternoCredentialDetail,
   isCredenciaisApiError,
   updateInternoCredential,
-} from '../lib/api/adminCredenciaisApi'
-import { AdminAuthApiError, verifyAdminAuthorizationPin } from '../lib/api/adminAuthApi'
+} from '../lib/services/admin/credenciais'
+import { isBackendApiEnabled } from '../lib/api/config'
+import { AdminAuthApiError, verifyAdminAuthorizationPin } from '../lib/services/admin/auth'
 import { cpfDigits } from '../utils/cpf'
 
 type UseAdminInternoCredentialDrawerOptions = {
@@ -53,19 +55,42 @@ export function useAdminInternoCredentialDrawer(
     setOpen(true)
   }, [])
 
-  const openView = useCallback((user: AdminInternoCredentialUser) => {
-    setEditingUser(user)
-    setMode('view')
-    setClosing(false)
-    setOpen(true)
-  }, [])
+  const hydrateDrawerUser = useCallback(
+    async (listUser: AdminInternoCredentialUser, nextMode: 'view' | 'edit') => {
+      setEditingUser(listUser)
+      setMode(nextMode)
+      setClosing(false)
+      setOpen(true)
 
-  const openEdit = useCallback((user: AdminInternoCredentialUser) => {
-    setEditingUser(user)
-    setMode('edit')
-    setClosing(false)
-    setOpen(true)
-  }, [])
+      if (!isBackendApiEnabled()) return
+
+      const token = getAccessToken()
+      if (!token) return
+
+      try {
+        const detail = await fetchInternoCredentialDetail(token, listUser.id)
+        setEditingUser(detail)
+        onRowsChange(rows.map((row) => (row.id === detail.id ? detail : row)))
+      } catch {
+        // Mantém dados da listagem se o detalhe falhar.
+      }
+    },
+    [getAccessToken, onRowsChange, rows],
+  )
+
+  const openView = useCallback(
+    (user: AdminInternoCredentialUser) => {
+      void hydrateDrawerUser(user, 'view')
+    },
+    [hydrateDrawerUser],
+  )
+
+  const openEdit = useCallback(
+    (user: AdminInternoCredentialUser) => {
+      void hydrateDrawerUser(user, 'edit')
+    },
+    [hydrateDrawerUser],
+  )
 
   const requestPinAction = useCallback(
     (

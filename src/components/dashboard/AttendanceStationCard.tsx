@@ -1,9 +1,19 @@
 import { Loader2, Monitor } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { WaitingQueueEntry } from '../../data/waitingQueueStore'
+import type { WaitingQueueEntry } from '../../types/waitingQueue'
+import { useUbtAuth } from '../../contexts/UbtAuthContext'
+import { updateUbtFilaStatus, isUbtTriagemApiError } from '../../lib/services/ubt/triagem'
+import {
+  entrarUbtSalaEspera,
+  iniciarUbtConsulta,
+  isUbtConsultasApiError,
+  sairUbtSalaEspera,
+} from '../../lib/services/ubt/consultas'
+import { generateAttendanceId } from '../../utils/generateAttendanceId'
 import { buildAttendanceStartFromQueueEntry } from '../../utils/triage/buildAttendanceStartFromQueueEntry'
 import { brand } from '../../config/brand'
+import { ubtRoutes } from '../../config/ubtRoutes'
 import {
   emptyAttendanceSession,
   emptyPatientRegistration,
@@ -14,11 +24,12 @@ import {
   type PatientRegistration,
   type RegisteredPatient,
   type StationStatus,
-  unitStation,
-} from '../../data/unitDashboardMock'
+} from '../../types/attendance'
+import { useUbtUnitStation } from '../../hooks/useUbtUnitStation'
 import { AttendanceFlowStepper, isFlowStepStatus } from './AttendanceFlowStepper'
 import { AgeGroupSelectionStep } from './AgeGroupSelectionStep'
-import { registerCompletedPatient } from '../../data/patientLookup'
+import { useUbtPatientRegistration } from '../../hooks/useUbtPatientRegistration'
+import { useUbtWalkInSpecialtyAvailability } from '../../hooks/useUbtWalkInSpecialtyAvailability'
 import { readConsultationLockFromStorage, writeConsultationLockToStorage } from '../../hooks/useConsultationSessionGuard'
 import { ConsultationLockOverlay } from './ConsultationLockOverlay'
 import { CpfLookupStep } from './CpfLookupStep'
@@ -34,6 +45,7 @@ import { WaitingRoomPanel } from './WaitingRoomPanel'
 import {
   clearWaitingRoomSession,
   formatWaitingRoomScheduledAt,
+  readWaitingRoomSession,
   writeWaitingRoomSession,
 } from '../../data/waitingRoomSession'
 
@@ -224,20 +236,33 @@ function CardBackgroundImage({ layer }: CardBackgroundImageProps) {
 }
 
 type AttendanceStationCardProps = {
+  unitName?: string
   queueCallTarget?: WaitingQueueEntry | null
   onQueueCallHandled?: () => void
   onAttendanceActiveChange?: (active: boolean) => void
 }
 
 export function AttendanceStationCard({
+  unitName,
   queueCallTarget = null,
   onQueueCallHandled,
   onAttendanceActiveChange,
 }: AttendanceStationCardProps) {
+  const { unitName: resolvedUnitName } = useUbtUnitStation({ unitName })
   const navigate = useNavigate()
+  const { getAccessToken } = useUbtAuth()
+  const { lookupByCpf, registerCompletedPatient: persistPatient } = useUbtPatientRegistration()
   const [status, setStatus] = useState<StationStatus>(() =>
     readConsultationLockFromStorage() ? 'waiting_doctor' : 'idle',
   )
+  const triagemCatalogEnabled = status === 'specialty' || status === 'idle'
+  const triagemDate = useMemo(() => new Date(), [])
+  const {
+    specialties: contratoSpecialties,
+    isLoading: isCatalogLoading,
+    loadError: catalogLoadError,
+    reload: reloadCatalog,
+  } = useUbtWalkInSpecialtyAvailability(triagemCatalogEnabled, triagemDate)
   const [session, setSession] = useState<AttendanceSession>(emptyAttendanceSession())
   const [registration, setRegistration] = useState<PatientRegistration>(
     emptyPatientRegistration(),
@@ -247,30 +272,115 @@ export function AttendanceStationCard({
   const [pendingFirstVisit, setPendingFirstVisit] = useState(false)
   const [isLoadingFromQueue, setIsLoadingFromQueue] = useState(false)
   const [calledFromQueueName, setCalledFromQueueName] = useState<string | null>(null)
+  const [activeFilaEntryId, setActiveFilaEntryId] = useState<string | null>(null)
+  const [registeredPatientId, setRegisteredPatientId] = useState<string | null>(null)
+  const [enteringWaitingRoom, setEnteringWaitingRoom] = useState(false)
+  const [isSavingForWaitingRoom, setIsSavingForWaitingRoom] = useState(false)
+  const [flowError, setFlowError] = useState<string | null>(null)
+  const [pendingAutoWaitingRoom, setPendingAutoWaitingRoom] = useState(false)
+
+  const patchFilaStatus = useCallback(
+    (filaId: string, nextStatus: 'em_atendimento' | 'finalizado' | 'desistiu') => {
+      const token = getAccessToken()
+      if (!token) return
+      void updateUbtFilaStatus(token, filaId, nextStatus).catch((error) => {
+        const message = isUbtTriagemApiError(error)
+          ? error.message
+          : 'Não foi possível atualizar a fila de espera.'
+        setFlowError(message)
+      })
+    },
+    [getAccessToken],
+  )
+
+  const queueCallTargetRef = useRef(queueCallTarget)
+  queueCallTargetRef.current = queueCallTarget
+
+  const onQueueCallHandledRef = useRef(onQueueCallHandled)
+  onQueueCallHandledRef.current = onQueueCallHandled
+
+  const loadByPacienteId = useCallback(
+    async (pacienteId: string) => {
+      const token = getAccessToken()
+      if (!token) return null
+      try {
+        const { fetchUbtPacienteDetailApi, mapUbtDetailToPatientRegistration } =
+          await import('../../lib/services/ubt/pacientes')
+        const detail = await fetchUbtPacienteDetailApi(token, pacienteId)
+        return mapUbtDetailToPatientRegistration(detail)
+      } catch {
+        return null
+      }
+    },
+    [getAccessToken],
+  )
+
+  const queueCallTargetId = queueCallTarget?.id ?? null
 
   useEffect(() => {
-    if (!queueCallTarget) return
+    const target = queueCallTargetRef.current
+    if (!target || !queueCallTargetId) return
 
     let cancelled = false
     setIsLoadingFromQueue(true)
-    setCalledFromQueueName(queueCallTarget.patientName)
+    setCalledFromQueueName(target.patientName)
+    setActiveFilaEntryId(target.id)
+    setRegisteredPatientId(target.pacienteId ?? null)
+    setFlowError(null)
 
-    void buildAttendanceStartFromQueueEntry(queueCallTarget).then((start) => {
-      if (cancelled) return
-      setPhotoCaptureOpen(false)
-      setRegistration(start.registration)
-      setSession(start.session)
-      setPendingFirstVisit(start.pendingFirstVisit)
-      setPatient(null)
-      setStatus(start.initialStatus)
-      setIsLoadingFromQueue(false)
-      onQueueCallHandled?.()
+    void buildAttendanceStartFromQueueEntry(target, {
+      lookupByCpf,
+      loadByPacienteId,
     })
+      .then((start) => {
+        if (cancelled) return
+        setPhotoCaptureOpen(false)
+        setRegistration(start.registration)
+        setSession(start.session)
+        setPendingFirstVisit(start.pendingFirstVisit)
+        if (start.patientId) setRegisteredPatientId(start.patientId)
+        setPatient(null)
+
+        const canAutoStart =
+          Boolean(start.patientId) &&
+          !start.pendingFirstVisit &&
+          start.initialStatus === 'confirm_registration'
+
+        if (canAutoStart) {
+          setPatient(registrationToPatient(start.registration, start.session.specialtyName))
+          setStatus('waiting_room')
+          patchFilaStatus(target.id, 'em_atendimento')
+          setPendingAutoWaitingRoom(true)
+        } else {
+          setStatus(start.initialStatus)
+        }
+      })
+      .catch((error) => {
+        if (cancelled) return
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível carregar os dados do paciente.'
+        setFlowError(message)
+        setStatus('idle')
+      })
+      .finally(() => {
+        if (cancelled) return
+        setIsLoadingFromQueue(false)
+        onQueueCallHandledRef.current?.()
+      })
 
     return () => {
       cancelled = true
     }
-  }, [queueCallTarget, onQueueCallHandled])
+  }, [loadByPacienteId, lookupByCpf, patchFilaStatus, queueCallTargetId])
+
+  useEffect(() => {
+    if (!pendingAutoWaitingRoom || status !== 'waiting_room') return
+    setPendingAutoWaitingRoom(false)
+    void handleAccessWaitingRoom()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- dispara uma vez após auto-carregar da fila
+  }, [pendingAutoWaitingRoom, status])
 
   const isAttendanceActive = status !== 'idle' || isLoadingFromQueue
 
@@ -289,41 +399,110 @@ export function AttendanceStationCard({
   )
 
   function resetToIdle() {
+    const accessToken = getAccessToken()
+    const codigo = readWaitingRoomSession()?.token
+    if (accessToken && codigo) {
+      void sairUbtSalaEspera(accessToken, codigo)
+    }
+
+    if (activeFilaEntryId) {
+      const nextStatus =
+        status === 'waiting_doctor' || status === 'in_consultation' ? 'finalizado' : 'desistiu'
+      patchFilaStatus(activeFilaEntryId, nextStatus)
+      setActiveFilaEntryId(null)
+    }
     clearWaitingRoomSession()
     writeConsultationLockToStorage(false)
     setPhotoCaptureOpen(false)
     setPendingFirstVisit(false)
     setCalledFromQueueName(null)
+    setFlowError(null)
+    setIsSavingForWaitingRoom(false)
     setStatus('idle')
     setSession(emptyAttendanceSession())
     setRegistration(emptyPatientRegistration())
     setPatient(null)
+    setRegisteredPatientId(null)
   }
 
-  function goToWaitingRoom(registrationData: PatientRegistration) {
-    if (pendingFirstVisit) {
-      registerCompletedPatient(registrationData)
-      setPendingFirstVisit(false)
+  async function goToWaitingRoom(registrationData: PatientRegistration) {
+    if (isSavingForWaitingRoom) return
+
+    setIsSavingForWaitingRoom(true)
+    setFlowError(null)
+    try {
+      const saved = await persistPatient(registrationData, registeredPatientId ?? undefined)
+      setRegisteredPatientId(saved.id)
+      if (pendingFirstVisit) {
+        setPendingFirstVisit(false)
+      }
+      setRegistration(registrationData)
+      setPatient(registrationToPatient(registrationData, session.specialtyName))
+      setStatus('waiting_room')
+      if (activeFilaEntryId) {
+        patchFilaStatus(activeFilaEntryId, 'em_atendimento')
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível salvar os dados do paciente.'
+      setFlowError(message)
+      setIsSavingForWaitingRoom(false)
     }
-    setRegistration(registrationData)
-    setPatient(registrationToPatient(registrationData, session.specialtyName))
-    setStatus('waiting_room')
   }
 
-  function handleAccessWaitingRoom() {
-    writeWaitingRoomSession({
-      patientName: getPatientPreferredName(registration),
-      specialty: session.specialtyName,
-      unitName: unitStation.unitName,
-      scheduledAt: formatWaitingRoomScheduledAt(),
-      professional: 'A definir',
-      estimatedMinutes: 25,
-      queuePosition: 3,
-      queueTotal: 8,
-    })
-    writeConsultationLockToStorage(true)
-    setStatus('waiting_doctor')
-    navigate('/sala-de-espera')
+  async function handleAccessWaitingRoom() {
+    const accessToken = getAccessToken()
+    if (!accessToken || !registeredPatientId) {
+      setFlowError('Sessão ou paciente inválido. Tente chamar o paciente novamente.')
+      return
+    }
+    if (!session.specialtyId) {
+      setFlowError('Especialidade não definida para esta consulta.')
+      return
+    }
+
+    setEnteringWaitingRoom(true)
+    setFlowError(null)
+    const codigoAtendimento = generateAttendanceId()
+
+    try {
+      const sessao = await iniciarUbtConsulta(accessToken, {
+        codigoAtendimento,
+        pacienteId: registeredPatientId,
+        especialidadeId: session.specialtyId,
+        filaEsperaId: activeFilaEntryId ?? undefined,
+      })
+
+      const fila = await entrarUbtSalaEspera(accessToken, codigoAtendimento)
+
+      writeWaitingRoomSession({
+        token: codigoAtendimento,
+        patientName: getPatientPreferredName(registration),
+        specialty: session.specialtyName,
+        unitName: resolvedUnitName,
+        scheduledAt: formatWaitingRoomScheduledAt(),
+        professional: (sessao as { doctorName?: string }).doctorName ?? 'A definir',
+        estimatedMinutes: fila.estimatedMinutes,
+        queuePosition: fila.position,
+        queueTotal: fila.total,
+      })
+      writeConsultationLockToStorage(true)
+      setStatus('waiting_doctor')
+      navigate(ubtRoutes.salaDeEspera)
+    } catch (error) {
+      const message = isUbtConsultasApiError(error)
+        ? error.message
+        : isUbtTriagemApiError(error)
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Não foi possível abrir a sala de espera. Tente novamente.'
+      setFlowError(message)
+    } finally {
+      setEnteringWaitingRoom(false)
+    }
   }
 
   return (
@@ -333,7 +512,7 @@ export function AttendanceStationCard({
       <header className="relative z-10 flex flex-wrap items-start justify-between gap-4">
         <span>
           <span className="block text-xs font-medium uppercase tracking-wide text-gray-500">
-            {unitStation.unitName}
+            {resolvedUnitName}
           </span>
           <span className="mt-1 block text-lg font-bold text-gray-900 sm:text-xl">
             {brand.dashboardStationTitle}
@@ -360,6 +539,15 @@ export function AttendanceStationCard({
         </p>
       ) : null}
 
+      {flowError ? (
+        <p
+          role="alert"
+          className="relative z-10 mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700"
+        >
+          {flowError}
+        </p>
+      ) : null}
+
       {isLoadingFromQueue ? (
         <div className="relative z-10 mt-6 flex min-h-0 flex-1 flex-col items-center justify-center gap-3 rounded-2xl border border-orange-100 bg-orange-50/50 px-6 py-12">
           <Loader2 className="h-8 w-8 animate-spin text-[var(--brand-primary)]" />
@@ -383,7 +571,10 @@ export function AttendanceStationCard({
           </p>
           <button
             type="button"
-            onClick={() => setStatus('specialty')}
+            onClick={() => {
+              setFlowError(null)
+              setStatus('specialty')
+            }}
             className="mt-8 rounded-xl bg-[var(--brand-primary)] px-10 py-4 text-base font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)] sm:px-12"
           >
             Iniciar atendimento do paciente
@@ -392,8 +583,18 @@ export function AttendanceStationCard({
       )}
 
       {!isLoadingFromQueue && status === 'specialty' && (
-        <SpecialtySelectionStep
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+          <SpecialtySelectionStep
           selectedId={session.specialtyId}
+          selectedDate={triagemDate}
+          showAvailability
+          availabilityFilter="with-slots-only"
+          specialties={contratoSpecialties}
+          isLoading={isCatalogLoading}
+          loadError={catalogLoadError}
+          onRetryLoad={() => void reloadCatalog()}
+          description="Escolha uma especialidade do contrato com plantão publicado e vaga livre hoje."
+          emptyMessage="Nenhuma especialidade com vaga de plantão hoje. Oriente o paciente a agendar ou retorne quando houver escala publicada."
           onSelect={(id, name) =>
             setSession((prev) => ({ ...prev, specialtyId: id, specialtyName: name }))
           }
@@ -404,14 +605,21 @@ export function AttendanceStationCard({
             setStatus('cpf_lookup')
           }}
         />
+        </div>
       )}
 
       {!isLoadingFromQueue && status === 'cpf_lookup' && (
         <CpfLookupStep
           cpf={registration.cpf}
+          lookupByCpf={lookupByCpf}
+          lookupContext={{
+            specialtyId: session.specialtyId,
+            specialtyName: session.specialtyName,
+          }}
           onChangeCpf={(cpf) => setRegistration((prev) => ({ ...prev, cpf }))}
-          onFound={(found) => {
+          onFound={(found, meta) => {
             setPendingFirstVisit(false)
+            if (meta?.patientId) setRegisteredPatientId(meta.patientId)
             setRegistration(found)
             setSession((prev) => ({
               ...prev,
@@ -419,8 +627,9 @@ export function AttendanceStationCard({
             }))
             setStatus('confirm_registration')
           }}
-          onFoundPendingFirstVisit={({ patient, specialtyId, specialtyName }) => {
+          onFoundPendingFirstVisit={({ patient, specialtyId, specialtyName, patientId }) => {
             setPendingFirstVisit(true)
+            if (patientId) setRegisteredPatientId(patientId)
             setRegistration({ ...patient, photoDataUrl: '' })
             setSession((prev) => ({
               ...prev,
@@ -447,9 +656,11 @@ export function AttendanceStationCard({
         <PatientRegistrationConfirmStep
           data={registration}
           onChange={setRegistration}
-          onSubmit={() => goToWaitingRoom(registration)}
+          onSubmit={() => void goToWaitingRoom(registration)}
           onBack={() => setStatus('cpf_lookup')}
           onOpenPhotoCapture={() => setPhotoCaptureOpen(true)}
+          continueLoading={isSavingForWaitingRoom}
+          continueLabel={isSavingForWaitingRoom ? 'Salvando…' : 'Continuar'}
         />
       )}
 
@@ -512,8 +723,10 @@ export function AttendanceStationCard({
               : undefined
           }
           onOpenCapture={() => setPhotoCaptureOpen(true)}
-          onContinue={() => goToWaitingRoom(registration)}
+          onContinue={() => void goToWaitingRoom(registration)}
           onBack={() => setStatus('address')}
+          isSubmitting={isSavingForWaitingRoom}
+          submittingLabel="Salvando…"
         />
       )}
 
@@ -528,7 +741,9 @@ export function AttendanceStationCard({
 
       {!isLoadingFromQueue && status === 'waiting_room' && (
         <WaitingRoomPanel
-          onAccessWaitingRoom={handleAccessWaitingRoom}
+          loading={enteringWaitingRoom}
+          error={flowError}
+          onAccessWaitingRoom={() => void handleAccessWaitingRoom()}
           onCancel={resetToIdle}
         />
       )}
@@ -541,7 +756,7 @@ export function AttendanceStationCard({
           hint="Consulta em andamento. Este equipamento está em uso por um único paciente."
           primaryAction={{
             label: 'Voltar à videochamada',
-            onClick: () => undefined,
+            onClick: () => navigate(ubtRoutes.salaDeEspera),
           }}
           secondaryAction={{
             label: 'Finalizar e liberar Terminal',

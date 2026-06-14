@@ -1,11 +1,13 @@
 import { Building2, FileText, MapPin, Phone, Shield, Star, User2, X } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
-import type { AdminDoctor } from '../../../data/adminMedicosMock'
+import type { AdminDoctor } from '../../../types/adminMedicos'
 import { maskCpfForDisplay } from '../../../utils/lgpdDisplay'
 import { ExportFormatMenu, type ExportFormat } from '../../ui/ExportFormatMenu'
 import { Toast } from '../../ui/Toast'
 import { formatAdminDoctorContractingEntity } from './adminMedicoUi'
+import { AdminDoctorAvatar } from './AdminDoctorAvatar'
+import { SupportChatImageLightbox } from '../../suporte/SupportChatImageLightbox'
 
 export type AdminMedicoDrawerMode = 'view' | 'edit'
 
@@ -46,6 +48,7 @@ export function AdminMedicoDetailDrawer({
   const [phone, setPhone] = useState('')
   const [specialty, setSpecialty] = useState('')
   const [onCallLabel, setOnCallLabel] = useState('')
+  const [photoPreview, setPhotoPreview] = useState<{ url: string; name: string } | null>(null)
   const isActive = open || closing
 
   useEffect(() => {
@@ -56,6 +59,7 @@ export function AdminMedicoDetailDrawer({
     setPhone(doctor.phone)
     setSpecialty(doctor.specialty)
     setOnCallLabel(doctor.onCallLabel)
+    setPhotoPreview(null)
   }, [open, doctor])
 
   useEffect(() => {
@@ -99,8 +103,16 @@ export function AdminMedicoDetailDrawer({
     0,
   )
   const averageReview =
-    doctor.reviews.reduce((sum, review) => sum + review.rating, 0) /
-    Math.max(1, doctor.reviews.length)
+    doctor.reviews.length > 0
+      ? doctor.reviews.reduce((sum, review) => sum + review.rating, 0) / doctor.reviews.length
+      : doctor.averageRating
+  const confirmedShifts = doctor.confirmedShifts ?? []
+  const completionRate = doctor.completionRate ?? 0
+  const totalConsultations = doctor.totalConsultations ?? doctor.attendances.length
+  const showReviewsTab = doctor.totalReviews > 0 || doctor.reviews.length > 0
+  const visibleTabs = showReviewsTab
+    ? viewDrawerTabs
+    : viewDrawerTabs.filter((tab) => tab.id !== 'avaliacoes')
 
   function handleExport(format: ExportFormat) {
     setToastMessage(
@@ -137,10 +149,19 @@ export function AdminMedicoDetailDrawer({
       >
         <header className="flex items-start gap-3 border-b border-gray-200 bg-white px-5 pb-3 pt-4 sm:px-6">
           <div className="shrink-0">
-            <img
-              src={doctor.avatarUrl}
-              alt=""
-              className="h-14 w-14 rounded-full border border-gray-200 object-cover shadow-sm"
+            <AdminDoctorAvatar
+              avatarUrl={doctor.avatarUrl}
+              name={doctor.name}
+              size="md"
+              onPhotoClick={
+                doctor.avatarUrl?.trim()
+                  ? () =>
+                      setPhotoPreview({
+                        url: doctor.avatarUrl,
+                        name: doctor.name,
+                      })
+                  : undefined
+              }
             />
           </div>
           <div className="min-w-0 flex-1 pr-8">
@@ -198,7 +219,7 @@ export function AdminMedicoDetailDrawer({
 
         {!isEditMode ? (
         <nav className="flex shrink-0 gap-0 border-b border-gray-200 bg-white px-4 sm:px-6">
-          {viewDrawerTabs.map((tab) => {
+          {visibleTabs.map((tab) => {
             const isActiveTab = activeTab === tab.id
             return (
               <button
@@ -404,6 +425,30 @@ export function AdminMedicoDetailDrawer({
                 </section>
               </div>
 
+              {confirmedShifts.length > 0 ? (
+                <section className="mt-4 rounded-xl border border-gray-200 bg-white p-4">
+                  <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Plantões confirmados
+                  </h3>
+                  <ul className="space-y-2">
+                    {confirmedShifts.map((shift) => (
+                      <li
+                        key={shift.id}
+                        className="rounded-lg border border-gray-200 bg-gray-50/70 px-3 py-2.5 text-sm"
+                      >
+                        <p className="font-semibold text-gray-900">
+                          {shift.dateLabel} · {shift.timeLabel}
+                        </p>
+                        <p className="mt-0.5 text-xs text-gray-600">
+                          {shift.specialty} · {shift.city}
+                          {shift.unitName !== '—' ? ` · ${shift.unitName}` : ''}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+
               <section className="mt-4 rounded-xl border border-gray-200 bg-white p-4">
                 <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
                   <Phone className="h-3.5 w-3.5" />
@@ -475,7 +520,15 @@ export function AdminMedicoDetailDrawer({
                     Atendimentos
                   </p>
                   <p className="mt-1.5 text-2xl font-extrabold tracking-tight text-gray-900">
-                    {doctor.attendances.length}
+                    {totalConsultations}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-gray-200/80 bg-white px-3 py-3 text-center shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                    Taxa de conclusão
+                  </p>
+                  <p className="mt-1.5 text-2xl font-extrabold tracking-tight text-gray-900">
+                    {completionRate}%
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-200/80 bg-white px-3 py-3 text-center shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
@@ -484,14 +537,6 @@ export function AdminMedicoDetailDrawer({
                   </p>
                   <p className="mt-1.5 text-2xl font-extrabold tracking-tight text-gray-900">
                     {Math.round(avgAttendanceMinutes)} min
-                  </p>
-                </div>
-                <div className="rounded-xl border border-gray-200/80 bg-white px-3 py-3 text-center shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                    Pacientes no mês
-                  </p>
-                  <p className="mt-1.5 text-2xl font-extrabold tracking-tight text-gray-900">
-                    {doctor.totalPatientsThisMonth}
                   </p>
                 </div>
                 <div className="rounded-xl border border-gray-200/80 bg-white px-3 py-3 text-center shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
@@ -574,7 +619,7 @@ export function AdminMedicoDetailDrawer({
             </>
           ) : null}
 
-          {!isEditMode && activeTab === 'avaliacoes' ? (
+          {!isEditMode && activeTab === 'avaliacoes' && showReviewsTab ? (
             <>
               <section className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
@@ -663,6 +708,14 @@ export function AdminMedicoDetailDrawer({
         visible={toastMessage !== null}
         onClose={() => setToastMessage(null)}
       />
+
+      {photoPreview ? (
+        <SupportChatImageLightbox
+          url={photoPreview.url}
+          name={photoPreview.name}
+          onClose={() => setPhotoPreview(null)}
+        />
+      ) : null}
     </div>,
     document.body,
   )

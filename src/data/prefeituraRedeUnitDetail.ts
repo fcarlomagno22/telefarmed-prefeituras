@@ -195,8 +195,7 @@ export function buildCadastralProfileFromNewUbtForm(form: NewUbtFormState): Pref
       formatted: formatNewUbtAddress(form),
     },
     notes: form.notes.trim(),
-    credentialsConfigured:
-      form.responsibleAccessPassword.length >= 8 && form.responsibleAuthorizationPin.length === 6,
+    credentialsConfigured: false,
   }
 }
 

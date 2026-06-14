@@ -177,7 +177,7 @@ export function PinUnlockModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-900/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[10050] flex items-center justify-center bg-gray-900/40 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}

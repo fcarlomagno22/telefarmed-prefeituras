@@ -45,18 +45,42 @@ export function buildAdminNotificationPriorityBadge(
   }
 }
 
-export type AdminBroadcastTargetFilter = 'all' | 'prefeitura' | 'ubt' | 'ambos'
+export type AdminBroadcastTargetFilter = 'all' | 'prefeitura' | 'ubt' | 'medico' | 'ambos'
 
 export function getBroadcastTargetKinds(broadcast: AdminBroadcast): AdminBroadcastTargetFilter {
   const channels = new Set(broadcast.targets.map((t) => t.channel))
-  if (channels.has('prefeitura') && channels.has('ubt')) return 'ambos'
+  if (channels.size > 1) return 'ambos'
   if (channels.has('prefeitura')) return 'prefeitura'
   if (channels.has('ubt')) return 'ubt'
+  if (channels.has('medico')) return 'medico'
   return 'all'
 }
 
+export type AdminBroadcastChannelKind = 'prefeitura' | 'ubt' | 'medico'
+
+const BROADCAST_CHANNEL_ORDER: AdminBroadcastChannelKind[] = ['prefeitura', 'ubt', 'medico']
+
+export function getBroadcastUniqueChannels(broadcast: AdminBroadcast): AdminBroadcastChannelKind[] {
+  const set = new Set(broadcast.targets.map((target) => target.channel))
+  return BROADCAST_CHANNEL_ORDER.filter((channel) => set.has(channel))
+}
+
+export function adminTargetChannelWidthClass(kind: AdminBroadcastChannelKind): string {
+  if (kind === 'medico') return 'w-[5.5rem]'
+  if (kind === 'prefeitura') return 'w-[5rem]'
+  return 'w-[3.5rem]'
+}
+
 export function buildAdminTargetChannelBadge(
-  kind: 'prefeitura' | 'ubt',
+  kind: AdminBroadcastChannelKind,
 ): SituationStatusBadgeStyle {
+  if (kind === 'medico') {
+    return {
+      label: 'Profissionais',
+      text: 'text-emerald-800',
+      accent: 'bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-600',
+      lineGlow: 'shadow-[0_2px_10px_rgba(16,185,129,0.45)]',
+    }
+  }
   return supportSourceBadgeConfig[kind]
 }

@@ -88,7 +88,7 @@ export function AdminNotificacoesDetailModal({
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Canais</p>
             {broadcast.targets.map((target) => (
               <div
-                key={target.channel}
+                key={`${target.channel}-${target.audienceScope ?? target.mode}`}
                 className="rounded-xl border border-gray-100 bg-white px-3 py-3 shadow-sm"
               >
                 <div className="flex flex-wrap items-center gap-2">
@@ -97,8 +97,9 @@ export function AdminNotificacoesDetailModal({
                     widthClass="w-[5.75rem]"
                   />
                   <span className="text-xs text-gray-500">
-                    {target.mode === 'all' ? 'Todas' : 'Selecionadas'} · {target.count}{' '}
-                    destinatário{target.count === 1 ? '' : 's'}
+                    {target.channel === 'medico'
+                      ? target.recipientLabels[0] ?? 'Profissionais'
+                      : `${target.mode === 'all' ? 'Todas' : 'Selecionadas'} · ${target.count} destinatário${target.count === 1 ? '' : 's'}`}
                   </span>
                 </div>
                 <ul className="mt-2 flex flex-wrap gap-1.5">

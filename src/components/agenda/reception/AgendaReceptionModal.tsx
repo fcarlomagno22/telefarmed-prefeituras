@@ -11,7 +11,7 @@ import {
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { DayAppointment } from '../../../data/agendaMock'
-import type { PatientRegistration } from '../../../data/unitDashboardMock'
+import type { PatientRegistration } from '../../../types/attendance'
 import { buildReceptionRegistrationFromAppointment } from '../../../utils/agenda/buildReceptionDraftFromAppointment'
 
 type AgendaReceptionModalProps = {

@@ -75,13 +75,13 @@ export function ProfissionalShiftCard({
     <article
       className={[
         profissionalAgendaPanelClass,
-        'overflow-hidden',
+        'shrink-0',
         highlight ? 'ring-2 ring-[var(--brand-primary)]/30 shadow-[0_8px_28px_rgba(255,107,0,0.12)]' : '',
       ].join(' ')}
     >
       <div
         className={[
-          'relative overflow-hidden bg-gradient-to-r px-4 py-3.5 sm:px-5',
+          'relative shrink-0 overflow-hidden bg-gradient-to-r px-4 py-3.5 sm:px-5',
           profissionalLifecycleHeaderStyles[shift.lifecycle],
         ].join(' ')}
       >

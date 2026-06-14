@@ -17,21 +17,30 @@ import {
   dashboardPageShellClass,
 } from '../components/layout/dashboardPageLayout'
 import {
-  prefeituraConsultasDefaultPeriod,
-  prefeituraConsultasKpiCards,
-  prefeituraConsultasUnitRows,
-} from '../data/prefeituraConsultasMock'
+  useDefaultPrefeituraConsultasPeriod,
+  usePrefeituraConsultasPage,
+} from '../hooks/usePrefeituraConsultasPage'
 import { usePrefeituraConsultasUnitDetailDrawer } from '../hooks/usePrefeituraConsultasUnitDetailDrawer'
-import { usePageSkeletonLoading } from '../hooks/usePageSkeletonLoading'
+import { usePrefeituraAuth } from '../contexts/PrefeituraAuthContext'
 
 export function PrefeituraConsultasPage() {
-  const isLoading = usePageSkeletonLoading(1200)
+  const { isBootstrapping, isAuthenticated } = usePrefeituraAuth()
+  const defaultPeriod = useDefaultPrefeituraConsultasPeriod()
   const [unitFilter, setUnitFilter] = useState('')
   const [regionFilter, setRegionFilter] = useState('')
-  const [periodStart, setPeriodStart] = useState(prefeituraConsultasDefaultPeriod.start)
-  const [periodEnd, setPeriodEnd] = useState(prefeituraConsultasDefaultPeriod.end)
+  const [periodStart, setPeriodStart] = useState(defaultPeriod.start)
+  const [periodEnd, setPeriodEnd] = useState(defaultPeriod.end)
 
-  const unitDetailDrawer = usePrefeituraConsultasUnitDetailDrawer()
+  const { overview, isLoading: dataLoading, loadError, loadUnitDetail } = usePrefeituraConsultasPage(
+    periodStart,
+    periodEnd,
+    unitFilter,
+    regionFilter,
+  )
+
+  const isLoading = isBootstrapping || (isAuthenticated && dataLoading)
+
+  const unitDetailDrawer = usePrefeituraConsultasUnitDetailDrawer({ loadUnitDetail })
 
   const filterKey = useMemo(
     () => `${unitFilter}-${regionFilter}-${periodStart}-${periodEnd}`,
@@ -76,7 +85,7 @@ export function PrefeituraConsultasPage() {
               {isLoading ? (
                 <PrefeituraConsultasKpiCardsSkeleton />
               ) : (
-                <PrefeituraConsultasKpiCards items={prefeituraConsultasKpiCards} />
+                <PrefeituraConsultasKpiCards items={overview?.kpis ?? []} />
               )}
             </div>
 
@@ -93,6 +102,8 @@ export function PrefeituraConsultasPage() {
                   onRegionChange={setRegionFilter}
                   onPeriodStartChange={setPeriodStart}
                   onPeriodEndChange={setPeriodEnd}
+                  unitOptions={overview?.filterOptions.units}
+                  regionOptions={overview?.filterOptions.regions}
                 />
               )}
             </div>
@@ -110,7 +121,11 @@ export function PrefeituraConsultasPage() {
                   isLoading ? (
                     <PrefeituraConsultasSidebarPanelSkeleton />
                   ) : (
-                    <PrefeituraConsultasSidebarPanel />
+                    <PrefeituraConsultasSidebarPanel
+                      dailySeries={overview?.dailySeries}
+                      periodTotal={overview?.periodTotal}
+                      specialties={overview?.specialties}
+                    />
                   )
                 }
                 main={(fillHeight) =>
@@ -118,7 +133,7 @@ export function PrefeituraConsultasPage() {
                     <PrefeituraConsultasMainPanelSkeleton fillHeight={fillHeight} />
                   ) : (
                     <PrefeituraConsultasMainPanel
-                      rows={prefeituraConsultasUnitRows}
+                      rows={overview?.units ?? []}
                       unitFilter={unitFilter}
                       regionFilter={regionFilter}
                       periodStart={periodStart}

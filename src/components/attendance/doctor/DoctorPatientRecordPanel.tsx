@@ -16,6 +16,8 @@ type DoctorPatientRecordPanelProps = {
   doctorName: string
   patient: DoctorRecordPatientProfile
   className?: string
+  historicoNotes?: DoctorRecordNote[]
+  onSaveNote?: (text: string) => Promise<void>
 }
 
 function formatRecordNoteDate(date = new Date()) {
@@ -41,11 +43,14 @@ export function DoctorPatientRecordPanel({
   doctorName,
   patient,
   className,
+  historicoNotes,
+  onSaveNote,
 }: DoctorPatientRecordPanelProps) {
   const [draftNote, setDraftNote] = useState('')
   const [fullRecordOpen, setFullRecordOpen] = useState(false)
   const [savedSessionNotes, setSavedSessionNotes] = useState<DoctorRecordNote[]>([])
   const [saveToastVisible, setSaveToastVisible] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   const dismissSaveToast = useCallback(() => setSaveToastVisible(false), [])
 
@@ -58,30 +63,39 @@ export function DoctorPatientRecordPanel({
     () =>
       sortRecordNotesNewestFirst([
         ...savedSessionNotes,
-        ...getDoctorRecordNotesForSpecialty(doctorSpecialty),
+        ...(historicoNotes ?? getDoctorRecordNotesForSpecialty(doctorSpecialty)),
       ]),
-    [doctorSpecialty, savedSessionNotes],
+    [doctorSpecialty, historicoNotes, savedSessionNotes],
   )
 
   const canSave = draftNote.trim().length > 0
 
-  function handleSaveNote() {
+  async function handleSaveNote() {
     const text = draftNote.trim()
-    if (!text) return
+    if (!text || saving) return
 
-    setSavedSessionNotes((current) => [
-      {
-        id: `session-note-${Date.now()}`,
-        specialty: specialtyKey,
-        date: formatRecordNoteDate(),
-        doctorName,
-        note: text,
-      },
-      ...current,
-    ])
-    setDraftNote('')
-    setSaveToastVisible(false)
-    requestAnimationFrame(() => setSaveToastVisible(true))
+    setSaving(true)
+    try {
+      if (onSaveNote) {
+        await onSaveNote(text)
+      }
+
+      setSavedSessionNotes((current) => [
+        {
+          id: `session-note-${Date.now()}`,
+          specialty: specialtyKey,
+          date: formatRecordNoteDate(),
+          doctorName,
+          note: text,
+        },
+        ...current,
+      ])
+      setDraftNote('')
+      setSaveToastVisible(false)
+      requestAnimationFrame(() => setSaveToastVisible(true))
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -127,7 +141,7 @@ export function DoctorPatientRecordPanel({
             <button
               type="button"
               onClick={handleSaveNote}
-              disabled={!canSave}
+              disabled={!canSave || saving}
               className="btn-brand-gradient inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Save className="h-3.5 w-3.5" strokeWidth={2} />

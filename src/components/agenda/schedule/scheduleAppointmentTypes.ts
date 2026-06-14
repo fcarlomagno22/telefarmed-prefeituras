@@ -2,7 +2,7 @@ import type {
   AttendanceSession,
   PatientAgeGroup,
   PatientRegistration,
-} from '../../../data/unitDashboardMock'
+} from '../../../types/attendance'
 
 export type ScheduleAppointmentStep =
   | 'cpf_lookup'
@@ -23,6 +23,7 @@ export type ScheduleAppointmentDraft = {
   specialtyName: string
   selectedDate: Date
   selectedDoctorId: string
+  selectedDoctorName?: string
   selectedTime: string
 }
 

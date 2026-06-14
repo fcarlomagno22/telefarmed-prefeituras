@@ -1,13 +1,11 @@
-import { ChevronLeft, ChevronRight, Eye, Plus, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import type { PrefeituraRedeUnitCadastralProfile } from '../../../data/prefeituraRedeUnitDetail'
 import {
-  prefeituraRedeRegionFilterOptions,
-  prefeituraRedeStatusFilterOptions,
   type PrefeituraRedeUnit,
 } from '../../../data/prefeituraRedeMock'
 import type { usePrefeituraNewUbtDrawer } from '../../../hooks/usePrefeituraNewUbtDrawer'
-import type { usePrefeituraUbsDetailDrawer } from '../../../hooks/usePrefeituraUbsDetailDrawer'
+import type { usePrefeituraRedeUnitActions } from '../../../hooks/usePrefeituraRedeUnitActions'
 import {
   exportPrefeituraRedeUnitsExcel,
   exportPrefeituraRedeUnitsPdf,
@@ -16,6 +14,7 @@ import { CustomSelect } from '../../ui/CustomSelect'
 import { ExportFormatMenu, type ExportFormat } from '../../ui/ExportFormatMenu'
 import { Toast, type ToastVariant } from '../../ui/Toast'
 import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
+import { PrefeituraRedeUnitActionsMenu } from './PrefeituraRedeUnitActionsMenu'
 import { prefeituraRedeStatusBadgeConfig } from './prefeituraRedeStatusBadge'
 
 const PAGE_SIZE = 5
@@ -33,18 +32,28 @@ function normalizeSearch(value: string) {
 
 type PrefeituraRedeMainPanelProps = {
   units: PrefeituraRedeUnit[]
+  regionFilterOptions?: Array<{ value: string; label: string }>
+  statusFilterOptions?: Array<{ value: string; label: string }>
   cadastralProfilesByUnitId?: Record<string, PrefeituraRedeUnitCadastralProfile>
-  ubsDetailDrawer: Pick<
-    ReturnType<typeof usePrefeituraUbsDetailDrawer>,
-    'openDrawerFromRedeUnit'
+  canInsert?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
+  unitActions: Pick<
+    ReturnType<typeof usePrefeituraRedeUnitActions>,
+    'openMenuUnitId' | 'toggleMenu' | 'closeMenu' | 'handleUnitAction'
   >
   newUbtDrawer: Pick<ReturnType<typeof usePrefeituraNewUbtDrawer>, 'openDrawer'>
 }
 
 export function PrefeituraRedeMainPanel({
   units,
+  regionFilterOptions = [{ value: 'todas', label: 'Todas as regiões' }],
+  statusFilterOptions = [{ value: 'todas', label: 'Todos os status' }],
   cadastralProfilesByUnitId,
-  ubsDetailDrawer,
+  canInsert = true,
+  canEdit = true,
+  canDelete = true,
+  unitActions,
   newUbtDrawer,
 }: PrefeituraRedeMainPanelProps) {
   const [search, setSearch] = useState('')
@@ -87,10 +96,6 @@ export function PrefeituraRedeMainPanel({
 
   const showingFrom = totalFiltered === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1
   const showingTo = totalFiltered === 0 ? 0 : Math.min(safePage * PAGE_SIZE, totalFiltered)
-
-  function handleOpenDetails(unit: PrefeituraRedeUnit) {
-    ubsDetailDrawer.openDrawerFromRedeUnit(unit)
-  }
 
   const handleExport = useCallback(
     async (format: ExportFormat) => {
@@ -150,14 +155,16 @@ export function PrefeituraRedeMainPanel({
                 itemPlural="unidades"
                 onSelect={handleExport}
               />
-              <button
-                type="button"
-                onClick={newUbtDrawer.openDrawer}
-                className="btn-brand-gradient inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold"
-              >
-                <Plus className="h-4 w-4" strokeWidth={2.5} />
-                Nova UBT
-              </button>
+              {canInsert ? (
+                <button
+                  type="button"
+                  onClick={newUbtDrawer.openDrawer}
+                  className="btn-brand-gradient inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold"
+                >
+                  <Plus className="h-4 w-4" strokeWidth={2.5} />
+                  Nova UBT
+                </button>
+              ) : null}
             </div>
           </div>
 
@@ -185,7 +192,7 @@ export function PrefeituraRedeMainPanel({
                   setRegionFilter(value)
                   setPage(1)
                 }}
-                options={[...prefeituraRedeRegionFilterOptions]}
+                options={regionFilterOptions}
                 className="w-full min-w-[12.5rem] sm:w-[12.5rem]"
                 menuMinWidthPx={220}
               />
@@ -195,7 +202,7 @@ export function PrefeituraRedeMainPanel({
                   setStatusFilter(value)
                   setPage(1)
                 }}
-                options={[...prefeituraRedeStatusFilterOptions]}
+                options={statusFilterOptions}
                 className="w-full min-w-[13rem] sm:w-[13rem]"
                 menuMinWidthPx={220}
               />
@@ -213,7 +220,7 @@ export function PrefeituraRedeMainPanel({
                 <th className="px-3 py-3.5 text-center">Responsável</th>
                 <th className="px-3 py-3.5 text-center">Terminais</th>
                 <th className="px-3 py-3.5 text-center">Status</th>
-                <th className="px-3 py-3.5 text-center sm:px-6">Ação</th>
+                <th className="px-3 py-3.5 text-center sm:px-6">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
@@ -273,14 +280,15 @@ export function PrefeituraRedeMainPanel({
                       </div>
                     </td>
                     <td className="px-3 py-4 text-center sm:px-6">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenDetails(unit)}
-                        className="mx-auto inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-[var(--brand-primary)]/30 hover:bg-[var(--brand-primary-light)] hover:text-[var(--brand-primary)]"
-                        aria-label={`Ver detalhes de ${unit.name}`}
-                      >
-                        <Eye className="h-4 w-4" strokeWidth={2} />
-                      </button>
+                      <PrefeituraRedeUnitActionsMenu
+                        unit={unit}
+                        open={unitActions.openMenuUnitId === unit.id}
+                        canEdit={canEdit}
+                        canDelete={canDelete}
+                        onToggle={() => unitActions.toggleMenu(unit.id)}
+                        onClose={unitActions.closeMenu}
+                        onAction={(action) => unitActions.handleUnitAction(unit, action)}
+                      />
                     </td>
                   </tr>
                 )

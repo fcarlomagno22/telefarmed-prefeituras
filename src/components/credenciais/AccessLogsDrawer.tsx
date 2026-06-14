@@ -2,8 +2,8 @@ import { CalendarDays, RotateCcw, Search, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { systemPages } from '../../config/accessCredentials'
-import { accessLogs } from '../../data/accessLogsMock'
-import { initialAccessCredentialUsers } from '../../data/accessCredentialsMock'
+import type { AccessLogEntry } from '../../data/accessLogsMock'
+import type { CredenciaisAccessLogUser } from '../../utils/mapCredenciaisAccessLogs'
 import {
   applyAccessLogsFilters,
   countActiveAccessLogFilters,
@@ -20,6 +20,11 @@ import { CustomSelect } from '../ui/CustomSelect'
 type AccessLogsDrawerProps = {
   open: boolean
   closing: boolean
+  logs: AccessLogEntry[]
+  users: CredenciaisAccessLogUser[]
+  isLoading?: boolean
+  loadError?: string | null
+  onRetry?: () => void
   onClose: () => void
   onTransitionEnd: () => void
 }
@@ -32,6 +37,8 @@ const datePresets: { id: AccessLogsDatePreset; label: string }[] = [
   { id: 'all', label: 'Todos' },
 ]
 
+const AUTH_PAGE_OPTION = { value: 'auth', label: 'Autenticação' }
+
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
 }
@@ -39,6 +46,11 @@ function formatNumber(value: number) {
 export function AccessLogsDrawer({
   open,
   closing,
+  logs,
+  users,
+  isLoading = false,
+  loadError = null,
+  onRetry,
   onClose,
   onTransitionEnd,
 }: AccessLogsDrawerProps) {
@@ -82,7 +94,7 @@ export function AccessLogsDrawer({
     return () => window.clearTimeout(fallback)
   }, [closing, onTransitionEnd])
 
-  const filteredLogs = useMemo(() => applyAccessLogsFilters(accessLogs, filters), [filters])
+  const filteredLogs = useMemo(() => applyAccessLogsFilters(logs, filters), [filters, logs])
 
   const successCount = filteredLogs.filter((log) => log.outcome === 'success').length
   const failureCount = filteredLogs.length - successCount
@@ -102,17 +114,18 @@ export function AccessLogsDrawer({
   const userOptions = useMemo(
     () => [
       { value: '', label: 'Todos os usuários' },
-      ...initialAccessCredentialUsers.map((user) => ({
+      ...users.map((user) => ({
         value: user.id,
         label: user.name,
       })),
     ],
-    [],
+    [users],
   )
 
   const pageOptions = useMemo(
     () => [
       { value: '', label: 'Todas as páginas' },
+      AUTH_PAGE_OPTION,
       ...systemPages.map((page) => ({ value: page.id, label: page.label })),
     ],
     [],
@@ -286,7 +299,24 @@ export function AccessLogsDrawer({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
-          {filteredLogs.length === 0 ? (
+          {loadError ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-6 py-16 text-center">
+              <p className="text-sm font-semibold text-red-700">{loadError}</p>
+              {onRetry ? (
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="mt-4 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100/60"
+                >
+                  Tentar novamente
+                </button>
+              ) : null}
+            </div>
+          ) : isLoading ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50/80 px-6 py-16 text-center">
+              <p className="text-sm font-semibold text-gray-700">Carregando histórico de acessos…</p>
+            </div>
+          ) : filteredLogs.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50/80 px-6 py-16 text-center">
               <CalendarDays className="h-10 w-10 text-gray-300" strokeWidth={1.5} />
               <p className="mt-3 text-sm font-semibold text-gray-700">

@@ -1,5 +1,5 @@
 import { Clock3, PhoneOff, Play, Search, Stethoscope, UserRound } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   dashboardMainPanelMinHeightClass,
@@ -8,6 +8,7 @@ import {
 import {
   endProfissionalShift,
   enterProfissionalShift,
+  ensureProfissionalQueueSeeded,
   getProfissionalQueue,
   patchPatientStatus,
   markProfissionalAttendanceOrigin,
@@ -21,8 +22,19 @@ import type {
   ProfissionalQueuePatient,
   ProfissionalQueuePatientStatus,
   ProfissionalShift,
+  ProfissionalShiftStats,
 } from '../../../types/profissionalAgenda'
 import { startProfissionalAttendanceFromQueue } from '../../../utils/profissional/buildProfissionalAttendance'
+import { profissionalAtendimentoSessaoPath } from '../../../config/profissionalRoutes'
+import { useProfissionalAuth } from '../../../contexts/ProfissionalAuthContext'
+import { unlockProfissionalWaitingRoomAlertAudio } from '../../../utils/profissional/profissionalWaitingRoomAlertAudio'
+import { isBackendApiEnabled } from '../../../lib/api/config'
+import {
+  endProfissionalAgendaPlantao,
+  enterProfissionalAgendaPlantao,
+  markProfissionalAgendaNaoCompareceu,
+} from '../../../lib/services/profissional/agenda'
+import { iniciarProfissionalConsultaFromQueue } from '../../../lib/services/profissional/atendimentosQueue'
 import { writeConsultationLockToStorage } from '../../../hooks/useConsultationSessionGuard'
 import { maskCpfForDisplay } from '../../../utils/lgpdDisplay'
 import { formatScheduledDelayLabel } from '../../../utils/waitingQueueDisplay'
@@ -42,6 +54,8 @@ type ProfissionalQueuePanelProps = {
   /** Sessão iniciada com "Entrar no plantão". */
   shiftSessionActive?: boolean
   onEnterShift?: () => void
+  /** Tour guiado: usa fila local demo em vez da API. */
+  tourUseLocalQueue?: boolean
 }
 
 const STATUS_BADGE_WIDTH = 'w-[11.5rem]'
@@ -130,22 +144,31 @@ const statusConfig: Record<
 }
 
 function buildEndShiftSummary(
-  shiftId: string,
+  patients: ProfissionalQueuePatient[],
   enteredAt: string,
+  shiftStats?: ProfissionalShiftStats,
 ): ProfissionalEndShiftSummary {
-  const patients = getProfissionalQueue(shiftId)
   const entered = new Date(enteredAt).getTime()
   const duracaoPlantaoMin = Math.max(
     1,
     Math.round((Date.now() - entered) / 60_000),
   )
 
-  return {
+  const fromQueue = {
     atendidos: patients.filter((patient) => patient.status === 'finalizado').length,
-    naoCompareceu: patients.filter((patient) => patient.status === 'nao_compareceu')
-      .length,
+    naoCompareceu: patients.filter((patient) => patient.status === 'nao_compareceu').length,
     desistiu: patients.filter((patient) => patient.status === 'desistiu').length,
-    tempoMedioMin: 22,
+  }
+
+  const atendidos = Math.max(fromQueue.atendidos, shiftStats?.atendidos ?? 0)
+  const tempoMedioMin =
+    atendidos > 0 ? Math.max(shiftStats?.tempoMedioMin ?? 0, 0) : 0
+
+  return {
+    atendidos,
+    naoCompareceu: fromQueue.naoCompareceu,
+    desistiu: fromQueue.desistiu,
+    tempoMedioMin,
     duracaoPlantaoMin,
   }
 }
@@ -522,20 +545,86 @@ function QueuePatientTable({
   )
 }
 
+function dedupeQueuePatientsByAttendance(
+  items: ProfissionalQueuePatient[],
+): ProfissionalQueuePatient[] {
+  const merged = new Map<string, ProfissionalQueuePatient>()
+  const withoutCode: ProfissionalQueuePatient[] = []
+
+  const rank = (status: ProfissionalQueuePatient['status']) => {
+    if (status === 'em_atendimento') return 2
+    if (status === 'chamado') return 1
+    return 0
+  }
+
+  for (const patient of items) {
+    if (!patient.attendanceId) {
+      withoutCode.push(patient)
+      continue
+    }
+
+    const existing = merged.get(patient.attendanceId)
+    if (!existing || rank(patient.status) >= rank(existing.status)) {
+      merged.set(patient.attendanceId, patient)
+    }
+  }
+
+  return [...merged.values(), ...withoutCode]
+}
+
+function isTeleconsultaQueueVisible(patient: ProfissionalQueuePatient) {
+  return patient.status === 'chamado' || patient.status === 'em_atendimento'
+}
+
 export function ProfissionalQueuePanel({
   shift,
   sessionEnteredAt,
   onShiftEnded,
   shiftSessionActive = true,
   onEnterShift,
+  tourUseLocalQueue = false,
 }: ProfissionalQueuePanelProps) {
   const navigate = useNavigate()
+  const { getAccessToken, user } = useProfissionalAuth()
+  const accessToken = getAccessToken()
   const [endModalOpen, setEndModalOpen] = useState(false)
   const [noShowTarget, setNoShowTarget] = useState<ProfissionalQueuePatient | null>(null)
   const [search, setSearch] = useState('')
   const [queueListTab, setQueueListTab] = useState<ProfissionalQueueListTab>('active')
 
-  const { patients, now, callDisabled, refresh } = useProfissionalQueue(shift.id)
+  const { patients: queuePatients, now, callDisabled, refresh } = useProfissionalQueue(
+    shift.id,
+    accessToken,
+    {
+      tourUseLocalQueue,
+      plantaoId: shift.plantaoId,
+      plantaoSessionActive: shiftSessionActive,
+    },
+  )
+
+  const patients = useMemo(() => {
+    const bySpecialty = queuePatients.filter(
+      (patient) =>
+        patient.specialty.trim().toLowerCase() === shift.specialty.trim().toLowerCase(),
+    )
+    return dedupeQueuePatientsByAttendance(bySpecialty)
+  }, [queuePatients, shift.specialty])
+
+  const inProgressPatient = useMemo(
+    () => patients.find((patient) => patient.status === 'em_atendimento'),
+    [patients],
+  )
+
+  const waitingCount = useMemo(
+    () => patients.filter(isTeleconsultaQueueVisible).length,
+    [patients],
+  )
+
+  useEffect(() => {
+    if (!tourUseLocalQueue) return
+    ensureProfissionalQueueSeeded(shift)
+    refresh()
+  }, [refresh, shift, tourUseLocalQueue])
 
   const filteredPatients = useMemo(
     () => filterPatientsByName(search, patients),
@@ -547,19 +636,15 @@ export function ProfissionalQueuePanel({
     [filteredPatients, now],
   )
 
-  const tabPatients = useMemo(
-    () => (queueListTab === 'attended' ? queuePartition.attended : queuePartition.active),
-    [queueListTab, queuePartition],
-  )
+  const tabPatients = useMemo(() => {
+    if (queueListTab === 'attended') return queuePartition.attended
+    return queuePartition.active.filter(isTeleconsultaQueueVisible)
+  }, [queueListTab, queuePartition])
 
   const tabEmptyMessage =
     queueListTab === 'attended'
       ? 'Nenhuma consulta finalizada ainda.'
       : 'Nenhum paciente aguardando atendimento neste plantão.'
-
-  const waitingCount = patients.filter(
-    (patient) => patient.status === 'aguardando' || patient.status === 'chamado',
-  ).length
 
   const localClock = useMemo(() => formatLocalClock(now), [now])
   const hasActiveSearch = search.trim().length > 0
@@ -579,6 +664,30 @@ export function ProfissionalQueuePanel({
     return formatted.charAt(0).toUpperCase() + formatted.slice(1)
   }, [shift.dateKey])
 
+  function handleEnterShiftClick() {
+    unlockProfissionalWaitingRoomAlertAudio(user?.sexo ?? 'nao_informado')
+    onEnterShift?.()
+  }
+
+  function buildIniciarConsultaBody(patient: ProfissionalQueuePatient) {
+    const body: {
+      plantaoId: string
+      consultaId?: string
+      agendaConsultaId?: string
+    } = { plantaoId: shift.plantaoId }
+
+    const idIsAgendaRow =
+      patient.agendaConsultaId != null && patient.id === patient.agendaConsultaId
+
+    if (idIsAgendaRow) {
+      body.agendaConsultaId = patient.agendaConsultaId
+      return body
+    }
+
+    body.consultaId = patient.id
+    return body
+  }
+
   function handleConsult(patient: ProfissionalQueuePatient) {
     if (callDisabled || patient.status !== 'chamado') return
 
@@ -588,23 +697,51 @@ export function ProfissionalQueuePanel({
       activeSession.shiftId !== shift.id ||
       activeSession.endedAt
     ) {
-      enterProfissionalShift(shift.id)
+      enterProfissionalShift(shift.id, shift.plantaoId)
+      if (isBackendApiEnabled() && accessToken) {
+        void enterProfissionalAgendaPlantao(accessToken, shift.plantaoId)
+      }
     }
 
-    const attendanceId = startProfissionalAttendanceFromQueue(patient, shift)
-    patchPatientStatus(shift.id, patient.id, 'em_atendimento', {
-      attendanceId,
-    })
-    writeActiveAttendanceId(attendanceId)
-    markProfissionalAttendanceOrigin()
-    writeConsultationLockToStorage(true)
-    refresh()
-    navigate(`/atendimento/${attendanceId}/medico`)
+    void (async () => {
+      let attendanceId = patient.attendanceId
+
+      if (isBackendApiEnabled() && accessToken && !tourUseLocalQueue) {
+        try {
+          const result = await iniciarProfissionalConsultaFromQueue(
+            accessToken,
+            buildIniciarConsultaBody(patient),
+          )
+          attendanceId = result.codigoAtendimento
+        } catch {
+          if (!attendanceId) {
+            attendanceId = startProfissionalAttendanceFromQueue(patient, shift)
+          } else {
+            window.alert('Não foi possível iniciar a teleconsulta. Tente novamente.')
+            return
+          }
+        }
+      } else if (!attendanceId) {
+        attendanceId = startProfissionalAttendanceFromQueue(patient, shift)
+      }
+
+      if (!attendanceId) return
+
+      patchPatientStatus(shift.id, patient.id, 'em_atendimento', {
+        attendanceId,
+      })
+
+      writeActiveAttendanceId(attendanceId)
+      markProfissionalAttendanceOrigin()
+      writeConsultationLockToStorage(true)
+      refresh()
+      navigate(profissionalAtendimentoSessaoPath(attendanceId))
+    })()
   }
 
   function handleContinue(patient: ProfissionalQueuePatient) {
     if (!patient.attendanceId) return
-    navigate(`/atendimento/${patient.attendanceId}/medico`)
+    navigate(profissionalAtendimentoSessaoPath(patient.attendanceId))
   }
 
   function handleRequestNoShow(patient: ProfissionalQueuePatient) {
@@ -613,20 +750,44 @@ export function ProfissionalQueuePanel({
 
   function handleConfirmNoShow() {
     if (!noShowTarget) return
-    patchPatientStatus(shift.id, noShowTarget.id, 'nao_compareceu')
-    setNoShowTarget(null)
-    refresh()
+
+    void (async () => {
+      if (isBackendApiEnabled() && accessToken && !tourUseLocalQueue) {
+        try {
+          await markProfissionalAgendaNaoCompareceu(accessToken, noShowTarget.id)
+          patchPatientStatus(shift.id, noShowTarget.id, 'nao_compareceu')
+        } catch {
+          patchPatientStatus(shift.id, noShowTarget.id, 'nao_compareceu')
+        }
+      } else {
+        patchPatientStatus(shift.id, noShowTarget.id, 'nao_compareceu')
+      }
+      setNoShowTarget(null)
+      refresh()
+    })()
   }
 
   function handleConfirmEndShift() {
-    const summary = buildEndShiftSummary(shift.id, sessionEnteredAt)
-    endProfissionalShift(summary)
-    writeConsultationLockToStorage(false)
-    setEndModalOpen(false)
-    onShiftEnded()
+    const summary = buildEndShiftSummary(patients, sessionEnteredAt, shift.stats)
+
+    void (async () => {
+      if (isBackendApiEnabled() && accessToken && !tourUseLocalQueue) {
+        try {
+          await endProfissionalAgendaPlantao(accessToken, shift.plantaoId, summary)
+          endProfissionalShift(summary)
+        } catch {
+          endProfissionalShift(summary)
+        }
+      } else {
+        endProfissionalShift(summary)
+      }
+      writeConsultationLockToStorage(false)
+      setEndModalOpen(false)
+      onShiftEnded()
+    })()
   }
 
-  const endSummary = buildEndShiftSummary(shift.id, sessionEnteredAt)
+  const endSummary = buildEndShiftSummary(patients, sessionEnteredAt, shift.stats)
 
   return (
     <>
@@ -667,7 +828,7 @@ export function ProfissionalQueuePanel({
             ) : onEnterShift ? (
               <button
                 type="button"
-                onClick={onEnterShift}
+                onClick={handleEnterShiftClick}
                 className="shrink-0 rounded-xl bg-gradient-to-b from-[var(--brand-primary)] to-[#ff8c33] px-4 py-2 text-xs font-semibold text-white shadow-[0_2px_10px_rgba(255,107,0,0.3)] hover:brightness-[1.03]"
               >
                 Entrar no plantão
@@ -703,7 +864,9 @@ export function ProfissionalQueuePanel({
                 </span>
                 <p className="text-sm font-medium text-gray-700">Fila vazia</p>
                 <p className="max-w-[18rem] text-xs leading-relaxed text-gray-500">
-                  Os pacientes confirmados na UBT aparecerão aqui na ordem de atendimento.
+                  {shiftSessionActive
+                    ? 'Pacientes na sala de espera virtual aparecem aqui automaticamente, a cada poucos segundos.'
+                    : 'Clique em “Entrar no plantão” para acompanhar a fila em tempo real.'}
                 </p>
               </div>
             ) : (
@@ -745,9 +908,12 @@ export function ProfissionalQueuePanel({
         </div>
 
         <footer className="shrink-0 border-t border-gray-200 px-5 py-3 text-center sm:px-6">
-          {callDisabled ? (
+          {callDisabled && inProgressPatient ? (
             <p className="text-xs font-medium leading-relaxed text-amber-800">
-              Consulta em andamento — finalize antes de iniciar outra teleconsulta.
+              Teleconsulta em andamento com{' '}
+              <span className="font-semibold">{inProgressPatient.patientName}</span>. Use{' '}
+              <span className="font-semibold">Continuar</span> na fila ou finalize antes de
+              iniciar outra.
             </p>
           ) : queueListTab === 'active' ? (
             <p className="text-xs font-medium leading-relaxed text-gray-600">

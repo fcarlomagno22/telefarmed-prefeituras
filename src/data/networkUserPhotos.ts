@@ -7,6 +7,7 @@ export const NETWORK_USER_PHOTOS: Record<string, string> = {
   '5': 'https://randomuser.me/api/portraits/women/25.jpg',
   '6': 'https://randomuser.me/api/portraits/men/52.jpg',
   '7': 'https://randomuser.me/api/portraits/women/12.jpg',
+  '8': 'https://randomuser.me/api/portraits/women/65.jpg',
 }
 
 export function photoUrlForNetworkUser(userId: string, genderLabel?: string): string {

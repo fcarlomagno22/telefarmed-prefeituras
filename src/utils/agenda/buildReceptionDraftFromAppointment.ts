@@ -6,9 +6,9 @@ import {
   inferAgeGroupFromBirthDate,
   type AttendanceSession,
   type PatientRegistration,
-} from '../../data/unitDashboardMock'
+} from '../../types/attendance'
 import { findNetworkUserForAppointment } from '../agendaPatientUser'
-import { resolveSpecialtyFromServiceType } from './resolveSpecialtyFromServiceType'
+import { resolveAppointmentSpecialty } from './resolveAppointmentSpecialty'
 
 function birthDateToIso(birthDate: string) {
   if (!birthDate || birthDate === '—') return ''
@@ -65,10 +65,10 @@ export function buildReceptionSessionFromAppointment(
   appointment: DayAppointment,
   registration: PatientRegistration,
 ): AttendanceSession {
-  const specialty = resolveSpecialtyFromServiceType(appointment.serviceType)
+  const specialty = resolveAppointmentSpecialty(appointment)
   return {
-    specialtyId: specialty?.id ?? '',
-    specialtyName: specialty?.name ?? appointment.serviceType,
+    specialtyId: specialty.specialtyId,
+    specialtyName: specialty.specialtyName,
     ageGroup: registration.birthDate
       ? inferAgeGroupFromBirthDate(registration.birthDate)
       : null,

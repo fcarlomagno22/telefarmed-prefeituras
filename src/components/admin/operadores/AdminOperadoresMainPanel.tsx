@@ -26,27 +26,16 @@ type AdminOperadoresMainPanelProps = {
   fixedScope?: AdminOperatorScope
   panelTitle?: string
   panelDescription?: string
+  searchQuery?: string
+  onSearchQueryChange?: (value: string) => void
+  profileFilter?: string
+  onProfileFilterChange?: (value: string) => void
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
-}
-
-function filterRows(
-  rows: AdminOperatorRow[],
-  query: string,
-  scopeFilter: 'all' | 'UBT' | 'Prefeitura',
-  profileFilter: string,
-) {
-  const normalized = query.trim().toLowerCase()
-  return rows.filter((row) => {
-    if (scopeFilter !== 'all' && row.scope !== scopeFilter) return false
-    if (profileFilter && row.profileLabel !== profileFilter) return false
-    if (!normalized) return true
-    const haystack =
-      `${row.name} ${row.email} ${row.unitName} ${row.profileLabel} ${row.contractingEntity.razaoSocial} ${row.contractingEntity.municipality}`.toLowerCase()
-    return haystack.includes(normalized)
-  })
 }
 
 export function AdminOperadoresMainPanel({
@@ -57,13 +46,17 @@ export function AdminOperadoresMainPanel({
   fixedScope,
   panelTitle = 'Operadores',
   panelDescription = 'Usuários UBT/prefeitura agregados com último acesso, unidade e perfil operacional.',
+  searchQuery = '',
+  onSearchQueryChange,
+  profileFilter = '',
+  onProfileFilterChange,
+  canEdit = true,
+  canDelete = true,
 }: AdminOperadoresMainPanelProps) {
   const { openView, requestPinAction } = userDrawer
-  const [search, setSearch] = useState('')
   const [scopeFilter, setScopeFilter] = useState<'all' | 'UBT' | 'Prefeitura'>(
     fixedScope ?? 'all',
   )
-  const [profileFilter, setProfileFilter] = useState('')
   const [menuUserId, setMenuUserId] = useState<string | null>(null)
   const [transferUser, setTransferUser] = useState<AdminOperatorRow | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -86,16 +79,27 @@ export function AdminOperadoresMainPanel({
   const effectiveScopeFilter = fixedScope ?? scopeFilter
 
   const filteredRows = useMemo(
-    () => filterRows(rows, search, effectiveScopeFilter, profileFilter),
-    [rows, search, effectiveScopeFilter, profileFilter],
+    () =>
+      effectiveScopeFilter === 'all'
+        ? rows
+        : rows.filter((row) => row.scope === effectiveScopeFilter),
+    [rows, effectiveScopeFilter],
   )
+
+  function canEditUser(user: AdminOperatorRow) {
+    return canEdit && !user.isUbtResponsible
+  }
+
+  function canDeleteUser(user: AdminOperatorRow) {
+    return canDelete && !user.isUbtResponsible
+  }
 
   const kpiCards = useMemo(
     () => [
       {
         label: 'Operadores totais',
         value: formatNumber(rows.length),
-        suffix: 'UBT + prefeitura',
+        suffix: fixedScope === 'UBT' ? 'operadores UBT' : 'UBT + prefeitura',
         icon: Users,
         iconGradient: 'from-sky-500 via-blue-500 to-indigo-600',
         iconShadow: 'shadow-[0_8px_20px_rgba(59,130,246,0.35)]',
@@ -135,7 +139,7 @@ export function AdminOperadoresMainPanel({
         topBar: 'from-violet-400 to-purple-500',
       },
     ],
-    [rows],
+    [fixedScope, rows],
   )
 
   function requestDeactivateUser(user: AdminOperatorRow) {
@@ -214,7 +218,7 @@ export function AdminOperadoresMainPanel({
                 Perfil
                 <CustomSelect
                   value={profileFilter}
-                  onChange={setProfileFilter}
+                  onChange={onProfileFilterChange ?? (() => {})}
                   options={[{ value: '', label: 'Todos' }, ...profileOptions]}
                   className="min-w-[190px] text-left normal-case"
                 />
@@ -223,8 +227,8 @@ export function AdminOperadoresMainPanel({
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <input
                   type="search"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
+                  value={searchQuery}
+                  onChange={(event) => onSearchQueryChange?.(event.target.value)}
                   placeholder="Buscar por nome, e-mail, unidade, entidade ou perfil..."
                   className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-800 outline-none transition placeholder:text-sm placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15"
                 />
@@ -312,11 +316,17 @@ export function AdminOperadoresMainPanel({
                           closeMenu()
                           openView(row)
                         }}
-                        onEdit={() => requestEditUser(row)}
-                        onTransferUbt={() => requestTransferUbt(row)}
-                        onDeactivate={() => requestDeactivateUser(row)}
-                        onReactivate={() => requestReactivateUser(row)}
-                        onDelete={() => requestDeleteUser(row)}
+                        onEdit={canEditUser(row) ? () => requestEditUser(row) : undefined}
+                        onTransferUbt={
+                          canEditUser(row) ? () => requestTransferUbt(row) : undefined
+                        }
+                        onDeactivate={
+                          canEditUser(row) ? () => requestDeactivateUser(row) : undefined
+                        }
+                        onReactivate={
+                          canEditUser(row) ? () => requestReactivateUser(row) : undefined
+                        }
+                        onDelete={canDeleteUser(row) ? () => requestDeleteUser(row) : undefined}
                       />
                     </div>
                   </td>

@@ -1,12 +1,16 @@
 import { Download, Plus, Printer, UserPlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import type { AgendaDaySummary, AgendaOperationalClimate } from '../../data/agendaMock'
+import type { AgendaDaySummary, AgendaHistoryDay, AgendaOperationalClimate } from '../../data/agendaMock'
 import { AgendaDayPixelChart } from './AgendaDayPixelChart'
+import { AgendaHistoryCard } from './AgendaHistoryCard'
 import { AgendaOperationalClimateCard } from './AgendaOperationalClimateCard'
 
 type AgendaSidebarPanelProps = {
   daySummary: AgendaDaySummary
   operationalClimate: AgendaOperationalClimate
+  history?: AgendaHistoryDay[]
+  selectedDateKey?: string
+  onSelectHistoryDay?: (dateKey: string) => void
   onScheduleAppointment?: () => void
   onWalkInReception?: () => void
   walkInReceptionDisabled?: boolean
@@ -35,6 +39,9 @@ const quickActions = [
 export function AgendaSidebarPanel({
   daySummary,
   operationalClimate,
+  history = [],
+  selectedDateKey = '',
+  onSelectHistoryDay,
   onScheduleAppointment,
   onWalkInReception,
   walkInReceptionDisabled = false,
@@ -93,7 +100,7 @@ export function AgendaSidebarPanel({
               <span className="block text-sm font-semibold text-sky-900">
                 Recepção presencial
               </span>
-              <span className="mt-0.5 block text-xs text-sky-700/90">Encaixe sem horário</span>
+              <span className="mt-0.5 block text-xs text-sky-700/90">Encaixe com médico e horário</span>
             </span>
           </button>
 
@@ -170,6 +177,12 @@ export function AgendaSidebarPanel({
       </section>
 
       <AgendaOperationalClimateCard operationalClimate={operationalClimate} />
+
+      <AgendaHistoryCard
+        history={history}
+        selectedDateKey={selectedDateKey}
+        onSelectDay={onSelectHistoryDay}
+      />
     </aside>
   )
 }

@@ -5,16 +5,7 @@ import { AgendaDatePicker } from '../../agenda/AgendaDatePicker'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { Toast } from '../../ui/Toast'
 import { LgpdUnlockModal } from '../../users/LgpdUnlockModal'
-import { agendaToday } from '../../../data/agendaMock'
-import {
-  findPrefeituraAgendaUnit,
-  formatPrefeituraAgendaUnitContext,
-  getPrefeituraAgendaUnitOptions,
-  getPrefeituraAgendaUnitsByRegion,
-  getPrefeituraUnitDayAppointments,
-  prefeituraAgendaRegionOptions,
-  type PrefeituraAgendaUnitId,
-} from '../../../data/prefeituraAgendasScheduleMock'
+import type { PrefeituraAgendaUnitApi } from '../../../lib/services/prefeitura/agendas'
 import { addDays, formatAgendaDayLabel, isSameDay, parseDateKey, toDateKey } from '../../../utils/agendaDate'
 import { maskCpfForDisplay, maskPhoneForDisplay } from '../../../utils/lgpdDisplay'
 import { computeAttendanceBreakdown } from '../../../utils/prefeituraAgendasAttendance'
@@ -107,17 +98,31 @@ function StatusBadge({ status }: { status: AppointmentStatus }) {
 }
 
 type PrefeituraAgendasDayScheduleProps = {
-  unitId: PrefeituraAgendaUnitId
+  unitId: string
   dateKey: string
   maxDate?: Date
+  appointments: DayAppointment[]
+  breakdown?: {
+    attended: number
+    noShows: number
+    attendancePercent: number
+  }
+  regionOptions: Array<{ value: string; label: string }>
+  findUnit: (unitId: string) => PrefeituraAgendaUnitApi | undefined
+  getUnitOptionsForRegion: (regionKey: string) => Array<{ value: string; label: string }>
   onDateChange: (dateKey: string) => void
-  onUnitChange: (unitId: PrefeituraAgendaUnitId) => void
+  onUnitChange: (unitId: string) => void
 }
 
 export function PrefeituraAgendasDaySchedule({
   unitId,
   dateKey,
-  maxDate = agendaToday,
+  maxDate = new Date(),
+  appointments,
+  breakdown,
+  regionOptions,
+  findUnit,
+  getUnitOptionsForRegion,
   onDateChange,
   onUnitChange,
 }: PrefeituraAgendasDayScheduleProps) {
@@ -125,7 +130,7 @@ export function PrefeituraAgendasDaySchedule({
   const [sensitiveDataUnlocked, setSensitiveDataUnlocked] = useState(false)
   const [unlockModalOpen, setUnlockModalOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-  const [regionKey, setRegionKey] = useState(() => findPrefeituraAgendaUnit(unitId).regionKey)
+  const [regionKey, setRegionKey] = useState(() => findUnit(unitId)?.regionKey ?? 'todas')
 
   const showSuccessToast = useCallback((message: string) => {
     setToastMessage(null)
@@ -133,21 +138,16 @@ export function PrefeituraAgendasDaySchedule({
   }, [])
 
   useEffect(() => {
-    setRegionKey(findPrefeituraAgendaUnit(unitId).regionKey)
-  }, [unitId])
+    setRegionKey(findUnit(unitId)?.regionKey ?? 'todas')
+  }, [findUnit, unitId])
 
   const ubtOptions = useMemo(
-    () => getPrefeituraAgendaUnitOptions(regionKey),
-    [regionKey],
+    () => getUnitOptionsForRegion(regionKey),
+    [getUnitOptionsForRegion, regionKey],
   )
   const selectedDate = useMemo(() => parseDateKey(dateKey), [dateKey])
   const isToday = isSameDay(selectedDate, maxDate)
   const canGoForward = !isSameDay(selectedDate, maxDate) && selectedDate < maxDate
-
-  const appointments = useMemo(
-    () => getPrefeituraUnitDayAppointments(unitId, dateKey),
-    [unitId, dateKey],
-  )
 
   const filteredAppointments = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -155,19 +155,22 @@ export function PrefeituraAgendasDaySchedule({
     return appointments.filter((item) => item.patientName.toLowerCase().includes(query))
   }, [appointments, search])
 
-  const breakdown = useMemo(
-    () => computeAttendanceBreakdown(appointments),
-    [appointments],
+  const computedBreakdown = useMemo(
+    () => breakdown ?? computeAttendanceBreakdown(appointments),
+    [appointments, breakdown],
   )
 
-  const unitContextLabel = formatPrefeituraAgendaUnitContext(unitId)
+  const unit = findUnit(unitId)
+  const unitContextLabel = unit
+    ? `RA ${unit.regionLabel} · ${unit.name}`
+    : 'Unidade não encontrada'
   const dayLabel = formatAgendaDayLabel(selectedDate)
 
   function handleRegionChange(value: string) {
     setRegionKey(value)
-    const units = getPrefeituraAgendaUnitsByRegion(value)
-    if (!units.some((unit) => unit.id === unitId)) {
-      onUnitChange(units[0]!.id)
+    const units = getUnitOptionsForRegion(value)
+    if (!units.some((option) => option.value === unitId) && units[0]) {
+      onUnitChange(units[0].value)
     }
   }
 
@@ -211,11 +214,11 @@ export function PrefeituraAgendasDaySchedule({
             <h2 className="text-lg font-bold text-gray-900">Agenda do dia</h2>
             <p className="mt-1 text-sm font-medium text-gray-700">{unitContextLabel}</p>
             <p className="mt-0.5 text-sm text-gray-500">{dayLabel}</p>
-            {breakdown.attended + breakdown.noShows > 0 ? (
+            {computedBreakdown.attended + computedBreakdown.noShows > 0 ? (
               <p className="mt-2 text-xs font-semibold text-gray-600">
                 Comparecimento:{' '}
-                <span className="text-emerald-700">{breakdown.attendancePercent}%</span> (
-                {breakdown.attended} compareceram · {breakdown.noShows} faltas)
+                <span className="text-emerald-700">{computedBreakdown.attendancePercent}%</span> (
+                {computedBreakdown.attended} compareceram · {computedBreakdown.noShows} faltas)
               </p>
             ) : null}
           </div>
@@ -272,7 +275,7 @@ export function PrefeituraAgendasDaySchedule({
             <CustomSelect
               value={regionKey}
               onChange={handleRegionChange}
-              options={[...prefeituraAgendaRegionOptions]}
+              options={regionOptions}
               placeholder="RA"
               className="!py-2.5"
               menuMinWidthPx={200}

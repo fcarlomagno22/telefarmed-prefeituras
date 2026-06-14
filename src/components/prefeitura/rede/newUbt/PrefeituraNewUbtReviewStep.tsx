@@ -2,6 +2,7 @@ import {
   Building2,
   ClipboardCheck,
   Gauge,
+  KeyRound,
   MapPin,
   Monitor,
   Stethoscope,
@@ -9,6 +10,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { prefeituraRedeStatusBadgeConfig } from '../prefeituraRedeStatusBadge'
 import {
   formatNewUbtAddress,
@@ -16,11 +18,18 @@ import {
   type NewUbtFormState,
 } from './newUbtFormTypes'
 
+type UbtReviewSpecialtyGroup = {
+  professionName: string
+  specialtyNames: string[]
+  hasCatalogSpecialties: boolean
+}
+
 type PrefeituraNewUbtReviewStepProps = {
   form: NewUbtFormState
   regionLabel: string
-  specialtyNames: string[]
-  credentialsReady: boolean
+  professionNames: string[]
+  specialtyGroups: UbtReviewSpecialtyGroup[]
+  operationNames: string[]
 }
 
 function ReviewSection({
@@ -103,25 +112,12 @@ function SummaryMetric({
   )
 }
 
-function CredentialBadge({ defined, label }: { defined: boolean; label: string }) {
-  return (
-    <span
-      className={[
-        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold',
-        defined ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200/80' : 'bg-gray-100 text-gray-500',
-      ].join(' ')}
-    >
-      <span className={`h-1.5 w-1.5 rounded-full ${defined ? 'bg-emerald-500' : 'bg-gray-300'}`} />
-      {label}
-    </span>
-  )
-}
-
 export function PrefeituraNewUbtReviewStep({
   form,
   regionLabel,
-  specialtyNames,
-  credentialsReady,
+  professionNames,
+  specialtyGroups,
+  operationNames,
 }: PrefeituraNewUbtReviewStepProps) {
   const statusStyle = prefeituraRedeStatusBadgeConfig[form.status]
   const capacityLabel = form.enableDailyCapacityLimit
@@ -172,13 +168,37 @@ export function PrefeituraNewUbtReviewStep({
           />
           <SummaryMetric
             icon={Stethoscope}
-            label="Especialidades"
-            value={String(specialtyNames.length)}
-            suffix="habilitadas"
+            label="Profissões"
+            value={String(professionNames.length)}
+            suffix={professionNames.length === 1 ? 'habilitada' : 'habilitadas'}
           />
-          <SummaryMetric icon={Gauge} label="Capacidade diária" value={capacityLabel} />
+          <SummaryMetric
+            icon={Gauge}
+            label="Capacidade diária"
+            value={capacityLabel}
+          />
         </div>
       </div>
+
+      <article className="flex gap-3 rounded-2xl border border-sky-200/80 bg-sky-50/70 px-4 py-4">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-700">
+          <KeyRound className="h-5 w-5" strokeWidth={2} />
+        </span>
+        <div className="min-w-0 text-sm text-gray-700">
+          <p className="font-bold text-gray-900">Credencial da gestora</p>
+          <p className="mt-1 leading-relaxed">
+            Após cadastrar a UBT, acesse{' '}
+            <Link
+              to="/prefeitura/credenciais"
+              className="font-semibold text-[var(--brand-primary)] underline-offset-2 hover:underline"
+            >
+              Credenciais de acesso
+            </Link>{' '}
+            para criar a credencial de {form.responsibleName.trim() || 'a gestora responsável'} com
+            senha de login e senha de autorização.
+          </p>
+        </div>
+      </article>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <ReviewSection icon={Building2} title="Unidade" description="Identificação na rede municipal">
@@ -219,7 +239,7 @@ export function PrefeituraNewUbtReviewStep({
         <ReviewSection
           icon={UserRound}
           title="Responsável pela unidade"
-          description="Contato e credenciais de acesso"
+          description="Contato da gestora"
         >
           <ReviewField
             label="Nome completo"
@@ -231,31 +251,67 @@ export function PrefeituraNewUbtReviewStep({
             <ReviewField label="CPF" value={form.responsibleCpf} />
             <ReviewField label="Celular" value={form.responsiblePhone} />
           </div>
-          <div className="flex flex-wrap gap-2 border-t border-gray-100 pt-3">
-            <CredentialBadge defined={credentialsReady} label="Senha de acesso definida" />
-            <CredentialBadge
-              defined={credentialsReady}
-              label={
-                credentialsReady
-                  ? `Autorização ${'•'.repeat(form.responsibleAuthorizationPin.length)}`
-                  : 'Senha de autorização pendente'
-              }
-            />
-          </div>
         </ReviewSection>
 
-        <ReviewSection icon={Stethoscope} title="Operação" description="Capacidade e especialidades da UBT">
+        <ReviewSection icon={Stethoscope} title="Operação" description="Capacidade, profissões e especialidades">
           <div className="grid gap-4 sm:grid-cols-2">
             <ReviewField label="Terminais de atendimento" value={form.stationsTotal} />
             <ReviewField label="Limite diário" value={capacityLabel} />
           </div>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-              Especialidades ({specialtyNames.length})
+              Profissões ({professionNames.length})
             </p>
-            {specialtyNames.length > 0 ? (
-              <ul className="mt-2 flex max-h-32 flex-wrap gap-1.5 overflow-y-auto overscroll-y-contain">
-                {specialtyNames.map((name) => (
+            {professionNames.length > 0 ? (
+              <ul className="mt-2 flex flex-wrap gap-1.5">
+                {professionNames.map((name) => (
+                  <li
+                    key={name}
+                    className="rounded-lg border border-sky-200/80 bg-sky-50/70 px-2.5 py-1 text-xs font-semibold text-gray-800"
+                  >
+                    {name}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-gray-400">Nenhuma profissão selecionada</p>
+            )}
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+              Atendimentos habilitados ({operationNames.length})
+            </p>
+            {specialtyGroups.length > 0 ? (
+              <div className="mt-2 space-y-3">
+                {specialtyGroups.map((group) => (
+                  <div key={group.professionName}>
+                    <p className="text-xs font-bold text-gray-600">{group.professionName}</p>
+                    {group.hasCatalogSpecialties ? (
+                      group.specialtyNames.length > 0 ? (
+                        <ul className="mt-1.5 flex flex-wrap gap-1.5">
+                          {group.specialtyNames.map((name) => (
+                            <li
+                              key={`${group.professionName}-${name}`}
+                              className="rounded-lg border border-[var(--brand-primary)]/15 bg-[var(--brand-primary-light)]/40 px-2.5 py-1 text-xs font-semibold text-gray-800"
+                            >
+                              {name}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="mt-1 text-xs text-gray-400">Nenhuma especialidade selecionada</p>
+                      )
+                    ) : (
+                      <p className="mt-1 text-xs font-medium text-emerald-800">
+                        Profissão habilitada (sem especialidades no catálogo)
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : operationNames.length > 0 ? (
+              <ul className="mt-2 flex flex-wrap gap-1.5">
+                {operationNames.map((name) => (
                   <li
                     key={name}
                     className="rounded-lg border border-[var(--brand-primary)]/15 bg-[var(--brand-primary-light)]/40 px-2.5 py-1 text-xs font-semibold text-gray-800"
@@ -265,7 +321,7 @@ export function PrefeituraNewUbtReviewStep({
                 ))}
               </ul>
             ) : (
-              <p className="mt-2 text-sm text-gray-400">Nenhuma especialidade selecionada</p>
+              <p className="mt-2 text-sm text-gray-400">Nenhum atendimento habilitado</p>
             )}
           </div>
         </ReviewSection>

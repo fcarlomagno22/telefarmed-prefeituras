@@ -1,0 +1,36 @@
+import type { AdminDoctor } from '../../types/adminMedicos'
+
+export function createEmptyAdminDoctor(): AdminDoctor {
+  return {
+    id: `prof-${Date.now()}`,
+    name: '',
+    phone: '',
+    cpf: '',
+    rg: '',
+    crm: '',
+    ufCrm: 'SP',
+    profession: 'Médicos',
+    specialty: '',
+    avatarUrl: '',
+    zipCode: '',
+    street: '',
+    number: '',
+    complement: '',
+    neighborhood: '',
+    city: '',
+    state: 'SP',
+    allocation: 'por_contrato',
+    contractingEntity: null,
+    onCallLabel: '',
+    status: 'ativo',
+    isOnlineNow: false,
+    totalPatientsThisMonth: 0,
+    averageRating: 0,
+    totalReviews: 0,
+    lastLoginAt: '—',
+    lastLogoutAt: null,
+    documents: [],
+    attendances: [],
+    reviews: [],
+  }
+}

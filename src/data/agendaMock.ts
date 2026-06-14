@@ -23,7 +23,13 @@ export type DayAppointment = {
   patientCpf: string
   patientPhone: string
   serviceType: string
+  /** ID da especialidade (contrato / catálogo clínico). */
+  specialtyId?: string
   status: AppointmentStatus
+  /** Preenchido pela API UBT; usado para carregar o perfil real no drawer. */
+  pacienteId?: string
+  /** URL da foto do paciente (data URL ou link público). */
+  patientAvatarUrl?: string
 }
 
 export type AgendaHistoryDay = {

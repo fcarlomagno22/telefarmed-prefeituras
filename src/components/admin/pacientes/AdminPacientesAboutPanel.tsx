@@ -1,8 +1,6 @@
 import { useMemo } from 'react'
-import {
-  adminMunicipalityCatalog,
-  type AdminMunicipalPatient,
-} from '../../../data/adminPacientesMock'
+import type { AdminMunicipalPatient } from '../../../types/adminPacientes'
+import type { PacientesSummaryResponse } from '../../../lib/services/admin/pacientes'
 import { brand } from '../../../config/brand'
 
 function formatNumber(value: number) {
@@ -11,9 +9,20 @@ function formatNumber(value: number) {
 
 type AdminPacientesAboutPanelProps = {
   patients: AdminMunicipalPatient[]
+  summary?: PacientesSummaryResponse | null
 }
 
-function monthCountMap(patients: AdminMunicipalPatient[]) {
+function monthCountMap(
+  patients: AdminMunicipalPatient[],
+  summary?: PacientesSummaryResponse | null,
+) {
+  if (summary?.novosCadastrosPorMes?.length) {
+    return summary.novosCadastrosPorMes.map((item) => ({
+      label: item.label,
+      count: item.count,
+    }))
+  }
+
   const labels: AdminMunicipalPatient['registrationMonthLabel'][] = [
     'Dez',
     'Jan',
@@ -28,24 +37,33 @@ function monthCountMap(patients: AdminMunicipalPatient[]) {
   }))
 }
 
-function municipalityCountMap(patients: AdminMunicipalPatient[]) {
-  const base = adminMunicipalityCatalog.map((city) => ({
-    label: city,
-    registrations: 0,
-  }))
+function municipalityCountMap(
+  patients: AdminMunicipalPatient[],
+  summary?: PacientesSummaryResponse | null,
+) {
+  if (summary?.cadastrosPorMunicipio?.length) {
+    return summary.cadastrosPorMunicipio
+  }
 
   const map = patients.reduce((acc, patient) => {
     acc.set(patient.municipality, (acc.get(patient.municipality) ?? 0) + 1)
     return acc
   }, new Map<string, number>())
 
-  return base
-    .map((item) => ({ ...item, registrations: map.get(item.label) ?? 0 }))
+  return Array.from(map.entries())
+    .map(([label, registrations]) => ({ label, registrations }))
     .sort((a, b) => b.registrations - a.registrations)
     .slice(0, 10)
 }
 
-function contractStatusMap(patients: AdminMunicipalPatient[]) {
+function contractStatusMap(
+  patients: AdminMunicipalPatient[],
+  summary?: PacientesSummaryResponse | null,
+) {
+  if (summary?.basePorStatusContratual?.length) {
+    return summary.basePorStatusContratual
+  }
+
   const active = patients.filter((patient) => patient.contractStatus === 'ativo').length
   const ended = patients.length - active
   return [
@@ -84,11 +102,14 @@ function HorizontalBars({
   )
 }
 
-export function AdminPacientesAboutPanel({ patients }: AdminPacientesAboutPanelProps) {
+export function AdminPacientesAboutPanel({ patients, summary }: AdminPacientesAboutPanelProps) {
   const illustrationUrl = brand.dashboardUsersAboutImageUrl
-  const monthData = useMemo(() => monthCountMap(patients), [patients])
-  const municipalityData = useMemo(() => municipalityCountMap(patients), [patients])
-  const contractData = useMemo(() => contractStatusMap(patients), [patients])
+  const monthData = useMemo(() => monthCountMap(patients, summary), [patients, summary])
+  const municipalityData = useMemo(
+    () => municipalityCountMap(patients, summary),
+    [patients, summary],
+  )
+  const contractData = useMemo(() => contractStatusMap(patients, summary), [patients, summary])
   const monthMax = Math.max(...monthData.map((item) => item.count), 1)
 
   return (

@@ -18,7 +18,7 @@ const OPERADORES_PANEL_COPY: Record<
   ubt: {
     title: 'Operadores de UBT',
     description:
-      'Usuários das unidades com acesso ao terminal UBT (/ubt): triagem, agenda, consultas e operação diária.',
+      'Usuários das unidades com acesso ao terminal UBT.',
     fixedScope: 'UBT',
   },
 }

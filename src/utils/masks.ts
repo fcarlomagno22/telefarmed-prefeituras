@@ -23,6 +23,13 @@ export function parseCurrencyBrl(value: string): number {
   return Number(digits) / 100
 }
 
+/** Inteiro com separador de milhares pt-BR (ex.: 5000 → 5.000). */
+export function maskIntegerPtBr(value: string, maxDigits = 9): string {
+  const digits = value.replace(/\D/g, '').slice(0, maxDigits)
+  if (!digits) return ''
+  return Number(digits).toLocaleString('pt-BR')
+}
+
 export function maskCpf(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 11)
 

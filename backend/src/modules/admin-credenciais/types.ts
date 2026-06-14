@@ -1,4 +1,4 @@
-import type { AdminPageId, PermissionAction, SystemPageId } from './permissions.js'
+import type { AdminPageId, PermissionAction, PrefeituraPageId, SystemPageId } from './permissions.js'
 
 export type AdminInternoCredentialDto = {
   id: string
@@ -22,6 +22,7 @@ export type AdminPortalUserDto = {
   id: string
   name: string
   email: string
+  cpf?: string
   role: string
   accessLevel: string
   status: 'ativo' | 'inativo'
@@ -29,7 +30,9 @@ export type AdminPortalUserDto = {
   avatarClassName: string
   hasPassword: boolean
   hasAuthorizationPin?: boolean
-  pagePermissions: Record<SystemPageId, PermissionAction[]>
+  pagePermissions:
+    | Record<SystemPageId, PermissionAction[]>
+    | Record<PrefeituraPageId, PermissionAction[]>
   ubtId?: string
   ubtName?: string
   raKey?: string

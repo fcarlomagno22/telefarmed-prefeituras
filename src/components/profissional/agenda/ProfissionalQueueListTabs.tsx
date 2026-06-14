@@ -95,6 +95,6 @@ export function profissionalQueueListTabHint(tab: ProfissionalQueueListTab): str
     case 'attended':
       return 'Consultas finalizadas e demais encerramentos do plantão.'
     default:
-      return 'Aguardando, na sala de espera e em atendimento — ordem automática por horário e chegada.'
+      return 'Na sala de espera e em atendimento — ordem automática por horário e chegada.'
   }
 }

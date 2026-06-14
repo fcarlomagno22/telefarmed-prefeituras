@@ -8,6 +8,7 @@ import { buildAdminTargetChannelBadge } from './adminNotificacoesUi'
 type AdminNotificacoesSidebarPanelProps = {
   broadcasts: AdminBroadcast[]
   onCompose: () => void
+  canInsert?: boolean
 }
 
 function formatNumber(value: number) {
@@ -17,6 +18,7 @@ function formatNumber(value: number) {
 export function AdminNotificacoesSidebarPanel({
   broadcasts,
   onCompose,
+  canInsert = true,
 }: AdminNotificacoesSidebarPanelProps) {
   const stats = useMemo(() => {
     let prefeitura = 0
@@ -36,16 +38,18 @@ export function AdminNotificacoesSidebarPanel({
       <section className="shrink-0 rounded-2xl border border-gray-200 bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
         <h2 className="text-sm font-bold text-gray-900">Novo comunicado</h2>
         <p className="mt-0.5 text-xs leading-snug text-gray-500">
-          Prefeituras, UBTs ou toda a rede — você escolhe o destino.
+          Prefeituras, UBTs, profissionais ou combinações — você escolhe o destino.
         </p>
-        <button
-          type="button"
-          onClick={onCompose}
-          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-105"
-        >
-          <Send className="h-4 w-4" strokeWidth={2.25} />
-          Enviar notificação
-        </button>
+        {canInsert ? (
+          <button
+            type="button"
+            onClick={onCompose}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-105"
+          >
+            <Send className="h-4 w-4" strokeWidth={2.25} />
+            Enviar notificação
+          </button>
+        ) : null}
       </section>
 
       <PrefeituraNotificacoesIllustration />

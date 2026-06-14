@@ -1,21 +1,22 @@
 import { CircleAlert, Layers, Users } from 'lucide-react'
+import type { EscalaSummaryApi } from '../../../lib/mockServices/admin/escala'
 import type { AdminEscalaShift } from '../../../types/adminEscala'
 import { countOpenVacancies } from '../../../utils/escala/filterAdminEscalaOpenShifts'
 import { profissionalEscalaShiftsPanelClass } from '../../profissional/escala/profissionalEscalaUi'
 
 type AdminEscalaSidebarPanelProps = {
   shifts: AdminEscalaShift[]
+  summary: EscalaSummaryApi | null
 }
 
-export function AdminEscalaSidebarPanel({ shifts }: AdminEscalaSidebarPanelProps) {
+export function AdminEscalaSidebarPanel({ shifts, summary }: AdminEscalaSidebarPanelProps) {
   const openPublished = shifts.filter(
     (s) => s.assignmentMode === 'open' && s.status === 'publicada',
   )
-  const partial = openPublished.filter((s) => s.vacancies > 0 && s.vacancies < s.totalVacancies)
-  const withoutBackup = shifts.filter(
-    (s) => s.assignmentMode === 'assigned' && s.backupDoctorIds.length === 0,
-  ).length
-  const drafts = shifts.filter((s) => s.status === 'rascunho').length
+  const openVacancies = summary?.openVacancies ?? countOpenVacancies(shifts)
+  const partialCount = summary?.partialCount ?? 0
+  const withoutBackup = summary?.withoutBackupCount ?? 0
+  const drafts = summary?.draftCount ?? 0
 
   return (
     <section className={profissionalEscalaShiftsPanelClass} aria-label="Resumo operacional">
@@ -27,11 +28,11 @@ export function AdminEscalaSidebarPanel({ shifts }: AdminEscalaSidebarPanelProps
       <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-5">
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-xl border border-gray-100 bg-slate-50/90 px-2.5 py-2.5 text-center">
-            <p className="text-xl font-bold text-gray-900">{countOpenVacancies(shifts)}</p>
+            <p className="text-xl font-bold text-gray-900">{openVacancies}</p>
             <p className="text-[10px] text-gray-600">Vagas no portal</p>
           </div>
           <div className="rounded-xl border border-gray-100 bg-slate-50/90 px-2.5 py-2.5 text-center">
-            <p className="text-xl font-bold text-gray-900">{partial.length}</p>
+            <p className="text-xl font-bold text-gray-900">{partialCount}</p>
             <p className="text-[10px] text-gray-600">Parcialmente preenchidos</p>
           </div>
         </div>

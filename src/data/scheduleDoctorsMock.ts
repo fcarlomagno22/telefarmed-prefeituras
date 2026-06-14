@@ -223,9 +223,8 @@ export function getDoctorById(doctorId: string): ScheduleDoctor | undefined {
 }
 
 /** Dia em que o médico tem plantão (agenda própria), independente da unidade no dia. */
-export function doctorHasShiftOnDay(doctorId: string, date: Date): boolean {
-  const seed = hashSeed(doctorId, toDateKey(date), 'shift')
-  return seed % 5 !== 0
+export function doctorHasShiftOnDay(_doctorId: string, _date: Date): boolean {
+  return true
 }
 
 export type DoctorDayAvailability = {
@@ -315,6 +314,60 @@ export function getDoctorsAvailableOnDay(specialtyId: string, date: Date): Sched
 export function countSpecialtyAvailableSlotsOnDay(specialtyId: string, date: Date): number {
   return getDoctorsAvailableOnDay(specialtyId, date).reduce(
     (sum, doctor) => sum + countAvailableSlots(doctor.id, date),
+    0,
+  )
+}
+
+export function timeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(':').map(Number)
+  return hours * 60 + minutes
+}
+
+/** Horário a partir de agora (com tolerância para encaixe presencial). */
+export function isSlotTimeFromNow(
+  time: string,
+  now = new Date(),
+  bufferMinutes = 10,
+): boolean {
+  const nowMinutes = now.getHours() * 60 + now.getMinutes() - bufferMinutes
+  return timeToMinutes(time) >= nowMinutes
+}
+
+export function filterAvailableSlotsFromNow(
+  slots: ScheduleTimeSlot[],
+  now = new Date(),
+  bufferMinutes = 10,
+): ScheduleTimeSlot[] {
+  return slots.filter(
+    (slot) => slot.available && isSlotTimeFromNow(slot.time, now, bufferMinutes),
+  )
+}
+
+export function countAvailableSlotsFromNow(
+  doctorId: string,
+  date: Date,
+  now = new Date(),
+): number {
+  return filterAvailableSlotsFromNow(getDoctorAvailableSlots(doctorId, date), now).length
+}
+
+export function getDoctorsAvailableFromNow(
+  specialtyId: string,
+  date: Date,
+  now = new Date(),
+): ScheduleDoctor[] {
+  return getDoctorsForSpecialty(specialtyId).filter(
+    (doctor) => countAvailableSlotsFromNow(doctor.id, date, now) > 0,
+  )
+}
+
+export function countSpecialtyAvailableSlotsFromNow(
+  specialtyId: string,
+  date: Date,
+  now = new Date(),
+): number {
+  return getDoctorsAvailableFromNow(specialtyId, date, now).reduce(
+    (sum, doctor) => sum + countAvailableSlotsFromNow(doctor.id, date, now),
     0,
   )
 }

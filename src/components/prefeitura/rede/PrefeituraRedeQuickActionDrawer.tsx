@@ -18,19 +18,24 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
+import { usePrefeituraAuth } from '../../../contexts/PrefeituraAuthContext'
 import {
-  getPrefeituraRedeQuickAction,
-  prefeituraRedeQuickActions,
-  prefeituraRedeUnits,
-  buildInitialPrefeituraRedeTerminalMaintenanceKeys,
   countPrefeituraRedeTerminalsInMaintenance,
+  getPrefeituraRedeQuickAction,
   isPrefeituraRedeUnitFullyInMaintenance,
+  prefeituraRedeQuickActions,
   prefeituraRedeTerminalKey,
   type PrefeituraRedeQuickActionId,
   type PrefeituraRedeUnit,
 } from '../../../data/prefeituraRedeMock'
-import { prefeituraConsultationPackageBase } from '../../../data/prefeituraConsultationPackageMock'
 import { specialties } from '../../../data/specialties'
+import {
+  fetchPrefeituraRedeSettings,
+  isPrefeituraRedeApiError,
+  updatePrefeituraRedeMaintenance,
+  updatePrefeituraRedeSettings,
+  type PrefeituraRedeSettingsApi,
+} from '../../../lib/services/prefeitura/rede'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { KpiStatCards, kpiStatStylePresets, type KpiStatCardItem } from '../../ui/KpiStatCards'
 import { Toast } from '../../ui/Toast'
@@ -48,6 +53,8 @@ type PrefeituraRedeQuickActionDrawerProps = {
   actionId: PrefeituraRedeQuickActionId | null
   open: boolean
   closing: boolean
+  units: PrefeituraRedeUnit[]
+  onReload?: () => void | Promise<void>
   onClose: () => void
   onSelectAction: (actionId: PrefeituraRedeQuickActionId) => void
   onBackToHub: () => void
@@ -62,6 +69,8 @@ export function PrefeituraRedeQuickActionDrawer({
   actionId,
   open,
   closing,
+  units,
+  onReload,
   onClose,
   onSelectAction,
   onBackToHub,
@@ -194,17 +203,27 @@ export function PrefeituraRedeQuickActionDrawer({
             <PrefeituraRedeBroadcastDrawerContent onSuccess={(msg) => setToast(msg)} />
           ) : null}
           {actionId === 'maintenance' ? (
-            <MaintenanceDrawerContent onSuccess={(msg) => setToast(msg)} />
+            <MaintenanceDrawerContent
+              units={units}
+              onSuccess={(msg) => setToast(msg)}
+              onReload={onReload}
+            />
           ) : null}
           {actionId === 'settings' ? (
-            <SettingsDrawerContent onSuccess={(msg) => setToast(msg)} />
+            <SettingsDrawerContent
+              units={units}
+              onSuccess={(msg) => setToast(msg)}
+              onReload={onReload}
+            />
           ) : null}
-          {actionId === 'report' ? <ReportDrawerContent /> : null}
+          {actionId === 'report' ? <ReportDrawerContent units={units} /> : null}
         </div>
 
         <footer className="shrink-0 border-t border-gray-200 bg-white px-5 py-3 sm:px-6">
           <p className="text-center text-xs text-gray-500">
-            Ação simulada · dados de demonstração da rede municipal
+            {actionId === 'broadcast' || actionId === 'report'
+              ? 'Ação simulada · dados de demonstração da rede municipal'
+              : 'Alterações salvas na rede municipal vinculada ao seu acesso.'}
           </p>
         </footer>
       </aside>
@@ -225,19 +244,31 @@ const drawerPanelShell =
 
 const redeTelemedicineSpecialties = specialties.filter((item) => item.available)
 
+function buildMaintenanceKeysFromUnits(units: PrefeituraRedeUnit[]) {
+  const keys = new Set<string>()
+  for (const unit of units) {
+    if (unit.maintenanceTerminalIndexes?.length) {
+      for (const index of unit.maintenanceTerminalIndexes) {
+        keys.add(prefeituraRedeTerminalKey(unit.id, index))
+      }
+      continue
+    }
+    if (unit.status !== 'manutencao') continue
+    for (let i = 0; i < unit.stationsTotal; i++) {
+      keys.add(prefeituraRedeTerminalKey(unit.id, i))
+    }
+  }
+  return keys
+}
+
 function distributeCapacityEvenly(total: number, unitCount: number) {
   if (unitCount <= 0) return 0
   return Math.max(1, Math.floor(total / unitCount))
 }
 
-function buildDefaultUnitDailyLimits(totalCapacity: number) {
-  const perUnit = distributeCapacityEvenly(totalCapacity, prefeituraRedeUnits.length)
-  return Object.fromEntries(prefeituraRedeUnits.map((unit) => [unit.id, String(perUnit)]))
-}
-
-function buildDefaultUnitSpecialties() {
-  const allIds = new Set(redeTelemedicineSpecialties.map((item) => item.id))
-  return Object.fromEntries(prefeituraRedeUnits.map((unit) => [unit.id, new Set(allIds)]))
+function buildDefaultUnitDailyLimits(totalCapacity: number, units: PrefeituraRedeUnit[]) {
+  const perUnit = distributeCapacityEvenly(totalCapacity, units.length)
+  return Object.fromEntries(units.map((unit) => [unit.id, String(perUnit)]))
 }
 
 function ToggleSwitch({
@@ -354,21 +385,37 @@ function MaintenanceToggle({
   )
 }
 
-function MaintenanceDrawerContent({ onSuccess }: { onSuccess: (message: string) => void }) {
-  const [maintenanceTerminalKeys, setMaintenanceTerminalKeys] = useState<Set<string>>(
-    buildInitialPrefeituraRedeTerminalMaintenanceKeys,
+function MaintenanceDrawerContent({
+  units,
+  onSuccess,
+  onReload,
+}: {
+  units: PrefeituraRedeUnit[]
+  onSuccess: (message: string) => void
+  onReload?: () => void | Promise<void>
+}) {
+  const { getAccessToken } = usePrefeituraAuth()
+  const [maintenanceTerminalKeys, setMaintenanceTerminalKeys] = useState<Set<string>>(() =>
+    buildMaintenanceKeysFromUnits(units),
   )
   const [expandedUnitIds, setExpandedUnitIds] = useState<Set<string>>(() => new Set())
+  const [isSaving, setIsSaving] = useState(false)
 
-  const units = useMemo(
-    () => [...prefeituraRedeUnits].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')),
-    [],
+  useEffect(() => {
+    setMaintenanceTerminalKeys(buildMaintenanceKeysFromUnits(units))
+  }, [units])
+
+  const sortedUnits = useMemo(
+    () => [...units].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')),
+    [units],
   )
 
   const maintenanceTerminalCount = maintenanceTerminalKeys.size
   const fullUnitsCount = useMemo(
-    () => units.filter((u) => isPrefeituraRedeUnitFullyInMaintenance(u, maintenanceTerminalKeys)).length,
-    [units, maintenanceTerminalKeys],
+    () =>
+      sortedUnits.filter((u) => isPrefeituraRedeUnitFullyInMaintenance(u, maintenanceTerminalKeys))
+        .length,
+    [sortedUnits, maintenanceTerminalKeys],
   )
 
   function toggleUnitExpanded(unitId: string) {
@@ -411,6 +458,38 @@ function MaintenanceDrawerContent({ onSuccess }: { onSuccess: (message: string) 
     return `${terminalLabel} (${unitLabel}).`
   }
 
+  async function handleSave() {
+    const token = getAccessToken()
+    if (!token) {
+      onSuccess('Sessão expirada. Faça login novamente.')
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const items = sortedUnits.map((unit) => {
+        const terminalIndexes: number[] = []
+        for (let index = 0; index < unit.stationsTotal; index++) {
+          if (maintenanceTerminalKeys.has(prefeituraRedeTerminalKey(unit.id, index))) {
+            terminalIndexes.push(index)
+          }
+        }
+        return { unitId: unit.id, terminalIndexes }
+      })
+
+      await updatePrefeituraRedeMaintenance(token, { items })
+      await onReload?.()
+      onSuccess(buildSaveMessage())
+    } catch (error) {
+      const message = isPrefeituraRedeApiError(error)
+        ? error.message
+        : 'Não foi possível salvar a manutenção.'
+      onSuccess(message)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
       <p className="shrink-0 rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm text-amber-900 sm:px-5 sm:py-4">
@@ -432,7 +511,7 @@ function MaintenanceDrawerContent({ onSuccess }: { onSuccess: (message: string) 
           </span>
         </header>
         <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-y-contain p-3 sm:p-4">
-          {units.map((unit) => {
+          {sortedUnits.map((unit) => {
             const terminalsInMaintenance = countPrefeituraRedeTerminalsInMaintenance(
               unit,
               maintenanceTerminalKeys,
@@ -546,32 +625,104 @@ function MaintenanceDrawerContent({ onSuccess }: { onSuccess: (message: string) 
       <footer className="flex shrink-0 justify-end border-t border-gray-200 pt-4">
         <button
           type="button"
-          onClick={() => onSuccess(buildSaveMessage())}
-          className="btn-brand-gradient rounded-xl px-8 py-3 text-sm font-semibold"
+          disabled={isSaving}
+          onClick={() => void handleSave()}
+          className="btn-brand-gradient rounded-xl px-8 py-3 text-sm font-semibold disabled:opacity-60"
         >
-          Salvar alterações
+          {isSaving ? 'Salvando…' : 'Salvar alterações'}
         </button>
       </footer>
     </div>
   )
 }
 
-function SettingsDrawerContent({ onSuccess }: { onSuccess: (message: string) => void }) {
+function SettingsDrawerContent({
+  units,
+  onSuccess,
+  onReload,
+}: {
+  units: PrefeituraRedeUnit[]
+  onSuccess: (message: string) => void
+  onReload?: () => void | Promise<void>
+}) {
+  const { getAccessToken } = usePrefeituraAuth()
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
   const [limitDailyCapacity, setLimitDailyCapacity] = useState(true)
   const [dailyCapacity, setDailyCapacity] = useState('512')
   const [limitPerUnit, setLimitPerUnit] = useState(false)
-  const [unitDailyLimits, setUnitDailyLimits] = useState(() => buildDefaultUnitDailyLimits(512))
-  const [unitSpecialties, setUnitSpecialties] = useState(buildDefaultUnitSpecialties)
+  const [unitDailyLimits, setUnitDailyLimits] = useState<Record<string, string>>({})
+  const [unitSpecialties, setUnitSpecialties] = useState<Record<string, Set<string>>>({})
   const [allowAvulso, setAllowAvulso] = useState(true)
-  const packageConsultationsTotal = prefeituraConsultationPackageBase.contractedTotal
-  const [expandedUnitId, setExpandedUnitId] = useState<string | null>(
-    prefeituraRedeUnits[0]?.id ?? null,
-  )
+  const [packageConsultationsTotal, setPackageConsultationsTotal] = useState<number | null>(null)
+  const [expandedUnitId, setExpandedUnitId] = useState<string | null>(null)
 
   const sortedUnits = useMemo(
-    () => [...prefeituraRedeUnits].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')),
-    [],
+    () => [...units].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')),
+    [units],
   )
+
+  useEffect(() => {
+    const token = getAccessToken()
+    if (!token) {
+      setIsLoading(false)
+      return
+    }
+
+    let cancelled = false
+    setIsLoading(true)
+
+    void fetchPrefeituraRedeSettings(token)
+      .then((settings) => {
+        if (cancelled) return
+        applySettings(settings, units)
+        setExpandedUnitId(units[0]?.id ?? null)
+      })
+      .catch(() => {
+        if (cancelled) return
+        applySettings(
+          {
+            limitDailyCapacity: true,
+            dailyCapacity: 512,
+            limitPerUnit: false,
+            unitDailyLimits: buildDefaultUnitDailyLimits(512, units),
+            unitSpecialties: Object.fromEntries(units.map((unit) => [unit.id, [] as string[]])),
+            allowAvulso: true,
+            packageConsultationsTotal: null,
+          },
+          units,
+        )
+        setExpandedUnitId(units[0]?.id ?? null)
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [getAccessToken, units])
+
+  function applySettings(settings: PrefeituraRedeSettingsApi, currentUnits: PrefeituraRedeUnit[]) {
+    setLimitDailyCapacity(settings.limitDailyCapacity)
+    setDailyCapacity(String(settings.dailyCapacity || 512))
+    setLimitPerUnit(settings.limitPerUnit)
+    setUnitDailyLimits(
+      settings.unitDailyLimits && Object.keys(settings.unitDailyLimits).length > 0
+        ? settings.unitDailyLimits
+        : buildDefaultUnitDailyLimits(settings.dailyCapacity || 512, currentUnits),
+    )
+    setUnitSpecialties(
+      Object.fromEntries(
+        currentUnits.map((unit) => [
+          unit.id,
+          new Set(settings.unitSpecialties?.[unit.id] ?? []),
+        ]),
+      ),
+    )
+    setAllowAvulso(settings.allowAvulso)
+    setPackageConsultationsTotal(settings.packageConsultationsTotal)
+  }
 
   const networkCapacity = Math.max(0, parseInt(dailyCapacity, 10) || 0)
 
@@ -587,14 +738,14 @@ function SettingsDrawerContent({ onSuccess }: { onSuccess: (message: string) => 
     setDailyCapacity(value)
     const nextTotal = Math.max(0, parseInt(value, 10) || 0)
     if (limitPerUnit) {
-      setUnitDailyLimits(buildDefaultUnitDailyLimits(nextTotal))
+      setUnitDailyLimits(buildDefaultUnitDailyLimits(nextTotal, units))
     }
   }
 
   function handleLimitPerUnitChange(enabled: boolean) {
     setLimitPerUnit(enabled)
     if (enabled) {
-      setUnitDailyLimits(buildDefaultUnitDailyLimits(networkCapacity))
+      setUnitDailyLimits(buildDefaultUnitDailyLimits(networkCapacity, units))
     }
   }
 
@@ -612,7 +763,46 @@ function SettingsDrawerContent({ onSuccess }: { onSuccess: (message: string) => 
   }
 
   function redistributeCapacity() {
-    setUnitDailyLimits(buildDefaultUnitDailyLimits(networkCapacity))
+    setUnitDailyLimits(buildDefaultUnitDailyLimits(networkCapacity, units))
+  }
+
+  async function handleSave() {
+    const token = getAccessToken()
+    if (!token) {
+      onSuccess('Sessão expirada. Faça login novamente.')
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      await updatePrefeituraRedeSettings(token, {
+        limitDailyCapacity,
+        dailyCapacity: networkCapacity,
+        limitPerUnit,
+        unitDailyLimits: limitPerUnit ? unitDailyLimits : {},
+        unitSpecialties: Object.fromEntries(
+          Object.entries(unitSpecialties).map(([unitId, ids]) => [unitId, [...ids]]),
+        ),
+        allowAvulso,
+      })
+      await onReload?.()
+      onSuccess('Configurações globais salvas.')
+    } catch (error) {
+      const message = isPrefeituraRedeApiError(error)
+        ? error.message
+        : 'Não foi possível salvar as configurações.'
+      onSuccess(message)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-gray-500">
+        Carregando configurações…
+      </div>
+    )
   }
 
   return (
@@ -661,7 +851,9 @@ function SettingsDrawerContent({ onSuccess }: { onSuccess: (message: string) => 
             <div className="mt-3 rounded-xl border border-gray-200 bg-slate-50/80 px-4 py-3">
               <p className="text-sm font-semibold text-gray-800">Consultas por pacote</p>
               <p className="mt-1 text-lg font-bold tabular-nums text-gray-900">
-                {packageConsultationsTotal.toLocaleString('pt-BR')}
+                {packageConsultationsTotal != null
+                  ? packageConsultationsTotal.toLocaleString('pt-BR')
+                  : '—'}
               </p>
               <p className="mt-1 text-xs leading-relaxed text-gray-500">
                 Definido no contrato municipal. Este valor não pode ser alterado pelo painel.
@@ -752,10 +944,11 @@ function SettingsDrawerContent({ onSuccess }: { onSuccess: (message: string) => 
       <footer className="flex shrink-0 justify-end border-t border-gray-200 pt-4">
         <button
           type="button"
-          onClick={() => onSuccess('Configurações globais salvas.')}
-          className="btn-brand-gradient rounded-xl px-8 py-3 text-sm font-semibold"
+          disabled={isSaving || capacityMismatch}
+          onClick={() => void handleSave()}
+          className="btn-brand-gradient rounded-xl px-8 py-3 text-sm font-semibold disabled:opacity-60"
         >
-          Salvar configurações
+          {isSaving ? 'Salvando…' : 'Salvar configurações'}
         </button>
       </footer>
     </div>
@@ -825,20 +1018,20 @@ function UnitSpecialtyConfigRow({
   )
 }
 
-function ReportDrawerContent() {
-  const activeUnits = prefeituraRedeUnits.filter((u) => u.status === 'ativa').length
-  const onlineStations = prefeituraRedeUnits.reduce((sum, u) => sum + u.stationsOnline, 0)
-  const consultations7d = prefeituraRedeUnits.reduce((s, u) => s + u.stationsTotal * 12, 0)
+function ReportDrawerContent({ units }: { units: PrefeituraRedeUnit[] }) {
+  const activeUnits = units.filter((u) => u.status === 'ativa').length
+  const onlineStations = units.reduce((sum, u) => sum + u.stationsOnline, 0)
+  const consultations7d = units.reduce((s, u) => s + u.stationsTotal * 12, 0)
 
   const regionSummary = useMemo(() => {
     const counts = new Map<string, number>()
-    for (const unit of prefeituraRedeUnits) {
+    for (const unit of units) {
       counts.set(unit.region, (counts.get(unit.region) ?? 0) + 1)
     }
     return [...counts.entries()].sort((a, b) => b[1] - a[1])
-  }, [])
+  }, [units])
 
-  const totalUnits = prefeituraRedeUnits.length
+  const totalUnits = units.length
 
   const reportKpiCards = useMemo((): KpiStatCardItem[] => {
     const [sky, orange, violet, emerald] = kpiStatStylePresets

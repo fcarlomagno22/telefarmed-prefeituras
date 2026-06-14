@@ -4,15 +4,15 @@ import { createPortal } from 'react-dom'
 import type {
   AdminMunicipalPatient,
   AdminPatientContractingEntity,
-} from '../../../../data/adminPacientesMock'
-import { registerCompletedPatient } from '../../../../data/patientLookup'
+} from '../../../../types/adminPacientes'
+import type { PatientLookupResult } from '../../../../types/patientLookup'
 import {
   emptyAttendanceSession,
   emptyPatientRegistration,
   inferAgeGroupFromBirthDate,
   normalizePatientRegistration,
   type PatientRegistration,
-} from '../../../../data/unitDashboardMock'
+} from '../../../../types/attendance'
 import { AgeGroupSelectionStep } from '../../../dashboard/AgeGroupSelectionStep'
 import { CpfLookupStep } from '../../../dashboard/CpfLookupStep'
 import { PatientAddressStep } from '../../../dashboard/PatientAddressStep'
@@ -27,6 +27,8 @@ import {
   adminPatientToRegistration,
   findAdminPatientByCpf,
   registrationToAdminMunicipalPatient,
+  registrationToPreCadastroPayload,
+  registrationToUpdatePayload,
 } from './adminPatientRegistrationMapper'
 
 type AdminPatientPreRegistrationDrawerProps = {
@@ -35,9 +37,33 @@ type AdminPatientPreRegistrationDrawerProps = {
   contractingEntities: AdminPatientContractingEntity[]
   defaultEntityId?: string
   existingPatients: AdminMunicipalPatient[]
+  submitting?: boolean
   onClose: () => void
   onTransitionEnd: () => void
+  onFinalize?: (
+    registration: PatientRegistration,
+    entity: AdminPatientContractingEntity,
+  ) => Promise<AdminMunicipalPatient>
+  onSaveDraft?: (
+    registration: PatientRegistration,
+    entity: AdminPatientContractingEntity,
+  ) => Promise<{ preCadastroId: string }>
+  onConcludeDraft?: (preCadastroId: string) => Promise<AdminMunicipalPatient>
+  onCancelDraft?: (preCadastroId: string) => Promise<void>
+  onCreateDirect?: (
+    registration: PatientRegistration,
+    entity: AdminPatientContractingEntity,
+  ) => Promise<AdminMunicipalPatient>
+  onUpdateExisting?: (
+    patientId: string,
+    registration: PatientRegistration,
+  ) => Promise<AdminMunicipalPatient>
+  onLookupPatientByCpf?: (
+    cpf: string,
+    entidadeContratanteId: string,
+  ) => Promise<AdminMunicipalPatient | null>
   onCompleted: (patient: AdminMunicipalPatient, isUpdate: boolean) => void
+  onDraftSaved?: (preCadastroId: string) => void
 }
 
 export function AdminPatientPreRegistrationDrawer({
@@ -46,10 +72,24 @@ export function AdminPatientPreRegistrationDrawer({
   contractingEntities,
   defaultEntityId,
   existingPatients,
+  submitting = false,
   onClose,
   onTransitionEnd,
+  onFinalize,
+  onSaveDraft,
+  onConcludeDraft,
+  onCancelDraft,
+  onCreateDirect,
+  onUpdateExisting,
+  onLookupPatientByCpf,
   onCompleted,
+  onDraftSaved,
 }: AdminPatientPreRegistrationDrawerProps) {
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [draftNotice, setDraftNotice] = useState<string | null>(null)
+  const [preCadastroId, setPreCadastroId] = useState<string | null>(null)
+  const [savingDraft, setSavingDraft] = useState(false)
+  const [creatingDirect, setCreatingDirect] = useState(false)
   const [entered, setEntered] = useState(false)
   const [step, setStep] = useState<AdminPatientPreRegistrationStep>('contracting_entity')
   const [registration, setRegistration] = useState(() => emptyPatientRegistration())
@@ -72,6 +112,9 @@ export function AdminPatientPreRegistrationDrawer({
     setIsReturningPatient(false)
     setMatchedExistingPatient(null)
     setSelectedEntity(resolveDefaultEntity())
+    setPreCadastroId(null)
+    setDraftNotice(null)
+    setSubmitError(null)
   }, [resolveDefaultEntity])
 
   useEffect(() => {
@@ -85,6 +128,31 @@ export function AdminPatientPreRegistrationDrawer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
+  const adminLookupByCpf = useCallback(
+    async (cpf: string): Promise<PatientLookupResult> => {
+      const existingInList = findAdminPatientByCpf(existingPatients, cpf)
+      if (existingInList) {
+        return {
+          status: 'found',
+          patient: adminPatientToRegistration(existingInList),
+        }
+      }
+
+      if (selectedEntity && onLookupPatientByCpf) {
+        const fromApi = await onLookupPatientByCpf(cpf, selectedEntity.id)
+        if (fromApi) {
+          return {
+            status: 'found',
+            patient: adminPatientToRegistration(fromApi),
+          }
+        }
+      }
+
+      return { status: 'not_found' }
+    },
+    [existingPatients, onLookupPatientByCpf, selectedEntity],
+  )
+
   const isActive = open || closing
   const panelVisible = isActive && entered && !closing
 
@@ -92,7 +160,7 @@ export function AdminPatientPreRegistrationDrawer({
     if (!isActive) return
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape' && step !== 'success') onClose()
+      if (event.key === 'Escape' && step !== 'success') void handleCloseRequest()
     }
 
     const previousOverflow = document.body.style.overflow
@@ -111,19 +179,99 @@ export function AdminPatientPreRegistrationDrawer({
     return () => window.clearTimeout(fallback)
   }, [closing, onTransitionEnd])
 
-  function completePreRegistration(nextRegistration: PatientRegistration) {
+  async function completePreRegistration(nextRegistration: PatientRegistration) {
     if (!selectedEntity) return
 
-    registerCompletedPatient(nextRegistration)
+    setSubmitError(null)
 
-    const patient = registrationToAdminMunicipalPatient(nextRegistration, {
-      contractingEntity: selectedEntity,
-      existingPatient: matchedExistingPatient,
-    })
+    try {
+      let patient: AdminMunicipalPatient
 
-    onCompleted(patient, matchedExistingPatient !== null)
-    setRegistration(nextRegistration)
-    setStep('success')
+      if (matchedExistingPatient && onUpdateExisting) {
+        patient = await onUpdateExisting(matchedExistingPatient.id, nextRegistration)
+      } else if (preCadastroId && onConcludeDraft) {
+        patient = await onConcludeDraft(preCadastroId)
+      } else if (onFinalize) {
+        patient = await onFinalize(nextRegistration, selectedEntity)
+      } else {
+        patient = registrationToAdminMunicipalPatient(nextRegistration, {
+          contractingEntity: selectedEntity,
+          existingPatient: matchedExistingPatient,
+        })
+      }
+
+      onCompleted(patient, matchedExistingPatient !== null)
+      setRegistration(nextRegistration)
+      setPreCadastroId(null)
+      setDraftNotice(null)
+      setStep('success')
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : 'Não foi possível concluir o pré-cadastro.',
+      )
+    }
+  }
+
+  async function saveDraftPreRegistration(nextRegistration: PatientRegistration) {
+    if (!selectedEntity || !onSaveDraft) return
+
+    setSubmitError(null)
+    setSavingDraft(true)
+    try {
+      const result = await onSaveDraft(nextRegistration, selectedEntity)
+      setPreCadastroId(result.preCadastroId)
+      setDraftNotice('Rascunho salvo. Conclua o pré-cadastro quando estiver pronto.')
+      onDraftSaved?.(result.preCadastroId)
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : 'Não foi possível salvar o rascunho.',
+      )
+    } finally {
+      setSavingDraft(false)
+    }
+  }
+
+  async function createDirectRegistration(nextRegistration: PatientRegistration) {
+    if (!selectedEntity || !onCreateDirect || isReturningPatient) return
+
+    setSubmitError(null)
+    setCreatingDirect(true)
+    try {
+      const patient = await onCreateDirect(nextRegistration, selectedEntity)
+      onCompleted(patient, false)
+      setRegistration(nextRegistration)
+      setPreCadastroId(null)
+      setDraftNotice(null)
+      setStep('success')
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : 'Não foi possível cadastrar o paciente.',
+      )
+    } finally {
+      setCreatingDirect(false)
+    }
+  }
+
+  async function handleCloseRequest() {
+    if (step === 'success') {
+      handleCloseAfterSuccess()
+      return
+    }
+
+    if (preCadastroId && onCancelDraft) {
+      const shouldCancel = window.confirm(
+        'Existe um rascunho em andamento. Deseja cancelar o pré-cadastro?',
+      )
+      if (!shouldCancel) return
+      try {
+        await onCancelDraft(preCadastroId)
+      } catch {
+        setSubmitError('Não foi possível cancelar o rascunho.')
+        return
+      }
+    }
+
+    onClose()
   }
 
   function handleCloseAfterSuccess() {
@@ -176,7 +324,7 @@ export function AdminPatientPreRegistrationDrawer({
           panelVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         aria-label="Fechar pré-cadastro"
-        onClick={step === 'success' ? handleCloseAfterSuccess : onClose}
+        onClick={step === 'success' ? handleCloseAfterSuccess : () => void handleCloseRequest()}
       />
 
       <aside
@@ -219,7 +367,7 @@ export function AdminPatientPreRegistrationDrawer({
             </div>
             <button
               type="button"
-              onClick={step === 'success' ? handleCloseAfterSuccess : onClose}
+              onClick={step === 'success' ? handleCloseAfterSuccess : () => void handleCloseRequest()}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800"
               aria-label="Fechar"
             >
@@ -235,12 +383,24 @@ export function AdminPatientPreRegistrationDrawer({
         </header>
 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 py-4 sm:px-6 sm:py-5">
+          {draftNotice ? (
+            <div className="mb-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+              {draftNotice}
+            </div>
+          ) : null}
+
+          {submitError ? (
+            <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {submitError}
+            </div>
+          ) : null}
+
           {step === 'contracting_entity' && (
             <AdminPatientContractingEntityStep
               entities={contractingEntities}
               selectedId={selectedEntity?.id ?? ''}
               onSelect={setSelectedEntity}
-              onBack={onClose}
+              onBack={() => void handleCloseRequest()}
               onContinue={() => {
                 if (!selectedEntity) return
                 setStep('cpf_lookup')
@@ -251,6 +411,7 @@ export function AdminPatientPreRegistrationDrawer({
           {step === 'cpf_lookup' && (
             <CpfLookupStep
               cpf={registration.cpf}
+              lookupByCpf={adminLookupByCpf}
               onChangeCpf={(cpf) => setRegistration((prev) => ({ ...prev, cpf }))}
               onFound={(found) => {
                 goToExistingRegistrationChoice(
@@ -265,16 +426,29 @@ export function AdminPatientPreRegistrationDrawer({
                 )
               }}
               onNotFound={(cpf) => {
-                const existingInList = findAdminPatientByCpf(existingPatients, cpf)
-                if (existingInList) {
-                  goToExistingRegistrationChoice(
-                    adminPatientToRegistration(existingInList),
-                    existingInList,
-                  )
-                  return
-                }
+                void (async () => {
+                  const existingInList = findAdminPatientByCpf(existingPatients, cpf)
+                  if (existingInList) {
+                    goToExistingRegistrationChoice(
+                      adminPatientToRegistration(existingInList),
+                      existingInList,
+                    )
+                    return
+                  }
 
-                startNewPatientRegistration(cpf)
+                  if (selectedEntity && onLookupPatientByCpf) {
+                    const fromApi = await onLookupPatientByCpf(cpf, selectedEntity.id)
+                    if (fromApi) {
+                      goToExistingRegistrationChoice(
+                        adminPatientToRegistration(fromApi),
+                        fromApi,
+                      )
+                      return
+                    }
+                  }
+
+                  startNewPatientRegistration(cpf)
+                })()
               }}
               onBack={() => setStep('contracting_entity')}
             />
@@ -329,14 +503,68 @@ export function AdminPatientPreRegistrationDrawer({
             />
           )}
 
-          {step === 'address' && (
+          {step === 'address' && selectedEntity ? (
             <PatientAddressStep
               data={registration}
               onChange={setRegistration}
-              onSubmit={() => completePreRegistration(registration)}
+              onSubmit={() => void completePreRegistration(registration)}
               onBack={() => setStep('contacts')}
+              continueLabel="Concluir pré-cadastro"
+              extraActions={[
+                ...(onSaveDraft
+                  ? [
+                      {
+                        label: 'Salvar rascunho',
+                        onClick: () => void saveDraftPreRegistration(registration),
+                        loading: savingDraft,
+                        disabled: submitting || creatingDirect,
+                      },
+                    ]
+                  : []),
+                ...(onCreateDirect && !isReturningPatient
+                  ? [
+                      {
+                        label: 'Cadastro direto (ativo)',
+                        onClick: () => void createDirectRegistration(registration),
+                        loading: creatingDirect,
+                        disabled: submitting || savingDraft,
+                      },
+                    ]
+                  : []),
+                ...(preCadastroId && onCancelDraft
+                  ? [
+                      {
+                        label: 'Cancelar rascunho',
+                        onClick: () => {
+                          void (async () => {
+                            try {
+                              await onCancelDraft(preCadastroId)
+                              setPreCadastroId(null)
+                              setDraftNotice(null)
+                            } catch (error) {
+                              setSubmitError(
+                                error instanceof Error
+                                  ? error.message
+                                  : 'Não foi possível cancelar o rascunho.',
+                              )
+                            }
+                          })()
+                        },
+                        disabled: submitting || savingDraft || creatingDirect,
+                      },
+                    ]
+                  : []),
+              ]}
+              requiredTerritory={
+                selectedEntity.aceitaPacientesOutrosMunicipios
+                  ? undefined
+                  : {
+                      municipality: selectedEntity.municipality,
+                      uf: selectedEntity.uf,
+                    }
+              }
             />
-          )}
+          ) : null}
 
           {step === 'success' && selectedEntity ? (
             <AdminPatientPreRegistrationSuccess

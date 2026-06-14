@@ -9,10 +9,10 @@ import {
   Stethoscope,
   X,
 } from 'lucide-react'
+import type { ExamCatalogItem } from '../../../data/doctorExamRequestMock'
 import {
   EXAM_REQUEST_CATALOG,
   EXAM_REQUEST_CATEGORIES,
-  type ExamCatalogItem,
 } from '../../../data/doctorExamRequestMock'
 import { Toast } from '../../ui/Toast'
 
@@ -32,9 +32,14 @@ export type DoctorExamRequestDoctorInfo = {
 type DoctorExamRequestModalProps = {
   open: boolean
   onClose: () => void
-  onSigned?: () => void
+  onSigned?: (payload: {
+    selectedExams: ExamCatalogItem[]
+    clinicalIndication: string
+    customExamNames: string[]
+  }) => void | Promise<void>
   patient: DoctorExamRequestPatientInfo
   doctor: DoctorExamRequestDoctorInfo
+  examCatalog?: ExamCatalogItem[]
 }
 
 type ExamPriority = 'routine' | 'urgent'
@@ -71,6 +76,7 @@ export function DoctorExamRequestModal({
   onSigned,
   patient,
   doctor,
+  examCatalog,
 }: DoctorExamRequestModalProps) {
   const [catalogSearch, setCatalogSearch] = useState('')
   const [customExamDraft, setCustomExamDraft] = useState('')
@@ -82,9 +88,11 @@ export function DoctorExamRequestModal({
   const [successToastVisible, setSuccessToastVisible] = useState(false)
   const [validationHint, setValidationHint] = useState<string | null>(null)
 
+  const catalogSource = examCatalog ?? EXAM_REQUEST_CATALOG
+
   const allExams = useMemo(
-    () => [...EXAM_REQUEST_CATALOG, ...customExams],
-    [customExams],
+    () => [...catalogSource, ...customExams],
+    [catalogSource, customExams],
   )
 
   useEffect(() => {
@@ -182,7 +190,7 @@ export function DoctorExamRequestModal({
     setValidationHint(null)
   }
 
-  function handleSign() {
+  async function handleSign() {
     if (clinicalIndication.trim().length < 10) {
       setValidationHint('Descreva a indicação clínica com pelo menos 10 caracteres.')
       return
@@ -196,13 +204,20 @@ export function DoctorExamRequestModal({
     setValidationHint(null)
     setSigning(true)
 
-    window.setTimeout(() => {
-      setSigning(false)
-      onSigned?.()
+    try {
+      await Promise.resolve(
+        onSigned?.({
+          selectedExams,
+          clinicalIndication: clinicalIndication.trim(),
+          customExamNames: customExams.map((item) => item.name),
+        }),
+      )
       onClose()
       setSuccessToastVisible(false)
       requestAnimationFrame(() => setSuccessToastVisible(true))
-    }, 900)
+    } finally {
+      setSigning(false)
+    }
   }
 
   const toast = (

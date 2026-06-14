@@ -1,5 +1,5 @@
 import { consultasRecords } from './consultasMock'
-import type { PrefeituraContratoMonthlyRow } from './prefeituraContratoMock'
+import type { PrefeituraContratoMonthlyRow } from '../types/prefeituraContrato'
 import { specialties } from './specialties'
 
 export type PrefeituraContratoMonthConsultation = {

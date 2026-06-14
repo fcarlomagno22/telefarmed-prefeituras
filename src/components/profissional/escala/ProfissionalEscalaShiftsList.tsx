@@ -1,14 +1,15 @@
 import { HandMetal, Stethoscope } from 'lucide-react'
 import { PROFISSIONAL_ESCALA_TOUR_DEMO_SHIFT_ID } from '../../../config/profissionalEscalaTour'
 import type { ProfissionalEscalaDisponivel } from '../../../types/profissionalEscalaDisponivel'
-import { PROFISSIONAL_TELEMEDICINE_LABEL } from '../../../config/profissionalConfig'
 import { ProfissionalEscalaCityTooltip } from './ProfissionalEscalaCityTooltip'
+import { ProfissionalEscalaRepasseChip } from './ProfissionalEscalaRepasseChip'
 import { formatProfissionalCurrency } from '../../../utils/profissional/formatProfissionalCurrency'
 import {
   formatProfissionalEscalaCardDate,
   formatProfissionalEscalaDurationLabel,
   formatProfissionalEscalaTimeRange,
   modalityIcon,
+  profissionalEscalaPlantaoSubtitle,
   profissionalEscalaShiftsPanelClass,
 } from './profissionalEscalaUi'
 
@@ -31,6 +32,7 @@ function ShiftsTableColGroup() {
       <col className="w-[11%]" />
       <col className="w-[12%]" />
       <col className="w-[11%]" />
+      <col className="w-[10%]" />
       <col className="w-[9.5rem]" />
     </colgroup>
   )
@@ -63,13 +65,12 @@ function EscalaHorarioCell({ shift }: { shift: ProfissionalEscalaDisponivel }) {
 }
 
 function EscalaPlantaoCell({ shift }: { shift: ProfissionalEscalaDisponivel }) {
-  const subtitle =
-    shift.modality === 'tele' ? PROFISSIONAL_TELEMEDICINE_LABEL : shift.unitName
-
   return (
     <div className="mx-auto max-w-[12rem] text-center">
       <p className="truncate text-sm font-semibold text-gray-900">{shift.specialty}</p>
-      <p className="mt-0.5 truncate text-[11px] text-gray-500">{subtitle}</p>
+      <p className="mt-0.5 truncate text-[11px] text-gray-500">
+        {profissionalEscalaPlantaoSubtitle(shift)}
+      </p>
     </div>
   )
 }
@@ -203,6 +204,7 @@ export function ProfissionalEscalaShiftsList({
                 <th className={thClass}>Modalidade</th>
                 <th className={thClass}>Cidade</th>
                 <th className={thClass}>Valor</th>
+                <th className={thClass}>Repasse</th>
                 <th className={thClass}>Ação</th>
               </tr>
             </thead>
@@ -233,6 +235,14 @@ export function ProfissionalEscalaShiftsList({
                   </td>
                   <td className="px-3 py-3 align-middle">
                     <EscalaValorCell shift={shift} />
+                  </td>
+                  <td className="px-3 py-3 align-middle">
+                    <div className="flex justify-center">
+                      <ProfissionalEscalaRepasseChip
+                        repasseRule={shift.repasseRule}
+                        amountCents={shift.amountCents}
+                      />
+                    </div>
                   </td>
                   <td className="px-3 py-3 align-middle sm:px-4">
                     <div className="flex justify-center">

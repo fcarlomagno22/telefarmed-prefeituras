@@ -31,7 +31,10 @@ import {
 type DoctorPrescriptionModalProps = {
   open: boolean
   onClose: () => void
-  onSigned?: () => void
+  onSigned?: (payload: {
+    medications: PrescriptionMedicationItem[]
+    generalNotes: string
+  }) => void | Promise<void>
   patient: DoctorExamRequestPatientInfo
   doctor: DoctorExamRequestDoctorInfo
 }
@@ -235,7 +238,7 @@ export function DoctorPrescriptionModal({
     if (editingId === id) resetDraftForm()
   }
 
-  function handleSign() {
+  async function handleSign() {
     if (medications.length === 0) {
       setValidationHint('Adicione ao menos um medicamento à receita.')
       return
@@ -244,13 +247,14 @@ export function DoctorPrescriptionModal({
     setValidationHint(null)
     setSigning(true)
 
-    window.setTimeout(() => {
-      setSigning(false)
-      onSigned?.()
+    try {
+      await Promise.resolve(onSigned?.({ medications, generalNotes }))
       onClose()
       setSuccessToastVisible(false)
       requestAnimationFrame(() => setSuccessToastVisible(true))
-    }, 900)
+    } finally {
+      setSigning(false)
+    }
   }
 
   const toast = (

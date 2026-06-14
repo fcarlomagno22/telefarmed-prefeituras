@@ -7,6 +7,8 @@ import {
   AdminCredenciaisTabs,
   type AdminCredenciaisTab,
 } from '../components/admin/credenciais/AdminCredenciaisTabs'
+import { AdminPrefeituraCredentialAboutPanel } from '../components/admin/credenciais/AdminPrefeituraCredentialAboutPanel'
+import { AdminPrefeituraCredentialMainPanel } from '../components/admin/credenciais/AdminPrefeituraCredentialMainPanel'
 import { AdminOperadoresAboutPanel } from '../components/admin/operadores/AdminOperadoresAboutPanel'
 import { AdminOperadoresMainPanel } from '../components/admin/operadores/AdminOperadoresMainPanel'
 import {
@@ -27,6 +29,7 @@ import { useAdminCredenciaisPage } from '../hooks/useAdminCredenciaisPage'
 import { useAdminPageAccess } from '../hooks/useAdminPageAccess'
 import { useAdminInternoCredentialDrawer } from '../hooks/useAdminInternoCredentialDrawer'
 import { useAdminOperatorUserDrawer } from '../hooks/useAdminOperatorUserDrawer'
+import { useAdminPrefeituraCredentialDrawer } from '../hooks/useAdminPrefeituraCredentialDrawer'
 
 const mainCardShellClass = [
   'flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl',
@@ -40,6 +43,8 @@ export function AdminCredenciaisPage() {
   const {
     internoRows,
     setInternoRows,
+    prefeituraRows,
+    setPrefeituraRows,
     operatorRows,
     setOperatorRows,
     ubtOptions,
@@ -57,16 +62,24 @@ export function AdminCredenciaisPage() {
     onDataChanged: afterMutation,
   })
 
-  const defaultOperatorScope =
-    activeTab === 'prefeitura' ? ('Prefeitura' as const) : ('UBT' as const)
+  const prefeituraDrawer = useAdminPrefeituraCredentialDrawer(
+    prefeituraRows,
+    setPrefeituraRows,
+    {
+      getAccessToken,
+      onDataChanged: afterMutation,
+      contractingEntityOptions,
+    },
+  )
 
   const operatorDrawer = useAdminOperatorUserDrawer(
     operatorRows,
     setOperatorRows,
     ubtOptions,
     {
-      defaultScope: activeTab === 'admin' ? 'UBT' : defaultOperatorScope,
+      defaultScope: 'UBT',
       skipPasswordOnCreate: false,
+      requireCpfOnCreate: true,
       getAccessToken,
       onDataChanged: afterMutation,
       contractingEntityOptionsFromApi: contractingEntityOptions,
@@ -74,22 +87,19 @@ export function AdminCredenciaisPage() {
     },
   )
 
-  const prefeituraRows = useMemo(
-    () => filterOperatorRowsByScope(operatorRows, 'Prefeitura'),
-    [operatorRows],
-  )
   const ubtRows = useMemo(() => filterOperatorRowsByScope(operatorRows, 'UBT'), [operatorRows])
-
-  const scopedOperatorRows =
-    activeTab === 'prefeitura' ? prefeituraRows : activeTab === 'ubt' ? ubtRows : operatorRows
 
   const handleNewUser = useCallback(() => {
     if (activeTab === 'admin') {
       internoDrawer.openCreate()
       return
     }
+    if (activeTab === 'prefeitura') {
+      prefeituraDrawer.openCreate()
+      return
+    }
     operatorDrawer.openCreate()
-  }, [activeTab, internoDrawer, operatorDrawer])
+  }, [activeTab, internoDrawer, operatorDrawer, prefeituraDrawer])
 
   const newUserLabel =
     activeTab === 'admin'
@@ -102,7 +112,11 @@ export function AdminCredenciaisPage() {
     return (
       <>
         <AdminCredenciaisPageSkeleton activeTab={activeTab} />
-        {activeTab === 'admin' ? internoDrawer.drawerElement : operatorDrawer.drawerElement}
+        {activeTab === 'admin'
+          ? internoDrawer.drawerElement
+          : activeTab === 'prefeitura'
+            ? prefeituraDrawer.drawerElement
+            : operatorDrawer.drawerElement}
       </>
     )
   }
@@ -172,14 +186,10 @@ export function AdminCredenciaisPage() {
                   ) : null}
 
                   {activeTab === 'prefeitura' ? (
-                    <AdminOperadoresMainPanel
+                    <AdminPrefeituraCredentialMainPanel
                       embedded
-                      rows={operatorRows}
-                      ubtOptions={ubtOptions}
-                      userDrawer={operatorDrawer}
-                      fixedScope="Prefeitura"
-                      panelTitle="Gestores da prefeitura"
-                      panelDescription="Usuários com acesso ao portal municipal (/prefeitura): dashboards, rede, contratos e gestão local."
+                      rows={prefeituraRows}
+                      userDrawer={prefeituraDrawer}
                     />
                   ) : null}
 
@@ -191,7 +201,7 @@ export function AdminCredenciaisPage() {
                       userDrawer={operatorDrawer}
                       fixedScope="UBT"
                       panelTitle="Operadores de UBT"
-                      panelDescription="Usuários das unidades com acesso ao terminal UBT (/ubt): triagem, agenda, consultas e operação diária."
+                      panelDescription="Usuários das unidades com acesso ao terminal UBT."
                     />
                   ) : null}
                 </div>
@@ -202,8 +212,10 @@ export function AdminCredenciaisPage() {
               <div className={adminPacientesSidebarColumnWrapClass}>
                 {activeTab === 'admin' ? (
                   <AdminCredenciaisInternoAboutPanel rows={internoRows} />
+                ) : activeTab === 'prefeitura' ? (
+                  <AdminPrefeituraCredentialAboutPanel rows={prefeituraRows} />
                 ) : (
-                  <AdminOperadoresAboutPanel rows={scopedOperatorRows} />
+                  <AdminOperadoresAboutPanel rows={ubtRows} />
                 )}
               </div>
             </div>
@@ -211,7 +223,11 @@ export function AdminCredenciaisPage() {
         </div>
       </div>
 
-      {activeTab === 'admin' ? internoDrawer.drawerElement : operatorDrawer.drawerElement}
+      {activeTab === 'admin'
+        ? internoDrawer.drawerElement
+        : activeTab === 'prefeitura'
+          ? prefeituraDrawer.drawerElement
+          : operatorDrawer.drawerElement}
     </>
   )
 }

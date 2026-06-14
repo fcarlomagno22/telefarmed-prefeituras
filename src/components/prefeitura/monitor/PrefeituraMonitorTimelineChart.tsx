@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { monitorTimelineHours, monitorTimelineSeries } from '../../../data/prefeituraMonitorMock'
+import type { MonitorTimelineSeries } from '../../../types/prefeituraMonitor'
 import { PREF_CHART_EASE, usePrefeituraChartAnimation } from '../prefeituraChartAnimation'
 
 const WIDTH = 400
@@ -7,40 +7,43 @@ const HEIGHT = 140
 
 type PrefeituraMonitorTimelineChartProps = {
   animationKey: string
+  hours: string[]
+  series: MonitorTimelineSeries[]
 }
 
-export function PrefeituraMonitorTimelineChart({ animationKey }: PrefeituraMonitorTimelineChartProps) {
+export function PrefeituraMonitorTimelineChart({
+  animationKey,
+  hours,
+  series,
+}: PrefeituraMonitorTimelineChartProps) {
   const animate = usePrefeituraChartAnimation(120, animationKey)
 
   const { paths, labels } = useMemo(() => {
     const padding = { top: 14, right: 8, bottom: 24, left: 8 }
     const chartW = WIDTH - padding.left - padding.right
     const chartH = HEIGHT - padding.top - padding.bottom
-    const pointCount = monitorTimelineHours.length
-    const globalMax = Math.max(
-      ...monitorTimelineSeries.flatMap((s) => s.values),
-      1,
-    )
+    const pointCount = hours.length
+    const globalMax = Math.max(...series.flatMap((s) => s.values), 1)
 
-    const seriesPaths = monitorTimelineSeries.map((series) => {
-      const pts = series.values.map((value, i) => {
+    const seriesPaths = series.map((item) => {
+      const pts = item.values.map((value, i) => {
         const x = padding.left + (i / Math.max(pointCount - 1, 1)) * chartW
         const y = padding.top + chartH - (value / globalMax) * chartH
         return { x, y }
       })
       const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
-      return { ...series, line, pts }
+      return { ...item, line, pts }
     })
 
-    const hourLabels = monitorTimelineHours.map((hour, i) => {
+    const hourLabels = hours.map((hour, i) => {
       const x = padding.left + (i / Math.max(pointCount - 1, 1)) * chartW
       return { hour, x }
     })
 
     return { paths: seriesPaths, labels: hourLabels }
-  }, [])
+  }, [hours, series])
 
-  const ariaSummary = monitorTimelineSeries.map((s) => s.unitName).join(', ')
+  const ariaSummary = series.map((s) => s.unitName).join(', ')
 
   return (
     <div className="w-full">
@@ -51,12 +54,12 @@ export function PrefeituraMonitorTimelineChart({ animationKey }: PrefeituraMonit
         role="img"
         aria-label={`Atendimentos por hora. ${ariaSummary}`}
       >
-        {paths.map((series, seriesIndex) => (
+        {paths.map((item, seriesIndex) => (
           <path
-            key={series.unitId}
-            d={series.line}
+            key={item.unitId}
+            d={item.line}
             fill="none"
-            stroke={series.color}
+            stroke={item.color}
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -85,18 +88,18 @@ export function PrefeituraMonitorTimelineChart({ animationKey }: PrefeituraMonit
       <div className="mt-3 border-t border-gray-100 pt-3">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Sumário</p>
         <ul className="mt-1.5 grid grid-flow-col grid-rows-4 gap-x-4 gap-y-1.5">
-          {monitorTimelineSeries.map((series) => (
+          {series.map((item) => (
             <li
-              key={series.unitId}
+              key={item.unitId}
               className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-gray-800"
             >
               <span
                 className="inline-block h-0.5 w-4 shrink-0 rounded-full"
-                style={{ backgroundColor: series.color }}
+                style={{ backgroundColor: item.color }}
                 aria-hidden
               />
-              <span className="min-w-0 truncate" title={series.unitName}>
-                {series.unitName}
+              <span className="min-w-0 truncate" title={item.unitName}>
+                {item.unitName}
               </span>
             </li>
           ))}

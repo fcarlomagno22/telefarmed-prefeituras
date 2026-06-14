@@ -8,6 +8,8 @@ type AdminConfigCatalogPinModalProps = {
   action: AdminConfigCatalogPinAction | null
   itemLabel: string
   entityLabel: string
+  title?: string
+  description?: string
   onClose: () => void
   onSuccess: () => void
   verifyPin?: (pin: string) => Promise<boolean>
@@ -54,6 +56,8 @@ export function AdminConfigCatalogPinModal({
   action,
   itemLabel,
   entityLabel,
+  title,
+  description,
   onClose,
   onSuccess,
   verifyPin,
@@ -62,11 +66,12 @@ export function AdminConfigCatalogPinModal({
 
   const label = itemLabel.trim() || `esta ${entityLabel}`
   const config = actionVerbs[action]
-  const title = `${config.verb.charAt(0).toUpperCase()}${config.verb.slice(1)} ${entityLabel}`
-  const description =
-    action === 'create'
+  const resolvedTitle = title ?? `${config.verb.charAt(0).toUpperCase()}${config.verb.slice(1)} ${entityLabel}`
+  const resolvedDescription =
+    description ??
+    (action === 'create'
       ? `Para criar uma nova ${entityLabel}, informe sua senha de autorização de 6 dígitos.`
-      : `Para ${config.verb} "${label}", informe sua senha de autorização de 6 dígitos.`
+      : `Para ${config.verb} "${label}", informe sua senha de autorização de 6 dígitos.`)
 
   return (
     <PinUnlockModal
@@ -74,9 +79,9 @@ export function AdminConfigCatalogPinModal({
       onClose={onClose}
       onSuccess={onSuccess}
       verifyPin={verifyPin}
-      title={title}
+      title={resolvedTitle}
       titleId={`admin-config-catalog-${action}-pin-title`}
-      description={description}
+      description={resolvedDescription}
       submitLabel={config.submitLabel}
       pinCompleteHint={config.pinCompleteHint}
       icon={config.icon}

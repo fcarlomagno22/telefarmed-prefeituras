@@ -1,5 +1,5 @@
 import { Eye, EyeOff, IdCard, Lock } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { brand } from '../../config/brand'
 import { portals, type PortalId } from '../../config/portals'
@@ -18,6 +18,8 @@ type LoginFormProps = {
   portal?: PortalId
   /** Exibe o copyright no rodapé do card (login centralizado). */
   showCopyrightInCard?: boolean
+  /** Conteúdo extra abaixo de "Esqueceu sua senha?" (ex.: links do portal profissional). */
+  cardFooter?: ReactNode
 }
 
 const cardClassByVariant = {
@@ -33,6 +35,7 @@ export function LoginForm({
   variant = 'default',
   portal = 'ubt',
   showCopyrightInCard = false,
+  cardFooter,
 }: LoginFormProps) {
   const navigate = useNavigate()
   const portalConfig = portals[portal]
@@ -199,6 +202,13 @@ export function LoginForm({
           Esqueceu sua senha?
         </a>
       </p>
+
+      {cardFooter ? (
+        <>
+          <div className="mt-6 border-t border-gray-200/80" aria-hidden />
+          <div className="mt-5 text-center text-sm leading-relaxed text-gray-600">{cardFooter}</div>
+        </>
+      ) : null}
 
       {showCopyrightInCard ? (
         <p className="mt-6 border-t border-gray-200/80 pt-5 text-center text-[11px] font-medium text-gray-400 sm:text-xs">

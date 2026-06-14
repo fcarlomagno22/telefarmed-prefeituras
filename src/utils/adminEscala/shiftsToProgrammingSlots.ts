@@ -1,6 +1,7 @@
 import { specialties } from '../../data/specialties'
 import type { AdminEscalaProgrammingSlot, AdminEscalaShift } from '../../types/adminEscala'
 import type { AdminEscalaWeekday } from './buildClosedSchedule'
+import { createDefaultRepasseRule } from './repasseRule'
 
 function toDateInputValue(iso: string) {
   const date = new Date(iso)
@@ -25,6 +26,7 @@ function slotSignature(shift: AdminEscalaShift) {
     shift.primaryDoctorId,
     String(shift.vacancies),
     String(shift.amountCents),
+    JSON.stringify(shift.repasseRule),
     toTimeInputValue(shift.startAt),
     toTimeInputValue(shift.endAt),
     shift.modality,
@@ -62,6 +64,7 @@ export function shiftsToProgrammingSlots(shifts: AdminEscalaShift[]): {
       backupDoctorIds: string[]
       vacancies: number
       amountCents: number
+      repasseRule: AdminEscalaProgrammingSlot['repasseRule']
       unitName: string
       city: string
       cityUf: string
@@ -93,6 +96,7 @@ export function shiftsToProgrammingSlots(shifts: AdminEscalaShift[]): {
       backupDoctorIds: [...shift.backupDoctorIds],
       vacancies: shift.totalVacancies || shift.vacancies,
       amountCents: shift.amountCents,
+      repasseRule: shift.repasseRule ?? createDefaultRepasseRule(shift.amountCents),
       unitName: shift.unitName,
       city: shift.city,
       cityUf: shift.cityUf,
@@ -114,6 +118,7 @@ export function shiftsToProgrammingSlots(shifts: AdminEscalaShift[]): {
     backupDoctorIds: group.backupDoctorIds,
     vacancies: group.vacancies,
     amountCents: group.amountCents,
+    repasseRule: group.repasseRule,
     unitName: group.unitName,
     city: group.city,
     cityUf: group.cityUf,

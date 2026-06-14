@@ -1,15 +1,20 @@
-import { Building2, Send, UserRound, Users } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Building2, Send, Stethoscope, UserRound, Users } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { usePrefeituraAuth } from '../../../contexts/PrefeituraAuthContext'
+import { usePrefeituraNotificacoes } from '../../../contexts/PrefeituraNotificacoesContext'
+import {
+  createPrefeituraBroadcast,
+  fetchPrefeituraBroadcastUbtCatalog,
+  fetchPrefeituraProfissionaisCatalog,
+  type PrefeituraProfissionalRecipient,
+} from '../../../lib/services/prefeitura/notificacoes'
+import { mapApiUnitToRedeUnit } from '../../../lib/services/prefeitura/rede'
 import {
   broadcastRecipientScopeOptions,
-  getOperatorsForUnit,
-  getOperatorsForUnits,
   type BroadcastRecipientScope,
+  type PrefeituraRedeUbtOperator,
 } from '../../../data/prefeituraRedeBroadcastMock'
-import {
-  prefeituraRedeRegionFilterOptions,
-  prefeituraRedeUnits,
-} from '../../../data/prefeituraRedeMock'
+import type { PrefeituraRedeUnit } from '../../../data/prefeituraRedeMock'
 import { CustomSelect } from '../../ui/CustomSelect'
 
 export const prefeituraRedeBroadcastDrawerPanelShell =
@@ -21,6 +26,9 @@ const broadcastScopeIcons = {
   operators: Users,
 } as const
 
+type RecipientTarget = 'ubt' | 'medico'
+type ProfissionalMode = 'all' | 'selected'
+
 type PrefeituraRedeBroadcastDrawerContentProps = {
   onSuccess: (message: string) => void
 }
@@ -28,33 +36,115 @@ type PrefeituraRedeBroadcastDrawerContentProps = {
 export function PrefeituraRedeBroadcastDrawerContent({
   onSuccess,
 }: PrefeituraRedeBroadcastDrawerContentProps) {
+  const { getAccessToken } = usePrefeituraAuth()
+  const { reload } = usePrefeituraNotificacoes()
+  const [catalogUnits, setCatalogUnits] = useState<PrefeituraRedeUnit[]>([])
+  const [catalogOperators, setCatalogOperators] = useState<PrefeituraRedeUbtOperator[]>([])
+  const [catalogProfissionais, setCatalogProfissionais] = useState<PrefeituraProfissionalRecipient[]>([])
+  const [regionFilterOptions, setRegionFilterOptions] = useState([
+    { value: 'todas', label: 'Todas as regiões' },
+  ])
   const [message, setMessage] = useState('')
   const [region, setRegion] = useState('todas')
+  const [isSending, setIsSending] = useState(false)
+  const [recipientTarget, setRecipientTarget] = useState<RecipientTarget>('ubt')
+  const [profissionalMode, setProfissionalMode] = useState<ProfissionalMode>('all')
   const [recipientScope, setRecipientScope] = useState<BroadcastRecipientScope>('ubt')
   const [selectedUnits, setSelectedUnits] = useState<Set<string>>(new Set())
   const [selectedOperatorIds, setSelectedOperatorIds] = useState<Set<string>>(new Set())
+  const [selectedProfissionalIds, setSelectedProfissionalIds] = useState<Set<string>>(new Set())
+  const [profissionalSearch, setProfissionalSearch] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadCatalog() {
+      const token = getAccessToken()
+      if (!token) return
+
+      try {
+        const catalog = await fetchPrefeituraBroadcastUbtCatalog(token)
+        if (cancelled) return
+        setCatalogUnits(catalog.units.map(mapApiUnitToRedeUnit))
+        setCatalogOperators(catalog.operators)
+        setRegionFilterOptions(catalog.regionOptions)
+      } catch {
+        // Mantém listas vazias — broadcast exige unidades reais da entidade.
+      }
+    }
+
+    void loadCatalog()
+    return () => {
+      cancelled = true
+    }
+  }, [getAccessToken])
+
+  useEffect(() => {
+    if (recipientTarget !== 'medico') return
+
+    let cancelled = false
+
+    async function loadProfissionais() {
+      const token = getAccessToken()
+      if (!token) return
+
+      try {
+        const result = await fetchPrefeituraProfissionaisCatalog(token, {
+          search: profissionalSearch.trim() || undefined,
+        })
+        if (!cancelled) setCatalogProfissionais(result.profissionais)
+      } catch {
+        if (!cancelled) setCatalogProfissionais([])
+      }
+    }
+
+    void loadProfissionais()
+    return () => {
+      cancelled = true
+    }
+  }, [getAccessToken, recipientTarget, profissionalSearch])
 
   const units = useMemo(() => {
-    if (region === 'todas') return prefeituraRedeUnits
-    return prefeituraRedeUnits.filter((unit) => unit.regionKey === region)
-  }, [region])
+    if (region === 'todas') return catalogUnits
+    return catalogUnits.filter((unit) => unit.regionKey === region)
+  }, [catalogUnits, region])
 
-  const visibleOperators = useMemo(
-    () => getOperatorsForUnits(selectedUnits),
-    [selectedUnits],
-  )
+  const visibleOperators = useMemo(() => {
+    const unitIds = selectedUnits
+    return catalogOperators.filter((operator) => unitIds.has(operator.unitId))
+  }, [catalogOperators, selectedUnits])
 
   const recipientCount = useMemo(() => {
+    if (recipientTarget === 'medico') {
+      return profissionalMode === 'all'
+        ? catalogProfissionais.length
+        : selectedProfissionalIds.size
+    }
     if (recipientScope === 'operators') return selectedOperatorIds.size
     return selectedUnits.size
-  }, [recipientScope, selectedUnits, selectedOperatorIds])
+  }, [
+    recipientTarget,
+    profissionalMode,
+    catalogProfissionais.length,
+    selectedProfissionalIds.size,
+    recipientScope,
+    selectedUnits,
+    selectedOperatorIds,
+  ])
 
   const canSend =
     message.trim().length > 0 &&
-    selectedUnits.size > 0 &&
-    (recipientScope !== 'operators' || selectedOperatorIds.size > 0)
+    (recipientTarget === 'medico'
+      ? profissionalMode === 'all'
+        ? catalogProfissionais.length > 0
+        : selectedProfissionalIds.size > 0
+      : selectedUnits.size > 0 &&
+        (recipientScope !== 'operators' || selectedOperatorIds.size > 0))
 
   const sendButtonLabel = useMemo(() => {
+    if (recipientTarget === 'medico') {
+      return `Notificar ${recipientCount} profissional${recipientCount === 1 ? '' : 'is'}`
+    }
     if (recipientScope === 'ubt') {
       return `Notificar ${recipientCount} UBT${recipientCount === 1 ? '' : 's'}`
     }
@@ -62,10 +152,29 @@ export function PrefeituraRedeBroadcastDrawerContent({
       return `Notificar ${recipientCount} responsável${recipientCount === 1 ? '' : 'is'}`
     }
     return `Notificar ${recipientCount} operadora${recipientCount === 1 ? '' : 's'}`
-  }, [recipientCount, recipientScope])
+  }, [recipientCount, recipientScope, recipientTarget])
+
+  function toggleProfissional(id: string) {
+    setSelectedProfissionalIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function selectAllProfissionais() {
+    setSelectedProfissionalIds(new Set(catalogProfissionais.map((item) => item.id)))
+  }
+
+  function clearProfissionais() {
+    setSelectedProfissionalIds(new Set())
+  }
 
   function removeOperatorsForUnit(unitId: string, operatorIds: Set<string>) {
-    getOperatorsForUnit(unitId).forEach((operator) => operatorIds.delete(operator.id))
+    catalogOperators
+      .filter((operator) => operator.unitId === unitId)
+      .forEach((operator) => operatorIds.delete(operator.id))
   }
 
   function toggleUnit(id: string) {
@@ -114,16 +223,22 @@ export function PrefeituraRedeBroadcastDrawerContent({
   function resetForm() {
     setMessage('')
     setRegion('todas')
+    setRecipientTarget('ubt')
+    setProfissionalMode('all')
     setRecipientScope('ubt')
     setSelectedUnits(new Set())
     setSelectedOperatorIds(new Set())
+    setSelectedProfissionalIds(new Set())
+    setProfissionalSearch('')
   }
 
-  function handleSend() {
-    if (!canSend) return
+  async function handleSend() {
+    if (!canSend || isSending) return
 
     let successMessage: string
-    if (recipientScope === 'ubt') {
+    if (recipientTarget === 'medico') {
+      successMessage = `Mensagem enviada para ${recipientCount} profissional${recipientCount === 1 ? '' : 'is'}.`
+    } else if (recipientScope === 'ubt') {
       successMessage = `Mensagem enviada para ${recipientCount} UBT${recipientCount === 1 ? ' inteira' : 's inteiras'}.`
     } else if (recipientScope === 'responsible') {
       successMessage = `Mensagem enviada para ${recipientCount} responsável${recipientCount === 1 ? '' : 'is'} pela unidade.`
@@ -131,8 +246,36 @@ export function PrefeituraRedeBroadcastDrawerContent({
       successMessage = `Mensagem enviada para ${recipientCount} operadora${recipientCount === 1 ? '' : 's'} selecionada${recipientCount === 1 ? '' : 's'}.`
     }
 
-    onSuccess(successMessage)
-    resetForm()
+    const token = getAccessToken()
+    setIsSending(true)
+    try {
+      if (token) {
+        const result =
+          recipientTarget === 'medico'
+            ? await createPrefeituraBroadcast(token, {
+                recipientTarget: 'medico',
+                message: message.trim(),
+                mode: profissionalMode,
+                profissionalIds:
+                  profissionalMode === 'selected' ? [...selectedProfissionalIds] : undefined,
+              })
+            : await createPrefeituraBroadcast(token, {
+                recipientTarget: 'ubt',
+                message: message.trim(),
+                recipientScope,
+                unitIds: [...selectedUnits],
+                operatorIds:
+                  recipientScope === 'operators' ? [...selectedOperatorIds] : undefined,
+              })
+        successMessage = result.message
+        await reload()
+      }
+
+      onSuccess(successMessage)
+      resetForm()
+    } finally {
+      setIsSending(false)
+    }
   }
 
   const activeScope = broadcastRecipientScopeOptions.find((option) => option.id === recipientScope)
@@ -152,6 +295,51 @@ export function PrefeituraRedeBroadcastDrawerContent({
           />
         </div>
 
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Público
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setRecipientTarget('ubt')}
+              className={[
+                'flex items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition',
+                recipientTarget === 'ubt'
+                  ? 'border-[var(--brand-primary)]/35 bg-[var(--brand-primary-light)]/50'
+                  : 'border-gray-200 bg-white hover:border-gray-300',
+              ].join(' ')}
+            >
+              <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand-primary)]" />
+              <span>
+                <span className="block text-sm font-bold text-gray-900">Unidades (UBT)</span>
+                <span className="mt-0.5 block text-xs text-gray-500">
+                  Credenciais de operadores e responsáveis
+                </span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setRecipientTarget('medico')}
+              className={[
+                'flex items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition',
+                recipientTarget === 'medico'
+                  ? 'border-[var(--brand-primary)]/35 bg-[var(--brand-primary-light)]/50'
+                  : 'border-gray-200 bg-white hover:border-gray-300',
+              ].join(' ')}
+            >
+              <Stethoscope className="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand-primary)]" />
+              <span>
+                <span className="block text-sm font-bold text-gray-900">Profissionais</span>
+                <span className="mt-0.5 block text-xs text-gray-500">
+                  Médicos vinculados ao contrato municipal
+                </span>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {recipientTarget === 'ubt' ? (
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
             Destinatário
@@ -193,7 +381,41 @@ export function PrefeituraRedeBroadcastDrawerContent({
             })}
           </div>
         </div>
+        ) : (
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Escopo
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setProfissionalMode('all')}
+                className={[
+                  'rounded-xl border px-3 py-2.5 text-left text-sm font-semibold transition',
+                  profissionalMode === 'all'
+                    ? 'border-[var(--brand-primary)]/35 bg-[var(--brand-primary-light)]/50 text-gray-900'
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300',
+                ].join(' ')}
+              >
+                Todos os profissionais
+              </button>
+              <button
+                type="button"
+                onClick={() => setProfissionalMode('selected')}
+                className={[
+                  'rounded-xl border px-3 py-2.5 text-left text-sm font-semibold transition',
+                  profissionalMode === 'selected'
+                    ? 'border-[var(--brand-primary)]/35 bg-[var(--brand-primary-light)]/50 text-gray-900'
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300',
+                ].join(' ')}
+              >
+                Selecionar profissionais
+              </button>
+            </div>
+          </div>
+        )}
 
+        {recipientTarget === 'ubt' ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
           <div>
             <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -202,7 +424,7 @@ export function PrefeituraRedeBroadcastDrawerContent({
             <CustomSelect
               value={region}
               onChange={setRegion}
-              options={[...prefeituraRedeRegionFilterOptions]}
+              options={regionFilterOptions}
             />
           </div>
           <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-1">
@@ -222,6 +444,33 @@ export function PrefeituraRedeBroadcastDrawerContent({
             </button>
           </div>
         </div>
+        ) : profissionalMode === 'selected' ? (
+          <div>
+            <input
+              type="search"
+              value={profissionalSearch}
+              onChange={(event) => setProfissionalSearch(event.target.value)}
+              placeholder="Buscar profissional"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-[var(--brand-primary)]/40"
+            />
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button"
+                onClick={selectAllProfissionais}
+                className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Marcar todos
+              </button>
+              <button
+                type="button"
+                onClick={clearProfissionais}
+                className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Limpar
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         <button
           type="button"
@@ -240,9 +489,20 @@ export function PrefeituraRedeBroadcastDrawerContent({
         <header className="flex shrink-0 flex-col gap-3 border-b border-gray-100 px-4 py-3 sm:px-5">
           <div className="min-w-0">
             <p className="text-sm font-bold text-gray-900">
-              {recipientScope === 'operators' ? 'UBTs e operadoras' : 'Unidades (UBT)'}
+              {recipientTarget === 'medico'
+                ? 'Profissionais do contrato'
+                : recipientScope === 'operators'
+                  ? 'UBTs e operadoras'
+                  : 'Unidades (UBT)'}
             </p>
-            <p className="mt-0.5 text-xs text-gray-500">{activeScope?.description}</p>
+            <p className="mt-0.5 text-xs text-gray-500">
+              {recipientTarget === 'medico'
+                ? profissionalMode === 'all'
+                  ? `${catalogProfissionais.length} profissional(is) vinculado(s) à prefeitura`
+                  : `${selectedProfissionalIds.size} de ${catalogProfissionais.length} selecionado(s)`
+                : activeScope?.description}
+            </p>
+            {recipientTarget === 'ubt' ? (
             <p className="mt-1 text-xs font-medium text-gray-600">
               {selectedUnits.size} de {units.length} UBT{units.length === 1 ? '' : 's'} selecionada
               {units.length === 1 ? '' : 's'}
@@ -250,7 +510,9 @@ export function PrefeituraRedeBroadcastDrawerContent({
                 ? ` · ${selectedOperatorIds.size} operadora${selectedOperatorIds.size === 1 ? '' : 's'}`
                 : null}
             </p>
+            ) : null}
           </div>
+          {recipientTarget === 'ubt' ? (
           <div className="flex shrink-0 flex-wrap items-center gap-2">
             <button
               type="button"
@@ -286,12 +548,53 @@ export function PrefeituraRedeBroadcastDrawerContent({
               </>
             ) : null}
           </div>
+          ) : null}
         </header>
 
         <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-y-contain p-3 sm:p-4">
-          {units.map((unit) => {
+          {recipientTarget === 'medico'
+            ? catalogProfissionais.map((profissional) => {
+                const selected =
+                  profissionalMode === 'all' || selectedProfissionalIds.has(profissional.id)
+                return (
+                  <li
+                    key={profissional.id}
+                    className={[
+                      'overflow-hidden rounded-xl border transition',
+                      selected
+                        ? 'border-[var(--brand-primary)]/25 bg-[var(--brand-primary-light)]/15'
+                        : 'border-gray-100 bg-slate-50/50',
+                    ].join(' ')}
+                  >
+                    {profissionalMode === 'selected' ? (
+                      <label className="flex cursor-pointer items-start gap-3 px-3 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedProfissionalIds.has(profissional.id)}
+                          onChange={() => toggleProfissional(profissional.id)}
+                          className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 text-[var(--brand-primary)]"
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-semibold text-gray-900">
+                            {profissional.name}
+                          </span>
+                          <span className="text-xs text-gray-500">{profissional.specialty}</span>
+                        </span>
+                      </label>
+                    ) : (
+                      <div className="px-3 py-3">
+                        <span className="block text-sm font-semibold text-gray-900">
+                          {profissional.name}
+                        </span>
+                        <span className="text-xs text-gray-500">{profissional.specialty}</span>
+                      </div>
+                    )}
+                  </li>
+                )
+              })
+            : units.map((unit) => {
             const unitSelected = selectedUnits.has(unit.id)
-            const unitOperators = getOperatorsForUnit(unit.id)
+            const unitOperators = catalogOperators.filter((operator) => operator.unitId === unit.id)
 
             return (
               <li
@@ -355,9 +658,14 @@ export function PrefeituraRedeBroadcastDrawerContent({
               </li>
             )
           })}
+          {recipientTarget === 'medico' && catalogProfissionais.length === 0 ? (
+            <li className="px-3 py-8 text-center text-sm text-gray-500">
+              Nenhum profissional vinculado a esta prefeitura.
+            </li>
+          ) : null}
         </ul>
 
-        {recipientScope === 'operators' && selectedUnits.size > 0 && selectedOperatorIds.size === 0 ? (
+        {recipientTarget === 'ubt' && recipientScope === 'operators' && selectedUnits.size > 0 && selectedOperatorIds.size === 0 ? (
           <p className="shrink-0 border-t border-amber-100 bg-amber-50/80 px-4 py-2.5 text-xs text-amber-900">
             Selecione ao menos uma operadora nas UBTs marcadas.
           </p>

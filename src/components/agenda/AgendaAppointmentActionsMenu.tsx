@@ -2,9 +2,11 @@ import { CalendarClock, DoorOpen, Eye, MoreVertical, Trash2, UserX } from 'lucid
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { AppointmentStatus, DayAppointment } from '../../data/agendaMock'
+import { SequentialDots } from './AgendaUpdatingIndicator'
 
 type AgendaAppointmentActionsMenuProps = {
   appointment: DayAppointment
+  isUpdating?: boolean
   open: boolean
   onToggle: () => void
   onClose: () => void
@@ -42,6 +44,7 @@ function canConfirmArrival(status: AppointmentStatus) {
 
 export function AgendaAppointmentActionsMenu({
   appointment,
+  isUpdating = false,
   open,
   onToggle,
   onClose,
@@ -127,8 +130,13 @@ export function AgendaAppointmentActionsMenu({
     }
   }, [open, onClose])
 
+  useEffect(() => {
+    if (!isUpdating) return
+    onClose()
+  }, [isUpdating, onClose])
+
   const menuPortal =
-    open && menuPosition
+    open && menuPosition && !isUpdating
       ? createPortal(
           <div
             ref={menuRef}
@@ -219,17 +227,29 @@ export function AgendaAppointmentActionsMenu({
           ref={triggerRef}
           type="button"
           onClick={onToggle}
+          disabled={isUpdating}
           aria-expanded={open}
           aria-haspopup="menu"
-          aria-label={`Ações para ${appointment.patientName}`}
+          aria-busy={isUpdating}
+          aria-label={
+            isUpdating
+              ? `Atualizando situação de ${appointment.patientName}`
+              : `Ações para ${appointment.patientName}`
+          }
           className={[
-            'inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition',
-            open
-              ? 'bg-gray-100 text-gray-700'
-              : 'hover:bg-gray-100 hover:text-gray-700',
+            'inline-flex h-8 w-8 items-center justify-center rounded-lg transition',
+            isUpdating
+              ? 'cursor-default text-gray-400'
+              : open
+                ? 'bg-gray-100 text-gray-700'
+                : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700',
           ].join(' ')}
         >
-          <MoreVertical className="h-4 w-4" />
+          {isUpdating ? (
+            <SequentialDots layout="vertical" dotClassName="h-1 w-1 rounded-full bg-gray-400" />
+          ) : (
+            <MoreVertical className="h-4 w-4" />
+          )}
         </button>
       </div>
       {menuPortal}

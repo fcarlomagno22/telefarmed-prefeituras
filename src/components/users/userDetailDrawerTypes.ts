@@ -10,7 +10,7 @@ export function buildEditableData(
   if (edits) return { ...edits, contacts: edits.contacts.map((c) => ({ ...c })) }
 
   return {
-    phone: user.phone,
+    phone: user.phone !== '—' ? user.phone : '',
     email: profile.email === '—' ? '' : profile.email,
     zipCode: profile.zipCode === '—' ? '' : profile.zipCode,
     street: profile.street === '—' ? '' : profile.street,

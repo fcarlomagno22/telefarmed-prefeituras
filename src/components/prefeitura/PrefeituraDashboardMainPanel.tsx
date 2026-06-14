@@ -1,28 +1,22 @@
 import { Building2, ChevronRight, Eye, Filter, RotateCcw } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import { usePrefeituraAlertsDrawer } from '../../hooks/usePrefeituraAlertsDrawer'
 import { usePrefeituraRegionDrawer } from '../../hooks/usePrefeituraRegionDrawer'
 import { usePrefeituraSlaDrawer } from '../../hooks/usePrefeituraSlaDrawer'
 import { usePrefeituraUbsDetailDrawer } from '../../hooks/usePrefeituraUbsDetailDrawer'
 import { usePrefeituraSpecialtyDrawer } from '../../hooks/usePrefeituraSpecialtyDrawer'
+import { usePrefeituraDashboardPage } from '../../hooks/usePrefeituraDashboardPage'
 import { CustomSelect } from '../ui/CustomSelect'
 import { KpiStatCards } from '../ui/KpiStatCards'
 import { SituationStatusBadge } from '../ui/SituationStatusBadge'
-import {
-  getPrefeituraDashboardUbtFilterOptions,
-  prefeituraFilterOptions,
-} from '../../data/prefeituraDashboardMock'
-import {
-  buildPrefeituraDashboardFilterSummary,
-  computePrefeituraDashboardView,
-} from '../../utils/prefeituraDashboardFilters'
+import { buildPrefeituraDashboardFilterSummary } from '../../utils/prefeituraDashboardFilters'
 import { PrefeituraAlertsPanel } from './PrefeituraAlertsPanel'
 import { PrefeituraConsultationPackagePanel } from './PrefeituraConsultationPackagePanel'
 import { PrefeituraHourlyChart } from './PrefeituraHourlyChart'
 import { PrefeituraRegionBars } from './PrefeituraRegionBars'
 import { PrefeituraSlaPanel } from './PrefeituraSlaPanel'
 import { PrefeituraSpecialtyBreakdown } from './PrefeituraSpecialtyBreakdown'
-import { PrefeituraSystemReleaseFootnote } from './PrefeituraSystemReleaseFootnote'
+import { PrefeituraDashboardMainPanelSkeleton } from './skeletons/PrefeituraDashboardMainPanelSkeleton'
 import { prefeituraDashboardCardsRowClass } from '../layout/dashboardPageLayout'
 import {
   DashCard,
@@ -37,21 +31,20 @@ import {
 } from './prefeituraDashboardUi'
 
 export function PrefeituraDashboardMainPanel() {
-  const [period, setPeriod] = useState('hoje')
-  const [region, setRegion] = useState('todas')
-  const [ubt, setUbt] = useState('todas')
-
-  const ubtFilterOptions = useMemo(
-    () => getPrefeituraDashboardUbtFilterOptions(region),
-    [region],
-  )
-
-  useEffect(() => {
-    if (ubt === 'todas') return
-    if (!ubtFilterOptions.some((option) => option.value === ubt)) {
-      setUbt('todas')
-    }
-  }, [ubt, ubtFilterOptions])
+  const {
+    period,
+    setPeriod,
+    region,
+    setRegion,
+    ubt,
+    setUbt,
+    dashboard,
+    isLoading,
+    loadError,
+    ubtFilterOptions,
+    loadUnitDetail,
+    filterOptions,
+  } = usePrefeituraDashboardPage()
 
   function handleClearFilters() {
     setPeriod('hoje')
@@ -64,39 +57,55 @@ export function PrefeituraDashboardMainPanel() {
   const regionDrawer = usePrefeituraRegionDrawer()
   const slaDrawer = usePrefeituraSlaDrawer()
   const exportFilterSummary = useMemo(
-    () => buildPrefeituraDashboardFilterSummary({ period, region, ubt }),
-    [period, region, ubt],
+    () => buildPrefeituraDashboardFilterSummary({ period, region, ubt }, filterOptions),
+    [period, region, ubt, filterOptions],
   )
   const ubsDetailDrawer = usePrefeituraUbsDetailDrawer({
     filterSummaryLines: exportFilterSummary,
+    loadUnitDetail,
   })
 
-  const dashboard = useMemo(
-    () => computePrefeituraDashboardView({ period, region, ubt }),
-    [period, region, ubt],
-  )
-
   const handleOpenAllAlerts = useCallback(() => {
+    if (!dashboard) return
     alertsDrawer.openDrawer(dashboard.allAlerts)
-  }, [alertsDrawer, dashboard.allAlerts])
+  }, [alertsDrawer, dashboard])
 
   const handleOpenAllSpecialties = useCallback(() => {
+    if (!dashboard) return
     specialtyDrawer.openDrawer({
       specialties: dashboard.specialties,
       total: dashboard.specialtyTotal,
     })
-  }, [specialtyDrawer, dashboard.specialties, dashboard.specialtyTotal])
+  }, [specialtyDrawer, dashboard])
 
   const handleOpenRegionReport = useCallback(() => {
+    if (!dashboard) return
     regionDrawer.openDrawer({
       regions: dashboard.regions,
       ubsRows: dashboard.ubsRows,
     })
-  }, [regionDrawer, dashboard.regions, dashboard.ubsRows])
+  }, [regionDrawer, dashboard])
 
   const handleOpenAllSla = useCallback(() => {
+    if (!dashboard) return
     slaDrawer.openDrawer({ ubsRows: dashboard.ubsRows })
-  }, [slaDrawer, dashboard.ubsRows])
+  }, [slaDrawer, dashboard])
+
+  if (isLoading && !dashboard) {
+    return <PrefeituraDashboardMainPanelSkeleton />
+  }
+
+  if (loadError && !dashboard) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-slate-50/80 p-5">
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {loadError}
+        </p>
+      </div>
+    )
+  }
+
+  if (!dashboard) return null
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain bg-slate-50/80">
@@ -110,8 +119,7 @@ export function PrefeituraDashboardMainPanel() {
               Visão consolidada da rede de teleatendimento
             </h1>
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-1.5">
-            <PrefeituraSystemReleaseFootnote />
+          <div className="flex shrink-0 flex-col items-end">
             <DashLiveBadge />
           </div>
         </header>
@@ -137,7 +145,7 @@ export function PrefeituraDashboardMainPanel() {
               <CustomSelect
                 value={period}
                 onChange={setPeriod}
-                options={[...prefeituraFilterOptions.period]}
+                options={filterOptions.period}
               />
             </div>
             <div>
@@ -147,7 +155,7 @@ export function PrefeituraDashboardMainPanel() {
               <CustomSelect
                 value={region}
                 onChange={setRegion}
-                options={[...prefeituraFilterOptions.region]}
+                options={filterOptions.region}
               />
             </div>
             <div>

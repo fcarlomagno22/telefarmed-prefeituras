@@ -80,7 +80,7 @@ const profissionalNavMetaByPath: Record<string, ProfissionalNavMeta> = {
   [profissionalRoutes.notificacoes]: {
     title: 'Notificações',
     description:
-      'Comunicados da Telefarmed, da gestão municipal e do corpo clínico — somente leitura.',
+      'Comunicados da Telefarmed — somente leitura.',
   },
   [profissionalRoutes.perfil]: {
     title: 'Meu perfil',

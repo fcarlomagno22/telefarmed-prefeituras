@@ -9,14 +9,26 @@ import {
   type ReactNode,
 } from 'react'
 import { emptyAdminPagePermissions } from '../config/adminCredenciaisConfig'
+import { registerAdminAccessTokenRefresh } from '../lib/api/adminAuthRefresh'
+import { isBackendApiEnabled } from '../lib/api/config'
 import {
-  adminFetchMe,
+  clearAuthSessionRevoked,
+  isAuthSessionRevoked,
+  markAuthSessionRevoked,
+  notifyUnauthorizedSession,
+} from '../lib/auth/sessionRevocation'
+import { bootstrapTabBoundAuthSession } from '../lib/auth/bootstrapTabBoundSession'
+import type { AdminAuthUser } from '../lib/mockAuth/adminAuthMock'
+import {
+  AdminAuthApiError,
   adminLogin,
   adminLogout,
   adminRefreshSession,
-  type AdminAuthUser,
-  AdminAuthApiError,
-} from '../lib/api/adminAuthApi'
+  adminFetchCurrentUser,
+  readAdminMockSession,
+  writeAdminMockSession,
+} from '../lib/services/admin/auth'
+import { useAuthSessionGuard } from '../hooks/useAuthSessionGuard'
 
 function normalizeAdminUser(user: AdminAuthUser): AdminAuthUser {
   return {
@@ -37,121 +49,138 @@ type AdminAuthContextValue = {
 
 const AdminAuthContext = createContext<AdminAuthContextValue | null>(null)
 
-const ACCESS_TOKEN_STORAGE_KEY = 'telefarmed.admin.accessToken'
-const BOOTSTRAP_RETRY_DELAYS_MS = [0, 400, 900] as const
+export function AdminAuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<AdminAuthUser | null>(null)
+  const [accessToken, setAccessToken] = useState<string | null>(null)
+  const [isBootstrapping, setIsBootstrapping] = useState(true)
+  const accessTokenRef = useRef<string | null>(null)
+  const userIdRef = useRef<string | null>(null)
 
-function isTransientBootstrapError(error: unknown): boolean {
-  if (error instanceof AdminAuthApiError) {
-    return error.status === 0 || error.status === 502 || error.status === 503
-  }
-  return false
-}
+  const applySession = useCallback(
+    (token: string, nextUser: AdminAuthUser, options?: { silent?: boolean }) => {
+      const normalized = normalizeAdminUser(nextUser)
+      accessTokenRef.current = token
+      userIdRef.current = normalized.id
+      writeAdminMockSession(token, normalized)
+      clearAuthSessionRevoked('admin')
 
-async function sleep(ms: number): Promise<void> {
-  await new Promise((resolve) => {
-    window.setTimeout(resolve, ms)
-  })
-}
+      if (options?.silent) {
+        return
+      }
 
-async function bootstrapAdminSession(accessToken: string | null) {
-  let lastError: unknown
+      setAccessToken(token)
+      setUser(normalized)
+    },
+    [],
+  )
 
-  for (const delayMs of BOOTSTRAP_RETRY_DELAYS_MS) {
-    if (delayMs > 0) {
-      await sleep(delayMs)
+  const clearSession = useCallback(() => {
+    accessTokenRef.current = null
+    userIdRef.current = null
+    setAccessToken(null)
+    setUser(null)
+    writeAdminMockSession(null, null)
+  }, [])
+
+  const forceLogout = useCallback(async () => {
+    markAuthSessionRevoked('admin')
+    clearSession()
+    if (
+      typeof window !== 'undefined' &&
+      !window.location.pathname.startsWith('/admin/login')
+    ) {
+      window.location.replace('/admin/login')
+    }
+  }, [clearSession])
+
+  const revalidateSession = useCallback(async () => {
+    if (!isBackendApiEnabled()) return
+
+    if (isAuthSessionRevoked('admin')) {
+      notifyUnauthorizedSession('admin')
+      return
     }
 
     try {
-      if (accessToken) {
-        try {
-          const me = await adminFetchMe(accessToken)
-          return { kind: 'session' as const, accessToken, user: me.user }
-        } catch (error) {
-          if (!isTransientBootstrapError(error)) {
-            // access token expirado ou inválido — tenta renovar via cookie httpOnly
-            break
-          }
-          lastError = error
-          continue
-        }
-      }
-
-      const refreshed = await adminRefreshSession()
-      return {
-        kind: 'session' as const,
-        accessToken: refreshed.accessToken,
-        user: refreshed.user,
-      }
+      const result = await adminRefreshSession()
+      const sameUser = userIdRef.current === result.user.id
+      applySession(result.accessToken, result.user, { silent: sameUser })
     } catch (error) {
-      lastError = error
-      if (!isTransientBootstrapError(error)) {
-        throw error
+      if (error instanceof AdminAuthApiError) {
+        notifyUnauthorizedSession('admin')
+        return
       }
+      throw error
     }
-  }
+  }, [applySession])
 
-  throw lastError ?? new AdminAuthApiError('Falha de conexão com o servidor.', 0)
-}
+  const refreshAccessToken = useCallback(async () => {
+    const result = await adminRefreshSession()
+    const sameUser = userIdRef.current === result.user.id
+    applySession(result.accessToken, result.user, { silent: sameUser })
+    return result.accessToken
+  }, [applySession])
 
-function readStoredAccessToken(): string | null {
-  try {
-    return sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)
-  } catch {
-    return null
-  }
-}
-
-function writeStoredAccessToken(token: string | null): void {
-  try {
-    if (!token) {
-      sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY)
-      return
-    }
-    sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token)
-  } catch {
-    // sessionStorage indisponível (modo privado, etc.)
-  }
-}
-
-export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AdminAuthUser | null>(null)
-  const [accessToken, setAccessToken] = useState<string | null>(() => readStoredAccessToken())
-  const [isBootstrapping, setIsBootstrapping] = useState(true)
-  const bootstrapStarted = useRef(false)
-
-  const applySession = useCallback((token: string, nextUser: AdminAuthUser) => {
-    setAccessToken(token)
-    setUser(normalizeAdminUser(nextUser))
-    writeStoredAccessToken(token)
-  }, [])
-
-  const clearSession = useCallback(() => {
-    setAccessToken(null)
-    setUser(null)
-    writeStoredAccessToken(null)
-  }, [])
+  const getAccessToken = useCallback(() => accessTokenRef.current, [])
 
   useEffect(() => {
-    if (bootstrapStarted.current) return
-    bootstrapStarted.current = true
+    registerAdminAccessTokenRefresh(async () => {
+      if (isAuthSessionRevoked('admin')) return null
+      try {
+        return await refreshAccessToken()
+      } catch {
+        return null
+      }
+    })
+  }, [refreshAccessToken])
+
+  useEffect(() => {
+    let cancelled = false
 
     async function bootstrap() {
-      try {
-        const session = await bootstrapAdminSession(accessToken)
-        applySession(session.accessToken, session.user)
-      } catch {
-        clearSession()
-      } finally {
-        setIsBootstrapping(false)
+      if (isAuthSessionRevoked('admin')) {
+        if (!cancelled) {
+          clearSession()
+          setIsBootstrapping(false)
+        }
+        return
       }
+
+      await bootstrapTabBoundAuthSession({
+        readSession: readAdminMockSession,
+        fetchMe: adminFetchCurrentUser,
+        refresh: adminRefreshSession,
+        onRestore: (token, nextUser) => {
+          if (!cancelled) applySession(token, nextUser)
+        },
+        onClear: () => {
+          if (!cancelled) clearSession()
+        },
+      })
+
+      if (!cancelled) setIsBootstrapping(false)
     }
 
     void bootstrap()
-  }, [accessToken, applySession, clearSession])
+
+    return () => {
+      cancelled = true
+    }
+  }, [applySession, clearSession])
+
+  useAuthSessionGuard({
+    scope: 'admin',
+    isAuthenticated: Boolean(user && accessToken),
+    accessToken,
+    onForceLogout: forceLogout,
+    revalidateSession,
+    refreshAccessToken: isBackendApiEnabled() ? refreshAccessToken : undefined,
+  })
 
   const login = useCallback(
     async (credentials: { cpf: string; password: string }) => {
       try {
+        clearAuthSessionRevoked('admin')
         const result = await adminLogin(credentials)
         applySession(result.accessToken, result.user)
         return result.user
@@ -159,18 +188,16 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         if (error instanceof AdminAuthApiError) {
           throw error
         }
-        throw new AdminAuthApiError('Falha de conexão com o servidor.', 0)
+        throw new AdminAuthApiError('Não foi possível concluir o login.', 0)
       }
     },
     [applySession],
   )
 
   const logout = useCallback(async () => {
-    try {
-      await adminLogout()
-    } finally {
-      clearSession()
-    }
+    markAuthSessionRevoked('admin')
+    await adminLogout()
+    clearSession()
   }, [clearSession])
 
   const value = useMemo<AdminAuthContextValue>(
@@ -181,9 +208,9 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       isBootstrapping,
       login,
       logout,
-      getAccessToken: () => accessToken,
+      getAccessToken,
     }),
-    [user, accessToken, isBootstrapping, login, logout],
+    [user, accessToken, isBootstrapping, login, logout, getAccessToken],
   )
 
   return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>
@@ -200,3 +227,5 @@ export function useAdminAuth(): AdminAuthContextValue {
 export function useOptionalAdminAuth(): AdminAuthContextValue | null {
   return useContext(AdminAuthContext)
 }
+
+export type { AdminAuthUser } from '../lib/mockAuth/adminAuthMock'

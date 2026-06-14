@@ -6,13 +6,17 @@ export const ubtRoutes = {
   agenda: '/ubt/agenda',
   consultas: '/ubt/consultas',
   usuarios: '/ubt/usuarios',
-  relatorios: '/ubt/relatorios',
   notificacoes: '/ubt/notificacoes',
   suporte: '/ubt/suporte',
   credenciais: '/ubt/credenciais',
   auditoria: '/ubt/auditoria',
+  salaDeEspera: '/ubt/sala-de-espera',
 } as const
 
-export function ubtRelatoriosCategoryPath(categoryId: string) {
-  return `${ubtRoutes.relatorios}/${categoryId}`
+export function ubtAtendimentoPath(codigo: string) {
+  return `/ubt/atendimento/${encodeURIComponent(codigo)}`
+}
+
+export function ubtAtendimentoAvaliacaoPath(codigo: string) {
+  return `/ubt/atendimento/${encodeURIComponent(codigo)}/avaliacao`
 }

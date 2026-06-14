@@ -24,6 +24,7 @@ interface ImportMetaEnv {
   readonly VITE_DASHBOARD_DOCTORS_IMAGE_URL: string
   readonly VITE_DASHBOARD_PROMO_IMAGE_URL: string
   readonly VITE_DASHBOARD_PROMO_TEXT: string
+  readonly VITE_LIVEKIT_URL: string
 }
 
 interface ImportMeta {

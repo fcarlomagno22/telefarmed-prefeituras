@@ -9,7 +9,8 @@ import {
 } from '../../../utils/calendar'
 import { isSameDay, toDateKey } from '../../../utils/agendaDate'
 
-const CELL_HEIGHT = 'h-10 sm:h-11'
+const CELL_HEIGHT =
+  'h-full w-full min-h-10 sm:min-h-11 xl:min-h-0'
 
 type ProfissionalAgendaMonthCalendarProps = {
   viewMonth: Date
@@ -197,7 +198,7 @@ export function ProfissionalAgendaMonthCalendar({
   return (
     <section
       data-tour="agenda-calendar"
-      className="w-full min-w-0 overflow-hidden rounded-2xl border border-orange-100/70 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_28px_rgba(255,107,0,0.07)]"
+      className="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-orange-100/70 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_28px_rgba(255,107,0,0.07)]"
     >
       <header className="relative shrink-0 overflow-hidden border-b border-orange-100/50 px-3 py-2.5 sm:px-4 sm:py-3">
         <div
@@ -262,7 +263,7 @@ export function ProfissionalAgendaMonthCalendar({
         </div>
       </header>
 
-      <div className="bg-[linear-gradient(180deg,#fafafa_0%,#ffffff_12%)] p-2.5 sm:p-3">
+      <div className="flex min-h-0 flex-1 flex-col bg-[linear-gradient(180deg,#fafafa_0%,#ffffff_12%)] p-2.5 sm:p-3">
         <div className="mb-1.5 shrink-0 grid grid-cols-7 gap-1 px-0.5">
           {CALENDAR_WEEKDAY_LABELS.map((label, index) => (
             <span
@@ -277,12 +278,15 @@ export function ProfissionalAgendaMonthCalendar({
           ))}
         </div>
 
-        <div className="space-y-1">
+        <div
+          className="grid min-h-0 flex-1 gap-1"
+          style={{ gridTemplateRows: `repeat(${weeks.length}, minmax(0, 1fr))` }}
+        >
           {weeks.map((week, weekIndex) => (
             <div
               key={weekIndex}
               className={[
-                'grid grid-cols-7 gap-1 rounded-xl p-1',
+                'grid h-full min-h-0 grid-cols-7 gap-1 rounded-xl p-1',
                 weekIndex % 2 === 1 ? 'bg-gray-50/70' : 'bg-white/50',
               ].join(' ')}
             >

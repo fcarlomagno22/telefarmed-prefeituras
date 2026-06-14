@@ -10,8 +10,15 @@ import {
   UsersRound,
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
+import { usePrefeituraAuth } from '../../../contexts/PrefeituraAuthContext'
+import {
+  createPrefeituraPacienteAnotacao,
+  createPrefeituraPacienteRegistroContato,
+  fetchPrefeituraPacienteAnotacoes,
+  fetchPrefeituraPacienteContatosRegistrados,
+} from '../../../lib/services/prefeitura/pacientes'
 import { KpiStatCards } from '../../ui/KpiStatCards'
-import { Toast } from '../../ui/Toast'
+import { Toast, type ToastVariant } from '../../ui/Toast'
 import {
   buildEditChangeSummary,
   createActivityId,
@@ -21,153 +28,237 @@ import {
   type TeamContactRecord,
 } from '../../../data/networkUserActivity'
 import {
-  createAnnotationId,
   type UserAnnotation,
   type UserProfileEdits,
 } from '../../../data/networkUserLocalData'
 import type { NetworkUser } from '../../../data/networkUsersMock'
+import type { NetworkUserFullProfile } from '../../../data/networkUserProfiles'
 import { getNetworkUserProfile } from '../../../data/networkUserProfiles'
-import type { PatientContact } from '../../../data/unitDashboardMock'
+import type { PatientContact } from '../../../types/attendance'
+import type { PrefeituraMunicipalPatient } from '../../../data/prefeituraMunicipalPatientsMock'
+import type { PrefeituraMunicipalPatientDetail } from '../../../types/prefeituraPacientes'
 import {
-  prefeituraMunicipalPatients,
-  prefeituraMunicipalPatientsPagination,
-  prefeituraMunicipalPatientsSummary,
-  type PrefeituraMunicipalPatient,
-} from '../../../data/prefeituraMunicipalPatientsMock'
-import { maskCpfForDisplay, onlyDigits } from '../../../utils/lgpdDisplay'
+  buildPrefeituraPatientExtraContext,
+  mapPrefeituraPacienteDetailToProfile,
+} from '../../../utils/prefeituraPacientesDetail'
+import { userEditsToUpdatePayload } from '../../../utils/adminPacientesEdits'
+import type { UpdatePacientePayload } from '../../../lib/services/admin/pacientes'
+import type { PrefeituraPacientesSummaryResponse } from '../../../lib/mockServices/prefeitura/pacientes'
+import { maskCpfForDisplay } from '../../../utils/lgpdDisplay'
 import { getLoggedOperatorName } from '../../../utils/sessionUser'
 import { EditUnlockModal } from '../../users/EditUnlockModal'
 import { LgpdUnlockModal } from '../../users/LgpdUnlockModal'
 import { UserDetailDrawer } from '../../users/UserDetailDrawer'
 import {
-  applyPrefeituraMunicipalPatientsFilters,
   countActivePrefeituraMunicipalPatientFilters,
   defaultPrefeituraMunicipalPatientsFilters,
-  getAvailableFirstAttendanceUnits,
-  getAvailableNeighborhoods,
   type PrefeituraMunicipalPatientsFilters,
 } from '../../../utils/prefeituraMunicipalPatientsFilters'
-import type { NetworkUserFilterContext } from '../../../utils/networkUsersFilters'
 import { PrefeituraUsuariosFiltersMenu } from './PrefeituraUsuariosFiltersMenu'
+import { usePrefeituraAuthorizationPinVerify } from '../../../hooks/usePrefeituraAuthorizationPinVerify'
+import { NetworkUserAvatar } from '../../ui/NetworkUserAvatar'
+
+const prefeituraLgpdUnlockDescription =
+  'Telefone, CPF e endereço ficam ocultos na lista. Informe seu PIN de autorização de gestor (6 dígitos) para visualizar os dados completos.'
+
+const prefeituraEditUnlockDescription =
+  'Para alterar telefone, e-mail, endereço e demais dados do paciente, informe seu PIN de autorização de gestor (6 dígitos). As alterações ficam registradas na auditoria municipal.'
+
+type PrefeituraUsuariosMainPanelProps = {
+  patients: PrefeituraMunicipalPatient[]
+  summary: PrefeituraPacientesSummaryResponse | null
+  pagination: {
+    page: number
+    pageSize: number
+    total: number
+    totalPages: number
+  }
+  search: string
+  onSearchChange: (value: string) => void
+  filters: PrefeituraMunicipalPatientsFilters
+  onFiltersChange: (filters: PrefeituraMunicipalPatientsFilters) => void
+  availableNeighborhoods: string[]
+  availableFirstUnits: string[]
+  onPageChange: (page: number) => void
+  onPatientUpsert?: (patient: PrefeituraMunicipalPatient) => void
+  onLoadPatientDetail?: (id: string) => Promise<PrefeituraMunicipalPatientDetail | null>
+  onSavePatientEdits?: (
+    id: string,
+    payload: UpdatePacientePayload,
+  ) => Promise<PrefeituraMunicipalPatientDetail>
+}
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
 }
 
-const kpiCards = [
-  {
-    label: 'Base municipal única',
-    value: formatNumber(prefeituraMunicipalPatientsSummary.totalPatients),
-    suffix: 'pacientes · 1 CPF',
-    icon: UsersRound,
-    iconGradient: 'from-sky-500 via-blue-500 to-indigo-600',
-    iconShadow: 'shadow-[0_8px_20px_rgba(59,130,246,0.35)]',
-    iconRing: 'ring-blue-100/80',
-    topBar: 'from-sky-400 to-blue-500',
-  },
-  {
-    label: 'Novos cadastros',
-    value: formatNumber(prefeituraMunicipalPatientsSummary.newThisMonth),
-    suffix: 'este mês',
-    icon: UserPlus,
-    iconGradient: 'from-orange-500 via-amber-500 to-orange-600',
-    iconShadow: 'shadow-[0_8px_20px_rgba(249,115,22,0.35)]',
-    iconRing: 'ring-orange-100/80',
-    topBar: 'from-orange-400 to-amber-500',
-  },
-  {
-    label: 'Cadastros incompletos',
-    value: formatNumber(prefeituraMunicipalPatientsSummary.incompleteRecords),
-    suffix: 'pendências',
-    icon: ShieldAlert,
-    iconGradient: 'from-rose-500 via-red-500 to-orange-600',
-    iconShadow: 'shadow-[0_8px_20px_rgba(244,63,94,0.35)]',
-    iconRing: 'ring-rose-100/80',
-    topBar: 'from-rose-400 to-red-500',
-  },
-  {
-    label: 'Campanha de retorno',
-    value: formatNumber(prefeituraMunicipalPatientsSummary.inactiveSixMonths),
-    suffix: 'sem consulta 6+ meses',
-    icon: UserCheck,
-    iconGradient: 'from-violet-500 via-purple-500 to-fuchsia-600',
-    iconShadow: 'shadow-[0_8px_20px_rgba(139,92,246,0.35)]',
-    iconRing: 'ring-violet-100/80',
-    topBar: 'from-violet-400 to-purple-500',
-  },
-] as const
-
-function filterPatients(query: string, patients: PrefeituraMunicipalPatient[]) {
-  const trimmed = query.trim()
-  if (!trimmed) return patients
-
-  const normalized = trimmed.toLowerCase()
-  const queryDigits = onlyDigits(trimmed)
-  const isFullCpfSearch = queryDigits.length === 11
-
-  return patients.filter((patient) => {
-    if (isFullCpfSearch) {
-      return onlyDigits(patient.cpf) === queryDigits
-    }
-
-    const haystack =
-      `${patient.name} ${patient.bairro} ${patient.cpf} ${patient.phone} ${patient.municipalRecordId} ${patient.firstAttendanceUnit}`.toLowerCase()
-    if (haystack.includes(normalized)) return true
-
-    if (queryDigits.length > 0) {
-      const digitHaystack = `${onlyDigits(patient.cpf)} ${onlyDigits(patient.phone)}`
-      return digitHaystack.includes(queryDigits)
-    }
-
-    return false
-  })
+function buildKpiCards(summary: PrefeituraPacientesSummaryResponse | null) {
+  return [
+    {
+      label: 'Base municipal única',
+      value: formatNumber(summary?.totalPatients ?? 0),
+      suffix: 'pacientes · 1 CPF',
+      icon: UsersRound,
+      iconGradient: 'from-sky-500 via-blue-500 to-indigo-600',
+      iconShadow: 'shadow-[0_8px_20px_rgba(59,130,246,0.35)]',
+      iconRing: 'ring-blue-100/80',
+      topBar: 'from-sky-400 to-blue-500',
+    },
+    {
+      label: 'Novos cadastros',
+      value: formatNumber(summary?.newThisMonth ?? 0),
+      suffix: 'este mês',
+      icon: UserPlus,
+      iconGradient: 'from-orange-500 via-amber-500 to-orange-600',
+      iconShadow: 'shadow-[0_8px_20px_rgba(249,115,22,0.35)]',
+      iconRing: 'ring-orange-100/80',
+      topBar: 'from-orange-400 to-amber-500',
+    },
+    {
+      label: 'Cadastros incompletos',
+      value: formatNumber(summary?.incompleteRecords ?? 0),
+      suffix: 'pendências',
+      icon: ShieldAlert,
+      iconGradient: 'from-rose-500 via-red-500 to-orange-600',
+      iconShadow: 'shadow-[0_8px_20px_rgba(244,63,94,0.35)]',
+      iconRing: 'ring-rose-100/80',
+      topBar: 'from-rose-400 to-red-500',
+    },
+    {
+      label: 'Campanha de retorno',
+      value: formatNumber(summary?.inactiveSixMonths ?? 0),
+      suffix: 'sem consulta 6+ meses',
+      icon: UserCheck,
+      iconGradient: 'from-violet-500 via-purple-500 to-fuchsia-600',
+      iconShadow: 'shadow-[0_8px_20px_rgba(139,92,246,0.35)]',
+      iconRing: 'ring-violet-100/80',
+      topBar: 'from-violet-400 to-purple-500',
+    },
+  ] as const
 }
 
-export function PrefeituraUsuariosMainPanel() {
-  const [search, setSearch] = useState('')
-  const [filters, setFilters] = useState<PrefeituraMunicipalPatientsFilters>(
-    defaultPrefeituraMunicipalPatientsFilters,
-  )
+export function PrefeituraUsuariosMainPanel({
+  patients,
+  summary,
+  pagination,
+  search,
+  onSearchChange,
+  filters,
+  onFiltersChange,
+  availableNeighborhoods,
+  availableFirstUnits,
+  onPageChange,
+  onPatientUpsert,
+  onLoadPatientDetail,
+  onSavePatientEdits,
+}: PrefeituraUsuariosMainPanelProps) {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [sensitiveDataUnlocked, setSensitiveDataUnlocked] = useState(false)
   const [unlockModalOpen, setUnlockModalOpen] = useState(false)
-  const [toast, setToast] = useState<{ message: string } | null>(null)
+  const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
   const [drawerUser, setDrawerUser] = useState<NetworkUser | null>(null)
+  const [drawerDetail, setDrawerDetail] = useState<PrefeituraMunicipalPatientDetail | null>(null)
+  const [drawerProfileOverride, setDrawerProfileOverride] = useState<NetworkUserFullProfile | null>(
+    null,
+  )
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerClosing, setDrawerClosing] = useState(false)
+  const [drawerSaving, setDrawerSaving] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editSessionKey, setEditSessionKey] = useState(0)
   const [userEditsMap, setUserEditsMap] = useState<Record<string, UserProfileEdits>>({})
   const [annotationsMap, setAnnotationsMap] = useState<Record<string, UserAnnotation[]>>({})
   const [lastReviewedMap, setLastReviewedMap] = useState<Record<string, string>>({})
   const [changeLogsMap, setChangeLogsMap] = useState<Record<string, ChangeLogEntry[]>>({})
-  const [contactLogsMap, setContactLogsMap] = useState<Record<string, PatientContactLogEntry[]>>({
-    '1': [
-      {
-        id: 'contact-seed-1',
-        at: new Date(Date.now() - 86400000 * 3).toISOString(),
-        channel: 'whatsapp',
-        phone: '(11) 98604-5105',
-        note: 'Confirmação de retorno agendado',
-        authorLabel: getLoggedOperatorName(),
-      },
-    ],
-  })
+  const [contactLogsMap, setContactLogsMap] = useState<Record<string, PatientContactLogEntry[]>>({})
+
+  const { getAccessToken } = usePrefeituraAuth()
 
   const loggedOperatorName = getLoggedOperatorName()
 
-  const showSuccessToast = useCallback((message: string) => {
+  const showToast = useCallback((message: string, variant: ToastVariant = 'success') => {
     setToast(null)
-    requestAnimationFrame(() => setToast({ message }))
+    requestAnimationFrame(() => setToast({ message, variant }))
   }, [])
 
+  const showSuccessToast = useCallback(
+    (message: string) => showToast(message, 'success'),
+    [showToast],
+  )
+
+  const showErrorToast = useCallback((message: string) => showToast(message, 'error'), [showToast])
+
+  const verifyAuthorizationPin = usePrefeituraAuthorizationPinVerify({
+    onPinNotConfigured: (message) => {
+      setUnlockModalOpen(false)
+      setEditModalOpen(false)
+      showErrorToast(message)
+    },
+  })
+
   const dismissToast = useCallback(() => setToast(null), [])
+
+  const loadPacienteActivity = useCallback(
+    async (pacienteId: string, userId: string) => {
+      const token = getAccessToken()
+      if (!token) return
+
+      try {
+        const [annotations, contactLogs] = await Promise.all([
+          fetchPrefeituraPacienteAnotacoes(token, pacienteId),
+          fetchPrefeituraPacienteContatosRegistrados(token, pacienteId),
+        ])
+
+        setAnnotationsMap((prev) => ({
+          ...prev,
+          [userId]: annotations.map((item) => ({
+            id: item.id,
+            text: item.text,
+            createdAt: item.createdAt,
+            authorLabel: item.authorLabel,
+          })),
+        }))
+
+        setContactLogsMap((prev) => ({
+          ...prev,
+          [userId]: contactLogs.map((item) => ({
+            id: item.id,
+            at: item.at,
+            channel: item.channel,
+            phone: item.phone,
+            note: item.note,
+            authorLabel: item.authorLabel,
+          })),
+        }))
+      } catch {
+        showErrorToast('Não foi possível carregar anotações e contatos do paciente.')
+      }
+    },
+    [getAccessToken, showErrorToast],
+  )
 
   function openPatientDrawer(patient: PrefeituraMunicipalPatient) {
     setDrawerClosing(false)
     setDrawerUser(patient)
+    setDrawerDetail(null)
+    setDrawerProfileOverride(null)
     setDrawerOpen(true)
-    seedAnnotationsIfNeeded(patient)
+    void loadPacienteActivity(patient.id, patient.id)
+
+    if (!onLoadPatientDetail) return
+
+    void (async () => {
+      try {
+        const detail = await onLoadPatientDetail(patient.id)
+        if (!detail) return
+        setDrawerUser(detail)
+        setDrawerDetail(detail)
+        setDrawerProfileOverride(mapPrefeituraPacienteDetailToProfile(detail))
+        await loadPacienteActivity(detail.id, detail.id)
+      } catch {
+        // Mantém dados da listagem se o detalhe falhar.
+      }
+    })()
   }
 
   function closePatientDrawer() {
@@ -178,21 +269,12 @@ export function PrefeituraUsuariosMainPanel() {
     if (drawerClosing) {
       setDrawerOpen(false)
       setDrawerUser(null)
+      setDrawerDetail(null)
+      setDrawerProfileOverride(null)
       setDrawerClosing(false)
       setEditSessionKey(0)
     }
   }
-
-  const filterContext = useMemo<NetworkUserFilterContext>(
-    () => ({
-      userEditsMap,
-      annotationsMap,
-      lastReviewedMap,
-      contactLogsMap,
-      changeLogsMap,
-    }),
-    [userEditsMap, annotationsMap, lastReviewedMap, contactLogsMap, changeLogsMap],
-  )
 
   function bairroForPatient(patient: PrefeituraMunicipalPatient) {
     return userEditsMap[patient.id]?.neighborhood ?? patient.bairro
@@ -216,18 +298,59 @@ export function PrefeituraUsuariosMainPanel() {
     }))
   }
 
+  function resolveDetailForEdits() {
+    if (drawerDetail) return drawerDetail
+    if (!drawerUser) return null
+    return {
+      birthDate: drawerUser.birthDate,
+      profile: drawerProfileOverride
+        ? { genderLabel: drawerProfileOverride.genderLabel }
+        : undefined,
+    }
+  }
+
+  async function persistDrawerEdits(edits: UserProfileEdits, changedFields: string[]) {
+    if (!drawerUser || !onSavePatientEdits) {
+      throw new Error('Não foi possível salvar as alterações.')
+    }
+
+    const detailSource = resolveDetailForEdits()
+    if (!detailSource) {
+      throw new Error('Aguarde o carregamento do paciente e tente novamente.')
+    }
+
+    setDrawerSaving(true)
+    try {
+      const payload = userEditsToUpdatePayload(detailSource, edits)
+      const updated = await onSavePatientEdits(drawerUser.id, payload)
+      setDrawerUser(updated)
+      setDrawerDetail(updated)
+      setDrawerProfileOverride(mapPrefeituraPacienteDetailToProfile(updated))
+      setUserEditsMap((prev) => {
+        const next = { ...prev }
+        delete next[drawerUser.id]
+        return next
+      })
+      setLastReviewedMap((prev) => ({ ...prev, [drawerUser.id]: new Date().toISOString() }))
+      appendChangeLog(drawerUser.id, buildEditChangeSummary(changedFields))
+      onPatientUpsert?.(updated)
+      showSuccessToast('Alterações salvas com sucesso.')
+    } finally {
+      setDrawerSaving(false)
+    }
+  }
+
   function handleSaveUserEdits(edits: UserProfileEdits, changedFields: string[]) {
     if (!drawerUser) return
-    setUserEditsMap((prev) => ({ ...prev, [drawerUser.id]: edits }))
-    setLastReviewedMap((prev) => ({ ...prev, [drawerUser.id]: new Date().toISOString() }))
-    appendChangeLog(drawerUser.id, buildEditChangeSummary(changedFields))
-    showSuccessToast('Alterações salvas com sucesso.')
+    void persistDrawerEdits(edits, changedFields).catch(() => {
+      showErrorToast('Não foi possível salvar as alterações.')
+    })
   }
 
   function handleSaveUserContacts(contacts: PatientContact[]) {
     if (!drawerUser) return
     const previous = userEditsMap[drawerUser.id]
-    const profile = getNetworkUserProfile(drawerUser)
+    const profile = drawerProfileOverride ?? getNetworkUserProfile(drawerUser)
     const merged: UserProfileEdits = {
       phone: previous?.phone ?? drawerUser.phone,
       email: previous?.email ?? profile.email,
@@ -242,9 +365,9 @@ export function PrefeituraUsuariosMainPanel() {
       guardianCpf: previous?.guardianCpf ?? profile.guardianCpf,
       contacts,
     }
-    setUserEditsMap((prev) => ({ ...prev, [drawerUser.id]: merged }))
-    appendChangeLog(drawerUser.id, 'Contatos de emergência atualizados')
-    showSuccessToast('Alterações salvas com sucesso.')
+    void persistDrawerEdits(merged, ['Contatos de emergência']).catch(() => {
+      showErrorToast('Não foi possível salvar os contatos.')
+    })
   }
 
   function lastTeamContactForUser(userId: string): TeamContactRecord | null {
@@ -261,82 +384,82 @@ export function PrefeituraUsuariosMainPanel() {
 
   function handleRegisterContact(channel: ContactChannel, phone: string, note: string) {
     if (!drawerUser) return
-    const entry: PatientContactLogEntry = {
-      id: createActivityId('contact'),
-      at: new Date().toISOString(),
-      channel,
-      phone,
-      note: note.trim(),
-      authorLabel: loggedOperatorName,
-    }
-    setContactLogsMap((prev) => ({
-      ...prev,
-      [drawerUser.id]: [entry, ...(prev[drawerUser.id] ?? [])],
-    }))
-    showSuccessToast('Contato registrado com sucesso.')
+
+    void (async () => {
+      const token = getAccessToken()
+      if (!token) {
+        showErrorToast('Sessão expirada.')
+        return
+      }
+
+      try {
+        const contactLog = await createPrefeituraPacienteRegistroContato(token, drawerUser.id, {
+          channel,
+          phone,
+          note: note.trim(),
+        })
+        setContactLogsMap((prev) => ({
+          ...prev,
+          [drawerUser.id]: [
+            {
+              id: contactLog.id,
+              at: contactLog.at,
+              channel: contactLog.channel,
+              phone: contactLog.phone,
+              note: contactLog.note,
+              authorLabel: contactLog.authorLabel,
+            },
+            ...(prev[drawerUser.id] ?? []),
+          ],
+        }))
+        showSuccessToast('Contato registrado com sucesso.')
+      } catch {
+        showErrorToast('Não foi possível registrar o contato.')
+      }
+    })()
   }
 
   function handleAddAnnotation(text: string) {
     if (!drawerUser) return
-    const annotation: UserAnnotation = {
-      id: createAnnotationId(),
-      text,
-      createdAt: new Date().toISOString(),
-      authorLabel: loggedOperatorName,
-    }
-    setAnnotationsMap((prev) => ({
-      ...prev,
-      [drawerUser.id]: [annotation, ...(prev[drawerUser.id] ?? [])],
-    }))
-    showSuccessToast('Anotação criada com sucesso.')
-  }
 
-  function seedAnnotationsIfNeeded(user: NetworkUser) {
-    const profile = getNetworkUserProfile(user)
-    if (!profile.notes) return
-    setAnnotationsMap((prev) => {
-      if (prev[user.id]?.length) return prev
-      return {
-        ...prev,
-        [user.id]: [
-          {
-            id: createAnnotationId(),
-            text: profile.notes,
-            createdAt: new Date(Date.now() - 86400000 * 7).toISOString(),
-            authorLabel: 'Cadastro inicial',
-          },
-        ],
+    void (async () => {
+      const token = getAccessToken()
+      if (!token) {
+        showErrorToast('Sessão expirada.')
+        return
       }
-    })
+
+      try {
+        const annotation = await createPrefeituraPacienteAnotacao(token, drawerUser.id, text)
+        setAnnotationsMap((prev) => ({
+          ...prev,
+          [drawerUser.id]: [
+            {
+              id: annotation.id,
+              text: annotation.text,
+              createdAt: annotation.createdAt,
+              authorLabel: annotation.authorLabel,
+            },
+            ...(prev[drawerUser.id] ?? []),
+          ],
+        }))
+        showSuccessToast('Anotação criada com sucesso.')
+      } catch {
+        showErrorToast('Não foi possível criar a anotação.')
+      }
+    })()
   }
 
-  const searchedPatients = useMemo(
-    () => filterPatients(search, prefeituraMunicipalPatients),
-    [search],
-  )
+  const kpiCards = useMemo(() => buildKpiCards(summary), [summary])
 
-  const filteredPatients = useMemo(
-    () => applyPrefeituraMunicipalPatientsFilters(searchedPatients, filters, filterContext),
-    [searchedPatients, filters, filterContext],
-  )
-
-  const availableNeighborhoods = useMemo(
-    () => getAvailableNeighborhoods(prefeituraMunicipalPatients),
-    [],
-  )
-
-  const availableFirstUnits = useMemo(
-    () => getAvailableFirstAttendanceUnits(prefeituraMunicipalPatients),
-    [],
-  )
+  const filteredPatients = patients
 
   const activeFilterCount = useMemo(
     () => countActivePrefeituraMunicipalPatientFilters(filters),
     [filters],
   )
 
-  const { page, pageSize } = prefeituraMunicipalPatientsPagination
-  const totalFiltered = filteredPatients.length
+  const { page, pageSize, total: totalFiltered, totalPages } = pagination
   const showingFrom = totalFiltered === 0 ? 0 : (page - 1) * pageSize + 1
   const showingTo = Math.min(page * pageSize, totalFiltered)
 
@@ -359,7 +482,7 @@ export function PrefeituraUsuariosMainPanel() {
                 <input
                   type="search"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(event) => onSearchChange(event.target.value)}
                   placeholder="Buscar por nome ou CPF..."
                   className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15"
                 />
@@ -393,8 +516,8 @@ export function PrefeituraUsuariosMainPanel() {
                 firstAttendanceUnits={availableFirstUnits}
                 resultCount={filteredPatients.length}
                 onClose={() => setFiltersOpen(false)}
-                onChange={setFilters}
-                onClear={() => setFilters(defaultPrefeituraMunicipalPatientsFilters)}
+                onChange={onFiltersChange}
+                onClear={() => onFiltersChange(defaultPrefeituraMunicipalPatientsFilters)}
               />
             </div>
           </div>
@@ -467,20 +590,7 @@ export function PrefeituraUsuariosMainPanel() {
                 >
                   <td className="px-5 py-4 sm:px-6">
                     <div className="flex items-center gap-3">
-                      {patient.avatarUrl ? (
-                        <img
-                          src={patient.avatarUrl}
-                          alt=""
-                          loading="lazy"
-                          className="h-10 w-10 shrink-0 rounded-full border border-gray-200 object-cover shadow-sm"
-                        />
-                      ) : (
-                        <span
-                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${patient.avatarClassName}`}
-                        >
-                          {patient.initials}
-                        </span>
-                      )}
+                      <NetworkUserAvatar user={patient} size="sm" />
                       <span className="min-w-0 flex-1 truncate font-semibold text-gray-900">
                         {patient.name}
                       </span>
@@ -526,21 +636,26 @@ export function PrefeituraUsuariosMainPanel() {
               ? 'Nenhum paciente na lista filtrada'
               : `Mostrando ${showingFrom} a ${showingTo} de ${formatNumber(totalFiltered)} paciente${totalFiltered === 1 ? '' : 's'}`}
             {activeFilterCount > 0 || search.trim()
-              ? ` (de ${formatNumber(prefeituraMunicipalPatientsSummary.totalPatients)} na base municipal)`
+              ? ` (de ${formatNumber(summary?.totalPatients ?? totalFiltered)} na base municipal)`
               : ''}
           </p>
           <nav className="flex items-center gap-1" aria-label="Paginação">
             <button
               type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50"
+              disabled={page <= 1}
+              onClick={() => onPageChange(page - 1)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40"
               aria-label="Página anterior"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            {[1, 2, 3].map((pageNumber) => (
+            {[1, 2, 3]
+              .filter((pageNumber) => pageNumber <= totalPages)
+              .map((pageNumber) => (
               <button
                 key={pageNumber}
                 type="button"
+                onClick={() => onPageChange(pageNumber)}
                 className={`flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-medium ${
                   pageNumber === page
                     ? 'border border-[var(--brand-primary)] bg-[var(--brand-primary-light)] text-[var(--brand-primary)]'
@@ -550,16 +665,23 @@ export function PrefeituraUsuariosMainPanel() {
                 {pageNumber}
               </button>
             ))}
-            <span className="px-1 text-sm text-gray-400">…</span>
+            {totalPages > 3 ? (
+              <>
+                <span className="px-1 text-sm text-gray-400">…</span>
+                <button
+                  type="button"
+                  onClick={() => onPageChange(totalPages)}
+                  className="flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                >
+                  {totalPages}
+                </button>
+              </>
+            ) : null}
             <button
               type="button"
-              className="flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
-            >
-              {prefeituraMunicipalPatientsPagination.totalPages}
-            </button>
-            <button
-              type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50"
+              disabled={page >= totalPages}
+              onClick={() => onPageChange(page + 1)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40"
               aria-label="Próxima página"
             >
               <ChevronRight className="h-4 w-4" />
@@ -575,6 +697,8 @@ export function PrefeituraUsuariosMainPanel() {
           setSensitiveDataUnlocked(true)
           showSuccessToast('Dados liberados. Acesso registrado na auditoria municipal.')
         }}
+        verifyPin={verifyAuthorizationPin}
+        description={prefeituraLgpdUnlockDescription}
       />
 
       <EditUnlockModal
@@ -585,9 +709,16 @@ export function PrefeituraUsuariosMainPanel() {
           setEditSessionKey((key) => key + 1)
           showSuccessToast('Edição liberada com sucesso.')
         }}
+        verifyPin={verifyAuthorizationPin}
+        description={prefeituraEditUnlockDescription}
       />
 
-      <Toast message={toast?.message ?? ''} visible={toast !== null} onClose={dismissToast} />
+      <Toast
+        message={toast?.message ?? ''}
+        visible={toast !== null}
+        variant={toast?.variant ?? 'success'}
+        onClose={dismissToast}
+      />
 
       <UserDetailDrawer
         user={drawerUser}
@@ -604,10 +735,13 @@ export function PrefeituraUsuariosMainPanel() {
         lastReviewedAt={drawerUser ? lastReviewedMap[drawerUser.id] ?? null : null}
         contactLogs={drawerUser ? contactLogsMap[drawerUser.id] ?? [] : []}
         lastTeamContact={drawerUser ? lastTeamContactForUser(drawerUser.id) : null}
-        onSaveEdits={handleSaveUserEdits}
-        onSaveContacts={handleSaveUserContacts}
+        onSaveEdits={drawerSaving ? () => {} : handleSaveUserEdits}
+        onSaveContacts={drawerSaving ? () => {} : handleSaveUserContacts}
         onRegisterContact={handleRegisterContact}
         onAddAnnotation={handleAddAnnotation}
+        profileOverride={drawerProfileOverride}
+        extraContextItems={drawerDetail ? buildPrefeituraPatientExtraContext(drawerDetail) : []}
+        medicalRecordId={drawerDetail?.municipalRecordId ?? drawerUser?.municipalRecordId ?? null}
       />
     </>
   )

@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import { ProfissionalEscalaClaimModal } from '../components/profissional/escala/ProfissionalEscalaClaimModal'
+import { ProfissionalEscalaCancelModal } from '../components/profissional/escala/ProfissionalEscalaCancelModal'
 import { ProfissionalEscalaFiltersBar } from '../components/profissional/escala/ProfissionalEscalaFiltersBar'
+import {
+  PROFISSIONAL_ESCALA_FILTERS_TRIGGER_ID,
+  ProfissionalEscalaFiltersMegamenu,
+} from '../components/profissional/escala/ProfissionalEscalaFiltersMegamenu'
 import { ProfissionalEscalaKpiRow } from '../components/profissional/escala/ProfissionalEscalaKpiRow'
 import { ProfissionalEscalaShiftsList } from '../components/profissional/escala/ProfissionalEscalaShiftsList'
 import { ProfissionalEscalaSidebarPanel } from '../components/profissional/escala/ProfissionalEscalaSidebarPanel'
-import { ProfissionalEscalaStatusBar } from '../components/profissional/escala/ProfissionalEscalaStatusBar'
 import {
   profissionalEscalaFiltersSlotClass,
   profissionalEscalaKpiSlotClass,
@@ -14,9 +18,9 @@ import {
   profissionalEscalaShiftsSlotClass,
   profissionalEscalaSidebarColumnClass,
   profissionalEscalaSidebarPanelSlotClass,
-  profissionalEscalaStatusSlotClass,
 } from '../components/profissional/escala/profissionalEscalaPageLayout'
 import { ProfissionalOnboardingTour } from '../components/profissional/onboarding/ProfissionalOnboardingTour'
+import { ProfissionalTourInviteModal } from '../components/profissional/onboarding/ProfissionalTourInviteModal'
 import { ProfissionalPageHeader } from '../components/profissional/ProfissionalPageHeader'
 import {
   dashboardPageFillScrollAreaClass,
@@ -27,32 +31,30 @@ import {
 import { Toast, type ToastVariant } from '../components/ui/Toast'
 import {
   profissionalEscalaClaimTourStepIds,
-  profissionalEscalaTourFirstVisitBody,
   PROFISSIONAL_ESCALA_TOUR_DEMO_SHIFT_ID,
   type ProfissionalEscalaTourStep,
 } from '../config/profissionalEscalaTour'
+import { profissionalTourInviteMeta } from '../config/profissionalTourInvite'
 import { findProfissionalNavByPathname } from '../config/profissionalSidebarNav'
-import {
-  getProfissionalEscalaDisponivelInitial,
-  profissionalEscalaLoggedSpecialty,
-  profissionalEscalaMonthlyStats,
-} from '../data/profissionalEscalaDisponivelMock'
-import { claimEscalaShift, subscribeEscalaShifts, getEscalaShifts } from '../data/escalaSharedStore'
 import type { ProfissionalEscalaDisponivel } from '../types/profissionalEscalaDisponivel'
-import { profissionalLoggedProfile } from '../data/profissionalPerfilMock'
-import { adminShiftToProfissionalDisponivel } from '../utils/escala/adminEscalaToProfissional'
 import type { ProfissionalEscalaFilters } from '../types/profissionalEscalaDisponivel'
 import {
   averageShiftAmountCents,
   countClaimedThisMonth,
   countShiftsThisWeek,
   countShiftsToday,
+  countActiveProfissionalEscalaFilters,
   defaultProfissionalEscalaFilters,
   filterProfissionalEscalaShifts,
 } from '../utils/profissional/filterProfissionalEscalaDisponivel'
 import { formatProfissionalCurrency } from '../utils/profissional/formatProfissionalCurrency'
 import { buildProfissionalEscalaKpiCards } from '../utils/profissional/profissionalEscalaKpiCards'
 import { useProfissionalEscalaTour } from '../hooks/useProfissionalEscalaTour'
+import { useProfissionalEscalaPage } from '../hooks/useProfissionalEscalaPage'
+import { resolveProfissionalEscalaTourShifts } from '../utils/profissional/profissionalTourDemoFallbacks'
+import { isProfissionalEscalaApiError } from '../lib/services/profissional/escala'
+import { ProfissionalEscalaPageSkeleton } from '../components/profissional/skeletons/ProfissionalEscalaPageSkeleton'
+import { shouldShowPortalPageLoadingBlock } from '../utils/portal/portalPageLoading'
 
 const fallbackMeta = {
   title: 'Plantões disponíveis',
@@ -63,8 +65,11 @@ const fallbackMeta = {
 const LIST_TOUR_STEP_IDS = new Set(['welcome', 'filters', 'shifts-list', 'city-tooltip', 'claim-btn'])
 
 function findTourDemoShift(shifts: ProfissionalEscalaDisponivel[]) {
-  return shifts.find(
-    (shift) => shift.id === PROFISSIONAL_ESCALA_TOUR_DEMO_SHIFT_ID && shift.status === 'disponivel',
+  return (
+    shifts.find(
+      (shift) =>
+        shift.id === PROFISSIONAL_ESCALA_TOUR_DEMO_SHIFT_ID && shift.status === 'disponivel',
+    ) ?? shifts.find((shift) => shift.status === 'disponivel')
   )
 }
 
@@ -76,64 +81,81 @@ export function ProfissionalEscalaPage() {
   const tourActiveRef = useRef(false)
   const tourStepIdRef = useRef<string>('')
 
-  const [shifts, setShifts] = useState<ProfissionalEscalaDisponivel[]>(() =>
-    getProfissionalEscalaDisponivelInitial(),
+  const [draftFilters, setDraftFilters] = useState<ProfissionalEscalaFilters>(() =>
+    defaultProfissionalEscalaFilters(''),
+  )
+  const [appliedFilters, setAppliedFilters] = useState<ProfissionalEscalaFilters>(() =>
+    defaultProfissionalEscalaFilters(''),
+  )
+  const escalaDateFilters = useMemo(
+    () => ({
+      dateFrom: appliedFilters.dateFrom,
+      dateTo: appliedFilters.dateTo,
+    }),
+    [appliedFilters.dateFrom, appliedFilters.dateTo],
+  )
+
+  const {
+    user,
+    profileSpecialty,
+    availableShifts,
+    reservedShifts,
+    allShiftsForKpi,
+    summary,
+    isLoading,
+    loadError,
+    isClaiming,
+    isCancelling,
+    claimShift,
+    cancelShift,
+  } = useProfissionalEscalaPage(escalaDateFilters)
+
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [claimTarget, setClaimTarget] = useState<ProfissionalEscalaDisponivel | null>(null)
+  const [cancelTarget, setCancelTarget] = useState<ProfissionalEscalaDisponivel | null>(null)
+  const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
+
+  useEffect(() => {
+    if (!profileSpecialty) return
+    const defaults = defaultProfissionalEscalaFilters(profileSpecialty)
+    setDraftFilters(defaults)
+    setAppliedFilters(defaults)
+  }, [profileSpecialty])
+
+  const activeFilterCount = useMemo(
+    () => countActiveProfissionalEscalaFilters(appliedFilters, profileSpecialty),
+    [appliedFilters, profileSpecialty],
   )
 
   useEffect(() => {
-    const unsubscribe = subscribeEscalaShifts(() => {
-      setShifts(getProfissionalEscalaDisponivelInitial())
-    })
-    return () => {
-      unsubscribe()
+    if (!filtersOpen) return
+
+    function handlePointerDown(event: MouseEvent) {
+      const target = event.target as Node
+      const trigger = document.getElementById(PROFISSIONAL_ESCALA_FILTERS_TRIGGER_ID)
+      const panel = document.getElementById('profissional-escala-filters-megamenu')
+      if (trigger?.contains(target) || panel?.contains(target)) return
+      setFiltersOpen(false)
+      setDraftFilters(appliedFilters)
     }
-  }, [])
 
-  const [draftFilters, setDraftFilters] = useState<ProfissionalEscalaFilters>(() =>
-    defaultProfissionalEscalaFilters(profissionalEscalaLoggedSpecialty),
-  )
-  const [appliedFilters, setAppliedFilters] = useState<ProfissionalEscalaFilters>(() =>
-    defaultProfissionalEscalaFilters(profissionalEscalaLoggedSpecialty),
-  )
-  const [claimTarget, setClaimTarget] = useState<ProfissionalEscalaDisponivel | null>(null)
-  const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
-
-  const filteredShifts = useMemo(
-    () =>
-      filterProfissionalEscalaShifts(shifts, appliedFilters, {
-        onlyDisponivel: true,
-      }),
-    [shifts, appliedFilters],
-  )
-
-  const reservedShifts = useMemo(() => {
-    return getEscalaShifts()
-      .map((adminShift) =>
-        adminShiftToProfissionalDisponivel(adminShift, {
-          forDoctorId: profissionalLoggedProfile.id,
-        }),
-      )
-      .filter(
-        (shift): shift is ProfissionalEscalaDisponivel =>
-          shift !== null && shift.status === 'reservado_mim',
-      )
-      .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
-  }, [shifts])
+    document.addEventListener('mousedown', handlePointerDown)
+    return () => document.removeEventListener('mousedown', handlePointerDown)
+  }, [appliedFilters, filtersOpen])
 
   const kpiCards = useMemo(() => {
-    const openAll = shifts.filter((s) => s.status === 'disponivel')
+    const openAll = availableShifts.filter((s) => s.status === 'disponivel')
     const avg = averageShiftAmountCents(openAll)
-    const claimedMonth =
-      countClaimedThisMonth(shifts) + profissionalEscalaMonthlyStats.claimedCount
+    const claimedMonth = summary?.claimedThisMonth ?? countClaimedThisMonth(allShiftsForKpi)
 
     return buildProfissionalEscalaKpiCards({
-      todayCount: countShiftsToday(openAll, profissionalEscalaLoggedSpecialty),
-      weekCount: countShiftsThisWeek(openAll, profissionalEscalaLoggedSpecialty),
+      todayCount: countShiftsToday(openAll, profileSpecialty),
+      weekCount: countShiftsThisWeek(openAll, profileSpecialty),
       avgAmountFormatted: formatProfissionalCurrency(avg),
       claimedMonth,
-      specialty: profissionalEscalaLoggedSpecialty,
+      specialty: profileSpecialty,
     })
-  }, [shifts])
+  }, [allShiftsForKpi, availableShifts, profileSpecialty, summary?.claimedThisMonth])
 
   const showToast = useCallback((message: string, variant: ToastVariant = 'success') => {
     setToast(null)
@@ -145,19 +167,47 @@ export function ProfissionalEscalaPage() {
   }, [draftFilters])
 
   const handleClear = useCallback(() => {
-    const defaults = defaultProfissionalEscalaFilters(profissionalEscalaLoggedSpecialty)
+    const defaults = defaultProfissionalEscalaFilters(profileSpecialty)
     setDraftFilters(defaults)
     setAppliedFilters(defaults)
-  }, [])
+    setFiltersOpen(false)
+  }, [profileSpecialty])
 
   const openDemoClaimModal = useCallback(() => {
-    const demoShift = findTourDemoShift(shifts)
+    const source = resolveProfissionalEscalaTourShifts(availableShifts, tourActiveRef.current)
+    const demoShift = findTourDemoShift(source)
     if (demoShift) setClaimTarget(demoShift)
-  }, [shifts])
+  }, [availableShifts])
 
   const closeClaimModal = useCallback(() => {
     setClaimTarget(null)
   }, [])
+
+  const closeCancelModal = useCallback(() => {
+    setCancelTarget(null)
+  }, [])
+
+  const handleCancelRequest = useCallback((shift: ProfissionalEscalaDisponivel) => {
+    setCancelTarget(shift)
+  }, [])
+
+  const handleCancelConfirm = useCallback(async () => {
+    if (!cancelTarget) return
+
+    try {
+      const ok = await cancelShift(cancelTarget)
+      setCancelTarget(null)
+      if (ok) {
+        showToast('Reserva cancelada. O plantão voltou para a escala.')
+      }
+    } catch (error) {
+      setCancelTarget(null)
+      const message = isProfissionalEscalaApiError(error)
+        ? error.message
+        : 'Não foi possível cancelar este plantão.'
+      showToast(message, 'error')
+    }
+  }, [cancelShift, cancelTarget, showToast])
 
   const handleTourStepActive = useCallback(
     (step: ProfissionalEscalaTourStep) => {
@@ -181,7 +231,6 @@ export function ProfissionalEscalaPage() {
         step.id === 'sidebar' ||
         step.id === 'how-it-works' ||
         step.id === 'reservations' ||
-        step.id === 'quick-links' ||
         step.id === 'status-bar' ||
         step.id === 'done'
       ) {
@@ -217,6 +266,19 @@ export function ProfissionalEscalaPage() {
   tourActiveRef.current = tour.active
   tourStepIdRef.current = tour.step.id
 
+  const displayAvailableShifts = useMemo(
+    () => resolveProfissionalEscalaTourShifts(availableShifts, tour.active),
+    [availableShifts, tour.active],
+  )
+
+  const displayFilteredShifts = useMemo(
+    () =>
+      filterProfissionalEscalaShifts(displayAvailableShifts, appliedFilters, {
+        onlyDisponivel: true,
+      }),
+    [appliedFilters, displayAvailableShifts],
+  )
+
   useEffect(() => {
     if (tour.active) return
     closeClaimModal()
@@ -230,7 +292,7 @@ export function ProfissionalEscalaPage() {
     setClaimTarget(shift)
   }, [])
 
-  const handleClaimConfirm = useCallback(() => {
+  const handleClaimConfirm = useCallback(async () => {
     if (!claimTarget) return
 
     if (tourActiveRef.current && tourStepIdRef.current === 'claim-modal') {
@@ -238,18 +300,33 @@ export function ProfissionalEscalaPage() {
       return
     }
 
-    const ok = claimEscalaShift(claimTarget.id)
-    setClaimTarget(null)
-    if (ok) {
-      showToast('Plantão reservado com sucesso. Confira na sua Agenda.')
-    } else {
-      showToast('Não foi possível reservar este plantão. Tente outro.', 'error')
+    try {
+      const ok = await claimShift(claimTarget.id)
+      setClaimTarget(null)
+      if (ok) {
+        showToast('Plantão reservado com sucesso. Confira na sua Agenda.')
+      }
+    } catch (error) {
+      setClaimTarget(null)
+      const message = isProfissionalEscalaApiError(error)
+        ? error.message
+        : 'Não foi possível reservar este plantão. Tente outro.'
+      showToast(message, 'error')
     }
-  }, [claimTarget, closeClaimModal, showToast])
+  }, [claimShift, claimTarget, closeClaimModal, showToast])
+
+  const showLoadingBlock = shouldShowPortalPageLoadingBlock(
+    isLoading,
+    availableShifts.length > 0 || reservedShifts.length > 0,
+  )
 
   return (
     <>
-      <div className={dashboardPageShellClass} aria-label={meta.title}>
+      <div
+        className={dashboardPageShellClass}
+        aria-label={meta.title}
+        aria-busy={showLoadingBlock}
+      >
         <div className={dashboardPageHeaderWrapClass}>
           <ProfissionalPageHeader
             title={meta.title}
@@ -268,7 +345,32 @@ export function ProfissionalEscalaPage() {
           />
         </div>
 
+        {loadError ? (
+          <div className="mx-4 mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {loadError}
+          </div>
+        ) : null}
+
         <div className={dashboardPageFillScrollAreaClass}>
+          {showLoadingBlock ? (
+            <div
+              className={[
+                profissionalEscalaPageGridClass,
+                dashboardPageScrollPaddingClass,
+                'mt-4 flex-1 min-h-0 pb-5',
+              ].join(' ')}
+            >
+              <ProfissionalEscalaPageSkeleton
+                filtersSlotClass={profissionalEscalaFiltersSlotClass}
+                shiftsSlotClass={profissionalEscalaShiftsSlotClass}
+                kpiSlotClass={profissionalEscalaKpiSlotClass}
+                sidebarPanelSlotClass={profissionalEscalaSidebarPanelSlotClass}
+                mainColumnClass={profissionalEscalaMainColumnClass}
+                sidebarColumnClass={profissionalEscalaSidebarColumnClass}
+                pageGridClass="contents"
+              />
+            </div>
+          ) : (
           <div
             className={[
               profissionalEscalaPageGridClass,
@@ -278,17 +380,33 @@ export function ProfissionalEscalaPage() {
           >
             <div className={profissionalEscalaMainColumnClass}>
               <div className={profissionalEscalaFiltersSlotClass}>
+                {filtersOpen ? (
+                  <ProfissionalEscalaFiltersMegamenu
+                    open={filtersOpen}
+                    filters={draftFilters}
+                    onChange={setDraftFilters}
+                    onApply={() => {
+                      handleSearch()
+                      setFiltersOpen(false)
+                    }}
+                    onCancel={() => {
+                      setDraftFilters(appliedFilters)
+                      setFiltersOpen(false)
+                    }}
+                    onClear={handleClear}
+                  />
+                ) : null}
                 <ProfissionalEscalaFiltersBar
-                  draft={draftFilters}
-                  onDraftChange={setDraftFilters}
+                  filtersOpen={filtersOpen}
+                  activeFilterCount={activeFilterCount}
+                  onToggleFilters={() => setFiltersOpen((open) => !open)}
                   onSearch={handleSearch}
-                  onClear={handleClear}
                 />
               </div>
 
               <div className={profissionalEscalaShiftsSlotClass}>
                 <ProfissionalEscalaShiftsList
-                  shifts={filteredShifts}
+                  shifts={displayFilteredShifts}
                   onClaim={handleClaimRequest}
                   tourHighlightCity={tourHighlightCity}
                   tourSuppressCityTooltip={tourSuppressCityTooltip}
@@ -303,35 +421,47 @@ export function ProfissionalEscalaPage() {
 
               <div className={profissionalEscalaSidebarPanelSlotClass}>
                 <ProfissionalEscalaSidebarPanel
-                  profileSpecialty={profissionalEscalaLoggedSpecialty}
+                  profileSpecialty={profileSpecialty}
                   reservedShifts={reservedShifts}
+                  userName={user?.nome ?? ''}
+                  summary={summary}
+                  onCancelRequest={handleCancelRequest}
                 />
               </div>
             </div>
-
-            <div className={profissionalEscalaStatusSlotClass}>
-              <ProfissionalEscalaStatusBar />
-            </div>
           </div>
+          )}
         </div>
       </div>
 
       <ProfissionalEscalaClaimModal
         open={claimTarget !== null}
         shift={claimTarget}
-        onConfirm={handleClaimConfirm}
+        onConfirm={() => void handleClaimConfirm()}
         onCancel={closeClaimModal}
         tourLockClose={tourLockClaimModal}
+        isSubmitting={isClaiming}
+      />
+
+      <ProfissionalEscalaCancelModal
+        open={cancelTarget !== null}
+        shift={cancelTarget}
+        onConfirm={() => void handleCancelConfirm()}
+        onCancel={closeCancelModal}
+        isSubmitting={isCancelling}
+      />
+
+      <ProfissionalTourInviteModal
+        open={tour.inviteOpen}
+        {...profissionalTourInviteMeta.escala}
+        onStart={tour.acceptInvite}
+        onDismiss={tour.dismissInvite}
       />
 
       <ProfissionalOnboardingTour
         open={tour.active}
         title={tour.step.title}
-        body={
-          tour.isMandatorySession && tour.step.id === 'welcome'
-            ? profissionalEscalaTourFirstVisitBody
-            : tour.step.body
-        }
+        body={tour.step.body}
         hint={tour.step.hint}
         stepIndex={tour.stepIndex}
         totalSteps={tour.totalSteps}

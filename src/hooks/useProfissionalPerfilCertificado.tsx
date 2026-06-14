@@ -1,43 +1,43 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useProfissionalAuth } from '../contexts/ProfissionalAuthContext'
+import { getProfissionalConselhoConfig } from '../config/profissionalConselhoConfig'
+import {
+  isProfissionalPerfilApiError,
+  uploadProfissionalCertificadoA1,
+  vincularProfissionalCertificadoConselho,
+} from '../lib/services/profissional/perfil'
 import type {
   ProfissionalPerfil,
   ProfissionalPerfilCertificadoDigital,
 } from '../types/profissionalPerfil'
-import { getProfissionalConselhoConfig } from '../config/profissionalConselhoConfig'
-import {
-  simulateProfissionalCertificadoVinculo,
-  type ProfissionalCertificadoVinculoPhase,
-} from '../utils/profissional/simulateProfissionalCertificadoVinculo'
+import type { ProfissionalCertificadoVinculoPhase } from '../utils/profissional/simulateProfissionalCertificadoVinculo'
 
 type UseProfissionalPerfilCertificadoOptions = {
   profile: ProfissionalPerfil
+  onCertificadoChange?: (certificado: ProfissionalPerfilCertificadoDigital) => void
 }
 
-function buildCertificadoConselhoAtivo(
-  profile: ProfissionalPerfil,
-): ProfissionalPerfilCertificadoDigital {
-  const conselho = getProfissionalConselhoConfig(profile.conselhoClasse)
-  const expiresAt = new Date()
-  expiresAt.setFullYear(expiresAt.getFullYear() + 2)
-
-  return {
-    modo: 'conselho_nuvem',
-    status: 'ativo',
-    updatedAt: new Date().toISOString(),
-    expiresAt: expiresAt.toISOString(),
-    emissorDescricao: `${conselho.certificadoNuvemTitulo} · ICP-Brasil · VALID`,
-    arquivoNome: null,
-    titularNome: profile.fullName,
-  }
-}
-
-export function useProfissionalPerfilCertificado({ profile }: UseProfissionalPerfilCertificadoOptions) {
+export function useProfissionalPerfilCertificado({
+  profile,
+  onCertificadoChange,
+}: UseProfissionalPerfilCertificadoOptions) {
+  const { getAccessToken } = useProfissionalAuth()
   const [certificado, setCertificado] = useState(profile.certificadoDigital)
   const [vincularOpen, setVincularOpen] = useState(false)
+  const [isSubmittingA1, setIsSubmittingA1] = useState(false)
+  const [a1Error, setA1Error] = useState<string | null>(null)
 
   useEffect(() => {
     setCertificado(profile.certificadoDigital)
   }, [profile.certificadoDigital])
+
+  const applyCertificado = useCallback(
+    (next: ProfissionalPerfilCertificadoDigital) => {
+      setCertificado(next)
+      onCertificadoChange?.(next)
+    },
+    [onCertificadoChange],
+  )
 
   const openVincularModal = useCallback(() => {
     setVincularOpen(true)
@@ -54,17 +54,50 @@ export function useProfissionalPerfilCertificado({ profile }: UseProfissionalPer
         throw new Error('Certificado em nuvem indisponível para este conselho.')
       }
 
-      await simulateProfissionalCertificadoVinculo(onPhase)
-      setCertificado(buildCertificadoConselhoAtivo(profile))
+      onPhase?.('validating', 20)
+      const token = getAccessToken()
+      if (!token) throw new Error('Sessão expirada.')
+
+      onPhase?.('linking', 60)
+      const result = await vincularProfissionalCertificadoConselho(token)
+      onPhase?.('done', 100)
+      applyCertificado(result.certificadoDigital)
     },
-    [profile],
+    [applyCertificado, getAccessToken, profile.conselhoClasse],
+  )
+
+  const enviarCertificadoA1 = useCallback(
+    async (file: File, password: string) => {
+      setA1Error(null)
+      setIsSubmittingA1(true)
+      try {
+        const token = getAccessToken()
+        if (!token) throw new Error('Sessão expirada.')
+        const result = await uploadProfissionalCertificadoA1(token, file, password)
+        applyCertificado(result.certificadoDigital)
+      } catch (error) {
+        const message = isProfissionalPerfilApiError(error)
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Não foi possível enviar o certificado.'
+        setA1Error(message)
+        throw error
+      } finally {
+        setIsSubmittingA1(false)
+      }
+    },
+    [applyCertificado, getAccessToken],
   )
 
   return {
     certificado,
     vincularOpen,
+    isSubmittingA1,
+    a1Error,
     openVincularModal,
     closeVincularModal,
     vincularCertificadoConselho,
+    enviarCertificadoA1,
   }
 }

@@ -1,3 +1,5 @@
+import { Loader2 } from 'lucide-react'
+
 type AttendanceStepFooterProps = {
   onBack: () => void
   onContinue?: () => void
@@ -69,7 +71,14 @@ export function AttendanceStepFooter({
               : `${buttonSizeClass} border border-gray-200 bg-transparent text-gray-400 hover:border-amber-300 hover:bg-amber-50/50 hover:text-amber-800 disabled:cursor-not-allowed disabled:opacity-50`
           }
         >
-          {continueLabel}
+          {continueLoading ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              {continueLabel}
+            </span>
+          ) : (
+            continueLabel
+          )}
         </button>
       ) : (
         <span aria-hidden className="w-full" />

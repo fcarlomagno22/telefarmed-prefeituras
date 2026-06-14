@@ -1,6 +1,6 @@
 import { CheckCircle2, UserRound, Video, XCircle } from 'lucide-react'
 import type { ReactNode } from 'react'
-import type { RegisteredPatient } from '../../data/unitDashboardMock'
+import type { RegisteredPatient } from '../../types/attendance'
 
 type PatientPanelProps = {
   patient: RegisteredPatient

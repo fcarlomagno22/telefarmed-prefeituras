@@ -1,7 +1,9 @@
 export const PROFISSIONAL_FINANCEIRO_TOUR_STORAGE_KEY = 'telefarmed:profissional-financeiro-tour-v1'
+export const PROFISSIONAL_FINANCEIRO_TOUR_INVITE_STORAGE_KEY =
+  'telefarmed:profissional-financeiro-tour-invite-v1'
 
 /** Competência aberta usada nos passos de fechamento (wizard completo). */
-export const PROFISSIONAL_FINANCEIRO_TOUR_DEMO_COMPETENCE_KEY = '2026-05'
+export const PROFISSIONAL_FINANCEIRO_TOUR_DEMO_COMPETENCE_KEY = '2026-06'
 
 export type ProfissionalFinanceiroTourPlacement = 'top' | 'bottom' | 'left' | 'right' | 'center'
 
@@ -19,8 +21,6 @@ export type ProfissionalFinanceiroTourStep = {
   skipIfMissing?: boolean
 }
 
-export const profissionalFinanceiroTourFirstVisitBody =
-  'Na sua primeira visita, pedimos que conclua este tour — são poucos minutos e ajudam você a acompanhar recebimentos e fechar a competência com segurança. Depois, você pode rever quando quiser pelo botão "Ver tour guiado" no topo da página.'
 
 export const profissionalFinanceiroTourSteps: ProfissionalFinanceiroTourStep[] = [
   {

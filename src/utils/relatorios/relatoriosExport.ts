@@ -90,11 +90,12 @@ function buildPdfHtml(context: RelatoriosExportContext): string {
 
 export function exportRelatoriosPdf(context: RelatoriosExportContext): void {
   const html = buildPdfHtml(context)
-  const popup = window.open('', '_blank', 'noopener,noreferrer,width=900,height=700')
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const popup = window.open(url, '_blank', 'width=900,height=700')
   if (!popup) {
+    URL.revokeObjectURL(url)
     throw new Error('Permita pop-ups neste site para exportar o relatório em PDF.')
   }
-  popup.document.open()
-  popup.document.write(html)
-  popup.document.close()
+  popup.addEventListener('load', () => URL.revokeObjectURL(url), { once: true })
 }

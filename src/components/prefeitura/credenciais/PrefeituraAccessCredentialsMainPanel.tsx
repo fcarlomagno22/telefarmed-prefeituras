@@ -2,17 +2,16 @@ import { Building2, ChevronDown, Search } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import {
   groupPrefeituraCredentialsByUbt,
-  prefeituraCredentialsRaFilterOptions,
   type PrefeituraAccessCredentialUser,
+  type PrefeituraCredentialUbtOption,
   type PrefeituraCredentialsUbtGroup,
 } from '../../../data/prefeituraAccessCredentialsMock'
 import { AccessCredentialActionsPopover } from '../../credenciais/AccessCredentialActionsPopover'
 import { TransferCredentialUbtModal } from '../../credenciais/TransferCredentialUbtModal'
-import { prefeituraCredentialsUbtOptions } from '../../../data/prefeituraAccessCredentialsMock'
 import { AccessLevelBadge, CredentialStatusBadge } from '../../credenciais/accessCredentialBadges'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { Toast } from '../../ui/Toast'
-import type { usePrefeituraAccessCredentialUserDrawer } from '../../../hooks/usePrefeituraAccessCredentialUserDrawer'
+import type { useAdminOperatorUserDrawer } from '../../../hooks/useAdminOperatorUserDrawer'
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
@@ -64,16 +63,24 @@ function filterGroups(
 }
 
 type PrefeituraAccessCredentialsMainPanelProps = {
+  users: PrefeituraAccessCredentialUser[]
+  ubtOptions: PrefeituraCredentialUbtOption[]
+  raFilterOptions: Array<{ value: string; label: string }>
   userDrawer: Pick<
-    ReturnType<typeof usePrefeituraAccessCredentialUserDrawer>,
-    'openView' | 'requestPinAction' | 'users'
+    ReturnType<typeof useAdminOperatorUserDrawer>,
+    'openView' | 'requestPinAction'
   >
+  embedded?: boolean
 }
 
 export function PrefeituraAccessCredentialsMainPanel({
+  users,
+  ubtOptions,
+  raFilterOptions,
   userDrawer,
+  embedded = false,
 }: PrefeituraAccessCredentialsMainPanelProps) {
-  const { openView, requestPinAction, users } = userDrawer
+  const { openView, requestPinAction } = userDrawer
   const [search, setSearch] = useState('')
   const [raFilter, setRaFilter] = useState('')
   const [expandedUbtIds, setExpandedUbtIds] = useState<Set<string>>(new Set())
@@ -146,7 +153,13 @@ export function PrefeituraAccessCredentialsMainPanel({
 
   return (
     <>
-      <section className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
+      <section
+        className={
+          embedded
+            ? 'flex min-h-0 flex-1 flex-col overflow-hidden'
+            : 'flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]'
+        }
+      >
         <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 px-5 py-4 sm:px-6">
           <label className="relative min-w-0 flex-1 sm:max-w-md">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -162,7 +175,7 @@ export function PrefeituraAccessCredentialsMainPanel({
           <CustomSelect
             value={raFilter}
             onChange={setRaFilter}
-            options={[...prefeituraCredentialsRaFilterOptions]}
+            options={raFilterOptions}
             className="w-full py-2 text-sm sm:w-52"
           />
         </div>
@@ -328,7 +341,7 @@ export function PrefeituraAccessCredentialsMainPanel({
       <TransferCredentialUbtModal
         open={transferUser !== null}
         user={transferUser}
-        ubtOptions={prefeituraCredentialsUbtOptions}
+        ubtOptions={ubtOptions}
         onClose={() => setTransferUser(null)}
         onConfirm={confirmTransferUbt}
       />

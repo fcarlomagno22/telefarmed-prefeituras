@@ -1,18 +1,21 @@
 import type { AdminEscalaWeekday } from './buildClosedSchedule'
-
-function parseDateOnly(value: string) {
-  const [year, month, day] = value.split('-').map(Number)
-  return new Date(year, month - 1, day)
-}
+import { getEscalaRangeDaySpan, isSingleDayEscalaPeriod, parseDateOnly } from './dateRange'
 
 export function countScheduleDaysInRange(
   rangeStart: string,
   rangeEnd: string,
   weekdays: AdminEscalaWeekday[],
 ): number {
+  if (isSingleDayEscalaPeriod(rangeStart, rangeEnd)) {
+    return 1
+  }
+
   const start = parseDateOnly(rangeStart)
   const end = parseDateOnly(rangeEnd)
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+  if (!start || !end || end < start) {
+    return 0
+  }
+  if (getEscalaRangeDaySpan(rangeStart, rangeEnd) === 0) {
     return 0
   }
   const weekdaySet = new Set(weekdays)

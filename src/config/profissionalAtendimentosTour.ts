@@ -1,5 +1,7 @@
 export const PROFISSIONAL_ATENDIMENTOS_TOUR_STORAGE_KEY =
   'telefarmed:profissional-atendimentos-tour-v1'
+export const PROFISSIONAL_ATENDIMENTOS_TOUR_INVITE_STORAGE_KEY =
+  'telefarmed:profissional-atendimentos-tour-invite-v1'
 
 /** Registro usado nos passos do drawer (notas, docs, anexos). */
 export const PROFISSIONAL_ATENDIMENTOS_TOUR_DEMO_RECORD_ID = 'pat-003'
@@ -30,8 +32,6 @@ export type ProfissionalAtendimentosTourStep = {
   skipIfMissing?: boolean
 }
 
-export const profissionalAtendimentosTourFirstVisitBody =
-  'Na sua primeira visita, pedimos que conclua este tour — são poucos minutos e ajudam você a revisar consultas passadas com mais clareza. Depois, você pode rever quando quiser pelo botão "Ver tour guiado" no topo da página.'
 
 export const profissionalAtendimentosTourSteps: ProfissionalAtendimentosTourStep[] = [
   {

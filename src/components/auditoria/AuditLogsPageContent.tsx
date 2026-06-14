@@ -12,12 +12,13 @@ import {
 } from '../layout/dashboardPageLayout'
 import { DashboardPageHeader } from '../users/DashboardPageHeader'
 import { DashboardPageHeaderSkeleton } from '../users/DashboardPageHeaderSkeleton'
-import { usePageSkeletonLoading } from '../../hooks/usePageSkeletonLoading'
+import { useAuditLogsPage } from '../../hooks/useAuditLogsPage'
 import {
   defaultAuditLogsAdvancedFilters,
   type AuditLogsAdvancedFilters,
 } from '../../utils/auditLogsAdvancedFilters'
 import type { AuditLogScope } from '../../types/auditLogScope'
+import { FLOATING_POPOVER_Z_INDEX } from '../../config/overlayLayers'
 
 const scopeHeaderCopy: Record<
   AuditLogScope,
@@ -46,7 +47,7 @@ type AuditLogsPageContentProps = {
 }
 
 export function AuditLogsPageContent({ scope }: AuditLogsPageContentProps) {
-  const isLoading = usePageSkeletonLoading(1200)
+  const { dataset, isLoading, error, reload } = useAuditLogsPage(scope)
   const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false)
   const [advancedFilters, setAdvancedFilters] = useState<AuditLogsAdvancedFilters>(
     () => defaultAuditLogsAdvancedFilters(),
@@ -65,11 +66,12 @@ export function AuditLogsPageContent({ scope }: AuditLogsPageContentProps) {
   }, [])
 
   return (
-    <AuditLogsScopeProvider scope={scope}>
+    <AuditLogsScopeProvider scope={scope} dataset={dataset} isLoading={isLoading}>
       {advancedFiltersOpen ? (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-gray-900/30 backdrop-blur-sm transition-[backdrop-filter,background-color] duration-300"
+          className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm transition-[backdrop-filter,background-color] duration-300"
+          style={{ zIndex: FLOATING_POPOVER_Z_INDEX - 2 }}
           aria-label="Fechar filtros avançados"
           onClick={() => setAdvancedFiltersOpen(false)}
         />
@@ -96,6 +98,19 @@ export function AuditLogsPageContent({ scope }: AuditLogsPageContentProps) {
             'relative z-0 mt-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-5 lg:overflow-hidden',
           ].join(' ')}
         >
+          {error ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <p>{error}</p>
+              <button
+                type="button"
+                onClick={() => void reload()}
+                className="mt-2 font-semibold text-red-800 underline"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          ) : null}
+
           {isLoading ? (
             <>
               <AuditLogsOverviewRowSkeleton />

@@ -1,4 +1,4 @@
-import type { AdminDoctor } from '../../../data/adminMedicosMock'
+import type { AdminDoctor } from '../../../types/adminMedicos'
 
 export function formatAdminDoctorContractingEntity(doctor: AdminDoctor) {
   if (doctor.allocation === 'nacional') {

@@ -1,4 +1,4 @@
-import type { PatientContact } from './unitDashboardMock'
+import type { PatientContact } from '../types/attendance'
 
 export type UserProfileEdits = {
   phone: string

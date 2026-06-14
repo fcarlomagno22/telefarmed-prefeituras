@@ -1,4 +1,4 @@
-import type { AdminFechamentoCompetenciaStatus } from '../../../data/adminFinanceiroMock'
+import type { AdminFechamentoCompetenciaStatus } from '../../../types/adminFinanceiro'
 import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
 import {
   ADMIN_FECHAMENTO_STATUS_BADGE_WIDTH,

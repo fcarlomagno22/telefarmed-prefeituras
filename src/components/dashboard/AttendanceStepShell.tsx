@@ -32,8 +32,8 @@ export function AttendanceStepShell({
     : 'flex min-h-0 flex-1 flex-col rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/80 px-5 py-6 sm:px-8 sm:py-7'
 
   const bodyClass = fillAvailable || hideScrollbar
-    ? 'flex min-h-0 flex-1 flex-col overflow-y-auto no-scrollbar'
-    : 'flex min-h-0 flex-1 flex-col overflow-y-auto'
+    ? 'flex min-h-48 flex-1 flex-col overflow-y-auto no-scrollbar'
+    : 'flex min-h-48 flex-1 flex-col overflow-y-auto'
 
   return (
     <article className={articleClass}>

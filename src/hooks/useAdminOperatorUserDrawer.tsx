@@ -18,12 +18,37 @@ import {
   createPortalCredential,
   deactivatePortalCredential,
   deletePortalCredential,
+  fetchPortalCredentialDetail,
   isCredenciaisApiError,
   transferPortalCredentialUbt,
   updatePortalCredential,
   verifyPortalResponsiblePin,
-} from '../lib/api/adminCredenciaisApi'
-import { AdminAuthApiError, verifyAdminAuthorizationPin } from '../lib/api/adminAuthApi'
+} from '../lib/services/admin/credenciais'
+import {
+  activatePrefeituraPortalCredential,
+  createPrefeituraPortalCredential,
+  deactivatePrefeituraPortalCredential,
+  deletePrefeituraPortalCredential,
+  isPrefeituraCredenciaisApiError,
+  transferPrefeituraPortalCredentialUbt,
+  updatePrefeituraPortalCredential,
+} from '../lib/services/prefeitura/credenciais'
+import {
+  activateUbtPortalCredential,
+  createUbtPortalCredential,
+  deactivateUbtPortalCredential,
+  deleteUbtPortalCredential,
+  isUbtCredenciaisApiError,
+  updateUbtPortalCredential,
+  verifyUbtPortalResponsiblePin,
+} from '../lib/services/ubt/credenciais'
+import { isBackendApiEnabled } from '../lib/api/config'
+import { AdminAuthApiError, verifyAdminAuthorizationPin } from '../lib/services/admin/auth'
+import {
+  PrefeituraAuthApiError,
+  verifyPrefeituraAuthorizationPin,
+} from '../lib/services/prefeitura/auth'
+import { UbtAuthApiError } from '../lib/services/ubt/auth'
 
 type PendingPinAction = {
   type: CredentialPinAction
@@ -40,11 +65,15 @@ type ContractingEntityOption = {
 type UseAdminOperatorUserDrawerOptions = {
   defaultScope?: AdminOperatorScope
   skipPasswordOnCreate?: boolean
+  /** Exige CPF no cadastro (operadores UBT — login no terminal). */
+  requireCpfOnCreate?: boolean
   getAccessToken?: () => string | null
   onDataChanged?: () => Promise<void>
   contractingEntityOptionsFromApi?: ContractingEntityOption[]
   /** PIN do admin logado (credenciais) ou do responsável UBT (prefeitura). */
   pinAudience?: 'admin' | 'portal'
+  /** Fonte da API de credenciais — admin, prefeitura ou UBT (escopo JWT). */
+  credenciaisApiSource?: 'admin' | 'prefeitura' | 'ubt'
 }
 
 function syncAdminOperatorRow(
@@ -85,10 +114,12 @@ export function useAdminOperatorUserDrawer(
 ) {
   const defaultScope = options?.defaultScope ?? 'UBT'
   const skipPasswordOnCreate = options?.skipPasswordOnCreate ?? true
+  const requireCpfOnCreate = options?.requireCpfOnCreate ?? false
   const getAccessToken = options?.getAccessToken
   const onDataChanged = options?.onDataChanged
   const pinAudience = options?.pinAudience ?? 'portal'
-  const useApi = Boolean(getAccessToken)
+  const credenciaisApiSource = options?.credenciaisApiSource ?? 'admin'
+  const useApi = isBackendApiEnabled() && Boolean(getAccessToken)
 
   const contractingEntityOptions = useMemo(() => {
     if (options?.contractingEntityOptionsFromApi?.length) {
@@ -146,19 +177,42 @@ export function useAdminOperatorUserDrawer(
     setOpen(true)
   }, [])
 
-  const openView = useCallback((user: AdminOperatorRow) => {
-    setEditingUser(user)
-    setDrawerMode('view')
-    setClosing(false)
-    setOpen(true)
-  }, [])
+  const hydrateDrawerUser = useCallback(
+    async (listUser: AdminOperatorRow, nextMode: 'view' | 'edit' | 'edit_permissions') => {
+      setEditingUser(listUser)
+      setDrawerMode(nextMode)
+      setClosing(false)
+      setOpen(true)
 
-  const openEdit = useCallback((user: AdminOperatorRow) => {
-    setEditingUser(user)
-    setDrawerMode('edit')
-    setClosing(false)
-    setOpen(true)
-  }, [])
+      if (!isBackendApiEnabled() || credenciaisApiSource !== 'admin') return
+
+      const token = getAccessToken?.()
+      if (!token) return
+
+      try {
+        const detail = await fetchPortalCredentialDetail(token, listUser.id)
+        setEditingUser(detail)
+        onRowsChange(rows.map((row) => (row.id === detail.id ? detail : row)))
+      } catch {
+        // Mantém dados da listagem se o detalhe falhar.
+      }
+    },
+    [credenciaisApiSource, getAccessToken, onRowsChange, rows],
+  )
+
+  const openView = useCallback(
+    (user: AdminOperatorRow) => {
+      void hydrateDrawerUser(user, 'view')
+    },
+    [hydrateDrawerUser],
+  )
+
+  const openEdit = useCallback(
+    (user: AdminOperatorRow) => {
+      void hydrateDrawerUser(user, 'edit')
+    },
+    [hydrateDrawerUser],
+  )
 
   const requestPinAction = useCallback(
     (
@@ -196,20 +250,31 @@ export function useAdminOperatorUserDrawer(
     }
 
     if (type === 'edit_permissions') {
-      setEditingUser(user)
-      setDrawerMode('edit_permissions')
-      setClosing(false)
-      setOpen(true)
+      void hydrateDrawerUser(user, 'edit_permissions')
       setToast({ message: 'Permissões liberadas para edição.', variant: 'success' })
       return
     }
 
-    const token = getAccessToken?.()
+    if (useApi) {
+      const token = getAccessToken?.()
+      if (!token) {
+        setToast({
+          message: 'Sessão expirada. Faça login novamente no portal.',
+          variant: 'error',
+        })
+        return
+      }
 
-    if (useApi && token) {
       try {
         if (type === 'transfer_ubt' && transferTargetUbtId) {
-          const saved = await transferPortalCredentialUbt(token, user.id, transferTargetUbtId)
+          if (credenciaisApiSource === 'ubt') {
+            setToast({ message: 'Transferência de UBT não disponível neste portal.', variant: 'error' })
+            return
+          }
+          const saved =
+            credenciaisApiSource === 'prefeitura'
+              ? await transferPrefeituraPortalCredentialUbt(token, user.id, transferTargetUbtId)
+              : await transferPortalCredentialUbt(token, user.id, transferTargetUbtId)
           onRowsChange(rows.map((row) => (row.id === user.id ? saved : row)))
           if (open && editingUser?.id === user.id) setEditingUser(saved)
           setToast({
@@ -217,12 +282,22 @@ export function useAdminOperatorUserDrawer(
             variant: 'success',
           })
         } else if (type === 'deactivate') {
-          const saved = await deactivatePortalCredential(token, user.id)
+          const saved =
+            credenciaisApiSource === 'ubt'
+              ? await deactivateUbtPortalCredential(token, user.id)
+              : credenciaisApiSource === 'prefeitura'
+                ? await deactivatePrefeituraPortalCredential(token, user.id)
+                : await deactivatePortalCredential(token, user.id)
           onRowsChange(rows.map((row) => (row.id === user.id ? saved : row)))
           if (open && editingUser?.id === user.id) setClosing(true)
           setToast({ message: 'Usuário bloqueado com sucesso.', variant: 'success' })
         } else if (type === 'reactivate') {
-          const saved = await activatePortalCredential(token, user.id)
+          const saved =
+            credenciaisApiSource === 'ubt'
+              ? await activateUbtPortalCredential(token, user.id)
+              : credenciaisApiSource === 'prefeitura'
+                ? await activatePrefeituraPortalCredential(token, user.id)
+                : await activatePortalCredential(token, user.id)
           onRowsChange(rows.map((row) => (row.id === user.id ? saved : row)))
           if (open && editingUser?.id === user.id) {
             setEditingUser(saved)
@@ -232,16 +307,31 @@ export function useAdminOperatorUserDrawer(
             variant: 'success',
           })
         } else if (type === 'delete') {
-          await deletePortalCredential(token, user.id)
+          if (credenciaisApiSource === 'ubt') {
+            await deleteUbtPortalCredential(token, user.id)
+          } else if (credenciaisApiSource === 'prefeitura') {
+            await deletePrefeituraPortalCredential(token, user.id)
+          } else {
+            await deletePortalCredential(token, user.id)
+          }
           onRowsChange(rows.filter((row) => row.id !== user.id))
           if (open && editingUser?.id === user.id) setClosing(true)
           setToast({ message: 'Usuário excluído com sucesso.', variant: 'success' })
         }
         await onDataChanged?.()
       } catch (error) {
-        const message = isCredenciaisApiError(error)
-          ? error.message
-          : 'Não foi possível concluir a operação.'
+        const message =
+          credenciaisApiSource === 'ubt'
+            ? isUbtCredenciaisApiError(error)
+              ? error.message
+              : 'Não foi possível concluir a operação.'
+            : credenciaisApiSource === 'prefeitura'
+              ? isPrefeituraCredenciaisApiError(error)
+                ? error.message
+                : 'Não foi possível concluir a operação.'
+              : isCredenciaisApiError(error)
+                ? error.message
+                : 'Não foi possível concluir a operação.'
         setToast({ message, variant: 'error' })
       }
       return
@@ -304,6 +394,7 @@ export function useAdminOperatorUserDrawer(
     pendingPin,
     rows,
     useApi,
+    credenciaisApiSource,
   ])
 
   const handleSave = useCallback(
@@ -311,21 +402,32 @@ export function useAdminOperatorUserDrawer(
       user: AccessCredentialUser,
       meta?: {
         contractingEntityId?: string
+        cpf?: string
         password?: string
         authorizationPin?: string | null
       },
     ) => {
       const existing = rows.find((row) => row.id === user.id)
-      const ubtId = user.ubtId ?? existing?.ubtId
+      const ubtId =
+        user.ubtId ??
+        existing?.ubtId ??
+        (credenciaisApiSource === 'ubt' ? ubtOptions[0]?.value : undefined)
       if (!ubtId) {
         setToast({ message: 'Selecione uma UBT válida para o usuário.', variant: 'error' })
         return
       }
 
       const isResponsible = user.isUbtResponsible ?? isResponsibleUbtRole(user.role)
-      const token = getAccessToken?.()
+      if (useApi) {
+        const token = getAccessToken?.()
+        if (!token) {
+          setToast({
+            message: 'Sessão expirada. Faça login novamente no portal.',
+            variant: 'error',
+          })
+          return
+        }
 
-      if (useApi && token) {
         try {
           const ubtOption = ubtOptions.find((option) => option.value === ubtId)
           const contractingEntityId =
@@ -334,7 +436,7 @@ export function useAdminOperatorUserDrawer(
             ubtOption?.contractingEntityId ??
             contractingEntityOptions[0]?.value
 
-          if (!contractingEntityId) {
+          if (credenciaisApiSource !== 'prefeitura' && credenciaisApiSource !== 'ubt' && !contractingEntityId) {
             setToast({
               message: 'Selecione a entidade contratante do usuário.',
               variant: 'error',
@@ -347,44 +449,107 @@ export function useAdminOperatorUserDrawer(
               setToast({ message: 'Informe a senha de acesso.', variant: 'error' })
               return
             }
+            if (requireCpfOnCreate && defaultScope === 'UBT' && !meta?.cpf) {
+              setToast({ message: 'Informe o CPF do operador.', variant: 'error' })
+              return
+            }
 
-            const saved = await createPortalCredential(token, {
-              scope: defaultScope,
-              name: user.name,
-              email: user.email,
-              role: user.role,
-              accessLevel: user.accessLevel,
-              status: user.status,
-              contractingEntityId,
-              ubtId: defaultScope === 'UBT' ? ubtId : ubtId,
-              isUbtResponsible: isResponsible,
-              pagePermissions: user.pagePermissions,
-              password: meta.password,
-              authorizationPin: meta.authorizationPin ?? undefined,
-            })
+            const saved =
+              credenciaisApiSource === 'ubt'
+                ? await createUbtPortalCredential(token, {
+                    name: user.name,
+                    email: user.email,
+                    cpf: meta.cpf!,
+                    role: user.role,
+                    accessLevel: user.accessLevel,
+                    status: user.status,
+                    pagePermissions: user.pagePermissions,
+                    password: meta.password,
+                  })
+                : credenciaisApiSource === 'prefeitura'
+                  ? await createPrefeituraPortalCredential(token, {
+                    name: user.name,
+                    email: user.email,
+                    cpf: meta.cpf!,
+                    role: user.role,
+                    accessLevel: user.accessLevel,
+                    status: user.status,
+                    ubtId,
+                    isUbtResponsible: isResponsible,
+                    pagePermissions: user.pagePermissions,
+                    password: meta.password,
+                    authorizationPin: meta.authorizationPin ?? undefined,
+                  })
+                : await createPortalCredential(token, {
+                    scope: defaultScope,
+                    name: user.name,
+                    email: user.email,
+                    cpf: meta?.cpf,
+                    role: user.role,
+                    accessLevel: user.accessLevel,
+                    status: user.status,
+                    contractingEntityId,
+                    ubtId: defaultScope === 'UBT' ? ubtId : ubtId,
+                    isUbtResponsible: isResponsible,
+                    pagePermissions: user.pagePermissions,
+                    password: meta.password,
+                    authorizationPin: meta.authorizationPin ?? undefined,
+                  })
 
             onRowsChange(
               demoteOtherResponsibles([...rows, saved], saved.ubtId ?? ubtId, saved.id),
             )
             setClosing(true)
-            setToast({ message: 'Operador cadastrado com sucesso.', variant: 'success' })
+            setToast({
+              message:
+                credenciaisApiSource === 'prefeitura'
+                  ? 'Usuário cadastrado na UBT com sucesso.'
+                  : credenciaisApiSource === 'ubt'
+                    ? 'Operador cadastrado com sucesso.'
+                    : 'Operador cadastrado com sucesso.',
+              variant: 'success',
+            })
             await onDataChanged?.()
             return
           }
 
-          const saved = await updatePortalCredential(token, user.id, {
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            accessLevel: user.accessLevel,
-            status: user.status,
-            contractingEntityId,
-            ubtId,
-            isUbtResponsible: isResponsible,
-            pagePermissions: user.pagePermissions,
-            password: meta?.password,
-            authorizationPin: meta?.authorizationPin,
-          })
+          const saved =
+            credenciaisApiSource === 'ubt'
+              ? await updateUbtPortalCredential(token, user.id, {
+                  name: user.name,
+                  email: user.email,
+                  role: user.role,
+                  accessLevel: user.accessLevel,
+                  status: user.status,
+                  pagePermissions: user.pagePermissions,
+                  password: meta?.password,
+                })
+              : credenciaisApiSource === 'prefeitura'
+                ? await updatePrefeituraPortalCredential(token, user.id, {
+                  name: user.name,
+                  email: user.email,
+                  role: user.role,
+                  accessLevel: user.accessLevel,
+                  status: user.status,
+                  ubtId,
+                  isUbtResponsible: isResponsible,
+                  pagePermissions: user.pagePermissions,
+                  password: meta?.password,
+                  authorizationPin: meta?.authorizationPin,
+                })
+              : await updatePortalCredential(token, user.id, {
+                  name: user.name,
+                  email: user.email,
+                  role: user.role,
+                  accessLevel: user.accessLevel,
+                  status: user.status,
+                  contractingEntityId,
+                  ubtId,
+                  isUbtResponsible: isResponsible,
+                  pagePermissions: user.pagePermissions,
+                  password: meta?.password,
+                  authorizationPin: meta?.authorizationPin,
+                })
 
           onRowsChange(
             demoteOtherResponsibles(
@@ -403,9 +568,18 @@ export function useAdminOperatorUserDrawer(
           })
           await onDataChanged?.()
         } catch (error) {
-          const message = isCredenciaisApiError(error)
-            ? error.message
-            : 'Não foi possível salvar o usuário.'
+          const message =
+            credenciaisApiSource === 'ubt'
+              ? isUbtCredenciaisApiError(error)
+                ? error.message
+                : 'Não foi possível salvar o usuário.'
+              : credenciaisApiSource === 'prefeitura'
+                ? isPrefeituraCredenciaisApiError(error)
+                  ? error.message
+                  : 'Não foi possível salvar o usuário.'
+                : isCredenciaisApiError(error)
+                  ? error.message
+                  : 'Não foi possível salvar o usuário.'
           setToast({ message, variant: 'error' })
         }
         return
@@ -436,7 +610,7 @@ export function useAdminOperatorUserDrawer(
           }
 
           onRowsChange(
-            demoteOtherResponsibles([...rows, newRow], newRow.ubtId, newRow.id),
+            demoteOtherResponsibles([...rows, newRow], newRow.ubtId ?? ubtId, newRow.id),
           )
           setClosing(true)
           setToast({ message: 'Operador cadastrado com sucesso.', variant: 'success' })
@@ -448,7 +622,7 @@ export function useAdminOperatorUserDrawer(
         onRowsChange(
           demoteOtherResponsibles(
             rows.map((row) => (row.id === updated.id ? updated : row)),
-            updated.ubtId,
+            updated.ubtId ?? ubtId,
             updated.id,
           ),
         )
@@ -470,7 +644,9 @@ export function useAdminOperatorUserDrawer(
     },
     [
       contractingEntityOptions,
+      credenciaisApiSource,
       defaultScope,
+      requireCpfOnCreate,
       drawerMode,
       getAccessToken,
       onDataChanged,
@@ -488,7 +664,11 @@ export function useAdminOperatorUserDrawer(
       if (!token) return false
 
       try {
-        if (pinAudience === 'admin') {
+        if (credenciaisApiSource === 'prefeitura') {
+          await verifyPrefeituraAuthorizationPin(token, pin)
+        } else if (credenciaisApiSource === 'ubt') {
+          await verifyUbtPortalResponsiblePin(token, pin)
+        } else if (pinAudience === 'admin') {
           await verifyAdminAuthorizationPin(token, pin)
         } else {
           await verifyPortalResponsiblePin(token, pendingPin.user.id, pin)
@@ -499,10 +679,18 @@ export function useAdminOperatorUserDrawer(
           setToast({ message: error.message, variant: 'error' })
           setPendingPin(null)
         }
+        if (error instanceof PrefeituraAuthApiError && error.code === 'PIN_NOT_CONFIGURED') {
+          setToast({ message: error.message, variant: 'error' })
+          setPendingPin(null)
+        }
+        if (error instanceof UbtAuthApiError && error.code === 'PIN_NOT_CONFIGURED') {
+          setToast({ message: error.message, variant: 'error' })
+          setPendingPin(null)
+        }
         return false
       }
     },
-    [getAccessToken, pendingPin, pinAudience, useApi],
+    [getAccessToken, pendingPin, pinAudience, credenciaisApiSource, useApi],
   )
 
   const dismissToast = useCallback(() => setToast(null), [])
@@ -519,6 +707,7 @@ export function useAdminOperatorUserDrawer(
           contractingEntityOptions,
           ubtOptionsByContractingEntityId,
           skipPasswordOnCreate,
+          requireCpfOnCreate: requireCpfOnCreate && defaultScope === 'UBT',
         }}
         onClose={requestClose}
         onTransitionEnd={handleTransitionEnd}

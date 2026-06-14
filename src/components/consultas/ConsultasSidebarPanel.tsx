@@ -1,15 +1,24 @@
 import { Check, Clock, Stethoscope, X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import {
-  consultasGenderDistribution,
-  consultasSpecialtyDistribution,
-  consultasStatusDistribution,
-  consultasSummary,
-  type ConsultasGenderSlice,
-  type ConsultasStatusSlice,
+import type {
+  ConsultasGenderSlice,
+  ConsultasSpecialtySlice,
+  ConsultasStatusSlice,
+  ConsultasSummary,
 } from '../../data/consultasMock'
+
 import { ConsultasDoctorIllustration } from './ConsultasDoctorIllustration'
+
+type ConsultasSidebarPanelProps = {
+  summary?: ConsultasSummary
+  statusDistribution?: ConsultasStatusSlice[]
+  specialtyDistribution?: ConsultasSpecialtySlice[]
+  genderDistribution?: ConsultasGenderSlice[]
+  isLoading?: boolean
+  illustration?: ReactNode | null
+  summarySubtitle?: string
+}
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
@@ -260,13 +269,13 @@ function GenderVerticalBars({ slices }: { slices: ConsultasGenderSlice[] }) {
   )
 }
 
-function SpecialtyBars() {
+function SpecialtyBars({ slices }: { slices: ConsultasSpecialtySlice[] }) {
   const animate = useChartFillAnimation(140)
-  const maxPercent = Math.max(...consultasSpecialtyDistribution.map((s) => s.percent))
+  const maxPercent = Math.max(...slices.map((s) => s.percent), 1)
 
   return (
     <ul className="space-y-2.5">
-      {consultasSpecialtyDistribution.map((slice, index) => (
+      {slices.map((slice, index) => (
         <li key={slice.label}>
           <div className="mb-1 flex items-center justify-between gap-2 text-xs">
             <span className="font-medium text-gray-600">{slice.label}</span>
@@ -295,48 +304,47 @@ function SpecialtyBars() {
   )
 }
 
-const summaryCards = [
-  {
-    label: 'Total de consultas',
-    value: consultasSummary.total,
-    icon: Stethoscope,
-    iconClass: 'bg-gradient-to-br from-orange-500 to-amber-500 text-white',
-    valueClass:
-      'bg-gradient-to-r from-[var(--brand-primary)] to-[#ff9a3d] bg-clip-text text-transparent',
-  },
-  {
-    label: 'Concluídas',
-    value: consultasSummary.completed,
-    icon: Check,
-    iconClass: 'bg-gradient-to-br from-emerald-500 to-green-600 text-white',
-    valueClass: 'bg-gradient-to-r from-emerald-500 to-teal-600 bg-clip-text text-transparent',
-  },
-  {
-    label: 'Canceladas',
-    value: consultasSummary.cancelled,
-    icon: X,
-    iconClass: 'bg-gradient-to-br from-red-500 to-rose-600 text-white',
-    valueClass: 'bg-gradient-to-r from-red-500 to-rose-600 bg-clip-text text-transparent',
-  },
-  {
-    label: 'Em andamento',
-    value: consultasSummary.inProgress,
-    icon: Clock,
-    iconClass: 'bg-gradient-to-br from-sky-500 to-blue-600 text-white',
-    valueClass: 'bg-gradient-to-r from-sky-500 to-indigo-600 bg-clip-text text-transparent',
-  },
-] as const
-
-type ConsultasSidebarPanelProps = {
-  /** `null` oculta ilustração/Lottie no topo do painel. */
-  illustration?: ReactNode | null
-  summarySubtitle?: string
-}
-
 export function ConsultasSidebarPanel({
+  summary = { total: 0, completed: 0, cancelled: 0, inProgress: 0 },
+  statusDistribution = [],
+  specialtyDistribution = [],
+  genderDistribution = [],
+  isLoading = false,
   illustration = <ConsultasDoctorIllustration />,
   summarySubtitle,
-}: ConsultasSidebarPanelProps = {}) {
+}: ConsultasSidebarPanelProps) {
+  const summaryCards = [
+    {
+      label: 'Total de consultas',
+      value: summary.total,
+      icon: Stethoscope,
+      iconClass: 'bg-gradient-to-br from-orange-500 to-amber-500 text-white',
+      valueClass:
+        'bg-gradient-to-r from-[var(--brand-primary)] to-[#ff9a3d] bg-clip-text text-transparent',
+    },
+    {
+      label: 'Concluídas',
+      value: summary.completed,
+      icon: Check,
+      iconClass: 'bg-gradient-to-br from-emerald-500 to-green-600 text-white',
+      valueClass: 'bg-gradient-to-r from-emerald-500 to-teal-600 bg-clip-text text-transparent',
+    },
+    {
+      label: 'Canceladas',
+      value: summary.cancelled,
+      icon: X,
+      iconClass: 'bg-gradient-to-br from-red-500 to-rose-600 text-white',
+      valueClass: 'bg-gradient-to-r from-red-500 to-rose-600 bg-clip-text text-transparent',
+    },
+    {
+      label: 'Em andamento',
+      value: summary.inProgress,
+      icon: Clock,
+      iconClass: 'bg-gradient-to-br from-sky-500 to-blue-600 text-white',
+      valueClass: 'bg-gradient-to-r from-sky-500 to-indigo-600 bg-clip-text text-transparent',
+    },
+  ] as const
+
   return (
     <aside className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
       {illustration}
@@ -379,7 +387,7 @@ export function ConsultasSidebarPanel({
               Consultas por status
             </h3>
             <div className="mt-3">
-              <StatusDonut slices={consultasStatusDistribution} />
+              <StatusDonut slices={statusDistribution} />
             </div>
           </section>
 
@@ -388,7 +396,7 @@ export function ConsultasSidebarPanel({
               Consultas por especialidade
             </h3>
             <div className="mt-3">
-              <SpecialtyBars />
+              <SpecialtyBars slices={specialtyDistribution} />
             </div>
           </section>
 
@@ -397,7 +405,7 @@ export function ConsultasSidebarPanel({
               Consultas por gênero
             </h3>
             <div className="mt-3">
-              <GenderVerticalBars slices={consultasGenderDistribution} />
+              <GenderVerticalBars slices={genderDistribution} />
             </div>
           </section>
         </div>

@@ -11,6 +11,39 @@ export type AdminEscalaModality = 'tele' | 'hibrido' | 'presencial_ubt'
 
 export type AdminEscalaAssignmentMode = 'assigned' | 'open'
 
+export type EscalaRepasseModalidade = 'plantao_fixo' | 'por_consulta' | 'hibrido'
+
+/** Comportamento quando o profissional não cumpre todos os critérios para pagamento integral. */
+export type EscalaRepasseTratamentoInelegivel =
+  | 'proporcional_consultas'
+  | 'aguardando_analise_manual'
+
+export type EscalaRepasseCriteriosPresenca = {
+  /** Pagamento integral só se online ≥ este % do turno (ex.: 80). */
+  minPercentualOnline: number
+  /** Exigir encerramento formal do plantão na agenda. */
+  exigeEncerramentoFormal: boolean
+  /** Mínimo de consultas concluídas para pagamento integral (≥ N). */
+  minConsultasConcluidas: number
+  /** Aceita turno sem demanda comprovada (zero na fila/agenda) como critério atendido. */
+  aceitaSemDemandaComprovada: boolean
+  /** O que fazer quando não cumpre todos os critérios para pagamento integral. */
+  tratamentoInelegivel: EscalaRepasseTratamentoInelegivel
+}
+
+/** Regra de repasse definida na criação/publicação da escala (campo escala_slots.repasse_regra).
+ *  É a fonte da verdade para auditoria e repasse no financeiro — copiada para cada plantão executado
+ *  e usada por computePlantaoRepasse. Alterações exigem novo slot ou revisão administrativa após publicação.
+ *
+ *  TODO(backend): persistir em escala_slots.repasse_regra no batch save; retornar snapshot na auditoria financeira. */
+export type EscalaRepasseRule = {
+  modalidade: EscalaRepasseModalidade
+  valorPlantaoCentavos: number
+  valorConsultaCentavos: number
+  percentualFixoHibrido?: number
+  criteriosPresenca: EscalaRepasseCriteriosPresenca
+}
+
 export type AdminEscalaFillStatus = 'na' | 'aberto' | 'parcial' | 'lotado'
 
 export type AdminEscalaClaimCapture = {
@@ -22,6 +55,8 @@ export type AdminEscalaClaimCapture = {
 export type AdminEscalaPrefeituraScope = {
   mode: AdminEscalaSelectionMode
   prefeituraIds: string[]
+  /** Contrato operacional por entidade (prefeitura) selecionada. */
+  contratosPorPrefeitura?: Record<string, string>
 }
 
 export type AdminEscalaUbtScope = {
@@ -44,6 +79,8 @@ export type AdminEscalaProgrammingSlot = {
   backupDoctorIds: string[]
   vacancies: number
   amountCents: number
+  /** Regra editável em rascunho — persistida em escala_slots.repasse_regra. */
+  repasseRule: EscalaRepasseRule
   unitName: string
   city: string
   cityUf: string
@@ -54,6 +91,7 @@ export type AdminEscalaProgrammingSlot = {
 export type AdminEscalaShift = {
   id: string
   batchId?: string
+  contratoEntidadeId?: string | null
   assignmentMode: AdminEscalaAssignmentMode
   primaryDoctorId: string
   backupDoctorIds: string[]
@@ -72,6 +110,8 @@ export type AdminEscalaShift = {
   /** Vagas totais publicadas (modo aberto). */
   totalVacancies: number
   amountCents: number
+  /** Cópia imutável de escala_slots.repasse_regra — usada na auditoria financeira. */
+  repasseRule: EscalaRepasseRule
   unitName: string
   city: string
   cityUf: string
@@ -80,4 +120,13 @@ export type AdminEscalaShift = {
   notes: string
   createdAt: string
   updatedAt: string
+}
+
+/** JSON em `escala_slots.repasse_regra` — espelha `escalaRepasseRuleSchema` do backend. */
+export type EscalaRepasseRuleApi = EscalaRepasseRule
+
+/** Campos de repasse em payloads de slot/plantão (admin batch save e leitura). */
+export type EscalaSlotRepasseFieldsApi = {
+  amountCents: number
+  repasseRule: EscalaRepasseRuleApi
 }

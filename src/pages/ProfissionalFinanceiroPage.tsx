@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import {
   ProfissionalFinanceiroPageContent,
@@ -6,6 +6,7 @@ import {
 } from '../components/profissional/financeiro/ProfissionalFinanceiroPageContent'
 import { profissionalFinanceiroBodyClass } from '../components/profissional/financeiro/profissionalFinanceiroPageLayout'
 import { ProfissionalOnboardingTour } from '../components/profissional/onboarding/ProfissionalOnboardingTour'
+import { ProfissionalTourInviteModal } from '../components/profissional/onboarding/ProfissionalTourInviteModal'
 import { ProfissionalPageHeader } from '../components/profissional/ProfissionalPageHeader'
 import {
   dashboardPageFillScrollAreaClass,
@@ -15,19 +16,22 @@ import {
 } from '../components/layout/dashboardPageLayout'
 import {
   profissionalFinanceiroClosureTourStepIds,
-  profissionalFinanceiroTourFirstVisitBody,
   PROFISSIONAL_FINANCEIRO_TOUR_DEMO_COMPETENCE_KEY,
   type ProfissionalFinanceiroTourStep,
 } from '../config/profissionalFinanceiroTour'
+import { profissionalTourInviteMeta } from '../config/profissionalTourInvite'
 import { findProfissionalNavByPathname } from '../config/profissionalSidebarNav'
 import {
-  profissionalFinanceiroAvailableCompetences,
-  profissionalFinanceiroClosuresInitial,
-  profissionalPrestadorEmpresa,
-} from '../data/profissionalFinanceiroMock'
+  readDefaultProfissionalFinanceiroCompetenceKey,
+  useProfissionalFinanceiroPage,
+} from '../hooks/useProfissionalFinanceiroPage'
 import { useProfissionalFinanceiroTour } from '../hooks/useProfissionalFinanceiroTour'
-import type { ProfissionalCompetenceClosure } from '../types/profissionalFinanceiro'
-import { competenceKeyFromDate } from '../utils/profissional/profissionalCompetence'
+import {
+  resolveProfissionalFinanceiroTourMonthShifts,
+  resolveProfissionalFinanceiroTourStats,
+} from '../utils/profissional/profissionalTourDemoFallbacks'
+import { shouldShowPortalPageLoadingBlock } from '../utils/portal/portalPageLoading'
+import { ProfissionalFinanceiroPageSkeleton } from '../components/profissional/skeletons/ProfissionalFinanceiroPageSkeleton'
 
 const fallbackMeta = {
   title: 'Financeiro',
@@ -58,42 +62,39 @@ export function ProfissionalFinanceiroPage() {
   const forceTourStart = searchParams.get('tour') === 'financeiro'
   const contentRef = useRef<ProfissionalFinanceiroPageContentHandle>(null)
 
-  const [competenceKey, setCompetenceKeyState] = useState(() => {
-    const current = competenceKeyFromDate(new Date())
-    const bounds = profissionalFinanceiroAvailableCompetences
-    if (current < bounds[0]) return bounds[0]
-    if (current > bounds[bounds.length - 1]) return bounds[bounds.length - 1]
-    return current
-  })
+  const [competenceKey, setCompetenceKeyState] = useState(
+    readDefaultProfissionalFinanceiroCompetenceKey,
+  )
 
-  const setCompetenceKey = useCallback((key: string) => {
-    const bounds = profissionalFinanceiroAvailableCompetences
-    if (key < bounds[0]) {
-      setCompetenceKeyState(bounds[0])
-      return
-    }
-    if (key > bounds[bounds.length - 1]) {
-      setCompetenceKeyState(bounds[bounds.length - 1])
-      return
-    }
-    setCompetenceKeyState(key)
-  }, [])
+  const financeiro = useProfissionalFinanceiroPage(competenceKey)
 
-  const [closures, setClosures] = useState<ProfissionalCompetenceClosure[]>(
-    profissionalFinanceiroClosuresInitial,
+  useEffect(() => {
+    if (!competenceKey && financeiro.defaultCompetenceKey) {
+      setCompetenceKeyState(financeiro.defaultCompetenceKey)
+    }
+  }, [competenceKey, financeiro.defaultCompetenceKey])
+
+  const setCompetenceKey = useCallback(
+    (key: string) => {
+      const bounds = financeiro.competenceBounds
+      if (bounds.length === 0) {
+        setCompetenceKeyState(key)
+        return
+      }
+      if (key < bounds[0]) {
+        setCompetenceKeyState(bounds[0])
+        return
+      }
+      if (key > bounds[bounds.length - 1]) {
+        setCompetenceKeyState(bounds[bounds.length - 1])
+        return
+      }
+      setCompetenceKeyState(key)
+    },
+    [financeiro.competenceBounds],
   )
 
   const [tourClosureStepOverride, setTourClosureStepOverride] = useState<1 | 2 | 3 | null>(null)
-
-  const handleClosureChange = useCallback((updated: ProfissionalCompetenceClosure) => {
-    setClosures((prev) => {
-      const index = prev.findIndex((c) => c.competenceKey === updated.competenceKey)
-      if (index === -1) return [...prev, updated]
-      const next = [...prev]
-      next[index] = updated
-      return next
-    })
-  }, [])
 
   const openClosureModal = useCallback(() => {
     contentRef.current?.openClosureModal()
@@ -177,9 +178,34 @@ export function ProfissionalFinanceiroPage() {
   const tourLockClosureClose =
     tour.active && profissionalFinanceiroClosureTourStepIds.has(tour.step.id)
 
+  const displayMonthShifts = useMemo(
+    () =>
+      resolveProfissionalFinanceiroTourMonthShifts(
+        financeiro.monthShifts,
+        competenceKey,
+        tour.active,
+      ),
+    [competenceKey, financeiro.monthShifts, tour.active],
+  )
+
+  const displayStats = useMemo(
+    () => resolveProfissionalFinanceiroTourStats(financeiro.stats, displayMonthShifts, tour.active),
+    [displayMonthShifts, financeiro.stats, tour.active],
+  )
+
+  const competenceBounds = financeiro.competenceBounds
+  const canGoPrevious = competenceBounds.length > 0 && competenceKey !== competenceBounds[0]
+  const canGoNext =
+    competenceBounds.length > 0 && competenceKey !== competenceBounds[competenceBounds.length - 1]
+
+  const showLoadingBlock = shouldShowPortalPageLoadingBlock(
+    financeiro.isLoading,
+    financeiro.empresa != null && competenceKey.length > 0,
+  )
+
   return (
     <>
-      <div className={dashboardPageShellClass} aria-label={meta.title}>
+      <div className={dashboardPageShellClass} aria-label={meta.title} aria-busy={showLoadingBlock}>
         <div className={dashboardPageHeaderWrapClass}>
           <ProfissionalPageHeader
             title={meta.title}
@@ -202,29 +228,59 @@ export function ProfissionalFinanceiroPage() {
           <div
             className={[profissionalFinanceiroBodyClass, dashboardPageScrollPaddingClass].join(' ')}
           >
-            <ProfissionalFinanceiroPageContent
-              ref={contentRef}
-              empresa={profissionalPrestadorEmpresa}
-              closures={closures}
-              competenceKey={competenceKey}
-              onCompetenceChange={setCompetenceKey}
-              onClosureChange={handleClosureChange}
-              tourLockClosureClose={tourLockClosureClose}
-              tourClosureStepOverride={tourClosureStepOverride}
-              tourClosureActive={tour.active && tourLockClosureClose}
-            />
+            {financeiro.loadError && !financeiro.isLoading ? (
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                {financeiro.loadError}
+              </div>
+            ) : null}
+
+            {showLoadingBlock ? (
+              <ProfissionalFinanceiroPageSkeleton />
+            ) : (
+              <ProfissionalFinanceiroPageContent
+                ref={contentRef}
+                empresa={financeiro.empresa}
+                closures={financeiro.closures}
+                competenceKey={competenceKey}
+                competenceBounds={competenceBounds}
+                canGoPrevious={canGoPrevious}
+                canGoNext={canGoNext}
+                monthShifts={displayMonthShifts}
+                stats={displayStats}
+                summary={financeiro.summary}
+                forecastRows={financeiro.forecastRows}
+                isDetailLoading={
+                  financeiro.isDetailLoading &&
+                  !(tour.active && displayMonthShifts.length > 0)
+                }
+                onCompetenceChange={setCompetenceKey}
+                onClosureChange={financeiro.handleClosureChange}
+                onSaveDadosPagamento={financeiro.saveDadosPagamento}
+                onSubmitFechamento={(payload) =>
+                  financeiro.submitFechamento(competenceKey, payload)
+                }
+                isSavingPagamento={financeiro.isSavingPagamento}
+                isSavingFechamento={financeiro.isSavingFechamento}
+                tourLockClosureClose={tourLockClosureClose}
+                tourClosureStepOverride={tourClosureStepOverride}
+                tourClosureActive={tour.active && tourLockClosureClose}
+              />
+            )}
           </div>
         </div>
       </div>
 
+      <ProfissionalTourInviteModal
+        open={tour.inviteOpen}
+        {...profissionalTourInviteMeta.financeiro}
+        onStart={tour.acceptInvite}
+        onDismiss={tour.dismissInvite}
+      />
+
       <ProfissionalOnboardingTour
         open={tour.active}
         title={tour.step.title}
-        body={
-          tour.isMandatorySession && tour.step.id === 'welcome'
-            ? profissionalFinanceiroTourFirstVisitBody
-            : tour.step.body
-        }
+        body={tour.step.body}
         hint={tour.step.hint}
         stepIndex={tour.stepIndex}
         totalSteps={tour.totalSteps}

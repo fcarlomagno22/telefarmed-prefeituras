@@ -2,6 +2,10 @@ import type { ReactNode } from 'react'
 import { AlertTriangle, Star } from 'lucide-react'
 import { ProfissionalStarRating } from './ProfissionalStarRating'
 import { profissionalAvaliacoesPanelClass } from './profissionalAvaliacoesUi'
+import {
+  PROFISSIONAL_STAR_RATING_COLORS,
+  type ProfissionalStarLevel,
+} from '../../../utils/profissional/profissionalStarRatingColors'
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
@@ -67,7 +71,12 @@ export function ProfissionalAvaliacaoHeroCard({
             <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--brand-primary)]">
               Sua pontuação
             </p>
-            <ProfissionalStarRating rating={averageRating} size="md" className="mt-1.5" />
+            <ProfissionalStarRating
+              rating={averageRating}
+              size="md"
+              variant="yellowGradient"
+              className="mt-1.5"
+            />
             <p className="mt-2 text-sm leading-snug text-gray-600">
               <span className="font-semibold text-gray-900">
                 {formatNumber(totalReviews)} {reviewLabel(totalReviews)}
@@ -91,13 +100,13 @@ export function ProfissionalAvaliacaoHeroCard({
             label="5 estrelas"
             value={fiveStarCount}
             starsFilled={5}
-            tone="gold"
+            tone="five"
           />
           <HeroStatCell
             label="4 estrelas"
             value={fourStarCount}
             starsFilled={4}
-            tone="gold"
+            tone="four"
           />
           <HeroStatCell
             label="Críticas"
@@ -121,14 +130,19 @@ function HeroStatCell({
   label: string
   value: number
   starsFilled?: number
-  tone?: 'gold' | 'critical' | 'neutral'
+  tone?: 'five' | 'four' | 'critical' | 'neutral'
   icon?: ReactNode
 }) {
   const toneStyles = {
-    gold: {
-      value: 'text-amber-900',
-      ring: 'ring-amber-100/80',
-      bg: 'bg-amber-50/40 hover:bg-amber-50/70',
+    five: {
+      value: 'text-orange-900',
+      ring: 'ring-orange-100/80',
+      bg: 'bg-orange-50/50 hover:bg-orange-50/80',
+    },
+    four: {
+      value: 'text-blue-900',
+      ring: 'ring-blue-100/80',
+      bg: 'bg-blue-50/50 hover:bg-blue-50/80',
     },
     critical: {
       value: 'text-red-800',
@@ -141,6 +155,10 @@ function HeroStatCell({
       bg: 'bg-white/50 hover:bg-white/80',
     },
   }[tone]
+
+  const starLevel = starsFilled as ProfissionalStarLevel | undefined
+  const starClass =
+    starLevel != null ? PROFISSIONAL_STAR_RATING_COLORS[starLevel].starClass : undefined
 
   return (
     <div
@@ -161,7 +179,7 @@ function HeroStatCell({
                   className={[
                     'h-2.5 w-2.5',
                     index < starsFilled
-                      ? 'fill-amber-400 text-amber-500'
+                      ? (starClass ?? 'fill-orange-500 text-orange-500')
                       : 'fill-gray-100 text-gray-200',
                   ].join(' ')}
                 />

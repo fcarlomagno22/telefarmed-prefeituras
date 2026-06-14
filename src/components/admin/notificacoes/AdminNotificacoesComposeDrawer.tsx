@@ -2,6 +2,15 @@ import { Send, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { AdminBroadcast } from '../../../data/adminNotificacoesMock'
+import type {
+  AdminRecipientPrefeitura,
+  AdminRecipientPrefeituraUser,
+  AdminRecipientProfissionaisStats,
+  AdminRecipientProfissional,
+  AdminRecipientUbt,
+  AdminRecipientUbtUser,
+  CreateAdminBroadcastPayload,
+} from '../../../lib/services/admin/notificacoes'
 import { AdminNotificacoesComposeDrawerContent } from './AdminNotificacoesComposeDrawerContent'
 
 type AdminNotificacoesComposeDrawerProps = {
@@ -10,6 +19,16 @@ type AdminNotificacoesComposeDrawerProps = {
   onClose: () => void
   onTransitionEnd: () => void
   onSent: (broadcast: AdminBroadcast) => void
+  sendBroadcast: (payload: CreateAdminBroadcastPayload) => Promise<AdminBroadcast>
+  profissionaisStats: AdminRecipientProfissionaisStats | null
+  profissionais: AdminRecipientProfissional[]
+  prefeituras: AdminRecipientPrefeitura[]
+  ubts: AdminRecipientUbt[]
+  prefeituraUsers: AdminRecipientPrefeituraUser[]
+  ubtUsers: AdminRecipientUbtUser[]
+  recipientsLoading: boolean
+  recipientsError: string | null
+  onRetryRecipients: () => void
 }
 
 export function AdminNotificacoesComposeDrawer({
@@ -18,6 +37,16 @@ export function AdminNotificacoesComposeDrawer({
   onClose,
   onTransitionEnd,
   onSent,
+  sendBroadcast,
+  profissionaisStats,
+  profissionais,
+  prefeituras,
+  ubts,
+  prefeituraUsers,
+  ubtUsers,
+  recipientsLoading,
+  recipientsError,
+  onRetryRecipients,
 }: AdminNotificacoesComposeDrawerProps) {
   const [entered, setEntered] = useState(false)
   const isActive = open || closing
@@ -96,7 +125,7 @@ export function AdminNotificacoesComposeDrawer({
                   Novo comunicado
                 </h2>
                 <p className="mt-0.5 text-sm text-gray-500">
-                  Envie para prefeituras, UBTs ou ambos — uma, várias ou todas.
+                  Envie para prefeituras, UBTs, profissionais ou combine os destinos.
                 </p>
               </div>
             </div>
@@ -113,6 +142,16 @@ export function AdminNotificacoesComposeDrawer({
 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 py-4 sm:px-6 lg:px-8">
           <AdminNotificacoesComposeDrawerContent
+            sendBroadcast={sendBroadcast}
+            profissionaisStats={profissionaisStats}
+            profissionais={profissionais}
+            prefeituras={prefeituras}
+            ubts={ubts}
+            prefeituraUsers={prefeituraUsers}
+            ubtUsers={ubtUsers}
+            recipientsLoading={recipientsLoading}
+            recipientsError={recipientsError}
+            onRetryRecipients={onRetryRecipients}
             onSent={(broadcast) => {
               onSent(broadcast)
               onClose()

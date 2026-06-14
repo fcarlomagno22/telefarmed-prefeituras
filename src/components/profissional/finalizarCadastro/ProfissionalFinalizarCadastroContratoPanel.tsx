@@ -1,5 +1,5 @@
 import { CheckCircle2, FileText, Info } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type {
   ProfissionalFinalizarCadastroEmpresaData,
   ProfissionalFinalizarCadastroProfissionalData,
@@ -15,11 +15,14 @@ type ProfissionalFinalizarCadastroContratoPanelProps = {
   onContractOpened: () => void
   onContractScrolledToEnd: () => void
   onContractAcceptedChange: (accepted: boolean) => void
+  readCardAttentionToken?: number
   errors?: {
     contractScrolledToEnd?: string
     contractAccepted?: string
   }
 }
+
+const READ_CARD_ATTENTION_MS = 2000
 
 export function ProfissionalFinalizarCadastroContratoPanel({
   empresa,
@@ -30,9 +33,19 @@ export function ProfissionalFinalizarCadastroContratoPanel({
   onContractOpened,
   onContractScrolledToEnd,
   onContractAcceptedChange,
+  readCardAttentionToken = 0,
   errors,
 }: ProfissionalFinalizarCadastroContratoPanelProps) {
   const [modalOpen, setModalOpen] = useState(false)
+  const [readCardAttentionActive, setReadCardAttentionActive] = useState(false)
+
+  useEffect(() => {
+    if (readCardAttentionToken <= 0 || contractScrolledToEnd) return
+
+    setReadCardAttentionActive(true)
+    const timer = window.setTimeout(() => setReadCardAttentionActive(false), READ_CARD_ATTENTION_MS)
+    return () => window.clearTimeout(timer)
+  }, [readCardAttentionToken, contractScrolledToEnd])
 
   function openContract() {
     onContractOpened()
@@ -54,10 +67,11 @@ export function ProfissionalFinalizarCadastroContratoPanel({
           type="button"
           onClick={openContract}
           className={[
-            'flex w-full items-start gap-3 rounded-2xl border px-4 py-4 text-left transition',
+            'flex w-full items-start gap-3 rounded-2xl border-2 px-4 py-4 text-left transition',
             contractScrolledToEnd
               ? 'border-emerald-200 bg-emerald-50/70 hover:border-emerald-300'
               : 'border-gray-200 bg-white hover:border-[var(--brand-primary)]/30 hover:bg-[var(--brand-primary-light)]/20',
+            readCardAttentionActive ? 'contract-read-card-attention' : '',
           ].join(' ')}
         >
           <span

@@ -1,19 +1,19 @@
 import { forwardRef, useImperativeHandle, useMemo, useState } from 'react'
 import type {
+  ProfissionalBillingShift,
   ProfissionalCompetenceClosure,
   ProfissionalPrestadorEmpresa,
 } from '../../../types/profissionalFinanceiro'
-import {
-  buildProfissionalBillingShifts,
-  filterBillingShiftsByCompetence,
-} from '../../../utils/profissional/buildProfissionalBillingShifts'
-import { computeProfissionalFinanceiroStats } from '../../../utils/profissional/computeProfissionalFinanceiroStats'
+import type {
+  ProfissionalFinanceiroSummary,
+  UpdateProfissionalFinanceiroDadosPagamentoInput,
+} from '../../../types/profissionalFinanceiroApi'
 import {
   addCompetenceMonths,
   formatCompetenceLabel,
   isCurrentCompetence,
 } from '../../../utils/profissional/profissionalCompetence'
-import { profissionalFinanceiroAvailableCompetences } from '../../../data/profissionalFinanceiroMock'
+import type { ProfissionalFinanceiroStats } from '../../../utils/profissional/computeProfissionalFinanceiroStats'
 import { PROFISSIONAL_FINANCEIRO_TOUR_DEMO_COMPETENCE_KEY } from '../../../config/profissionalFinanceiroTour'
 import { ProfissionalFinanceiroClosureModal } from './ProfissionalFinanceiroClosureModal'
 import { ProfissionalFinanceiroForecastSection } from './ProfissionalFinanceiroForecastSection'
@@ -37,12 +37,42 @@ export type ProfissionalFinanceiroPageContentHandle = {
   setClosureTourStep: (step: ClosureTourStep) => void
 }
 
+type ForecastRow = {
+  key: string
+  realizados: number
+  previstos: number
+  total: number
+  qtdConsultas: number
+}
+
 type ProfissionalFinanceiroPageContentProps = {
   empresa: ProfissionalPrestadorEmpresa
   closures: ProfissionalCompetenceClosure[]
   competenceKey: string
+  competenceBounds: string[]
+  canGoPrevious: boolean
+  canGoNext: boolean
+  monthShifts: ProfissionalBillingShift[]
+  stats: ProfissionalFinanceiroStats
+  summary: ProfissionalFinanceiroSummary | null
+  forecastRows: ForecastRow[]
+  isDetailLoading?: boolean
   onCompetenceChange: (key: string) => void
   onClosureChange: (closure: ProfissionalCompetenceClosure) => void
+  onSaveDadosPagamento: (
+    payload: UpdateProfissionalFinanceiroDadosPagamentoInput,
+  ) => Promise<unknown>
+  onSubmitFechamento: (
+    payload: {
+      invoiceFile: File
+      invoiceFileName: string
+      pixKey: string
+      pixKeyType: string
+      onUploadProgress?: (percent: number) => void
+    },
+  ) => Promise<void>
+  isSavingPagamento?: boolean
+  isSavingFechamento?: boolean
   tourLockClosureClose?: boolean
   tourClosureStepOverride?: ClosureTourStep | null
   tourClosureActive?: boolean
@@ -56,28 +86,26 @@ export const ProfissionalFinanceiroPageContent = forwardRef<
     empresa,
     closures,
     competenceKey,
+    canGoPrevious,
+    canGoNext,
+    monthShifts,
+    stats,
+    summary,
+    forecastRows,
+    isDetailLoading = false,
     onCompetenceChange,
     onClosureChange,
+    onSaveDadosPagamento,
+    onSubmitFechamento,
+    isSavingPagamento = false,
+    isSavingFechamento = false,
     tourLockClosureClose = false,
     tourClosureStepOverride = null,
     tourClosureActive = false,
   },
   ref,
 ) {
-  const allShifts = useMemo(() => buildProfissionalBillingShifts(), [])
-  const competenceBounds = profissionalFinanceiroAvailableCompetences
-
   const [closureModalOpen, setClosureModalOpen] = useState(false)
-
-  const monthShifts = useMemo(
-    () => filterBillingShiftsByCompetence(allShifts, competenceKey),
-    [allShifts, competenceKey],
-  )
-
-  const stats = useMemo(
-    () => computeProfissionalFinanceiroStats(monthShifts),
-    [monthShifts],
-  )
 
   const closure = useMemo(
     () =>
@@ -90,8 +118,6 @@ export const ProfissionalFinanceiroPageContent = forwardRef<
 
   const competenceLabel = formatCompetenceLabel(competenceKey)
   const isCurrentMonth = isCurrentCompetence(competenceKey)
-  const canGoPrevious = competenceKey !== competenceBounds[0]
-  const canGoNext = competenceKey !== competenceBounds[competenceBounds.length - 1]
 
   const isClosureLocked =
     closure.status === 'em_analise' ||
@@ -110,20 +136,31 @@ export const ProfissionalFinanceiroPageContent = forwardRef<
     [],
   )
 
-  function handleSubmitClosure(payload: {
+  async function handleSubmitClosure(payload: {
+    invoiceFile: File
     invoiceFileName: string
     pixKey: string
+    pixKeyType: string
+    onUploadProgress?: (percent: number) => void
   }) {
-    if (tourLockClosureClose) return
+    if (tourClosureActive || tourLockClosureClose) {
+      await onSaveDadosPagamento({
+        pixTipo: payload.pixKeyType,
+        pixChave: payload.pixKey,
+      })
 
-    onClosureChange({
-      ...closure,
-      status: 'em_analise',
-      submittedAt: new Date().toISOString(),
-      invoiceFileName: payload.invoiceFileName,
-      pixKeyUsed: payload.pixKey,
-      rejectionReason: undefined,
-    })
+      onClosureChange({
+        ...closure,
+        status: 'em_analise',
+        submittedAt: new Date().toISOString(),
+        invoiceFileName: payload.invoiceFileName,
+        pixKeyUsed: payload.pixKey,
+        rejectionReason: undefined,
+      })
+      return
+    }
+
+    await onSubmitFechamento(payload)
   }
 
   function handleCloseClosureModal() {
@@ -151,11 +188,13 @@ export const ProfissionalFinanceiroPageContent = forwardRef<
           <ProfissionalFinanceiroHeroCard
             competenceLabel={competenceLabel}
             stats={stats}
+            summary={summary}
             isCurrentMonth={isCurrentMonth}
           />
           <div className={profissionalFinanceiroShiftsCellClass}>
             <ProfissionalFinanceiroShiftsPanel
               shifts={monthShifts}
+              isLoading={isDetailLoading}
               closureButtonLabel={closureButtonLabel}
               onOpenClosure={handleOpenClosure}
               tourHighlightClosureBtn={highlightClosureBtn}
@@ -164,11 +203,12 @@ export const ProfissionalFinanceiroPageContent = forwardRef<
         </div>
 
         <div className={profissionalFinanceiroSidebarColumnClass}>
-          <ProfissionalFinanceiroForecastSection />
+          <ProfissionalFinanceiroForecastSection rows={forecastRows} />
           <div className={profissionalFinanceiroHistoryCellClass}>
             <ProfissionalFinanceiroHistorySection
               activeCompetenceKey={competenceKey}
               closures={closures}
+              forecastRows={forecastRows}
               onSelectCompetence={onCompetenceChange}
             />
           </div>
@@ -182,6 +222,7 @@ export const ProfissionalFinanceiroPageContent = forwardRef<
         empresa={empresa}
         stats={stats}
         canSubmit={!isClosureLocked}
+        isSaving={isSavingPagamento || isSavingFechamento}
         onClose={handleCloseClosureModal}
         onSubmit={handleSubmitClosure}
         tourLockClose={tourLockClosureClose}

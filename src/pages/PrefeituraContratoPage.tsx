@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { usePrefeituraAuth } from '../contexts/PrefeituraAuthContext'
 import { usePrefeituraContratoMonthDrawer } from '../hooks/usePrefeituraContratoMonthDrawer'
-import { usePageSkeletonLoading } from '../hooks/usePageSkeletonLoading'
+import { usePrefeituraContratoPage } from '../hooks/usePrefeituraContratoPage'
 import { PrefeituraContratoExpiryBanner } from '../components/prefeitura/contrato/PrefeituraContratoExpiryBanner'
 import { PrefeituraContratoExpiryBannerSkeleton } from '../components/prefeitura/contrato/PrefeituraContratoExpiryBannerSkeleton'
 import { PrefeituraContratoMainPanel } from '../components/prefeitura/contrato/PrefeituraContratoMainPanel'
@@ -13,10 +14,6 @@ import {
   dashboardPageContentStackClass,
   dashboardPageShellClass,
 } from '../components/layout/dashboardPageLayout'
-import {
-  getPrefeituraContratoById,
-  prefeituraContratoDefaultId,
-} from '../data/prefeituraContratoMock'
 import {
   computePrefeituraContratoExpiry,
   getPrefeituraContratoCycleSectionTitle,
@@ -34,22 +31,39 @@ const contratoColumnScrollClass = [
 ].join(' ')
 
 export function PrefeituraContratoPage() {
-  const isLoading = usePageSkeletonLoading(1200)
-  const [selectedContractId, setSelectedContractId] = useState(prefeituraContratoDefaultId)
-  const contract = useMemo(
-    () => getPrefeituraContratoById(selectedContractId),
-    [selectedContractId],
-  )
-  const expiry = useMemo(() => computePrefeituraContratoExpiry(contract.info), [contract.info])
-  const currentUsage = useMemo(() => getPrefeituraContratoCycleUsage(contract), [contract])
-  const cycleSectionTitle = useMemo(
-    () => getPrefeituraContratoCycleSectionTitle(contract),
+  const { getAccessToken } = usePrefeituraAuth()
+  const {
+    contractOptions,
+    selectedContractId,
+    contract,
+    utilizacao,
+    packageUsage,
+    isLoading,
+    isContractLoading,
+    loadError,
+    selectContract,
+  } = usePrefeituraContratoPage()
+
+  const expiry = useMemo(
+    () => (contract ? computePrefeituraContratoExpiry(contract.info) : null),
     [contract],
   )
-  const monthDrawer = usePrefeituraContratoMonthDrawer()
+  const currentUsage = useMemo(() => {
+    if (packageUsage) return packageUsage
+    if (contract) return getPrefeituraContratoCycleUsage(contract, utilizacao)
+    return null
+  }, [contract, packageUsage, utilizacao])
+  const cycleSectionTitle = useMemo(
+    () => (contract ? getPrefeituraContratoCycleSectionTitle(contract) : ''),
+    [contract],
+  )
+  const monthDrawer = usePrefeituraContratoMonthDrawer({ getAccessToken })
+
+  const isPageLoading = isLoading || isContractLoading
+  const showContent = contract && expiry && currentUsage && selectedContractId
 
   const handleSelectContract = (contractId: string) => {
-    setSelectedContractId(contractId)
+    selectContract(contractId)
     monthDrawer.requestClose()
   }
 
@@ -58,10 +72,10 @@ export function PrefeituraContratoPage() {
       <div
         className={[dashboardPageShellClass, 'flex-1 bg-slate-50/80 py-5'].join(' ')}
         aria-label="Gestão de contrato"
-        aria-busy={isLoading}
+        aria-busy={isPageLoading}
       >
         <header className="relative z-30 shrink-0 overflow-visible">
-          {isLoading ? (
+          {isPageLoading && !contract ? (
             <PrefeituraContratoPageHeaderSkeleton />
           ) : (
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -77,13 +91,21 @@ export function PrefeituraContratoPage() {
                   municipal.
                 </p>
               </div>
-              <PrefeituraContratoSelector
-                selectedId={selectedContractId}
-                onSelect={handleSelectContract}
-              />
             </div>
           )}
         </header>
+
+        {loadError ? (
+          <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {loadError}
+          </p>
+        ) : null}
+
+        {!isPageLoading && !loadError && contractOptions.length === 0 ? (
+          <p className="mt-4 rounded-xl border border-gray-200 bg-white px-4 py-6 text-sm text-gray-600">
+            Nenhum contrato cadastrado para este município.
+          </p>
+        ) : null}
 
         <div
           className={[
@@ -104,12 +126,12 @@ export function PrefeituraContratoPage() {
                 'flex min-h-full min-w-0 flex-col pb-4',
               ].join(' ')}
             >
-              {isLoading ? (
+              {isPageLoading && !contract ? (
                 <>
                   <PrefeituraContratoExpiryBannerSkeleton />
                   <PrefeituraContratoMainPanelSkeleton />
                 </>
-              ) : (
+              ) : showContent ? (
                 <>
                   <PrefeituraContratoExpiryBanner expiry={expiry} />
                   <PrefeituraContratoMainPanel
@@ -120,15 +142,25 @@ export function PrefeituraContratoPage() {
                     className="min-h-0 flex-1"
                   />
                 </>
-              )}
+              ) : null}
             </div>
           </div>
 
           <div className={contratoColumnScrollClass}>
-            <div className="flex min-h-full min-w-0 flex-col pb-4">
-              {isLoading ? (
+            <div className="flex min-h-full min-w-0 flex-col gap-3 pb-4">
+              {contractOptions.length > 0 && selectedContractId ? (
+                <div className="relative z-20 shrink-0">
+                  <PrefeituraContratoSelector
+                    options={contractOptions}
+                    selectedId={selectedContractId}
+                    onSelect={handleSelectContract}
+                    variant="sidebar"
+                  />
+                </div>
+              ) : null}
+              {isPageLoading && !contract ? (
                 <PrefeituraContratoSidebarPanelSkeleton />
-              ) : (
+              ) : showContent ? (
                 <PrefeituraContratoSidebarPanel
                   contract={contract.info}
                   expiry={expiry}
@@ -136,7 +168,7 @@ export function PrefeituraContratoPage() {
                   cycleSectionTitle={cycleSectionTitle}
                   usageAnimationKey={contract.id}
                 />
-              )}
+              ) : null}
             </div>
           </div>
         </div>

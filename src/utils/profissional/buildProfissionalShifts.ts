@@ -47,6 +47,7 @@ function mapEscalaShift(
 
   const base: ProfissionalShift = {
     id,
+    plantaoId: shift.id,
     escalaShiftId: shift.id,
     dateKey,
     municipality: '',

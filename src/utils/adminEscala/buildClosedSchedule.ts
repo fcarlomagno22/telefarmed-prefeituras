@@ -1,4 +1,5 @@
 import type { AdminEscalaShift, AdminEscalaShiftStatus } from '../../types/adminEscala'
+import { getEscalaRangeDaySpan, isSingleDayEscalaPeriod, parseDateOnly } from './dateRange'
 
 export type AdminEscalaWeekday = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
@@ -16,19 +17,14 @@ export type BuildClosedScheduleInput = {
   status: AdminEscalaShiftStatus
 }
 
-function parseDateOnly(value: string) {
-  const [year, month, day] = value.split('-').map(Number)
-  return new Date(year, month - 1, day)
+function parseTimeParts(time: string) {
+  const [hours, minutes] = time.split(':').map(Number)
+  return { hours: hours ?? 0, minutes: minutes ?? 0 }
 }
 
 function toDateKey(date: Date) {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
-}
-
-function parseTimeParts(time: string) {
-  const [hours, minutes] = time.split(':').map(Number)
-  return { hours: hours ?? 0, minutes: minutes ?? 0 }
 }
 
 export function countClosedScheduleDays(input: BuildClosedScheduleInput): number {
@@ -38,10 +34,11 @@ export function countClosedScheduleDays(input: BuildClosedScheduleInput): number
 export function buildClosedScheduleShifts(input: BuildClosedScheduleInput): AdminEscalaShift[] {
   const start = parseDateOnly(input.rangeStart)
   const end = parseDateOnly(input.rangeEnd)
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+  if (!start || !end || end < start || getEscalaRangeDaySpan(input.rangeStart, input.rangeEnd) === 0) {
     return []
   }
 
+  const singleDay = isSingleDayEscalaPeriod(input.rangeStart, input.rangeEnd)
   const weekdaySet = new Set(input.weekdays)
   const { hours: startH, minutes: startM } = parseTimeParts(input.dailyStart)
   const { hours: endH, minutes: endM } = parseTimeParts(input.dailyEnd)
@@ -50,7 +47,7 @@ export function buildClosedScheduleShifts(input: BuildClosedScheduleInput): Admi
 
   const cursor = new Date(start)
   while (cursor <= end) {
-    if (weekdaySet.has(cursor.getDay() as AdminEscalaWeekday)) {
+    if (singleDay || weekdaySet.has(cursor.getDay() as AdminEscalaWeekday)) {
       const dayStart = new Date(cursor)
       dayStart.setHours(startH, startM, 0, 0)
       const dayEnd = new Date(cursor)

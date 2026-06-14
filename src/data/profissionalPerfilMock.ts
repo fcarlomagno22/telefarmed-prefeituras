@@ -18,7 +18,7 @@ export const profissionalLoggedProfile: ProfissionalPerfil = {
   id: PROFISSIONAL_LOGGED_DOCTOR_ID,
   fullName: brand.profissionalOperatorName,
   professionalTitle: brand.profissionalOperatorRole.split('·')[0]?.trim() ?? 'Médica',
-  cpf: '123.456.789-01',
+  cpf: '226.522.048-58',
   rg: '42.918.765-3',
   conselhoClasse,
   conselhoRegistro: '123456',

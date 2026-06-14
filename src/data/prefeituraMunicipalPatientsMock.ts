@@ -118,3 +118,5 @@ export const prefeituraMunicipalPatientsPagination = {
   total: prefeituraMunicipalPatientsSummary.totalPatients,
   totalPages: 3508,
 }
+
+export type PrefeituraMunicipalPatientsAbout = typeof prefeituraMunicipalPatientsAbout

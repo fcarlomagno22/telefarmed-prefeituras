@@ -1,10 +1,5 @@
 import { useMemo, useState } from 'react'
-import {
-  agendaToday,
-  getAgendaDayData,
-  getAgendaHistoryBefore,
-  type AgendaDayData,
-} from '../data/agendaMock'
+import type { AgendaHistoryDay } from '../data/agendaMock'
 import {
   addDays,
   formatAgendaDayLabel,
@@ -13,22 +8,27 @@ import {
   toDateInputValue,
 } from '../utils/agendaDate'
 
-export function useAgendaDateNavigation() {
-  const [selectedDate, setSelectedDate] = useState(() => new Date(agendaToday))
+type UseAgendaDateNavigationOptions = {
+  history?: AgendaHistoryDay[]
+}
 
-  const dayData: AgendaDayData = useMemo(
-    () => getAgendaDayData(selectedDate),
-    [selectedDate],
-  )
+export function useAgendaDateNavigation(options: UseAgendaDateNavigationOptions = {}) {
+  const referenceToday = useMemo(() => {
+    const today = new Date()
+    today.setHours(12, 0, 0, 0)
+    return today
+  }, [])
+
+  const [selectedDate, setSelectedDate] = useState(() => new Date(referenceToday))
 
   const dayLabel = useMemo(() => formatAgendaDayLabel(selectedDate), [selectedDate])
 
-  const history = useMemo(() => getAgendaHistoryBefore(selectedDate), [selectedDate])
+  const history = options.history ?? []
 
-  const isToday = isSameDay(selectedDate, agendaToday)
+  const isToday = isSameDay(selectedDate, referenceToday)
 
   function goToToday() {
-    setSelectedDate(new Date(agendaToday))
+    setSelectedDate(new Date(referenceToday))
   }
 
   function goToPreviousDay() {
@@ -50,10 +50,10 @@ export function useAgendaDateNavigation() {
 
   return {
     selectedDate,
-    dayData,
     dayLabel,
     history,
     isToday,
+    referenceToday,
     goToToday,
     goToPreviousDay,
     goToNextDay,

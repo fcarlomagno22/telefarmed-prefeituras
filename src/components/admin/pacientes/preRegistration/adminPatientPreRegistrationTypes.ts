@@ -1,5 +1,5 @@
-import type { AdminPatientContractingEntity } from '../../../../data/adminPacientesMock'
-import type { PatientAgeGroup, PatientRegistration } from '../../../../data/unitDashboardMock'
+import type { AdminPatientContractingEntity } from '../../../../types/adminPacientes'
+import type { PatientAgeGroup, PatientRegistration } from '../../../../types/attendance'
 
 export type AdminPatientPreRegistrationStep =
   | 'contracting_entity'

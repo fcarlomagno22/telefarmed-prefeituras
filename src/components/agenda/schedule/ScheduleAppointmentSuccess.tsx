@@ -1,6 +1,5 @@
 import { CalendarCheck, CheckCircle2 } from 'lucide-react'
 import { formatAgendaDayLabel } from '../../../utils/agendaDate'
-import { getDoctorById } from '../../../data/scheduleDoctorsMock'
 import type { ScheduleAppointmentDraft } from './scheduleAppointmentTypes'
 
 type ScheduleAppointmentSuccessProps = {
@@ -9,7 +8,7 @@ type ScheduleAppointmentSuccessProps = {
 }
 
 export function ScheduleAppointmentSuccess({ draft, onClose }: ScheduleAppointmentSuccessProps) {
-  const doctor = getDoctorById(draft.selectedDoctorId)
+  const doctorName = draft.selectedDoctorName?.trim()
 
   return (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 py-10 text-center">
@@ -39,8 +38,8 @@ export function ScheduleAppointmentSuccess({ draft, onClose }: ScheduleAppointme
                 {draft.selectedTime}
               </span>
             </p>
-            {doctor ? (
-              <p className="mt-1 text-sm text-gray-500">com {doctor.name}</p>
+            {doctorName ? (
+              <p className="mt-1 text-sm text-gray-500">com {doctorName}</p>
             ) : null}
           </div>
         </div>

@@ -1,6 +1,5 @@
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { agendaToday, hasAgendaOnDate } from '../../data/agendaMock'
 import { isSameDay, toDateKey } from '../../utils/agendaDate'
 
 const WEEKDAY_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'] as const
@@ -49,19 +48,39 @@ type AgendaDatePickerProps = {
   selectedDate: Date
   onSelectDate: (date: Date) => void
   referenceToday?: Date
+  hasAppointmentsOnDate?: (date: Date) => boolean
+  onMonthChange?: (year: number, month: number) => void
 }
 
 export function AgendaDatePicker({
   selectedDate,
   onSelectDate,
-  referenceToday = agendaToday,
+  referenceToday,
+  hasAppointmentsOnDate,
+  onMonthChange,
 }: AgendaDatePickerProps) {
+  const todayRef =
+    referenceToday ??
+    (() => {
+      const today = new Date()
+      today.setHours(12, 0, 0, 0)
+      return today
+    })()
   const [open, setOpen] = useState(false)
   const [viewDate, setViewDate] = useState(() => startOfMonth(selectedDate))
   const containerRef = useRef<HTMLDivElement>(null)
+  const onMonthChangeRef = useRef(onMonthChange)
+
+  useEffect(() => {
+    onMonthChangeRef.current = onMonthChange
+  }, [onMonthChange])
 
   const cells = useMemo(() => buildCalendarGrid(viewDate), [viewDate])
   const monthTitle = `${MONTH_LABELS[viewDate.getMonth()]} ${viewDate.getFullYear()}`
+
+  useEffect(() => {
+    onMonthChangeRef.current?.(viewDate.getFullYear(), viewDate.getMonth() + 1)
+  }, [viewDate])
 
   useEffect(() => {
     if (!open) return
@@ -165,8 +184,8 @@ export function AgendaDatePicker({
             <div className="grid grid-cols-7 gap-0.5">
               {cells.map(({ date, inCurrentMonth }) => {
                 const selected = isSameDay(date, selectedDate)
-                const today = isSameDay(date, referenceToday)
-                const hasAgenda = hasAgendaOnDate(date)
+                const today = isSameDay(date, todayRef)
+                const hasAgenda = hasAppointmentsOnDate?.(date) ?? false
 
                 return (
                   <button
@@ -216,7 +235,7 @@ export function AgendaDatePicker({
               </div>
               <button
                 type="button"
-                onClick={() => handleSelectDay(new Date(referenceToday))}
+                onClick={() => handleSelectDay(new Date(todayRef))}
                 className="rounded-lg bg-gray-50 px-2.5 py-1.5 text-xs font-semibold text-[var(--brand-primary)] transition hover:bg-orange-50"
               >
                 Hoje

@@ -1,7 +1,7 @@
 import { CheckCircle2, Clock, Phone, Users } from 'lucide-react'
 import { brand } from '../../config/brand'
 import { FLUXO_CARD_HEIGHT_CLASS } from '../../constants/dashboardCards'
-import { serviceFlow } from '../../data/dashboardMock'
+import type { UbtDashboardFilaResumoItem } from '../../types/ubtDashboard'
 
 const flowIcons = [Users, Clock, CheckCircle2, Phone]
 
@@ -12,7 +12,22 @@ const barColors = {
   red: 'bg-gradient-to-r from-red-300 via-red-500 to-red-700',
 }
 
-export function ServiceFlowCard() {
+type ServiceFlowCardProps = {
+  items: UbtDashboardFilaResumoItem[]
+  isLoading?: boolean
+}
+
+export function ServiceFlowCard({ items, isLoading }: ServiceFlowCardProps) {
+  if (isLoading) {
+    return (
+      <section
+        className={`relative ${FLUXO_CARD_HEIGHT_CLASS} animate-pulse overflow-hidden rounded-2xl border border-gray-200 bg-gray-50`}
+      />
+    )
+  }
+
+  if (items.length === 0) return null
+
   return (
     <section
       className={`relative ${FLUXO_CARD_HEIGHT_CLASS} overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]`}
@@ -22,7 +37,7 @@ export function ServiceFlowCard() {
       </h2>
 
       <ul className="relative z-10 mt-4 w-full max-w-[85%] space-y-4 pr-1 sm:max-w-[88%]">
-        {serviceFlow.map((item, index) => {
+        {items.map((item, index) => {
           const Icon = flowIcons[index] ?? Users
           return (
             <li key={item.label}>

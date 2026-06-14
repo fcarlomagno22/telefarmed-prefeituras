@@ -10,11 +10,13 @@ const FOTO_TOOLTIP =
 type ProfissionalPerfilFotoCardProps = {
   avatarUrl: string
   onAvatarUrlChange: (url: string) => void
+  onSaveFoto?: (previewDataUrl: string) => Promise<string>
 }
 
 export function ProfissionalPerfilFotoCard({
   avatarUrl,
   onAvatarUrlChange,
+  onSaveFoto,
 }: ProfissionalPerfilFotoCardProps) {
   const {
     avatarUrl: displayAvatarUrl,
@@ -22,7 +24,7 @@ export function ProfissionalPerfilFotoCard({
     openAlterarFotoModal,
     closeAlterarFotoModal,
     saveAvatar,
-  } = useProfissionalPerfilAvatar(avatarUrl)
+  } = useProfissionalPerfilAvatar(avatarUrl, { onSaveFoto })
 
   async function handleSave(
     file: File,

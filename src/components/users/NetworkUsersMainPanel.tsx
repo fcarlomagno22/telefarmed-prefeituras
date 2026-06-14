@@ -9,222 +9,129 @@ import {
   UserPlus,
   UsersRound,
 } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { KpiStatCards } from '../ui/KpiStatCards'
-import { Toast } from '../ui/Toast'
 import {
-  networkUsers,
-  networkUsersPagination,
-  networkUsersSummary,
   type NetworkUser,
+  type networkUsersSummary,
 } from '../../data/networkUsersMock'
 import {
   maskCpfForDisplay,
   maskPhoneForDisplay,
-  onlyDigits,
 } from '../../utils/lgpdDisplay'
+import type { useNetworkUserDrawer } from '../../hooks/useNetworkUserDrawer'
 import {
-  buildEditChangeSummary,
-  createActivityId,
-  type ChangeLogEntry,
-  type ContactChannel,
-  type PatientContactLogEntry,
-  type TeamContactRecord,
-} from '../../data/networkUserActivity'
-import {
-  createAnnotationId,
-  type UserAnnotation,
-  type UserProfileEdits,
-} from '../../data/networkUserLocalData'
-import type { PatientContact } from '../../data/unitDashboardMock'
-import { getNetworkUserProfile } from '../../data/networkUserProfiles'
-import { getLoggedOperatorName } from '../../utils/sessionUser'
-import {
-  applyNetworkUsersFilters,
   countActiveNetworkUserFilters,
   defaultNetworkUsersFilters,
-  getAvailableNeighborhoods,
-  getAvailableRegistrationUnits,
   type NetworkUsersFilters,
 } from '../../utils/networkUsersFilters'
-import { EditUnlockModal } from './EditUnlockModal'
-import { LgpdUnlockModal } from './LgpdUnlockModal'
 import { NetworkUsersFiltersMenu } from './NetworkUsersFiltersMenu'
-import { UserDetailDrawer } from './UserDetailDrawer'
+
+type NetworkUsersNetworkUserDrawer = Pick<
+  ReturnType<typeof useNetworkUserDrawer>,
+  | 'sensitiveDataUnlocked'
+  | 'lockSensitiveData'
+  | 'openUnlockModal'
+  | 'openUserWithPacienteDetail'
+  | 'drawerLayer'
+>
+
+type NetworkUsersMainPanelProps = {
+  users: NetworkUser[]
+  summary: typeof networkUsersSummary | null
+  pagination: {
+    page: number
+    pageSize: number
+    total: number
+    totalPages: number
+  }
+  search: string
+  onSearchChange: (value: string) => void
+  filters: NetworkUsersFilters
+  onFiltersChange: (filters: NetworkUsersFilters) => void
+  availableNeighborhoods: string[]
+  availableRegistrationUnits?: string[]
+  onPageChange: (page: number) => void
+  networkUserDrawer: NetworkUsersNetworkUserDrawer
+}
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
 }
 
-const kpiCards = [
-  {
-    label: 'Total de usuários',
-    value: formatNumber(networkUsersSummary.totalUsers),
-    suffix: 'pacientes',
-    icon: UsersRound,
-    iconGradient: 'from-sky-500 via-blue-500 to-indigo-600',
-    iconShadow: 'shadow-[0_8px_20px_rgba(59,130,246,0.35)]',
-    iconRing: 'ring-blue-100/80',
-    topBar: 'from-sky-400 to-blue-500',
-  },
-  {
-    label: 'Usuários novos',
-    value: formatNumber(networkUsersSummary.newUsers),
-    suffix: 'este mês',
-    icon: UserPlus,
-    iconGradient: 'from-orange-500 via-amber-500 to-orange-600',
-    iconShadow: 'shadow-[0_8px_20px_rgba(249,115,22,0.35)]',
-    iconRing: 'ring-orange-100/80',
-    topBar: 'from-orange-400 to-amber-500',
-  },
-  {
-    label: 'Total de atendimentos',
-    value: formatNumber(networkUsersSummary.totalAppointments),
-    suffix: 'consultas',
-    icon: Stethoscope,
-    iconGradient: 'from-violet-500 via-purple-500 to-fuchsia-600',
-    iconShadow: 'shadow-[0_8px_20px_rgba(139,92,246,0.35)]',
-    iconRing: 'ring-violet-100/80',
-    topBar: 'from-violet-400 to-purple-500',
-  },
-  {
-    label: 'Atendidos este mês',
-    value: formatNumber(networkUsersSummary.attendedThisMonth),
-    suffix: 'pacientes',
-    icon: UserCheck,
-    iconGradient: 'from-emerald-500 via-green-500 to-teal-600',
-    iconShadow: 'shadow-[0_8px_20px_rgba(16,185,129,0.35)]',
-    iconRing: 'ring-emerald-100/80',
-    topBar: 'from-emerald-400 to-green-500',
-  },
-] as const
-
-function filterUsers(query: string, users: NetworkUser[]) {
-  const trimmed = query.trim()
-  if (!trimmed) return users
-
-  const normalized = trimmed.toLowerCase()
-  const queryDigits = onlyDigits(trimmed)
-  const isFullCpfSearch = queryDigits.length === 11
-
-  return users.filter((user) => {
-    if (isFullCpfSearch) {
-      return onlyDigits(user.cpf) === queryDigits
-    }
-
-    const haystack =
-      `${user.name} ${user.bairro} ${user.cpf} ${user.phone}`.toLowerCase()
-    if (haystack.includes(normalized)) return true
-
-    if (queryDigits.length > 0) {
-      const digitHaystack = `${onlyDigits(user.cpf)} ${onlyDigits(user.phone)}`
-      return digitHaystack.includes(queryDigits)
-    }
-
-    return false
-  })
+function buildKpiCards(summary: typeof networkUsersSummary) {
+  return [
+    {
+      label: 'Total de usuários',
+      value: formatNumber(summary.totalUsers),
+      suffix: 'pacientes',
+      icon: UsersRound,
+      iconGradient: 'from-sky-500 via-blue-500 to-indigo-600',
+      iconShadow: 'shadow-[0_8px_20px_rgba(59,130,246,0.35)]',
+      iconRing: 'ring-blue-100/80',
+      topBar: 'from-sky-400 to-blue-500',
+    },
+    {
+      label: 'Usuários novos',
+      value: formatNumber(summary.newUsers),
+      suffix: 'este mês',
+      icon: UserPlus,
+      iconGradient: 'from-orange-500 via-amber-500 to-orange-600',
+      iconShadow: 'shadow-[0_8px_20px_rgba(249,115,22,0.35)]',
+      iconRing: 'ring-orange-100/80',
+      topBar: 'from-orange-400 to-amber-500',
+    },
+    {
+      label: 'Total de atendimentos',
+      value: formatNumber(summary.totalAppointments),
+      suffix: 'consultas',
+      icon: Stethoscope,
+      iconGradient: 'from-violet-500 via-purple-500 to-fuchsia-600',
+      iconShadow: 'shadow-[0_8px_20px_rgba(139,92,246,0.35)]',
+      iconRing: 'ring-violet-100/80',
+      topBar: 'from-violet-400 to-purple-500',
+    },
+    {
+      label: 'Atendidos este mês',
+      value: formatNumber(summary.attendedThisMonth),
+      suffix: 'pacientes',
+      icon: UserCheck,
+      iconGradient: 'from-emerald-500 via-green-500 to-teal-600',
+      iconShadow: 'shadow-[0_8px_20px_rgba(16,185,129,0.35)]',
+      iconRing: 'ring-emerald-100/80',
+      topBar: 'from-emerald-400 to-green-500',
+    },
+  ] as const
 }
 
-export function NetworkUsersMainPanel() {
-  const [search, setSearch] = useState('')
-  const [filters, setFilters] = useState<NetworkUsersFilters>(defaultNetworkUsersFilters)
+export function NetworkUsersMainPanel({
+  users,
+  summary,
+  pagination,
+  search,
+  onSearchChange,
+  filters,
+  onFiltersChange,
+  availableNeighborhoods,
+  availableRegistrationUnits = [],
+  onPageChange,
+  networkUserDrawer,
+}: NetworkUsersMainPanelProps) {
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [sensitiveDataUnlocked, setSensitiveDataUnlocked] = useState(false)
-  const [unlockModalOpen, setUnlockModalOpen] = useState(false)
-  const [toast, setToast] = useState<{ message: string } | null>(null)
-  const [drawerUser, setDrawerUser] = useState<NetworkUser | null>(null)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [drawerClosing, setDrawerClosing] = useState(false)
-  const [editModalOpen, setEditModalOpen] = useState(false)
-  const [editSessionKey, setEditSessionKey] = useState(0)
-  const [userEditsMap, setUserEditsMap] = useState<Record<string, UserProfileEdits>>({})
-  const [annotationsMap, setAnnotationsMap] = useState<Record<string, UserAnnotation[]>>({})
-  const [lastReviewedMap, setLastReviewedMap] = useState<Record<string, string>>({})
-  const [changeLogsMap, setChangeLogsMap] = useState<Record<string, ChangeLogEntry[]>>({})
-  const [contactLogsMap, setContactLogsMap] = useState<Record<string, PatientContactLogEntry[]>>({
-    '1': [
-      {
-        id: 'contact-seed-1',
-        at: new Date(Date.now() - 86400000 * 3).toISOString(),
-        channel: 'whatsapp',
-        phone: '(11) 98604-5105',
-        note: 'Confirmação de retorno agendado',
-        authorLabel: getLoggedOperatorName(),
-      },
-    ],
-  })
+  const {
+    sensitiveDataUnlocked,
+    lockSensitiveData,
+    openUnlockModal,
+    openUserWithPacienteDetail,
+    drawerLayer,
+  } = networkUserDrawer
 
-  const loggedOperatorName = getLoggedOperatorName()
-
-  const showSuccessToast = useCallback((message: string) => {
-    setToast(null)
-    requestAnimationFrame(() => setToast({ message }))
-  }, [])
-
-  const dismissToast = useCallback(() => setToast(null), [])
-
-  function openUserDrawer(user: NetworkUser) {
-    setDrawerClosing(false)
-    setDrawerUser(user)
-    setDrawerOpen(true)
-    seedAnnotationsIfNeeded(user)
-  }
-
-  function closeUserDrawer() {
-    setDrawerClosing(true)
-  }
-
-  function handleDrawerTransitionEnd() {
-    if (drawerClosing) {
-      setDrawerOpen(false)
-      setDrawerUser(null)
-      setDrawerClosing(false)
-      setEditSessionKey(0)
-    }
-  }
-
-  const filterContext = useMemo(
-    () => ({
-      userEditsMap,
-      annotationsMap,
-      lastReviewedMap,
-      contactLogsMap,
-      changeLogsMap,
-    }),
-    [userEditsMap, annotationsMap, lastReviewedMap, contactLogsMap, changeLogsMap],
-  )
-
-  const searchedUsers = useMemo(() => filterUsers(search, networkUsers), [search])
-
-  const filteredUsers = useMemo(
-    () => applyNetworkUsersFilters(searchedUsers, filters, filterContext),
-    [searchedUsers, filters, filterContext],
-  )
-
-  const availableNeighborhoods = useMemo(
-    () => getAvailableNeighborhoods(networkUsers),
-    [],
-  )
-
-  const availableRegistrationUnits = useMemo(
-    () => getAvailableRegistrationUnits(networkUsers),
-    [],
-  )
-
+  const kpiCards = summary ? buildKpiCards(summary) : []
   const activeFilterCount = useMemo(() => countActiveNetworkUserFilters(filters), [filters])
 
-  const { page, pageSize } = networkUsersPagination
-  const totalFiltered = filteredUsers.length
+  const { page, pageSize, total: totalFiltered, totalPages } = pagination
   const showingFrom = totalFiltered === 0 ? 0 : (page - 1) * pageSize + 1
   const showingTo = Math.min(page * pageSize, totalFiltered)
-
-  function phoneForUser(user: NetworkUser) {
-    return userEditsMap[user.id]?.phone ?? user.phone
-  }
-
-  function bairroForUser(user: NetworkUser) {
-    return userEditsMap[user.id]?.neighborhood ?? user.bairro
-  }
 
   function displayPhone(phone: string) {
     return sensitiveDataUnlocked ? phone : maskPhoneForDisplay(phone)
@@ -232,114 +139,6 @@ export function NetworkUsersMainPanel() {
 
   function displayCpf(cpf: string) {
     return sensitiveDataUnlocked ? cpf : maskCpfForDisplay(cpf)
-  }
-
-  function appendChangeLog(userId: string, summary: string, details?: string) {
-    const entry: ChangeLogEntry = {
-      id: createActivityId('chg'),
-      at: new Date().toISOString(),
-      authorLabel: loggedOperatorName,
-      summary,
-      details,
-    }
-    setChangeLogsMap((prev) => ({
-      ...prev,
-      [userId]: [entry, ...(prev[userId] ?? [])],
-    }))
-  }
-
-  function handleSaveUserEdits(edits: UserProfileEdits, changedFields: string[]) {
-    if (!drawerUser) return
-    setUserEditsMap((prev) => ({ ...prev, [drawerUser.id]: edits }))
-    setLastReviewedMap((prev) => ({ ...prev, [drawerUser.id]: new Date().toISOString() }))
-    appendChangeLog(drawerUser.id, buildEditChangeSummary(changedFields))
-    showSuccessToast('Alterações salvas com sucesso.')
-  }
-
-  function handleSaveUserContacts(contacts: PatientContact[]) {
-    if (!drawerUser) return
-    const previous = userEditsMap[drawerUser.id]
-    const profile = getNetworkUserProfile(drawerUser)
-    const merged: UserProfileEdits = {
-      phone: previous?.phone ?? drawerUser.phone,
-      email: previous?.email ?? profile.email,
-      zipCode: previous?.zipCode ?? profile.zipCode,
-      street: previous?.street ?? profile.street,
-      number: previous?.number ?? profile.number,
-      complement: previous?.complement ?? profile.complement,
-      neighborhood: previous?.neighborhood ?? profile.neighborhood,
-      city: previous?.city ?? profile.city,
-      state: previous?.state ?? profile.state,
-      guardianName: previous?.guardianName ?? profile.guardianName,
-      guardianCpf: previous?.guardianCpf ?? profile.guardianCpf,
-      contacts,
-    }
-    setUserEditsMap((prev) => ({ ...prev, [drawerUser.id]: merged }))
-    appendChangeLog(drawerUser.id, 'Contatos de emergência atualizados')
-    showSuccessToast('Alterações salvas com sucesso.')
-  }
-
-  function lastTeamContactForUser(userId: string): TeamContactRecord | null {
-    const logs = contactLogsMap[userId] ?? []
-    if (!logs.length) return null
-    const latest = logs[0]
-    return {
-      at: latest.at,
-      channel: latest.channel,
-      note: latest.note,
-      authorLabel: latest.authorLabel,
-    }
-  }
-
-  function handleRegisterContact(channel: ContactChannel, phone: string, note: string) {
-    if (!drawerUser) return
-    const entry: PatientContactLogEntry = {
-      id: createActivityId('contact'),
-      at: new Date().toISOString(),
-      channel,
-      phone,
-      note: note.trim(),
-      authorLabel: loggedOperatorName,
-    }
-    setContactLogsMap((prev) => ({
-      ...prev,
-      [drawerUser.id]: [entry, ...(prev[drawerUser.id] ?? [])],
-    }))
-    showSuccessToast('Contato registrado com sucesso.')
-  }
-
-  function handleAddAnnotation(text: string) {
-    if (!drawerUser) return
-    const annotation: UserAnnotation = {
-      id: createAnnotationId(),
-      text,
-      createdAt: new Date().toISOString(),
-      authorLabel: loggedOperatorName,
-    }
-    setAnnotationsMap((prev) => ({
-      ...prev,
-      [drawerUser.id]: [annotation, ...(prev[drawerUser.id] ?? [])],
-    }))
-    showSuccessToast('Anotação criada com sucesso.')
-  }
-
-  function seedAnnotationsIfNeeded(user: NetworkUser) {
-    const profile = getNetworkUserProfile(user)
-    if (!profile.notes) return
-    setAnnotationsMap((prev) => {
-      if (prev[user.id]?.length) return prev
-      return {
-        ...prev,
-        [user.id]: [
-          {
-            id: createAnnotationId(),
-            text: profile.notes,
-            createdAt: new Date(Date.now() - 86400000 * 7).toISOString(),
-            authorLabel: 'Cadastro inicial',
-          },
-        ],
-      }
-    })
   }
 
   return (
@@ -360,7 +159,7 @@ export function NetworkUsersMainPanel() {
                 <input
                   type="search"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => onSearchChange(e.target.value)}
                   placeholder="Buscar por nome, CPF ou telefone..."
                   className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15"
                 />
@@ -392,15 +191,15 @@ export function NetworkUsersMainPanel() {
                 filters={filters}
                 neighborhoods={availableNeighborhoods}
                 registrationUnits={availableRegistrationUnits}
-                resultCount={filteredUsers.length}
+                resultCount={users.length}
                 onClose={() => setFiltersOpen(false)}
-                onChange={setFilters}
-                onClear={() => setFilters(defaultNetworkUsersFilters)}
+                onChange={onFiltersChange}
+                onClear={() => onFiltersChange(defaultNetworkUsersFilters)}
               />
             </div>
           </div>
 
-          <KpiStatCards items={[...kpiCards]} className="mt-5" />
+          {summary ? <KpiStatCards items={[...kpiCards]} className="mt-5" /> : null}
         </div>
 
         <div className="flex shrink-0 items-center justify-end gap-3 border-b border-gray-200 bg-gray-50/60 px-5 py-2 sm:px-6">
@@ -411,7 +210,7 @@ export function NetworkUsersMainPanel() {
               </span>
               <button
                 type="button"
-                onClick={() => setUnlockModalOpen(true)}
+                onClick={() => openUnlockModal()}
                 className="text-sm font-semibold text-[var(--brand-primary)] underline-offset-2 hover:underline"
               >
                 Ver dados
@@ -424,7 +223,7 @@ export function NetworkUsersMainPanel() {
               </span>
               <button
                 type="button"
-                onClick={() => setSensitiveDataUnlocked(false)}
+                onClick={() => lockSensitiveData()}
                 className="text-sm font-semibold text-gray-600 underline-offset-2 transition hover:text-gray-900 hover:underline"
               >
                 Ocultar dados
@@ -456,14 +255,14 @@ export function NetworkUsersMainPanel() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
-              {filteredUsers.length === 0 ? (
+              {users.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-5 py-12 text-center text-sm text-gray-500 sm:px-6">
                     Nenhum paciente encontrado com os filtros e a busca atuais.
                   </td>
                 </tr>
               ) : null}
-              {filteredUsers.map((user) => (
+              {users.map((user) => (
                 <tr key={user.id} className="align-middle text-sm text-gray-700 hover:bg-gray-50/80">
                   <td className="px-5 py-4 sm:px-6">
                     <div className="flex items-center gap-3">
@@ -488,14 +287,12 @@ export function NetworkUsersMainPanel() {
                             sensitiveDataUnlocked ? 'text-sky-600' : 'text-gray-500'
                           }`}
                         >
-                          {displayPhone(phoneForUser(user))}
+                          {displayPhone(user.phone)}
                         </span>
                       </span>
                     </div>
                   </td>
-                  <td className="px-3 py-4 text-center align-middle text-gray-700">
-                    {bairroForUser(user)}
-                  </td>
+                  <td className="px-3 py-4 text-center align-middle text-gray-700">{user.bairro}</td>
                   <td className="px-3 py-4 text-center align-middle tabular-nums">
                     {displayCpf(user.cpf)}
                   </td>
@@ -515,9 +312,9 @@ export function NetworkUsersMainPanel() {
                   <td className="px-3 py-4 text-center align-middle sm:px-6">
                     <button
                       type="button"
-                      onClick={() => openUserDrawer(user)}
+                      onClick={() => openUserWithPacienteDetail(user.id, user)}
                       className="mx-auto inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition hover:bg-[var(--brand-primary-light)] hover:text-[var(--brand-primary)]"
-                      aria-label={`Ver ${user.name}`}
+                      aria-label={`Ver perfil de ${user.name}`}
                     >
                       <Eye className="h-4 w-4" />
                     </button>
@@ -534,40 +331,29 @@ export function NetworkUsersMainPanel() {
               ? 'Nenhum usuário na lista filtrada'
               : `Mostrando ${showingFrom} a ${showingTo} de ${formatNumber(totalFiltered)} usuário${totalFiltered === 1 ? '' : 's'}`}
             {activeFilterCount > 0 || search.trim()
-              ? ` (de ${formatNumber(networkUsersSummary.totalUsers)} na rede)`
+              ? summary
+                ? ` (de ${formatNumber(summary.totalUsers)} na rede)`
+                : ''
               : ''}
           </p>
           <nav className="flex items-center gap-1" aria-label="Paginação">
             <button
               type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50"
+              disabled={page <= 1}
+              onClick={() => onPageChange(page - 1)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Página anterior"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            {[1, 2, 3].map((pageNumber) => (
-              <button
-                key={pageNumber}
-                type="button"
-                className={`flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-medium ${
-                  pageNumber === page
-                    ? 'border border-[var(--brand-primary)] bg-[var(--brand-primary-light)] text-[var(--brand-primary)]'
-                    : 'border border-transparent text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                {pageNumber}
-              </button>
-            ))}
-            <span className="px-1 text-sm text-gray-400">…</span>
+            <span className="px-2 text-sm text-gray-600">
+              {page} / {totalPages}
+            </span>
             <button
               type="button"
-              className="flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
-            >
-              {networkUsersPagination.totalPages}
-            </button>
-            <button
-              type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50"
+              disabled={page >= totalPages}
+              onClick={() => onPageChange(page + 1)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Próxima página"
             >
               <ChevronRight className="h-4 w-4" />
@@ -576,52 +362,7 @@ export function NetworkUsersMainPanel() {
         </footer>
       </section>
 
-      <LgpdUnlockModal
-        open={unlockModalOpen}
-        onClose={() => setUnlockModalOpen(false)}
-        onSuccess={() => {
-          setSensitiveDataUnlocked(true)
-          showSuccessToast('Dados liberados com sucesso.')
-        }}
-      />
-
-      <EditUnlockModal
-        open={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        onSuccess={() => {
-          setSensitiveDataUnlocked(true)
-          setEditSessionKey((key) => key + 1)
-          showSuccessToast('Edição liberada com sucesso.')
-        }}
-      />
-
-      <Toast
-        message={toast?.message ?? ''}
-        visible={toast !== null}
-        onClose={dismissToast}
-      />
-
-      <UserDetailDrawer
-        user={drawerUser}
-        open={drawerOpen}
-        closing={drawerClosing}
-        sensitiveDataUnlocked={sensitiveDataUnlocked}
-        editSessionKey={editSessionKey}
-        userEdits={drawerUser ? userEditsMap[drawerUser.id] ?? null : null}
-        annotations={drawerUser ? annotationsMap[drawerUser.id] ?? [] : []}
-        onClose={closeUserDrawer}
-        onTransitionEnd={handleDrawerTransitionEnd}
-        onRequestUnlock={() => setUnlockModalOpen(true)}
-        onRequestEditUnlock={() => setEditModalOpen(true)}
-        lastReviewedAt={drawerUser ? lastReviewedMap[drawerUser.id] ?? null : null}
-        contactLogs={drawerUser ? contactLogsMap[drawerUser.id] ?? [] : []}
-        lastTeamContact={drawerUser ? lastTeamContactForUser(drawerUser.id) : null}
-        onSaveEdits={handleSaveUserEdits}
-        onSaveContacts={handleSaveUserContacts}
-        onRegisterContact={handleRegisterContact}
-        onAddAnnotation={handleAddAnnotation}
-      />
+      {drawerLayer}
     </>
   )
 }
-

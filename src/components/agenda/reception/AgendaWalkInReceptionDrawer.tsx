@@ -2,15 +2,16 @@ import { UserPlus, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { DayAppointment } from '../../../data/agendaMock'
-import { registerCompletedPatient } from '../../../data/patientLookup'
+import { useUbtPatientRegistration } from '../../../hooks/useUbtPatientRegistration'
+import { useUbtPatientTerritoryPolicy } from '../../../hooks/useUbtPatientTerritoryPolicy'
+import { useUbtWalkInSpecialtyAvailability } from '../../../hooks/useUbtWalkInSpecialtyAvailability'
 import {
   emptyAttendanceSession,
   emptyPatientRegistration,
   inferAgeGroupFromBirthDate,
   type AttendanceSession,
   type PatientRegistration,
-} from '../../../data/unitDashboardMock'
-import { createWalkInDayAppointment } from '../../../utils/agenda/createWalkInAppointment'
+} from '../../../types/attendance'
 import { AgeGroupSelectionStep } from '../../dashboard/AgeGroupSelectionStep'
 import { CpfLookupStep } from '../../dashboard/CpfLookupStep'
 import { FaceCaptureModal } from '../../dashboard/FaceCaptureModal'
@@ -19,10 +20,11 @@ import { PatientContactsStep } from '../../dashboard/PatientContactsStep'
 import { PatientPhotoStep } from '../../dashboard/PatientPhotoStep'
 import { PatientRegistrationConfirmStep } from '../../dashboard/PatientRegistrationConfirmStep'
 import { PatientRegistrationForm } from '../../dashboard/PatientRegistrationForm'
+import { SpecialtySelectionStep } from '../../dashboard/SpecialtySelectionStep'
+import { WalkInDoctorTimeStep } from './WalkInDoctorTimeStep'
 import { AgendaWalkInReceptionFlowStepper } from './AgendaWalkInReceptionFlowStepper'
 import { AgendaWalkInReceptionSuccess } from './AgendaWalkInReceptionSuccess'
 import type { AgendaWalkInReceptionStep } from './agendaWalkInReceptionTypes'
-import { WalkInSpecialtyAvailabilityStep } from './WalkInSpecialtyAvailabilityStep'
 
 type AgendaWalkInReceptionDrawerProps = {
   open: boolean
@@ -32,6 +34,13 @@ type AgendaWalkInReceptionDrawerProps = {
   onClose: () => void
   onTransitionEnd: () => void
   onCompleted: (appointment: DayAppointment, registration: PatientRegistration) => void
+  onRegisterWalkIn: (payload: {
+    pacienteId: string
+    especialidadeId: string
+    profissionalId: string
+    hora: string
+    telefoneContato?: string
+  }) => Promise<DayAppointment>
 }
 
 export function AgendaWalkInReceptionDrawer({
@@ -42,22 +51,43 @@ export function AgendaWalkInReceptionDrawer({
   onClose,
   onTransitionEnd,
   onCompleted,
+  onRegisterWalkIn,
 }: AgendaWalkInReceptionDrawerProps) {
+  const { lookupByCpf, registerCompletedPatient: persistPatient } = useUbtPatientRegistration()
+  const territoryPolicy = useUbtPatientTerritoryPolicy(open)
   const [entered, setEntered] = useState(false)
   const [step, setStep] = useState<AgendaWalkInReceptionStep>('specialty')
   const [registration, setRegistration] = useState(emptyPatientRegistration)
   const [session, setSession] = useState(emptyAttendanceSession)
+  const [selectedDoctorId, setSelectedDoctorId] = useState('')
+  const [selectedDoctorName, setSelectedDoctorName] = useState('')
+  const [selectedTime, setSelectedTime] = useState('')
   const [photoCaptureOpen, setPhotoCaptureOpen] = useState(false)
+  const [existingPatientId, setExistingPatientId] = useState<string | undefined>()
   const [completedAppointment, setCompletedAppointment] = useState<DayAppointment | null>(
     null,
   )
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const catalogEnabled = open && step === 'specialty'
+  const {
+    specialties: walkInSpecialties,
+    isLoading: isCatalogLoading,
+    loadError: catalogLoadError,
+    reload: reloadCatalog,
+  } = useUbtWalkInSpecialtyAvailability(catalogEnabled, selectedDate)
 
   const resetFlow = useCallback(() => {
     setStep('specialty')
     setRegistration(emptyPatientRegistration())
     setSession(emptyAttendanceSession())
+    setSelectedDoctorId('')
+    setSelectedDoctorName('')
+    setSelectedTime('')
     setPhotoCaptureOpen(false)
+    setExistingPatientId(undefined)
     setCompletedAppointment(null)
+    setIsSubmitting(false)
   }, [])
 
   useEffect(() => {
@@ -96,16 +126,26 @@ export function AgendaWalkInReceptionDrawer({
     return () => window.clearTimeout(fallback)
   }, [closing, onTransitionEnd])
 
-  function finishReception() {
-    registerCompletedPatient(registration)
-    const appointment = createWalkInDayAppointment(
-      registration,
-      session,
-      existingAppointments,
-    )
-    setCompletedAppointment(appointment)
-    onCompleted(appointment, registration)
-    setStep('success')
+  async function finishReception() {
+    if (isSubmitting) return
+    setIsSubmitting(true)
+    try {
+      const saved = await persistPatient(registration, existingPatientId)
+      const appointment = await onRegisterWalkIn({
+        pacienteId: saved.id,
+        especialidadeId: session.specialtyId,
+        profissionalId: selectedDoctorId,
+        hora: selectedTime,
+        telefoneContato: registration.phone,
+      })
+      setCompletedAppointment(appointment)
+      onCompleted(appointment, registration)
+      setStep('success')
+    } catch {
+      // falha silenciosa — operador pode tentar novamente
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   function handleCloseAfterSuccess() {
@@ -154,8 +194,8 @@ export function AgendaWalkInReceptionDrawer({
                   Recepção presencial (encaixe)
                 </h2>
                 <p className="mt-0.5 text-sm text-gray-500">
-                  Paciente chegou sem horário: verifique a especialidade, complete o cadastro
-                  como na triagem e inclua na agenda e na fila de espera.
+                  1. Especialidade com plantão agora · 2. Médico e horário de hoje · 3. CPF e
+                  cadastro · 4. Foto e fila
                 </p>
               </div>
               <button
@@ -177,13 +217,42 @@ export function AgendaWalkInReceptionDrawer({
 
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 py-4 sm:px-6 sm:py-5">
             {step === 'specialty' && (
-              <WalkInSpecialtyAvailabilityStep
+              <SpecialtySelectionStep
                 selectedDate={selectedDate}
+                showAvailability
+                availabilityFilter="with-slots-only"
+                specialties={walkInSpecialties}
+                isLoading={isCatalogLoading}
+                loadError={catalogLoadError}
+                onRetryLoad={() => void reloadCatalog()}
                 selectedId={session.specialtyId}
+                description="Especialidades do contrato com médico em plantão e horário livre a partir de agora."
+                emptyMessage="Nenhuma especialidade com vaga de encaixe neste momento. Tente novamente em alguns minutos."
                 onSelect={(id, name) =>
                   setSession((prev) => ({ ...prev, specialtyId: id, specialtyName: name }))
                 }
                 onBack={onClose}
+                onContinue={() => {
+                  setSelectedDoctorId('')
+                  setSelectedTime('')
+                  setStep('schedule_datetime')
+                }}
+              />
+            )}
+
+            {step === 'schedule_datetime' && (
+              <WalkInDoctorTimeStep
+                specialtyId={session.specialtyId}
+                specialtyName={session.specialtyName}
+                selectedDate={selectedDate}
+                selectedDoctorId={selectedDoctorId}
+                selectedTime={selectedTime}
+                onSelectDoctor={(doctorId, doctorName) => {
+                  setSelectedDoctorId(doctorId)
+                  setSelectedDoctorName(doctorName ?? '')
+                }}
+                onSelectTime={setSelectedTime}
+                onBack={() => setStep('specialty')}
                 onContinue={() => setStep('cpf_lookup')}
               />
             )}
@@ -191,9 +260,11 @@ export function AgendaWalkInReceptionDrawer({
             {step === 'cpf_lookup' && (
               <CpfLookupStep
                 cpf={registration.cpf}
+                lookupByCpf={lookupByCpf}
                 onChangeCpf={(cpf) => setRegistration((prev) => ({ ...prev, cpf }))}
-                onFound={(found) => {
+                onFound={(found, meta) => {
                   setRegistration(found)
+                  setExistingPatientId(meta?.patientId)
                   setSession((prev) => ({
                     ...prev,
                     ageGroup: inferAgeGroupFromBirthDate(found.birthDate) ?? prev.ageGroup,
@@ -202,6 +273,7 @@ export function AgendaWalkInReceptionDrawer({
                 }}
                 onFoundPendingFirstVisit={(payload) => {
                   setRegistration(payload.patient)
+                  setExistingPatientId(payload.patientId)
                   setSession((prev) => ({
                     ...prev,
                     specialtyId: payload.specialtyId || prev.specialtyId,
@@ -219,7 +291,7 @@ export function AgendaWalkInReceptionDrawer({
                   setSession((prev) => ({ ...prev, ageGroup: null }))
                   setStep('age_group')
                 }}
-                onBack={() => setStep('specialty')}
+                onBack={() => setStep('schedule_datetime')}
               />
             )}
 
@@ -274,6 +346,11 @@ export function AgendaWalkInReceptionDrawer({
                 onChange={setRegistration}
                 onSubmit={() => setStep('photo')}
                 onBack={() => setStep('contacts')}
+                requiredTerritory={territoryPolicy.requiredTerritory}
+                contractAllowsOtherMunicipalities={territoryPolicy.allowsOtherMunicipalities}
+                territoryScope="patient_registration"
+                policyLoadWarning={territoryPolicy.loadError}
+                isPolicyLoading={territoryPolicy.isLoading}
               />
             )}
 
@@ -290,6 +367,9 @@ export function AgendaWalkInReceptionDrawer({
                       : 'address',
                   )
                 }
+                isSubmitting={isSubmitting}
+                continueLabel="Finalizar recepção"
+                submittingLabel="Finalizando recepção…"
               />
             )}
 

@@ -3,7 +3,7 @@ import {
   AdminKpiDrillDrawer,
   type AdminKpiDrillRow,
 } from '../components/admin/dashboard/AdminKpiDrillDrawer'
-import type { AdminKpiDrillKind } from '../data/adminDashboardMock'
+import type { AdminKpiDrillKind } from '../types/adminDashboard'
 
 export function useAdminKpiDrillDrawer() {
   const [open, setOpen] = useState(false)

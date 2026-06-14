@@ -1,39 +1,23 @@
 import { MessageSquarePlus } from 'lucide-react'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
-import { ProfissionalPageHeader } from '../profissional/ProfissionalPageHeader'
-import { ProfissionalPageHeaderSkeleton } from '../profissional/ProfissionalPageHeaderSkeleton'
-import { ProfissionalOnboardingTour } from '../profissional/onboarding/ProfissionalOnboardingTour'
+import { findProfissionalNavByPathname } from '../../config/profissionalSidebarNav'
 import {
   profissionalSuporteNewTicketTourStepIds,
   profissionalSuporteTicketDrawerTourStepIds,
-  profissionalSuporteTourFirstVisitBody,
   type ProfissionalSuporteTourStep,
 } from '../../config/profissionalSuporteTour'
-import {
-  profissionalSupportMonthlyTrend,
-  profissionalSupportPriorityDistribution,
-  profissionalSupportStatusSummary,
-  profissionalSupportTickets,
-} from '../../data/profissionalSuporteMock'
-import { findProfissionalNavByPathname } from '../../config/profissionalSidebarNav'
-import { useNewSupportTicketDrawer } from '../../hooks/useNewSupportTicketDrawer'
-import { usePageSkeletonLoading } from '../../hooks/usePageSkeletonLoading'
+import { profissionalTourInviteMeta } from '../../config/profissionalTourInvite'
 import { useProfissionalSuporteTour } from '../../hooks/useProfissionalSuporteTour'
+import { ProfissionalPageHeader } from '../profissional/ProfissionalPageHeader'
+import { ProfissionalPageHeaderSkeleton } from '../profissional/ProfissionalPageHeaderSkeleton'
+import { ProfissionalOnboardingTour } from '../profissional/onboarding/ProfissionalOnboardingTour'
+import { ProfissionalTourInviteModal } from '../profissional/onboarding/ProfissionalTourInviteModal'
 import {
-  dashboardPageHeaderWrapClass,
-  dashboardPageScrollPaddingClass,
-  dashboardPageShellClass,
-} from '../layout/dashboardPageLayout'
-import { SuporteMainPanel, type SuporteMainPanelHandle } from './SuporteMainPanel'
-import { SuporteMainPanelSkeleton } from './SuporteMainPanelSkeleton'
-import { SuporteSidebarPanel } from './SuporteSidebarPanel'
-import { SuporteSidebarPanelSkeleton } from './SuporteSidebarPanelSkeleton'
-import {
-  suporteColumnFillClass,
-  suporteColumnScrollClass,
-  suporteColumnsGridClass,
-} from './suportePageLayout'
+  PortalSuportePageShell,
+  type PortalSuportePageShellHandle,
+} from './PortalSuportePageShell'
+import { useProfissionalAuth } from '../../contexts/ProfissionalAuthContext'
 
 const fallbackMeta = {
   title: 'Suporte',
@@ -46,94 +30,64 @@ const LIST_TOUR_STEP_IDS = new Set([
   'main-panel',
   'search',
   'status-filter',
-  'new-ticket-btn',
   'table',
-  'view-ticket',
   'pagination',
 ])
-
-const SIDEBAR_TOUR_STEP_IDS = new Set(['sidebar', 'status-summary', 'priority-chart', 'done'])
 
 export function ProfissionalSuportePageContent() {
   const { pathname } = useLocation()
   const [searchParams] = useSearchParams()
+  const { getAccessToken, isBootstrapping } = useProfissionalAuth()
   const meta = findProfissionalNavByPathname(pathname) ?? fallbackMeta
-  const isLoading = usePageSkeletonLoading(1200)
   const forceTourStart = searchParams.get('tour') === 'suporte'
-  const mainPanelRef = useRef<SuporteMainPanelHandle>(null)
-  const newTicketDrawerRef = useRef<ReturnType<typeof useNewSupportTicketDrawer> | null>(null)
+  const shellRef = useRef<PortalSuportePageShellHandle>(null)
 
-  const closeAllOverlays = useCallback(() => {
-    newTicketDrawerRef.current?.requestClose()
-    mainPanelRef.current?.closeTicketDrawer()
+  const handleTourStepActive = useCallback((step: ProfissionalSuporteTourStep) => {
+    if (step.id === 'welcome') {
+      shellRef.current?.resetFilters()
+      shellRef.current?.closeNewTicketDrawer()
+      shellRef.current?.closeTicketDrawer()
+      return
+    }
+
+    if (LIST_TOUR_STEP_IDS.has(step.id)) {
+      shellRef.current?.closeNewTicketDrawer()
+      shellRef.current?.closeTicketDrawer()
+      return
+    }
+
+    if (step.id === 'new-ticket-drawer') {
+      shellRef.current?.openNewTicketDrawer()
+      return
+    }
+
+    if (profissionalSuporteTicketDrawerTourStepIds.has(step.id)) {
+      shellRef.current?.openDemoTicket()
+    }
   }, [])
-
-  const handleTourStepActive = useCallback(
-    (step: ProfissionalSuporteTourStep) => {
-      const newTicketDrawer = newTicketDrawerRef.current
-      if (!newTicketDrawer) return
-
-      if (step.id === 'new-ticket-drawer') {
-        mainPanelRef.current?.closeTicketDrawer()
-        newTicketDrawer.openDrawer()
-        return
-      }
-
-      if (step.id === 'ticket-drawer' || step.id === 'ticket-drawer-chat') {
-        newTicketDrawer.requestClose()
-        mainPanelRef.current?.openDemoTicket()
-        return
-      }
-
-      if (LIST_TOUR_STEP_IDS.has(step.id)) {
-        closeAllOverlays()
-        if (step.id === 'welcome' || step.id === 'main-panel') {
-          mainPanelRef.current?.resetFilters()
-        }
-        return
-      }
-
-      if (SIDEBAR_TOUR_STEP_IDS.has(step.id)) {
-        closeAllOverlays()
-        mainPanelRef.current?.resetFilters()
-      }
-    },
-    [closeAllOverlays],
-  )
 
   const handleTourBeforeAdvance = useCallback(
     (step: ProfissionalSuporteTourStep, source: 'next' | 'target-click') => {
-      const newTicketDrawer = newTicketDrawerRef.current
-      if (!newTicketDrawer) return
-
       if (step.id === 'new-ticket-btn') {
-        mainPanelRef.current?.closeTicketDrawer()
-        newTicketDrawer.openDrawer()
-      }
-
-      if (step.id === 'new-ticket-drawer' && source === 'next') {
-        newTicketDrawer.requestClose()
+        shellRef.current?.openNewTicketDrawer()
+        return
       }
 
       if (step.id === 'view-ticket') {
-        newTicketDrawer.requestClose()
-        mainPanelRef.current?.openDemoTicket()
+        shellRef.current?.openDemoTicket()
+        return
       }
 
-      if (step.id === 'ticket-drawer-chat' && source === 'next') {
-        mainPanelRef.current?.closeTicketDrawer()
-      }
-
-      if (step.id === 'pagination') {
-        closeAllOverlays()
+      if (step.id === 'new-ticket-drawer' && source === 'next') {
+        shellRef.current?.closeNewTicketDrawer()
       }
     },
-    [closeAllOverlays],
+    [],
   )
 
   const tour = useProfissionalSuporteTour({
     forceStart: forceTourStart,
-    disabled: isLoading,
+    disabled: isBootstrapping,
     onStepActive: handleTourStepActive,
     onBeforeAdvance: handleTourBeforeAdvance,
   })
@@ -143,35 +97,35 @@ export function ProfissionalSuportePageContent() {
   const tourLockTicketDrawer =
     tour.active && profissionalSuporteTicketDrawerTourStepIds.has(tour.step.id)
 
-  const newTicketDrawer = useNewSupportTicketDrawer({
-    tourLockClose: tourLockNewTicketDrawer,
-  })
-  newTicketDrawerRef.current = newTicketDrawer
-
-  useEffect(() => {
-    if (tour.active) return
-    closeAllOverlays()
-  }, [tour.active, closeAllOverlays])
-
-  const newTicketButton = (
-    <button
-      type="button"
-      data-tour="suporte-new-ticket-btn"
-      onClick={() => newTicketDrawer.openDrawer()}
-      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border-2 border-[var(--brand-primary)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--brand-primary)] shadow-sm transition hover:bg-[var(--brand-primary-light)]"
-    >
-      <MessageSquarePlus className="h-4 w-4" strokeWidth={2} />
-      Abrir novo chamado
-    </button>
+  const newTicketButton = useCallback(
+    (openDrawer: () => void) => (
+      <button
+        type="button"
+        data-tour="suporte-new-ticket-btn"
+        onClick={openDrawer}
+        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border-2 border-[var(--brand-primary)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--brand-primary)] shadow-sm transition hover:bg-[var(--brand-primary-light)]"
+      >
+        <MessageSquarePlus className="h-4 w-4" strokeWidth={2} />
+        Abrir novo chamado
+      </button>
+    ),
+    [],
   )
 
   return (
     <>
-      <div className={dashboardPageShellClass} aria-busy={isLoading} aria-label={meta.title}>
-        <div className={dashboardPageHeaderWrapClass}>
-          {isLoading ? (
-            <ProfissionalPageHeaderSkeleton />
-          ) : (
+      <PortalSuportePageShell
+        ref={shellRef}
+        variant="profissional"
+        getAccessToken={getAccessToken}
+        summaryTitle="Seus chamados"
+        tourActive={tour.active}
+        tourLockDrawerClose={tourLockTicketDrawer}
+        newTicketTourLockClose={tourLockNewTicketDrawer}
+        shellLoadingDelayMs={0}
+        headerSkeleton={<ProfissionalPageHeaderSkeleton />}
+        headerSlot={
+          isBootstrapping ? undefined : (
             <ProfissionalPageHeader
               title={meta.title}
               description={meta.description}
@@ -187,76 +141,40 @@ export function ProfissionalSuportePageContent() {
                 ) : null
               }
             />
-          )}
-        </div>
+          )
+        }
+        renderToolbarActions={(openNewTicket) => newTicketButton(openNewTicket)}
+      />
 
-        <div
-          className={[
-            suporteColumnsGridClass,
-            dashboardPageScrollPaddingClass,
-            'mt-4 pb-5',
-          ].join(' ')}
-        >
-          <div className={suporteColumnScrollClass}>
-            <div className={suporteColumnFillClass}>
-              {isLoading ? (
-                <SuporteMainPanelSkeleton showToolbarAction />
-              ) : (
-                <SuporteMainPanel
-                  ref={mainPanelRef}
-                  tickets={profissionalSupportTickets}
-                  pageSize={10}
-                  toolbarActions={newTicketButton}
-                  tourLockDrawerClose={tourLockTicketDrawer}
-                />
-              )}
-            </div>
-          </div>
+      {!isBootstrapping ? (
+        <>
+          <ProfissionalTourInviteModal
+            open={tour.inviteOpen}
+            {...profissionalTourInviteMeta.suporte}
+            onStart={tour.acceptInvite}
+            onDismiss={tour.dismissInvite}
+          />
 
-          <div className={suporteColumnScrollClass}>
-            <div className={suporteColumnFillClass}>
-              {isLoading ? (
-                <SuporteSidebarPanelSkeleton />
-              ) : (
-                <SuporteSidebarPanel
-                  statusSummary={profissionalSupportStatusSummary}
-                  priorityDistribution={profissionalSupportPriorityDistribution}
-                  monthlyTrend={profissionalSupportMonthlyTrend}
-                  monthlyTotal={profissionalSupportTickets.length}
-                  summaryTitle="Seus chamados"
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {!isLoading ? newTicketDrawer.drawerElement : null}
-
-      {!isLoading ? (
-        <ProfissionalOnboardingTour
-          open={tour.active}
-          title={tour.step.title}
-          body={
-            tour.isMandatorySession && tour.step.id === 'welcome'
-              ? profissionalSuporteTourFirstVisitBody
-              : tour.step.body
-          }
-          hint={tour.step.hint}
-          stepIndex={tour.stepIndex}
-          totalSteps={tour.totalSteps}
-          placement={tour.step.placement}
-          targetRect={tour.targetRect}
-          advanceOn={tour.step.advanceOn}
-          isLastStep={tour.isLastStep}
-          nextLabel={tour.step.nextLabel}
-          blockBackground={
-            tour.step.advanceOn !== 'target-click' &&
-            tour.step.advanceOn !== 'next-or-target-click'
-          }
-          onNext={tour.goNext}
-          onBack={tour.goBack}
-        />
+          <ProfissionalOnboardingTour
+            open={tour.active}
+            title={tour.step.title}
+            body={tour.step.body}
+            hint={tour.step.hint}
+            stepIndex={tour.stepIndex}
+            totalSteps={tour.totalSteps}
+            placement={tour.step.placement}
+            targetRect={tour.targetRect}
+            advanceOn={tour.step.advanceOn}
+            isLastStep={tour.isLastStep}
+            nextLabel={tour.step.nextLabel}
+            blockBackground={
+              tour.step.advanceOn !== 'target-click' &&
+              tour.step.advanceOn !== 'next-or-target-click'
+            }
+            onNext={tour.goNext}
+            onBack={tour.goBack}
+          />
+        </>
       ) : null}
     </>
   )

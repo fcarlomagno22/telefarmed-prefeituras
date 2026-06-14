@@ -1,20 +1,23 @@
 import { MessageSquarePlus } from 'lucide-react'
 import { brand } from '../../config/brand'
-import { unitStation } from '../../data/unitDashboardMock'
+import { useUbtUnitStation } from '../../hooks/useUbtUnitStation'
 
 type SupportPageHeaderProps = {
   onOpenNewTicket: () => void
   variant?: 'ubt' | 'prefeitura'
+  showNewTicketButton?: boolean
 }
 
 export function SupportPageHeader({
   onOpenNewTicket,
   variant = 'ubt',
+  showNewTicketButton = true,
 }: SupportPageHeaderProps) {
   const isPrefeitura = variant === 'prefeitura'
+  const { unitName } = useUbtUnitStation()
   const breadcrumb = isPrefeitura
     ? 'GESTÃO MUNICIPAL · SUPORTE'
-    : unitStation.unitName.toUpperCase()
+    : unitName.toUpperCase()
 
   return (
     <header className="shrink-0">
@@ -39,14 +42,16 @@ export function SupportPageHeader({
           ) : null}
         </div>
 
-        <button
-          type="button"
-          onClick={onOpenNewTicket}
-          className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl border-2 border-[var(--brand-primary)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--brand-primary)] shadow-sm transition hover:bg-[var(--brand-primary-light)]"
-        >
-          <MessageSquarePlus className="h-4 w-4" strokeWidth={2} />
-          Abrir novo chamado
-        </button>
+        {showNewTicketButton ? (
+          <button
+            type="button"
+            onClick={onOpenNewTicket}
+            className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl border-2 border-[var(--brand-primary)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--brand-primary)] shadow-sm transition hover:bg-[var(--brand-primary-light)]"
+          >
+            <MessageSquarePlus className="h-4 w-4" strokeWidth={2} />
+            Abrir novo chamado
+          </button>
+        ) : null}
       </div>
     </header>
   )

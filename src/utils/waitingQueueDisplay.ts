@@ -1,4 +1,4 @@
-import type { WaitingQueueEntry } from '../data/waitingQueueStore'
+import type { WaitingQueueEntry } from '../types/waitingQueue'
 import { minutesFromScheduledSlot } from './waitingQueueSort'
 
 export function formatQueueArrivalTime(arrivedAt: string): string {

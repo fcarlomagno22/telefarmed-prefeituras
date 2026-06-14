@@ -20,6 +20,7 @@ type ConsultationFeedbackPanelProps = {
   professional?: ConsultationFeedbackProfessional
   /** Quando false, oculta "Pular avaliação" (avaliação obrigatória). */
   allowSkip?: boolean
+  isSubmitting?: boolean
 }
 
 export function ConsultationFeedbackPanel({
@@ -27,6 +28,7 @@ export function ConsultationFeedbackPanel({
   onSkip,
   professional,
   allowSkip = true,
+  isSubmitting = false,
 }: ConsultationFeedbackPanelProps) {
   const [rating, setRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
@@ -120,11 +122,11 @@ export function ConsultationFeedbackPanel({
 
       <button
         type="button"
-        disabled={rating < 1}
+        disabled={rating < 1 || isSubmitting}
         onClick={handleSubmit}
-        className="btn-brand-gradient mt-8 w-full rounded-xl px-8 py-3.5 text-sm font-semibold"
+        className="btn-brand-gradient mt-8 w-full rounded-xl px-8 py-3.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
       >
-        Enviar avaliação
+        {isSubmitting ? 'Enviando…' : 'Enviar avaliação'}
       </button>
 
       {allowSkip && onSkip ? (

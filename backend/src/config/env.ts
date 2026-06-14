@@ -2,7 +2,6 @@ import { config } from 'dotenv'
 import { resolve } from 'node:path'
 import { z } from 'zod'
 
-config({ path: resolve(process.cwd(), '../.env') })
 config({ path: resolve(process.cwd(), '.env') })
 
 function envValue(key: string): string | undefined {
@@ -25,6 +24,11 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => v === 'true' || v === '1'),
+  LIVEKIT_URL: z
+    .string()
+    .url('LIVEKIT_URL deve ser uma URL válida (ex.: wss://seu-projeto.livekit.cloud)'),
+  LIVEKIT_API_KEY: z.string().min(1, 'LIVEKIT_API_KEY é obrigatório'),
+  LIVEKIT_API_SECRET: z.string().min(1, 'LIVEKIT_API_SECRET é obrigatório'),
 })
 
 export type Env = z.infer<typeof envSchema>
@@ -38,6 +42,9 @@ export const env: Env = envSchema.parse({
   JWT_REFRESH_SECRET: envValue('JWT_REFRESH_SECRET'),
   CORS_ORIGIN: envValue('CORS_ORIGIN'),
   COOKIE_SECURE: envValue('COOKIE_SECURE'),
+  LIVEKIT_URL: envValue('LIVEKIT_URL'),
+  LIVEKIT_API_KEY: envValue('LIVEKIT_API_KEY'),
+  LIVEKIT_API_SECRET: envValue('LIVEKIT_API_SECRET'),
 })
 
 export const isProduction = env.NODE_ENV === 'production'

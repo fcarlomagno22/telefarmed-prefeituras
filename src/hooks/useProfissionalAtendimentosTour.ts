@@ -3,9 +3,11 @@ import {
   profissionalAtendimentosTourSteps,
   type ProfissionalAtendimentosTourStep,
 } from '../config/profissionalAtendimentosTour'
+import { useProfissionalTourInviteGate } from './useProfissionalTourInviteGate'
 import {
-  isProfissionalAtendimentosTourCompleted,
+  isProfissionalAtendimentosTourInvitePending,
   markProfissionalAtendimentosTourCompleted,
+  markProfissionalAtendimentosTourInviteHandled,
 } from '../utils/profissional/profissionalAtendimentosTourStorage'
 
 type TourAdvanceSource = 'next' | 'target-click'
@@ -57,7 +59,6 @@ export function useProfissionalAtendimentosTour({
   const [active, setActive] = useState(false)
   const [stepIndex, setStepIndex] = useState(0)
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
-  const [isMandatorySession, setIsMandatorySession] = useState(false)
   const completedRef = useRef(false)
   const onBeforeAdvanceRef = useRef(onBeforeAdvance)
   const onStepActiveRef = useRef(onStepActive)
@@ -76,10 +77,18 @@ export function useProfissionalAtendimentosTour({
 
   const startTour = useCallback((options?: { replay?: boolean }) => {
     completedRef.current = false
-    setIsMandatorySession(!options?.replay)
+    markProfissionalAtendimentosTourInviteHandled()
     setStepIndex(0)
     setActive(true)
   }, [])
+
+  const isInvitePending = useCallback(() => isProfissionalAtendimentosTourInvitePending(), [])
+
+  const { inviteOpen, acceptInvite, dismissInvite } = useProfissionalTourInviteGate({
+    isInvitePending,
+    markInviteHandled: markProfissionalAtendimentosTourInviteHandled,
+    onStartTour: startTour,
+  })
 
   const finishTour = useCallback(() => {
     setActive(false)
@@ -115,11 +124,6 @@ export function useProfissionalAtendimentosTour({
   useEffect(() => {
     if (forceStart) {
       startTour({ replay: true })
-      return
-    }
-    if (!isProfissionalAtendimentosTourCompleted()) {
-      const timer = window.setTimeout(() => startTour(), 600)
-      return () => window.clearTimeout(timer)
     }
   }, [forceStart, startTour])
 
@@ -236,7 +240,9 @@ export function useProfissionalAtendimentosTour({
     targetRect,
     highlightedTarget,
     isLastStep,
-    isMandatorySession,
+    inviteOpen,
+    acceptInvite,
+    dismissInvite,
     startTour,
     finishTour,
     goNext,

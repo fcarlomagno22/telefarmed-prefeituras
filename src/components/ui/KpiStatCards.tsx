@@ -60,6 +60,7 @@ const KPI_GRID_LAYOUT = {
   responsive: 'grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4',
   'grid-2x2': 'grid grid-cols-2 gap-2 sm:gap-3',
   'grid-3x2': 'grid h-full min-h-0 grid-cols-3 grid-rows-2 gap-3',
+  'grid-1x6': 'grid w-full min-w-0 grid-cols-6 gap-2 sm:gap-3',
 } as const
 
 export type KpiStatCardsLayout = keyof typeof KPI_GRID_LAYOUT
@@ -93,6 +94,7 @@ export function KpiStatCards({
 }: KpiStatCardsProps) {
   const fill = useKpiFillAnimation(animated, updateKey)
   const stacked = layout === 'grid-3x2'
+  const singleRow = layout === 'grid-1x6'
   const columnLayout = stacked || variant === 'centered'
 
   return (
@@ -135,7 +137,9 @@ export function KpiStatCards({
               columnLayout
                 ? stacked && stackedHeaderIconLeft
                   ? 'flex min-h-0 flex-col px-3 py-3 text-center'
-                  : 'flex flex-col items-center justify-center px-4 py-4 text-center'
+                  : singleRow
+                    ? 'flex min-h-0 flex-col items-center justify-center px-2.5 py-3 text-center sm:px-3'
+                    : 'flex flex-col items-center justify-center px-4 py-4 text-center'
                 : 'flex items-center gap-3 px-4 py-3.5 text-left',
               interactive
                 ? 'cursor-pointer hover:border-[var(--brand-primary)]/35 hover:shadow-[0_4px_24px_rgba(255,107,0,0.08)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-primary)]'
@@ -206,7 +210,10 @@ export function KpiStatCards({
               ) : null}
               <span
                 key={animated ? `${updateKey ?? 'init'}-${card.value}` : card.value}
-                className="mt-0.5 block text-xl font-bold leading-tight tracking-tight text-gray-900"
+                className={[
+                  'mt-0.5 block font-bold leading-tight tracking-tight text-gray-900',
+                  singleRow && columnLayout ? 'text-lg' : 'text-xl',
+                ].join(' ')}
                 style={valueStyle}
               >
                 {card.value}

@@ -1,4 +1,4 @@
-import type { AuditLogEntry } from '../../data/auditLogsMock'
+import type { AuditLogEntry } from '../../types/auditLogs'
 import type { AuditLogTenantColumnMode } from '../../types/auditLogScope'
 
 export type { AuditLogTenantColumnMode }

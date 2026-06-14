@@ -12,6 +12,10 @@ export type SidebarNavItemProps = {
   comingSoon?: boolean
   /** Ponto azul piscante no canto superior direito do ícone (ex.: notificações não lidas). */
   showAlertDot?: boolean
+  /** Contador à direita do rótulo (ex.: chamados aguardando resposta do suporte). */
+  badgeCount?: number
+  /** Texto de apoio para tooltip/aria do badge (ex.: "mensagens não lidas da Telefarmed"). */
+  badgeDescription?: string
 }
 
 export type SidebarNavSection = {
@@ -124,19 +128,33 @@ export function SidebarNavItem({
   end,
   comingSoon,
   showAlertDot,
+  badgeCount = 0,
+  badgeDescription,
 }: SidebarNavItemProps) {
   if (comingSoon) {
     return <SidebarComingSoonNavItem label={label} icon={Icon} />
   }
 
-  const linkTitle = showAlertDot ? `${label} — há mensagens não lidas` : label
+  const hasBadge = badgeCount > 0
+  const badgeLabel = badgeDescription ?? 'aguardando resposta'
+  const linkTitle = showAlertDot
+    ? `${label} — há mensagens não lidas`
+    : hasBadge
+      ? `${label} — ${badgeCount} ${badgeLabel}`
+      : label
 
   return (
     <NavLink
       to={to}
       end={end}
       title={linkTitle}
-      aria-label={showAlertDot ? `${label}, mensagens não lidas` : label}
+      aria-label={
+        showAlertDot
+          ? `${label}, mensagens não lidas`
+          : hasBadge
+            ? `${label}, ${badgeCount} ${badgeLabel}`
+            : label
+      }
       className={({ isActive }) =>
         [
           'group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition',
@@ -153,7 +171,19 @@ export function SidebarNavItem({
             showAlertDot={showAlertDot}
             isActive={isActive}
           />
-          <span className="truncate">{label}</span>
+          <span className="min-w-0 flex-1 truncate">{label}</span>
+          {hasBadge ? (
+            <span
+              className={[
+                'ml-auto inline-flex min-h-[1.125rem] min-w-[1.125rem] shrink-0 items-center justify-center rounded-full px-1.5 text-[10px] font-bold tabular-nums leading-none',
+                isActive
+                  ? 'bg-white/25 text-white'
+                  : 'bg-[var(--brand-primary)] text-white',
+              ].join(' ')}
+            >
+              {badgeCount > 99 ? '99+' : badgeCount}
+            </span>
+          ) : null}
         </>
       )}
     </NavLink>

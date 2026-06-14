@@ -8,13 +8,18 @@ const ARGON2_OPTIONS: argon2.Options = {
   parallelism: 4,
 }
 
+/** Remove espaços acidentais — cadastro e login devem usar a mesma normalização. */
+export function normalizePortalPassword(plain: string): string {
+  return plain.trim()
+}
+
 export async function hashPassword(plain: string): Promise<string> {
-  return argon2.hash(plain, ARGON2_OPTIONS)
+  return argon2.hash(normalizePortalPassword(plain), ARGON2_OPTIONS)
 }
 
 export async function verifyPassword(plain: string, hash: string): Promise<boolean> {
   try {
-    return await argon2.verify(hash, plain)
+    return await argon2.verify(hash, normalizePortalPassword(plain))
   } catch {
     return false
   }

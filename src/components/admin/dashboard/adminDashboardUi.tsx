@@ -1,6 +1,6 @@
-import type { AdminMunicipalityHealth } from '../../../data/adminDashboardMock'
+import type { AdminMunicipalityHealth } from '../../../types/adminDashboard'
 
-/** Altura fixa da 1ª linha: KPIs, central de incidentes e pacote agregado. */
+/** Altura fixa da linha: consultas por hora, central de incidentes e pacote agregado. */
 export const adminDashboardTopRowSectionClass = 'h-[19.5rem] max-h-[19.5rem] min-h-0'
 
 /** Corpo dos DashCards da 1ª linha. */
@@ -36,4 +36,23 @@ export function formatAdminCurrency(value: number) {
     currency: 'BRL',
     maximumFractionDigits: 0,
   }).format(value)
+}
+
+export function formatAdminCurrencyCompact(value: number, options?: { withSymbol?: boolean }) {
+  const withSymbol = options?.withSymbol ?? true
+  const prefix = withSymbol ? 'R$ ' : ''
+
+  if (Math.abs(value) >= 1_000_000) {
+    const amount = value / 1_000_000
+    const formatted = Number.isInteger(amount) ? String(amount) : amount.toFixed(1).replace('.', ',')
+    return `${prefix}${formatted}M`
+  }
+
+  if (Math.abs(value) >= 1_000) {
+    const amount = value / 1_000
+    const formatted = Number.isInteger(amount) ? String(amount) : amount.toFixed(1).replace('.', ',')
+    return `${prefix}${formatted}k`
+  }
+
+  return formatAdminCurrency(value)
 }

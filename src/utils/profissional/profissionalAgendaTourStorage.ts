@@ -1,4 +1,12 @@
-import { PROFISSIONAL_AGENDA_TOUR_STORAGE_KEY } from '../../config/profissionalAgendaTour'
+import {
+  PROFISSIONAL_AGENDA_TOUR_INVITE_STORAGE_KEY,
+  PROFISSIONAL_AGENDA_TOUR_STORAGE_KEY,
+} from '../../config/profissionalAgendaTour'
+import {
+  isProfissionalTourInvitePending,
+  markProfissionalTourInviteHandled,
+  resetProfissionalTourInvite,
+} from './profissionalTourInviteStorage'
 
 export function isProfissionalAgendaTourCompleted(): boolean {
   try {
@@ -6,6 +14,13 @@ export function isProfissionalAgendaTourCompleted(): boolean {
   } catch {
     return false
   }
+}
+
+export function isProfissionalAgendaTourInvitePending(): boolean {
+  return isProfissionalTourInvitePending(
+    PROFISSIONAL_AGENDA_TOUR_STORAGE_KEY,
+    PROFISSIONAL_AGENDA_TOUR_INVITE_STORAGE_KEY,
+  )
 }
 
 export function markProfissionalAgendaTourCompleted(): void {
@@ -16,10 +31,15 @@ export function markProfissionalAgendaTourCompleted(): void {
   }
 }
 
+export function markProfissionalAgendaTourInviteHandled(): void {
+  markProfissionalTourInviteHandled(PROFISSIONAL_AGENDA_TOUR_INVITE_STORAGE_KEY)
+}
+
 export function resetProfissionalAgendaTour(): void {
   try {
     localStorage.removeItem(PROFISSIONAL_AGENDA_TOUR_STORAGE_KEY)
   } catch {
     // ignore
   }
+  resetProfissionalTourInvite(PROFISSIONAL_AGENDA_TOUR_INVITE_STORAGE_KEY)
 }

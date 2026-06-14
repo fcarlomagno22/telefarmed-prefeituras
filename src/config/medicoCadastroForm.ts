@@ -1,5 +1,17 @@
 import { specialties } from '../data/specialties'
+import type { MedicoCadastroMedicalSpecialty } from '../types/medicoCadastro'
 import type { ProfissionalPerfilDocumentKind } from '../types/profissionalPerfil'
+
+export const MEDICO_CADASTRO_MAX_MEDICAL_SPECIALTIES = 8
+
+export function createMedicoCadastroMedicalSpecialty(): MedicoCadastroMedicalSpecialty {
+  const id =
+    typeof globalThis.crypto?.randomUUID === 'function'
+      ? globalThis.crypto.randomUUID()
+      : `spec-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+
+  return { id, specialty: '', rqe: '' }
+}
 
 export const medicoCadastroFormationOptions = [
   { value: 'medicina', label: 'Medicina' },
@@ -106,11 +118,36 @@ export const MEDICO_CADASTRO_ACCEPTED_DOCUMENT_TYPES =
 
 export const MEDICO_CADASTRO_DOCUMENT_MAX_BYTES = 8 * 1024 * 1024
 
-export const medicoCadastroFormSteps = [
+export type MedicoCadastroFormStepId =
+  | 'personal'
+  | 'professional'
+  | 'specialties'
+  | 'address'
+  | 'documents'
+
+export type MedicoCadastroFormStep = {
+  id: MedicoCadastroFormStepId
+  label: string
+}
+
+const MEDICO_CADASTRO_FORM_STEPS: MedicoCadastroFormStep[] = [
   { id: 'personal', label: 'Pessoal' },
   { id: 'professional', label: 'Profissional' },
+  { id: 'specialties', label: 'Especialidades' },
   { id: 'address', label: 'Endereço' },
   { id: 'documents', label: 'Documentos' },
-] as const
+]
 
-export type MedicoCadastroFormStepId = (typeof medicoCadastroFormSteps)[number]['id']
+/** Etapas exibidas conforme a formação (especialidades só para medicina). */
+export function getMedicoCadastroFormSteps(
+  formation: MedicoCadastroFormation | '',
+): MedicoCadastroFormStep[] {
+  if (isMedicoCadastroMedicinaFormation(formation)) {
+    return MEDICO_CADASTRO_FORM_STEPS
+  }
+
+  return MEDICO_CADASTRO_FORM_STEPS.filter((step) => step.id !== 'specialties')
+}
+
+/** @deprecated Use getMedicoCadastroFormSteps(formation) */
+export const medicoCadastroFormSteps = MEDICO_CADASTRO_FORM_STEPS

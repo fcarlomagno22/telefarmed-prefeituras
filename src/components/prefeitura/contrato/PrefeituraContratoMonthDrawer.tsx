@@ -21,7 +21,9 @@ const PAGE_SIZE = 15
 type PrefeituraContratoMonthDrawerProps = {
   open: boolean
   closing: boolean
-  detail: PrefeituraContratoMonthDetail
+  detail: PrefeituraContratoMonthDetail | null
+  isLoading?: boolean
+  loadError?: string | null
   onClose: () => void
   onTransitionEnd: () => void
 }
@@ -34,6 +36,8 @@ export function PrefeituraContratoMonthDrawer({
   open,
   closing,
   detail,
+  isLoading = false,
+  loadError = null,
   onClose,
   onTransitionEnd,
 }: PrefeituraContratoMonthDrawerProps) {
@@ -43,10 +47,13 @@ export function PrefeituraContratoMonthDrawer({
   const [unlockModalOpen, setUnlockModalOpen] = useState(false)
   const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
 
-  const { consultations, monthLabelLong } = detail
+  const { consultations, monthLabelLong } = detail ?? {
+    consultations: [],
+    monthLabelLong: 'Carregando…',
+  }
   const kpiCards = useMemo(
-    () => buildPrefeituraContratoMonthKpiCards(detail.kpis),
-    [detail.kpis],
+    () => (detail ? buildPrefeituraContratoMonthKpiCards(detail.kpis) : []),
+    [detail],
   )
 
   const showToast = useCallback((message: string, variant: ToastVariant) => {
@@ -74,7 +81,7 @@ export function PrefeituraContratoMonthDrawer({
     setUnlockModalOpen(false)
     const frame = requestAnimationFrame(() => setEntered(true))
     return () => cancelAnimationFrame(frame)
-  }, [open, detail.month.key])
+  }, [open, detail?.month.key])
 
   useEffect(() => {
     if (!isActive) return
@@ -112,12 +119,13 @@ export function PrefeituraContratoMonthDrawer({
   const showingTo = Math.min(safePage * PAGE_SIZE, totalFiltered)
 
   const exportContext = useMemo(
-    () => ({ detail, sensitiveDataUnlocked }),
+    () => (detail ? { detail, sensitiveDataUnlocked } : null),
     [detail, sensitiveDataUnlocked],
   )
 
   const handleExport = useCallback(
     async (format: 'pdf' | 'excel') => {
+      if (!exportContext) return
       if (totalFiltered === 0) {
         showToast('Não há consultas para exportar neste mês.', 'warning')
         return
@@ -195,11 +203,14 @@ export function PrefeituraContratoMonthDrawer({
                     {monthLabelLong}
                   </h2>
                   <p className="mt-0.5 text-xs text-gray-500">
-                    {detail.contractNumber} · {detail.contractPeriodLabel}
+                    {detail
+                      ? `${detail.contractNumber} · ${detail.contractPeriodLabel}`
+                      : 'Consultas do pacote mensal'}
                   </p>
                   <p className="mt-1 text-sm text-gray-600">
-                    {formatNumber(totalFiltered)} consulta{totalFiltered === 1 ? '' : 's'} realizadas
-                    no mês
+                    {isLoading
+                      ? 'Carregando consultas…'
+                      : `${formatNumber(totalFiltered)} consulta${totalFiltered === 1 ? '' : 's'} realizadas no mês`}
                   </p>
                 </div>
               </div>
@@ -224,13 +235,32 @@ export function PrefeituraContratoMonthDrawer({
             </div>
 
             <div className="mt-4">
-              <PrefeituraConsultasKpiCards
-                items={kpiCards}
-                className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
-              />
+              {isLoading ? (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="h-20 animate-pulse rounded-xl border border-gray-200 bg-gray-100/80"
+                    />
+                  ))}
+                </div>
+              ) : detail ? (
+                <PrefeituraConsultasKpiCards
+                  items={kpiCards}
+                  className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+                />
+              ) : null}
             </div>
           </header>
 
+          {loadError ? (
+            <div className="mx-5 mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 sm:mx-6">
+              {loadError}
+            </div>
+          ) : null}
+
+          {!isLoading && !loadError ? (
+            <>
           <div className="flex shrink-0 items-center justify-end gap-3 border-b border-gray-200 bg-gray-50/60 px-5 py-2 sm:px-6">
             {!sensitiveDataUnlocked ? (
               <>
@@ -376,6 +406,12 @@ export function PrefeituraContratoMonthDrawer({
               </button>
             </nav>
           </footer>
+            </>
+          ) : isLoading ? (
+            <div className="flex min-h-0 flex-1 items-center justify-center px-6 py-16 text-sm text-gray-500">
+              Carregando consultas do mês…
+            </div>
+          ) : null}
         </aside>
       </div>
 

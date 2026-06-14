@@ -54,19 +54,14 @@ export function AuditLogsOverviewRowSkeleton() {
       </OverviewCardSkeleton>
 
       <OverviewCardSkeleton>
-        <Skeleton className="min-h-[5.5rem] w-full flex-1 rounded-xl" />
-        <ul className="mt-auto grid shrink-0 grid-cols-5 gap-1.5">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <li
-              key={index}
-              className="flex min-h-[3rem] flex-col items-center justify-center gap-1 rounded-lg border border-gray-100 px-1 py-1.5"
-            >
-              <Skeleton className="size-2 rounded-full" />
-              <Skeleton className="h-2.5 w-10" />
-              <Skeleton className="h-3 w-8" />
-            </li>
+        <div className="flex min-h-0 flex-1 gap-1.5 sm:gap-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="flex min-w-0 flex-1 flex-col gap-2">
+              <Skeleton className="min-h-[5.5rem] w-full flex-1 rounded-t-md" />
+              <Skeleton className="min-h-[3rem] w-full rounded-lg" />
+            </div>
           ))}
-        </ul>
+        </div>
       </OverviewCardSkeleton>
 
       <OverviewCardSkeleton showAction>

@@ -35,28 +35,31 @@ export function PrefeituraContratoMainPanelSkeleton() {
           className="mb-2 grid shrink-0 grid-cols-1 gap-3 sm:grid-cols-3"
         />
 
-        <div className="overflow-hidden rounded-xl border border-gray-200">
-          <div className="flex gap-2 border-b border-gray-200 bg-gray-50/90 px-3 py-2">
-            {['w-10', 'w-16', 'w-16', 'w-10', 'w-12', 'w-14', 'w-6'].map((width) => (
-              <Skeleton key={width} className={`h-3 ${width}`} />
-            ))}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
+          <div className="shrink-0">
+            <div className="flex gap-2 border-b border-gray-200 bg-gray-50/90 px-3 py-2">
+              {['w-10', 'w-16', 'w-16', 'w-10', 'w-12', 'w-14', 'w-6'].map((width, index) => (
+                <Skeleton key={`header-col-${index}`} className={`h-3 ${width}`} />
+              ))}
+            </div>
+            <ul className="divide-y divide-gray-100">
+              {Array.from({ length: TABLE_ROW_COUNT }).map((_, index) => (
+                <li key={index} className="flex items-center gap-2 px-3 py-2">
+                  <Skeleton className="h-4 w-14 shrink-0" />
+                  <Skeleton className="h-4 w-12" />
+                  <Skeleton className="h-4 w-12" />
+                  <div className="mx-auto flex w-16 flex-col items-center gap-1">
+                    <Skeleton className="h-3 w-8" />
+                    <Skeleton className="h-1 w-full rounded-full" />
+                  </div>
+                  <Skeleton className="h-4 w-10" />
+                  <Skeleton className="h-6 w-[5.75rem] rounded-lg" />
+                  <Skeleton className="ml-auto h-4 w-4 shrink-0" />
+                </li>
+              ))}
+            </ul>
           </div>
-          <ul className="divide-y divide-gray-100">
-            {Array.from({ length: TABLE_ROW_COUNT }).map((_, index) => (
-              <li key={index} className="flex items-center gap-2 px-3 py-2">
-                <Skeleton className="h-4 w-14 shrink-0" />
-                <Skeleton className="h-4 w-12" />
-                <Skeleton className="h-4 w-12" />
-                <div className="mx-auto flex w-16 flex-col items-center gap-1">
-                  <Skeleton className="h-3 w-8" />
-                  <Skeleton className="h-1 w-full rounded-full" />
-                </div>
-                <Skeleton className="h-4 w-10" />
-                <Skeleton className="h-6 w-[5.75rem] rounded-lg" />
-                <Skeleton className="ml-auto h-4 w-4 shrink-0" />
-              </li>
-            ))}
-          </ul>
+          <div className="min-h-0 flex-1" aria-hidden />
         </div>
       </div>
     </article>

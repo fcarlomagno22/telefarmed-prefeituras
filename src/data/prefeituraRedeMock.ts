@@ -18,6 +18,7 @@ export type PrefeituraRedeUnit = {
   stationsTotal: number
   stationsOnline: number
   status: PrefeituraRedeUnitStatus
+  maintenanceTerminalIndexes?: number[]
   /** Vínculo com linha do dashboard para abrir detalhes. */
   dashboardRowId?: string
 }

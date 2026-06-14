@@ -1,6 +1,5 @@
 import type { ConsultationRecord } from '../data/consultasMock'
-import { networkUsers, type NetworkUser } from '../data/networkUsersMock'
-import { onlyDigits } from './lgpdDisplay'
+import type { NetworkUser } from '../data/networkUsersMock'
 
 function initialsFromName(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -23,16 +22,8 @@ function avatarClassForName(name: string) {
 }
 
 export function findNetworkUserForConsultation(record: ConsultationRecord): NetworkUser {
-  const recordCpf = onlyDigits(record.cpf)
-  const byCpf = networkUsers.find((user) => onlyDigits(user.cpf) === recordCpf)
-  if (byCpf) return byCpf
-
-  const normalizedName = record.patientName.trim().toLowerCase()
-  const byName = networkUsers.find((user) => user.name.trim().toLowerCase() === normalizedName)
-  if (byName) return byName
-
   return {
-    id: `consulta-${record.id}`,
+    id: record.pacienteId ?? `consulta-${record.id}`,
     name: record.patientName,
     initials: initialsFromName(record.patientName),
     avatarClassName: avatarClassForName(record.patientName),

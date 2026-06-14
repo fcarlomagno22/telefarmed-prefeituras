@@ -2,9 +2,12 @@ import type {
   AdminContractStatus,
   AdminMunicipalPatient,
   AdminPatientContractingEntity,
-} from '../../../../data/adminPacientesMock'
-import { getNetworkUserProfile } from '../../../../data/networkUserProfiles'
-import type { PatientRegistration } from '../../../../data/unitDashboardMock'
+} from '../../../../types/adminPacientes'
+import type {
+  PreCadastroRegistrationPayload,
+  UpdatePacientePayload,
+} from '../../../../lib/services/admin/pacientes'
+import type { PatientRegistration } from '../../../../types/attendance'
 import { cpfDigits } from '../../../../utils/cpf'
 import { onlyDigits } from '../../../../utils/lgpdDisplay'
 
@@ -68,30 +71,25 @@ function missingFieldsForRegistration(registration: PatientRegistration) {
 }
 
 export function adminPatientToRegistration(patient: AdminMunicipalPatient): PatientRegistration {
-  const profile = getNetworkUserProfile(patient)
-
   return {
     fullName: patient.name,
     socialName: '',
     cpf: patient.cpf,
     birthDate: birthDateDisplayToIso(patient.birthDate),
-    gender: profile.genderLabel.toLowerCase().startsWith('f') ? 'feminino' : 'masculino',
+    gender: 'nao_informado',
     phone: patient.phone,
-    email: profile.email,
-    guardianName: profile.guardianName,
-    guardianCpf: profile.guardianCpf,
-    contacts:
-      profile.contacts.length > 0
-        ? profile.contacts.map((contact) => ({ ...contact }))
-        : [{ id: `contact-${patient.id}`, name: '', phone: '', relationship: '' }],
-    zipCode: profile.zipCode,
-    street: profile.street,
-    number: profile.number,
-    complement: profile.complement,
-    neighborhood: profile.neighborhood || patient.bairro,
-    city: profile.city,
-    state: profile.state,
-    photoDataUrl: patient.avatarUrl ?? profile.photoDataUrl,
+    email: '',
+    guardianName: '',
+    guardianCpf: '',
+    contacts: [{ id: `contact-${patient.id}`, name: '', phone: '', relationship: '' }],
+    zipCode: '',
+    street: '',
+    number: '',
+    complement: '',
+    neighborhood: patient.bairro,
+    city: patient.municipality,
+    state: '',
+    photoDataUrl: patient.avatarUrl ?? '',
   }
 }
 
@@ -168,4 +166,73 @@ function currentRegistrationMonthLabel(): AdminMunicipalPatient['registrationMon
     'Mai',
   ]
   return labels[month] ?? 'Mai'
+}
+
+export function registrationToPreCadastroPayload(
+  registration: PatientRegistration,
+  contractingEntity: AdminPatientContractingEntity,
+): PreCadastroRegistrationPayload {
+  const birthDateIso = registration.birthDate.includes('/')
+    ? birthDateDisplayToIso(registration.birthDate)
+    : registration.birthDate
+
+  return {
+    entidadeContratanteId: contractingEntity.id,
+    fullName: registration.fullName.trim() || registration.socialName.trim() || 'Paciente',
+    socialName: registration.socialName.trim() || undefined,
+    cpf: registration.cpf,
+    birthDate: birthDateIso,
+    gender: registration.gender,
+    phone: registration.phone.trim() || undefined,
+    email: registration.email.trim() || undefined,
+    guardianName: registration.guardianName.trim() || undefined,
+    guardianCpf: registration.guardianCpf.trim() || undefined,
+    contacts: registration.contacts.map((contact) => ({
+      id: contact.id,
+      name: contact.name,
+      phone: contact.phone,
+      relationship: contact.relationship,
+    })),
+    zipCode: registration.zipCode.trim() || undefined,
+    street: registration.street.trim() || undefined,
+    number: registration.number.trim() || undefined,
+    complement: registration.complement.trim() || undefined,
+    neighborhood: registration.neighborhood.trim() || undefined,
+    city: registration.city.trim() || undefined,
+    state: registration.state.trim() || undefined,
+    photoDataUrl: registration.photoDataUrl.trim() || undefined,
+  }
+}
+
+export function registrationToUpdatePayload(
+  registration: PatientRegistration,
+): UpdatePacientePayload {
+  const birthDateIso = registration.birthDate.includes('/')
+    ? birthDateDisplayToIso(registration.birthDate)
+    : registration.birthDate
+
+  return {
+    fullName: registration.fullName.trim() || registration.socialName.trim() || undefined,
+    socialName: registration.socialName.trim() || undefined,
+    birthDate: birthDateIso,
+    gender: registration.gender,
+    phone: registration.phone.trim() || undefined,
+    email: registration.email.trim() || undefined,
+    guardianName: registration.guardianName.trim() || undefined,
+    guardianCpf: registration.guardianCpf.trim() || undefined,
+    contacts: registration.contacts.map((contact) => ({
+      id: contact.id,
+      name: contact.name,
+      phone: contact.phone,
+      relationship: contact.relationship,
+    })),
+    zipCode: registration.zipCode.trim() || undefined,
+    street: registration.street.trim() || undefined,
+    number: registration.number.trim() || undefined,
+    complement: registration.complement.trim() || undefined,
+    neighborhood: registration.neighborhood.trim() || undefined,
+    city: registration.city.trim() || undefined,
+    state: registration.state.trim() || undefined,
+    photoDataUrl: registration.photoDataUrl.trim() || undefined,
+  }
 }

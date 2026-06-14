@@ -1,6 +1,17 @@
 import type { ProfissionalAgendaTab } from '../hooks/useProfissionalAgendaState'
 
 export const PROFISSIONAL_AGENDA_TOUR_STORAGE_KEY = 'telefarmed:profissional-agenda-tour-v1'
+export const PROFISSIONAL_AGENDA_TOUR_INVITE_STORAGE_KEY =
+  'telefarmed:profissional-agenda-tour-invite-v1'
+
+/** Plantão principal exibido no tour (cards do dia, entrar no plantão, fila). */
+export const PROFISSIONAL_AGENDA_TOUR_DEMO_SHIFT_ID = 'agenda-tour-shift-1'
+
+/** Plantão extra para calendário / próximos plantões no tour. */
+export const PROFISSIONAL_AGENDA_TOUR_DEMO_SHIFT_PM_ID = 'agenda-tour-shift-2'
+
+/** Terceiro plantão demo (outro dia do mês no calendário). */
+export const PROFISSIONAL_AGENDA_TOUR_DEMO_SHIFT_EXTRA_ID = 'agenda-tour-shift-3'
 
 /** z-index acima de drawers (9998), lock de consulta e demais overlays. */
 export const PROFISSIONAL_TOUR_Z_INDEX = 99999
@@ -28,8 +39,6 @@ export type ProfissionalAgendaTourStep = {
   skipIfMissing?: boolean
 }
 
-export const profissionalAgendaTourFirstVisitBody =
-  'Na sua primeira visita, pedimos que conclua este tour — são poucos minutos e ajudam você a começar com mais segurança. Depois, você pode rever quando quiser pelo botão "Ver tour guiado" no topo da página.'
 
 export const profissionalAgendaTourSteps: ProfissionalAgendaTourStep[] = [
   {

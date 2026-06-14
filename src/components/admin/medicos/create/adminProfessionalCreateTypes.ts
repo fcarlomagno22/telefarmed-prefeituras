@@ -1,10 +1,13 @@
-import type { AdminProfessionalCategory } from '../../../../data/adminMedicosMock'
+import type { AdminProfessionalCategory } from '../../../../types/adminMedicos'
 import { specialties } from '../../../../data/specialties'
 
 export type AdminProfessionalCreateStep = 'profile' | 'address' | 'photo' | 'success'
 
 export type AdminProfessionalCreateDraft = {
   fullName: string
+  cpf: string
+  email: string
+  phone: string
   profession: AdminProfessionalCategory
   specialty: string
   councilNumber: string
@@ -46,6 +49,9 @@ export const brazilianStates = [
 export function emptyAdminProfessionalCreateDraft(): AdminProfessionalCreateDraft {
   return {
     fullName: '',
+    cpf: '',
+    email: '',
+    phone: '',
     profession: 'Médicos',
     specialty: '',
     councilNumber: '',
@@ -116,9 +122,13 @@ export function getSpecialtyOptionsForProfession(profession: AdminProfessionalCa
 export function isProfileStepReady(draft: AdminProfessionalCreateDraft) {
   return (
     draft.fullName.trim().length >= 3 &&
+    draft.cpf.replace(/\D/g, '').length === 11 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draft.email.trim()) &&
     draft.specialty.trim().length > 0 &&
     draft.councilNumber.replace(/\D/g, '').length >= 3 &&
-    draft.councilUf.trim().length === 2
+    draft.councilUf.trim().length === 2 &&
+    draft.password.length >= 6 &&
+    draft.password === draft.passwordConfirm
   )
 }
 

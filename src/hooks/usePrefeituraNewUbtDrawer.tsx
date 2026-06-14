@@ -1,13 +1,11 @@
 import { useCallback, useState } from 'react'
 import { PrefeituraNewUbtDrawer } from '../components/prefeitura/rede/PrefeituraNewUbtDrawer'
 import { Toast } from '../components/ui/Toast'
-import type { PrefeituraRedeUnitCadastralProfile } from '../data/prefeituraRedeUnitDetail'
-import type { PrefeituraRedeUnit } from '../data/prefeituraRedeMock'
 
 const NEW_UBT_SUCCESS_TOAST_MS = 6000
 
 type UsePrefeituraNewUbtDrawerOptions = {
-  onRegistered?: (unit: PrefeituraRedeUnit, profile: PrefeituraRedeUnitCadastralProfile) => void
+  onRegistered?: () => void
 }
 
 export function usePrefeituraNewUbtDrawer(options: UsePrefeituraNewUbtDrawerOptions = {}) {
@@ -34,9 +32,11 @@ export function usePrefeituraNewUbtDrawer(options: UsePrefeituraNewUbtDrawerOpti
   const dismissSuccessToast = useCallback(() => setSuccessToast(null), [])
 
   const handleRegistered = useCallback(
-    (unit: PrefeituraRedeUnit, profile: PrefeituraRedeUnitCadastralProfile) => {
-      options.onRegistered?.(unit, profile)
-      setSuccessToast(`${unit.name} cadastrada na rede.`)
+    (unitName: string) => {
+      options.onRegistered?.()
+      setSuccessToast(
+        `${unitName} cadastrada na rede. Acesse Credenciais de acesso para criar a credencial da gestora responsável.`,
+      )
     },
     [options.onRegistered],
   )

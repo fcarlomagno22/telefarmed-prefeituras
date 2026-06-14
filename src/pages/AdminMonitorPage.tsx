@@ -1,8 +1,33 @@
 import { AdminMonitorMainPanel } from '../components/admin/monitor/AdminMonitorMainPanel'
-import { usePageSkeletonLoading } from '../hooks/usePageSkeletonLoading'
+import { AdminMonitorMainPanelSkeleton } from '../components/admin/monitor/skeletons/AdminMonitorMainPanelSkeleton'
+import { useAdminMonitorPage } from '../hooks/useAdminMonitorPage'
 
 export function AdminMonitorPage() {
-  const isLoading = usePageSkeletonLoading(900)
+  const {
+    monitor,
+    filters,
+    isLoading,
+    loadError,
+    reload,
+    setEntidadeId,
+    setRegionKey,
+    setTimelinePeriod,
+  } = useAdminMonitorPage()
+
+  if (loadError && !monitor) {
+    return (
+      <div className="flex h-full flex-1 flex-col items-center justify-center gap-4 p-8">
+        <p className="text-sm text-gray-600">{loadError}</p>
+        <button
+          type="button"
+          onClick={() => void reload()}
+          className="rounded-lg bg-[var(--brand-primary)] px-4 py-2 text-sm font-semibold text-white"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -10,21 +35,36 @@ export function AdminMonitorPage() {
       aria-label="Monitor operacional administrativo"
       aria-busy={isLoading}
     >
-      {isLoading ? (
-        <div className="flex h-full min-h-0 flex-1 animate-pulse flex-col gap-4 p-6">
-          <div className="h-8 w-80 rounded-xl bg-gray-200" />
-          <div className="grid grid-cols-6 gap-3">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="h-24 rounded-2xl bg-gray-200" />
-            ))}
-          </div>
-          <div className="grid flex-1 grid-cols-[1.65fr_1fr] gap-4">
-            <div className="rounded-2xl bg-gray-200" />
-            <div className="rounded-2xl bg-gray-200" />
-          </div>
+      {isLoading && !monitor ? (
+        <AdminMonitorMainPanelSkeleton />
+      ) : monitor ? (
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          {loadError ? (
+            <div className="shrink-0 border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <span>{loadError}</span>
+                <button
+                  type="button"
+                  onClick={() => void reload()}
+                  className="font-semibold text-[var(--brand-primary)] hover:underline"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            </div>
+          ) : null}
+          <AdminMonitorMainPanel
+            monitor={monitor}
+            selectedEntidadeId={filters.entidadeId}
+            regionKey={filters.regionKey}
+            timelinePeriod={filters.timelinePeriod}
+            onEntidadeChange={setEntidadeId}
+            onRegionChange={setRegionKey}
+            onTimelineChange={setTimelinePeriod}
+          />
         </div>
       ) : (
-        <AdminMonitorMainPanel />
+        <AdminMonitorMainPanelSkeleton />
       )}
     </div>
   )

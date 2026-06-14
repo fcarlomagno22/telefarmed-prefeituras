@@ -6,6 +6,7 @@ export type CredentialUserStatus = 'ativo' | 'inativo'
 
 export type AccessCredentialUser = {
   id: string
+  cpf?: string
   name: string
   email: string
   role: string
@@ -24,6 +25,30 @@ export type AccessCredentialUser = {
   raKey?: string
   raLabel?: string
   isUbtResponsible?: boolean
+}
+
+import type { AdminOperatorRow } from './adminOperadoresMock'
+
+export function mapOperatorRowToAccessCredentialUser(row: AdminOperatorRow): AccessCredentialUser {
+  return {
+    id: row.id,
+    cpf: row.cpf,
+    name: row.name,
+    email: row.email,
+    role: row.role,
+    accessLevel: row.accessLevel as AccessCredentialUser['accessLevel'],
+    status: row.status,
+    initials: row.initials,
+    avatarClassName: row.avatarClassName,
+    hasPassword: row.hasPassword,
+    hasAuthorizationPin: row.hasAuthorizationPin,
+    pagePermissions: row.pagePermissions,
+    ubtId: row.ubtId,
+    ubtName: row.ubtName ?? row.unitName,
+    raKey: row.raKey,
+    raLabel: row.raLabel,
+    isUbtResponsible: row.isUbtResponsible,
+  }
 }
 
 export type RecentAccessEntry = {

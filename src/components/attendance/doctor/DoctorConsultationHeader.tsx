@@ -1,4 +1,4 @@
-import { ArrowRightLeft, ClipboardList, PhoneOff, Pill } from 'lucide-react'
+import { ArrowRightLeft, ClipboardList, FileText, PhoneOff, Pill } from 'lucide-react'
 
 type DoctorConsultationHeaderProps = {
   elapsed: string
@@ -7,6 +7,7 @@ type DoctorConsultationHeaderProps = {
   onSwitchToPatientView?: () => void
   onRequestExam?: () => void
   onIssuePrescription?: () => void
+  onIssueAtestado?: () => void
 }
 
 export function DoctorConsultationHeader({
@@ -16,6 +17,7 @@ export function DoctorConsultationHeader({
   onSwitchToPatientView,
   onRequestExam,
   onIssuePrescription,
+  onIssueAtestado,
 }: DoctorConsultationHeaderProps) {
   return (
     <header className="shrink-0 bg-[#f5f6f8] pb-3 pt-4">
@@ -63,6 +65,14 @@ export function DoctorConsultationHeader({
             >
               <Pill className="h-4 w-4" strokeWidth={2} />
               Emitir receita
+            </button>
+            <button
+              type="button"
+              onClick={onIssueAtestado}
+              className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100 sm:text-sm"
+            >
+              <FileText className="h-4 w-4" strokeWidth={2} />
+              Emitir atestado
             </button>
             <button
               type="button"

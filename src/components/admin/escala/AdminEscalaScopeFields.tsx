@@ -1,9 +1,9 @@
 import { Building2, Landmark, Monitor } from 'lucide-react'
 import type { ReactNode } from 'react'
 import {
-  adminEscalaPrefeituras,
+  getAdminEscalaPrefeituras,
   getUbtsForPrefeituraIds,
-} from '../../../data/adminEscalaRecipients'
+} from '../../../data/adminEscalaCatalog'
 import type {
   AdminEscalaPrefeituraScope,
   AdminEscalaSelectionMode,
@@ -100,7 +100,7 @@ export function AdminEscalaScopeFields({
 }: AdminEscalaScopeFieldsProps) {
   const scopedPrefeituraIds =
     prefeituraScope.mode === 'all'
-      ? adminEscalaPrefeituras.map((p) => p.id)
+      ? getAdminEscalaPrefeituras().map((p) => p.id)
       : prefeituraScope.prefeituraIds
 
   const availableUbts = getUbtsForPrefeituraIds(scopedPrefeituraIds)
@@ -108,8 +108,8 @@ export function AdminEscalaScopeFields({
 
   const selectedPrefeituras =
     prefeituraScope.mode === 'all'
-      ? adminEscalaPrefeituras
-      : adminEscalaPrefeituras.filter((p) => prefeituraScope.prefeituraIds.includes(p.id))
+      ? getAdminEscalaPrefeituras()
+      : getAdminEscalaPrefeituras().filter((p) => prefeituraScope.prefeituraIds.includes(p.id))
 
   function setPrefeituraMode(mode: AdminEscalaSelectionMode) {
     onPrefeituraScopeChange({
@@ -183,7 +183,7 @@ export function AdminEscalaScopeFields({
 
   const prefeituraBody = (
     <div className={listClass}>
-      {adminEscalaPrefeituras.map((p) => (
+      {getAdminEscalaPrefeituras().map((p) => (
         <label
           key={p.id}
           className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-3 transition hover:bg-gray-50"
@@ -287,7 +287,7 @@ export function AdminEscalaScopeFields({
             icon={Landmark}
             iconClass="bg-violet-100 text-violet-700"
             title="Prefeituras"
-            subtitle="Municípios onde a escala será publicada"
+            subtitle="Marque cada município onde a escala será publicada (obrigatório)"
             controls={prefeituraControls}
             body={prefeituraBody}
           />

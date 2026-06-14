@@ -43,6 +43,13 @@ function buildCard(
   }
 }
 
+import type { RelatorioKpi } from '../types/relatorios'
+
+export function mapRelatorioKpisToStatCards(kpis: RelatorioKpi[]): KpiStatCardItem[] {
+  const icons = [Monitor, CheckCircle2, UserPlus, Clock, Stethoscope, Users, Star, PieChart]
+  return kpis.map((kpi, index) => buildCard(kpi.label, kpi.value, kpi.suffix, icons[index % icons.length], index))
+}
+
 export function computeKpisForCategory(
   categoryId: ReportCategoryId,
   rows: Record<string, ReportRowValue>[],

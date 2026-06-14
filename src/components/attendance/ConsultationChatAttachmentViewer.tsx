@@ -10,6 +10,14 @@ const PDF_ZOOM_MIN = 0.75
 const PDF_ZOOM_MAX = 2.5
 const PDF_ZOOM_STEP = 0.25
 
+const IMAGE_EXTENSIONS = /\.(avif|gif|heic|heif|jpe?g|png|webp)$/i
+
+function isImageAttachment(attachment: ConsultationChatAttachment) {
+  if (attachment.type === 'image') return true
+  if (attachment.type === 'pdf') return false
+  return IMAGE_EXTENSIONS.test(attachment.name)
+}
+
 type ConsultationChatAttachmentViewerProps = {
   attachment: ConsultationChatAttachment
   onClose: () => void
@@ -21,8 +29,9 @@ export function ConsultationChatAttachmentViewer({
   onClose,
   tourTargetId,
 }: ConsultationChatAttachmentViewerProps) {
-  const isImage = attachment.type === 'image'
+  const isImage = isImageAttachment(attachment)
   const [imageZoom, setImageZoom] = useState(1)
+  const [imageFailed, setImageFailed] = useState(false)
   const [pdfZoom, setPdfZoom] = useState(1)
   const viewportRef = useRef<HTMLDivElement>(null)
 
@@ -35,17 +44,26 @@ export function ConsultationChatAttachmentViewer({
   }, [])
 
   useEffect(() => {
+    setImageFailed(false)
+    setImageZoom(1)
+    setPdfZoom(1)
+  }, [attachment.id, attachment.url])
+
+  useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose()
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      onClose()
     }
 
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('keydown', handleKeyDown, true)
 
     return () => {
       document.body.style.overflow = previousOverflow
-      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('keydown', handleKeyDown, true)
     }
   }, [onClose])
 
@@ -73,6 +91,7 @@ export function ConsultationChatAttachmentViewer({
 
   return createPortal(
     <div
+      data-support-attachment-viewer="true"
       data-tour={tourTargetId}
       className="fixed inset-0 z-[10000] flex flex-col bg-gray-950/95"
     >
@@ -134,13 +153,20 @@ export function ConsultationChatAttachmentViewer({
           ref={viewportRef}
           className="relative z-10 flex min-h-0 flex-1 items-center justify-center overflow-auto p-4 sm:p-8"
         >
-          <img
-            src={attachment.url}
-            alt={attachment.name}
-            draggable={false}
-            style={{ transform: `scale(${imageZoom})` }}
-            className="max-h-none max-w-none origin-center object-contain transition-transform duration-150"
-          />
+          {imageFailed ? (
+            <p className="max-w-md text-center text-sm text-white/75">
+              Não foi possível carregar a imagem. Tente enviar o arquivo novamente.
+            </p>
+          ) : (
+            <img
+              src={attachment.url}
+              alt={attachment.name}
+              draggable={false}
+              onError={() => setImageFailed(true)}
+              style={{ transform: `scale(${imageZoom})` }}
+              className="max-h-full max-w-full origin-center object-contain transition-transform duration-150"
+            />
+          )}
         </div>
       ) : (
         <div
@@ -185,7 +211,7 @@ export function ConsultationChatAttachmentPreview({
 }: ConsultationChatAttachmentPreviewProps) {
   const [viewerOpen, setViewerOpen] = useState(false)
 
-  if (attachment.type === 'image') {
+  if (isImageAttachment(attachment)) {
     return (
       <>
         <button

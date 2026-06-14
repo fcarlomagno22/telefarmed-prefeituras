@@ -152,6 +152,27 @@ export const listConsultaQuerySchema = z.object({
     .transform((value) => value === 'true'),
 })
 
+const BULK_MAX_ITEMS = 200
+const BULK_DELETE_MAX_IDS = 500
+
+export const createExamCategoriesBulkBodySchema = z.object({
+  items: z.array(createExamCategoryBodySchema).min(1).max(BULK_MAX_ITEMS),
+})
+
+export const createExamItemsBulkBodySchema = z.object({
+  items: z.array(createExamItemBodySchema).min(1).max(BULK_MAX_ITEMS),
+})
+
+export const deleteExamItemsBulkBodySchema = z.union([
+  z.object({
+    ids: z.array(catalogIdSchema).min(1).max(BULK_DELETE_MAX_IDS),
+  }),
+  z.object({
+    categoryId: catalogIdSchema,
+    allInCategory: z.literal(true),
+  }),
+])
+
 export type CreateContractTypeBody = z.infer<typeof createContractTypeBodySchema>
 export type UpdateContractTypeBody = z.infer<typeof updateContractTypeBodySchema>
 export type SaveCommercialRulesBody = z.infer<typeof saveCommercialRulesBodySchema>

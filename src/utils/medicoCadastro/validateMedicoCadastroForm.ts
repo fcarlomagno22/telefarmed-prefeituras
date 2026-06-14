@@ -2,6 +2,7 @@ import {
   getMedicoCadastroConselhoLabel,
   getMedicoCadastroDocumentFields,
   isMedicoCadastroMedicinaFormation,
+  MEDICO_CADASTRO_MAX_MEDICAL_SPECIALTIES,
 } from '../../config/medicoCadastroForm'
 import type {
   MedicoCadastroDocumentUploads,
@@ -74,10 +75,6 @@ export function validateMedicoCadastroProfessionalStep(
     errors.formation = 'Selecione sua formação.'
   }
 
-  if (isMedicoCadastroMedicinaFormation(values.formation) && !values.specialty.trim()) {
-    errors.specialty = 'Selecione a especialidade.'
-  }
-
   const conselhoLabel = values.formation
     ? getMedicoCadastroConselhoLabel(values.formation)
     : 'conselho'
@@ -88,6 +85,47 @@ export function validateMedicoCadastroProfessionalStep(
 
   if (values.uf.trim().length !== 2) {
     errors.uf = `Selecione a UF do ${conselhoLabel}.`
+  }
+
+  return errors
+}
+
+export function validateMedicoCadastroSpecialtiesStep(
+  values: MedicoCadastroFormValues,
+): MedicoCadastroFormErrors {
+  const errors: MedicoCadastroFormErrors = {}
+
+  if (!isMedicoCadastroMedicinaFormation(values.formation)) {
+    return errors
+  }
+
+  if (values.medicalSpecialties.length === 0) {
+    errors.medicalSpecialties = 'Informe ao menos uma especialidade com RQE.'
+  }
+
+  if (values.medicalSpecialties.length > MEDICO_CADASTRO_MAX_MEDICAL_SPECIALTIES) {
+    errors.medicalSpecialties = `É possível informar no máximo ${MEDICO_CADASTRO_MAX_MEDICAL_SPECIALTIES} especialidades.`
+  }
+
+  const seen = new Set<string>()
+  for (const item of values.medicalSpecialties) {
+    const specialtyKey = `medicalSpecialty:${item.id}:specialty` as const
+    const rqeKey = `medicalSpecialty:${item.id}:rqe` as const
+
+    if (!item.specialty.trim()) {
+      errors[specialtyKey] = 'Selecione a especialidade.'
+    } else {
+      const normalized = item.specialty.trim().toLowerCase()
+      if (seen.has(normalized)) {
+        errors[specialtyKey] = 'Especialidade duplicada.'
+      }
+      seen.add(normalized)
+    }
+
+    const rqeDigits = item.rqe.replace(/\D/g, '')
+    if (rqeDigits.length < 3) {
+      errors[rqeKey] = 'Informe o RQE com 3 a 8 dígitos.'
+    }
   }
 
   return errors
@@ -153,6 +191,7 @@ export function validateMedicoCadastroForm(
   return {
     ...validateMedicoCadastroPersonalStep(values),
     ...validateMedicoCadastroProfessionalStep(values),
+    ...validateMedicoCadastroSpecialtiesStep(values),
     ...validateMedicoCadastroAddressStep(values),
     ...validateMedicoCadastroDocumentsStep(documents, values.formation),
   }

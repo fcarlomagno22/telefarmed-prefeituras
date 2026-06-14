@@ -2,8 +2,10 @@ import {
   AlertTriangle,
   Calendar,
   ClipboardList,
+  ExternalLink,
   History,
   Home,
+  Loader2,
   Lock,
   MapPin,
   Pencil,
@@ -17,12 +19,13 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
   formatRelationship,
   getNetworkUserProfile,
   type ConsultationRecord,
+  type NetworkUserFullProfile,
 } from '../../data/networkUserProfiles'
 import { STALE_REGISTRATION_MONTHS } from '../../config/userDrawer'
 import {
@@ -35,7 +38,7 @@ import {
   type TeamContactRecord,
 } from '../../data/networkUserActivity'
 import type { NetworkUser } from '../../data/networkUsersMock'
-import { emptyPatientContact, type PatientContact } from '../../data/unitDashboardMock'
+import { emptyPatientContact, type PatientContact } from '../../types/attendance'
 import {
   formatAnnotationDate,
   type UserAnnotation,
@@ -51,6 +54,10 @@ import {
   maskStreetForDisplay,
   maskZipCodeForDisplay,
 } from '../../utils/lgpdDisplay'
+import { maskCep, maskPhone } from '../../utils/masks'
+import { fetchAddressByCep } from '../../utils/viacep'
+import { PatientMedicalRecordDrawer } from './PatientMedicalRecordDrawer'
+import type { PatientProntuarioData } from '../../types/patientProntuario'
 import { buildEditableData, drawerInputClass } from './userDetailDrawerTypes'
 
 type DrawerTab =
@@ -83,6 +90,15 @@ type UserDetailDrawerProps = {
   onRegisterContact: (channel: ContactChannel, phone: string, note: string) => void
   onAddAnnotation: (text: string) => void
   extraContextItems?: { label: string; value: string }[]
+  profileOverride?: NetworkUserFullProfile | null
+  medicalRecordId?: string | null
+  canAccessMedicalRecord?: boolean
+  onRequestMedicalRecord?: () => void
+  loadMedicalRecord?: (patientId: string) => Promise<PatientProntuarioData>
+  canInactivate?: boolean
+  onInactivate?: () => void
+  /** Anotações e histórico de contatos podem ser desabilitados em contextos somente leitura. */
+  teamInteractionsEnabled?: boolean
 }
 
 const tabs: { id: DrawerTab; label: string; icon: typeof UserRound }[] = [
@@ -160,17 +176,21 @@ function DetailField({
   label,
   value,
   className,
+  children,
 }: {
   label: string
-  value: string
+  value?: string
   className?: string
+  children?: ReactNode
 }) {
   return (
     <div className={className}>
       <dt className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
         {label}
       </dt>
-      <dd className="mt-1 text-sm font-medium text-gray-900">{value || '—'}</dd>
+      <dd className="mt-1 text-sm font-medium text-gray-900">
+        {children ?? (value || '—')}
+      </dd>
     </div>
   )
 }
@@ -242,10 +262,26 @@ export function UserDetailDrawer({
   onRegisterContact,
   onAddAnnotation,
   extraContextItems = [],
+  profileOverride = null,
+  medicalRecordId = null,
+  canAccessMedicalRecord = false,
+  onRequestMedicalRecord,
+  loadMedicalRecord,
+  canInactivate = false,
+  onInactivate,
+  teamInteractionsEnabled = true,
 }: UserDetailDrawerProps) {
   const [activeTab, setActiveTab] = useState<DrawerTab>('resumo')
+  const visibleTabs = useMemo(
+    () =>
+      teamInteractionsEnabled
+        ? tabs
+        : tabs.filter((tab) => tab.id !== 'anotacoes' && tab.id !== 'historico'),
+    [teamInteractionsEnabled],
+  )
   const [entered, setEntered] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [inactivateConfirmOpen, setInactivateConfirmOpen] = useState(false)
   const [draft, setDraft] = useState<UserProfileEdits | null>(null)
   const [contactsDraft, setContactsDraft] = useState<PatientContact[]>([])
   const [contactsBaseline, setContactsBaseline] = useState('')
@@ -257,7 +293,23 @@ export function UserDetailDrawer({
   const [registerPhone, setRegisterPhone] = useState('')
   const [registerNote, setRegisterNote] = useState('')
   const [registerError, setRegisterError] = useState<string | null>(null)
+  const [isLoadingCep, setIsLoadingCep] = useState(false)
+  const [cepMessage, setCepMessage] = useState<string | null>(null)
+  const [medicalRecordOpen, setMedicalRecordOpen] = useState(false)
+  const [medicalRecordClosing, setMedicalRecordClosing] = useState(false)
   const handledEditSessionRef = useRef(0)
+  const lastFetchedCepRef = useRef('')
+
+  function resolveProfile(target: NetworkUser): NetworkUserFullProfile {
+    return profileOverride ?? getNetworkUserProfile(target)
+  }
+
+  useEffect(() => {
+    if (!open) return
+    if (!teamInteractionsEnabled && (activeTab === 'anotacoes' || activeTab === 'historico')) {
+      setActiveTab('resumo')
+    }
+  }, [activeTab, open, teamInteractionsEnabled])
 
   useEffect(() => {
     if (!open || !user) {
@@ -272,6 +324,11 @@ export function UserDetailDrawer({
       setRegisterPhone('')
       setRegisterNote('')
       setRegisterError(null)
+      setIsLoadingCep(false)
+      setCepMessage(null)
+      setMedicalRecordOpen(false)
+      setMedicalRecordClosing(false)
+      lastFetchedCepRef.current = ''
       handledEditSessionRef.current = 0
       return
     }
@@ -288,6 +345,11 @@ export function UserDetailDrawer({
     setRegisterPhone('')
     setRegisterNote('')
     setRegisterError(null)
+    setIsLoadingCep(false)
+    setCepMessage(null)
+    setMedicalRecordOpen(false)
+    setMedicalRecordClosing(false)
+    lastFetchedCepRef.current = ''
     const frame = requestAnimationFrame(() => {
       requestAnimationFrame(() => setEntered(true))
     })
@@ -297,21 +359,24 @@ export function UserDetailDrawer({
 
   useEffect(() => {
     if (!user || !open) return
-    const profile = getNetworkUserProfile(user)
+    const profile = resolveProfile(user)
     const base = buildEditableData(user, profile, userEdits)
-    const contacts = base.contacts.map((contact) => ({ ...contact }))
+    const contacts = base.contacts.map((contact) => ({
+      ...contact,
+      phone: maskPhone(contact.phone),
+    }))
     setContactsDraft(contacts)
     setContactsBaseline(JSON.stringify(contacts))
-  }, [open, user?.id, userEdits])
+  }, [open, user?.id, userEdits, profileOverride])
 
   useEffect(() => {
     if (!user || editSessionKey === 0 || editSessionKey === handledEditSessionRef.current) return
     handledEditSessionRef.current = editSessionKey
-    const profile = getNetworkUserProfile(user)
+    const profile = resolveProfile(user)
     const base = buildEditableData(user, profile, userEdits)
-    setDraft({ ...base, contacts: contactsDraft })
+    setDraft({ ...base, phone: maskPhone(base.phone), contacts: contactsDraft })
     setIsEditing(true)
-  }, [editSessionKey, user?.id, userEdits])
+  }, [editSessionKey, user?.id, userEdits, profileOverride, contactsDraft])
 
   const isActive = open || closing
 
@@ -350,17 +415,62 @@ export function UserDetailDrawer({
 
   useEffect(() => {
     if (!open || !user || activeTab !== 'historico') return
-    const profile = getNetworkUserProfile(user)
+    const profile = resolveProfile(user)
     const effective = buildEditableData(user, profile, userEdits)
     const phone = effective.phone
     setRegisterPhone(phone && phone !== '—' ? phone : '')
     setRegisterError(null)
-  }, [open, activeTab, user?.id, userEdits])
+  }, [open, activeTab, user?.id, userEdits, profileOverride])
+
+  useEffect(() => {
+    if (!isEditing || !draft) return
+
+    const digits = draft.zipCode.replace(/\D/g, '')
+    if (digits.length !== 8) {
+      if (digits.length < 8) lastFetchedCepRef.current = ''
+      return
+    }
+    if (lastFetchedCepRef.current === digits) return
+
+    let cancelled = false
+    lastFetchedCepRef.current = digits
+
+    void (async () => {
+      setIsLoadingCep(true)
+      setCepMessage(null)
+      const address = await fetchAddressByCep(draft.zipCode)
+      if (cancelled) return
+      setIsLoadingCep(false)
+
+      if (!address) {
+        setCepMessage('CEP não encontrado. Preencha o endereço manualmente.')
+        return
+      }
+
+      setDraft((prev) =>
+        prev
+          ? {
+              ...prev,
+              zipCode: maskCep(digits),
+              street: address.street || prev.street,
+              neighborhood: address.neighborhood || prev.neighborhood,
+              city: address.city || prev.city,
+              state: address.state || prev.state,
+              complement: address.complement || prev.complement,
+            }
+          : prev,
+      )
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [draft?.zipCode, isEditing])
 
   if (!user || !isActive) return null
 
-  const profile = getNetworkUserProfile(user)
-  const photoUrl = profile.photoDataUrl
+  const profile = resolveProfile(user)
+  const photoUrl = profile.photoDataUrl || user.avatarUrl || ''
   const effective = buildEditableData(user, profile, userEdits)
   const panelVisible = entered && !closing
   const editingData: UserProfileEdits = {
@@ -370,6 +480,18 @@ export function UserDetailDrawer({
   const contactsDirty = contactsBaseline !== JSON.stringify(contactsDraft)
   const canDeleteEmergencyContacts = editSessionKey > 0
   const registrationStale = isRegistrationStale(profile.registeredAt, lastReviewedAt)
+  const resolvedMedicalRecordId =
+    medicalRecordId?.trim() ||
+    user.municipalRecordId?.trim() ||
+    null
+  const resolvedRegisteredAt =
+    profile.registeredAt?.trim() && profile.registeredAt !== '—'
+      ? profile.registeredAt
+      : user.registeredAt?.trim() || '—'
+  const resolvedRegistrationUnit =
+    profile.registrationUnit?.trim() && profile.registrationUnit !== '—'
+      ? profile.registrationUnit
+      : user.firstAttendanceUnit?.trim() || '—'
   const searchQuery = drawerSearch.trim().toLowerCase()
   const showDrawerSearch = searchableTabs.includes(activeTab)
 
@@ -577,6 +699,16 @@ export function UserDetailDrawer({
                   Editar
                 </button>
               ) : null}
+              {canInactivate && !isEditing ? (
+                <button
+                  type="button"
+                  onClick={() => setInactivateConfirmOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-50"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Inativar
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={onClose}
@@ -617,7 +749,7 @@ export function UserDetailDrawer({
           className="flex w-full shrink-0 gap-1 border-b border-gray-200 bg-white px-2 py-2"
           aria-label="Seções do paciente"
         >
-          {tabs.map((tab) => {
+          {visibleTabs.map((tab) => {
             const Icon = tab.icon
             const isActive = activeTab === tab.id
             return (
@@ -739,7 +871,7 @@ export function UserDetailDrawer({
                   <EditField
                     label="Celular"
                     value={draft.phone}
-                    onChange={(phone) => updateDraft({ phone })}
+                    onChange={(phone) => updateDraft({ phone: maskPhone(phone) })}
                   />
                   <EditField
                     label="E-mail"
@@ -807,11 +939,35 @@ export function UserDetailDrawer({
               </div>
               {isEditing && draft ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <EditField
-                    label="CEP"
-                    value={draft.zipCode}
-                    onChange={(zipCode) => updateDraft({ zipCode })}
-                  />
+                  <label className="block sm:col-span-2">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                      CEP
+                    </span>
+                    <div className="relative mt-1">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={draft.zipCode}
+                        onChange={(event) => {
+                          setCepMessage(null)
+                          updateDraft({ zipCode: maskCep(event.target.value) })
+                        }}
+                        placeholder="00000-000"
+                        className={drawerInputClass}
+                      />
+                      {isLoadingCep ? (
+                        <Loader2 className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[var(--brand-primary)]" />
+                      ) : null}
+                    </div>
+                    {cepMessage ? (
+                      <p className="mt-1.5 text-xs text-amber-600">{cepMessage}</p>
+                    ) : (
+                      <p className="mt-1.5 text-xs text-gray-400">
+                        Ao informar o CEP, logradouro, bairro, cidade e UF são preenchidos
+                        automaticamente.
+                      </p>
+                    )}
+                  </label>
                   <EditField
                     label="Bairro"
                     value={draft.neighborhood}
@@ -953,7 +1109,7 @@ export function UserDetailDrawer({
                         <EditField
                           label="Telefone"
                           value={contact.phone}
-                          onChange={(phone) => updateContact(index, { phone })}
+                          onChange={(phone) => updateContact(index, { phone: maskPhone(phone) })}
                         />
                         <label className="block">
                           <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
@@ -1041,10 +1197,30 @@ export function UserDetailDrawer({
                   {extraContextItems.map((item) => (
                     <DetailField key={`cad-${item.label}`} label={item.label} value={item.value} />
                   ))}
-                  <DetailField label="Cadastrado em" value={profile.registeredAt} />
-                  <DetailField label="Unidade" value={profile.registrationUnit} />
+                  <DetailField label="Data de cadastro" value={resolvedRegisteredAt} />
+                  <DetailField label="Unidade de cadastro" value={resolvedRegistrationUnit} />
+                  <DetailField
+                    label="Prontuário médico"
+                    value={resolvedMedicalRecordId ?? '—'}
+                  />
                   <DetailField label="Total de atendimentos" value={String(user.totalAppointments)} />
                 </dl>
+                {resolvedMedicalRecordId && canAccessMedicalRecord ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onRequestMedicalRecord) {
+                        onRequestMedicalRecord()
+                        return
+                      }
+                      setMedicalRecordOpen(true)
+                    }}
+                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--brand-primary)]/25 bg-[var(--brand-primary-light)]/40 px-4 py-2.5 text-sm font-semibold text-[var(--brand-primary)] transition hover:bg-[var(--brand-primary-light)]"
+                  >
+                    <ExternalLink className="h-4 w-4" strokeWidth={2.25} />
+                    Acessar prontuário
+                  </button>
+                ) : null}
               </SectionCard>
 
               {profile.notes ? (
@@ -1276,6 +1452,41 @@ export function UserDetailDrawer({
         </div>
       </div>
     ) : null}
+
+      <ConfirmDialog
+        open={inactivateConfirmOpen}
+        title="Inativar cadastro do paciente?"
+        description="O paciente será removido da listagem ativa da unidade. Esta ação não apaga o histórico clínico, apenas inativa o cadastro."
+        confirmLabel="Inativar cadastro"
+        cancelLabel="Cancelar"
+        tone="danger"
+        onConfirm={() => {
+          setInactivateConfirmOpen(false)
+          onInactivate?.()
+        }}
+        onCancel={() => setInactivateConfirmOpen(false)}
+      />
+
+      {resolvedMedicalRecordId && loadMedicalRecord && !onRequestMedicalRecord ? (
+        <PatientMedicalRecordDrawer
+          open={medicalRecordOpen}
+          closing={medicalRecordClosing}
+          onClose={() => setMedicalRecordClosing(true)}
+          onTransitionEnd={() => {
+            if (!medicalRecordClosing) return
+            setMedicalRecordOpen(false)
+            setMedicalRecordClosing(false)
+          }}
+          patientId={user.id}
+          patientName={user.name}
+          patientPhotoUrl={photoUrl}
+          birthDate={user.birthDate}
+          age={user.age}
+          city={editingData.city}
+          recordId={resolvedMedicalRecordId}
+          loadProntuario={loadMedicalRecord}
+        />
+      ) : null}
     </>,
     document.body,
   )

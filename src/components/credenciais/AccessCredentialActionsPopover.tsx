@@ -1,6 +1,7 @@
 import { ArrowRightLeft, Ban, Eye, MoreVertical, Pencil, Trash2, UserCheck } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
+import { FLOATING_POPOVER_Z_INDEX } from '../../config/overlayLayers'
 import type { AccessCredentialUser } from '../../data/accessCredentialsMock'
 
 type AccessCredentialActionsPopoverProps = {
@@ -9,11 +10,11 @@ type AccessCredentialActionsPopoverProps = {
   onToggle: () => void
   onClose: () => void
   onView: () => void
-  onEdit: () => void
+  onEdit?: () => void
   onTransferUbt?: () => void
-  onDeactivate: () => void
+  onDeactivate?: () => void
   onReactivate?: () => void
-  onDelete: () => void
+  onDelete?: () => void
 }
 
 const menuItemClass =
@@ -68,7 +69,7 @@ export function AccessCredentialActionsPopover({
         top,
         left,
         minWidth: MENU_MIN_WIDTH_PX,
-        zIndex: 200,
+        zIndex: FLOATING_POPOVER_Z_INDEX,
       })
       return true
     }
@@ -124,10 +125,12 @@ export function AccessCredentialActionsPopover({
           <Eye className="h-4 w-4 shrink-0 text-gray-500" strokeWidth={2} />
           Visualizar
         </button>
-        <button type="button" role="menuitem" className={menuItemClass} onClick={onEdit}>
-          <Pencil className="h-4 w-4 shrink-0 text-gray-500" strokeWidth={2} />
-          Editar
-        </button>
+        {onEdit ? (
+          <button type="button" role="menuitem" className={menuItemClass} onClick={onEdit}>
+            <Pencil className="h-4 w-4 shrink-0 text-gray-500" strokeWidth={2} />
+            Editar
+          </button>
+        ) : null}
         {onTransferUbt ? (
           <button type="button" role="menuitem" className={menuItemClass} onClick={onTransferUbt}>
             <ArrowRightLeft className="h-4 w-4 shrink-0 text-gray-500" strokeWidth={2} />
@@ -144,7 +147,7 @@ export function AccessCredentialActionsPopover({
             <UserCheck className="h-4 w-4 shrink-0" strokeWidth={2} />
             Desbloquear usuário
           </button>
-        ) : (
+        ) : onDeactivate ? (
           <button
             type="button"
             role="menuitem"
@@ -155,16 +158,18 @@ export function AccessCredentialActionsPopover({
             <Ban className="h-4 w-4 shrink-0 text-gray-500" strokeWidth={2} />
             Bloquear usuário
           </button>
-        )}
-        <button
-          type="button"
-          role="menuitem"
-          className={`${menuItemClass} text-red-600 hover:bg-red-50`}
-          onClick={onDelete}
-        >
-          <Trash2 className="h-4 w-4 shrink-0" strokeWidth={2} />
-          Excluir usuário
-        </button>
+        ) : null}
+        {onDelete ? (
+          <button
+            type="button"
+            role="menuitem"
+            className={`${menuItemClass} text-red-600 hover:bg-red-50`}
+            onClick={onDelete}
+          >
+            <Trash2 className="h-4 w-4 shrink-0" strokeWidth={2} />
+            Excluir usuário
+          </button>
+        ) : null}
       </div>
     ) : null
 

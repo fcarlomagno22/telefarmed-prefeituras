@@ -2,6 +2,7 @@ import { env } from './config/env.js'
 import { checkSupabaseConnection } from './db/supabase.js'
 import { buildApp } from './app.js'
 
+/** Servidor HTTP local (`npm run dev:api`). Em produção na Vercel, ver `api/index.ts`. */
 async function main() {
   const app = await buildApp()
 

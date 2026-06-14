@@ -2,7 +2,7 @@ import { AlertTriangle, ChevronRight, ShieldAlert } from 'lucide-react'
 import {
   adminNocCategoryLabels,
   type AdminNocIncident,
-} from '../../../data/adminDashboardMock'
+} from '../../../types/adminDashboard'
 import { DashCard, DashLinkAction } from '../../prefeitura/prefeituraDashboardUi'
 import {
   adminDashboardTopRowBodyClass,

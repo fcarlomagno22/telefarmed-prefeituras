@@ -2,8 +2,7 @@ import { ExternalLink } from 'lucide-react'
 import { useMemo } from 'react'
 import { brand } from '../../config/brand'
 import type { AccessLevelId } from '../../config/accessCredentials'
-import type { AccessCredentialUser } from '../../data/accessCredentialsMock'
-import { recentAccessEntries } from '../../data/accessCredentialsMock'
+import type { AccessCredentialUser, RecentAccessEntry } from '../../data/accessCredentialsMock'
 import { AccessCredentialsSidebarIllustration } from './AccessCredentialsIllustration'
 import {
   accessLevelGradients,
@@ -21,11 +20,13 @@ function formatNumber(value: number) {
 
 type AccessCredentialsSidebarPanelProps = {
   users: AccessCredentialUser[]
-  onOpenAllAccesses: () => void
+  recentAccessEntries?: RecentAccessEntry[]
+  onOpenAllAccesses?: () => void
 }
 
 export function AccessCredentialsSidebarPanel({
   users,
+  recentAccessEntries = [],
   onOpenAllAccesses,
 }: AccessCredentialsSidebarPanelProps) {
   const totalUsers = users.length
@@ -191,37 +192,43 @@ export function AccessCredentialsSidebarPanel({
 
         <section className="border-t border-gray-200 p-5">
           <h2 className="text-base font-bold text-gray-900">Últimos acessos</h2>
-          <ul className="mt-4 space-y-3">
-            {recentAccessEntries.map((entry) => (
-              <li key={entry.userId} className="flex items-center gap-3">
-                {entry.avatarUrl ? (
-                  <img
-                    src={entry.avatarUrl}
-                    alt=""
-                    className="h-9 w-9 shrink-0 rounded-full object-cover"
-                  />
-                ) : (
-                  <span
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${entry.avatarClassName}`}
-                  >
-                    {entry.initials}
+          {recentAccessEntries.length === 0 ? (
+            <p className="mt-4 text-sm text-gray-500">Nenhum acesso recente registrado.</p>
+          ) : (
+            <ul className="mt-4 space-y-3">
+              {recentAccessEntries.map((entry) => (
+                <li key={entry.userId} className="flex items-center gap-3">
+                  {entry.avatarUrl ? (
+                    <img
+                      src={entry.avatarUrl}
+                      alt=""
+                      className="h-9 w-9 shrink-0 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${entry.avatarClassName}`}
+                    >
+                      {entry.initials}
+                    </span>
+                  )}
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-gray-900">
+                    {entry.name}
                   </span>
-                )}
-                <span className="min-w-0 flex-1 truncate text-sm font-semibold text-gray-900">
-                  {entry.name}
-                </span>
-                <span className="shrink-0 text-xs text-gray-500">{entry.accessedAtLabel}</span>
-              </li>
-            ))}
-          </ul>
-          <button
-            type="button"
-            onClick={onOpenAllAccesses}
-            className="mt-4 inline-flex w-full items-center justify-center gap-1.5 text-sm font-semibold text-[var(--brand-primary)] transition hover:underline"
-          >
-            <ExternalLink className="h-4 w-4" strokeWidth={2} />
-            Ver todos os acessos
-          </button>
+                  <span className="shrink-0 text-xs text-gray-500">{entry.accessedAtLabel}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {onOpenAllAccesses ? (
+            <button
+              type="button"
+              onClick={onOpenAllAccesses}
+              className="mt-4 inline-flex w-full items-center justify-center gap-1.5 text-sm font-semibold text-[var(--brand-primary)] transition hover:underline"
+            >
+              <ExternalLink className="h-4 w-4" strokeWidth={2} />
+              Ver todos os acessos
+            </button>
+          ) : null}
         </section>
       </div>
     </aside>

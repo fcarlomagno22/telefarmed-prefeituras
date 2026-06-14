@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react'
 import { useCallback, useState } from 'react'
-import { AdminAuthApiError, verifyAdminAuthorizationPin } from '../../../lib/api/adminAuthApi'
+import { AdminAuthApiError, verifyAdminAuthorizationPin } from '../../../lib/services/admin/auth'
 import type { ConfigProfession, ConfigSpecialty } from '../../../types/adminConfiguracoes'
 import { AdminConfigCatalogActionsMenu } from './AdminConfigCatalogActionsMenu'
 import {
@@ -30,7 +30,7 @@ type AdminConfigClinicoPanelProps = {
   onUpdateProfession: (value: ConfigProfession) => Promise<void>
   onDeleteProfession: (id: string) => Promise<void>
   onSetProfessionStatus: (id: string, active: boolean) => Promise<void>
-  onCreateSpecialty: (value: ConfigSpecialty) => Promise<void>
+  onCreateSpecialty: (value: ConfigSpecialty | ConfigSpecialty[]) => Promise<void>
   onUpdateSpecialty: (value: ConfigSpecialty) => Promise<void>
   onDeleteSpecialty: (id: string) => Promise<void>
   onSetSpecialtyStatus: (id: string, active: boolean) => Promise<void>
@@ -186,14 +186,18 @@ export function AdminConfigClinicoPanel({
     }
   }
 
-  async function handleSpecialtyFormSubmit(value: ConfigSpecialty) {
+  async function handleSpecialtyFormSubmit(value: ConfigSpecialty | ConfigSpecialty[]) {
     setIsSubmittingForm(true)
     try {
       if (formState?.kind === 'specialty' && formState.mode === 'create') {
         await onCreateSpecialty(value)
-        onNotify?.('Especialidade criada.', 'success')
+        const count = Array.isArray(value) ? value.length : 1
+        onNotify?.(
+          count > 1 ? `${count} especialidades criadas.` : 'Especialidade criada.',
+          'success',
+        )
       } else {
-        await onUpdateSpecialty(value)
+        await onUpdateSpecialty(Array.isArray(value) ? value[0]! : value)
         onNotify?.('Especialidade atualizada.', 'success')
       }
       setFormState(null)

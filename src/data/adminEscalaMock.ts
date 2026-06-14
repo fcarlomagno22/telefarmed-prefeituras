@@ -1,11 +1,28 @@
+/** Dados seed para modo mock e demos — tipos em `types/adminEscala`. */
 import { adminDoctors } from './adminMedicosMock'
 import type { AdminEscalaShift } from '../types/adminEscala'
 import { buildProgrammingSlotsShifts } from '../utils/adminEscala/buildProgrammingSlots'
 import { createProgrammingSlotId } from '../utils/adminEscala/programmingSlotId'
 import {
+  applyRepasseModalidadeChange,
+  createDefaultRepasseRule,
+} from '../utils/adminEscala/repasseRule'
+import {
   normalizeAdminEscalaShift,
   normalizeAdminEscalaShifts,
 } from '../utils/escala/normalizeAdminEscalaShift'
+
+const repasseFixo1200 = createDefaultRepasseRule(1_200_00)
+const repasseConsulta85 = applyRepasseModalidadeChange(
+  'por_consulta',
+  createDefaultRepasseRule(85_00),
+  85_00,
+)
+const repasseHibrido1350 = applyRepasseModalidadeChange(
+  'hibrido',
+  createDefaultRepasseRule(1_350_00),
+  1_350_00,
+)
 
 function isoLocal(
   year: number,
@@ -68,6 +85,7 @@ const adminEscalaShiftsBase: AdminEscalaShift[] = [
     prefeituraScope: { mode: 'selected', prefeituraIds: ['cli-bsb'] },
     ubtScope: { mode: 'selected', ubtIds: ['rede-1', 'rede-2'] },
     status: 'publicada',
+    repasseRule: repasseHibrido1350,
     notes: '',
     createdAt: '2026-05-21T11:00:00',
     updatedAt: '2026-05-25T16:30:00',
@@ -125,6 +143,7 @@ const marketplaceOpenShifts: AdminEscalaShift[] = [
     vacancies: 2,
     totalVacancies: 2,
     amountCents: 1_200_00,
+    repasseRule: repasseFixo1200,
     unitName: 'UBT Saúde Central',
     city: 'São Paulo',
     cityUf: 'São Paulo / SP',
@@ -148,6 +167,7 @@ const marketplaceOpenShifts: AdminEscalaShift[] = [
     vacancies: 1,
     totalVacancies: 1,
     amountCents: 1_180_00,
+    repasseRule: repasseConsulta85,
     unitName: 'Telefarmed · Rede SP',
     city: 'São Paulo',
     cityUf: 'São Paulo / SP',
@@ -169,6 +189,7 @@ const marketplaceOpenShifts: AdminEscalaShift[] = [
     vacancies: 1,
     totalVacancies: 2,
     amountCents: 1_200_00,
+    repasseRule: repasseHibrido1350,
     unitName: 'UBT Taguatinga',
     city: 'Brasília',
     cityUf: 'Brasília / DF',
@@ -198,6 +219,7 @@ const marketplaceOpenShifts: AdminEscalaShift[] = [
     vacancies: 3,
     totalVacancies: 3,
     amountCents: 1_350_00,
+    repasseRule: repasseFixo1200,
     unitName: 'Telefarmed · Plantão noturno',
     city: '—',
     cityUf: '—',

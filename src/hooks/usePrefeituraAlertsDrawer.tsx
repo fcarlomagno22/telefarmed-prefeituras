@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { PrefeituraAlertsDrawer } from '../components/prefeitura/PrefeituraAlertsDrawer'
-import type { PrefeituraAlert } from '../data/prefeituraDashboardMock'
+import type { PrefeituraAlert } from '../types/prefeituraDashboard'
 
 export function usePrefeituraAlertsDrawer() {
   const [open, setOpen] = useState(false)

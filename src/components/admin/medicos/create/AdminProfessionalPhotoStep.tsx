@@ -10,6 +10,8 @@ type AdminProfessionalPhotoStepProps = {
   onChange: (draft: AdminProfessionalCreateDraft) => void
   onContinue: () => void
   onBack: () => void
+  isSubmitting?: boolean
+  submitError?: string | null
 }
 
 export function AdminProfessionalPhotoStep({
@@ -17,6 +19,8 @@ export function AdminProfessionalPhotoStep({
   onChange,
   onContinue,
   onBack,
+  isSubmitting = false,
+  submitError = null,
 }: AdminProfessionalPhotoStepProps) {
   const [showHints, setShowHints] = useState(false)
   const continueReady = isPhotoStepReady(draft)
@@ -50,11 +54,17 @@ export function AdminProfessionalPhotoStep({
         <AttendanceStepFooter
           onBack={onBack}
           onContinue={handleContinue}
-          continueReady={continueReady}
+          continueReady={continueReady && !isSubmitting}
+          continueLabel={isSubmitting ? 'Cadastrando…' : 'Concluir cadastro'}
           onContinueBlocked={() => setShowHints(true)}
         />
       }
     >
+      {submitError ? (
+        <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {submitError}
+        </p>
+      ) : null}
       <AttendanceFieldHighlight
         highlight={showHints && !continueReady}
         className="flex min-h-0 flex-1 flex-col items-center justify-center gap-6 overflow-y-auto no-scrollbar py-2 p-2"

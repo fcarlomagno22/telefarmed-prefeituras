@@ -14,6 +14,12 @@ export type NetworkUser = {
   lastAppointmentDate: string
   lastAppointmentRelative: string
   totalAppointments: number
+  /** Campos extras retornados pela API UBT (lista/detalhe). */
+  municipalRecordId?: string
+  firstAttendanceUnit?: string
+  registeredAt?: string
+  dataQuality?: 'complete' | 'incomplete'
+  missingFields?: string[]
 }
 
 export const networkUsersSummary = {
@@ -166,6 +172,24 @@ export const networkUsers: NetworkUser[] = [
     lastAppointmentRelative: '11 dias atrás',
     totalAppointments: 9,
   },
+  {
+    id: '8',
+    name: 'Fernanda Carlomagno',
+    initials: 'FC',
+    avatarUrl: photoUrlForNetworkUser('8', 'Feminino'),
+    avatarClassName: 'bg-orange-100 text-orange-700',
+    bairro: 'Centro',
+    phone: '(12) 99187-6543',
+    cpf: '353.288.348-10',
+    birthDate: '15/03/1988',
+    age: 38,
+    lastAppointmentDate: '02/06/2026',
+    lastAppointmentRelative: '1 semana atrás',
+    totalAppointments: 6,
+    dataQuality: 'complete',
+    registeredAt: '12/01/2024',
+    firstAttendanceUnit: 'UBT Centro',
+  },
 ]
 
 export const networkUsersPagination = {
@@ -174,3 +198,5 @@ export const networkUsersPagination = {
   total: networkUsersSummary.totalUsers,
   totalPages: 350,
 }
+
+export type NetworkUsersAbout = typeof networkUsersAbout

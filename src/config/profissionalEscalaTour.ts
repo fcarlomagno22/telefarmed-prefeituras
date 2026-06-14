@@ -1,4 +1,6 @@
 export const PROFISSIONAL_ESCALA_TOUR_STORAGE_KEY = 'telefarmed:profissional-escala-tour-v1'
+export const PROFISSIONAL_ESCALA_TOUR_INVITE_STORAGE_KEY =
+  'telefarmed:profissional-escala-tour-invite-v1'
 
 /** Plantão aberto usado nos passos de pegar plantão e modal. */
 export const PROFISSIONAL_ESCALA_TOUR_DEMO_SHIFT_ID = 'prof-esc-open-1'
@@ -19,8 +21,6 @@ export type ProfissionalEscalaTourStep = {
   skipIfMissing?: boolean
 }
 
-export const profissionalEscalaTourFirstVisitBody =
-  'Na sua primeira visita, pedimos que conclua este tour — são poucos minutos e ajudam você a reservar plantões com mais segurança. Depois, você pode rever quando quiser pelo botão "Ver tour guiado" no topo da página.'
 
 export const profissionalEscalaTourSteps: ProfissionalEscalaTourStep[] = [
   {
@@ -100,15 +100,8 @@ export const profissionalEscalaTourSteps: ProfissionalEscalaTourStep[] = [
     skipIfMissing: true,
   },
   {
-    id: 'quick-links',
-    target: 'escala-quick-links',
-    title: 'Acesso rápido',
-    body: 'Atalhos para Agenda (plantões reservados), Financeiro (pagamentos) e Suporte (dúvidas ou problemas).',
-    placement: 'left',
-  },
-  {
     id: 'status-bar',
-    target: 'escala-status-bar',
+    target: 'operator-footer',
     title: 'Sessão ativa',
     body: 'Confirma que você está logado com o perfil correto antes de reservar plantões.',
     placement: 'top',

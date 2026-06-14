@@ -1,8 +1,17 @@
 import { useCallback, useState } from 'react'
 import { PrefeituraRedeQuickActionDrawer } from '../components/prefeitura/rede/PrefeituraRedeQuickActionDrawer'
 import type { PrefeituraRedeQuickActionId } from '../data/prefeituraRedeMock'
+import type { PrefeituraRedeUnit } from '../data/prefeituraRedeMock'
 
-export function usePrefeituraRedeQuickActionDrawer() {
+type UsePrefeituraRedeQuickActionDrawerOptions = {
+  units: PrefeituraRedeUnit[]
+  onReload?: () => void | Promise<void>
+}
+
+export function usePrefeituraRedeQuickActionDrawer({
+  units,
+  onReload,
+}: UsePrefeituraRedeQuickActionDrawerOptions) {
   const [open, setOpen] = useState(false)
   const [closing, setClosing] = useState(false)
   const [actionId, setActionId] = useState<PrefeituraRedeQuickActionId | null>(null)
@@ -38,6 +47,8 @@ export function usePrefeituraRedeQuickActionDrawer() {
       actionId={actionId}
       open={open}
       closing={closing}
+      units={units}
+      onReload={onReload}
       onClose={requestClose}
       onSelectAction={selectAction}
       onBackToHub={backToHub}

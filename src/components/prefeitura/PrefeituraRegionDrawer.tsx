@@ -1,7 +1,7 @@
 import { ArrowLeft, Building2, ChevronRight, MapPin, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { PrefeituraUbsRow } from '../../data/prefeituraDashboardMock'
+import type { PrefeituraUbsRow } from '../../types/prefeituraDashboard'
 import type { PrefeituraRegionVolume } from '../../utils/prefeituraDashboardFilters'
 import { SituationStatusBadge } from '../ui/SituationStatusBadge'
 import {

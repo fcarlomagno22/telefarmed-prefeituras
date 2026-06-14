@@ -1,14 +1,14 @@
 import { CalendarPlus, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { registerScheduledFirstVisitPatient } from '../../../data/patientLookup'
-import { inferAgeGroupFromBirthDate } from '../../../data/unitDashboardMock'
+import { useUbtPatientRegistration } from '../../../hooks/useUbtPatientRegistration'
+import { useUbtPatientTerritoryPolicy } from '../../../hooks/useUbtPatientTerritoryPolicy'
+import { inferAgeGroupFromBirthDate } from '../../../types/attendance'
 import {
   emptyAttendanceSession,
   emptyPatientRegistration,
   type PatientRegistration,
-} from '../../../data/unitDashboardMock'
-import { getDoctorsForSpecialty } from '../../../data/scheduleDoctorsMock'
+} from '../../../types/attendance'
 import { AgeGroupSelectionStep } from '../../dashboard/AgeGroupSelectionStep'
 import { CpfLookupStep } from '../../dashboard/CpfLookupStep'
 import { PatientAddressStep } from '../../dashboard/PatientAddressStep'
@@ -16,6 +16,7 @@ import { PatientContactsStep } from '../../dashboard/PatientContactsStep'
 import { PatientRegistrationConfirmStep } from '../../dashboard/PatientRegistrationConfirmStep'
 import { PatientRegistrationForm } from '../../dashboard/PatientRegistrationForm'
 import { SpecialtySelectionStep } from '../../dashboard/SpecialtySelectionStep'
+import { useUbtTriagemEspecialidadeCatalog } from '../../../hooks/useUbtTriagemEspecialidadeCatalog'
 import { ScheduleAppointmentFlowStepper } from './ScheduleAppointmentFlowStepper'
 import { ScheduleAppointmentSuccess } from './ScheduleAppointmentSuccess'
 import { ScheduleDateTimeStep } from './ScheduleDateTimeStep'
@@ -31,12 +32,27 @@ type ScheduleAppointmentDrawerProps = {
   initialFlow: ScheduleAppointmentInitialState | null
   onClose: () => void
   onTransitionEnd: () => void
-  onScheduled: (registration: PatientRegistration, summary: string) => void
+  onScheduled: (
+    registration: PatientRegistration,
+    summary: string,
+    meta: {
+      pacienteId: string
+      profissionalId: string
+      especialidadeId: string
+      selectedDate: Date
+      selectedTime: string
+    },
+  ) => void | Promise<void>
   onRescheduled?: (
     appointmentId: string,
     patch: { time: string; serviceType: string },
     summary: string,
-  ) => void
+    meta: {
+      profissionalId: string
+      especialidadeId: string
+      selectedDate: Date
+    },
+  ) => void | Promise<void>
 }
 
 export function ScheduleAppointmentDrawer({
@@ -49,14 +65,27 @@ export function ScheduleAppointmentDrawer({
   onScheduled,
   onRescheduled,
 }: ScheduleAppointmentDrawerProps) {
+  const { lookupByCpf, registerCompletedPatient: persistPatient } = useUbtPatientRegistration()
+  const territoryPolicy = useUbtPatientTerritoryPolicy(open)
   const [entered, setEntered] = useState(false)
   const [step, setStep] = useState<ScheduleAppointmentStep>('cpf_lookup')
   const [registration, setRegistration] = useState(emptyPatientRegistration)
   const [session, setSession] = useState(emptyAttendanceSession)
   const [selectedDate, setSelectedDate] = useState(initialDate)
   const [selectedDoctorId, setSelectedDoctorId] = useState('')
+  const [selectedDoctorName, setSelectedDoctorName] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [isReturningPatient, setIsReturningPatient] = useState(false)
+  const [existingPatientId, setExistingPatientId] = useState<string | undefined>()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const catalogEnabled = open && step === 'specialty'
+  const {
+    specialties: contratoSpecialties,
+    isLoading: isCatalogLoading,
+    loadError: catalogLoadError,
+    reload: reloadCatalog,
+  } = useUbtTriagemEspecialidadeCatalog(catalogEnabled, selectedDate)
 
   const resetFlow = useCallback(() => {
     setStep('cpf_lookup')
@@ -64,8 +93,11 @@ export function ScheduleAppointmentDrawer({
     setSession(emptyAttendanceSession())
     setSelectedDate(initialDate)
     setSelectedDoctorId('')
+    setSelectedDoctorName('')
     setSelectedTime('')
     setIsReturningPatient(false)
+    setExistingPatientId(undefined)
+    setIsSubmitting(false)
   }, [initialDate])
 
   const applyInitialFlow = useCallback((flow: ScheduleAppointmentInitialState) => {
@@ -126,46 +158,50 @@ export function ScheduleAppointmentDrawer({
   }
 
   function goToScheduleDateTime() {
-    const doctors = getDoctorsForSpecialty(session.specialtyId)
-    if (!selectedDoctorId && doctors[0]) {
-      setSelectedDoctorId(doctors[0].id)
-    }
     setSelectedTime('')
     setStep('schedule_datetime')
   }
 
-  function confirmSchedule() {
-    if (!isReturningPatient) {
-      registerScheduledFirstVisitPatient(
-        registration,
-        session.specialtyId,
-        session.specialtyName,
-      )
+  async function confirmSchedule() {
+    if (!selectedDoctorId || !selectedTime || isSubmitting) return
+    setIsSubmitting(true)
+
+    try {
+      const saved = await persistPatient(registration, existingPatientId)
+      const pacienteId = saved.id
+
+      const isReschedule = initialFlow?.mode === 'reschedule'
+      const summary = isReschedule
+        ? `Consulta reagendada para ${registration.fullName}`
+        : `Consulta agendada para ${registration.fullName}`
+
+      const meta = {
+        profissionalId: selectedDoctorId,
+        especialidadeId: session.specialtyId,
+        selectedDate,
+        selectedTime,
+      }
+
+      if (isReschedule && initialFlow?.rescheduleAppointmentId && onRescheduled) {
+        await onRescheduled(
+          initialFlow.rescheduleAppointmentId,
+          {
+            time: selectedTime,
+            serviceType: session.specialtyName,
+          },
+          summary,
+          meta,
+        )
+      } else {
+        await onScheduled(registration, summary, { pacienteId, ...meta })
+      }
+
+      setStep('success')
+    } catch {
+      // erro tratado pelo hook pai (toast)
+    } finally {
+      setIsSubmitting(false)
     }
-
-    const isReschedule = initialFlow?.mode === 'reschedule'
-    const summary = isReschedule
-      ? `Consulta reagendada para ${registration.fullName}`
-      : `Consulta agendada para ${registration.fullName}`
-
-    if (
-      isReschedule &&
-      initialFlow?.rescheduleAppointmentId &&
-      onRescheduled
-    ) {
-      onRescheduled(
-        initialFlow.rescheduleAppointmentId,
-        {
-          time: selectedTime,
-          serviceType: session.specialtyName,
-        },
-        summary,
-      )
-    } else {
-      onScheduled(registration, summary)
-    }
-
-    setStep('success')
   }
 
   function handleCloseAfterSuccess() {
@@ -214,7 +250,7 @@ export function ScheduleAppointmentDrawer({
               </h2>
               <p className="mt-0.5 text-sm text-gray-500">
                 {initialFlow?.drawerSubtitle ??
-                  'Identifique o paciente, confirme o cadastro e escolha especialidade, médico e horário.'}
+                  '1. CPF e cadastro · 2. Especialidade · 3. Data, médico e horário'}
               </p>
             </div>
             <button
@@ -238,10 +274,12 @@ export function ScheduleAppointmentDrawer({
           {step === 'cpf_lookup' && (
             <CpfLookupStep
               cpf={registration.cpf}
+              lookupByCpf={lookupByCpf}
               onChangeCpf={(cpf) => setRegistration((prev) => ({ ...prev, cpf }))}
-              onFound={(found) => {
+              onFound={(found, meta) => {
                 setIsReturningPatient(true)
                 setRegistration(found)
+                setExistingPatientId(meta?.patientId)
                 setSession((prev) => ({
                   ...prev,
                   ageGroup: inferAgeGroupFromBirthDate(found.birthDate),
@@ -312,12 +350,26 @@ export function ScheduleAppointmentDrawer({
               onChange={setRegistration}
               onSubmit={goToSpecialty}
               onBack={() => setStep('contacts')}
+              requiredTerritory={territoryPolicy.requiredTerritory}
+              contractAllowsOtherMunicipalities={territoryPolicy.allowsOtherMunicipalities}
+              territoryScope="patient_registration"
+              policyLoadWarning={territoryPolicy.loadError}
+              isPolicyLoading={territoryPolicy.isLoading}
             />
           )}
 
           {step === 'specialty' && (
             <SpecialtySelectionStep
               selectedId={session.specialtyId}
+              selectedDate={selectedDate}
+              showAvailability
+              availabilityFilter="all"
+              requireAvailability={false}
+              specialties={contratoSpecialties}
+              isLoading={isCatalogLoading}
+              loadError={catalogLoadError}
+              onRetryLoad={() => void reloadCatalog()}
+              description="Escolha a especialidade do contrato. Em seguida você definirá a data, o médico e o horário."
               onSelect={(id, name) =>
                 setSession((prev) => ({ ...prev, specialtyId: id, specialtyName: name }))
               }
@@ -343,11 +395,15 @@ export function ScheduleAppointmentDrawer({
               selectedDate={selectedDate}
               selectedDoctorId={selectedDoctorId}
               selectedTime={selectedTime}
+              isSubmitting={isSubmitting}
               onSelectDate={(date) => {
                 setSelectedDate(date)
                 setSelectedTime('')
               }}
-              onSelectDoctor={setSelectedDoctorId}
+              onSelectDoctor={(doctorId, doctorName) => {
+                setSelectedDoctorId(doctorId)
+                setSelectedDoctorName(doctorName ?? '')
+              }}
               onSelectTime={setSelectedTime}
               onBack={() => setStep('specialty')}
               onContinue={confirmSchedule}
@@ -364,6 +420,7 @@ export function ScheduleAppointmentDrawer({
                 specialtyName: session.specialtyName,
                 selectedDate,
                 selectedDoctorId,
+                selectedDoctorName,
                 selectedTime,
               }}
               onClose={handleCloseAfterSuccess}

@@ -1,291 +1,69 @@
-import { Activity, AlertTriangle, Clock3, Search, ShieldAlert, Users } from 'lucide-react'
+import { AlertTriangle, Activity } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { adminMunicipalities } from '../../../data/adminDashboardMock'
+import type { AdminMonitorPageData } from '../../../lib/services/admin/monitor'
 import { dashboardPageScrollAreaClass, dashboardPageScrollPaddingClass } from '../../layout/dashboardPageLayout'
-import { KpiStatCards, type KpiStatCardItem } from '../../ui/KpiStatCards'
+import { KpiStatCards } from '../../ui/KpiStatCards'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
 import { DashCard, DashLiveBadge } from '../../prefeitura/prefeituraDashboardUi'
 import { prefeituraSlaBadgeConfig } from '../../prefeitura/prefeituraDashboardUi'
 
-type EvolucaoRow = {
-  prefeitura: string
-  ubt: string
-  regiao: string
-  status: string
-  emCurso: number
-  fila: number
-  tempoMedio: string
-  operador: string
-  terminal: string
-  ocupacao: number
-  sla: 'normal' | 'atencao' | 'critico'
-}
-
-type ConsultaRow = {
-  prefeitura: string
-  ubt: string
-  paciente: string
-  especialidade: string
-  medico: string
-  inicio: string
-  status: string
-}
-
-const kpis: KpiStatCardItem[] = [
-  {
-    label: 'UBTs monitoradas',
-    value: '146',
-    suffix: 'Online 126 (86%)',
-    icon: Activity,
-    iconGradient: 'from-sky-500 via-blue-500 to-indigo-600',
-    iconShadow: 'shadow-[0_8px_20px_rgba(59,130,246,0.35)]',
-    iconRing: 'ring-blue-100/80',
-    topBar: 'from-sky-400 to-blue-500',
-  },
-  {
-    label: 'Atendimentos em curso',
-    value: '412',
-    suffix: 'Hoje 3.285',
-    icon: Users,
-    iconGradient: 'from-emerald-500 via-green-500 to-teal-600',
-    iconShadow: 'shadow-[0_8px_20px_rgba(16,185,129,0.35)]',
-    iconRing: 'ring-emerald-100/80',
-    topBar: 'from-emerald-400 to-green-500',
-  },
-  {
-    label: 'Aguardando médico',
-    value: '58',
-    suffix: 'Média fila 14 min',
-    icon: Clock3,
-    iconGradient: 'from-amber-500 via-orange-500 to-red-500',
-    iconShadow: 'shadow-[0_8px_20px_rgba(251,146,60,0.35)]',
-    iconRing: 'ring-orange-100/80',
-    topBar: 'from-amber-400 to-orange-500',
-  },
-  {
-    label: 'Filas críticas',
-    value: '12',
-    suffix: 'Acima de 30 min',
-    icon: AlertTriangle,
-    iconGradient: 'from-rose-500 via-red-500 to-red-600',
-    iconShadow: 'shadow-[0_8px_20px_rgba(239,68,68,0.35)]',
-    iconRing: 'ring-red-100/80',
-    topBar: 'from-rose-400 to-red-500',
-  },
-  {
-    label: 'SLA de ocupação',
-    value: '72%',
-    suffix: 'Capacidade 1.980 / 2.760',
-    icon: ShieldAlert,
-    iconGradient: 'from-violet-500 via-purple-500 to-indigo-600',
-    iconShadow: 'shadow-[0_8px_20px_rgba(139,92,246,0.35)]',
-    iconRing: 'ring-violet-100/80',
-    topBar: 'from-violet-400 to-purple-500',
-  },
-  {
-    label: 'No-show hoje',
-    value: '186',
-    suffix: 'Taxa 5,3%',
-    icon: Search,
-    iconGradient: 'from-amber-500 via-yellow-500 to-orange-500',
-    iconShadow: 'shadow-[0_8px_20px_rgba(245,158,11,0.35)]',
-    iconRing: 'ring-amber-100/80',
-    topBar: 'from-amber-400 to-yellow-500',
-  },
-]
-
-const evolucaoRows: EvolucaoRow[] = [
-  {
-    prefeitura: 'Brasília',
-    ubt: 'UBT Asa Norte',
-    regiao: 'Centro-Oeste',
-    status: 'Online',
-    emCurso: 18,
-    fila: 4,
-    tempoMedio: '12 min',
-    operador: 'Carla S.',
-    terminal: '8 / 8',
-    ocupacao: 83,
-    sla: 'normal',
-  },
-  {
-    prefeitura: 'Anápolis',
-    ubt: 'UBT Anápolis Centro',
-    regiao: 'Centro-Oeste',
-    status: 'Online',
-    emCurso: 22,
-    fila: 6,
-    tempoMedio: '24 min',
-    operador: 'Rafael M.',
-    terminal: '8 / 8',
-    ocupacao: 94,
-    sla: 'atencao',
-  },
-  {
-    prefeitura: 'Uberlândia',
-    ubt: 'UBT Martins',
-    regiao: 'Sudeste',
-    status: 'Online',
-    emCurso: 14,
-    fila: 10,
-    tempoMedio: '37 min',
-    operador: 'Ana B.',
-    terminal: '8 / 8',
-    ocupacao: 100,
-    sla: 'critico',
-  },
-  {
-    prefeitura: 'Campinas',
-    ubt: 'UBT Ouro Verde',
-    regiao: 'Sudeste',
-    status: 'Online',
-    emCurso: 19,
-    fila: 3,
-    tempoMedio: '18 min',
-    operador: 'Lucas R.',
-    terminal: '8 / 8',
-    ocupacao: 91,
-    sla: 'atencao',
-  },
-  {
-    prefeitura: 'Luziânia',
-    ubt: 'UBT Jardim Ingá',
-    regiao: 'Centro-Oeste',
-    status: 'Online',
-    emCurso: 8,
-    fila: 1,
-    tempoMedio: '7 min',
-    operador: 'Paula N.',
-    terminal: '6 / 8',
-    ocupacao: 72,
-    sla: 'normal',
-  },
-]
-
-const consultasRows: ConsultaRow[] = [
-  {
-    prefeitura: 'Brasília',
-    ubt: 'UBT Asa Norte',
-    paciente: 'Maria S. Silva',
-    especialidade: 'Clínica Geral',
-    medico: 'Dra. Júlia F.',
-    inicio: '18 min',
-    status: 'Em andamento',
-  },
-  {
-    prefeitura: 'Anápolis',
-    ubt: 'UBT Anápolis Centro',
-    paciente: 'João P. Souza',
-    especialidade: 'Pediatria',
-    medico: 'Dra. Camila R.',
-    inicio: '12 min',
-    status: 'Em andamento',
-  },
-  {
-    prefeitura: 'Uberlândia',
-    ubt: 'UBT Martins',
-    paciente: 'Ana L. Barbosa',
-    especialidade: 'Ginecologia',
-    medico: 'Dr. Marcos T.',
-    inicio: '24 min',
-    status: 'Em andamento',
-  },
-  {
-    prefeitura: 'Campinas',
-    ubt: 'UBT Ouro Verde',
-    paciente: 'Rafael L. Lima',
-    especialidade: 'Clínica Geral',
-    medico: 'Dr. Felipe M.',
-    inicio: '14 min',
-    status: 'Em andamento',
-  },
-]
-
-const timelineRows = [
-  { hora: '00:00', emCurso: 250, concluidas: 980, aguardando: 140 },
-  { hora: '06:00', emCurso: 310, concluidas: 1260, aguardando: 220 },
-  { hora: '12:00', emCurso: 412, concluidas: 2310, aguardando: 58 },
-  { hora: '18:00', emCurso: 365, concluidas: 3120, aguardando: 74 },
-]
-
-const rankingRows = [
-  { nome: 'UBT Asa Norte', municipio: 'Brasília', hoje: 326, ocupacao: 83, performance: 'Excelente' },
-  { nome: 'UBT Ouro Verde', municipio: 'Campinas', hoje: 301, ocupacao: 91, performance: 'Bom' },
-  { nome: 'UBT Martins', municipio: 'Uberlândia', hoje: 284, ocupacao: 100, performance: 'Atenção' },
-  { nome: 'UBT Anápolis Centro', municipio: 'Anápolis', hoje: 262, ocupacao: 94, performance: 'Atenção' },
-  { nome: 'UBT Jardim Ingá', municipio: 'Luziânia', hoje: 187, ocupacao: 72, performance: 'Normal' },
-]
-
-const heatmapRows = [
-  { regiao: 'Norte', slots: [42, 61, 74, 69, 54, 32] },
-  { regiao: 'Centro-Oeste', slots: [52, 68, 79, 83, 65, 52] },
-  { regiao: 'Sudeste', slots: [47, 57, 63, 58, 55, 37] },
-]
-
 const TABLE_ROWS_PER_PAGE = 25
 
-export function AdminMonitorMainPanel() {
-  const [timelineFiltro, setTimelineFiltro] = useState('dia')
-  const [regionFilter, setRegionFilter] = useState('todos')
-  const [selectedMunicipio, setSelectedMunicipio] = useState('all')
+type AdminMonitorMainPanelProps = {
+  monitor: AdminMonitorPageData
+  selectedEntidadeId: string
+  regionKey: string
+  timelinePeriod: string
+  onEntidadeChange: (value: string) => void
+  onRegionChange: (value: string) => void
+  onTimelineChange: (value: string) => void
+}
+
+function statusDotClass(status: string) {
+  if (status === 'Online') return 'bg-emerald-500'
+  if (status === 'Manutenção') return 'bg-amber-500'
+  return 'bg-gray-400'
+}
+
+export function AdminMonitorMainPanel({
+  monitor,
+  selectedEntidadeId,
+  regionKey,
+  timelinePeriod,
+  onEntidadeChange,
+  onRegionChange,
+  onTimelineChange,
+}: AdminMonitorMainPanelProps) {
   const [evolucaoPage, setEvolucaoPage] = useState(1)
   const [consultasPage, setConsultasPage] = useState(1)
+  const [rankingTab, setRankingTab] = useState<'ubt' | 'municipio'>('ubt')
 
-  const municipioOptions = useMemo(
-    () => [
-      { value: 'all', label: 'Todos os municípios ativos' },
-      ...adminMunicipalities
-        .filter((municipality) => municipality.contractStatus === 'active')
-        .map((municipality) => ({
-          value: municipality.name,
-          label: `${municipality.name}/${municipality.state}`,
-        })),
-    ],
-    [],
+  const municipioOptions = monitor.filterOptions.municipios
+  const regionOptions = monitor.filterOptions.regions
+  const timelineOptions = monitor.filterOptions.timelinePeriod
+
+  const evolucaoTotalPages = Math.max(1, Math.ceil(monitor.unitRows.length / TABLE_ROWS_PER_PAGE))
+  const consultasTotalPages = Math.max(
+    1,
+    Math.ceil(monitor.consultasLive.length / TABLE_ROWS_PER_PAGE),
   )
-
-  const filteredEvolucaoRows = useMemo(
-    () =>
-      selectedMunicipio === 'all'
-        ? evolucaoRows
-        : evolucaoRows.filter((row) => row.prefeitura === selectedMunicipio),
-    [selectedMunicipio],
-  )
-
-  const filteredConsultasRows = useMemo(
-    () =>
-      selectedMunicipio === 'all'
-        ? consultasRows
-        : consultasRows.filter((row) => row.prefeitura === selectedMunicipio),
-    [selectedMunicipio],
-  )
-
-  const filteredRankingRows = useMemo(
-    () =>
-      selectedMunicipio === 'all'
-        ? rankingRows
-        : rankingRows.filter((row) => row.municipio === selectedMunicipio),
-    [selectedMunicipio],
-  )
-
-  const evolucaoTotalPages = Math.max(1, Math.ceil(filteredEvolucaoRows.length / TABLE_ROWS_PER_PAGE))
-  const consultasTotalPages = Math.max(1, Math.ceil(filteredConsultasRows.length / TABLE_ROWS_PER_PAGE))
 
   const paginatedEvolucaoRows = useMemo(() => {
     const start = (evolucaoPage - 1) * TABLE_ROWS_PER_PAGE
-    return filteredEvolucaoRows.slice(start, start + TABLE_ROWS_PER_PAGE)
-  }, [filteredEvolucaoRows, evolucaoPage])
+    return monitor.unitRows.slice(start, start + TABLE_ROWS_PER_PAGE)
+  }, [monitor.unitRows, evolucaoPage])
 
   const paginatedConsultasRows = useMemo(() => {
     const start = (consultasPage - 1) * TABLE_ROWS_PER_PAGE
-    return filteredConsultasRows.slice(start, start + TABLE_ROWS_PER_PAGE)
-  }, [filteredConsultasRows, consultasPage])
+    return monitor.consultasLive.slice(start, start + TABLE_ROWS_PER_PAGE)
+  }, [monitor.consultasLive, consultasPage])
 
   useEffect(() => {
     setEvolucaoPage(1)
     setConsultasPage(1)
-  }, [selectedMunicipio])
+    setRankingTab('ubt')
+  }, [selectedEntidadeId, regionKey, timelinePeriod, monitor.filterKey])
 
   useEffect(() => {
     if (evolucaoPage > evolucaoTotalPages) setEvolucaoPage(evolucaoTotalPages)
@@ -295,10 +73,22 @@ export function AdminMonitorMainPanel() {
     if (consultasPage > consultasTotalPages) setConsultasPage(consultasTotalPages)
   }, [consultasPage, consultasTotalPages])
 
-  const selectedTimeline = useMemo(
-    () => timelineRows.find((entry) => entry.hora === '12:00') ?? timelineRows[0],
-    [],
-  )
+  const selectedTimeline = useMemo(() => {
+    const currentHour = new Date().getHours()
+    const slot =
+      currentHour < 6 ? '00:00' : currentHour < 12 ? '06:00' : currentHour < 18 ? '12:00' : '18:00'
+    return (
+      monitor.timeline.find((entry) => entry.hora === slot) ??
+      monitor.timeline[monitor.timeline.length - 1] ?? {
+        hora: '—',
+        emCurso: 0,
+        concluidas: 0,
+        aguardando: 0,
+      }
+    )
+  }, [monitor.timeline])
+
+  const criticalAlerts = monitor.alerts.filter((a) => a.severity === 'critical').length
 
   return (
     <div className={dashboardPageScrollAreaClass}>
@@ -318,24 +108,67 @@ export function AdminMonitorMainPanel() {
           <div className="flex flex-col items-end gap-2">
             <div className="w-64">
               <CustomSelect
-                value={selectedMunicipio}
-                onChange={setSelectedMunicipio}
+                value={selectedEntidadeId}
+                onChange={onEntidadeChange}
                 options={municipioOptions}
                 size="compact"
               />
             </div>
-            <DashLiveBadge />
+            <div className="flex items-center gap-2">
+              {criticalAlerts > 0 ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  {criticalAlerts} alerta{criticalAlerts === 1 ? '' : 's'} crítico
+                  {criticalAlerts === 1 ? '' : 's'}
+                </span>
+              ) : null}
+              <DashLiveBadge />
+            </div>
           </div>
         </header>
 
-        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-          <KpiStatCards
-            items={kpis}
-            layout="grid-3x2"
-            stackedHeaderIconLeft
-            className="md:col-span-2 xl:col-span-6"
-          />
-        </section>
+        <KpiStatCards
+          items={monitor.kpiCards}
+          updateKey={monitor.filterKey}
+          layout="grid-1x6"
+          variant="centered"
+          className="w-full"
+        />
+
+        <DashCard
+          title="Alertas operacionais"
+          subtitle="Filas críticas, UBTs offline e capacidade no recorte."
+          bodyClassName="max-h-48 overflow-auto p-0"
+        >
+          {monitor.alerts.length === 0 ? (
+            <p className="px-4 py-6 text-center text-sm text-gray-500">
+              Nenhum alerta ativo no recorte selecionado.
+            </p>
+          ) : (
+            <ul className="divide-y divide-gray-100">
+              {monitor.alerts.map((alert) => (
+                <li
+                  key={alert.id}
+                  className={[
+                    'border-l-4 px-4 py-3',
+                    alert.severity === 'critical' ? 'border-l-rose-500 bg-rose-50/40' : 'border-l-amber-400 bg-amber-50/30',
+                  ].join(' ')}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <p className="text-sm font-semibold text-gray-900">{alert.title}</p>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                      {alert.timeAgo}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-gray-600">
+                    {alert.municipality} · {alert.unit} · {alert.category}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500">{alert.description}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </DashCard>
 
         <section className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(22rem,1fr)]">
           <div className="grid gap-4">
@@ -344,80 +177,81 @@ export function AdminMonitorMainPanel() {
               subtitle="Recorte por unidade e município."
               bodyClassName="flex min-h-0 flex-1 flex-col p-0"
               action={
-                <div className="flex items-center gap-2">
-                  <div className="w-32">
-                    <CustomSelect
-                      value={regionFilter}
-                      onChange={setRegionFilter}
-                      size="compact"
-                      options={[
-                        { value: 'todos', label: 'Todas' },
-                        { value: 'centro', label: 'Centro-Oeste' },
-                        { value: 'sudeste', label: 'Sudeste' },
-                      ]}
-                    />
-                  </div>
+                <div className="w-32">
+                  <CustomSelect
+                    value={regionKey}
+                    onChange={onRegionChange}
+                    size="compact"
+                    options={regionOptions}
+                  />
                 </div>
               }
               className="h-[25.5rem]"
               fillHeight
             >
               <div className="min-h-0 flex-1 overflow-auto">
-                <table className="w-full min-w-[980px] text-xs">
-                  <thead className="sticky top-0 z-10 bg-white">
-                    <tr className="border-b border-gray-200 text-[10px] uppercase tracking-wide text-gray-500">
-                      <th className="px-3 py-2 text-left">Prefeitura</th>
-                      <th className="px-3 py-2 text-center">UBT</th>
-                      <th className="px-3 py-2 text-center">Região</th>
-                      <th className="px-3 py-2 text-center">Status</th>
-                      <th className="px-3 py-2 text-center">Em curso</th>
-                      <th className="px-3 py-2 text-center">Fila</th>
-                      <th className="px-3 py-2 text-center">Tempo médio</th>
-                      <th className="px-3 py-2 text-center">Operador</th>
-                      <th className="px-3 py-2 text-center">Terminal</th>
-                      <th className="px-3 py-2 text-center">Ocupação</th>
-                      <th className="px-3 py-2 text-center">SLA</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {paginatedEvolucaoRows.map((row) => (
-                      <tr key={row.ubt} className="hover:bg-slate-50">
-                        <td className="px-3 py-2 font-semibold text-gray-900">{row.prefeitura}</td>
-                        <td className="px-3 py-2 text-center text-gray-700">{row.ubt}</td>
-                        <td className="px-3 py-2 text-center text-gray-600">{row.regiao}</td>
-                        <td className="px-3 py-2 text-center">
-                          <span className="inline-flex items-center gap-1 text-emerald-700">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            {row.status}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2 text-center font-semibold">{row.emCurso}</td>
-                        <td className="px-3 py-2 text-center">{row.fila}</td>
-                        <td className="px-3 py-2 text-center">{row.tempoMedio}</td>
-                        <td className="px-3 py-2 text-center">{row.operador}</td>
-                        <td className="px-3 py-2 text-center">{row.terminal}</td>
-                        <td className="px-3 py-2 text-center">
-                          <div className="mx-auto h-2 w-16 rounded-full bg-gray-100">
-                            <div
-                              className="h-2 rounded-full bg-emerald-500"
-                              style={{ width: `${Math.min(row.ocupacao, 100)}%` }}
-                            />
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          <SituationStatusBadge
-                            config={prefeituraSlaBadgeConfig[row.sla]}
-                            widthClass="w-[7.5rem]"
-                          />
-                        </td>
+                {monitor.unitRows.length === 0 ? (
+                  <div className="flex h-full flex-col items-center justify-center gap-2 p-8 text-sm text-gray-500">
+                    <Activity className="h-8 w-8 text-gray-300" />
+                    Nenhuma UBT no recorte selecionado.
+                  </div>
+                ) : (
+                  <table className="w-full min-w-[980px] text-xs">
+                    <thead className="sticky top-0 z-10 bg-white">
+                      <tr className="border-b border-gray-200 text-[10px] uppercase tracking-wide text-gray-500">
+                        <th className="px-3 py-2 text-left">Prefeitura</th>
+                        <th className="px-3 py-2 text-center">UBT</th>
+                        <th className="px-3 py-2 text-center">Região</th>
+                        <th className="px-3 py-2 text-center">Status</th>
+                        <th className="px-3 py-2 text-center">Em curso</th>
+                        <th className="px-3 py-2 text-center">Fila</th>
+                        <th className="px-3 py-2 text-center">Tempo médio</th>
+                        <th className="px-3 py-2 text-center">Operador</th>
+                        <th className="px-3 py-2 text-center">Terminal</th>
+                        <th className="px-3 py-2 text-center">Ocupação</th>
+                        <th className="px-3 py-2 text-center">SLA</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {paginatedEvolucaoRows.map((row) => (
+                        <tr key={row.id} className="hover:bg-slate-50">
+                          <td className="px-3 py-2 font-semibold text-gray-900">{row.prefeitura}</td>
+                          <td className="px-3 py-2 text-center text-gray-700">{row.ubt}</td>
+                          <td className="px-3 py-2 text-center text-gray-600">{row.regiao}</td>
+                          <td className="px-3 py-2 text-center">
+                            <span className="inline-flex items-center gap-1 text-gray-700">
+                              <span className={`h-1.5 w-1.5 rounded-full ${statusDotClass(row.status)}`} />
+                              {row.status}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 text-center font-semibold">{row.emCurso}</td>
+                          <td className="px-3 py-2 text-center">{row.fila}</td>
+                          <td className="px-3 py-2 text-center">{row.tempoMedio}</td>
+                          <td className="px-3 py-2 text-center">{row.operador}</td>
+                          <td className="px-3 py-2 text-center">{row.terminal}</td>
+                          <td className="px-3 py-2 text-center">
+                            <div className="mx-auto h-2 w-16 rounded-full bg-gray-100">
+                              <div
+                                className="h-2 rounded-full bg-emerald-500"
+                                style={{ width: `${Math.min(row.ocupacao, 100)}%` }}
+                              />
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 text-center">
+                            <SituationStatusBadge
+                              config={prefeituraSlaBadgeConfig[row.sla]}
+                              widthClass="w-[7.5rem]"
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
               <div className="flex items-center justify-between border-t border-gray-100 px-3 py-2 text-[11px] text-gray-500">
                 <span>
-                  Página {evolucaoPage} de {evolucaoTotalPages} · {filteredEvolucaoRows.length} itens
+                  Página {evolucaoPage} de {evolucaoTotalPages} · {monitor.unitRows.length} itens
                 </span>
                 <div className="flex items-center gap-2">
                   <button
@@ -448,41 +282,47 @@ export function AdminMonitorMainPanel() {
               fillHeight
             >
               <div className="min-h-0 flex-1 overflow-auto">
-                <table className="w-full min-w-[860px] text-xs">
-                  <thead className="sticky top-0 z-10 bg-white">
-                    <tr className="border-b border-gray-200 text-[10px] uppercase tracking-wide text-gray-500">
-                      <th className="px-3 py-2 text-left">Prefeitura</th>
-                      <th className="px-3 py-2 text-center">UBT</th>
-                      <th className="px-3 py-2 text-center">Paciente</th>
-                      <th className="px-3 py-2 text-center">Especialidade</th>
-                      <th className="px-3 py-2 text-center">Médico</th>
-                      <th className="px-3 py-2 text-center">Início</th>
-                      <th className="px-3 py-2 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {paginatedConsultasRows.map((row) => (
-                      <tr key={row.paciente} className="hover:bg-slate-50">
-                        <td className="px-3 py-2 font-semibold text-gray-900">{row.prefeitura}</td>
-                        <td className="px-3 py-2 text-center">{row.ubt}</td>
-                        <td className="px-3 py-2 text-center">{row.paciente}</td>
-                        <td className="px-3 py-2 text-center text-gray-600">{row.especialidade}</td>
-                        <td className="px-3 py-2 text-center text-gray-600">{row.medico}</td>
-                        <td className="px-3 py-2 text-center">{row.inicio}</td>
-                        <td className="px-3 py-2 text-center">
-                          <span className="inline-flex items-center justify-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
-                            {row.status}
-                          </span>
-                        </td>
+                {monitor.consultasLive.length === 0 ? (
+                  <div className="flex h-full items-center justify-center p-6 text-sm text-gray-500">
+                    Nenhuma consulta ao vivo no recorte.
+                  </div>
+                ) : (
+                  <table className="w-full min-w-[860px] text-xs">
+                    <thead className="sticky top-0 z-10 bg-white">
+                      <tr className="border-b border-gray-200 text-[10px] uppercase tracking-wide text-gray-500">
+                        <th className="px-3 py-2 text-left">Prefeitura</th>
+                        <th className="px-3 py-2 text-center">UBT</th>
+                        <th className="px-3 py-2 text-center">Paciente</th>
+                        <th className="px-3 py-2 text-center">Especialidade</th>
+                        <th className="px-3 py-2 text-center">Médico</th>
+                        <th className="px-3 py-2 text-center">Início</th>
+                        <th className="px-3 py-2 text-center">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {paginatedConsultasRows.map((row) => (
+                        <tr key={row.id} className="hover:bg-slate-50">
+                          <td className="px-3 py-2 font-semibold text-gray-900">{row.prefeitura}</td>
+                          <td className="px-3 py-2 text-center">{row.ubt}</td>
+                          <td className="px-3 py-2 text-center">{row.paciente}</td>
+                          <td className="px-3 py-2 text-center text-gray-600">{row.especialidade}</td>
+                          <td className="px-3 py-2 text-center text-gray-600">{row.medico}</td>
+                          <td className="px-3 py-2 text-center">{row.inicio}</td>
+                          <td className="px-3 py-2 text-center">
+                            <span className="inline-flex items-center justify-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+                              {row.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
               <div className="flex items-center justify-between border-t border-gray-100 px-3 py-2 text-[11px] text-gray-500">
                 <span>
-                  Página {consultasPage} de {consultasTotalPages} · {filteredConsultasRows.length} itens
+                  Página {consultasPage} de {consultasTotalPages} · {monitor.consultasLive.length} itens
                 </span>
                 <div className="flex items-center gap-2">
                   <button
@@ -516,20 +356,20 @@ export function AdminMonitorMainPanel() {
               action={
                 <div className="w-32">
                   <CustomSelect
-                    value={timelineFiltro}
-                    onChange={setTimelineFiltro}
+                    value={timelinePeriod}
+                    onChange={onTimelineChange}
                     size="compact"
-                    options={[
-                      { value: 'dia', label: 'Hoje' },
-                      { value: '7d', label: 'Últimos 7 dias' },
-                    ]}
+                    options={timelineOptions}
                   />
                 </div>
               }
             >
               <div className="grid grid-cols-4 gap-2 text-[10px] text-gray-500">
-                {timelineRows.map((entry) => (
-                  <div key={entry.hora} className="rounded-lg border border-gray-100 bg-gray-50 px-2 py-1.5 text-center">
+                {monitor.timeline.map((entry) => (
+                  <div
+                    key={entry.hora}
+                    className="rounded-lg border border-gray-100 bg-gray-50 px-2 py-1.5 text-center"
+                  >
                     <p className="font-semibold text-gray-700">{entry.hora}</p>
                     <p>Em curso {entry.emCurso}</p>
                   </div>
@@ -552,33 +392,98 @@ export function AdminMonitorMainPanel() {
             </DashCard>
 
             <DashCard
-              title="Ranking de unidades"
-              subtitle="Performance no dia."
+              title="Ranking operacional"
+              subtitle="Performance no recorte."
               className="h-[11rem]"
               fillHeight
               bodyClassName="flex min-h-0 flex-1 flex-col p-0"
+              action={
+                <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5 text-[10px] font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setRankingTab('ubt')}
+                    className={[
+                      'rounded-md px-2 py-1 transition',
+                      rankingTab === 'ubt' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500',
+                    ].join(' ')}
+                  >
+                    UBT
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRankingTab('municipio')}
+                    className={[
+                      'rounded-md px-2 py-1 transition',
+                      rankingTab === 'municipio' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500',
+                    ].join(' ')}
+                  >
+                    Município
+                  </button>
+                </div>
+              }
             >
               <div className="min-h-0 overflow-auto">
-                <table className="w-full text-[11px]">
-                  <thead className="sticky top-0 bg-white text-[10px] uppercase tracking-wide text-gray-500">
-                    <tr className="border-b border-gray-200">
-                      <th className="px-3 py-2 text-left">UBT</th>
-                      <th className="px-3 py-2 text-left">Município</th>
-                      <th className="px-3 py-2 text-center">Hoje</th>
-                      <th className="px-3 py-2 text-center">Ocupação</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {filteredRankingRows.map((row) => (
-                      <tr key={row.nome}>
-                        <td className="px-3 py-1.5 font-semibold text-gray-900">{row.nome}</td>
-                        <td className="px-3 py-1.5 text-gray-600">{row.municipio}</td>
-                        <td className="px-3 py-1.5 text-center">{row.hoje}</td>
-                        <td className="px-3 py-1.5 text-center">{row.ocupacao}%</td>
+                {rankingTab === 'ubt' ? (
+                  <table className="w-full text-[11px]">
+                    <thead className="sticky top-0 bg-white text-[10px] uppercase tracking-wide text-gray-500">
+                      <tr className="border-b border-gray-200">
+                        <th className="px-3 py-2 text-left">UBT</th>
+                        <th className="px-3 py-2 text-left">Município</th>
+                        <th className="px-3 py-2 text-center">Hoje</th>
+                        <th className="px-3 py-2 text-center">Ocupação</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {monitor.rankingUbts.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="px-3 py-4 text-center text-gray-500">
+                            Sem unidades no ranking.
+                          </td>
+                        </tr>
+                      ) : (
+                        monitor.rankingUbts.map((row) => (
+                          <tr key={row.id}>
+                            <td className="px-3 py-1.5 font-semibold text-gray-900">{row.nome}</td>
+                            <td className="px-3 py-1.5 text-gray-600">{row.municipio}</td>
+                            <td className="px-3 py-1.5 text-center">{row.hoje}</td>
+                            <td className="px-3 py-1.5 text-center">{row.ocupacao}%</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                ) : (
+                  <table className="w-full text-[11px]">
+                    <thead className="sticky top-0 bg-white text-[10px] uppercase tracking-wide text-gray-500">
+                      <tr className="border-b border-gray-200">
+                        <th className="px-3 py-2 text-left">Município</th>
+                        <th className="px-3 py-2 text-center">UF</th>
+                        <th className="px-3 py-2 text-center">Hoje</th>
+                        <th className="px-3 py-2 text-center">Fila</th>
+                        <th className="px-3 py-2 text-center">Ocupação</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {monitor.rankingMunicipios.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-3 py-4 text-center text-gray-500">
+                            Sem municípios no ranking.
+                          </td>
+                        </tr>
+                      ) : (
+                        monitor.rankingMunicipios.map((row) => (
+                          <tr key={row.id}>
+                            <td className="px-3 py-1.5 font-semibold text-gray-900">{row.nome}</td>
+                            <td className="px-3 py-1.5 text-center text-gray-600">{row.uf}</td>
+                            <td className="px-3 py-1.5 text-center">{row.hoje}</td>
+                            <td className="px-3 py-1.5 text-center">{row.fila}</td>
+                            <td className="px-3 py-1.5 text-center">{row.ocupacao}%</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </DashCard>
 
@@ -589,23 +494,35 @@ export function AdminMonitorMainPanel() {
               fillHeight
               bodyClassName="grid min-h-0 flex-1 grid-cols-[7rem_repeat(6,minmax(0,1fr))] gap-1 p-3"
             >
-              {heatmapRows.map((row) => (
-                <div key={row.regiao} className="contents">
-                  <div className="flex items-center text-[10px] font-semibold text-gray-600">{row.regiao}</div>
-                  {row.slots.map((slot, index) => (
-                    <div
-                      key={`${row.regiao}-${index}`}
-                      className="flex items-center justify-center rounded-md text-[10px] font-semibold text-gray-700"
-                      style={{
-                        backgroundColor:
-                          slot > 80 ? 'rgba(248,113,113,0.34)' : slot > 65 ? 'rgba(251,191,36,0.35)' : 'rgba(74,222,128,0.32)',
-                      }}
-                    >
-                      {slot}%
+              {monitor.heatmap.length === 0 ? (
+                <p className="col-span-full flex items-center justify-center text-xs text-gray-500">
+                  Sem dados de ocupação no recorte.
+                </p>
+              ) : (
+                monitor.heatmap.map((row) => (
+                  <div key={row.regiao} className="contents">
+                    <div className="flex items-center text-[10px] font-semibold text-gray-600">
+                      {row.regiao}
                     </div>
-                  ))}
-                </div>
-              ))}
+                    {row.slots.map((slot, index) => (
+                      <div
+                        key={`${row.regiao}-${index}`}
+                        className="flex items-center justify-center rounded-md text-[10px] font-semibold text-gray-700"
+                        style={{
+                          backgroundColor:
+                            slot > 80
+                              ? 'rgba(248,113,113,0.34)'
+                              : slot > 65
+                                ? 'rgba(251,191,36,0.35)'
+                                : 'rgba(74,222,128,0.32)',
+                        }}
+                      >
+                        {slot}%
+                      </div>
+                    ))}
+                  </div>
+                ))
+              )}
             </DashCard>
 
             <DashCard
@@ -620,8 +537,12 @@ export function AdminMonitorMainPanel() {
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                     Fila média
                   </p>
-                  <p className="mt-0.5 text-xl font-bold leading-none text-slate-900">188</p>
-                  <p className="mt-1 text-[11px] font-semibold text-sky-700">8,1%</p>
+                  <p className="mt-0.5 text-xl font-bold leading-none text-slate-900">
+                    {monitor.queueSnapshot.filaMedia}
+                  </p>
+                  <p className="mt-1 text-[11px] font-semibold text-sky-700">
+                    {monitor.queueSnapshot.filaMediaTrend}
+                  </p>
                 </div>
               </div>
               <div className="flex h-full items-center justify-center rounded-xl border border-amber-100 bg-gradient-to-b from-white to-amber-50/70 p-2 shadow-[0_4px_14px_rgba(245,158,11,0.1)]">
@@ -629,8 +550,12 @@ export function AdminMonitorMainPanel() {
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                     No-show hoje
                   </p>
-                  <p className="mt-0.5 text-xl font-bold leading-none text-slate-900">186</p>
-                  <p className="mt-1 text-[11px] font-semibold text-amber-700">5,3%</p>
+                  <p className="mt-0.5 text-xl font-bold leading-none text-slate-900">
+                    {monitor.queueSnapshot.noShowHoje}
+                  </p>
+                  <p className="mt-1 text-[11px] font-semibold text-amber-700">
+                    {monitor.queueSnapshot.noShowTaxa}
+                  </p>
                 </div>
               </div>
             </DashCard>

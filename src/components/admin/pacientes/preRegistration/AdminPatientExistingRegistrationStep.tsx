@@ -1,6 +1,6 @@
 import { UserCheck } from 'lucide-react'
-import type { AdminMunicipalPatient } from '../../../../data/adminPacientesMock'
-import { getPatientPreferredName, type PatientRegistration } from '../../../../data/unitDashboardMock'
+import type { AdminMunicipalPatient } from '../../../../types/adminPacientes'
+import { getPatientPreferredName, type PatientRegistration } from '../../../../types/attendance'
 import { AttendanceStepShell } from '../../../dashboard/AttendanceStepShell'
 
 type AdminPatientExistingRegistrationStepProps = {

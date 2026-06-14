@@ -1,9 +1,9 @@
-import { Building2, CalendarRange, Check, Stethoscope } from 'lucide-react'
+import { CalendarRange, Check, Landmark, Stethoscope } from 'lucide-react'
 
 export const adminEscalaComposeSteps = [
-  { id: 1, label: 'Cobertura', short: 'Prefeitura e UBT', icon: Building2 },
-  { id: 2, label: 'Especialidades', short: 'O que atender', icon: Stethoscope },
-  { id: 3, label: 'Programação', short: 'Dias, horários e médicos', icon: CalendarRange },
+  { id: 1, label: 'Prefeitura', short: 'Onde publicar', icon: Landmark },
+  { id: 2, label: 'Período', short: 'Datas da escala', icon: CalendarRange },
+  { id: 3, label: 'Plantão', short: 'Horário e valor', icon: Stethoscope },
 ] as const
 
 export type AdminEscalaComposeStepId = (typeof adminEscalaComposeSteps)[number]['id']
@@ -12,18 +12,18 @@ type AdminEscalaComposeStepsProps = {
   activeStep: AdminEscalaComposeStepId
   maxReachableStep: AdminEscalaComposeStepId
   onStepChange: (step: AdminEscalaComposeStepId) => void
-  layout?: 'compact' | 'bar'
+  layout?: 'horizontal' | 'vertical'
 }
 
 export function AdminEscalaComposeSteps({
   activeStep,
   maxReachableStep,
   onStepChange,
-  layout = 'compact',
+  layout = 'horizontal',
 }: AdminEscalaComposeStepsProps) {
-  if (layout === 'bar') {
+  if (layout === 'vertical') {
     return (
-      <nav className="flex w-full min-w-0 items-stretch gap-2" aria-label="Etapas">
+      <nav className="flex flex-col gap-1" aria-label="Etapas da escala">
         {adminEscalaComposeSteps.map((step, index) => {
           const isActive = activeStep === step.id
           const isDone = step.id < activeStep
@@ -31,12 +31,12 @@ export function AdminEscalaComposeSteps({
           const Icon = step.icon
 
           return (
-            <div key={step.id} className="flex min-w-0 flex-1 items-center gap-2">
-              {index > 0 ? (
+            <div key={step.id} className="relative flex gap-3">
+              {index < adminEscalaComposeSteps.length - 1 ? (
                 <span
                   className={[
-                    'hidden h-px w-3 shrink-0 sm:block',
-                    isDone || isActive ? 'bg-[var(--brand-primary)]/40' : 'bg-gray-200',
+                    'absolute left-[1.125rem] top-10 h-[calc(100%-0.25rem)] w-px',
+                    isDone ? 'bg-[var(--brand-primary)]/40' : 'bg-gray-200',
                   ].join(' ')}
                   aria-hidden
                 />
@@ -46,44 +46,46 @@ export function AdminEscalaComposeSteps({
                 disabled={!canClick}
                 onClick={() => canClick && onStepChange(step.id)}
                 className={[
-                  'flex min-w-0 flex-1 items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition sm:px-4',
+                  'relative z-[1] flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition',
                   isActive
-                    ? 'bg-[var(--brand-primary-light)]/70 ring-1 ring-[var(--brand-primary)]/25'
+                    ? 'bg-white shadow-[0_4px_20px_rgba(15,23,42,0.08)] ring-1 ring-gray-200/80'
                     : canClick
-                      ? 'bg-white ring-1 ring-gray-200/80 hover:bg-gray-50'
-                      : 'cursor-not-allowed bg-gray-50/80 opacity-50 ring-1 ring-gray-100',
+                      ? 'hover:bg-white/70'
+                      : 'cursor-not-allowed opacity-45',
                 ].join(' ')}
               >
                 <span
                   className={[
-                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold',
+                    'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold',
                     isActive
-                      ? 'bg-[var(--brand-primary)] text-white'
+                      ? 'bg-[var(--brand-primary)] text-white shadow-[0_4px_12px_rgba(255,107,0,0.35)]'
                       : isDone
                         ? 'bg-emerald-500 text-white'
-                        : 'bg-gray-100 text-gray-600',
+                        : 'bg-gray-200 text-gray-600',
                   ].join(' ')}
                 >
-                  {isDone ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : step.id}
+                  {isDone ? <Check className="h-4 w-4" strokeWidth={3} /> : step.id}
                 </span>
-                <span className="hidden min-w-0 sm:block">
-                  <span
-                    className={[
-                      'block truncate text-xs font-bold',
-                      isActive ? 'text-gray-900' : 'text-gray-700',
-                    ].join(' ')}
-                  >
-                    {step.label}
+                <span className="min-w-0 pt-0.5">
+                  <span className="flex items-center gap-1.5">
+                    <Icon
+                      className={[
+                        'h-3.5 w-3.5',
+                        isActive ? 'text-[var(--brand-primary)]' : 'text-gray-400',
+                      ].join(' ')}
+                      strokeWidth={2}
+                    />
+                    <span
+                      className={[
+                        'text-sm font-bold',
+                        isActive ? 'text-gray-900' : 'text-gray-700',
+                      ].join(' ')}
+                    >
+                      {step.label}
+                    </span>
                   </span>
-                  <span className="block truncate text-[10px] text-gray-500">{step.short}</span>
+                  <span className="mt-0.5 block text-xs text-gray-500">{step.short}</span>
                 </span>
-                <Icon
-                  className={[
-                    'h-4 w-4 shrink-0 sm:hidden',
-                    isActive ? 'text-[var(--brand-primary)]' : 'text-gray-400',
-                  ].join(' ')}
-                  strokeWidth={2}
-                />
               </button>
             </div>
           )
@@ -93,15 +95,11 @@ export function AdminEscalaComposeSteps({
   }
 
   return (
-    <nav
-      className="grid grid-cols-3 gap-1 rounded-xl border border-gray-200 bg-gray-100/80 p-1"
-      aria-label="Etapas"
-    >
+    <nav className="flex w-full gap-2" aria-label="Etapas da escala">
       {adminEscalaComposeSteps.map((step) => {
         const isActive = activeStep === step.id
         const isDone = step.id < activeStep
         const canClick = step.id <= maxReachableStep
-        const Icon = step.icon
 
         return (
           <button
@@ -110,27 +108,25 @@ export function AdminEscalaComposeSteps({
             disabled={!canClick}
             onClick={() => canClick && onStepChange(step.id)}
             className={[
-              'flex min-w-0 flex-col items-center gap-1 rounded-lg px-1 py-2.5 text-center transition sm:flex-row sm:justify-center sm:gap-2 sm:px-3',
+              'flex min-w-0 flex-1 items-center justify-center gap-2 rounded-full px-3 py-2 text-xs font-bold transition sm:text-sm',
               isActive
-                ? 'bg-white text-[var(--brand-primary)] shadow-sm'
-                : canClick
-                  ? 'text-gray-700 hover:bg-white/60'
-                  : 'cursor-not-allowed text-gray-400',
+                ? 'bg-[var(--brand-primary)] text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)]'
+                : isDone
+                  ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200'
+                  : canClick
+                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200/80'
+                    : 'cursor-not-allowed bg-gray-50 text-gray-400',
             ].join(' ')}
           >
             <span
               className={[
-                'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold',
-                isActive
-                  ? 'bg-[var(--brand-primary)] text-white'
-                  : isDone
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-200 text-gray-600',
+                'flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px]',
+                isActive ? 'bg-white/20' : isDone ? 'bg-emerald-500 text-white' : 'bg-white text-gray-500',
               ].join(' ')}
             >
-              {isDone ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : step.id}
+              {isDone ? <Check className="h-3 w-3" strokeWidth={3} /> : step.id}
             </span>
-            <span className="truncate text-[10px] font-bold sm:text-xs">{step.label}</span>
+            <span className="truncate">{step.label}</span>
           </button>
         )
       })}

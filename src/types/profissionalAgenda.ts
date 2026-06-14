@@ -26,6 +26,7 @@ export type ProfissionalShiftStats = {
 
 export type ProfissionalShift = {
   id: string
+  plantaoId: string
   escalaShiftId: string
   dateKey: string
   municipality: string
@@ -54,6 +55,8 @@ export type ProfissionalAgendaNotice = {
 
 export type ProfissionalQueuePatient = {
   id: string
+  /** Quando a fila vem da consulta operacional, referencia o id em agenda_consultas. */
+  agendaConsultaId?: string | null
   shiftId: string
   patientName: string
   patientAge: number

@@ -38,16 +38,19 @@ export type NewUbtFormState = {
   responsibleEmail: string
   responsibleCpf: string
   responsiblePhone: string
-  responsibleAccessPassword: string
-  responsibleAuthorizationPin: string
   stationsTotal: string
   dailyCapacityPerUnit: string
   enableDailyCapacityLimit: boolean
+  professionIds: Set<string>
   specialtyIds: Set<string>
   notes: string
 }
 
-export function createEmptyNewUbtForm(defaultRegionId: string): NewUbtFormState {
+export function createEmptyNewUbtForm(
+  defaultRegionId: string,
+  defaultCity = '',
+  defaultState = '',
+): NewUbtFormState {
   return {
     name: '',
     cnes: '',
@@ -58,19 +61,18 @@ export function createEmptyNewUbtForm(defaultRegionId: string): NewUbtFormState 
     number: '',
     complement: '',
     neighborhood: '',
-    city: 'Brasília',
-    state: 'DF',
+    city: defaultCity,
+    state: defaultState,
     regionId: defaultRegionId,
     unitLandlinePhone: '',
     responsibleName: '',
     responsibleEmail: '',
     responsibleCpf: '',
     responsiblePhone: '',
-    responsibleAccessPassword: '',
-    responsibleAuthorizationPin: '',
     stationsTotal: '4',
     dailyCapacityPerUnit: '24',
     enableDailyCapacityLimit: true,
+    professionIds: new Set(),
     specialtyIds: new Set(),
     notes: '',
   }
@@ -86,12 +88,6 @@ export function isValidEmail(value: string) {
 
 export function isValidCpf(value: string) {
   return value.replace(/\D/g, '').length === 11
-}
-
-export function hasResponsibleAccessCredentials(form: NewUbtFormState) {
-  return (
-    form.responsibleAccessPassword.length >= 8 && form.responsibleAuthorizationPin.length === 6
-  )
 }
 
 export function formatNewUbtAddress(form: NewUbtFormState) {

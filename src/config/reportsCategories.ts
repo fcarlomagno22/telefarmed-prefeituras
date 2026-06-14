@@ -78,3 +78,7 @@ export const reportCategories: ReportCategoryConfig[] = [
 export function getReportCategory(id: string | undefined): ReportCategoryConfig | undefined {
   return reportCategories.find((category) => category.id === id)
 }
+
+export function getReportCategoryIcon(id: ReportCategoryId): LucideIcon {
+  return getReportCategory(id)?.icon ?? PieChart
+}

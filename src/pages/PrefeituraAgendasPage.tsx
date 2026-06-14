@@ -12,7 +12,7 @@ import {
   dashboardPageShellClass,
 } from '../components/layout/dashboardPageLayout'
 import { prefeituraAgendasBottomCardsGridClass } from '../components/prefeitura/agendas/prefeituraAgendasUi'
-import { usePageSkeletonLoading } from '../hooks/usePageSkeletonLoading'
+import { usePrefeituraAgendasPage } from '../hooks/usePrefeituraAgendasPage'
 
 const agendasColumnScrollClass = [
   'min-h-0 min-w-0',
@@ -22,7 +22,33 @@ const agendasColumnScrollClass = [
 ].join(' ')
 
 export function PrefeituraAgendasPage() {
-  const isLoading = usePageSkeletonLoading(1200)
+  const {
+    catalog,
+    weekStart,
+    weekEnd,
+    dayKeys,
+    unitFilter,
+    selection,
+    setSelection,
+    weekData,
+    dayData,
+    futurePeriod,
+    setFuturePeriod,
+    futureData,
+    packageUsage,
+    weeklySummaryCards,
+    isLoading,
+    loadError,
+    reloadAll,
+    goToTodayWeek,
+    goToWeekContainingDate,
+    shiftWeek,
+    handleUnitFilterChange,
+    findUnit,
+    getUnitOptionsForRegion,
+    isViewingCurrentWeek,
+    todayKey,
+  } = usePrefeituraAgendasPage()
 
   return (
     <div
@@ -48,6 +74,19 @@ export function PrefeituraAgendasPage() {
         </header>
       )}
 
+      {loadError ? (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {loadError}
+          <button
+            type="button"
+            onClick={() => void reloadAll()}
+            className="ml-3 font-semibold underline"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : null}
+
       <div
         className={[
           'mt-4 flex min-h-0 flex-1 flex-col gap-4',
@@ -62,7 +101,26 @@ export function PrefeituraAgendasPage() {
             {isLoading ? (
               <PrefeituraAgendasMainPanelSkeleton />
             ) : (
-              <PrefeituraAgendasMainPanel />
+              <PrefeituraAgendasMainPanel
+                catalog={catalog}
+                weekStart={weekStart}
+                weekEnd={weekEnd}
+                dayKeys={dayKeys}
+                unitFilter={unitFilter}
+                selection={selection}
+                weekData={weekData}
+                dayData={dayData}
+                todayKey={todayKey}
+                isViewingCurrentWeek={isViewingCurrentWeek}
+                onSelectionChange={setSelection}
+                onUnitFilterChange={handleUnitFilterChange}
+                onPrevWeek={() => shiftWeek(-1)}
+                onNextWeek={() => shiftWeek(1)}
+                onGoToTodayWeek={goToTodayWeek}
+                onGoToWeekContainingDate={goToWeekContainingDate}
+                findUnit={findUnit}
+                getUnitOptionsForRegion={getUnitOptionsForRegion}
+              />
             )}
 
             {isLoading ? (
@@ -73,9 +131,13 @@ export function PrefeituraAgendasPage() {
               </div>
             ) : (
               <div className={prefeituraAgendasBottomCardsGridClass}>
-                <PrefeituraAgendasAttendanceCard />
-                <PrefeituraAgendasHighlightsCard />
-                <PrefeituraAgendasFutureCard />
+                <PrefeituraAgendasAttendanceCard rows={weekData?.attendanceByUnit ?? []} />
+                <PrefeituraAgendasHighlightsCard highlights={weekData?.highlights ?? []} />
+                <PrefeituraAgendasFutureCard
+                  period={futurePeriod}
+                  summary={futureData}
+                  onPeriodChange={setFuturePeriod}
+                />
               </div>
             )}
           </div>
@@ -86,7 +148,10 @@ export function PrefeituraAgendasPage() {
             {isLoading ? (
               <PrefeituraAgendasSidebarPanelSkeleton />
             ) : (
-              <PrefeituraAgendasSidebarPanel />
+              <PrefeituraAgendasSidebarPanel
+                weeklySummaryCards={weeklySummaryCards}
+                packageUsage={packageUsage}
+              />
             )}
           </div>
         </div>

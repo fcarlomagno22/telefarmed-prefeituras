@@ -11,10 +11,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import {
-  getPrefeituraById,
-  getUbtById,
-} from '../../../data/adminEscalaRecipients'
+import { getPrefeituraById, getUbtById } from '../../../data/adminEscalaCatalog'
 import type { AdminEscalaShift, AdminEscalaShiftStatus } from '../../../types/adminEscala'
 import { dashboardMainPanelSurfaceClass } from '../../layout/dashboardPageLayout'
 import { CustomSelect } from '../../ui/CustomSelect'
@@ -33,7 +30,10 @@ type AdminEscalaMainPanelProps = {
   shifts: AdminEscalaShift[]
   onNewShift: () => void
   onEditRow: (row: AdminEscalaTableRow) => void
-  onDeleteShifts: (shiftIds: string[], label: string) => void
+  onDeleteShifts: (shiftIds: string[], label: string) => void | Promise<void>
+  canInsert?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
 type FlatShiftRow = {
@@ -247,6 +247,8 @@ function ActionMenu({
   onVisualizar,
   onEditar,
   onExcluir,
+  canEdit = true,
+  canDelete = true,
 }: {
   menuKey: string
   isOpen: boolean
@@ -254,6 +256,8 @@ function ActionMenu({
   onVisualizar: () => void
   onEditar: () => void
   onExcluir: () => void
+  canEdit?: boolean
+  canDelete?: boolean
 }) {
   return (
     <div className="relative" data-escala-action-menu="true">
@@ -275,22 +279,26 @@ function ActionMenu({
             <Eye className="h-3.5 w-3.5" />
             Visualizar
           </button>
-          <button
-            type="button"
-            onClick={onEditar}
-            className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-50"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-            Editar
-          </button>
-          <button
-            type="button"
-            onClick={onExcluir}
-            className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Excluir
-          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={onEditar}
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-50"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Editar
+            </button>
+          ) : null}
+          {canDelete ? (
+            <button
+              type="button"
+              onClick={onExcluir}
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Excluir
+            </button>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -302,8 +310,11 @@ export function AdminEscalaMainPanel({
   onNewShift,
   onEditRow,
   onDeleteShifts,
+  canInsert = true,
+  canEdit = true,
+  canDelete = true,
 }: AdminEscalaMainPanelProps) {
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(2026, 4, 26)))
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()))
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [expandedPrefeituras, setExpandedPrefeituras] = useState<Record<string, boolean>>({})
@@ -405,14 +416,16 @@ export function AdminEscalaMainPanel({
               onChange={(v) => setStatusFilter(v as StatusFilter)}
               options={statusFilterOptions}
             />
-            <button
-              type="button"
-              onClick={onNewShift}
-              className="btn-brand-gradient inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold"
-            >
-              <CalendarPlus className="h-4 w-4" />
-              Montar escala do período
-            </button>
+            {canInsert ? (
+              <button
+                type="button"
+                onClick={onNewShift}
+                className="btn-brand-gradient inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold"
+              >
+                <CalendarPlus className="h-4 w-4" />
+                Montar escala do período
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -536,6 +549,8 @@ export function AdminEscalaMainPanel({
                             setConfirmDelete({ ids: prefIds, label: group.label })
                             setOpenMenuKey(null)
                           }}
+                          canEdit={canEdit}
+                          canDelete={canDelete}
                         />
                       </div>
                     </td>
@@ -603,6 +618,8 @@ export function AdminEscalaMainPanel({
                                     setConfirmDelete({ ids: ubtIds, label: `${group.label} / ${ubt.label}` })
                                     setOpenMenuKey(null)
                                   }}
+                                  canEdit={canEdit}
+                                  canDelete={canDelete}
                                 />
                               </div>
                             </td>

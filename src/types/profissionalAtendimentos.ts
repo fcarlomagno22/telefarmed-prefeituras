@@ -20,6 +20,15 @@ export type ProfissionalIssuedDocument = {
   fileName: string
 }
 
+export type ProfissionalAtendimentoMensagem = {
+  id: string
+  from: 'doctor' | 'patient' | 'system'
+  time: string
+  text: string
+  attachmentUrl?: string
+  attachmentName?: string
+}
+
 export type ProfissionalAttendanceRecord = {
   id: string
   attendanceId: string
@@ -37,6 +46,11 @@ export type ProfissionalAttendanceRecord = {
   recordNotes: DoctorRecordNote[]
   issuedDocuments: ProfissionalIssuedDocument[]
   patientUploads: ConsultationChatAttachment[]
+}
+
+export type ProfissionalAtendimentoDetail = {
+  record: ProfissionalAttendanceRecord
+  mensagens: ProfissionalAtendimentoMensagem[]
 }
 
 export type ProfissionalAtendimentosFilters = {

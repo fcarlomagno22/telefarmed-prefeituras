@@ -9,10 +9,6 @@ import {
   auditOverviewCardTitleClass,
 } from './auditOverviewCardStyles'
 
-function formatPercent(value: number) {
-  return value % 1 === 0 ? String(value) : value.toFixed(1)
-}
-
 type AuditLogsOverviewRowProps = {
   onViewAllCritical?: () => void
 }
@@ -32,30 +28,7 @@ export function AuditLogsOverviewRow({ onViewAllCritical }: AuditLogsOverviewRow
         </div>
 
         <div className={auditOverviewCardBodyClass}>
-          <AuditEventsByTypeBarChart slices={byType} className="min-h-[5.5rem] flex-1" />
-
-          <ul className="mt-auto grid shrink-0 grid-cols-5 gap-1.5">
-            {byType.map((item) => (
-              <li
-                key={item.key}
-                className="flex min-h-[3rem] min-w-0 flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50/80 px-1 py-1.5 text-center"
-              >
-                <span
-                  className="mb-0.5 size-2 shrink-0 rounded-full"
-                  style={{
-                    background: `linear-gradient(135deg, ${item.gradientFrom}, ${item.gradientTo})`,
-                  }}
-                  aria-hidden
-                />
-                <span className="truncate text-[10px] font-medium leading-tight text-gray-700">
-                  {item.label}
-                </span>
-                <span className="mt-0.5 text-xs font-bold tabular-nums text-gray-900">
-                  {formatPercent(item.percent)}%
-                </span>
-              </li>
-            ))}
-          </ul>
+          <AuditEventsByTypeBarChart slices={byType} className="min-h-0 flex-1" />
         </div>
       </section>
 

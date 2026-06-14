@@ -1,7 +1,8 @@
-import { Building2, LayoutDashboard, Stethoscope, UserRound } from 'lucide-react'
+import { Building2, HeartPulse, LayoutDashboard, Stethoscope, UserRound } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { brand } from '../config/brand'
 import { portals } from '../config/portals'
+import { vidaPlusBrand } from '../config/vidaPlusRoutes'
 import { useBrandTheme } from '../hooks/useBrandTheme'
 
 export function RootPage() {
@@ -64,6 +65,26 @@ export function RootPage() {
               accentClass="from-violet-600 to-purple-700"
               linkAccentClass="text-violet-600"
             />
+          </div>
+
+          <div
+            aria-disabled="true"
+            className="mt-4 flex w-full cursor-default items-center gap-3 rounded-2xl border border-transparent bg-transparent px-2 py-3 text-left sm:px-3"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50/80 text-emerald-600/80">
+              <HeartPulse className="h-5 w-5" strokeWidth={2} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-bold text-gray-600">{vidaPlusBrand.name}</span>
+                <span className="rounded-full border border-amber-200/90 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800">
+                  Em desenvolvimento
+                </span>
+              </span>
+              <span className="mt-0.5 block text-xs leading-snug text-gray-400">
+                {vidaPlusBrand.tagline}
+              </span>
+            </span>
           </div>
         </div>
 

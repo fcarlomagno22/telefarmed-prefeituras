@@ -1,11 +1,6 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
 import { AdminPageHeader } from '../components/admin/AdminPageHeader'
 import { AdminPacientesAboutPanel } from '../components/admin/pacientes/AdminPacientesAboutPanel'
 import { AdminPacientesMainPanel } from '../components/admin/pacientes/AdminPacientesMainPanel'
-import { AdminMedicosAboutPanel } from '../components/admin/medicos/AdminMedicosAboutPanel'
-import { AdminMedicosMainPanel } from '../components/admin/medicos/AdminMedicosMainPanel'
-import { AdminOperadoresAboutPanel } from '../components/admin/operadores/AdminOperadoresAboutPanel'
-import { AdminOperadoresMainPanel } from '../components/admin/operadores/AdminOperadoresMainPanel'
 import {
   AdminPacientesAboutPanelSkeleton,
 } from '../components/admin/pacientes/skeletons/AdminPacientesAboutPanelSkeleton'
@@ -18,159 +13,129 @@ import {
   adminPacientesMainColumnWrapClass,
   adminPacientesSidebarColumnWrapClass,
 } from '../components/admin/pacientes/adminPacientesPageLayout'
-import {
-  AdminPessoasTabs,
-  type AdminPessoasTab,
-} from '../components/admin/pessoas/AdminPessoasTabs'
 import { AdminPessoasAddButton } from '../components/admin/pessoas/AdminPessoasAddButton'
 import {
   dashboardPageHeaderWrapClass,
   dashboardPageScrollPaddingClass,
   dashboardPageShellClass,
 } from '../components/layout/dashboardPageLayout'
-import { adminMunicipalPatients, getAdminMunicipalityOptions } from '../data/adminPacientesMock'
-import { adminDoctors } from '../data/adminMedicosMock'
-import {
-  adminOperatorUbtOptions,
-  adminOperatorsInitialRows,
-} from '../data/adminOperadoresMock'
-import { useAdminOperatorUserDrawer } from '../hooks/useAdminOperatorUserDrawer'
-import { usePageSkeletonLoading } from '../hooks/usePageSkeletonLoading'
+import { useAdminPacientesPage } from '../hooks/useAdminPacientesPage'
+import { useRef } from 'react'
 
-const peopleMainCardShellClass = [
+const mainCardShellClass = [
   'flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl',
   'border border-gray-200 bg-white',
   'shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]',
 ].join(' ')
 
 export function AdminPacientesPage() {
-  const isLoading = usePageSkeletonLoading(1200)
-  const [selectedMunicipality, setSelectedMunicipality] = useState('all')
-  const [activeTab, setActiveTab] = useState<AdminPessoasTab>('pacientes')
-  const [doctorRows, setDoctorRows] = useState(adminDoctors)
-  const [patientRows, setPatientRows] = useState(adminMunicipalPatients)
-  const [operatorRows, setOperatorRows] = useState(adminOperatorsInitialRows)
-  const operatorDrawer = useAdminOperatorUserDrawer(
-    operatorRows,
-    setOperatorRows,
-    adminOperatorUbtOptions,
-  )
   const pacientesAddActionRef = useRef<(() => void) | null>(null)
-  const medicosAddActionRef = useRef<(() => void) | null>(null)
-
-  const handlePessoasAdd = useCallback(() => {
-    if (activeTab === 'operadores') {
-      operatorDrawer.openCreate()
-      return
-    }
-    if (activeTab === 'pacientes') {
-      pacientesAddActionRef.current?.()
-      return
-    }
-    medicosAddActionRef.current?.()
-  }, [activeTab, operatorDrawer])
-
-  const municipalityOptions = useMemo(
-    () => getAdminMunicipalityOptions(patientRows),
-    [patientRows],
-  )
-
-  const cityScopedPatients = useMemo(
-    () =>
-      selectedMunicipality === 'all'
-        ? patientRows
-        : patientRows.filter(
-            (patient) => patient.municipality === selectedMunicipality,
-          ),
-    [selectedMunicipality, patientRows],
-  )
-
-  const gridClass = adminPacientesColumnsGridClass
+  const {
+    patients,
+    cityScopedPatients,
+    summary,
+    contractingEntities,
+    municipalityOptions,
+    selectedMunicipality,
+    setSelectedMunicipality,
+    isLoading,
+    loadError,
+    reload,
+    searchQuery,
+    setSearchQuery,
+    upsertPatient,
+    loadDetail,
+    savePatientEdits,
+    lookupPatientByCpf,
+    completePreCadastro,
+    savePreCadastroDraft,
+    concludePreCadastroById,
+    cancelPreCadastro,
+    createPatientDirect,
+    inactivatePatient,
+    exportPatientsCsv,
+    isExporting,
+  } = useAdminPacientesPage()
 
   return (
-    <div className={dashboardPageShellClass} aria-label="Pessoas">
+    <div className={dashboardPageShellClass} aria-label="Pacientes">
       <div className={dashboardPageHeaderWrapClass}>
         <AdminPageHeader
-          sectionLabel="Plataforma"
-          title="Pessoas"
-          description="Base consolidada de pacientes, médicos e operadores dos municípios contratantes."
+          sectionLabel="Pessoas"
+          title="Pacientes"
+          description="Base consolidada de pacientes dos municípios contratantes."
           actions={
-            <AdminPessoasAddButton activeTab={activeTab} onClick={handlePessoasAdd} />
+            <AdminPessoasAddButton
+              label="Adicionar paciente"
+              onClick={() => pacientesAddActionRef.current?.()}
+            />
           }
         />
       </div>
 
+      {loadError ? (
+        <div className="mx-5 mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {loadError}{' '}
+          <button
+            type="button"
+            onClick={() => void reload()}
+            className="font-semibold underline underline-offset-2"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : null}
+
       <div
-        className={[gridClass, dashboardPageScrollPaddingClass, 'mt-4 pb-5'].join(' ')}
+        className={[adminPacientesColumnsGridClass, dashboardPageScrollPaddingClass, 'mt-4 pb-5'].join(' ')}
       >
         <div className={adminPacientesColumnScrollClass}>
           <div className={adminPacientesMainColumnWrapClass}>
-            <div className={peopleMainCardShellClass}>
-              <AdminPessoasTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
-              {activeTab === 'pacientes' ? (
-                isLoading ? (
-                  <AdminPacientesMainPanelSkeleton />
-                ) : (
-                  <AdminPacientesMainPanel
-                    embedded
-                    patients={patientRows}
-                    selectedMunicipality={selectedMunicipality}
-                    municipalityOptions={municipalityOptions}
-                    onMunicipalityChange={setSelectedMunicipality}
-                    onPatientsChange={setPatientRows}
-                    bindAddAction={(action) => {
-                      pacientesAddActionRef.current = action
-                    }}
-                  />
-                )
-              ) : activeTab === 'medicos' ? (
-                <AdminMedicosMainPanel
-                  embedded
-                  doctors={doctorRows}
-                  onDoctorsChange={setDoctorRows}
-                  bindAddAction={(action) => {
-                    medicosAddActionRef.current = action
-                  }}
-                />
+            <div className={mainCardShellClass}>
+              {isLoading ? (
+                <AdminPacientesMainPanelSkeleton />
               ) : (
-                <AdminOperadoresMainPanel
+                <AdminPacientesMainPanel
                   embedded
-                  rows={operatorRows}
-                  ubtOptions={adminOperatorUbtOptions}
-                  userDrawer={operatorDrawer}
+                  patients={patients}
+                  summary={summary}
+                  contractingEntities={contractingEntities}
+                  selectedMunicipality={selectedMunicipality}
+                  municipalityOptions={municipalityOptions}
+                  onMunicipalityChange={setSelectedMunicipality}
+                  searchQuery={searchQuery}
+                  onSearchQueryChange={setSearchQuery}
+                  onPatientUpsert={upsertPatient}
+                  onLoadPatientDetail={loadDetail}
+                  onSavePatientEdits={savePatientEdits}
+                  onLookupPatientByCpf={lookupPatientByCpf}
+                  onCompletePreCadastro={completePreCadastro}
+                  onSavePreCadastroDraft={savePreCadastroDraft}
+                  onConcludePreCadastroById={concludePreCadastroById}
+                  onCancelPreCadastro={cancelPreCadastro}
+                  onCreatePatientDirect={createPatientDirect}
+                  onInactivatePatient={inactivatePatient}
+                  onExportCsv={exportPatientsCsv}
+                  isExporting={isExporting}
+                  bindAddAction={(action) => {
+                    pacientesAddActionRef.current = action
+                  }}
                 />
               )}
             </div>
           </div>
         </div>
 
-        {activeTab === 'pacientes' ? (
-          <div className={adminPacientesColumnScrollClass}>
-            <div className={adminPacientesSidebarColumnWrapClass}>
-              {isLoading ? (
-                <AdminPacientesAboutPanelSkeleton />
-              ) : (
-                <AdminPacientesAboutPanel patients={cityScopedPatients} />
-              )}
-            </div>
+        <div className={adminPacientesColumnScrollClass}>
+          <div className={adminPacientesSidebarColumnWrapClass}>
+            {isLoading ? (
+              <AdminPacientesAboutPanelSkeleton />
+            ) : (
+              <AdminPacientesAboutPanel patients={cityScopedPatients} summary={summary} />
+            )}
           </div>
-        ) : activeTab === 'medicos' ? (
-          <div className={adminPacientesColumnScrollClass}>
-            <div className={adminPacientesSidebarColumnWrapClass}>
-              <AdminMedicosAboutPanel />
-            </div>
-          </div>
-        ) : (
-          <div className={adminPacientesColumnScrollClass}>
-            <div className={adminPacientesSidebarColumnWrapClass}>
-              <AdminOperadoresAboutPanel rows={operatorRows} />
-            </div>
-          </div>
-        )}
+        </div>
       </div>
-
-      {activeTab === 'operadores' ? operatorDrawer.drawerElement : null}
     </div>
   )
 }

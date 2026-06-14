@@ -1,6 +1,11 @@
-import { CheckCheck, Eye, Search } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { CheckCheck, Eye, Loader2, Search } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { PrefeituraNotification } from '../../../data/prefeituraNotificacoesMock'
+import {
+  useUbtNotificacoesOptional,
+  type UbtNotificationListFilters,
+} from '../../../contexts/UbtNotificacoesContext'
+import { useUbtPageAccess } from '../../../hooks/useUbtPageAccess'
 import { dashboardMainPanelSurfaceClass } from '../../layout/dashboardPageLayout'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
@@ -15,9 +20,9 @@ import {
 const thClass = 'px-2 py-3 text-center text-[10px] font-semibold uppercase tracking-wide text-gray-500'
 const tdClass = 'px-2 py-3 text-center align-middle'
 
-type DirectionFilter = 'all' | 'inbox' | 'sent'
-type ReadFilter = 'all' | 'unread' | 'read'
-type OriginFilter = 'all' | 'telefarmed' | 'contract_manager'
+type DirectionFilter = UbtNotificationListFilters['direction']
+type ReadFilter = UbtNotificationListFilters['read']
+type OriginFilter = UbtNotificationListFilters['origin']
 
 const directionOptions = [
   { value: 'all', label: 'Caixa: Todas' },
@@ -37,13 +42,6 @@ const originOptions = [
   { value: 'contract_manager', label: 'Gestão municipal' },
 ]
 
-function normalizeSearch(value: string) {
-  return value
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-}
-
 const TABLE_COLUMN_COUNT = 8
 
 function directionLabel(direction: PrefeituraNotification['direction']) {
@@ -59,10 +57,18 @@ export function UbtNotificacoesMainPanel({
   notifications,
   onNotificationsChange,
 }: UbtNotificacoesMainPanelProps) {
-  const [search, setSearch] = useState('')
-  const [directionFilter, setDirectionFilter] = useState<DirectionFilter>('all')
-  const [readFilter, setReadFilter] = useState<ReadFilter>('all')
-  const [originFilter, setOriginFilter] = useState<OriginFilter>('all')
+  const notificacoesContext = useUbtNotificacoesOptional()
+  const { pageAccess } = useUbtPageAccess('notificacoes')
+  const [search, setSearch] = useState(notificacoesContext?.listFilters.search ?? '')
+  const [directionFilter, setDirectionFilter] = useState<DirectionFilter>(
+    notificacoesContext?.listFilters.direction ?? 'all',
+  )
+  const [readFilter, setReadFilter] = useState<ReadFilter>(
+    notificacoesContext?.listFilters.read ?? 'all',
+  )
+  const [originFilter, setOriginFilter] = useState<OriginFilter>(
+    notificacoesContext?.listFilters.origin ?? 'all',
+  )
   const [detailOpen, setDetailOpen] = useState(false)
   const [detailNotification, setDetailNotification] = useState<PrefeituraNotification | null>(null)
   const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
@@ -74,30 +80,42 @@ export function UbtNotificacoesMainPanel({
 
   const dismissToast = useCallback(() => setToast(null), [])
 
-  const filteredNotifications = useMemo(() => {
-    const query = normalizeSearch(search.trim())
+  const loadNotifications = notificacoesContext?.loadNotifications
+  const listPageSize = notificacoesContext?.listFilters.pageSize ?? 100
 
-    return [...notifications]
-      .filter((item) => {
-        if (directionFilter !== 'all' && item.direction !== directionFilter) return false
-        if (originFilter !== 'all' && item.origin !== originFilter) return false
-        if (item.origin === 'ubt' && item.direction === 'inbox') return false
+  useEffect(() => {
+    if (!loadNotifications) return
 
-        if (readFilter === 'unread' && !isPrefeituraNotificationUnread(item)) return false
-        if (readFilter === 'read' && isPrefeituraNotificationUnread(item)) return false
-
-        if (!query) return true
-        const haystack = normalizeSearch(
-          `${item.title} ${item.body} ${item.senderLabel} ${item.recipientLabel}`,
-        )
-        return haystack.includes(query)
+    const handle = window.setTimeout(() => {
+      void loadNotifications({
+        direction: directionFilter,
+        read: readFilter,
+        origin: originFilter,
+        search,
+        page: 1,
+        pageSize: listPageSize,
       })
-      .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())
-  }, [notifications, search, directionFilter, readFilter, originFilter])
+    }, search.trim() ? 350 : 0)
 
-  const unreadInList = filteredNotifications.filter(isPrefeituraNotificationUnread).length
+    return () => window.clearTimeout(handle)
+  }, [directionFilter, readFilter, originFilter, search, loadNotifications, listPageSize])
+
+  const sortedNotifications = useMemo(
+    () =>
+      [...notifications].sort(
+        (a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime(),
+      ),
+    [notifications],
+  )
+
+  const unreadInList = sortedNotifications.filter(isPrefeituraNotificationUnread).length
 
   function markAsRead(id: string) {
+    if (!pageAccess.canEdit) return
+    if (notificacoesContext) {
+      void notificacoesContext.markAsRead(id)
+      return
+    }
     onNotificationsChange(
       notifications.map((item) =>
         item.id === id && item.direction === 'inbox' && item.readAt === null
@@ -108,9 +126,24 @@ export function UbtNotificacoesMainPanel({
   }
 
   function markAllInboxRead() {
+    if (!pageAccess.canEdit) {
+      showToast('Sua conta não possui permissão para marcar notificações como lidas.', 'error')
+      return
+    }
+
     const unreadCount = notifications.filter(isPrefeituraNotificationUnread).length
     if (unreadCount === 0) {
       showToast('Não há mensagens não lidas na caixa de entrada.', 'warning')
+      return
+    }
+
+    if (notificacoesContext) {
+      void notificacoesContext.markAllInboxRead().then((count) => {
+        showToast(
+          `${count} notificação${count === 1 ? '' : 'ões'} marcada${count === 1 ? '' : 's'} como lida${count === 1 ? '' : 's'}.`,
+          'success',
+        )
+      })
       return
     }
 
@@ -129,7 +162,7 @@ export function UbtNotificacoesMainPanel({
   function openDetail(item: PrefeituraNotification) {
     setDetailNotification(item)
     setDetailOpen(true)
-    if (isPrefeituraNotificationUnread(item)) {
+    if (isPrefeituraNotificationUnread(item) && pageAccess.canEdit) {
       markAsRead(item.id)
     }
   }
@@ -144,6 +177,8 @@ export function UbtNotificacoesMainPanel({
     return notifications.find((n) => n.id === detailNotification.id) ?? detailNotification
   }, [notifications, detailNotification])
 
+  const isListLoading = notificacoesContext?.isListLoading ?? false
+
   return (
     <>
       <section
@@ -157,19 +192,24 @@ export function UbtNotificacoesMainPanel({
             <div>
               <h2 className="text-base font-bold text-gray-900">Central de notificações</h2>
               <p className="mt-0.5 text-sm text-gray-500">
-                {filteredNotifications.length} mensagem
-                {filteredNotifications.length === 1 ? '' : 's'}
+                {sortedNotifications.length} mensagem
+                {sortedNotifications.length === 1 ? '' : 's'}
                 {unreadInList > 0 ? ` · ${unreadInList} não lida${unreadInList === 1 ? '' : 's'}` : ''}
+                {notificacoesContext && notificacoesContext.listTotal > sortedNotifications.length
+                  ? ` · ${notificacoesContext.listTotal} no total`
+                  : ''}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={markAllInboxRead}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
-            >
-              <CheckCheck className="h-3.5 w-3.5" strokeWidth={2.25} />
-              Marcar todas como lidas
-            </button>
+            {pageAccess.canEdit ? (
+              <button
+                type="button"
+                onClick={markAllInboxRead}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+              >
+                <CheckCheck className="h-3.5 w-3.5" strokeWidth={2.25} />
+                Marcar todas como lidas
+              </button>
+            ) : null}
           </div>
 
           <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center">
@@ -206,7 +246,13 @@ export function UbtNotificacoesMainPanel({
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-white">
+        <div className="relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-white">
+          {isListLoading ? (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/70">
+              <Loader2 className="h-6 w-6 animate-spin text-[var(--brand-primary)]" />
+            </div>
+          ) : null}
+
           <table className="w-full table-fixed border-collapse text-sm">
             <colgroup>
               <col style={{ width: '8%' }} />
@@ -231,7 +277,7 @@ export function UbtNotificacoesMainPanel({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
-              {filteredNotifications.length === 0 ? (
+              {sortedNotifications.length === 0 ? (
                 <tr>
                   <td
                     colSpan={TABLE_COLUMN_COUNT}
@@ -241,7 +287,7 @@ export function UbtNotificacoesMainPanel({
                   </td>
                 </tr>
               ) : (
-                filteredNotifications.map((item) => {
+                sortedNotifications.map((item) => {
                   const unread = isPrefeituraNotificationUnread(item)
 
                   return (
@@ -339,9 +385,9 @@ export function UbtNotificacoesMainPanel({
 
         <footer className="shrink-0 border-t border-gray-200 bg-white px-5 py-3 sm:px-6">
           <p className="text-xs text-gray-500">
-            {filteredNotifications.length === 0
+            {sortedNotifications.length === 0
               ? 'Nenhuma mensagem na lista filtrada'
-              : `${filteredNotifications.length} notificação${filteredNotifications.length === 1 ? '' : 'ões'} exibida${filteredNotifications.length === 1 ? '' : 's'}`}
+              : `${sortedNotifications.length} notificação${sortedNotifications.length === 1 ? '' : 'ões'} exibida${sortedNotifications.length === 1 ? '' : 's'}`}
           </p>
         </footer>
       </section>

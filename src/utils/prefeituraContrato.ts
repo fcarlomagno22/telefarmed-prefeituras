@@ -2,13 +2,9 @@ import type {
   PrefeituraContratoInfo,
   PrefeituraContratoMonthlyRow,
   PrefeituraContratoRecord,
-} from '../data/prefeituraContratoMock'
-import { prefeituraContratoDefaultId } from '../data/prefeituraContratoMock'
-import {
-  computePrefeituraPackageUsage,
-  type PrefeituraPackageUsageStatus,
-  type PrefeituraPackageUsageView,
-} from './prefeituraConsultationPackage'
+  PrefeituraContratoUtilizacao,
+} from '../types/prefeituraContrato'
+import type { PrefeituraPackageUsageStatus, PrefeituraPackageUsageView } from './prefeituraConsultationPackage'
 
 export type PrefeituraContratoExpiryStatus =
   | 'active'
@@ -72,8 +68,15 @@ function monthCycleLabels(year: number, month: number) {
 function resolvePackageStatus(
   usedInCycle: number,
   contractedTotal: number,
-  avulsoCount: number,
 ): { status: PrefeituraPackageUsageStatus; statusLabel: string; statusHint: string } {
+  if (contractedTotal <= 0) {
+    return {
+      status: 'comfortable',
+      statusLabel: 'Sob demanda',
+      statusHint: 'Contrato sem pacote pré-contratado.',
+    }
+  }
+
   const usagePercent = Math.min(100, Math.round((usedInCycle / contractedTotal) * 100))
 
   if (usedInCycle >= contractedTotal) {
@@ -97,19 +100,14 @@ function resolvePackageStatus(
   }
 }
 
-function buildUsageFromMonthRow(
-  row: PrefeituraContratoMonthlyRow,
-): PrefeituraPackageUsageView {
+function buildUsageFromMonthRow(row: PrefeituraContratoMonthlyRow): PrefeituraPackageUsageView {
   const { cycleStartLabel, cycleCloseLabel } = monthCycleLabels(row.year, row.month)
   const contractedTotal = row.contracted
   const usedInCycle = row.performed
   const remainingInPackage = Math.max(0, contractedTotal - usedInCycle)
-  const usagePercent = Math.min(100, Math.round((usedInCycle / contractedTotal) * 100))
-  const { status, statusLabel, statusHint } = resolvePackageStatus(
-    usedInCycle,
-    contractedTotal,
-    row.avulsoCount,
-  )
+  const usagePercent =
+    contractedTotal > 0 ? Math.min(100, Math.round((usedInCycle / contractedTotal) * 100)) : 0
+  const { status, statusLabel, statusHint } = resolvePackageStatus(usedInCycle, contractedTotal)
 
   return {
     contractedTotal,
@@ -125,6 +123,82 @@ function buildUsageFromMonthRow(
     cycleStartLabel,
     cycleCloseLabel,
     nextCycleStartLabel: cycleCloseLabel,
+    status,
+    statusLabel,
+    statusHint,
+  }
+}
+
+function buildActiveCycleUsage(
+  utilizacao: PrefeituraContratoUtilizacao,
+  reference = new Date(),
+): PrefeituraPackageUsageView {
+  const { currentMonth } = utilizacao
+  const { cycleStartLabel } = monthCycleLabels(currentMonth.year, currentMonth.month)
+
+  const today = startOfDay(reference)
+  const cycleStart = new Date(currentMonth.year, currentMonth.month - 1, 1)
+  const cycleClose = new Date(currentMonth.year, currentMonth.month, 0)
+  const nextCycleStart = new Date(currentMonth.year, currentMonth.month, 1)
+  const daysInMonth = cycleClose.getDate()
+  const daysElapsed = Math.max(1, diffDays(cycleStart, today) + 1)
+  const daysRemaining = Math.max(0, diffDays(today, cycleClose))
+
+  const contractedTotal = currentMonth.contracted
+  const usedInCycle = currentMonth.performed
+  const remainingInPackage = Math.max(0, contractedTotal - usedInCycle)
+  const usagePercent =
+    contractedTotal > 0 ? Math.min(100, Math.round((usedInCycle / contractedTotal) * 100)) : 0
+  const avulsoCount = currentMonth.avulsoCount
+
+  const dailyRate = usedInCycle / daysElapsed
+  const projectedTotalAtRenewal = Math.round(usedInCycle + dailyRate * daysRemaining)
+  const projectedOverflow = Math.max(0, projectedTotalAtRenewal - contractedTotal)
+
+  const closeLabel = formatDateLabel(
+    `${cycleClose.getFullYear()}-${String(cycleClose.getMonth() + 1).padStart(2, '0')}-${String(cycleClose.getDate()).padStart(2, '0')}`,
+  )
+  const nextCycleLabel = formatDateLabel(
+    `${nextCycleStart.getFullYear()}-${String(nextCycleStart.getMonth() + 1).padStart(2, '0')}-${String(nextCycleStart.getDate()).padStart(2, '0')}`,
+  )
+
+  let status: PrefeituraPackageUsageStatus = 'comfortable'
+  let statusLabel = 'Ritmo compatível'
+  let statusHint =
+    'A projeção indica que o pacote mensal deve cobrir a demanda até o fechamento do ciclo.'
+
+  if (contractedTotal <= 0) {
+    status = 'comfortable'
+    statusLabel = 'Sob demanda'
+    statusHint = 'Contrato sem pacote pré-contratado no ciclo atual.'
+  } else if (usedInCycle >= contractedTotal) {
+    status = 'exceeded'
+    statusLabel = 'Pacote esgotado'
+    statusHint = `Ciclo encerra em ${closeLabel}. Consultas acima do pacote seguem como avulso (cobrança à parte).`
+  } else if (projectedOverflow > 0) {
+    status = projectedOverflow > contractedTotal * 0.08 ? 'critical' : 'attention'
+    statusLabel = status === 'critical' ? 'Risco alto de estouro' : 'Atenção ao ritmo'
+    statusHint = `Projeção até ${closeLabel}: ~${projectedTotalAtRenewal.toLocaleString('pt-BR')} consultas. Excedente estimado: ${projectedOverflow.toLocaleString('pt-BR')} (avulso). Novo ciclo em ${nextCycleLabel}.`
+  } else if (usagePercent >= 78) {
+    status = 'attention'
+    statusLabel = 'Consumo elevado'
+    statusHint = `Restam ${remainingInPackage.toLocaleString('pt-BR')} consultas no pacote e ${daysRemaining} dia(s) até o fechamento (${closeLabel}).`
+  }
+
+  return {
+    contractedTotal,
+    usedInCycle,
+    remainingInPackage,
+    avulsoCount,
+    usagePercent,
+    projectedTotalAtRenewal,
+    projectedOverflow,
+    daysRemaining,
+    daysElapsed,
+    daysInMonth,
+    cycleStartLabel,
+    cycleCloseLabel: closeLabel,
+    nextCycleStartLabel: nextCycleLabel,
     status,
     statusLabel,
     statusHint,
@@ -228,12 +302,10 @@ export function getPrefeituraContratoCurrentMonth(
 
 export function getPrefeituraContratoCycleUsage(
   contract: PrefeituraContratoRecord,
+  utilizacao?: PrefeituraContratoUtilizacao | null,
 ): PrefeituraPackageUsageView {
-  if (contract.status === 'active' && contract.id === prefeituraContratoDefaultId) {
-    return computePrefeituraPackageUsage(
-      { period: '30d', region: 'todas', ubt: 'todas' },
-      1,
-    )
+  if (contract.status === 'active' && utilizacao) {
+    return buildActiveCycleUsage(utilizacao)
   }
 
   const lastMonth = getPrefeituraContratoCurrentMonth(contract.monthlyHistory)
@@ -241,14 +313,30 @@ export function getPrefeituraContratoCycleUsage(
     return buildUsageFromMonthRow(lastMonth)
   }
 
-  return computePrefeituraPackageUsage(
-    { period: '30d', region: 'todas', ubt: 'todas' },
-    1,
-  )
+  return {
+    contractedTotal: contract.info.monthlyPackageConsultations,
+    usedInCycle: 0,
+    remainingInPackage: contract.info.monthlyPackageConsultations,
+    avulsoCount: 0,
+    usagePercent: 0,
+    projectedTotalAtRenewal: 0,
+    projectedOverflow: 0,
+    daysRemaining: 0,
+    daysElapsed: 0,
+    daysInMonth: 30,
+    cycleStartLabel: '—',
+    cycleCloseLabel: '—',
+    nextCycleStartLabel: '—',
+    status: 'comfortable',
+    statusLabel: 'Sem dados',
+    statusHint: 'Nenhuma consulta contabilizada neste contrato.',
+  }
 }
 
 export function getPrefeituraContratoCycleSectionTitle(contract: PrefeituraContratoRecord) {
-  return contract.status === 'active' ? 'Ciclo atual' : 'Último mês do contrato'
+  if (contract.status !== 'active') return 'Último mês do contrato'
+  if (contract.info.modalidade === 'pacote_fechado') return 'Utilização do contrato'
+  return 'Ciclo atual'
 }
 
 export const prefeituraContratoOutcomeLabels: Record<

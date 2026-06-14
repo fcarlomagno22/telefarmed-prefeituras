@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { env, isProduction } from '../../config/env.js'
+import { authRefreshCookieOptions } from '../../lib/sessionCookie.js'
 import {
   AuthError,
   getAdminById,
@@ -10,22 +10,14 @@ import {
 } from './service.js'
 import { loginBodySchema, verifyAdminPinBodySchema } from './schemas.js'
 import { mapAuthError, requireAdminAuth } from './middleware.js'
+import {
+  auditAuthLoginFailure,
+  auditAuthLoginSuccess,
+  auditAuthLogout,
+  auditAuthRefresh,
+} from '../../lib/auditoria/auth-events.js'
 
 const REFRESH_COOKIE = 'token_refresh_admin'
-
-function refreshCookieOptions(expiresAt: Date) {
-  return {
-    httpOnly: true,
-    secure: isProduction || env.COOKIE_SECURE === true,
-    sameSite: 'lax' as const,
-    path: '/api/v1/admin/auth',
-    expires: expiresAt,
-  }
-}
-
-function refreshCookieMaxAge() {
-  return 7 * 24 * 60 * 60
-}
 
 export async function registerAdminAuthRoutes(app: FastifyInstance): Promise<void> {
   app.post('/login', {
@@ -44,12 +36,13 @@ export async function registerAdminAuthRoutes(app: FastifyInstance): Promise<voi
           ipAddress: request.ip,
         })
 
-        const expiresAt = new Date()
-        expiresAt.setDate(expiresAt.getDate() + 7)
+        reply.setCookie(REFRESH_COOKIE, result.refreshToken, authRefreshCookieOptions('/api/v1/admin/auth'))
 
-        reply.setCookie(REFRESH_COOKIE, result.refreshToken, {
-          ...refreshCookieOptions(expiresAt),
-          maxAge: refreshCookieMaxAge(),
+        auditAuthLoginSuccess('admin', request, {
+          atorId: result.user.id,
+          atorNome: result.user.nome,
+          cpf: result.user.cpf,
+          role: result.user.accessLevel,
         })
 
         return reply.send({
@@ -57,6 +50,7 @@ export async function registerAdminAuthRoutes(app: FastifyInstance): Promise<voi
           user: result.user,
         })
       } catch (error) {
+        auditAuthLoginFailure('admin', request, { cpf: parsed.data.cpf })
         const mapped = mapAuthError(error)
         return reply.status(mapped.statusCode).send(mapped.body)
       }
@@ -78,12 +72,13 @@ export async function registerAdminAuthRoutes(app: FastifyInstance): Promise<voi
           ipAddress: request.ip,
         })
 
-        const expiresAt = new Date()
-        expiresAt.setDate(expiresAt.getDate() + 7)
+        reply.setCookie(REFRESH_COOKIE, result.refreshToken, authRefreshCookieOptions('/api/v1/admin/auth'))
 
-        reply.setCookie(REFRESH_COOKIE, result.refreshToken, {
-          ...refreshCookieOptions(expiresAt),
-          maxAge: refreshCookieMaxAge(),
+        auditAuthRefresh('admin', request, {
+          atorId: result.user.id,
+          atorNome: result.user.nome,
+          cpf: result.user.cpf,
+          role: result.user.accessLevel,
         })
 
         return reply.send({
@@ -101,6 +96,7 @@ export async function registerAdminAuthRoutes(app: FastifyInstance): Promise<voi
   app.post('/logout', async (request, reply) => {
     try {
       await logoutAdmin(request.cookies[REFRESH_COOKIE])
+      auditAuthLogout('admin', request, {})
     } catch {
       // logout sempre idempotente para o cliente
     }

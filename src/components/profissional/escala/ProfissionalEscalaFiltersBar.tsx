@@ -1,155 +1,64 @@
-import type { ReactNode } from 'react'
-import { Search } from 'lucide-react'
-import type { ProfissionalEscalaFilters } from '../../../types/profissionalEscalaDisponivel'
-import { profissionalEscalaSpecialtyOptions } from '../../../data/profissionalEscalaDisponivelMock'
-import { formatBrlCurrencyInput } from '../../../utils/formatBrlCurrency'
-import { CustomSelect } from '../../ui/CustomSelect'
+import { Filter, Search } from 'lucide-react'
 import { profissionalEscalaPanelClass } from './profissionalEscalaUi'
-
-const turnOptions = [
-  { value: 'all', label: 'Todos os turnos' },
-  { value: 'manha', label: 'Manhã' },
-  { value: 'tarde', label: 'Tarde' },
-  { value: 'noite', label: 'Noite' },
-]
-
-const modalityOptions = [
-  { value: 'all', label: 'Todas' },
-  { value: 'tele', label: 'Telemedicina' },
-  { value: 'presencial', label: 'Presencial' },
-]
-
-/** Mesma altura visual do `CustomSelect` (size default: py-3 px-4). */
-const filterControlLikeSelectClass = [
-  'w-full min-w-0 rounded-xl border border-gray-200/80 bg-white text-sm text-gray-800 outline-none transition',
-  'focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15',
-].join(' ')
-
-const dateInputClass = [filterControlLikeSelectClass, 'px-3 py-3'].join(' ')
-const amountInputClass = [filterControlLikeSelectClass, 'px-4 py-3'].join(' ')
+import { PROFISSIONAL_ESCALA_FILTERS_TRIGGER_ID } from './ProfissionalEscalaFiltersMegamenu'
 
 type ProfissionalEscalaFiltersBarProps = {
-  draft: ProfissionalEscalaFilters
-  onDraftChange: (next: ProfissionalEscalaFilters) => void
+  filtersOpen: boolean
+  activeFilterCount: number
+  onToggleFilters: () => void
   onSearch: () => void
-  onClear: () => void
-}
-
-function FilterField({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <label className="block min-w-0">
-      <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-        {label}
-      </span>
-      {children}
-    </label>
-  )
 }
 
 export function ProfissionalEscalaFiltersBar({
-  draft,
-  onDraftChange,
+  filtersOpen,
+  activeFilterCount,
+  onToggleFilters,
   onSearch,
-  onClear,
 }: ProfissionalEscalaFiltersBarProps) {
-  const patch = (partial: Partial<ProfissionalEscalaFilters>) =>
-    onDraftChange({ ...draft, ...partial })
-
   return (
     <section
       data-tour="escala-filters"
       className={[profissionalEscalaPanelClass, 'shrink-0 p-4 sm:p-5'].join(' ')}
     >
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <FilterField label="Especialidade">
-          <CustomSelect
-            value={draft.specialty}
-            onChange={(value) => patch({ specialty: value })}
-            options={profissionalEscalaSpecialtyOptions}
-          />
-        </FilterField>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-sm font-bold text-gray-900">Buscar plantões</h2>
+          <p className="text-xs text-gray-500">
+            Filtre por especialidade, período, turno, modalidade e valor
+          </p>
+        </div>
 
-        <FilterField label="Período">
-          <div className="flex items-center gap-2">
-            <input
-              type="date"
-              value={draft.dateFrom}
-              onChange={(event) => patch({ dateFrom: event.target.value })}
-              className={dateInputClass}
-              aria-label="Data inicial"
-            />
-            <span className="shrink-0 text-xs font-medium text-gray-400">até</span>
-            <input
-              type="date"
-              value={draft.dateTo}
-              min={draft.dateFrom || undefined}
-              onChange={(event) => patch({ dateTo: event.target.value })}
-              className={dateInputClass}
-              aria-label="Data final"
-            />
-          </div>
-        </FilterField>
-
-        <FilterField label="Turno">
-          <CustomSelect
-            value={draft.turn}
-            onChange={(value) => patch({ turn: value as ProfissionalEscalaFilters['turn'] })}
-            options={turnOptions}
-          />
-        </FilterField>
-
-        <FilterField label="Modalidade">
-          <CustomSelect
-            value={draft.modality}
-            onChange={(value) => patch({ modality: value as ProfissionalEscalaFilters['modality'] })}
-            options={modalityOptions}
-          />
-        </FilterField>
-
-        <div className="col-span-1 flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-end sm:justify-between lg:col-span-3 xl:col-span-5">
-          <FilterField label="Faixa de valor (R$)">
-            <div className="flex items-stretch gap-2 sm:max-w-xs lg:max-w-sm">
-              <input
-                type="text"
-                inputMode="decimal"
-                placeholder="Mín."
-                value={draft.minAmountReais}
-                onChange={(event) =>
-                  patch({ minAmountReais: formatBrlCurrencyInput(event.target.value) })
-                }
-                className={[amountInputClass, 'min-w-0 flex-1'].join(' ')}
-              />
-              <input
-                type="text"
-                inputMode="decimal"
-                placeholder="Máx."
-                value={draft.maxAmountReais}
-                onChange={(event) =>
-                  patch({ maxAmountReais: formatBrlCurrencyInput(event.target.value) })
-                }
-                className={[amountInputClass, 'min-w-0 flex-1'].join(' ')}
-              />
-            </div>
-          </FilterField>
-
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:pb-0.5">
-            <button
-              type="button"
-              onClick={onClear}
-              className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              Limpar filtros
-            </button>
-            <button
-              type="button"
-              data-tour="escala-search-btn"
-              onClick={onSearch}
-              className="btn-brand-gradient inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold"
-            >
-              <Search className="h-4 w-4" strokeWidth={2.25} />
-              Buscar plantões
-            </button>
-          </div>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <button
+            id={PROFISSIONAL_ESCALA_FILTERS_TRIGGER_ID}
+            type="button"
+            aria-expanded={filtersOpen}
+            aria-controls="profissional-escala-filters-megamenu"
+            onClick={onToggleFilters}
+            className={[
+              'inline-flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border px-4 text-sm font-semibold transition',
+              filtersOpen || activeFilterCount > 0
+                ? 'border-[var(--brand-primary)] bg-[var(--brand-primary-light)] text-[var(--brand-primary)]'
+                : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
+            ].join(' ')}
+          >
+            <Filter className="h-4 w-4 shrink-0" strokeWidth={2} />
+            Filtrar
+            {activeFilterCount > 0 ? (
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--brand-primary)] px-1.5 text-[10px] font-bold text-white tabular-nums">
+                {activeFilterCount}
+              </span>
+            ) : null}
+          </button>
+          <button
+            type="button"
+            data-tour="escala-search-btn"
+            onClick={onSearch}
+            className="btn-brand-gradient inline-flex h-10 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold"
+          >
+            <Search className="h-4 w-4" strokeWidth={2.25} />
+            Buscar plantões
+          </button>
         </div>
       </div>
     </section>

@@ -1,6 +1,7 @@
 import { FileCheck2, Stethoscope } from 'lucide-react'
 import type { ProfissionalBillingShift } from '../../../types/profissionalFinanceiro'
 import { formatProfissionalCurrency } from '../../../utils/profissional/formatProfissionalCurrency'
+import { ProfissionalFinanceiroShiftsTableSkeleton } from '../skeletons/ProfissionalFinanceiroShiftsTableSkeleton'
 import {
   profissionalBillingStatusConfig,
   profissionalFinanceiroAlignedPanelClass,
@@ -10,6 +11,7 @@ const STATUS_BADGE_WIDTH = 'w-[7.5rem]'
 
 type ProfissionalFinanceiroShiftsPanelProps = {
   shifts: ProfissionalBillingShift[]
+  isLoading?: boolean
   closureButtonLabel: string
   onOpenClosure: () => void
   tourHighlightClosureBtn?: boolean
@@ -80,6 +82,7 @@ function ShiftsTableColGroup() {
 
 export function ProfissionalFinanceiroShiftsPanel({
   shifts,
+  isLoading = false,
   closureButtonLabel,
   onOpenClosure,
   tourHighlightClosureBtn = false,
@@ -89,9 +92,9 @@ export function ProfissionalFinanceiroShiftsPanel({
       <div className="shrink-0 border-b border-gray-100 px-5 py-3 sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <h3 className="text-sm font-bold text-gray-900">Plantões da competência</h3>
+            <h3 className="text-sm font-bold text-gray-900">Extrato da competência</h3>
             <p className="mt-0.5 text-xs text-gray-500">
-              Valores conforme seu contrato de prestação de serviços.
+              Consultas concluídas contabilizadas para repasse.
             </p>
           </div>
 
@@ -108,7 +111,9 @@ export function ProfissionalFinanceiroShiftsPanel({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-        {shifts.length === 0 ? (
+        {isLoading ? (
+          <ProfissionalFinanceiroShiftsTableSkeleton />
+        ) : shifts.length === 0 ? (
           <EmptyShiftsState />
         ) : (
           <table className="w-full table-fixed border-collapse text-center">
@@ -161,9 +166,9 @@ function EmptyShiftsState() {
   return (
     <div className="flex h-full flex-col items-center justify-center px-6 py-16 text-center">
       <Stethoscope className="h-8 w-8 text-gray-300" strokeWidth={1.5} />
-      <p className="mt-3 text-sm font-semibold text-gray-700">Nenhum plantão nesta competência</p>
+      <p className="mt-3 text-sm font-semibold text-gray-700">Nenhuma consulta nesta competência</p>
       <p className="mt-1 max-w-sm text-xs text-gray-500">
-        Os plantões publicados na escala aparecem aqui para conferência e fechamento.
+        Consultas concluídas aparecem aqui para conferência e fechamento.
       </p>
     </div>
   )

@@ -1,66 +1,23 @@
-export type AdminClienteStatus =
-  | 'ativa'
-  | 'implantacao'
-  | 'prospect'
-  | 'suspensa'
-  | 'sem_contrato'
+/** Dados seed para modo mock — tipos em `types/adminClientes`. */
+export type {
+  AdminClienteContact,
+  AdminClienteContrato,
+  AdminClienteContratoDetalhes,
+  AdminClienteContratoStatus,
+  AdminClienteContratoTipo,
+  AdminClientePrecoEspecialidade,
+  AdminClientePrecoProfissao,
+  AdminClienteRow,
+  AdminClienteStatus,
+  AdminClientesTab,
+} from '../types/adminClientes'
 
-export type AdminClienteContratoTipo = 'mensal' | 'pacote_fechado' | 'sob_demanda'
+export {
+  adminClienteContratoTipoLabels,
+  adminClientesStatusFilterOptions,
+} from '../types/adminClientes'
 
-export type AdminClienteContratoStatus = 'ativo' | 'encerrado' | 'suspenso' | 'implantacao'
-
-export type AdminClientesTab = 'clientes' | 'implantacao' | 'prospect'
-
-export type AdminClienteContact = {
-  name: string
-  email: string
-  phone?: string
-  phoneType?: 'fixo' | 'celular'
-}
-
-export type AdminClientePrecoEspecialidade = {
-  specialtyId: string
-  valorConsulta: number
-}
-
-export type AdminClienteContratoDetalhes = {
-  consultasContratadas: number | null
-  /** @deprecated Preferir precosPorEspecialidade */
-  valorConsultaPacote: number | null
-  permiteUltrapassar: boolean
-  precosPorEspecialidade: AdminClientePrecoEspecialidade[]
-  excedentePrecosPorEspecialidade: AdminClientePrecoEspecialidade[] | null
-  especialidadesAutorizadas: string[]
-}
-
-export type AdminClienteContrato = {
-  id: string
-  numero?: string
-  dataAssinatura: string
-  dataEncerramento?: string | null
-  tipo: AdminClienteContratoTipo
-  status: AdminClienteContratoStatus
-  percentualUtilizado: number | null
-  consultasRealizadas: number | null
-  detalhes?: AdminClienteContratoDetalhes
-}
-
-export type AdminClienteRow = {
-  id: string
-  prefeitura: string
-  subtitle: string
-  razaoSocial: string
-  cnpj: string
-  municipio: string
-  uf: string
-  gestor: AdminClienteContact
-  contatoContrato?: AdminClienteContact
-  contatoTi: AdminClienteContact
-  contatoSaude: AdminClienteContact
-  status: AdminClienteStatus
-  logoHue: number
-  contratos: AdminClienteContrato[]
-}
+import type { AdminClienteContrato, AdminClienteRow, AdminClientesTab } from '../types/adminClientes'
 
 export const adminClientesSummary = {
   ativas: 128,
@@ -83,15 +40,6 @@ export const adminClientesSummary = {
   },
 } as const
 
-export const adminClientesStatusFilterOptions = [
-  { value: 'all', label: 'Todos os status' },
-  { value: 'ativa', label: 'Ativa' },
-  { value: 'implantacao', label: 'Implantação' },
-  { value: 'prospect', label: 'Prospect' },
-  { value: 'suspensa', label: 'Suspensa' },
-  { value: 'sem_contrato', label: 'Sem contrato' },
-] as const
-
 const contratosBsb: AdminClienteContrato[] = [
   {
     id: 'ctr-bsb-1',
@@ -106,10 +54,19 @@ const contratosBsb: AdminClienteContrato[] = [
       consultasContratadas: 5000,
       valorConsultaPacote: null,
       permiteUltrapassar: true,
+      aceitaPacientesOutrosMunicipios: false,
+      precosPorProfissao: [
+        { professionId: 'prof-medicos', valorConsulta: 95_0 },
+        { professionId: 'prof-psicologos', valorConsulta: 110_0 },
+      ],
       precosPorEspecialidade: [
         { specialtyId: '4', valorConsulta: 95_0 },
         { specialtyId: '7', valorConsulta: 130_0 },
         { specialtyId: '33', valorConsulta: 110_0 },
+      ],
+      excedentePrecosPorProfissao: [
+        { professionId: 'prof-medicos', valorConsulta: 115_0 },
+        { professionId: 'prof-psicologos', valorConsulta: 130_0 },
       ],
       excedentePrecosPorEspecialidade: [
         { specialtyId: '4', valorConsulta: 115_0 },
@@ -402,8 +359,3 @@ export function filterAdminClientesByTab(
   )
 }
 
-export const adminClienteContratoTipoLabels: Record<AdminClienteContratoTipo, string> = {
-  mensal: 'Mensal',
-  pacote_fechado: 'Pacote fechado',
-  sob_demanda: 'Sob demanda',
-}

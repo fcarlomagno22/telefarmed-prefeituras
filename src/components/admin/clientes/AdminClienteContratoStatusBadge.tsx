@@ -1,4 +1,4 @@
-import type { AdminClienteContratoStatus } from '../../../data/adminClientesMock'
+import type { AdminClienteContratoStatus } from '../../../types/adminClientes'
 import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
 import {
   ADMIN_CLIENTE_STATUS_BADGE_WIDTH,

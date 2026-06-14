@@ -4,6 +4,9 @@ import type { ProfissionalFinalizarCadastroStepId } from '../config/profissional
 export type ProfissionalFinalizarCadastroProfissionalData = {
   fullName: string
   cpf: string
+  formationLabel: string
+  specialty: string
+  professionLabel: string
 }
 
 export type ProfissionalFinalizarCadastroEmpresaData = {

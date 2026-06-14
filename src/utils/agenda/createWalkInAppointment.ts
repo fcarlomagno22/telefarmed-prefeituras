@@ -3,7 +3,7 @@ import {
   getPatientPreferredName,
   type AttendanceSession,
   type PatientRegistration,
-} from '../../data/unitDashboardMock'
+} from '../../types/attendance'
 
 const SLOT_TIMES = [
   '08:00', '08:20', '08:40', '09:00', '09:20', '09:40',

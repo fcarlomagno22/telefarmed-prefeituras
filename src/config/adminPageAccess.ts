@@ -1,7 +1,7 @@
 import type { AdminPortalPageId } from './adminCredenciaisConfig'
 import { adminPortalPages } from './adminCredenciaisConfig'
 import type { PermissionAction } from './accessCredentials'
-import type { AdminAuthUser } from '../lib/api/adminAuthApi'
+import type { AdminAuthUser } from '../lib/mockAuth/adminAuthMock'
 
 const ADMIN_PATH_PREFIX = '/admin'
 
@@ -22,7 +22,9 @@ export function resolveAdminPageIdFromPath(pathname: string): AdminPortalPageId 
     monitor: 'monitor',
     pessoas: 'pessoas',
     pacientes: 'pessoas',
-    medicos: 'pessoas',
+    operadores: 'credenciais',
+    medicos: 'profissionais',
+    profissionais: 'profissionais',
     escala: 'gestaoEscala',
     'gestao-escala': 'gestaoEscala',
     financeiro: 'financeiro',
@@ -51,6 +53,10 @@ export function adminUserCanViewPage(
   page: AdminPortalPageId,
 ): boolean {
   return adminUserCan(user, page, 'visualizar')
+}
+
+export function adminUserIsAdministrator(user: AdminAuthUser | null | undefined): boolean {
+  return Boolean(user?.isMaster || user?.accessLevel === 'administrador')
 }
 
 export function resolveDefaultAdminHomePath(user: AdminAuthUser | null | undefined): string {

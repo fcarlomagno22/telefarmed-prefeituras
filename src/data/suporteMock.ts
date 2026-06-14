@@ -20,6 +20,8 @@ export type SupportMessageDeletedSnapshot = {
   attachments?: SupportMessageAttachment[]
 }
 
+export type SupportMessageDeliveryStatus = 'pending' | 'sent' | 'failed'
+
 export type SupportMessage = {
   id: string
   author: 'operator' | 'support'
@@ -30,6 +32,8 @@ export type SupportMessage = {
   deleted?: boolean
   deletedSnapshot?: SupportMessageDeletedSnapshot
   attachments?: SupportMessageAttachment[]
+  /** Estado local de envio otimista (não persiste no servidor). */
+  deliveryStatus?: SupportMessageDeliveryStatus
 }
 
 export type SupportTicketSource = 'ubt' | 'prefeitura' | 'profissional'

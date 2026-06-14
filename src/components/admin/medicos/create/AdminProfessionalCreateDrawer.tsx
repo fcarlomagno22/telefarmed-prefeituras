@@ -1,8 +1,8 @@
 import { Stethoscope, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { AdminDoctor } from '../../../../data/adminMedicosMock'
-import { draftToAdminDoctor } from './adminProfessionalCreateMapper'
+import type { AdminDoctor } from '../../../../types/adminMedicos'
+import { draftToAdminDoctorPreview, draftToCreateAtivoPayload } from './adminProfessionalCreateMapper'
 import { AdminProfessionalAddressStep } from './AdminProfessionalAddressStep'
 import { AdminProfessionalCreateFlowStepper } from './AdminProfessionalCreateFlowStepper'
 import { AdminProfessionalCreateSuccess } from './AdminProfessionalCreateSuccess'
@@ -23,6 +23,7 @@ type AdminProfessionalCreateDrawerProps = {
   onClose: () => void
   onTransitionEnd: () => void
   onCompleted: (doctor: AdminDoctor) => void
+  onCreate?: (payload: Record<string, unknown>) => Promise<AdminDoctor>
 }
 
 export function AdminProfessionalCreateDrawer({
@@ -31,12 +32,15 @@ export function AdminProfessionalCreateDrawer({
   onClose,
   onTransitionEnd,
   onCompleted,
+  onCreate,
 }: AdminProfessionalCreateDrawerProps) {
   const [entered, setEntered] = useState(false)
   const [step, setStep] = useState<AdminProfessionalCreateStep>('profile')
   const [draft, setDraft] = useState<AdminProfessionalCreateDraft>(() =>
     emptyAdminProfessionalCreateDraft(),
   )
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const resetFlow = useCallback(() => {
     setStep('profile')
@@ -85,9 +89,22 @@ export function AdminProfessionalCreateDrawer({
   }
 
   function completeRegistration() {
-    const doctor = draftToAdminDoctor(draft)
-    onCompleted(doctor)
-    setStep('success')
+    void (async () => {
+      setSubmitError(null)
+      setIsSubmitting(true)
+      try {
+        const payload = draftToCreateAtivoPayload(draft)
+        const doctor = onCreate
+          ? await onCreate(payload)
+          : draftToAdminDoctorPreview(draft)
+        onCompleted(doctor)
+        setStep('success')
+      } catch {
+        setSubmitError('Não foi possível cadastrar o profissional. Verifique os dados e tente novamente.')
+      } finally {
+        setIsSubmitting(false)
+      }
+    })()
   }
 
   if (!isActive) return null
@@ -182,8 +199,10 @@ export function AdminProfessionalCreateDrawer({
                 draft={draft}
                 onChange={setDraft}
                 onBack={() => setStep('address')}
+                isSubmitting={isSubmitting}
+                submitError={submitError}
                 onContinue={() => {
-                  if (!isPhotoStepReady(draft)) return
+                  if (!isPhotoStepReady(draft) || isSubmitting) return
                   completeRegistration()
                 }}
               />

@@ -1,31 +1,30 @@
 import {
   BadgeCheck,
-  CalendarClock,
   CircleAlert,
-  Headphones,
   Stethoscope,
-  Wallet,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { PROFISSIONAL_TELEMEDICINE_LABEL } from '../../../config/profissionalConfig'
-import { profissionalRoutes } from '../../../config/profissionalRoutes'
-import { profissionalLoggedProfile } from '../../../data/profissionalPerfilMock'
-import { profissionalEscalaMonthlyStats } from '../../../data/profissionalEscalaDisponivelMock'
 import type { ProfissionalEscalaDisponivel } from '../../../types/profissionalEscalaDisponivel'
+import { canCancelProfissionalEscalaShift } from '../../../utils/profissional/profissionalEscalaCancel'
 import {
   formatProfissionalConselhoRegistro,
   getProfissionalConselhoConfig,
 } from '../../../config/profissionalConselhoConfig'
 import { formatProfissionalCurrency } from '../../../utils/profissional/formatProfissionalCurrency'
+import type { ProfissionalEscalaSummaryApi } from '../../../lib/services/profissional/escala'
+import { useProfissionalPerfilPage } from '../../../hooks/useProfissionalPerfilPage'
 import {
   formatProfissionalEscalaCardDate,
   formatProfissionalEscalaTimeRange,
+  profissionalEscalaPlantaoSubtitle,
   profissionalEscalaShiftsPanelClass,
 } from './profissionalEscalaUi'
 
 type ProfissionalEscalaSidebarPanelProps = {
   profileSpecialty: string
   reservedShifts: ProfissionalEscalaDisponivel[]
+  userName: string
+  summary: ProfissionalEscalaSummaryApi | null
+  onCancelRequest?: (shift: ProfissionalEscalaDisponivel) => void
 }
 
 const howItWorksSteps = [
@@ -34,24 +33,30 @@ const howItWorksSteps = [
   'Após reservar, acompanhe na Agenda e no Financeiro.',
 ]
 
-const quickLinks = [
-  { to: profissionalRoutes.agenda, label: 'Agenda', icon: CalendarClock },
-  { to: profissionalRoutes.financeiro, label: 'Financeiro', icon: Wallet },
-  { to: profissionalRoutes.suporte, label: 'Suporte', icon: Headphones },
-]
-
 export function ProfissionalEscalaSidebarPanel({
   profileSpecialty,
   reservedShifts,
+  userName,
+  summary,
+  onCancelRequest,
 }: ProfissionalEscalaSidebarPanelProps) {
-  const profile = profissionalLoggedProfile
-  const conselho = getProfissionalConselhoConfig(profile.conselhoClasse)
-  const crm = formatProfissionalConselhoRegistro(
-    conselho.conselhoRegionalSigla,
-    profile.conselhoRegistro,
-    profile.conselhoUf,
-  )
-  const stats = profissionalEscalaMonthlyStats
+  const { profile } = useProfissionalPerfilPage()
+
+  const conselho = profile
+    ? getProfissionalConselhoConfig(profile.conselhoClasse)
+    : null
+  const crm =
+    profile && conselho
+      ? formatProfissionalConselhoRegistro(
+          conselho.conselhoRegionalSigla,
+          profile.conselhoRegistro,
+          profile.conselhoUf,
+        )
+      : null
+
+  const claimedCount = summary?.claimedThisMonth ?? 0
+  const grossRevenueCents = summary?.grossRevenueCents ?? 0
+  const acceptanceRatePercent = summary?.acceptanceRatePercent ?? 0
 
   return (
     <section
@@ -61,7 +66,7 @@ export function ProfissionalEscalaSidebarPanel({
     >
       <header className="shrink-0 border-b border-gray-100 px-4 py-3.5 sm:px-5">
         <h2 className="text-sm font-bold text-gray-900">Seu painel</h2>
-        <p className="mt-0.5 text-xs text-gray-500">Resumo e atalhos</p>
+        <p className="mt-0.5 text-xs text-gray-500">Resumo do mês</p>
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain px-4 py-4 sm:px-5">
@@ -74,7 +79,10 @@ export function ProfissionalEscalaSidebarPanel({
               Especialidade
             </p>
             <p className="mt-0.5 text-sm font-bold text-[var(--brand-primary)]">{profileSpecialty}</p>
-            <p className="mt-0.5 text-[11px] text-gray-600">{crm}</p>
+            {userName ? (
+              <p className="mt-0.5 text-[11px] font-medium text-gray-700">{userName}</p>
+            ) : null}
+            {crm ? <p className="mt-0.5 text-[11px] text-gray-600">{crm}</p> : null}
             <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
               <BadgeCheck className="h-3 w-3" aria-hidden />
               Verificado
@@ -87,12 +95,12 @@ export function ProfissionalEscalaSidebarPanel({
           className="mt-4 grid grid-cols-2 gap-2"
         >
           <div className="rounded-xl border border-gray-100 bg-slate-50/90 px-2.5 py-2.5 text-center">
-            <p className="text-xl font-bold text-gray-900">{stats.claimedCount}</p>
+            <p className="text-xl font-bold text-gray-900">{claimedCount}</p>
             <p className="text-[10px] text-gray-600">Captados no mês</p>
           </div>
           <div className="rounded-xl border border-gray-100 bg-slate-50/90 px-2.5 py-2.5 text-center">
             <p className="text-sm font-bold leading-tight text-gray-900">
-              {formatProfissionalCurrency(stats.grossRevenueCents)}
+              {formatProfissionalCurrency(grossRevenueCents)}
             </p>
             <p className="text-[10px] text-gray-600">Faturamento</p>
           </div>
@@ -101,12 +109,12 @@ export function ProfissionalEscalaSidebarPanel({
         <div className="mt-3">
           <div className="flex justify-between text-[11px]">
             <span className="font-semibold text-gray-700">Taxa de aceitação</span>
-            <span className="font-bold text-emerald-600">{stats.acceptanceRatePercent}%</span>
+            <span className="font-bold text-emerald-600">{acceptanceRatePercent}%</span>
           </div>
           <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-gray-100">
             <div
               className="h-full rounded-full bg-emerald-500"
-              style={{ width: `${stats.acceptanceRatePercent}%` }}
+              style={{ width: `${acceptanceRatePercent}%` }}
             />
           </div>
         </div>
@@ -127,17 +135,18 @@ export function ProfissionalEscalaSidebarPanel({
 
         <div data-tour="escala-reservations" className="mt-4 border-t border-gray-100 pt-4">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-            Reservas nesta sessão
+            Meus plantões confirmados
           </p>
           {reservedShifts.length === 0 ? (
-            <p className="mt-2 text-xs text-gray-500">Nenhuma reserva ainda.</p>
+            <p className="mt-2 text-xs text-gray-500">Nenhum plantão confirmado ainda.</p>
           ) : (
             <ul className="mt-2 space-y-2">
               {reservedShifts.slice(0, 4).map((shift) => {
                 const date = formatProfissionalEscalaCardDate(shift.startAt)
+                const canCancel = canCancelProfissionalEscalaShift(shift)
                 return (
                   <li
-                    key={shift.id}
+                    key={shift.plantaoId ?? shift.id}
                     className="rounded-lg border border-gray-100 bg-slate-50/80 px-2.5 py-2"
                   >
                     <p className="text-[10px] font-semibold text-gray-500">
@@ -147,33 +156,22 @@ export function ProfissionalEscalaSidebarPanel({
                       {formatProfissionalEscalaTimeRange(shift.startAt, shift.endAt)}
                     </p>
                     <p className="text-[10px] text-gray-600">
-                      {shift.modality === 'tele'
-                        ? PROFISSIONAL_TELEMEDICINE_LABEL
-                        : shift.unitName}
+                      {profissionalEscalaPlantaoSubtitle(shift)}
                     </p>
+                    {canCancel && onCancelRequest ? (
+                      <button
+                        type="button"
+                        onClick={() => onCancelRequest(shift)}
+                        className="mt-2 text-[10px] font-semibold text-red-700 underline-offset-2 transition hover:text-red-800 hover:underline"
+                      >
+                        Cancelar reserva
+                      </button>
+                    ) : null}
                   </li>
                 )
               })}
             </ul>
           )}
-        </div>
-
-        <div data-tour="escala-quick-links" className="mt-4 border-t border-gray-100 pt-4">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-            Acesso rápido
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {quickLinks.map(({ to, label, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-gray-700 transition hover:border-[var(--brand-primary)]/40 hover:text-[var(--brand-primary)]"
-              >
-                <Icon className="h-3 w-3" aria-hidden />
-                {label}
-              </Link>
-            ))}
-          </div>
         </div>
 
         <div className="mt-4 flex gap-2 rounded-xl border border-amber-200 bg-amber-50/80 p-3">

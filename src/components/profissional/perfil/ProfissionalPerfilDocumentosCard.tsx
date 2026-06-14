@@ -134,7 +134,7 @@ export function ProfissionalPerfilDocumentosCard({
                 <DocumentActionButton
                   label={actionLabel}
                   isPending={isUpdateAction}
-                  onClick={() => openDocumentAction(document)}
+                  onClick={() => void openDocumentAction(document)}
                 />
               </li>
             )

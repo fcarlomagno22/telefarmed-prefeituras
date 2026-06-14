@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { brand } from '../../../config/brand'
-import {
-  prefeituraMunicipalPatientsAbout,
-  type PrefeituraMunicipalPatientsMonthSlice,
-  type PrefeituraMunicipalPatientsNeighborhoodSlice,
-  type PrefeituraMunicipalPatientsUnitSlice,
+import type {
+  PrefeituraMunicipalPatientsAbout,
+  PrefeituraMunicipalPatientsMonthSlice,
+  PrefeituraMunicipalPatientsNeighborhoodSlice,
+  PrefeituraMunicipalPatientsUnitSlice,
 } from '../../../data/prefeituraMunicipalPatientsMock'
+import { prefeituraMunicipalPatientsAbout } from '../../../data/prefeituraMunicipalPatientsMock'
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
@@ -139,13 +140,18 @@ function FirstUnitBars({ slices }: { slices: PrefeituraMunicipalPatientsUnitSlic
   )
 }
 
-export function PrefeituraUsuariosAboutPanel() {
+export function PrefeituraUsuariosAboutPanel({
+  about,
+}: {
+  about?: PrefeituraMunicipalPatientsAbout | null
+}) {
   const illustrationUrl = brand.dashboardUsersAboutImageUrl
+  const chartData = about ?? prefeituraMunicipalPatientsAbout
   const {
     newRegistrationsByMonth,
     registrationsByNeighborhood,
     registrationsByFirstUnit,
-  } = prefeituraMunicipalPatientsAbout
+  } = chartData
 
   return (
     <aside className="flex w-full shrink-0 flex-col rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">

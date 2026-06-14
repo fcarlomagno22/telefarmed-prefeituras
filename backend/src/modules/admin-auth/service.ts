@@ -6,6 +6,7 @@ import {
   hashPassword,
   verifyPassword,
 } from '../../lib/password.js'
+import { fullAdminPagePermissions } from '../../lib/adminPermissions.js'
 import { signAccessToken } from '../../lib/jwt.js'
 import { type AdminUserPublic, type UsuarioAdminRow, toAdminUserPublic } from './types.js'
 
@@ -344,6 +345,8 @@ export async function ensureMasterUser(input: {
       departamento: 'diretoria',
       eh_master: true,
       status: 'ativo',
+      funcao: 'Administrador',
+      permissoes_paginas: fullAdminPagePermissions(),
     },
     { onConflict: 'cpf', ignoreDuplicates: true },
   )

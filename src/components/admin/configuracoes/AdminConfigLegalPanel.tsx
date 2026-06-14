@@ -1,6 +1,6 @@
 import { Eye, Plus, Save, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AdminAuthApiError, verifyAdminAuthorizationPin } from '../../../lib/api/adminAuthApi'
+import { AdminAuthApiError, verifyAdminAuthorizationPin } from '../../../lib/services/admin/auth'
 import type { ConfigLegalDocument, LegalDocumentPortal } from '../../../types/adminConfiguracoes'
 import { isPresetLegalDocumentId } from '../../../types/adminConfiguracoes'
 import {

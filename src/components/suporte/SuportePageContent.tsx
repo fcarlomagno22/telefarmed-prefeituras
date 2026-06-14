@@ -1,67 +1,24 @@
-import { SuporteMainPanel } from './SuporteMainPanel'
-import { SuporteMainPanelSkeleton } from './SuporteMainPanelSkeleton'
-import { SuporteSidebarPanel } from './SuporteSidebarPanel'
-import { SuporteSidebarPanelSkeleton } from './SuporteSidebarPanelSkeleton'
-import { SupportPageHeaderSkeleton } from './SupportPageHeaderSkeleton'
-import {
-  suporteColumnFillClass,
-  suporteColumnScrollClass,
-  suporteColumnsGridClass,
-} from './suportePageLayout'
-import { SupportPageHeader } from './SupportPageHeader'
-import {
-  dashboardPageHeaderWrapClass,
-  dashboardPageScrollPaddingClass,
-  dashboardPageShellClass,
-} from '../layout/dashboardPageLayout'
-import { useNewSupportTicketDrawer } from '../../hooks/useNewSupportTicketDrawer'
-import { usePageSkeletonLoading } from '../../hooks/usePageSkeletonLoading'
+import { useUbtAuth } from '../../contexts/UbtAuthContext'
+import { PortalSuportePageShell } from './PortalSuportePageShell'
 
-export function SuportePageContent() {
-  const isLoading = usePageSkeletonLoading(1200)
-  const newTicketDrawer = useNewSupportTicketDrawer()
+type SuportePageContentProps = {
+  showNewTicketButton?: boolean
+  canReplyToTickets?: boolean
+}
+
+export function SuportePageContent({
+  showNewTicketButton = true,
+  canReplyToTickets = true,
+}: SuportePageContentProps) {
+  const { getAccessToken } = useUbtAuth()
 
   return (
-    <>
-      <div className={dashboardPageShellClass} aria-busy={isLoading}>
-        <div className={dashboardPageHeaderWrapClass}>
-          {isLoading ? (
-            <SupportPageHeaderSkeleton variant="ubt" />
-          ) : (
-            <SupportPageHeader onOpenNewTicket={newTicketDrawer.openDrawer} />
-          )}
-        </div>
-
-        <div
-          className={[
-            suporteColumnsGridClass,
-            dashboardPageScrollPaddingClass,
-            'mt-4 pb-5',
-          ].join(' ')}
-        >
-          <div className={suporteColumnScrollClass}>
-            <div className={suporteColumnFillClass}>
-              {isLoading ? (
-                <SuporteMainPanelSkeleton />
-              ) : (
-                <SuporteMainPanel />
-              )}
-            </div>
-          </div>
-
-          <div className={suporteColumnScrollClass}>
-            <div className={suporteColumnFillClass}>
-              {isLoading ? (
-                <SuporteSidebarPanelSkeleton />
-              ) : (
-                <SuporteSidebarPanel />
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {newTicketDrawer.drawerElement}
-    </>
+    <PortalSuportePageShell
+      variant="ubt"
+      getAccessToken={getAccessToken}
+      summaryTitle="Seus chamados"
+      showNewTicketButton={showNewTicketButton}
+      canReplyToTickets={canReplyToTickets}
+    />
   )
 }

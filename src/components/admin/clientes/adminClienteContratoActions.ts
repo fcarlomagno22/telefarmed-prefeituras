@@ -1,4 +1,5 @@
-import type { AdminClienteContrato, AdminClienteContratoStatus } from '../../../data/adminClientesMock'
+import type { AdminClienteContrato, AdminClienteContratoStatus } from '../../../types/adminClientes'
+import { resolveClienteContratoModalidade } from './adminClienteContratoModalidade'
 
 export type AdminClienteContratoAction = 'suspender' | 'reativar' | 'encerrar'
 
@@ -36,13 +37,15 @@ export function applyContratoAction(
 }
 
 export function formatContratoUtilizacao(contrato: AdminClienteContrato): string {
-  if (contrato.tipo === 'sob_demanda') {
+  const modalidade = resolveClienteContratoModalidade(contrato.tipo, contrato.modalidade)
+
+  if (modalidade === 'sob_demanda') {
     const total = contrato.consultasRealizadas ?? 0
     return `${new Intl.NumberFormat('pt-BR').format(total)} consultas realizadas`
   }
 
   const percent = contrato.percentualUtilizado ?? 0
-  if (contrato.tipo === 'mensal') {
+  if (modalidade === 'mensal') {
     return `${percent}% do volume mensal utilizado`
   }
 

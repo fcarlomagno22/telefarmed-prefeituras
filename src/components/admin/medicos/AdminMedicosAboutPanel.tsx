@@ -1,9 +1,6 @@
 import { useMemo } from 'react'
-import {
-  adminDoctorsSummary,
-  getAdminDoctorAllocationSlices,
-  getAdminDoctorSpecialtySlices,
-} from '../../../data/adminMedicosMock'
+import type { AdminDoctor } from '../../../types/adminMedicos'
+import type { AtivosSummaryResponse } from '../../../lib/mockServices/admin/profissionaisAtivos'
 
 function formatNumber(value: number, digits = 0) {
   return new Intl.NumberFormat('pt-BR', {
@@ -44,9 +41,52 @@ function HorizontalBars({
   )
 }
 
-export function AdminMedicosAboutPanel() {
-  const specialtySlices = useMemo(() => getAdminDoctorSpecialtySlices().slice(0, 10), [])
-  const allocationSlices = useMemo(() => getAdminDoctorAllocationSlices(), [])
+function buildSpecialtySlices(doctors: AdminDoctor[]): BarSlice[] {
+  const map = new Map<string, number>()
+  doctors.forEach((doctor) => {
+    const label = doctor.specialty.trim() || 'Sem especialidade'
+    map.set(label, (map.get(label) ?? 0) + 1)
+  })
+  return Array.from(map.entries())
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10)
+}
+
+function buildAllocationSlices(doctors: AdminDoctor[]): BarSlice[] {
+  const national = doctors.filter((doctor) => doctor.allocation === 'nacional').length
+  const contract = doctors.length - national
+  return [
+    { label: 'Nacional', count: national },
+    { label: 'Por contrato', count: contract },
+  ]
+}
+
+type AdminMedicosAboutPanelProps = {
+  doctors?: AdminDoctor[]
+  ativosSummary?: AtivosSummaryResponse | null
+}
+
+export function AdminMedicosAboutPanel({
+  doctors = [],
+  ativosSummary,
+}: AdminMedicosAboutPanelProps) {
+  const summary = useMemo(
+    () => ({
+      totalDoctors: ativosSummary?.ativos ?? doctors.filter((doctor) => doctor.status === 'ativo').length,
+      onlineNow: ativosSummary?.online ?? doctors.filter((doctor) => doctor.isOnlineNow).length,
+      emPlantao: ativosSummary?.emPlantao ?? 0,
+      avgRating:
+        ativosSummary?.averageRating ??
+        doctors.reduce((sum, doctor) => sum + doctor.averageRating, 0) /
+          Math.max(1, doctors.length),
+      totalReviews: doctors.reduce((sum, doctor) => sum + doctor.totalReviews, 0),
+    }),
+    [ativosSummary, doctors],
+  )
+
+  const specialtySlices = useMemo(() => buildSpecialtySlices(doctors), [doctors])
+  const allocationSlices = useMemo(() => buildAllocationSlices(doctors), [doctors])
   const illustrationUrl = `${import.meta.env.BASE_URL}doctors.png`
 
   return (
@@ -62,7 +102,7 @@ export function AdminMedicosAboutPanel() {
               Profissionais cadastrados
             </p>
             <p className="mt-1 text-xl font-bold text-gray-900">
-              {formatNumber(adminDoctorsSummary.totalDoctors)}
+              {formatNumber(summary.totalDoctors)}
             </p>
           </div>
           <div className="text-center">
@@ -70,10 +110,13 @@ export function AdminMedicosAboutPanel() {
               Online agora
             </p>
             <p className="mt-1 text-xl font-bold text-emerald-600">
-              {formatNumber(adminDoctorsSummary.onlineNow)}
+              {formatNumber(summary.onlineNow)}
               <span className="ml-1.5 text-xs font-medium text-gray-500">
-                de {formatNumber(adminDoctorsSummary.totalDoctors)}
+                de {formatNumber(summary.totalDoctors)}
               </span>
+            </p>
+            <p className="mt-0.5 text-[10px] font-medium text-emerald-700">
+              {formatNumber(summary.emPlantao)} em plantão
             </p>
           </div>
           <div className="text-center">
@@ -81,7 +124,7 @@ export function AdminMedicosAboutPanel() {
               Nota média
             </p>
             <p className="mt-1 text-xl font-bold text-amber-600">
-              {formatNumber(adminDoctorsSummary.avgRating, 1)}
+              {formatNumber(summary.avgRating, 1)}
               <span className="ml-1.5 text-xs font-medium text-gray-500">/ 5</span>
             </p>
           </div>
@@ -90,7 +133,7 @@ export function AdminMedicosAboutPanel() {
               Avaliações
             </p>
             <p className="mt-1 text-xl font-bold text-gray-900">
-              {formatNumber(adminDoctorsSummary.totalReviews)}
+              {formatNumber(summary.totalReviews)}
             </p>
           </div>
         </div>
@@ -98,31 +141,39 @@ export function AdminMedicosAboutPanel() {
         <div className="mt-4 flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
             <section className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Especialidades mais ativas
-            </h3>
-            <p className="mt-1 text-[11px] text-gray-500">Top 10 por número de profissionais</p>
-            <div className="mt-3">
-              <HorizontalBars
-                data={specialtySlices}
-                gradientClass="bg-gradient-to-r from-sky-500 to-indigo-500"
-              />
-            </div>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                Especialidades mais ativas
+              </h3>
+              <p className="mt-1 text-[11px] text-gray-500">Top 10 por número de profissionais</p>
+              <div className="mt-3">
+                {specialtySlices.length > 0 ? (
+                  <HorizontalBars
+                    data={specialtySlices}
+                    gradientClass="bg-gradient-to-r from-sky-500 to-indigo-500"
+                  />
+                ) : (
+                  <p className="text-xs text-gray-500">Nenhum profissional cadastrado ainda.</p>
+                )}
+              </div>
             </section>
 
             <section className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Alocação na plataforma
-            </h3>
-            <p className="mt-1 text-[11px] text-gray-500">
-              Distribuição entre contratos municipais e escala nacional
-            </p>
-            <div className="mt-3">
-              <HorizontalBars
-                data={allocationSlices}
-                gradientClass="bg-gradient-to-r from-emerald-500 to-teal-400"
-              />
-            </div>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                Alocação na plataforma
+              </h3>
+              <p className="mt-1 text-[11px] text-gray-500">
+                Distribuição entre contratos municipais e escala nacional
+              </p>
+              <div className="mt-3">
+                {doctors.length > 0 ? (
+                  <HorizontalBars
+                    data={allocationSlices}
+                    gradientClass="bg-gradient-to-r from-emerald-500 to-teal-400"
+                  />
+                ) : (
+                  <p className="text-xs text-gray-500">Nenhum profissional cadastrado ainda.</p>
+                )}
+              </div>
             </section>
           </div>
 
@@ -140,4 +191,3 @@ export function AdminMedicosAboutPanel() {
     </aside>
   )
 }
-

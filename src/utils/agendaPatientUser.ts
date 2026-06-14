@@ -1,5 +1,4 @@
 import type { DayAppointment } from '../data/agendaMock'
-import { networkUsers, type NetworkUser } from '../data/networkUsersMock'
 import { onlyDigits } from './lgpdDisplay'
 
 function initialsFromName(name: string) {
@@ -22,27 +21,64 @@ function avatarClassForName(name: string) {
   return palettes[index]!
 }
 
-export function findNetworkUserForAppointment(appointment: DayAppointment): NetworkUser {
-  const appointmentCpf = onlyDigits(appointment.patientCpf)
-  const byCpf = networkUsers.find((user) => onlyDigits(user.cpf) === appointmentCpf)
-  if (byCpf) return byCpf
+export type AgendaPatientPreview = {
+  id: string
+  name: string
+  initials: string
+  avatarUrl?: string
+  avatarClassName: string
+  bairro: string
+  phone: string
+  cpf: string
+  birthDate: string
+  age: number
+  lastAppointmentDate: string
+  lastAppointmentRelative: string
+  totalAppointments: number
+}
 
-  const normalizedName = appointment.patientName.trim().toLowerCase()
-  const byName = networkUsers.find((user) => user.name.trim().toLowerCase() === normalizedName)
-  if (byName) return byName
+function isDisplayableAvatarUrl(url?: string): boolean {
+  const trimmed = url?.trim()
+  if (!trimmed) return false
+  if (trimmed.startsWith('sb://')) return false
+  return (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('/')
+  )
+}
 
+function buildPatientPreviewFromAppointment(appointment: DayAppointment): AgendaPatientPreview {
+  const avatarUrl = isDisplayableAvatarUrl(appointment.patientAvatarUrl)
+    ? appointment.patientAvatarUrl!.trim()
+    : undefined
   return {
-    id: `agenda-${appointment.id}`,
+    id: appointment.pacienteId ?? `agenda-${appointment.id}`,
     name: appointment.patientName,
     initials: initialsFromName(appointment.patientName),
+    avatarUrl,
     avatarClassName: avatarClassForName(appointment.patientName),
     bairro: '—',
     phone: appointment.patientPhone,
     cpf: appointment.patientCpf,
     birthDate: '—',
     age: 0,
-    lastAppointmentDate: '19/05/2026',
+    lastAppointmentDate: '—',
     lastAppointmentRelative: `Hoje, ${appointment.time}`,
-    totalAppointments: 1,
+    totalAppointments: 0,
   }
+}
+
+export function findNetworkUserForAppointment(appointment: DayAppointment): AgendaPatientPreview {
+  return buildPatientPreviewFromAppointment(appointment)
+}
+
+export function findAgendaPatientPreview(appointment: DayAppointment): AgendaPatientPreview {
+  return buildPatientPreviewFromAppointment(appointment)
+}
+
+/** @deprecated use findAgendaPatientPreview — mantido para compatibilidade de imports */
+export function matchAgendaPatientByCpf(appointment: DayAppointment, cpf: string): boolean {
+  return onlyDigits(appointment.patientCpf) === onlyDigits(cpf)
 }

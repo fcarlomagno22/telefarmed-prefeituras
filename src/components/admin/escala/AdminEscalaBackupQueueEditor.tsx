@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronUp, Plus, Trash2, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { adminEscalaDoctorOptions } from '../../../data/adminEscalaMock'
+import { getDoctorsForEscalaSpecialty } from '../../../utils/adminEscala/doctorsForSpecialty'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { escalaComposeCardClass } from './adminEscalaComposePremium'
 import { getAdminEscalaDoctorLabel } from './adminEscalaUi'
@@ -9,6 +9,7 @@ type AdminEscalaBackupQueueEditorProps = {
   primaryDoctorId: string
   backupDoctorIds: string[]
   onBackupDoctorIdsChange: (ids: string[]) => void
+  specialtyId?: string
   className?: string
   variant?: 'default' | 'premium'
 }
@@ -17,6 +18,7 @@ export function AdminEscalaBackupQueueEditor({
   primaryDoctorId,
   backupDoctorIds,
   onBackupDoctorIdsChange,
+  specialtyId,
   className = '',
   variant = 'default',
 }: AdminEscalaBackupQueueEditorProps) {
@@ -25,8 +27,9 @@ export function AdminEscalaBackupQueueEditor({
 
   const backupOptions = useMemo(() => {
     const used = new Set([primaryDoctorId, ...backupDoctorIds])
-    return adminEscalaDoctorOptions.filter((d) => !used.has(d.value))
-  }, [primaryDoctorId, backupDoctorIds])
+    const doctors = specialtyId ? getDoctorsForEscalaSpecialty(specialtyId) : []
+    return doctors.filter((d) => !used.has(d.value))
+  }, [primaryDoctorId, backupDoctorIds, specialtyId])
 
   function moveBackup(index: number, direction: -1 | 1) {
     const next = [...backupDoctorIds]
@@ -113,7 +116,7 @@ export function AdminEscalaBackupQueueEditor({
               { value: '', label: 'Escolher médico substituto…' },
               ...backupOptions.map((d) => ({
                 value: d.value,
-                label: `${d.label} · ${d.specialty}`,
+                label: d.label,
               })),
             ]}
           />

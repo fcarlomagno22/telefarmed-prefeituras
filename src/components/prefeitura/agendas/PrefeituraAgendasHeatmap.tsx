@@ -3,15 +3,10 @@ import { useMemo } from 'react'
 import { CustomSelect } from '../../ui/CustomSelect'
 import {
   buildPrefeituraAgendasHeatmapDays,
-  filterHeatmapRows,
   getAttendanceLevel,
-  prefeituraAgendasUnitFilterOptions,
   type HeatmapDayColumn,
+  type HeatmapUnitRow,
 } from '../../../data/prefeituraAgendasMock'
-import {
-  buildPrefeituraHeatmapRows,
-  type PrefeituraAgendaUnitId,
-} from '../../../data/prefeituraAgendasScheduleMock'
 import {
   attendanceCellStyles,
   attendanceLegend,
@@ -22,7 +17,7 @@ import {
 } from './prefeituraAgendasUi'
 
 export type PrefeituraAgendasHeatmapSelection = {
-  unitId: PrefeituraAgendaUnitId
+  unitId: string
   dateKey: string
 }
 
@@ -31,6 +26,8 @@ type PrefeituraAgendasHeatmapProps = {
   weekEnd: string
   dayKeys: string[]
   unitFilter: string
+  unitFilterOptions: Array<{ value: string; label: string }>
+  heatmapRows: HeatmapUnitRow[]
   selected: PrefeituraAgendasHeatmapSelection
   onUnitFilterChange: (value: string) => void
   onSelectCell: (selection: PrefeituraAgendasHeatmapSelection) => void
@@ -48,6 +45,8 @@ export function PrefeituraAgendasHeatmap({
   weekEnd,
   dayKeys,
   unitFilter,
+  unitFilterOptions,
+  heatmapRows,
   selected,
   onUnitFilterChange,
   onSelectCell,
@@ -62,10 +61,7 @@ export function PrefeituraAgendasHeatmap({
     [dayKeys],
   )
 
-  const rows = useMemo(() => {
-    const built = buildPrefeituraHeatmapRows(dayKeys)
-    return filterHeatmapRows(built, unitFilter)
-  }, [dayKeys, unitFilter])
+  const rows = heatmapRows
 
   const weekLabel = formatAgendasWeekRangeLabel(weekStart, weekEnd)
   const hasMoreUnitsThanViewport = rows.length > HEATMAP_VISIBLE_UNIT_ROWS
@@ -122,7 +118,7 @@ export function PrefeituraAgendasHeatmap({
             <CustomSelect
               value={unitFilter}
               onChange={onUnitFilterChange}
-              options={[...prefeituraAgendasUnitFilterOptions]}
+              options={unitFilterOptions}
               aria-label="Filtrar unidade"
             />
           </div>

@@ -5,7 +5,6 @@ import {
   getAgendaDayData,
   type DayAppointment,
 } from '../data/agendaMock'
-import { enqueueWaitingPatientFromAppointment } from '../data/waitingQueueStore'
 import { toDateKey } from '../utils/agendaDate'
 
 function sortByTime(appointments: DayAppointment[]) {
@@ -81,9 +80,7 @@ export function useAgendaDayAppointments(selectedDate: Date) {
   const confirmArrival = useCallback(
     (appointment: DayAppointment) => {
       if (appointment.status === 'realizado' || appointment.status === 'faltou') return
-      const waiting = { ...appointment, status: 'aguardando' as const }
       patchAppointment(appointment.id, { status: 'aguardando' })
-      enqueueWaitingPatientFromAppointment(waiting)
     },
     [patchAppointment],
   )

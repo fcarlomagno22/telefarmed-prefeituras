@@ -8,6 +8,9 @@ import type {
 } from '../../types/adminEscala'
 import { normalizeAdminEscalaShift } from '../escala/normalizeAdminEscalaShift'
 import { buildClosedScheduleShifts } from './buildClosedSchedule'
+import { normalizeProgrammingSlot, resolveSlotAmountCents } from './repasseRule'
+import { countScheduleDaysInRange } from './countScheduleDays'
+import { isValidEscalaDateRange } from './dateRange'
 
 export type BuildProgrammingSlotsInput = {
   batchId: string
@@ -20,13 +23,22 @@ export type BuildProgrammingSlotsInput = {
 }
 
 export function countProgrammingSlotsShifts(input: BuildProgrammingSlotsInput): number {
-  return buildProgrammingSlotsShifts(input).length
+  if (!isValidEscalaDateRange(input.rangeStart, input.rangeEnd)) return 0
+  return input.slots.reduce(
+    (total, slot) =>
+      total + countScheduleDaysInRange(input.rangeStart, input.rangeEnd, slot.weekdays),
+    0,
+  )
 }
 
 export function buildProgrammingSlotsShifts(input: BuildProgrammingSlotsInput): AdminEscalaShift[] {
+  if (!isValidEscalaDateRange(input.rangeStart, input.rangeEnd)) {
+    return []
+  }
   const all: AdminEscalaShift[] = []
 
-  for (const slot of input.slots) {
+  for (const rawSlot of input.slots) {
+    const slot = normalizeProgrammingSlot(rawSlot)
     const specialty = getSpecialtyById(slot.specialtyId)?.name ?? 'Especialidade'
     const dayShifts = buildClosedScheduleShifts({
       batchId: input.batchId,
@@ -47,7 +59,8 @@ export function buildProgrammingSlotsShifts(input: BuildProgrammingSlotsInput): 
         ubtScope: input.ubtScope,
         vacancies: slot.assignmentMode === 'open' ? slot.vacancies : 0,
         totalVacancies: slot.assignmentMode === 'open' ? slot.vacancies : 0,
-        amountCents: slot.amountCents,
+        amountCents: resolveSlotAmountCents(slot.amountCents, slot.repasseRule),
+        repasseRule: slot.repasseRule,
         unitName: slot.unitName,
         city: slot.city,
         cityUf: slot.cityUf,

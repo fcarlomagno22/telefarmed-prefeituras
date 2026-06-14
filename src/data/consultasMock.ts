@@ -6,6 +6,7 @@ export type ConsultationType = 'retorno' | 'consulta' | 'primeira_consulta'
 
 export type ConsultationRecord = {
   id: string
+  pacienteId?: string
   date: string
   time: string
   patientName: string

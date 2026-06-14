@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react'
-import type { PatientRegistration } from '../../data/unitDashboardMock'
+import type { PatientRegistration } from '../../types/attendance'
 
 type PatientSocialNameFieldsProps = {
   data: PatientRegistration

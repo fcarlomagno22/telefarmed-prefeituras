@@ -1,8 +1,11 @@
 import type {
+  ProfissionalPerfil,
   ProfissionalPerfilCertificadoStatus,
   ProfissionalPerfilDocumentIconTone,
   ProfissionalPerfilDocumentStatus,
+  ProfissionalPerfilPixKeyType,
 } from '../../../types/profissionalPerfil'
+import { formatDatePtBr } from '../../../utils/calendar'
 
 export const profissionalPerfilCardClass =
   'flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm'
@@ -107,3 +110,94 @@ export const profissionalPerfilSpecialtyOptions = [
   { value: 'Cardiologia', label: 'Cardiologia' },
   { value: 'Dermatologia', label: 'Dermatologia' },
 ]
+
+export function formatProfissionalPerfilBirthDate(birthDateIso: string) {
+  if (!birthDateIso) return ''
+  return formatDatePtBr(birthDateIso.slice(0, 10))
+}
+
+export function formatProfissionalConselhoRegistroInput(registro: string, uf: string) {
+  if (!registro && !uf) return ''
+  if (!uf) return registro
+  if (!registro) return uf
+  return `${registro}-${uf}`
+}
+
+export function parseProfissionalConselhoRegistroInput(value: string) {
+  const trimmed = value.trim()
+  const matchHyphen = trimmed.match(/^(\d+)\s*[-/]\s*([A-Za-z]{2})$/)
+  if (matchHyphen) {
+    return {
+      conselhoRegistro: matchHyphen[1],
+      conselhoUf: matchHyphen[2].toUpperCase(),
+    }
+  }
+
+  const matchUfFirst = trimmed.match(/^([A-Za-z]{2})\s*[-/]?\s*(\d+)$/)
+  if (matchUfFirst) {
+    return {
+      conselhoRegistro: matchUfFirst[2],
+      conselhoUf: matchUfFirst[1].toUpperCase(),
+    }
+  }
+
+  const digits = trimmed.replace(/\D/g, '')
+  const ufMatch = trimmed.match(/([A-Za-z]{2})/)
+  return {
+    conselhoRegistro: digits,
+    conselhoUf: ufMatch ? ufMatch[1].toUpperCase() : '',
+  }
+}
+
+export type ProfissionalPerfilInfoFormState = {
+  fullName: string
+  registro: string
+  specialty: string
+  rqe: string
+  cpf: string
+  birthDate: string
+  description: string
+  address: string
+}
+
+export type ProfissionalPerfilBankFormState = {
+  razaoSocial: string
+  cnpj: string
+  bankCode: string
+  agency: string
+  account: string
+  pixKeyType: ProfissionalPerfilPixKeyType
+  pixKey: string
+}
+
+export function buildProfissionalPerfilInfoFormState(
+  profile: ProfissionalPerfil,
+): ProfissionalPerfilInfoFormState {
+  return {
+    fullName: profile.fullName,
+    registro: formatProfissionalConselhoRegistroInput(
+      profile.conselhoRegistro,
+      profile.conselhoUf,
+    ),
+    specialty: profile.specialty,
+    rqe: profile.rqe,
+    cpf: profile.cpf,
+    birthDate: formatProfissionalPerfilBirthDate(profile.birthDate),
+    description: profile.professionalDescription,
+    address: profile.professionalAddress,
+  }
+}
+
+export function buildProfissionalPerfilBankFormState(
+  profile: ProfissionalPerfil,
+): ProfissionalPerfilBankFormState {
+  return {
+    razaoSocial: profile.empresa.razaoSocial,
+    cnpj: profile.empresa.cnpj,
+    bankCode: profile.bankAccount.bankCode,
+    agency: profile.bankAccount.agency,
+    account: profile.bankAccount.account,
+    pixKeyType: profile.pixKeyType,
+    pixKey: profile.empresa.pixKeys[profile.pixKeyType],
+  }
+}

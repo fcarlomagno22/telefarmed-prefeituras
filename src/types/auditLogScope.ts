@@ -1,5 +1,5 @@
 /** Portal onde o evento foi registrado. */
-export type AuditLogPlatform = 'ubt' | 'prefeitura' | 'admin' | 'atendimento'
+export type AuditLogPlatform = 'ubt' | 'prefeitura' | 'admin' | 'profissional' | 'atendimento'
 
 /** Escopo de visualização da página de auditoria. */
 export type AuditLogScope = 'ubt' | 'prefeitura' | 'admin'

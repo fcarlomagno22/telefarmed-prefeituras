@@ -7,6 +7,7 @@ import {
   Search,
 } from 'lucide-react'
 import { AgendaAppointmentActionsMenu } from './AgendaAppointmentActionsMenu'
+import { AgendaUpdatingStatusBadge } from './AgendaUpdatingIndicator'
 import { AgendaCancelAppointmentModal } from './AgendaCancelAppointmentModal'
 import { AgendaMarkNoShowModal } from './AgendaMarkNoShowModal'
 import { useEffect, useMemo, useState } from 'react'
@@ -158,6 +159,7 @@ function StatusBadge({ status }: { status: AppointmentStatus }) {
 
 type AppointmentRowProps = {
   appointment: DayAppointment
+  isUpdating: boolean
   sensitiveDataUnlocked: boolean
   displayCpf: (cpf: string) => string
   displayPhone: (phone: string) => string
@@ -173,6 +175,7 @@ type AppointmentRowProps = {
 
 function AppointmentRow({
   appointment,
+  isUpdating,
   sensitiveDataUnlocked,
   displayCpf,
   displayPhone,
@@ -234,12 +237,17 @@ function AppointmentRow({
       </td>
       <td className="px-4 py-2.5 text-center sm:px-5">
         <div className="flex justify-center">
-          <StatusBadge status={appointment.status} />
+          {isUpdating ? (
+            <AgendaUpdatingStatusBadge />
+          ) : (
+            <StatusBadge status={appointment.status} />
+          )}
         </div>
       </td>
       <td className="whitespace-nowrap px-4 py-2.5 text-center sm:px-5">
         <AgendaAppointmentActionsMenu
           appointment={appointment}
+          isUpdating={isUpdating}
           open={actionsOpen}
           onToggle={onToggleActions}
           onClose={onCloseActions}
@@ -271,6 +279,7 @@ function AppointmentRow({
 
 type AgendaAppointmentsTableProps = {
   filteredAppointments: DayAppointment[]
+  updatingAppointmentId: string | null
   showEmptySearchMessage: boolean
   searchQuery: string
   sensitiveDataUnlocked: boolean
@@ -292,6 +301,7 @@ type AgendaAppointmentsTableProps = {
 
 function AgendaAppointmentsTable({
   filteredAppointments,
+  updatingAppointmentId,
   showEmptySearchMessage,
   searchQuery,
   sensitiveDataUnlocked,
@@ -366,6 +376,7 @@ function AgendaAppointmentsTable({
             <AppointmentRow
               key={appointment.id}
               appointment={appointment}
+              isUpdating={updatingAppointmentId === appointment.id}
               sensitiveDataUnlocked={sensitiveDataUnlocked}
               displayCpf={displayCpf}
               displayPhone={displayPhone}
@@ -391,6 +402,7 @@ type AgendaDaySchedulePanelProps = {
   search: string
   onSearchChange: (value: string) => void
   filteredAppointments: DayAppointment[]
+  updatingAppointmentId: string | null
   showEmptySearchMessage: boolean
   sensitiveDataUnlocked: boolean
   onUnlock: () => void
@@ -419,12 +431,16 @@ type AgendaDaySchedulePanelProps = {
   onToggleSortByTime: () => void
   onToggleSortByStatus: () => void
   onToggleSortBySpecialty: () => void
+  hasAppointmentsOnDate?: (date: Date) => boolean
+  onMonthChange?: (year: number, month: number) => void
+  referenceToday?: Date
 }
 
 function AgendaDaySchedulePanel({
   search,
   onSearchChange,
   filteredAppointments,
+  updatingAppointmentId,
   showEmptySearchMessage,
   sensitiveDataUnlocked,
   onUnlock,
@@ -453,6 +469,9 @@ function AgendaDaySchedulePanel({
   onToggleSortByTime,
   onToggleSortByStatus,
   onToggleSortBySpecialty,
+  hasAppointmentsOnDate,
+  onMonthChange,
+  referenceToday,
 }: AgendaDaySchedulePanelProps) {
   return (
     <div className={`flex h-full min-h-0 flex-col ${className}`.trim()}>
@@ -491,7 +510,13 @@ function AgendaDaySchedulePanel({
           >
             <ChevronRight className="h-4 w-4" strokeWidth={2} />
           </button>
-          <AgendaDatePicker selectedDate={selectedDate} onSelectDate={onSelectDate} />
+          <AgendaDatePicker
+            selectedDate={selectedDate}
+            onSelectDate={onSelectDate}
+            referenceToday={referenceToday}
+            hasAppointmentsOnDate={hasAppointmentsOnDate}
+            onMonthChange={onMonthChange}
+          />
           <button
             type="button"
             onClick={onToggleFullscreen}
@@ -564,6 +589,7 @@ function AgendaDaySchedulePanel({
         >
           <AgendaAppointmentsTable
             filteredAppointments={filteredAppointments}
+            updatingAppointmentId={updatingAppointmentId}
             showEmptySearchMessage={showEmptySearchMessage}
             searchQuery={search.trim()}
             sensitiveDataUnlocked={sensitiveDataUnlocked}
@@ -591,38 +617,46 @@ function AgendaDaySchedulePanel({
 export type AgendaNetworkUserDrawer = Pick<
   ReturnType<typeof useNetworkUserDrawer>,
   | 'sensitiveDataUnlocked'
-  | 'setSensitiveDataUnlocked'
+  | 'lockSensitiveData'
   | 'openUnlockModal'
   | 'openUser'
+  | 'openUserWithPacienteDetail'
   | 'drawerLayer'
 >
 
 type AgendaMainPanelProps = {
   agendaDate: AgendaDateNavigation
   appointments: DayAppointment[]
+  updatingAppointmentId?: string | null
   networkUserDrawer: AgendaNetworkUserDrawer
   onRescheduleAppointment: (appointment: DayAppointment) => void
   onCancelAppointment: (appointment: DayAppointment) => void
   onMarkNoShowAppointment: (appointment: DayAppointment) => void
   onOpenReception: (appointment: DayAppointment) => void
+  hasAppointmentsOnDate?: (date: Date) => boolean
+  onMonthChange?: (year: number, month: number) => void
 }
 
 export function AgendaMainPanel({
   agendaDate,
   appointments,
+  updatingAppointmentId = null,
   networkUserDrawer,
   onRescheduleAppointment,
   onCancelAppointment,
   onMarkNoShowAppointment,
   onOpenReception,
+  hasAppointmentsOnDate,
+  onMonthChange,
 }: AgendaMainPanelProps) {
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState<AgendaTableSortKey>('time')
   const {
     sensitiveDataUnlocked,
-    setSensitiveDataUnlocked,
+    lockSensitiveData,
     openUnlockModal,
     openUser,
+    openUserWithPacienteDetail,
     drawerLayer,
   } = networkUserDrawer
 
@@ -674,7 +708,12 @@ export function AgendaMainPanel({
   }
 
   function handleViewDetails(appointment: DayAppointment) {
-    openUser(findNetworkUserForAppointment(appointment))
+    const fallbackUser = findNetworkUserForAppointment(appointment)
+    if (appointment.pacienteId) {
+      openUserWithPacienteDetail(appointment.pacienteId, fallbackUser)
+      return
+    }
+    openUser(fallbackUser)
   }
 
   function handleToggleActions(appointmentId: string) {
@@ -701,10 +740,11 @@ export function AgendaMainPanel({
     search,
     onSearchChange: setSearch,
     filteredAppointments,
+    updatingAppointmentId,
     showEmptySearchMessage,
     sensitiveDataUnlocked,
     onUnlock: openUnlockModal,
-    onLock: () => setSensitiveDataUnlocked(false),
+    onLock: () => lockSensitiveData(),
     displayCpf,
     displayPhone,
     onViewDetails: handleViewDetails,
@@ -728,6 +768,9 @@ export function AgendaMainPanel({
       setSortKey((current) => (current === 'status' ? 'time' : 'status')),
     onToggleSortBySpecialty: () =>
       setSortKey((current) => (current === 'specialty' ? 'time' : 'specialty')),
+    hasAppointmentsOnDate,
+    onMonthChange,
+    referenceToday: agendaDate.referenceToday,
   }
 
   return (

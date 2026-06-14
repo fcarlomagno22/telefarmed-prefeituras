@@ -15,24 +15,36 @@ import {
   supportTicketCategories,
   type SupportTicketPriority,
 } from '../../data/suporteMock'
+import { extractPlainTextFromRichHtml } from './supportMessageText'
 import { SupportPrioritySelect } from './SupportPrioritySelect'
 
 const MAX_DESCRIPTION_CHARS = 2000
 const MAX_FILE_BYTES = 10 * 1024 * 1024
-const ALLOWED_EXTENSIONS = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'mp4']
-const ACCEPT_ATTR = '.pdf,.png,.jpg,.jpeg,.gif,.mp4'
+const ALLOWED_EXTENSIONS = ['pdf', 'png', 'jpg', 'jpeg', 'webp']
+const ACCEPT_ATTR = '.pdf,.png,.jpg,.jpeg,.webp'
 
 const categoryOptions = [
   { value: '', label: 'Selecione uma categoria' },
   ...supportTicketCategories.map((c) => ({ value: c, label: c })),
 ]
 
+export type NewSupportTicketPayload = {
+  subject: string
+  category: string
+  priority: SupportTicketPriority
+  body: string
+  files: File[]
+}
+
 type NewSupportTicketDrawerProps = {
   open: boolean
   closing: boolean
   onClose: () => void
   onTransitionEnd: () => void
-  onSubmitted: () => void
+  onSubmitted?: () => void
+  onSubmit?: (payload: NewSupportTicketPayload) => Promise<void>
+  isSubmitting?: boolean
+  submitError?: string | null
   tourLockClose?: boolean
 }
 
@@ -49,12 +61,6 @@ function FieldLabel({
       {required ? <span className="text-red-500"> *</span> : null}
     </label>
   )
-}
-
-function getPlainTextLength(html: string) {
-  const div = document.createElement('div')
-  div.innerHTML = html
-  return (div.textContent ?? '').length
 }
 
 function formatFileSize(bytes: number) {
@@ -75,6 +81,9 @@ export function NewSupportTicketDrawer({
   onClose,
   onTransitionEnd,
   onSubmitted,
+  onSubmit,
+  isSubmitting = false,
+  submitError = null,
   tourLockClose = false,
 }: NewSupportTicketDrawerProps) {
   const [entered, setEntered] = useState(false)
@@ -141,7 +150,7 @@ export function NewSupportTicketDrawer({
 
   function syncDescriptionLength() {
     const html = editorRef.current?.innerHTML ?? ''
-    setDescriptionLength(getPlainTextLength(html))
+    setDescriptionLength(extractPlainTextFromRichHtml(html).length)
   }
 
   function execFormat(command: string, value?: string) {
@@ -184,15 +193,33 @@ export function NewSupportTicketDrawer({
     event.preventDefault()
     if (!category || !subject.trim() || descriptionLength === 0) return
     if (descriptionLength > MAX_DESCRIPTION_CHARS) return
+    if (isSubmitting) return
 
-    onSubmitted()
+    const plainBody = editorRef.current
+      ? extractPlainTextFromRichHtml(editorRef.current.innerHTML)
+      : ''
+    const payload: NewSupportTicketPayload = {
+      subject: subject.trim(),
+      category,
+      priority,
+      body: plainBody,
+      files: attachments,
+    }
+
+    if (onSubmit) {
+      void onSubmit(payload)
+      return
+    }
+
+    onSubmitted?.()
   }
 
   const canSubmit =
     category.length > 0 &&
     subject.trim().length > 0 &&
     descriptionLength > 0 &&
-    descriptionLength <= MAX_DESCRIPTION_CHARS
+    descriptionLength <= MAX_DESCRIPTION_CHARS &&
+    !isSubmitting
 
   if (!isActive) return null
 
@@ -400,9 +427,13 @@ export function NewSupportTicketDrawer({
                     </button>
                   </p>
                   <p className="mt-1 text-xs text-gray-500">
-                    Formatos permitidos: PDF, PNG, JPG, GIF, MP4 (máx. 10MB)
+                    Formatos permitidos: PDF, PNG, JPG, WEBP (máx. 10MB)
                   </p>
                 </div>
+
+                {submitError ? (
+                  <p className="mt-2 text-xs font-medium text-red-600">{submitError}</p>
+                ) : null}
 
                 {attachmentError ? (
                   <p className="mt-2 text-xs font-medium text-red-600">{attachmentError}</p>
@@ -447,7 +478,7 @@ export function NewSupportTicketDrawer({
               disabled={!canSubmit}
               className="rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Enviar chamado
+              {isSubmitting ? 'Enviando…' : 'Enviar chamado'}
             </button>
           </footer>
         </form>

@@ -3,25 +3,48 @@ import { ScheduleAppointmentDrawer } from '../components/agenda/schedule/Schedul
 import type { ScheduleAppointmentInitialState } from '../components/agenda/schedule/scheduleAppointmentTypes'
 import { Toast } from '../components/ui/Toast'
 import type { DayAppointment } from '../data/agendaMock'
-import { agendaToday } from '../data/agendaMock'
-import type { PatientRegistration } from '../data/unitDashboardMock'
+import type { PatientRegistration } from '../types/attendance'
 import { buildRescheduleDraftFromAppointment } from '../utils/agenda/buildRescheduleDraftFromAppointment'
+import { toDateKey } from '../utils/agendaDate'
 
 type ReschedulePatch = {
   time: string
   serviceType: string
 }
 
-type UseScheduleAppointmentDrawerOptions = {
-  onRescheduled?: (appointmentId: string, patch: ReschedulePatch) => void
+type RescheduleSessionMeta = {
+  profissionalId: string
+  especialidadeId: string
+  selectedDate: Date
 }
 
-export function useScheduleAppointmentDrawer(options: UseScheduleAppointmentDrawerOptions = {}) {
-  const { onRescheduled } = options
+type SchedulePayload = {
+  pacienteId: string
+  profissionalId: string
+  especialidadeId: string
+  data: string
+  hora: string
+  telefoneContato?: string
+}
+
+type UseScheduleAppointmentDrawerOptions = {
+  initialDate: Date
+  onRescheduled?: (
+    appointmentId: string,
+    patch: ReschedulePatch,
+    sessionMeta: RescheduleSessionMeta,
+  ) => Promise<void>
+  onScheduled?: (payload: SchedulePayload) => Promise<void>
+}
+
+export function useScheduleAppointmentDrawer(options: UseScheduleAppointmentDrawerOptions) {
+  const { initialDate, onRescheduled, onScheduled } = options
   const [open, setOpen] = useState(false)
   const [closing, setClosing] = useState(false)
   const [initialFlow, setInitialFlow] = useState<ScheduleAppointmentInitialState | null>(null)
-  const [toast, setToast] = useState<{ message: string } | null>(null)
+  const [toast, setToast] = useState<{ message: string; variant?: 'success' | 'error' } | null>(
+    null,
+  )
 
   const openDrawer = useCallback(() => {
     setInitialFlow(null)
@@ -29,14 +52,11 @@ export function useScheduleAppointmentDrawer(options: UseScheduleAppointmentDraw
     setOpen(true)
   }, [])
 
-  const openRescheduleDrawer = useCallback(
-    (appointment: DayAppointment, selectedDay: Date) => {
-      setInitialFlow(buildRescheduleDraftFromAppointment(appointment, selectedDay))
-      setClosing(false)
-      setOpen(true)
-    },
-    [],
-  )
+  const openRescheduleDrawer = useCallback((appointment: DayAppointment, selectedDay: Date) => {
+    setInitialFlow(buildRescheduleDraftFromAppointment(appointment, selectedDay))
+    setClosing(false)
+    setOpen(true)
+  }, [])
 
   const requestClose = useCallback(() => {
     setClosing(true)
@@ -53,16 +73,47 @@ export function useScheduleAppointmentDrawer(options: UseScheduleAppointmentDraw
   const dismissToast = useCallback(() => setToast(null), [])
 
   const handleScheduled = useCallback(
-    (_registration: PatientRegistration, summary: string) => {
-      setToast({ message: summary })
+    async (
+      registration: PatientRegistration,
+      summary: string,
+      meta: {
+        pacienteId: string
+        profissionalId: string
+        especialidadeId: string
+        selectedDate: Date
+        selectedTime: string
+      },
+    ) => {
+      try {
+        await onScheduled?.({
+          pacienteId: meta.pacienteId,
+          profissionalId: meta.profissionalId,
+          especialidadeId: meta.especialidadeId,
+          data: toDateKey(meta.selectedDate),
+          hora: meta.selectedTime,
+          telefoneContato: registration.phone,
+        })
+        setToast({ message: summary })
+      } catch {
+        setToast({ message: 'Não foi possível agendar a consulta.', variant: 'error' })
+      }
     },
-    [],
+    [onScheduled],
   )
 
   const handleRescheduled = useCallback(
-    (appointmentId: string, patch: ReschedulePatch, summary: string) => {
-      onRescheduled?.(appointmentId, patch)
-      setToast({ message: summary })
+    async (
+      appointmentId: string,
+      patch: ReschedulePatch,
+      summary: string,
+      meta: RescheduleSessionMeta,
+    ) => {
+      try {
+        await onRescheduled?.(appointmentId, patch, meta)
+        setToast({ message: summary })
+      } catch {
+        setToast({ message: 'Não foi possível reagendar a consulta.', variant: 'error' })
+      }
     },
     [onRescheduled],
   )
@@ -72,7 +123,7 @@ export function useScheduleAppointmentDrawer(options: UseScheduleAppointmentDraw
       <ScheduleAppointmentDrawer
         open={open}
         closing={closing}
-        initialDate={agendaToday}
+        initialDate={initialDate}
         initialFlow={initialFlow}
         onClose={requestClose}
         onTransitionEnd={handleTransitionEnd}
@@ -82,6 +133,7 @@ export function useScheduleAppointmentDrawer(options: UseScheduleAppointmentDraw
       <Toast
         message={toast?.message ?? ''}
         visible={toast !== null}
+        variant={toast?.variant ?? 'success'}
         onClose={dismissToast}
       />
     </>

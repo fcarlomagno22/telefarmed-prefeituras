@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { PrefeituraSlaDrawer } from '../components/prefeitura/PrefeituraSlaDrawer'
-import type { PrefeituraUbsRow } from '../data/prefeituraDashboardMock'
+import type { PrefeituraUbsRow } from '../types/prefeituraDashboard'
 
 export type PrefeituraSlaDrawerPayload = {
   ubsRows: PrefeituraUbsRow[]

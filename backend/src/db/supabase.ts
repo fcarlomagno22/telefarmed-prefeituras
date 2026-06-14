@@ -8,8 +8,9 @@ export const supabaseAdmin = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE
     persistSession: false,
   },
   // Node.js 20 não tem WebSocket nativo; obrigatório para o cliente Supabase subir
+  // Node.js: `ws` satisfaz o transport do Realtime; cast evita incompatibilidade de tipos entre libs.
   realtime: {
-    transport: ws,
+    transport: ws as never,
   },
 })
 

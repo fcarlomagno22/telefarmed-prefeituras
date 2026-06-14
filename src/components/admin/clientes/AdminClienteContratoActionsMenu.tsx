@@ -1,7 +1,8 @@
 import { MoreVertical } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import type { AdminClienteContrato } from '../../../data/adminClientesMock'
+import type { AdminClienteContrato } from '../../../types/adminClientes'
+import { FLOATING_POPOVER_Z_INDEX } from '../../../config/overlayLayers'
 import {
   getContratoActionOptions,
   type AdminClienteContratoAction,
@@ -10,14 +11,19 @@ import {
 type AdminClienteContratoActionsMenuProps = {
   contrato: AdminClienteContrato
   open: boolean
+  canDelete: boolean
   onToggle: () => void
   onClose: () => void
   onSelectAction: (action: AdminClienteContratoAction) => void
+  onDeleteContrato?: () => void
   onViewContrato?: () => void
 }
 
 const menuItemClass =
   'flex w-full items-center px-3 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-50'
+
+const deleteMenuItemClass =
+  'flex w-full items-center px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50'
 
 const MENU_MIN_WIDTH_PX = 180
 const MENU_GAP_PX = 6
@@ -26,9 +32,11 @@ const VIEWPORT_PADDING_PX = 12
 export function AdminClienteContratoActionsMenu({
   contrato,
   open,
+  canDelete,
   onToggle,
   onClose,
   onSelectAction,
+  onDeleteContrato,
   onViewContrato,
 }: AdminClienteContratoActionsMenuProps) {
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -65,7 +73,7 @@ export function AdminClienteContratoActionsMenu({
         top,
         left,
         minWidth: MENU_MIN_WIDTH_PX,
-        zIndex: 200,
+        zIndex: FLOATING_POPOVER_Z_INDEX,
       })
       return true
     }
@@ -164,6 +172,23 @@ export function AdminClienteContratoActionsMenu({
                   {option.label}
                 </button>
               ))}
+              {canDelete && onDeleteContrato ? (
+                <>
+                  <div className="my-1 h-px bg-gray-100" />
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={deleteMenuItemClass}
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      onClose()
+                      onDeleteContrato()
+                    }}
+                  >
+                    Excluir contrato
+                  </button>
+                </>
+              ) : null}
             </div>,
             document.body,
           )

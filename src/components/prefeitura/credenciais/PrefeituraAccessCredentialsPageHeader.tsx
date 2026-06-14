@@ -1,13 +1,19 @@
 import { Plus } from 'lucide-react'
 import { brand } from '../../../config/brand'
+import type { PrefeituraAccessCredentialsTab } from './PrefeituraAccessCredentialsTabs'
 
 type PrefeituraAccessCredentialsPageHeaderProps = {
-  onNewUser: () => void
+  activeTab: PrefeituraAccessCredentialsTab
+  onNewUser?: () => void
 }
 
 export function PrefeituraAccessCredentialsPageHeader({
+  activeTab,
   onNewUser,
 }: PrefeituraAccessCredentialsPageHeaderProps) {
+  const isPortalTab = activeTab === 'portal'
+  const newUserLabel = isPortalTab ? 'Novo gestor' : 'Novo operador UBT'
+
   return (
     <header className="shrink-0">
       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400">
@@ -18,22 +24,25 @@ export function PrefeituraAccessCredentialsPageHeader({
         <div className="min-w-0">
           <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Credenciais de acesso</h1>
           <p className="mt-2 max-w-2xl text-sm text-gray-500">
-            Visão consolidada dos acessos da rede municipal por UBT e região administrativa (RA).
-            Expanda cada unidade para ver responsável, função, nível de acesso e permissões.
+            {isPortalTab
+              ? 'Cadastre gestores do portal municipal (/prefeitura) e defina quais páginas e ações cada um pode acessar.'
+              : 'Cadastre operadores das UBTs (/ubt) vinculados às unidades da rede municipal.'}
           </p>
           <p className="mt-2 text-xs font-medium text-gray-400">
             Operador: {brand.prefeituraOperatorName} · {brand.prefeituraOperatorRole}
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onNewUser}
-          className="btn-brand-gradient inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl px-5 py-2.5 text-sm font-semibold"
-        >
-          <Plus className="h-4 w-4" strokeWidth={2.5} />
-          Novo usuário
-        </button>
+        {onNewUser ? (
+          <button
+            type="button"
+            onClick={onNewUser}
+            className="btn-brand-gradient inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl px-5 py-2.5 text-sm font-semibold"
+          >
+            <Plus className="h-4 w-4" strokeWidth={2.5} />
+            {newUserLabel}
+          </button>
+        ) : null}
       </div>
     </header>
   )

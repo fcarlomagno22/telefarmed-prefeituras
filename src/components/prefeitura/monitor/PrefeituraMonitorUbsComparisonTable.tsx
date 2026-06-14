@@ -4,7 +4,7 @@ import {
   monitorComparisonTabs,
   type MonitorComparisonRow,
   type MonitorComparisonTab,
-} from '../../../data/prefeituraMonitorMock'
+} from '../../../types/prefeituraMonitor'
 import { monitorCardTableScrollClass, monitorTableHeadStickyClass } from './monitorTableScroll'
 
 type PrefeituraMonitorUbsComparisonTableProps = {

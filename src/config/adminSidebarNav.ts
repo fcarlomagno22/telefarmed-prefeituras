@@ -9,7 +9,9 @@ import {
   Receipt,
   ScrollText,
   Settings,
-  Users,
+  Stethoscope,
+  UserCog,
+  UserRound,
 } from 'lucide-react'
 import type { SidebarNavSection } from '../components/layout/SidebarNavItem'
 import type { SidebarNavItemProps } from '../components/layout/SidebarNavItem'
@@ -44,11 +46,27 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     end: true,
   },
   {
-    to: '/admin/pessoas',
-    label: 'Pessoas',
+    to: '/admin/pacientes',
+    label: 'Pacientes',
     description:
-      'Base consolidada de pacientes, médicos e operadores dos municípios contratantes.',
-    icon: Users,
+      'Base consolidada de pacientes dos municípios contratantes na plataforma Telefarmed.',
+    icon: UserRound,
+    end: true,
+  },
+  {
+    to: '/admin/operadores',
+    label: 'Operadores',
+    description:
+      'Operadores UBT vinculados aos contratos e unidades da rede municipal.',
+    icon: UserCog,
+    end: true,
+  },
+  {
+    to: '/admin/profissionais',
+    label: 'Profissionais',
+    description:
+      'Fila de candidaturas do portal e profissionais ativos após aprovação e finalização.',
+    icon: Stethoscope,
     end: true,
   },
   {
@@ -123,9 +141,14 @@ export const adminSidebarSections: SidebarNavSection[] = [
     id: 'operacao',
     label: 'Operação',
     items: adminSidebarItems.filter((item) =>
-      ['/admin/clientes', '/admin/monitor-operacional', '/admin/pessoas'].includes(
-        item.to,
-      ),
+      ['/admin/clientes', '/admin/monitor-operacional'].includes(item.to),
+    ),
+  },
+  {
+    id: 'pessoas',
+    label: 'Pessoas',
+    items: adminSidebarItems.filter((item) =>
+      ['/admin/pacientes', '/admin/operadores', '/admin/profissionais'].includes(item.to),
     ),
   },
   {

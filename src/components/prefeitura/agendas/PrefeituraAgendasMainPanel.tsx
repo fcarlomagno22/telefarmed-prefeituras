@@ -1,77 +1,72 @@
-import { useMemo, useState } from 'react'
-import { agendaToday } from '../../../data/agendaMock'
-import { buildPrefeituraAgendasHeatmapDays } from '../../../data/prefeituraAgendasMock'
-import {
-  getDefaultAgendasWeek,
-  type PrefeituraAgendaUnitId,
-} from '../../../data/prefeituraAgendasScheduleMock'
-import { addDays, toDateKey } from '../../../utils/agendaDate'
-import { parseIsoDate, toIsoDate } from '../../../utils/calendar'
+import { useMemo } from 'react'
+import { buildPrefeituraAgendasHeatmapDays, filterHeatmapRows } from '../../../data/prefeituraAgendasMock'
+import type { HeatmapUnitRow } from '../../../data/prefeituraAgendasMock'
+import type { PrefeituraAgendaDayApi, PrefeituraAgendaCatalogApi, PrefeituraAgendaWeekApi } from '../../../lib/services/prefeitura/agendas'
+import type { PrefeituraAgendaUnitApi } from '../../../lib/services/prefeitura/agendas'
 import { PrefeituraAgendasDaySchedule } from './PrefeituraAgendasDaySchedule'
 import {
   PrefeituraAgendasHeatmap,
   type PrefeituraAgendasHeatmapSelection,
 } from './PrefeituraAgendasHeatmap'
 
-const defaultWeek = getDefaultAgendasWeek(agendaToday)
+type PrefeituraAgendasMainPanelProps = {
+  catalog: PrefeituraAgendaCatalogApi | null
+  weekStart: string
+  weekEnd: string
+  dayKeys: string[]
+  unitFilter: string
+  selection: PrefeituraAgendasHeatmapSelection
+  weekData: PrefeituraAgendaWeekApi | null
+  dayData: PrefeituraAgendaDayApi | null
+  todayKey: string
+  isViewingCurrentWeek: boolean
+  onSelectionChange: (selection: PrefeituraAgendasHeatmapSelection) => void
+  onUnitFilterChange: (value: string) => void
+  onPrevWeek: () => void
+  onNextWeek: () => void
+  onGoToTodayWeek: () => void
+  onGoToWeekContainingDate: (dateKey: string) => void
+  findUnit: (unitId: string) => PrefeituraAgendaUnitApi | undefined
+  getUnitOptionsForRegion: (regionKey: string) => Array<{ value: string; label: string }>
+}
 
-export function PrefeituraAgendasMainPanel() {
-  const [weekStart, setWeekStart] = useState(defaultWeek.start)
-  const [weekEnd, setWeekEnd] = useState(defaultWeek.end)
-  const [dayKeys, setDayKeys] = useState<string[]>(defaultWeek.dayKeys)
-  const [unitFilter, setUnitFilter] = useState('todas')
-  const [selection, setSelection] = useState<PrefeituraAgendasHeatmapSelection>({
-    unitId: 'ubt-sao-francisco',
-    dateKey: toIsoDate(agendaToday),
-  })
-
+export function PrefeituraAgendasMainPanel({
+  catalog,
+  weekStart,
+  weekEnd,
+  dayKeys,
+  unitFilter,
+  selection,
+  weekData,
+  dayData,
+  todayKey,
+  isViewingCurrentWeek,
+  onSelectionChange,
+  onUnitFilterChange,
+  onPrevWeek,
+  onNextWeek,
+  onGoToTodayWeek,
+  onGoToWeekContainingDate,
+  findUnit,
+  getUnitOptionsForRegion,
+}: PrefeituraAgendasMainPanelProps) {
   const heatmapDays = useMemo(() => buildPrefeituraAgendasHeatmapDays(dayKeys), [dayKeys])
-  const isViewingCurrentWeek = weekStart === defaultWeek.start
 
-  function goToTodayWeek() {
-    setWeekStart(defaultWeek.start)
-    setWeekEnd(defaultWeek.end)
-    setDayKeys(defaultWeek.dayKeys)
-    setSelection((current) => ({
-      ...current,
-      dateKey: toIsoDate(agendaToday),
-    }))
-  }
-
-  function shiftWeek(direction: -1 | 1) {
-    const start = parseIsoDate(weekStart)
-    const end = parseIsoDate(weekEnd)
-    if (!start || !end) return
-
-    const nextStart = addDays(start, direction * 7)
-    const nextEnd = addDays(end, direction * 7)
-    const keys = Array.from({ length: 7 }, (_, index) => toIsoDate(addDays(nextStart, index)))
-
-    setWeekStart(toIsoDate(nextStart))
-    setWeekEnd(toIsoDate(nextEnd))
-    setDayKeys(keys)
-
-    const stillInWeek = keys.includes(selection.dateKey)
-    if (!stillInWeek) {
-      setSelection((current) => ({
-        ...current,
-        dateKey: keys[0] ?? current.dateKey,
-      }))
-    }
-  }
-
-  function handleUnitFilterChange(value: string) {
-    setUnitFilter(value)
-    if (value !== 'todas') {
-      setSelection((current) => ({
-        ...current,
-        unitId: value as PrefeituraAgendaUnitId,
-      }))
-    }
-  }
+  const heatmapRows = useMemo(() => {
+    const rows = weekData?.heatmapRows ?? []
+    return filterHeatmapRows(rows, unitFilter)
+  }, [unitFilter, weekData])
 
   const activeUnitId =
-    unitFilter !== 'todas' ? (unitFilter as PrefeituraAgendaUnitId) : selection.unitId
+    unitFilter !== 'todas' ? unitFilter : selection.unitId
+
+  function handleDateChange(dateKey: string) {
+    if (heatmapDays.some((day) => day.key === dateKey)) {
+      onSelectionChange({ ...selection, dateKey })
+      return
+    }
+    onGoToWeekContainingDate(dateKey)
+  }
 
   return (
     <div className="flex shrink-0 flex-col gap-4">
@@ -80,35 +75,35 @@ export function PrefeituraAgendasMainPanel() {
         weekEnd={weekEnd}
         dayKeys={dayKeys}
         unitFilter={unitFilter}
+        unitFilterOptions={catalog?.unitFilterOptions ?? [{ value: 'todas', label: 'Todas as unidades' }]}
+        heatmapRows={heatmapRows}
         selected={selection}
-        onUnitFilterChange={handleUnitFilterChange}
-        onSelectCell={setSelection}
-        onPrevWeek={() => shiftWeek(-1)}
-        onNextWeek={() => shiftWeek(1)}
-        onGoToToday={goToTodayWeek}
+        onUnitFilterChange={onUnitFilterChange}
+        onSelectCell={onSelectionChange}
+        onPrevWeek={onPrevWeek}
+        onNextWeek={onNextWeek}
+        onGoToToday={onGoToTodayWeek}
         showTodayButton={!isViewingCurrentWeek}
-        todayKey={toDateKey(agendaToday)}
+        todayKey={todayKey}
       />
 
-      <PrefeituraAgendasDaySchedule
-        unitId={activeUnitId}
-        dateKey={selection.dateKey}
-        maxDate={agendaToday}
-        onUnitChange={(unitId) => {
-          setSelection((current) => ({ ...current, unitId }))
-          if (unitFilter !== 'todas') setUnitFilter(unitId)
-        }}
-        onDateChange={(dateKey) => {
-          setSelection((current) => ({ ...current, dateKey }))
-          if (heatmapDays.some((day) => day.key === dateKey)) return
-          const date = parseIsoDate(dateKey)
-          if (!date) return
-          const week = getDefaultAgendasWeek(date)
-          setWeekStart(week.start)
-          setWeekEnd(week.end)
-          setDayKeys(week.dayKeys)
-        }}
-      />
+      {activeUnitId ? (
+        <PrefeituraAgendasDaySchedule
+          unitId={activeUnitId}
+          dateKey={selection.dateKey}
+          maxDate={new Date()}
+          appointments={dayData?.appointments ?? []}
+          breakdown={dayData?.breakdown}
+          regionOptions={catalog?.regionOptions ?? []}
+          findUnit={findUnit}
+          getUnitOptionsForRegion={getUnitOptionsForRegion}
+          onUnitChange={(unitId) => {
+            onSelectionChange({ ...selection, unitId })
+            if (unitFilter !== 'todas') onUnitFilterChange(unitId)
+          }}
+          onDateChange={handleDateChange}
+        />
+      ) : null}
     </div>
   )
 }

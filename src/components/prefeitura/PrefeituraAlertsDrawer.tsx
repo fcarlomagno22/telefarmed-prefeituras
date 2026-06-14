@@ -1,7 +1,7 @@
 import { AlertTriangle, Clock, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { PrefeituraAlert } from '../../data/prefeituraDashboardMock'
+import type { PrefeituraAlert } from '../../types/prefeituraDashboard'
 
 type PrefeituraAlertsDrawerProps = {
   open: boolean

@@ -14,14 +14,15 @@ import {
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { BR_UF_OPTIONS } from '../../../config/medicoCadastroLanding'
 import {
+  createMedicoCadastroMedicalSpecialty,
   getMedicoCadastroConselhoLabel,
   getMedicoCadastroDocumentFields,
   getMedicoCadastroSpecialtyOptions,
   isMedicoCadastroMedicinaFormation,
   MEDICO_CADASTRO_ACCEPTED_DOCUMENT_TYPES,
   MEDICO_CADASTRO_DOCUMENT_MAX_BYTES,
+  getMedicoCadastroFormSteps,
   medicoCadastroFormationOptions,
-  medicoCadastroFormSteps,
   type MedicoCadastroFormation,
   type MedicoCadastroFormStepId,
 } from '../../../config/medicoCadastroForm'
@@ -29,6 +30,7 @@ import type {
   MedicoCadastroDocumentUploads,
   MedicoCadastroFormErrors,
   MedicoCadastroFormValues,
+  MedicoCadastroMedicalSpecialty,
 } from '../../../types/medicoCadastro'
 import { maskBirthDate, maskCpf, maskPhone } from '../../../utils/masks'
 import {
@@ -37,7 +39,14 @@ import {
   validateMedicoCadastroDocumentsStep,
   validateMedicoCadastroPersonalStep,
   validateMedicoCadastroProfessionalStep,
+  validateMedicoCadastroSpecialtiesStep,
 } from '../../../utils/medicoCadastro/validateMedicoCadastroForm'
+import {
+  submitProfissionalCadastro,
+  isProfissionalCadastroApiError,
+  type SubmitProfissionalCadastroProgress,
+} from '../../../lib/services/profissional/cadastro'
+import { MedicoCadastroSubmitProgress } from './MedicoCadastroSubmitProgress'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { MedicoCadastroAddressFields } from './MedicoCadastroAddressFields'
 import { MedicoCadastroSuccessPanel } from './MedicoCadastroSuccessPanel'
@@ -47,6 +56,7 @@ import {
   medicoCadastroSelectClass,
 } from './MedicoCadastroFormField'
 import { MedicoCadastroFormStepper } from './MedicoCadastroFormStepper'
+import { MedicoCadastroMedicalSpecialtiesFields } from './MedicoCadastroMedicalSpecialtiesFields'
 
 type MedicoCadastroRegistrationFormProps = {
   id?: string
@@ -61,10 +71,9 @@ const emptyValues = (): MedicoCadastroFormValues => ({
   cpf: '',
   birthDate: '',
   formation: '',
-  specialty: '',
+  medicalSpecialties: [createMedicoCadastroMedicalSpecialty()],
   crm: '',
   uf: '',
-  rqe: '',
   email: '',
   phone: '',
   zipCode: '',
@@ -80,10 +89,6 @@ const emptyValues = (): MedicoCadastroFormValues => ({
 const emptyDocuments = (): MedicoCadastroDocumentUploads =>
   Object.fromEntries(DOCUMENT_IDS.map((id) => [id, null]))
 
-function resolveStepIndex(step: MedicoCadastroFormStepId) {
-  return medicoCadastroFormSteps.findIndex((item) => item.id === step)
-}
-
 export function MedicoCadastroRegistrationForm({
   id = 'cadastro-form',
   className = '',
@@ -94,12 +99,20 @@ export function MedicoCadastroRegistrationForm({
   const [documents, setDocuments] = useState<MedicoCadastroDocumentUploads>(emptyDocuments)
   const [errors, setErrors] = useState<MedicoCadastroFormErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitProgress, setSubmitProgress] = useState<SubmitProfissionalCadastroProgress | null>(
+    null,
+  )
   const [submitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
 
-  const stepIndex = resolveStepIndex(step)
+  const formSteps = useMemo(
+    () => getMedicoCadastroFormSteps(values.formation),
+    [values.formation],
+  )
+  const stepIndex = formSteps.findIndex((item) => item.id === step)
   const isFirstStep = stepIndex === 0
-  const isLastStep = stepIndex === medicoCadastroFormSteps.length - 1
+  const isLastStep = stepIndex === formSteps.length - 1
   const isMedicina = isMedicoCadastroMedicinaFormation(values.formation)
   const conselhoLabel = values.formation
     ? getMedicoCadastroConselhoLabel(values.formation)
@@ -136,22 +149,47 @@ export function MedicoCadastroRegistrationForm({
     bodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }, [step])
 
-  function patchFormation(formation: MedicoCadastroFormation | '') {
-    setValues((prev) => {
-      const nextSpecialtyOptions = getMedicoCadastroSpecialtyOptions(formation)
-      const keepSpecialty = nextSpecialtyOptions.some((item) => item.value === prev.specialty)
+  useEffect(() => {
+    if (formSteps.some((item) => item.id === step)) return
+    const fallback = formSteps[Math.min(stepIndex, formSteps.length - 1)] ?? formSteps[0]
+    if (fallback) setStep(fallback.id)
+  }, [formSteps, step, stepIndex])
 
-      return {
-        ...prev,
-        formation,
-        specialty: isMedicoCadastroMedicinaFormation(formation) && keepSpecialty ? prev.specialty : '',
-        rqe: isMedicoCadastroMedicinaFormation(formation) ? prev.rqe : '',
-      }
-    })
+  function patchFormation(formation: MedicoCadastroFormation | '') {
+    setValues((prev) => ({
+      ...prev,
+      formation,
+      medicalSpecialties: isMedicoCadastroMedicinaFormation(formation)
+        ? prev.medicalSpecialties.length > 0
+          ? prev.medicalSpecialties
+          : [createMedicoCadastroMedicalSpecialty()]
+        : [],
+    }))
     setErrors((prev) => {
       const next = { ...prev }
       delete next.formation
-      delete next.specialty
+      delete next.medicalSpecialties
+      return next
+    })
+  }
+
+  function patchMedicalSpecialties(specialties: MedicoCadastroMedicalSpecialty[]) {
+    setValues((prev) => ({ ...prev, medicalSpecialties: specialties }))
+    setErrors((prev) => {
+      const next = { ...prev }
+      delete next.medicalSpecialties
+      for (const key of Object.keys(next)) {
+        if (key.startsWith('medicalSpecialty:')) delete next[key as keyof MedicoCadastroFormErrors]
+      }
+      return next
+    })
+  }
+
+  function clearMedicalSpecialtyError(key: `medicalSpecialty:${string}`) {
+    setErrors((prev) => {
+      const next = { ...prev }
+      delete next[key]
+      delete next.medicalSpecialties
       return next
     })
   }
@@ -206,6 +244,7 @@ export function MedicoCadastroRegistrationForm({
   function validateCurrentStep() {
     if (step === 'personal') return validateMedicoCadastroPersonalStep(values)
     if (step === 'professional') return validateMedicoCadastroProfessionalStep(values)
+    if (step === 'specialties') return validateMedicoCadastroSpecialtiesStep(values)
     if (step === 'address') return validateMedicoCadastroAddressStep(values)
     return validateMedicoCadastroDocumentsStep(documents, values.formation)
   }
@@ -215,12 +254,12 @@ export function MedicoCadastroRegistrationForm({
     setErrors(stepErrors)
     if (hasMedicoCadastroFormErrors(stepErrors)) return
 
-    const next = medicoCadastroFormSteps[stepIndex + 1]
+    const next = formSteps[stepIndex + 1]
     if (next) setStep(next.id)
   }
 
   function goBack() {
-    const prev = medicoCadastroFormSteps[stepIndex - 1]
+    const prev = formSteps[stepIndex - 1]
     if (prev) setStep(prev.id)
   }
 
@@ -231,10 +270,23 @@ export function MedicoCadastroRegistrationForm({
     if (hasMedicoCadastroFormErrors(stepErrors)) return
 
     setIsSubmitting(true)
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    setIsSubmitting(false)
-    setSubmitted(true)
-    onSubmitted?.()
+    setSubmitError(null)
+    setSubmitProgress({ percent: 0, message: 'Preparando seus dados com cuidado...' })
+    try {
+      await submitProfissionalCadastro({ values, documents }, (progress) => {
+        setSubmitProgress(progress)
+      })
+      setSubmitted(true)
+      onSubmitted?.()
+    } catch (error) {
+      const message = isProfissionalCadastroApiError(error)
+        ? error.message
+        : 'Não foi possível enviar sua candidatura. Tente novamente.'
+      setSubmitError(message)
+    } finally {
+      setIsSubmitting(false)
+      setSubmitProgress(null)
+    }
   }
 
   return (
@@ -254,10 +306,12 @@ export function MedicoCadastroRegistrationForm({
         </header>
       ) : null}
 
-      {!submitted ? <MedicoCadastroFormStepper currentStep={step} /> : null}
+      {!submitted ? <MedicoCadastroFormStepper currentStep={step} steps={formSteps} /> : null}
 
       <div ref={bodyRef} className="min-h-0 flex-1 overflow-y-auto px-5 py-5 no-scrollbar sm:px-6">
-        {submitted ? (
+        {isSubmitting && submitProgress ? (
+          <MedicoCadastroSubmitProgress progress={submitProgress} />
+        ) : submitted ? (
           <MedicoCadastroSuccessPanel />
         ) : (
           <form className="space-y-4" onSubmit={handleSubmit} noValidate>
@@ -359,23 +413,6 @@ export function MedicoCadastroRegistrationForm({
                   />
                 </MedicoCadastroFormField>
 
-                {isMedicina ? (
-                  <MedicoCadastroFormField
-                    label="Especialidade principal"
-                    error={errors.specialty}
-                  >
-                    <CustomSelect
-                      value={values.specialty}
-                      onChange={(value) => patchValues('specialty', value)}
-                      options={specialtyOptions}
-                      placeholder="Selecione"
-                      required
-                      size="compact"
-                      className={medicoCadastroSelectClass(Boolean(errors.specialty))}
-                    />
-                  </MedicoCadastroFormField>
-                ) : null}
-
                 <div className="grid grid-cols-[1fr_88px] gap-3">
                   <MedicoCadastroFormField
                     label={`Nº no conselho (${conselhoLabel})`}
@@ -408,21 +445,6 @@ export function MedicoCadastroRegistrationForm({
                   </MedicoCadastroFormField>
                 </div>
 
-                {isMedicina ? (
-                  <MedicoCadastroFormField label="RQE (opcional)">
-                    <input
-                      className={medicoCadastroInputClass(false)}
-                      type="text"
-                      name="rqe"
-                      inputMode="numeric"
-                      value={values.rqe}
-                      onChange={(e) =>
-                        patchValues('rqe', e.target.value.replace(/\D/g, '').slice(0, 8))
-                      }
-                    />
-                  </MedicoCadastroFormField>
-                ) : null}
-
                 <label className="block">
                   <span className="mb-1 block text-xs font-medium text-gray-600">
                     Descrição profissional (opcional)
@@ -439,6 +461,23 @@ export function MedicoCadastroRegistrationForm({
                     }
                   />
                 </label>
+              </div>
+            ) : null}
+
+            {step === 'specialties' ? (
+              <div className="space-y-3">
+                <MedicoCadastroMedicalSpecialtiesFields
+                  specialties={values.medicalSpecialties}
+                  specialtyOptions={specialtyOptions}
+                  errors={errors}
+                  onChange={patchMedicalSpecialties}
+                  onClearError={clearMedicalSpecialtyError}
+                />
+                {errors.medicalSpecialties ? (
+                  <p className="text-[11px] font-medium text-red-600" role="alert">
+                    {errors.medicalSpecialties}
+                  </p>
+                ) : null}
               </div>
             ) : null}
 
@@ -516,6 +555,12 @@ export function MedicoCadastroRegistrationForm({
                   })}
                 </ul>
               </div>
+            ) : null}
+
+            {submitError ? (
+              <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {submitError}
+              </p>
             ) : null}
 
             <div className="flex items-center gap-2 pt-2">

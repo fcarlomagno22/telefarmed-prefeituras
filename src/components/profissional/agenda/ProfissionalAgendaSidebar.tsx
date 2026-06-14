@@ -97,7 +97,7 @@ export function ProfissionalAgendaSidebar({
   onSelectDate,
 }: ProfissionalAgendaSidebarProps) {
   return (
-    <aside data-tour="agenda-sidebar" className="flex w-full flex-col gap-3 xl:gap-4">
+    <aside data-tour="agenda-sidebar" className="flex h-full w-full min-w-0 flex-col gap-3 xl:gap-4">
       <section
         className={[
           profissionalAgendaPanelClass,
@@ -141,7 +141,10 @@ export function ProfissionalAgendaSidebar({
       <ProfissionalAgendaNotices notices={notices} />
 
       <section
-        className={[profissionalAgendaPanelClass, 'flex flex-col overflow-hidden'].join(' ')}
+        className={[
+          profissionalAgendaPanelClass,
+          'flex min-h-0 flex-1 flex-col overflow-hidden',
+        ].join(' ')}
       >
         <div className="shrink-0 border-b border-gray-100 px-4 py-3">
           <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900">
@@ -150,7 +153,7 @@ export function ProfissionalAgendaSidebar({
           </h3>
         </div>
 
-        <div className="px-3 py-2">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-3 py-2 [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300">
           {upcomingShifts.length === 0 ? (
             <p className="px-1 py-6 text-center text-xs leading-relaxed text-gray-500">
               Nenhum plantão publicado nos próximos dias.
@@ -207,11 +210,11 @@ export function ProfissionalAgendaSidebar({
           )}
         </div>
 
-        <div className="relative shrink-0 overflow-hidden border-t border-orange-100/70 bg-gradient-to-t from-[var(--brand-primary-light)]/25 via-white to-white px-2 pt-2">
+        <div className="relative mt-auto shrink-0 overflow-hidden border-t border-orange-100/70 bg-gradient-to-t from-[var(--brand-primary-light)]/25 via-white to-white px-2 pt-2">
           <img
             src={doctorsIllustrationUrl}
             alt=""
-            className="pointer-events-none mx-auto h-28 w-full max-w-[16rem] object-contain object-bottom sm:h-32"
+            className="pointer-events-none mx-auto h-28 w-full max-w-full object-contain object-bottom sm:h-32 xl:h-36 2xl:h-40"
           />
         </div>
       </section>

@@ -4,7 +4,7 @@ import {
   ageGroupLabels,
   type PatientAgeGroup,
   type PatientRegistration,
-} from '../../data/unitDashboardMock'
+} from '../../types/attendance'
 import { CustomSelect } from '../ui/CustomSelect'
 import { formatDatePtBr, parseBirthDateInput } from '../../utils/calendar'
 import { cpfDigits, isValidCpf } from '../../utils/cpf'

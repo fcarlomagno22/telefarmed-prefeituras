@@ -4,3 +4,6 @@ export const PROFISSIONAL_LOGGED_DOCTOR_ID = '1'
 /** Atendimento exclusivamente por telemedicina — sem exibir município/UBT ao médico. */
 export const PROFISSIONAL_TELEMEDICINE_LABEL = 'Telemedicina'
 export const PROFISSIONAL_SESSION_UNIT_LABEL = 'Teleatendimento'
+
+/** Intervalo de atualização automática da fila do plantão (sem F5). */
+export const PROFISSIONAL_QUEUE_POLL_INTERVAL_MS = 3_000

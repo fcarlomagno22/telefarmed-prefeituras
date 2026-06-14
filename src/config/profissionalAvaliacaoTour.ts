@@ -1,4 +1,6 @@
 export const PROFISSIONAL_AVALIACAO_TOUR_STORAGE_KEY = 'telefarmed:profissional-avaliacao-tour-v1'
+export const PROFISSIONAL_AVALIACAO_TOUR_INVITE_STORAGE_KEY =
+  'telefarmed:profissional-avaliacao-tour-invite-v1'
 
 /** Avaliação positiva usada no passo de card de comentário. */
 export const PROFISSIONAL_AVALIACAO_TOUR_DEMO_REVIEW_ID = 'pr-1'
@@ -22,8 +24,6 @@ export type ProfissionalAvaliacaoTourStep = {
   skipIfMissing?: boolean
 }
 
-export const profissionalAvaliacaoTourFirstVisitBody =
-  'Na sua primeira visita, pedimos que conclua este tour — são poucos minutos e ajudam você a acompanhar feedback dos pacientes com mais clareza. Depois, você pode rever quando quiser pelo botão "Ver tour guiado" no topo da página.'
 
 export const profissionalAvaliacaoTourSteps: ProfissionalAvaliacaoTourStep[] = [
   {

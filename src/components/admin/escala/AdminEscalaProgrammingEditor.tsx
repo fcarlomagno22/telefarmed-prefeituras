@@ -1,6 +1,5 @@
 import { Plus, Trash2 } from 'lucide-react'
 import { getSpecialtyById } from '../../../data/specialties'
-import { adminEscalaDoctorOptions } from '../../../data/adminEscalaMock'
 import type { AdminEscalaProgrammingSlot } from '../../../types/adminEscala'
 import {
   adminEscalaWeekdayOptions,
@@ -9,6 +8,7 @@ import {
 } from '../../../utils/adminEscala/buildClosedSchedule'
 import { countScheduleDaysInRange } from '../../../utils/adminEscala/countScheduleDays'
 import { createDefaultProgrammingSlot } from '../../../utils/adminEscala/createDefaultProgrammingSlot'
+import { getDoctorsForEscalaSpecialty } from '../../../utils/adminEscala/doctorsForSpecialty'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { AdminEscalaBackupQueueEditor } from './AdminEscalaBackupQueueEditor'
 import {
@@ -26,15 +26,6 @@ type AdminEscalaProgrammingEditorProps = {
   onRangeEndChange: (value: string) => void
   slots: AdminEscalaProgrammingSlot[]
   onSlotsChange: (slots: AdminEscalaProgrammingSlot[]) => void
-}
-
-function doctorsForSpecialty(specialtyId: string) {
-  const name = getSpecialtyById(specialtyId)?.name
-  if (!name) return adminEscalaDoctorOptions
-  const matched = adminEscalaDoctorOptions.filter(
-    (d) => d.specialty.toLowerCase() === name.toLowerCase(),
-  )
-  return matched.length > 0 ? matched : adminEscalaDoctorOptions
 }
 
 export function AdminEscalaProgrammingEditor({
@@ -115,7 +106,7 @@ export function AdminEscalaProgrammingEditor({
       {specialtyIds.map((specialtyId) => {
         const specialtyName = getSpecialtyById(specialtyId)?.name ?? 'Especialidade'
         const specialtySlots = slots.filter((s) => s.specialtyId === specialtyId)
-        const doctorOptions = doctorsForSpecialty(specialtyId)
+        const doctorOptions = getDoctorsForEscalaSpecialty(specialtyId)
 
         return (
           <section key={specialtyId} className="space-y-3">
@@ -267,13 +258,14 @@ export function AdminEscalaProgrammingEditor({
                       }}
                       options={doctorOptions.map((d) => ({
                         value: d.value,
-                        label: `${d.label} · ${d.specialty}`,
+                        label: d.label,
                       }))}
                     />
                   </div>
 
                   <AdminEscalaBackupQueueEditor
                     variant="premium"
+                    specialtyId={specialtyId}
                     primaryDoctorId={slot.primaryDoctorId}
                     backupDoctorIds={slot.backupDoctorIds}
                     onBackupDoctorIdsChange={(backupDoctorIds) =>

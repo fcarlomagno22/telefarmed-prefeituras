@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { brand } from '../config/brand'
-import { ubtRoutes } from '../config/ubtRoutes'
+import { ubtAtendimentoPath, ubtRoutes } from '../config/ubtRoutes'
 import { useBrandTheme } from '../hooks/useBrandTheme'
 import {
   clearWaitingRoomSession,
@@ -14,12 +14,10 @@ import {
   ConsultationCountdown,
   WaitingRoomConsultationTransition,
 } from '../components/waiting-room/WaitingRoomConsultationTransition'
-import {
-  buildAttendanceSessionFromWaitingRoom,
-  writeAttendanceSession,
-} from '../data/attendanceSession'
+import { useUbtAuth } from '../contexts/UbtAuthContext'
 import { writeConsultationLockToStorage } from '../hooks/useConsultationSessionGuard'
-import { generateAttendanceId } from '../utils/generateAttendanceId'
+import { usePublicFilaStatus, usePublicMensagens } from '../hooks/usePublicAtendimentoSession'
+import { sairUbtSalaEspera } from '../lib/services/ubt/consultas'
 import {
   Calendar,
   Clock,
@@ -51,31 +49,24 @@ function formatTime(date: Date) {
   }).format(date)
 }
 
-const MESSAGES = [
-  {
-    icon: Heart,
-    title: 'Seja bem-vindo!',
-    body: 'Você está em boas mãos. Em breve, o profissional fará o seu atendimento.',
-  },
-  {
-    icon: FileText,
-    title: 'Documentos em mãos',
-    body: 'Tenha seus documentos e informações importantes por perto para agilizar o atendimento.',
-  },
-  {
-    icon: Stethoscope,
-    title: 'Fique tranquilo(a)',
-    body: 'Você será atendido(a) em breve. Obrigado pela sua paciência!',
-  },
+const STATIC_WELCOME = [
+  { icon: Heart, title: 'Seja bem-vindo!', body: 'Você está em boas mãos.' },
+  { icon: FileText, title: 'Documentos em mãos', body: 'Tenha documentos importantes por perto.' },
+  { icon: Stethoscope, title: 'Fique tranquilo(a)', body: 'Você será atendido(a) em breve.' },
 ] as const
 
 export function SalaDeEsperaPage() {
   useBrandTheme()
   const navigate = useNavigate()
+  const { getAccessToken } = useUbtAuth()
 
   const [session, setSession] = useState<WaitingRoomSession | null>(() => readWaitingRoomSession())
   const [now, setNow] = useState(() => new Date())
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false)
+
+  const token = session?.token
+  const { fila } = usePublicFilaStatus(token)
+  const { messages } = usePublicMensagens(token)
 
   useEffect(() => {
     const id = window.setInterval(() => setSession(readWaitingRoomSession()), 2500)
@@ -92,9 +83,47 @@ export function SalaDeEsperaPage() {
   const specialty = session?.specialty?.trim() || 'Atendimento'
   const professional = session?.professional?.trim() || 'A definir'
   const scheduledAt = session?.scheduledAt?.trim() || 'Hoje'
+  const queuePosition = fila?.position ?? session?.queuePosition ?? 1
+  const queueTotal = fila?.total ?? session?.queueTotal ?? 1
+  const readyForConsultation = fila?.readyForConsultation ?? false
+  const countdownSessionKey = token ? `telefarmed:waiting-room-countdown:${token}` : undefined
+
+  const infoMessages = useMemo(() => {
+    const fromApi = messages
+      .filter((message) => message.text?.trim())
+      .slice(0, 6)
+      .map((message) => ({
+        icon: MessageCircle,
+        title: message.from === 'doctor' ? 'Profissional' : 'Informação',
+        body: message.text!.trim(),
+      }))
+
+    if (fromApi.length > 0) return fromApi
+    return STATIC_WELCOME.map((item) => ({
+      icon: item.icon,
+      title: item.title,
+      body: item.body,
+    }))
+  }, [messages])
+
+  if (!session?.token) {
+    return <Navigate to={ubtRoutes.triagem} replace />
+  }
 
   function handleExit() {
+    const codigo = session?.token
+    const accessToken = getAccessToken()
+    if (codigo && accessToken) {
+      void sairUbtSalaEspera(accessToken, codigo)
+    }
     clearWaitingRoomSession()
+    if (codigo) {
+      try {
+        sessionStorage.removeItem(`telefarmed:waiting-room-countdown:${codigo}`)
+      } catch {
+        // ignore
+      }
+    }
     writeConsultationLockToStorage(false)
     try {
       window.close()
@@ -105,11 +134,9 @@ export function SalaDeEsperaPage() {
   }
 
   function handleEnterConsultation() {
+    if (!session?.token) return
     writeConsultationLockToStorage(true)
-    const attendanceId = generateAttendanceId()
-    const attendance = buildAttendanceSessionFromWaitingRoom(session, attendanceId)
-    writeAttendanceSession(attendance)
-    navigate(`/atendimento/${attendanceId}`)
+    navigate(ubtAtendimentoPath(session.token))
   }
 
   const details = [
@@ -118,6 +145,11 @@ export function SalaDeEsperaPage() {
     { label: 'Unidade', value: unitName, icon: ShieldCheck },
     { label: 'Horário agendado', value: scheduledAt, icon: Clock },
     { label: 'Profissional', value: professional, icon: User },
+    {
+      label: 'Posição na fila',
+      value: `${queuePosition} de ${queueTotal}`,
+      icon: Clock,
+    },
   ] as const
 
   return (
@@ -157,7 +189,11 @@ export function SalaDeEsperaPage() {
         </div>
       </header>
 
-      <WaitingRoomConsultationTransition onEnterConsultation={handleEnterConsultation}>
+      <WaitingRoomConsultationTransition
+        readyForConsultation={readyForConsultation}
+        countdownSessionKey={countdownSessionKey}
+        onEnterConsultation={handleEnterConsultation}
+      >
         {({ revealPhase, countdownAnchorRef, secondsLeft, contentFaded }) => (
           <div
             className={[
@@ -181,7 +217,9 @@ export function SalaDeEsperaPage() {
                     </p>
                     <p className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700">
                       <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-500" />
-                      Aguardando chamada do profissional
+                      {readyForConsultation
+                        ? 'Profissional pronto — aguarde o aviso'
+                        : `Posição ${queuePosition} de ${queueTotal} na fila`}
                     </p>
                   </div>
                 </div>
@@ -189,7 +227,7 @@ export function SalaDeEsperaPage() {
                 <div ref={countdownAnchorRef}>
                   <ConsultationCountdown
                     secondsLeft={secondsLeft}
-                    hidden={revealPhase !== 'idle'}
+                    hidden={!readyForConsultation || revealPhase !== 'idle'}
                   />
                 </div>
 
@@ -213,11 +251,11 @@ export function SalaDeEsperaPage() {
                   Mensagens para você
                 </h2>
                 <ul className="mt-2 flex min-h-0 flex-1 flex-col divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200 bg-white">
-                  {MESSAGES.map((msg) => {
+                  {infoMessages.map((msg, index) => {
                     const Icon = msg.icon
                     return (
                       <li
-                        key={msg.title}
+                        key={`${msg.title}-${index}`}
                         className="flex min-h-0 flex-1 items-center gap-3 px-3 py-2"
                       >
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center self-center">

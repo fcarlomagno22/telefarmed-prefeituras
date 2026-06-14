@@ -1,3 +1,4 @@
+import { scheduleDoctors } from './scheduleDoctorsMock'
 import { toDateKey } from '../utils/agendaDate'
 
 export type DoctorHourlyAttendance = {
@@ -161,8 +162,48 @@ const shiftsByDateKey: Record<string, AgendaDoctorShiftRecord[]> = {
   [toDateKey(new Date(2026, 4, 20))]: doctorsMay19,
 }
 
-const emptyShifts: AgendaDoctorShiftRecord[] = []
+function hashSeed(...parts: string[]): number {
+  let hash = 0
+  for (const part of parts) {
+    for (let index = 0; index < part.length; index += 1) {
+      hash = (hash * 31 + part.charCodeAt(index)) | 0
+    }
+  }
+  return Math.abs(hash)
+}
+
+function buildDynamicDoctorShifts(date: Date): AgendaDoctorShiftRecord[] {
+  const dateKey = toDateKey(date)
+
+  return scheduleDoctors.slice(0, 6).map((doctor, doctorIndex) => {
+    const hourlyAttendance = SHIFT_HOURS.map((hour, hourIndex) => ({
+      hour,
+      patientCount: 1 + (hashSeed(dateKey, doctor.id, hour) % 4),
+    }))
+    const totalPatients = hourlyAttendance.reduce((sum, item) => sum + item.patientCount, 0)
+    const average = 4.4 + (hashSeed(dateKey, doctor.id, 'rating') % 6) / 10
+
+    return {
+      id: doctor.id,
+      name: doctor.name,
+      specialty: doctor.specialtyName,
+      avatarUrl: doctor.avatarUrl,
+      loginAt: doctorIndex % 2 === 0 ? '07:50' : '08:05',
+      logoutAt: doctorIndex % 2 === 0 ? '14:00' : '14:15',
+      hourlyAttendance,
+      totalPatients,
+      ratings: ratings(average, [
+        8 + (doctorIndex % 4),
+        3 + (doctorIndex % 3),
+        1,
+        doctorIndex % 2,
+        0,
+      ]),
+    }
+  })
+}
 
 export function getAgendaDoctorShifts(date: Date): AgendaDoctorShiftRecord[] {
-  return shiftsByDateKey[toDateKey(date)] ?? emptyShifts
+  const dateKey = toDateKey(date)
+  return shiftsByDateKey[dateKey] ?? buildDynamicDoctorShifts(date)
 }

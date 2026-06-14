@@ -44,19 +44,19 @@ export function ProfissionalEndShiftModal({
         </p>
 
         <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-xl bg-gray-50 px-3 py-2.5">
+          <div className="rounded-xl bg-gray-50 px-3 py-2.5 text-center">
             <dt className="text-xs font-semibold text-gray-500">Atendidos</dt>
             <dd className="mt-1 text-lg font-bold text-gray-900">{summary.atendidos}</dd>
           </div>
-          <div className="rounded-xl bg-gray-50 px-3 py-2.5">
+          <div className="rounded-xl bg-gray-50 px-3 py-2.5 text-center">
             <dt className="text-xs font-semibold text-gray-500">Não compareceu</dt>
             <dd className="mt-1 text-lg font-bold text-gray-900">{summary.naoCompareceu}</dd>
           </div>
-          <div className="rounded-xl bg-gray-50 px-3 py-2.5">
+          <div className="rounded-xl bg-gray-50 px-3 py-2.5 text-center">
             <dt className="text-xs font-semibold text-gray-500">Desistiu</dt>
             <dd className="mt-1 text-lg font-bold text-gray-900">{summary.desistiu}</dd>
           </div>
-          <div className="rounded-xl bg-gray-50 px-3 py-2.5">
+          <div className="rounded-xl bg-gray-50 px-3 py-2.5 text-center">
             <dt className="text-xs font-semibold text-gray-500">Tempo médio</dt>
             <dd className="mt-1 text-lg font-bold text-gray-900">
               {summary.tempoMedioMin > 0 ? `${summary.tempoMedioMin} min` : '—'}
@@ -64,7 +64,7 @@ export function ProfissionalEndShiftModal({
           </div>
         </dl>
 
-        <p className="mt-4 text-xs text-gray-500">
+        <p className="mt-4 text-center text-xs text-gray-500">
           Duração do plantão:{' '}
           <strong className="text-gray-700">{summary.duracaoPlantaoMin} min</strong>
         </p>

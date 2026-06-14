@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { AdminMunicipalityDrawer } from '../components/admin/dashboard/AdminMunicipalityDrawer'
-import type { AdminMunicipalityRow } from '../data/adminDashboardMock'
+import type { AdminMunicipalityRow } from '../types/adminDashboard'
 
 export function useAdminMunicipalityDrawer() {
   const [open, setOpen] = useState(false)

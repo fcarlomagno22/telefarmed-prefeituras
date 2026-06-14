@@ -4,9 +4,11 @@ import {
   type ProfissionalAgendaTourStep,
 } from '../config/profissionalAgendaTour'
 import type { ProfissionalAgendaTab } from './useProfissionalAgendaState'
+import { useProfissionalTourInviteGate } from './useProfissionalTourInviteGate'
 import {
-  isProfissionalAgendaTourCompleted,
+  isProfissionalAgendaTourInvitePending,
   markProfissionalAgendaTourCompleted,
+  markProfissionalAgendaTourInviteHandled,
 } from '../utils/profissional/profissionalAgendaTourStorage'
 
 type TourAdvanceSource = 'next' | 'target-click'
@@ -50,7 +52,6 @@ export function useProfissionalAgendaTour({
   const [active, setActive] = useState(false)
   const [stepIndex, setStepIndex] = useState(0)
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
-  const [isMandatorySession, setIsMandatorySession] = useState(false)
   const completedRef = useRef(false)
   const onBeforeAdvanceRef = useRef(onBeforeAdvance)
 
@@ -64,11 +65,19 @@ export function useProfissionalAgendaTour({
 
   const startTour = useCallback((options?: { replay?: boolean }) => {
     completedRef.current = false
-    setIsMandatorySession(!options?.replay)
+    markProfissionalAgendaTourInviteHandled()
     setAgendaTab('dia')
     setStepIndex(0)
     setActive(true)
   }, [setAgendaTab])
+
+  const isInvitePending = useCallback(() => isProfissionalAgendaTourInvitePending(), [])
+
+  const { inviteOpen, acceptInvite, dismissInvite } = useProfissionalTourInviteGate({
+    isInvitePending,
+    markInviteHandled: markProfissionalAgendaTourInviteHandled,
+    onStartTour: startTour,
+  })
 
   const finishTour = useCallback(() => {
     setActive(false)
@@ -103,11 +112,6 @@ export function useProfissionalAgendaTour({
   useEffect(() => {
     if (forceStart) {
       startTour({ replay: true })
-      return
-    }
-    if (!isProfissionalAgendaTourCompleted()) {
-      const timer = window.setTimeout(() => startTour(), 600)
-      return () => window.clearTimeout(timer)
     }
   }, [forceStart, startTour])
 
@@ -224,7 +228,9 @@ export function useProfissionalAgendaTour({
     targetRect,
     highlightedTarget,
     isLastStep,
-    isMandatorySession,
+    inviteOpen,
+    acceptInvite,
+    dismissInvite,
     startTour,
     finishTour,
     goNext,

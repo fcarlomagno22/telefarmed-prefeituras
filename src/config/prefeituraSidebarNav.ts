@@ -71,7 +71,6 @@ const contratoEIndicadores: SidebarNavItemProps[] = [
     label: 'Relatórios',
     icon: BarChart3,
     end: true,
-    comingSoon: true,
   },
 ]
 

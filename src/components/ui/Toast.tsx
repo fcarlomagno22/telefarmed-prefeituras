@@ -63,7 +63,7 @@ export function Toast({
 
   const positionClass = anchored
     ? 'absolute bottom-28 right-5 z-50 max-w-[min(100%,20rem)] sm:right-6'
-    : 'fixed bottom-6 right-6 z-[10001] max-w-sm'
+    : 'fixed bottom-6 right-6 z-[10050] max-w-sm'
 
   const toast = (
     <div

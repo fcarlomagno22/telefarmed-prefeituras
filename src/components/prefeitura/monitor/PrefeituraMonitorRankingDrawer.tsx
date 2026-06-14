@@ -2,11 +2,11 @@ import { BarChart3, Building2, Trophy, TrendingUp, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  monitorComparisonFullByTab,
   monitorComparisonPrimaryColumn,
   monitorComparisonTabs,
+  type MonitorComparisonRow,
   type MonitorComparisonTab,
-} from '../../../data/prefeituraMonitorMock'
+} from '../../../types/prefeituraMonitor'
 import { KpiStatCards, kpiStatStylePresets, type KpiStatCardItem } from '../../ui/KpiStatCards'
 import { PrefeituraMonitorUbsComparisonTable } from './PrefeituraMonitorUbsComparisonTable'
 
@@ -14,6 +14,11 @@ type PrefeituraMonitorRankingDrawerProps = {
   open: boolean
   closing: boolean
   initialTab: MonitorComparisonTab
+  activeTab: MonitorComparisonTab
+  onTabChange: (tab: MonitorComparisonTab) => void
+  getRankingForTab: (tab: MonitorComparisonTab) => MonitorComparisonRow[]
+  isLoading?: boolean
+  loadError?: string | null
   onClose: () => void
   onTransitionEnd: () => void
 }
@@ -26,16 +31,20 @@ export function PrefeituraMonitorRankingDrawer({
   open,
   closing,
   initialTab,
+  activeTab,
+  onTabChange,
+  getRankingForTab,
+  isLoading = false,
+  loadError = null,
   onClose,
   onTransitionEnd,
 }: PrefeituraMonitorRankingDrawerProps) {
   const [entered, setEntered] = useState(false)
-  const [activeTab, setActiveTab] = useState<MonitorComparisonTab>(initialTab)
 
   const isActive = open || closing
   const panelVisible = isActive && entered && !closing
 
-  const rows = monitorComparisonFullByTab[activeTab]
+  const rows = getRankingForTab(activeTab)
   const column = monitorComparisonPrimaryColumn[activeTab]
   const activeTabLabel =
     monitorComparisonTabs.find((tab) => tab.key === activeTab)?.label ?? activeTab
@@ -99,7 +108,6 @@ export function PrefeituraMonitorRankingDrawer({
       return
     }
 
-    setActiveTab(initialTab)
     const frame = requestAnimationFrame(() => setEntered(true))
     return () => cancelAnimationFrame(frame)
   }, [open, initialTab])
@@ -195,12 +203,24 @@ export function PrefeituraMonitorRankingDrawer({
             </p>
           </div>
 
-          <PrefeituraMonitorUbsComparisonTable
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            rows={rows}
-            stickyHeader
-          />
+          {loadError ? (
+            <p className="mx-5 mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 sm:mx-6">
+              {loadError}
+            </p>
+          ) : null}
+
+          {isLoading && rows.length === 0 ? (
+            <div className="flex min-h-0 flex-1 items-center justify-center px-6 py-10 text-sm text-gray-500">
+              Carregando ranking completo…
+            </div>
+          ) : (
+            <PrefeituraMonitorUbsComparisonTable
+              activeTab={activeTab}
+              onTabChange={onTabChange}
+              rows={rows}
+              stickyHeader
+            />
+          )}
         </div>
       </aside>
     </div>,

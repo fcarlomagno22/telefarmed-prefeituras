@@ -58,12 +58,22 @@ export async function requireAdminAuth(
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<void> {
+  return requireAdminAuthWithToken(request, reply)
+}
+
+export async function requireAdminAuthWithToken(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  options?: { allowQueryToken?: boolean },
+): Promise<void> {
   const header = request.headers.authorization
-  if (!header?.startsWith('Bearer ')) {
-    return reply.status(401).send({ error: 'Não autenticado.' })
+  let token = header?.startsWith('Bearer ') ? header.slice('Bearer '.length).trim() : ''
+
+  if (!token && options?.allowQueryToken) {
+    const query = request.query as { accessToken?: string }
+    token = typeof query.accessToken === 'string' ? query.accessToken.trim() : ''
   }
 
-  const token = header.slice('Bearer '.length).trim()
   if (!token) {
     return reply.status(401).send({ error: 'Não autenticado.' })
   }
@@ -115,6 +125,24 @@ export function requireAdminPagePermission(page: AdminPageId, action: Permission
 
     return reply.status(403).send({
       error: 'Você não tem permissão para esta ação.',
+      code: 'FORBIDDEN',
+    })
+  }
+}
+
+export function requireAdminAdministrator() {
+  return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    const admin = request.admin
+    if (!admin) {
+      return reply.status(401).send({ error: 'Não autenticado.' })
+    }
+
+    if (admin.isMaster || admin.accessLevel === 'administrador') {
+      return
+    }
+
+    return reply.status(403).send({
+      error: 'Apenas administradores podem acessar prontuários médicos.',
       code: 'FORBIDDEN',
     })
   }

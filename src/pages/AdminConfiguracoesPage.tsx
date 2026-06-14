@@ -18,11 +18,15 @@ import { adminConfiguracoesInitial } from '../data/adminConfiguracoesInitial'
 import {
   createContractType,
   createExamCategory,
+  createExamCategoriesBulk,
   createExamItem,
+  createExamItemsBulk,
   createLegalDocument,
   deleteContractType,
   deleteExamCategory,
   deleteExamItem,
+  deleteExamItemsBulk,
+  type DeleteExamItemsBulkPayload,
   deleteLegalDocument,
   fetchClinicoCatalog,
   fetchConsultaCatalog,
@@ -31,6 +35,7 @@ import {
   AdminConfiguracoesApiError,
   isConfiguracoesApiError,
   saveClinicoCatalog,
+  saveCommercialRules,
   setContractTypeStatus,
   setExamCategoryStatus,
   setExamItemStatus,
@@ -39,12 +44,13 @@ import {
   updateExamCategory,
   updateExamItem,
   updateLegalDocument,
-} from '../lib/api/adminConfiguracoesApi'
+} from '../lib/services/admin/configuracoes'
 import { usePageSkeletonLoading } from '../hooks/usePageSkeletonLoading'
 import type {
   AdminConfiguracoesState,
   AdminConfiguracoesTab,
   ConfigContractType,
+  ConfigCommercialRules,
   ConfigExamCategory,
   ConfigExamItem,
   ConfigLegalDocument,
@@ -72,7 +78,7 @@ export function AdminConfiguracoesPage() {
   const [isLoadingContratos, setIsLoadingContratos] = useState(true)
   const [isLoadingConsulta, setIsLoadingConsulta] = useState(true)
   const [isLoadingLegal, setIsLoadingLegal] = useState(true)
-  const { getAccessToken } = useAdminAuth()
+  const { getAccessToken, isBootstrapping } = useAdminAuth()
   const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(
     null,
   )
@@ -82,11 +88,13 @@ export function AdminConfiguracoesPage() {
   }, [])
 
   useEffect(() => {
+    if (isBootstrapping) return
+
     let cancelled = false
 
     async function loadClinicoCatalog() {
       try {
-        const catalog = await fetchClinicoCatalog()
+        const catalog = await fetchClinicoCatalog(getAccessToken())
         if (!cancelled) {
           patchConfig({
             professions: catalog.professions,
@@ -112,17 +120,20 @@ export function AdminConfiguracoesPage() {
     return () => {
       cancelled = true
     }
-  }, [patchConfig])
+  }, [getAccessToken, isBootstrapping, patchConfig])
 
   useEffect(() => {
+    if (isBootstrapping) return
+
     let cancelled = false
 
     async function loadContratosCatalog() {
       try {
-        const catalog = await fetchContratosCatalog()
+        const catalog = await fetchContratosCatalog(getAccessToken())
         if (!cancelled) {
           patchConfig({
             contractTypes: catalog.contractTypes.map(mapContractTypeFromApi),
+            commercialRules: catalog.commercialRules,
           })
         }
       } catch (error) {
@@ -144,14 +155,16 @@ export function AdminConfiguracoesPage() {
     return () => {
       cancelled = true
     }
-  }, [patchConfig])
+  }, [getAccessToken, isBootstrapping, patchConfig])
 
   useEffect(() => {
+    if (isBootstrapping) return
+
     let cancelled = false
 
     async function loadConsultaCatalog() {
       try {
-        const catalog = await fetchConsultaCatalog()
+        const catalog = await fetchConsultaCatalog(getAccessToken())
         if (!cancelled) {
           patchConfig({
             examCategories: catalog.examCategories,
@@ -177,14 +190,16 @@ export function AdminConfiguracoesPage() {
     return () => {
       cancelled = true
     }
-  }, [patchConfig])
+  }, [getAccessToken, isBootstrapping, patchConfig])
 
   useEffect(() => {
+    if (isBootstrapping) return
+
     let cancelled = false
 
     async function loadLegalCatalog() {
       try {
-        const catalog = await fetchLegalCatalog()
+        const catalog = await fetchLegalCatalog(getAccessToken())
         if (!cancelled) {
           patchConfig({
             legalDocuments: catalog.documents,
@@ -209,7 +224,7 @@ export function AdminConfiguracoesPage() {
     return () => {
       cancelled = true
     }
-  }, [patchConfig])
+  }, [getAccessToken, isBootstrapping, patchConfig])
 
   const requireAccessToken = useCallback(() => {
     const token = getAccessToken()
@@ -313,9 +328,10 @@ export function AdminConfiguracoesPage() {
   )
 
   const handleCreateSpecialty = useCallback(
-    async (value: ConfigSpecialty) => {
+    async (value: ConfigSpecialty | ConfigSpecialty[]) => {
       try {
-        await persistClinicoCatalog(config.professions, [...config.specialties, value])
+        const items = Array.isArray(value) ? value : [value]
+        await persistClinicoCatalog(config.professions, [...config.specialties, ...items])
       } catch (error) {
         handleConfigApiError(error, 'Não foi possível criar a especialidade.')
       }
@@ -448,22 +464,45 @@ export function AdminConfiguracoesPage() {
     [config.contractTypes, handleConfigApiError, patchConfig, requireAccessToken],
   )
 
-  const handleCreateExamCategory = useCallback(
-    async (value: ConfigExamCategory) => {
+  const handleSaveCommercialRules = useCallback(
+    async (value: ConfigCommercialRules) => {
       const token = requireAccessToken()
       if (!token) return
 
       try {
-        const created = await createExamCategory(token, {
-          id: value.id,
-          name: value.name,
-          active: value.active,
-        })
+        const saved = await saveCommercialRules(token, value)
+        patchConfig({ commercialRules: saved })
+      } catch (error) {
+        handleConfigApiError(error, 'Não foi possível salvar as regras comerciais.')
+        throw error
+      }
+    },
+    [handleConfigApiError, patchConfig, requireAccessToken],
+  )
+
+  const handleCreateExamCategory = useCallback(
+    async (value: ConfigExamCategory | ConfigExamCategory[]) => {
+      const token = requireAccessToken()
+      if (!token) return
+
+      const items = Array.isArray(value) ? value : [value]
+
+      try {
+        const payloads = items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          active: item.active,
+        }))
+        const created =
+          payloads.length > 1
+            ? await createExamCategoriesBulk(token, payloads)
+            : [await createExamCategory(token, payloads[0]!)]
         patchConfig({
-          examCategories: [...config.examCategories, created],
+          examCategories: [...config.examCategories, ...created],
         })
       } catch (error) {
         handleConfigApiError(error, 'Não foi possível criar a categoria.')
+        throw error
       }
     },
     [config.examCategories, handleConfigApiError, patchConfig, requireAccessToken],
@@ -526,22 +565,29 @@ export function AdminConfiguracoesPage() {
   )
 
   const handleCreateExamItem = useCallback(
-    async (value: ConfigExamItem) => {
+    async (value: ConfigExamItem | ConfigExamItem[]) => {
       const token = requireAccessToken()
       if (!token) return
 
+      const items = Array.isArray(value) ? value : [value]
+
       try {
-        const created = await createExamItem(token, {
-          id: value.id,
-          name: value.name,
-          categoryId: value.categoryId,
-          active: value.active,
-        })
+        const payloads = items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          categoryId: item.categoryId,
+          active: item.active,
+        }))
+        const created =
+          payloads.length > 1
+            ? await createExamItemsBulk(token, payloads)
+            : [await createExamItem(token, payloads[0]!)]
         patchConfig({
-          examItems: [...config.examItems, created],
+          examItems: [...config.examItems, ...created],
         })
       } catch (error) {
         handleConfigApiError(error, 'Não foi possível criar o exame.')
+        throw error
       }
     },
     [config.examItems, handleConfigApiError, patchConfig, requireAccessToken],
@@ -579,6 +625,27 @@ export function AdminConfiguracoesPage() {
         })
       } catch (error) {
         handleConfigApiError(error, 'Não foi possível excluir o exame.')
+        throw error
+      }
+    },
+    [config.examItems, handleConfigApiError, patchConfig, requireAccessToken],
+  )
+
+  const handleDeleteExamItems = useCallback(
+    async (payload: DeleteExamItemsBulkPayload) => {
+      const token = requireAccessToken()
+      if (!token) return
+
+      try {
+        const result = await deleteExamItemsBulk(token, payload)
+        const deletedIds = new Set(result.deletedIds)
+        patchConfig({
+          examItems: config.examItems.filter((row) => !deletedIds.has(row.id)),
+        })
+        return result
+      } catch (error) {
+        handleConfigApiError(error, 'Não foi possível excluir os exames.')
+        throw error
       }
     },
     [config.examItems, handleConfigApiError, patchConfig, requireAccessToken],
@@ -749,10 +816,12 @@ export function AdminConfiguracoesPage() {
                 {activeTab === 'contratos' ? (
                   <AdminConfigContratosPanel
                     contractTypes={config.contractTypes}
+                    commercialRules={config.commercialRules}
                     onCreateContractType={handleCreateContractType}
                     onUpdateContractType={handleUpdateContractType}
                     onDeleteContractType={handleDeleteContractType}
                     onSetContractTypeStatus={handleSetContractTypeStatus}
+                    onSaveCommercialRules={handleSaveCommercialRules}
                     getAccessToken={getAccessToken}
                     onNotify={(message, variant = 'success') => setToast({ message, variant })}
                   />
@@ -769,6 +838,7 @@ export function AdminConfiguracoesPage() {
                     onCreateExamItem={handleCreateExamItem}
                     onUpdateExamItem={handleUpdateExamItem}
                     onDeleteExamItem={handleDeleteExamItem}
+                    onDeleteExamItems={handleDeleteExamItems}
                     onSetExamItemStatus={handleSetExamItemStatus}
                     getAccessToken={getAccessToken}
                     onNotify={(message, variant = 'success') => setToast({ message, variant })}

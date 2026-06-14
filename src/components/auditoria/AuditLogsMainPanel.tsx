@@ -1,6 +1,6 @@
 import { Filter, Search, UserRound, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { AuditLogEntry } from '../../data/auditLogsMock'
+import type { AuditLogEntry } from '../../types/auditLogs'
 import {
   exportAuditLogsExcel,
   exportAuditLogsPdf,
@@ -23,8 +23,9 @@ import { AuditLogsAdvancedFiltersMegamenu } from './AuditLogsAdvancedFiltersMega
 import { AuditLogsExportMenu, type AuditLogsExportFormat } from './AuditLogsExportMenu'
 import { useAuditLogsScopeContext } from './AuditLogsScopeContext'
 import {
-  auditLogPlatformBadgeClass,
-  auditLogPlatformLabels,
+  auditLogPlatformFilterOptions,
+  resolveAuditLogPlatformBadgeClass,
+  resolveAuditLogPlatformLabel,
 } from './auditLogPlatformConfig'
 import {
   formatAuditPrefeituraLabel,
@@ -58,9 +59,9 @@ function AuditLogRow({
       {showPlatformColumn ? (
         <td className="whitespace-nowrap px-3 py-3.5 text-center align-middle">
           <span
-            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${auditLogPlatformBadgeClass[entry.platform]}`}
+            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${resolveAuditLogPlatformBadgeClass(entry.platform)}`}
           >
-            {auditLogPlatformLabels[entry.platform]}
+            {resolveAuditLogPlatformLabel(entry.platform)}
           </span>
         </td>
       ) : null}
@@ -154,8 +155,8 @@ export function AuditLogsMainPanel({
   const prefeituraPortalUbtOptions = filterOptions.ubts
 
   const scopedUbtFilterOptions = useMemo(
-    () => getAuditUbtFilterOptions(advancedFilters.prefeitura),
-    [advancedFilters.prefeitura],
+    () => getAuditUbtFilterOptions(advancedFilters.prefeitura, filterOptions),
+    [advancedFilters.prefeitura, filterOptions],
   )
 
   const showPrefeituraToolbarFilter = scope === 'admin' && Boolean(prefeituraFilterOptions)
@@ -169,10 +170,10 @@ export function AuditLogsMainPanel({
     (prefeituraKey: string) => {
       onAdvancedFiltersChange({
         ...advancedFilters,
-        ...patchAuditPrefeituraFilter(prefeituraKey, advancedFilters.ubt),
+        ...patchAuditPrefeituraFilter(prefeituraKey, advancedFilters.ubt, filterOptions),
       })
     },
-    [advancedFilters, onAdvancedFiltersChange],
+    [advancedFilters, filterOptions, onAdvancedFiltersChange],
   )
 
   const handleUbtFilterChange = useCallback(
@@ -198,28 +199,47 @@ export function AuditLogsMainPanel({
     (tenantColumnMode === 'full' || tenantColumnMode === 'ubt' ? 1 : 0)
 
   const filteredEntries = useMemo(
-    () => filterAuditLogEntries(pageOne, advancedFilters, search),
-    [advancedFilters, pageOne, search],
+    () =>
+      filterAuditLogEntries(pageOne, advancedFilters, filterOptions, search, {
+        user: userFilter,
+        action: actionFilter,
+        module: moduleFilter,
+        period: periodFilter,
+      }),
+    [
+      actionFilter,
+      advancedFilters,
+      filterOptions,
+      moduleFilter,
+      pageOne,
+      periodFilter,
+      search,
+      userFilter,
+    ],
   )
 
-  const total = useMemo(() => {
-    if (filteredEntries.length === 0) return 0
-    if (isCriticalView && !search.trim()) return summary.criticalEvents
-    if (advancedFilters.criticality !== 'all') return filteredEntries.length
-    return pagination.total
-  }, [
-    advancedFilters.criticality,
-    filteredEntries.length,
-    isCriticalView,
-    pagination.total,
-    search,
-    summary.criticalEvents,
-  ])
-
+  const total = filteredEntries.length
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
-  const showingFrom = filteredEntries.length === 0 ? 0 : 1
-  const showingTo = filteredEntries.length
+
+  const paginatedEntries = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredEntries.slice(start, start + pageSize)
+  }, [currentPage, filteredEntries, pageSize])
+
+  const showingFrom = total === 0 ? 0 : (currentPage - 1) * pageSize + 1
+  const showingTo = total === 0 ? 0 : Math.min(currentPage * pageSize, total)
   const exportResultCount = filteredEntries.length
+
+  const visiblePageNumbers = useMemo(() => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1)
+    }
+
+    const pages = new Set<number>([1, totalPages, currentPage])
+    if (currentPage > 1) pages.add(currentPage - 1)
+    if (currentPage < totalPages) pages.add(currentPage + 1)
+    return Array.from(pages).sort((a, b) => a - b)
+  }, [currentPage, totalPages])
 
   useEffect(() => {
     setCurrentPage(1)
@@ -337,8 +357,8 @@ export function AuditLogsMainPanel({
 
   return (
     <>
-    <section className="relative flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
-      <header className="shrink-0 border-b border-gray-200 bg-white px-5 py-5 sm:px-6">
+    <section className="relative flex h-full min-h-0 w-full min-w-0 flex-col rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
+      <header className="relative z-30 shrink-0 overflow-visible border-b border-gray-200 bg-white px-5 py-5 sm:px-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-lg font-bold text-gray-900 sm:text-xl">
@@ -358,7 +378,7 @@ export function AuditLogsMainPanel({
         </div>
 
         <div
-          className="mt-4 flex w-full min-w-0 items-center gap-2"
+          className="relative z-30 mt-4 flex w-full min-w-0 items-center gap-2 overflow-visible"
           role="toolbar"
           aria-label="Filtros da tabela de auditoria"
         >
@@ -484,10 +504,11 @@ export function AuditLogsMainPanel({
         />
       ) : null}
 
-      <div
-        data-audit-logs-table-scroll
-        className={[
-          'min-h-0 flex-1 overflow-y-auto overflow-x-auto',
+      <div className="relative z-0 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden [isolation:isolate]">
+        <div
+          data-audit-logs-table-scroll
+          className={[
+            'min-h-0 flex-1 overflow-y-auto overflow-x-auto',
           '[-ms-overflow-style:none] [scrollbar-width:thin]',
           '[&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5',
           '[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300',
@@ -505,7 +526,7 @@ export function AuditLogsMainPanel({
                   : 'min-w-[1100px]'
           }`}
         >
-          <thead className="sticky top-0 z-10 bg-gray-50">
+          <thead className="sticky top-0 z-[1] bg-gray-50">
             <tr className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
               <th className="w-10 px-3 py-3 text-center sm:px-4" aria-label="Status" />
               {showPlatformColumn ? (
@@ -534,7 +555,7 @@ export function AuditLogsMainPanel({
                 </td>
               </tr>
             ) : (
-              filteredEntries.map((entry) => (
+              paginatedEntries.map((entry) => (
                 <AuditLogRow
                   key={entry.id}
                   entry={entry}
@@ -562,32 +583,29 @@ export function AuditLogsMainPanel({
             >
               Anterior
             </button>
-            {[1, 2, 3].map((pageNumber) => (
-              <button
-                key={pageNumber}
-                type="button"
-                onClick={() => setCurrentPage(pageNumber)}
-                className={`flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-medium ${
-                  pageNumber === currentPage
-                    ? 'bg-[var(--brand-primary)] text-white shadow-[0_2px_8px_rgba(255,107,0,0.35)]'
-                    : 'border border-transparent text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                {pageNumber}
-              </button>
-            ))}
-            <span className="px-1 text-sm text-gray-400">…</span>
-            <button
-              type="button"
-              onClick={() => setCurrentPage(totalPages)}
-              className={`flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-medium ${
-                currentPage === totalPages
-                  ? 'bg-[var(--brand-primary)] text-white'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              {totalPages}
-            </button>
+            {visiblePageNumbers.map((pageNumber, index) => {
+              const previous = visiblePageNumbers[index - 1]
+              const showEllipsis = previous != null && pageNumber - previous > 1
+
+              return (
+                <span key={pageNumber} className="inline-flex items-center gap-1">
+                  {showEllipsis ? (
+                    <span className="px-1 text-sm text-gray-400">…</span>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(pageNumber)}
+                    className={`flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-sm font-medium ${
+                      pageNumber === currentPage
+                        ? 'bg-[var(--brand-primary)] text-white shadow-[0_2px_8px_rgba(255,107,0,0.35)]'
+                        : 'border border-transparent text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                </span>
+              )
+            })}
             <button
               type="button"
               disabled={currentPage >= totalPages}
@@ -599,6 +617,7 @@ export function AuditLogsMainPanel({
           </nav>
         </div>
       </footer>
+      </div>
     </section>
 
       <Toast

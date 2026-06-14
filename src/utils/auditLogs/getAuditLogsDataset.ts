@@ -2,41 +2,28 @@ import {
   AUDIT_LOGS_PAGINATION_TOTAL_ADMIN,
   AUDIT_LOGS_PAGINATION_TOTAL_PREFEITURA,
   AUDIT_LOGS_PAGINATION_TOTAL_UBT,
-  auditLogsAllEntries,
   auditLogsByTypeAdmin,
   auditLogsByTypePrefeitura,
   auditLogsByTypeUbt,
   auditLogsCriticalBreakdownAdmin,
   auditLogsCriticalBreakdownPrefeitura,
   auditLogsCriticalBreakdownUbt,
-  auditLogsFilterOptionsAdmin,
-  auditLogsFilterOptionsPrefeitura,
-  auditLogsFilterOptionsUbt,
   auditLogsHourlyActivityAdmin,
   auditLogsHourlyActivityPrefeitura,
   auditLogsHourlyActivityUbt,
   auditLogsSummaryAdmin,
   auditLogsSummaryPrefeitura,
   auditLogsSummaryUbt,
+  getAuditLogsEntriesForScope,
   type AuditLogEntry,
 } from '../../data/auditLogsMock'
 import type { AuditLogScope, AuditLogTenantColumnMode } from '../../types/auditLogScope'
+import { buildAuditLogsFilterOptions } from './buildAuditLogsFilterOptions'
 
 const PAGE_SIZE = 10
 
 function entriesForScope(scope: AuditLogScope): AuditLogEntry[] {
-  if (scope === 'admin') return auditLogsAllEntries
-  if (scope === 'prefeitura') {
-    return auditLogsAllEntries.filter(
-      (entry) =>
-        entry.platform === 'prefeitura' ||
-        entry.platform === 'ubt' ||
-        entry.platform === 'atendimento',
-    )
-  }
-  return auditLogsAllEntries.filter(
-    (entry) => entry.platform === 'ubt' || entry.platform === 'atendimento',
-  )
+  return getAuditLogsEntriesForScope(scope)
 }
 
 type AuditLogsSummary = {
@@ -77,7 +64,15 @@ type AuditLogsFilterOptions = {
   periods: readonly { value: string; label: string }[]
   prefeituras?: readonly { value: string; label: string }[]
   ubts?: readonly { value: string; label: string }[]
+  ubtsByPrefeitura?: Readonly<Record<string, readonly { value: string; label: string }[]>>
+  platforms?: readonly { value: string; label: string }[]
+  userTypes?: readonly { value: string; label: string }[]
+  units?: readonly { value: string; label: string }[]
+  serverResponses?: readonly { value: string; label: string }[]
+  outcomes?: readonly { value: string; label: string }[]
 }
+
+export type { AuditLogsFilterOptions }
 
 export type AuditLogsDataset = {
   pageOne: AuditLogEntry[]
@@ -130,12 +125,7 @@ export function getAuditLogsDataset(scope: AuditLogScope): AuditLogsDataset {
         ? auditLogsCriticalBreakdownPrefeitura
         : auditLogsCriticalBreakdownUbt
 
-  const filterOptions =
-    scope === 'admin'
-      ? auditLogsFilterOptionsAdmin
-      : scope === 'prefeitura'
-        ? auditLogsFilterOptionsPrefeitura
-        : auditLogsFilterOptionsUbt
+  const filterOptions = buildAuditLogsFilterOptions(scope, scopedEntries)
 
   const exportUnitLabel =
     scope === 'admin'

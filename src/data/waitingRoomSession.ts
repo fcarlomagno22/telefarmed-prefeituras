@@ -1,4 +1,5 @@
 export type WaitingRoomSession = {
+  token: string
   patientName: string
   specialty: string
   unitName: string

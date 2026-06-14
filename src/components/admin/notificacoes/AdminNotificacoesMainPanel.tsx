@@ -5,9 +5,9 @@ import { CustomSelect } from '../../ui/CustomSelect'
 import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
 import { dashboardMainPanelSurfaceClass } from '../../layout/dashboardPageLayout'
 import { AdminNotificacoesDetailModal } from './AdminNotificacoesDetailModal'
+import { AdminBroadcastChannelsCell } from './AdminBroadcastChannelsCell'
 import {
   buildAdminNotificationPriorityBadge,
-  buildAdminTargetChannelBadge,
   formatAdminNotificationDateCompact,
   getBroadcastTargetKinds,
   type AdminBroadcastTargetFilter,
@@ -25,7 +25,8 @@ const targetOptions = [
   { value: 'all', label: 'Destino: Todos' },
   { value: 'prefeitura', label: 'Só prefeituras' },
   { value: 'ubt', label: 'Só UBTs' },
-  { value: 'ambos', label: 'Prefeitura + UBT' },
+  { value: 'medico', label: 'Só profissionais' },
+  { value: 'ambos', label: 'Múltiplos canais' },
 ]
 
 const priorityOptions = [
@@ -187,8 +188,6 @@ export function AdminNotificacoesMainPanel({ broadcasts }: AdminNotificacoesMain
                 </tr>
               ) : (
                 filteredBroadcasts.map((item) => {
-                  const targetKind = getBroadcastTargetKinds(item)
-
                   return (
                     <tr
                       key={item.id}
@@ -218,30 +217,7 @@ export function AdminNotificacoesMainPanel({ broadcasts }: AdminNotificacoesMain
                         </p>
                       </td>
                       <td className={tdClass}>
-                        <div className="flex flex-wrap justify-center gap-1">
-                          {targetKind === 'ambos' ? (
-                            <>
-                              <SituationStatusBadge
-                                config={buildAdminTargetChannelBadge('prefeitura')}
-                                widthClass="w-[4.75rem]"
-                              />
-                              <SituationStatusBadge
-                                config={buildAdminTargetChannelBadge('ubt')}
-                                widthClass="w-[3.5rem]"
-                              />
-                            </>
-                          ) : targetKind === 'prefeitura' ? (
-                            <SituationStatusBadge
-                              config={buildAdminTargetChannelBadge('prefeitura')}
-                              widthClass="w-[5rem]"
-                            />
-                          ) : (
-                            <SituationStatusBadge
-                              config={buildAdminTargetChannelBadge('ubt')}
-                              widthClass="w-[3.5rem]"
-                            />
-                          )}
-                        </div>
+                        <AdminBroadcastChannelsCell broadcast={item} />
                       </td>
                       <td className={tdClass}>
                         <div className="flex justify-center">

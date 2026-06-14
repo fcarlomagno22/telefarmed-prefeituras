@@ -37,6 +37,7 @@ export function adminShiftToProfissionalDisponivel(
     distanceKm: null,
     amountCents: shift.amountCents,
     vacancies: shift.vacancies,
+    repasseRule: shift.repasseRule,
     status: reservedByMe ? 'reservado_mim' : 'disponivel',
     notes: shift.notes,
   }

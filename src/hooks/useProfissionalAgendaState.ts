@@ -1,19 +1,46 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { PROFISSIONAL_LOGGED_DOCTOR_ID } from '../config/profissionalConfig'
-import { getActiveNotices } from '../data/profissionalAgendaNotices'
 import {
   computeShiftStatsFromQueue,
-  ensureProfissionalQueueSeeded,
   enterProfissionalShift,
   getEndedShiftIds,
   getProfissionalQueue,
   readActiveShiftSession,
+  syncAllProfissionalQueuesFromApi,
+  writeActiveShiftSession,
   PROFISSIONAL_QUEUE_UPDATED_EVENT,
 } from '../data/profissionalQueueStore'
-import type { ProfissionalShift } from '../types/profissionalAgenda'
+import { useProfissionalAuth } from '../contexts/ProfissionalAuthContext'
+import {
+  enterProfissionalAgendaPlantao,
+  fetchProfissionalAgendaOverview,
+  isProfissionalAgendaApiError,
+  type ProfissionalAgendaPlantaoApi,
+} from '../lib/services/profissional/agenda'
+import { isBackendApiEnabled } from '../lib/api/config'
+import type { ProfissionalAgendaNotice, ProfissionalShift } from '../types/profissionalAgenda'
 import { addCalendarMonths, CALENDAR_MONTH_LABELS, isSameCalendarMonth, startOfMonth } from '../utils/calendar'
 import { parseDateKey, toDateKey } from '../utils/agendaDate'
-import { getProfissionalShiftsForDoctor } from '../utils/profissional/buildProfissionalShifts'
+import {
+  mapConsultaApiToQueuePatient,
+  mapPlantoesApiToProfissionalShifts,
+} from '../utils/profissional/mapProfissionalAgendaApi'
+import {
+  readPortalPageCache,
+  writePortalPageCache,
+} from '../utils/portal/portalPageCache'
+import { shouldBlockPortalPageWithCache } from '../utils/portal/portalPageLoading'
+
+const AGENDA_CACHE_PREFIX = 'profissional:agenda'
+
+type AgendaOverviewCache = {
+  plantoes: ProfissionalAgendaPlantaoApi[]
+  shiftCountByDate: Record<string, number>
+  notices: ProfissionalAgendaNotice[]
+}
+
+function agendaCacheKey(dateFrom: string, dateTo: string) {
+  return `${AGENDA_CACHE_PREFIX}:${dateFrom}:${dateTo}`
+}
 
 export type ProfissionalAgendaTab = 'dia' | 'fila'
 
@@ -36,19 +63,123 @@ function buildMonthWeekDistribution(
   return weeks
 }
 
+function endOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0)
+}
+
+function addDays(date: Date, days: number): Date {
+  const next = new Date(date)
+  next.setDate(next.getDate() + days)
+  return next
+}
+
+function buildOverviewRange(calendarViewMonth: Date): { dateFrom: string; dateTo: string } {
+  const monthStart = startOfMonth(calendarViewMonth)
+  const monthEnd = endOfMonth(calendarViewMonth)
+  return {
+    dateFrom: toDateKey(addDays(monthStart, -7)),
+    dateTo: toDateKey(addDays(monthEnd, 14)),
+  }
+}
+
+function readAgendaOverviewCache(calendarViewMonth: Date): AgendaOverviewCache | null {
+  const { dateFrom, dateTo } = buildOverviewRange(calendarViewMonth)
+  return readPortalPageCache<AgendaOverviewCache>(agendaCacheKey(dateFrom, dateTo)) ?? null
+}
+
 function enrichShiftStats(shift: ProfissionalShift): ProfissionalShift {
-  ensureProfissionalQueueSeeded(shift)
   const queue = getProfissionalQueue(shift.id)
+  if (queue.length === 0) return shift
   return { ...shift, stats: computeShiftStatsFromQueue(queue) }
 }
 
 export function useProfissionalAgendaState() {
+  const { getAccessToken, isAuthenticated, isBootstrapping } = useProfissionalAuth()
   const [selectedDateKey, setSelectedDateKey] = useState(() => toDateKey(new Date()))
   const [calendarViewMonth, setCalendarViewMonth] = useState(() => startOfMonth(new Date()))
   const [agendaTab, setAgendaTab] = useState<ProfissionalAgendaTab>('dia')
   const [revision, setRevision] = useState(0)
+  const [plantoesApi, setPlantoesApi] = useState<ProfissionalAgendaPlantaoApi[]>(() => {
+    return readAgendaOverviewCache(startOfMonth(new Date()))?.plantoes ?? []
+  })
+  const [shiftCountByDateApi, setShiftCountByDateApi] = useState<Record<string, number>>(() => {
+    return readAgendaOverviewCache(startOfMonth(new Date()))?.shiftCountByDate ?? {}
+  })
+  const [notices, setNotices] = useState<ProfissionalAgendaNotice[]>(() => {
+    return readAgendaOverviewCache(startOfMonth(new Date()))?.notices ?? []
+  })
+  const [isLoading, setIsLoading] = useState(() => {
+    const { dateFrom, dateTo } = buildOverviewRange(startOfMonth(new Date()))
+    return shouldBlockPortalPageWithCache(agendaCacheKey(dateFrom, dateTo))
+  })
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const refresh = useCallback(() => setRevision((value) => value + 1), [])
+
+  const reload = useCallback(async () => {
+    const token = getAccessToken()
+    if (!token) return
+
+    const { dateFrom, dateTo } = buildOverviewRange(calendarViewMonth)
+    const cacheKey = agendaCacheKey(dateFrom, dateTo)
+    const cached = readPortalPageCache<AgendaOverviewCache>(cacheKey)
+
+    if (cached) {
+      setPlantoesApi(cached.plantoes)
+      setShiftCountByDateApi(cached.shiftCountByDate)
+      setNotices(cached.notices)
+    }
+
+    if (shouldBlockPortalPageWithCache(cacheKey)) {
+      setIsLoading(true)
+    }
+    setLoadError(null)
+
+    try {
+      const overview = await fetchProfissionalAgendaOverview(token, { dateFrom, dateTo })
+      setPlantoesApi(overview.plantoes)
+      setShiftCountByDateApi(overview.shiftCountByDate)
+      setNotices(overview.notices ?? [])
+      writePortalPageCache(cacheKey, {
+        plantoes: overview.plantoes,
+        shiftCountByDate: overview.shiftCountByDate,
+        notices: overview.notices ?? [],
+      })
+      syncAllProfissionalQueuesFromApi(
+        overview.consultas.map((consulta) => mapConsultaApiToQueuePatient(consulta)),
+        overview.plantoes.map((plantao) => plantao.shiftId),
+      )
+
+      if (isBackendApiEnabled() && overview.activeSession) {
+        writeActiveShiftSession({
+          shiftId: overview.activeSession.shiftId,
+          plantaoId: overview.activeSession.plantaoId,
+          enteredAt: overview.activeSession.enteredAt,
+          ...(overview.activeSession.endedAt
+            ? { endedAt: overview.activeSession.endedAt, summary: overview.activeSession.summary }
+            : {}),
+        })
+      }
+
+      refresh()
+    } catch (error) {
+      const message = isProfissionalAgendaApiError(error)
+        ? error.message
+        : 'Não foi possível carregar a agenda.'
+      setLoadError(message)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [calendarViewMonth, getAccessToken, refresh])
+
+  useEffect(() => {
+    if (isBootstrapping) return
+    if (!isAuthenticated) {
+      setIsLoading(false)
+      return
+    }
+    void reload()
+  }, [isAuthenticated, isBootstrapping, reload])
 
   useEffect(() => {
     function handleUpdate() {
@@ -63,12 +194,12 @@ export function useProfissionalAgendaState() {
   const endedShiftIds = useMemo(() => getEndedShiftIds(), [revision])
 
   const shifts = useMemo(() => {
-    const base = getProfissionalShiftsForDoctor(PROFISSIONAL_LOGGED_DOCTOR_ID, {
+    const base = mapPlantoesApiToProfissionalShifts(plantoesApi, {
       activeShiftId,
       endedShiftIds,
     })
     return base.map(enrichShiftStats)
-  }, [activeShiftId, endedShiftIds, revision])
+  }, [plantoesApi, activeShiftId, endedShiftIds, revision])
 
   const selectedShifts = useMemo(
     () => shifts.filter((shift) => shift.dateKey === selectedDateKey),
@@ -86,15 +217,15 @@ export function useProfissionalAgendaState() {
     [activeShiftId, shifts],
   )
 
-  const notices = useMemo(() => getActiveNotices(), [])
-
   const shiftCountByDate = useMemo(() => {
-    const map = new Map<string, number>()
+    const map = new Map<string, number>(Object.entries(shiftCountByDateApi))
     for (const shift of shifts) {
-      map.set(shift.dateKey, (map.get(shift.dateKey) ?? 0) + 1)
+      if (!map.has(shift.dateKey)) {
+        map.set(shift.dateKey, (map.get(shift.dateKey) ?? 0) + 1)
+      }
     }
     return map
-  }, [shifts])
+  }, [shiftCountByDateApi, shifts])
 
   const monthShifts = useMemo(
     () => shifts.filter((shift) => isInMonth(shift.dateKey, calendarViewMonth)),
@@ -141,13 +272,35 @@ export function useProfissionalAgendaState() {
     (shiftId: string) => {
       const shift = shifts.find((item) => item.id === shiftId)
       if (!shift) return
-      ensureProfissionalQueueSeeded(shift)
-      enterProfissionalShift(shiftId)
+
+      const token = getAccessToken()
+      if (isBackendApiEnabled() && token) {
+        void enterProfissionalAgendaPlantao(token, shift.plantaoId)
+          .then((session) => {
+            if (session) {
+              writeActiveShiftSession({
+                shiftId: session.shiftId,
+                plantaoId: session.plantaoId,
+                enteredAt: session.enteredAt,
+              })
+            } else {
+              enterProfissionalShift(shiftId, shift.plantaoId)
+            }
+            refresh()
+          })
+          .catch(() => {
+            enterProfissionalShift(shiftId, shift.plantaoId)
+            refresh()
+          })
+      } else {
+        enterProfissionalShift(shiftId, shift.plantaoId)
+        refresh()
+      }
+
       setSelectedDateKey(shift.dateKey)
       setAgendaTab('fila')
-      refresh()
     },
-    [refresh, shifts],
+    [getAccessToken, refresh, shifts],
   )
 
   const selectedDateLabel = useMemo(() => {
@@ -171,6 +324,7 @@ export function useProfissionalAgendaState() {
     setAgendaTab,
     selectedShifts,
     todayShifts,
+    shifts,
     activeShift,
     activeSession,
     notices,
@@ -184,5 +338,8 @@ export function useProfissionalAgendaState() {
     selectedDateLabel,
     handleEnterShift,
     refresh,
+    reload,
+    isLoading,
+    loadError,
   }
 }

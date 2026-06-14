@@ -10,9 +10,12 @@ import {
 } from './contratos.service.js'
 import {
   createExamCategory,
+  createExamCategoriesBulk,
   createExamItem,
+  createExamItemsBulk,
   deleteExamCategory,
   deleteExamItem,
+  deleteExamItemsBulk,
   getConsultaCatalog,
   setExamCategoryStatus,
   setExamItemStatus,
@@ -30,9 +33,12 @@ import {
 import { mapConfiguracoesError } from './errors.js'
 import {
   createContractTypeBodySchema,
+  createExamCategoriesBulkBodySchema,
   createExamCategoryBodySchema,
+  createExamItemsBulkBodySchema,
   createExamItemBodySchema,
   createLegalDocumentBodySchema,
+  deleteExamItemsBulkBodySchema,
   listClinicoQuerySchema,
   listConsultaQuerySchema,
   listContratosQuerySchema,
@@ -52,6 +58,7 @@ import {
 const PUBLIC_CACHE_MAX_AGE_SECONDS = 60
 const PUBLIC_CACHE_STALE_SECONDS = 300
 
+const canView = requireAdminPagePermission('configuracoes', 'visualizar')
 const canEdit = requireAdminPagePermission('configuracoes', 'editar')
 
 function setPublicCatalogCacheHeaders(reply: { header: (name: string, value: string) => void }) {
@@ -136,7 +143,7 @@ export async function registerPublicConfiguracoesRoutes(app: FastifyInstance): P
 }
 
 export async function registerAdminConfiguracoesRoutes(app: FastifyInstance): Promise<void> {
-  app.get('/clinico', async (request, reply) => {
+  app.get('/clinico', { preHandler: [requireAdminAuth, canView] }, async (request, reply) => {
     const parsed = listClinicoQuerySchema.safeParse(request.query)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Parâmetros inválidos.' })
@@ -167,7 +174,7 @@ export async function registerAdminConfiguracoesRoutes(app: FastifyInstance): Pr
     }
   })
 
-  app.get('/contratos', async (request, reply) => {
+  app.get('/contratos', { preHandler: [requireAdminAuth, canView] }, async (request, reply) => {
     const parsed = listContratosQuerySchema.safeParse(request.query)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Parâmetros inválidos.' })
@@ -280,7 +287,7 @@ export async function registerAdminConfiguracoesRoutes(app: FastifyInstance): Pr
     },
   )
 
-  app.get('/consulta', async (request, reply) => {
+  app.get('/consulta', { preHandler: [requireAdminAuth, canView] }, async (request, reply) => {
     const parsed = listConsultaQuerySchema.safeParse(request.query)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Parâmetros inválidos.' })
@@ -295,6 +302,63 @@ export async function registerAdminConfiguracoesRoutes(app: FastifyInstance): Pr
       return reply.status(mapped.statusCode).send(mapped.body)
     }
   })
+
+  app.post(
+    '/consulta/categorias/bulk',
+    { preHandler: [requireAdminAuth, canEdit] },
+    async (request, reply) => {
+      const parsed = createExamCategoriesBulkBodySchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos.' })
+      }
+
+      try {
+        const categories = await createExamCategoriesBulk(parsed.data.items)
+        return reply.status(201).send(categories)
+      } catch (error) {
+        const mapped = mapConfiguracoesError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  )
+
+  app.post(
+    '/consulta/exames/bulk',
+    { preHandler: [requireAdminAuth, canEdit] },
+    async (request, reply) => {
+      const parsed = createExamItemsBulkBodySchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos.' })
+      }
+
+      try {
+        const items = await createExamItemsBulk(parsed.data.items)
+        return reply.status(201).send(items)
+      } catch (error) {
+        const mapped = mapConfiguracoesError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  )
+
+  app.post(
+    '/consulta/exames/bulk-delete',
+    { preHandler: [requireAdminAuth, canEdit] },
+    async (request, reply) => {
+      const parsed = deleteExamItemsBulkBodySchema.safeParse(request.body)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Dados inválidos.' })
+      }
+
+      try {
+        const result = await deleteExamItemsBulk(parsed.data)
+        return reply.send(result)
+      } catch (error) {
+        const mapped = mapConfiguracoesError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  )
 
   app.post(
     '/consulta/categorias',
@@ -468,7 +532,7 @@ export async function registerAdminConfiguracoesRoutes(app: FastifyInstance): Pr
     },
   )
 
-  app.get('/legal', async (request, reply) => {
+  app.get('/legal', { preHandler: [requireAdminAuth, canView] }, async (request, reply) => {
     const parsed = listLegalQuerySchema.safeParse(request.query)
     if (!parsed.success) {
       return reply.status(400).send({ error: 'Parâmetros inválidos.' })

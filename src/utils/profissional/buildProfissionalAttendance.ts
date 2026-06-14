@@ -15,6 +15,7 @@ export function startProfissionalAttendanceFromQueue(
   const attendanceId = generateAttendanceId()
 
   writeWaitingRoomSession({
+    token: attendanceId,
     patientName: patient.patientName,
     specialty: patient.specialty,
     unitName: PROFISSIONAL_SESSION_UNIT_LABEL,
@@ -29,6 +30,7 @@ export function startProfissionalAttendanceFromQueue(
 
   const session = buildAttendanceSessionFromWaitingRoom(
     {
+      token: attendanceId,
       patientName: patient.patientName,
       specialty: patient.specialty,
       unitName: PROFISSIONAL_SESSION_UNIT_LABEL,

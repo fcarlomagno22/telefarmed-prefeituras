@@ -4,14 +4,23 @@ import { brand } from '../config/brand'
 
 export type AdminNotificationPriority = 'normal' | 'important'
 
-export type AdminNotificationTargetChannel = 'prefeitura' | 'ubt'
+export type AdminNotificationTargetChannel = 'prefeitura' | 'ubt' | 'medico'
 
-export type AdminNotificationSelectionMode = 'all' | 'selected'
+export type MedicoAudienceScope =
+  | 'medico_all'
+  | 'medico_plantao'
+  | 'medico_especialidade'
+  | 'medico_users'
+
+export type AdminNotificationSelectionMode = 'all' | 'selected' | 'users'
 
 export type AdminNotificationTargetSnapshot = {
   channel: AdminNotificationTargetChannel
   mode: AdminNotificationSelectionMode
+  audienceScope?: MedicoAudienceScope
+  specialtyFilter?: string
   recipientIds: string[]
+  userIds?: string[]
   recipientLabels: string[]
   count: number
 }

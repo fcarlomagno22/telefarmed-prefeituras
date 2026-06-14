@@ -1,8 +1,7 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Building2,
   CalendarDays,
-  Info,
   Lock,
   MapPin,
   ShieldCheck,
@@ -14,12 +13,17 @@ import {
   getProfissionalConselhoConfig,
 } from '../../../config/profissionalConselhoConfig'
 import type { ProfissionalPerfil } from '../../../types/profissionalPerfil'
+import { parseBirthDateInput } from '../../../utils/calendar'
+import { maskBirthDate, maskCpf } from '../../../utils/masks'
 import { ProfissionalPerfilAssinaturaCard } from './ProfissionalPerfilAssinaturaCard'
 import { ProfissionalPerfilDocumentosCard } from './ProfissionalPerfilDocumentosCard'
 import { ProfissionalPerfilFotoCard } from './ProfissionalPerfilFotoCard'
 import { ProfissionalPerfilCard, ProfissionalPerfilField, ProfissionalPerfilInfoBox } from './ProfissionalPerfilCard'
 import {
   PROFISSIONAL_DESCRIPTION_MAX,
+  buildProfissionalPerfilBankFormState,
+  buildProfissionalPerfilInfoFormState,
+  parseProfissionalConselhoRegistroInput,
   profissionalPerfilBankOptions,
   profissionalPerfilInputClass,
   profissionalPerfilPixKeyTypeLabels,
@@ -31,10 +35,8 @@ import {
 
 type ProfissionalPerfilPageContentProps = {
   profile: ProfissionalPerfil
-}
-
-function formatDate(iso: string) {
-  return new Intl.DateTimeFormat('pt-BR').format(new Date(iso))
+  isSaving?: boolean
+  onSaveProfile?: (payload: Record<string, unknown>) => Promise<ProfissionalPerfil>
 }
 
 function formatAttendances(value: number) {
@@ -50,7 +52,11 @@ const perfilGridClass = [
   '@min-[920px]:gap-y-3',
 ].join(' ')
 
-export function ProfissionalPerfilPageContent({ profile }: ProfissionalPerfilPageContentProps) {
+export function ProfissionalPerfilPageContent({
+  profile,
+  isSaving = false,
+  onSaveProfile,
+}: ProfissionalPerfilPageContentProps) {
   const conselho = getProfissionalConselhoConfig(profile.conselhoClasse)
   const conselhoRegistroDisplay = formatProfissionalConselhoRegistro(
     conselho.conselhoRegionalSigla,
@@ -58,26 +64,151 @@ export function ProfissionalPerfilPageContent({ profile }: ProfissionalPerfilPag
     profile.conselhoUf,
   )
 
-  const [fullName, setFullName] = useState(profile.fullName)
-  const [registro, setRegistro] = useState(`${profile.conselhoRegistro}-${profile.conselhoUf}`)
-  const [specialty, setSpecialty] = useState(profile.specialty)
-  const [rqe, setRqe] = useState(profile.rqe)
-  const [cpf, setCpf] = useState(profile.cpf)
-  const [birthDate, setBirthDate] = useState(formatDate(profile.birthDate))
-  const [description, setDescription] = useState(profile.professionalDescription)
-  const [address, setAddress] = useState(profile.professionalAddress)
+  const [fullName, setFullName] = useState(() => buildProfissionalPerfilInfoFormState(profile).fullName)
+  const [registro, setRegistro] = useState(() => buildProfissionalPerfilInfoFormState(profile).registro)
+  const [specialty, setSpecialty] = useState(() => buildProfissionalPerfilInfoFormState(profile).specialty)
+  const [rqe, setRqe] = useState(() => buildProfissionalPerfilInfoFormState(profile).rqe)
+  const [cpf, setCpf] = useState(() => buildProfissionalPerfilInfoFormState(profile).cpf)
+  const [birthDate, setBirthDate] = useState(() => buildProfissionalPerfilInfoFormState(profile).birthDate)
+  const [description, setDescription] = useState(
+    () => buildProfissionalPerfilInfoFormState(profile).description,
+  )
+  const [address, setAddress] = useState(() => buildProfissionalPerfilInfoFormState(profile).address)
 
-  const { empresa, bankAccount, publicSummary } = profile
-  const [razaoSocial, setRazaoSocial] = useState(empresa.razaoSocial)
-  const [cnpj, setCnpj] = useState(empresa.cnpj)
-  const [bankCode, setBankCode] = useState(bankAccount.bankCode)
-  const [agency, setAgency] = useState(bankAccount.agency)
-  const [account, setAccount] = useState(bankAccount.account)
-  const [pixKeyType, setPixKeyType] = useState(profile.pixKeyType)
-  const [pixKey, setPixKey] = useState(empresa.pixKeys[profile.pixKeyType])
+  const { empresa, publicSummary } = profile
+  const [razaoSocial, setRazaoSocial] = useState(
+    () => buildProfissionalPerfilBankFormState(profile).razaoSocial,
+  )
+  const [cnpj, setCnpj] = useState(() => buildProfissionalPerfilBankFormState(profile).cnpj)
+  const [bankCode, setBankCode] = useState(() => buildProfissionalPerfilBankFormState(profile).bankCode)
+  const [agency, setAgency] = useState(() => buildProfissionalPerfilBankFormState(profile).agency)
+  const [account, setAccount] = useState(() => buildProfissionalPerfilBankFormState(profile).account)
+  const [pixKeyType, setPixKeyType] = useState(
+    () => buildProfissionalPerfilBankFormState(profile).pixKeyType,
+  )
+  const [pixKey, setPixKey] = useState(() => buildProfissionalPerfilBankFormState(profile).pixKey)
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl)
+  const [saveMessage, setSaveMessage] = useState<{
+    text: string
+    variant: 'success' | 'error'
+  } | null>(null)
+
+  const syncInfoFormFromProfile = useCallback(() => {
+    const next = buildProfissionalPerfilInfoFormState(profile)
+    setFullName(next.fullName)
+    setRegistro(next.registro)
+    setSpecialty(next.specialty)
+    setRqe(next.rqe)
+    setCpf(next.cpf)
+    setBirthDate(next.birthDate)
+    setDescription(next.description)
+    setAddress(next.address)
+  }, [profile])
+
+  const syncBankFormFromProfile = useCallback(() => {
+    const next = buildProfissionalPerfilBankFormState(profile)
+    setRazaoSocial(next.razaoSocial)
+    setCnpj(next.cnpj)
+    setBankCode(next.bankCode)
+    setAgency(next.agency)
+    setAccount(next.account)
+    setPixKeyType(next.pixKeyType)
+    setPixKey(next.pixKey)
+  }, [profile])
+
+  const resetInfoForm = useCallback(() => {
+    syncInfoFormFromProfile()
+    setSaveMessage(null)
+  }, [syncInfoFormFromProfile])
+
+  const resetBankForm = useCallback(() => {
+    syncBankFormFromProfile()
+    setSaveMessage(null)
+  }, [syncBankFormFromProfile])
+
+  useEffect(() => {
+    syncInfoFormFromProfile()
+    syncBankFormFromProfile()
+    setAvatarUrl(profile.avatarUrl)
+  }, [profile, syncInfoFormFromProfile, syncBankFormFromProfile])
+
+  async function handleSaveInfo() {
+    if (!onSaveProfile) return
+    setSaveMessage(null)
+
+    const birthDateIso = parseBirthDateInput(birthDate)
+    if (birthDate.trim() && !birthDateIso) {
+      setSaveMessage({ text: 'Data de nascimento inválida.', variant: 'error' })
+      return
+    }
+
+    const conselhoParsed = parseProfissionalConselhoRegistroInput(registro)
+    if (registro.trim() && (!conselhoParsed.conselhoRegistro || !conselhoParsed.conselhoUf)) {
+      setSaveMessage({
+        text: 'Informe o registro no formato número-UF (ex.: 123456-SP).',
+        variant: 'error',
+      })
+      return
+    }
+
+    try {
+      await onSaveProfile({
+        fullName,
+        phone: profile.phone,
+        specialty,
+        rqe,
+        bio: description,
+        professionalDescription: description,
+        professionalAddress: address,
+        cpf,
+        ...(birthDateIso ? { birthDate: birthDateIso } : {}),
+        ...(conselhoParsed.conselhoRegistro
+          ? {
+              conselhoRegistro: conselhoParsed.conselhoRegistro,
+              conselhoUf: conselhoParsed.conselhoUf,
+            }
+          : {}),
+      })
+      setSaveMessage({ text: 'Alterações salvas com sucesso.', variant: 'success' })
+    } catch {
+      setSaveMessage({ text: 'Não foi possível salvar as alterações.', variant: 'error' })
+    }
+  }
+
+  async function handleSaveBank() {
+    if (!onSaveProfile) return
+    setSaveMessage(null)
+    try {
+      await onSaveProfile({
+        razaoSocial,
+        cnpj,
+        bankCode,
+        agency,
+        account,
+        accountType: 'corrente',
+        pixKeyType,
+        pixKey,
+      })
+      setSaveMessage({ text: 'Dados bancários atualizados.', variant: 'success' })
+    } catch {
+      setSaveMessage({ text: 'Não foi possível salvar os dados bancários.', variant: 'error' })
+    }
+  }
 
   return (
+    <>
+      {saveMessage ? (
+        <p
+          className={[
+            'mb-4 rounded-xl border px-3 py-2 text-sm',
+            saveMessage.variant === 'success'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+              : 'border-red-200 bg-red-50 text-red-700',
+          ].join(' ')}
+        >
+          {saveMessage.text}
+        </p>
+      ) : null}
     <div className={perfilGridClass}>
       {/* Col 1 — Informações */}
       <ProfissionalPerfilCard
@@ -102,6 +233,7 @@ export function ProfissionalPerfilPageContent({ profile }: ProfissionalPerfilPag
               type="text"
               value={registro}
               onChange={(e) => setRegistro(e.target.value)}
+              placeholder="123456-SP"
               className={profissionalPerfilInputClass}
             />
           </ProfissionalPerfilField>
@@ -122,7 +254,7 @@ export function ProfissionalPerfilPageContent({ profile }: ProfissionalPerfilPag
             <input
               type="text"
               value={cpf}
-              onChange={(e) => setCpf(e.target.value)}
+              onChange={(e) => setCpf(maskCpf(e.target.value))}
               className={profissionalPerfilInputClass}
             />
           </ProfissionalPerfilField>
@@ -131,7 +263,8 @@ export function ProfissionalPerfilPageContent({ profile }: ProfissionalPerfilPag
               <input
                 type="text"
                 value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
+                onChange={(e) => setBirthDate(maskBirthDate(e.target.value))}
+                placeholder="dd/mm/aaaa"
                 className={profissionalPerfilInputClass}
               />
               <CalendarDays
@@ -184,12 +317,18 @@ export function ProfissionalPerfilPageContent({ profile }: ProfissionalPerfilPag
         <div className="flex justify-end gap-2 pt-1">
           <button
             type="button"
+            onClick={resetInfoForm}
             className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
           >
             Cancelar
           </button>
-          <button type="button" className="btn-brand-gradient rounded-lg px-4 py-2 text-sm font-semibold">
-            Salvar alterações
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={() => void handleSaveInfo()}
+            className="btn-brand-gradient rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-70"
+          >
+            {isSaving ? 'Salvando…' : 'Salvar alterações'}
           </button>
         </div>
       </ProfissionalPerfilCard>
@@ -206,7 +345,19 @@ export function ProfissionalPerfilPageContent({ profile }: ProfissionalPerfilPag
 
       {/* Col 3 — Sidebar */}
       <div className="flex flex-col gap-4 @min-[920px]:col-start-3 @min-[920px]:row-span-2 @min-[920px]:row-start-1">
-        <ProfissionalPerfilFotoCard avatarUrl={avatarUrl} onAvatarUrlChange={setAvatarUrl} />
+        <ProfissionalPerfilFotoCard
+          avatarUrl={avatarUrl}
+          onAvatarUrlChange={setAvatarUrl}
+          onSaveFoto={
+            onSaveProfile
+              ? async (previewDataUrl) => {
+                  const updated = await onSaveProfile({ fotoDataUrl: previewDataUrl })
+                  setAvatarUrl(updated.avatarUrl)
+                  return updated.avatarUrl
+                }
+              : undefined
+          }
+        />
 
         <ProfissionalPerfilDocumentosCard profile={profile} />
 
@@ -346,7 +497,26 @@ export function ProfissionalPerfilPageContent({ profile }: ProfissionalPerfilPag
           Seus dados bancários são criptografados e utilizados exclusivamente para repasses financeiros
           conforme os padrões de segurança da plataforma.
         </ProfissionalPerfilInfoBox>
+
+        <div className="flex justify-end gap-2 pt-1">
+          <button
+            type="button"
+            onClick={resetBankForm}
+            className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={() => void handleSaveBank()}
+            className="btn-brand-gradient rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-70"
+          >
+            {isSaving ? 'Salvando…' : 'Salvar dados bancários'}
+          </button>
+        </div>
       </ProfissionalPerfilCard>
     </div>
+    </>
   )
 }

@@ -9,6 +9,7 @@ export type AdminPortalPageId =
   | 'clientes'
   | 'monitor'
   | 'pessoas'
+  | 'profissionais'
   | 'gestaoEscala'
   | 'financeiro'
   | 'notificacoes'
@@ -46,8 +47,14 @@ export const adminPortalPages: AdminPortalPageDefinition[] = [
   {
     id: 'pessoas',
     label: 'Pessoas',
-    description: 'Pacientes, médicos e operadores',
-    route: '/admin/pessoas',
+    description: 'Pacientes e operadores UBT',
+    route: '/admin/pacientes',
+  },
+  {
+    id: 'profissionais',
+    label: 'Profissionais',
+    description: 'Candidaturas e profissionais ativos',
+    route: '/admin/profissionais',
   },
   {
     id: 'gestaoEscala',
@@ -159,6 +166,7 @@ export function buildAdminInternoPagePermissions(
     const editorPages: AdminPortalPageId[] = [
       'clientes',
       'pessoas',
+      'profissionais',
       'gestaoEscala',
       'notificacoes',
       'suporte',
@@ -184,6 +192,7 @@ export function buildAdminInternoPagePermissions(
     empty[pageId] = [...operatorActions]
   }
   empty.pessoas = [...viewOnly]
+  empty.profissionais = [...viewOnly]
   empty.gestaoEscala = [...viewOnly]
   empty.financeiro = [...viewOnly]
   empty.auditoria = [...viewOnly]

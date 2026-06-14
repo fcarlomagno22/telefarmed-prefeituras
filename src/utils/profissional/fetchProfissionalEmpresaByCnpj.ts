@@ -1,3 +1,5 @@
+import { isBackendApiEnabled } from '../../lib/api/config'
+import { apiConsultarProfissionalCnpj } from '../../lib/api/profissional/cadastro'
 import type { ProfissionalFinalizarCadastroEmpresaData } from '../../types/profissionalFinalizarCadastro'
 import {
   CnpjReceitaFederalLookupError,
@@ -11,14 +13,21 @@ export class ProfissionalEmpresaLookupError extends Error {
   }
 }
 
-/** Consulta dados cadastrais da empresa pelo CNPJ na base da Receita Federal (BrasilAPI). */
+/** Consulta dados cadastrais da empresa pelo CNPJ (backend com cache ou BrasilAPI em mock). */
 export async function fetchProfissionalEmpresaByCnpj(
   cnpj: string,
 ): Promise<ProfissionalFinalizarCadastroEmpresaData> {
   try {
+    if (isBackendApiEnabled()) {
+      return await apiConsultarProfissionalCnpj(cnpj)
+    }
+
     return await fetchEmpresaDataByCnpjReceitaFederal(cnpj)
   } catch (error) {
     if (error instanceof CnpjReceitaFederalLookupError) {
+      throw new ProfissionalEmpresaLookupError(error.message)
+    }
+    if (error instanceof Error && error.name === 'ProfissionalCadastroApiError') {
       throw new ProfissionalEmpresaLookupError(error.message)
     }
     throw new ProfissionalEmpresaLookupError(

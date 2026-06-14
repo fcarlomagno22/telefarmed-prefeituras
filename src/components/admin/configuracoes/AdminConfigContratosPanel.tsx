@@ -1,15 +1,15 @@
 import { Plus } from 'lucide-react'
 import { useCallback, useState } from 'react'
-import { AdminAuthApiError, verifyAdminAuthorizationPin } from '../../../lib/api/adminAuthApi'
+import { AdminAuthApiError, verifyAdminAuthorizationPin } from '../../../lib/services/admin/auth'
 import { isPresetContractTypeId } from '../../../types/adminConfiguracoes'
-import type { ConfigContractType } from '../../../types/adminConfiguracoes'
+import type { ConfigCommercialRules, ConfigContractType } from '../../../types/adminConfiguracoes'
 import { ConfigCatalogStatusBadge } from './ConfigCatalogStatusBadge'
+import { AdminConfigCommercialRulesPanel } from './AdminConfigCommercialRulesPanel'
 import {
   configCatalogTableClass,
   configCatalogTableHeadClass,
   configCatalogTableScrollClass,
   configCatalogTableShellClass,
-  configPanelBodyClass,
   configPanelSectionClass,
 } from './adminConfiguracoesUi'
 import { AdminConfigCatalogActionsMenu } from './AdminConfigCatalogActionsMenu'
@@ -21,10 +21,12 @@ import { AdminConfigContractTypeFormModal } from './AdminConfigContractTypeFormM
 
 type AdminConfigContratosPanelProps = {
   contractTypes: ConfigContractType[]
+  commercialRules: ConfigCommercialRules
   onCreateContractType: (value: ConfigContractType) => Promise<void>
   onUpdateContractType: (value: ConfigContractType) => Promise<void>
   onDeleteContractType: (id: string) => Promise<void>
   onSetContractTypeStatus: (id: string, active: boolean) => Promise<void>
+  onSaveCommercialRules: (value: ConfigCommercialRules) => Promise<void>
   getAccessToken?: () => string | null
   onNotify?: (message: string, variant?: 'success' | 'error') => void
 }
@@ -56,10 +58,12 @@ function truncateDescription(text: string, maxLength = 120) {
 
 export function AdminConfigContratosPanel({
   contractTypes,
+  commercialRules,
   onCreateContractType,
   onUpdateContractType,
   onDeleteContractType,
   onSetContractTypeStatus,
+  onSaveCommercialRules,
   getAccessToken,
   onNotify,
 }: AdminConfigContratosPanelProps) {
@@ -157,8 +161,8 @@ export function AdminConfigContratosPanel({
 
   return (
     <>
-      <div className={configPanelBodyClass}>
-        <section className={configPanelSectionClass}>
+      <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-4 sm:p-6">
+        <section className={`${configPanelSectionClass} min-h-0 flex-1`}>
           <div className="flex shrink-0 flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="text-base font-bold text-gray-900">Tipos de contrato</h2>
@@ -231,6 +235,13 @@ export function AdminConfigContratosPanel({
             </div>
           )}
         </section>
+
+        <AdminConfigCommercialRulesPanel
+          commercialRules={commercialRules}
+          onSaveCommercialRules={onSaveCommercialRules}
+          getAccessToken={getAccessToken}
+          onNotify={onNotify}
+        />
       </div>
 
       <AdminConfigContractTypeFormModal

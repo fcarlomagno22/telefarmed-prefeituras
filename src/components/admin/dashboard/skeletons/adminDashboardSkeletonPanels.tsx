@@ -6,7 +6,7 @@ import {
   adminDashboardTopRowDashCardClass,
 } from '../adminDashboardUi'
 
-const KPI_GRID_CLASS = 'grid h-full min-h-0 grid-cols-3 grid-rows-2 gap-3'
+const KPI_GRID_CLASS = 'grid w-full min-w-0 grid-cols-6 gap-2 sm:gap-3'
 const NOC_SKELETON_ROWS = 5
 const MUNICIPALITY_TABLE_ROWS = 6
 
@@ -185,6 +185,20 @@ export function AdminPlatformPackagePanelSkeleton({ className = '' }: { classNam
           </p>
         </div>
       </div>
+    </AdminDashboardDashCardSkeleton>
+  )
+}
+
+export function AdminHourlyChartPanelSkeleton({ className = '' }: { className?: string }) {
+  return (
+    <AdminDashboardDashCardSkeleton
+      title="Consultas por hora"
+      subtitle="Volume agregado da plataforma no recorte"
+      fillHeight
+      className={className}
+      bodyClassName={[adminDashboardHourlyBodyClass, 'px-2 pb-2 pt-0.5'].join(' ')}
+    >
+      <Skeleton className="h-full min-h-[6rem] w-full rounded-lg" />
     </AdminDashboardDashCardSkeleton>
   )
 }
@@ -439,16 +453,6 @@ export function AdminDashboardHeaderSkeleton() {
         <Skeleton className="h-3 w-40" />
         <Skeleton className="mt-1 h-7 w-full max-w-2xl sm:h-8" />
         <Skeleton className="mt-1 h-4 w-full max-w-2xl" />
-      </div>
-      <div className="relative shrink-0">
-        <div className="inline-flex items-center justify-end gap-1 rounded-md px-1 py-0.5">
-          <Skeleton className="h-2.5 w-28" />
-          <span className="text-[10px] text-gray-300" aria-hidden>
-            ·
-          </span>
-          <Skeleton className="h-2.5 w-[4.5rem]" />
-          <Skeleton className="ml-0.5 h-3 w-3 shrink-0 rounded" />
-        </div>
       </div>
     </header>
   )

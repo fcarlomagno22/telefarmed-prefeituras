@@ -1,7 +1,4 @@
-import {
-  auditLogPrefeituraFilterOptions,
-  auditLogUbtFilterOptions,
-} from '../../data/auditLogsMock'
+import type { AuditLogsFilterOptions } from './getAuditLogsDataset'
 
 export type AuditFilterOption = { value: string; label: string }
 
@@ -15,67 +12,62 @@ export const auditLogSelectPrefeituraUbtOption: AuditFilterOption = {
   label: 'Todas as UBTs da prefeitura',
 }
 
-/** UBTs vinculadas a cada prefeitura (mock alinhado aos clientes do admin). */
-export const auditLogUbtsByPrefeitura: Record<string, readonly AuditFilterOption[]> = {
-  brasilia: [
-    { value: 'ubt-centro-historico', label: 'UBT Centro Histórico' },
-    { value: 'ubt-norte-i', label: 'UBT Norte I' },
-    { value: 'ubt-taguatinga', label: 'UBT Taguatinga' },
-  ],
-  campinas: [{ value: 'ubt-sul', label: 'UBT Sul' }],
-  sorocaba: [],
-}
-
-/** Prefeitura do portal municipal em uso (mock). */
-export const auditLogPrefeituraPortalKey = 'brasilia'
-
 export function labelForAuditFilterKey(
-  options: readonly AuditFilterOption[],
+  options: readonly AuditFilterOption[] | undefined,
   key: string,
 ) {
-  if (!key) return null
+  if (!key || !options) return null
   return options.find((item) => item.value === key)?.label ?? null
 }
 
-export function getAuditUbtFilterOptions(prefeituraKey: string): AuditFilterOption[] {
+export function getAuditUbtFilterOptions(
+  prefeituraKey: string,
+  filterOptions: Pick<AuditLogsFilterOptions, 'ubts' | 'ubtsByPrefeitura'>,
+): AuditFilterOption[] {
   if (!prefeituraKey) {
-    return [auditLogAllUbtsOption, ...auditLogUbtFilterOptions.filter((item) => item.value !== '')]
+    const all = filterOptions.ubts?.filter((item) => item.value !== '') ?? []
+    return [auditLogAllUbtsOption, ...all]
   }
 
-  const scoped = auditLogUbtsByPrefeitura[prefeituraKey] ?? []
+  const scoped = filterOptions.ubtsByPrefeitura?.[prefeituraKey] ?? []
   return [auditLogSelectPrefeituraUbtOption, ...scoped]
 }
 
-export function isAuditUbtAllowedForPrefeitura(prefeituraKey: string, ubtKey: string) {
+export function isAuditUbtAllowedForPrefeitura(
+  prefeituraKey: string,
+  ubtKey: string,
+  filterOptions: Pick<AuditLogsFilterOptions, 'ubts' | 'ubtsByPrefeitura'>,
+) {
   if (!ubtKey) return true
   if (!prefeituraKey) {
-    return auditLogUbtFilterOptions.some((item) => item.value === ubtKey)
+    return filterOptions.ubts?.some((item) => item.value === ubtKey) ?? false
   }
-  return (auditLogUbtsByPrefeitura[prefeituraKey] ?? []).some((item) => item.value === ubtKey)
-}
-
-export function resolveAuditPrefeituraFilter(prefeituraKey: string) {
-  return labelForAuditFilterKey(
-    auditLogPrefeituraFilterOptions.filter((item) => item.value !== ''),
-    prefeituraKey,
+  return (filterOptions.ubtsByPrefeitura?.[prefeituraKey] ?? []).some(
+    (item) => item.value === ubtKey,
   )
 }
 
-export function resolveAuditUbtFilter(ubtKey: string) {
-  return labelForAuditFilterKey(
-    auditLogUbtFilterOptions.filter((item) => item.value !== ''),
-    ubtKey,
-  )
+export function resolveAuditPrefeituraFilter(
+  prefeituraKey: string,
+  prefeituras?: readonly AuditFilterOption[],
+) {
+  return labelForAuditFilterKey(prefeituras, prefeituraKey)
 }
 
-/** Ao trocar a prefeitura, limpa UBT se não pertencer ao novo município. Sem prefeitura, UBT fica vazio. */
+export function resolveAuditUbtFilter(ubtKey: string, ubts?: readonly AuditFilterOption[]) {
+  return labelForAuditFilterKey(ubts, ubtKey)
+}
+
 export function patchAuditPrefeituraFilter(
   prefeituraKey: string,
   currentUbtKey: string,
+  filterOptions: Pick<AuditLogsFilterOptions, 'ubts' | 'ubtsByPrefeitura'>,
 ): { prefeitura: string; ubt: string } {
   if (!prefeituraKey) {
     return { prefeitura: '', ubt: '' }
   }
-  const ubt = isAuditUbtAllowedForPrefeitura(prefeituraKey, currentUbtKey) ? currentUbtKey : ''
+  const ubt = isAuditUbtAllowedForPrefeitura(prefeituraKey, currentUbtKey, filterOptions)
+    ? currentUbtKey
+    : ''
   return { prefeitura: prefeituraKey, ubt }
 }

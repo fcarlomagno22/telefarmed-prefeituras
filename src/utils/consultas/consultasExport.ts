@@ -5,6 +5,7 @@ import {
   type ConsultationStatus,
 } from '../../data/consultasMock'
 import type { ConsultasFilters } from '../consultasFilters'
+import { consultaDateTimeCaption } from '../consultasDateTimeLabel'
 import { formatDatePtBr } from '../calendar'
 import { downloadWindowAsPdf, pdfFilenameFromLabel } from '../htmlDocumentToPdf'
 import { maskCpfForDisplay } from '../lgpdDisplay'
@@ -207,7 +208,7 @@ function buildConsultasReportHtml(context: ConsultasExportContext) {
 
       return `
         <tr>
-          <td>${escapeHtml(record.date)}<br><span style="color:#6b7280;font-size:10px">${escapeHtml(record.time)}</span></td>
+          <td>${escapeHtml(consultaDateTimeCaption(record.status))}<br>${escapeHtml(record.date)}<br><span style="color:#6b7280;font-size:10px">${escapeHtml(record.time)}</span></td>
           <td>
             <div class="patient-name">${escapeHtml(record.patientName)}</div>
             <div class="${cpfClass}">${escapeHtml(cpf)}</div>
@@ -350,6 +351,7 @@ function csvCell(value: string | number) {
 
 export function exportConsultasExcel(context: ConsultasExportContext) {
   const header = [
+    'Referência',
     'Data',
     'Hora',
     'Paciente',
@@ -365,6 +367,7 @@ export function exportConsultasExcel(context: ConsultasExportContext) {
   ]
 
   const rows = context.records.map((record) => [
+    consultaDateTimeCaption(record.status),
     record.date,
     record.time,
     record.patientName,

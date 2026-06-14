@@ -1,14 +1,19 @@
 import type { MedicoCadastroFormation } from '../config/medicoCadastroForm'
 
+export type MedicoCadastroMedicalSpecialty = {
+  id: string
+  specialty: string
+  rqe: string
+}
+
 export type MedicoCadastroFormValues = {
   fullName: string
   cpf: string
   birthDate: string
   formation: MedicoCadastroFormation | ''
-  specialty: string
+  medicalSpecialties: MedicoCadastroMedicalSpecialty[]
   crm: string
   uf: string
-  rqe: string
   email: string
   phone: string
   zipCode: string
@@ -24,5 +29,8 @@ export type MedicoCadastroFormValues = {
 export type MedicoCadastroDocumentUploads = Record<string, File | null>
 
 export type MedicoCadastroFormErrors = Partial<
-  Record<keyof MedicoCadastroFormValues | `document:${string}`, string>
+  Record<
+    keyof MedicoCadastroFormValues | `document:${string}` | `medicalSpecialty:${string}`,
+    string
+  >
 >

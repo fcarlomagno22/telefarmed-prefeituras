@@ -191,7 +191,7 @@ export function AdminProfessionalAddressStep({
             />
           </label>
 
-          <div className="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1.15fr)_4.25rem]">
+          <div className="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1.15fr)_minmax(5.5rem,6rem)]">
             <AttendanceFieldHighlight highlight={highlight('neighborhood')} className="block min-w-0">
               <label className="block min-w-0">
                 <span className="mb-1.5 block text-xs font-medium text-gray-700">Bairro</span>
@@ -229,7 +229,9 @@ export function AdminProfessionalAddressStep({
                     ...brazilianStates.map((uf) => ({ value: uf, label: uf })),
                   ]}
                   placeholder="UF"
-                  className="py-2.5 px-2 text-center text-sm"
+                  size="compact"
+                  menuMinWidthPx={72}
+                  className="px-3 text-center text-sm"
                 />
               </label>
             </AttendanceFieldHighlight>

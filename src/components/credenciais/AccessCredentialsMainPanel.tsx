@@ -1,42 +1,47 @@
+import { RotateCcw, Search } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import type { AccessCredentialUser } from '../../data/accessCredentialsMock'
+import type { UbtCredentialsListFilters } from '../../hooks/useUbtAccessCredentialsPage'
 import { Toast } from '../ui/Toast'
+import { CustomSelect } from '../ui/CustomSelect'
 import { AccessCredentialActionsPopover } from './AccessCredentialActionsPopover'
 import { AccessLevelBadge, CredentialStatusBadge } from './accessCredentialBadges'
-import {
-  prefeituraCredentialsUbtOptions,
-  transferAccessCredentialToUbt,
-} from '../../data/prefeituraAccessCredentialsMock'
-import {
-  CredentialActionPinModal,
-  type CredentialPinAction,
-} from './CredentialActionPinModal'
-import { TransferCredentialUbtModal } from './TransferCredentialUbtModal'
-import type { useAccessCredentialUserDrawer } from '../../hooks/useAccessCredentialUserDrawer'
-
-type PendingCredentialAction = {
-  type: CredentialPinAction
-  user: AccessCredentialUser
-  transferTargetUbtId?: string
-  transferTargetUbtName?: string
-}
+import type { useAdminOperatorUserDrawer } from '../../hooks/useAdminOperatorUserDrawer'
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
 }
 
 export type AccessCredentialsMainPanelProps = {
+  users: AccessCredentialUser[]
+  canEdit: boolean
+  canDelete: boolean
+  filters?: UbtCredentialsListFilters
+  onFiltersChange?: (filters: UbtCredentialsListFilters) => void
+  profileOptions?: Array<{ value: string; label: string }>
   userDrawer: Pick<
-    ReturnType<typeof useAccessCredentialUserDrawer>,
-    'openEdit' | 'openView' | 'users' | 'setUsers'
+    ReturnType<typeof useAdminOperatorUserDrawer>,
+    'openView' | 'requestPinAction'
   >
 }
 
-export function AccessCredentialsMainPanel({ userDrawer }: AccessCredentialsMainPanelProps) {
-  const { openEdit, openView, users, setUsers } = userDrawer
+const statusFilterOptions = [
+  { value: '', label: 'Todos os status' },
+  { value: 'ativo', label: 'Ativos' },
+  { value: 'inativo', label: 'Inativos' },
+]
+
+export function AccessCredentialsMainPanel({
+  users,
+  canEdit,
+  canDelete,
+  filters,
+  onFiltersChange,
+  profileOptions = [{ value: '', label: 'Todas as funções' }],
+  userDrawer,
+}: AccessCredentialsMainPanelProps) {
+  const { openView, requestPinAction } = userDrawer
   const [menuUserId, setMenuUserId] = useState<string | null>(null)
-  const [transferUser, setTransferUser] = useState<AccessCredentialUser | null>(null)
-  const [pendingAction, setPendingAction] = useState<PendingCredentialAction | null>(null)
   const [toast, setToast] = useState<{ message: string } | null>(null)
 
   const showSuccessToast = useCallback((message: string) => {
@@ -55,77 +60,22 @@ export function AccessCredentialsMainPanel({ userDrawer }: AccessCredentialsMain
       return
     }
     closeMenu()
-    setPendingAction({ type: 'deactivate', user })
+    requestPinAction('deactivate', user as Parameters<typeof requestPinAction>[1])
+  }
+
+  function requestReactivateUser(user: AccessCredentialUser) {
+    closeMenu()
+    requestPinAction('reactivate', user as Parameters<typeof requestPinAction>[1])
   }
 
   function requestEditUser(user: AccessCredentialUser) {
     closeMenu()
-    setPendingAction({ type: 'edit', user })
+    requestPinAction('edit', user as Parameters<typeof requestPinAction>[1])
   }
 
   function requestDeleteUser(user: AccessCredentialUser) {
     closeMenu()
-    setPendingAction({ type: 'delete', user })
-  }
-
-  function requestTransferUbt(user: AccessCredentialUser) {
-    closeMenu()
-    setTransferUser(user)
-  }
-
-  function confirmTransferUbt(targetUbtId: string, targetUbtName: string) {
-    if (!transferUser) return
-    const user = transferUser
-    setTransferUser(null)
-    setPendingAction({
-      type: 'transfer_ubt',
-      user,
-      transferTargetUbtId: targetUbtId,
-      transferTargetUbtName: targetUbtName,
-    })
-  }
-
-  function executePendingAction() {
-    if (!pendingAction) return
-
-    const { type, user } = pendingAction
-
-    if (type === 'edit') {
-      openEdit(user)
-      setPendingAction(null)
-      return
-    }
-
-    if (type === 'transfer_ubt' && pendingAction.transferTargetUbtId) {
-      try {
-        const transferred = transferAccessCredentialToUbt(
-          user,
-          pendingAction.transferTargetUbtId,
-        )
-        setUsers((prev) =>
-          prev.map((item) => (item.id === user.id ? transferred : item)),
-        )
-        showSuccessToast(
-          `Usuário transferido para ${pendingAction.transferTargetUbtName ?? transferred.ubtName}.`,
-        )
-      } catch {
-        showSuccessToast('UBT de destino inválida.')
-      }
-      setPendingAction(null)
-      return
-    }
-
-    if (type === 'deactivate') {
-      setUsers((prev) =>
-        prev.map((item) => (item.id === user.id ? { ...item, status: 'inativo' } : item)),
-      )
-      showSuccessToast('Usuário bloqueado com sucesso.')
-    } else {
-      setUsers((prev) => prev.filter((item) => item.id !== user.id))
-      showSuccessToast('Usuário excluído com sucesso.')
-    }
-
-    setPendingAction(null)
+    requestPinAction('delete', user as Parameters<typeof requestPinAction>[1])
   }
 
   const sortedUsers = useMemo(
@@ -133,10 +83,75 @@ export function AccessCredentialsMainPanel({ userDrawer }: AccessCredentialsMain
     [users],
   )
 
+  function canEditUser(user: AccessCredentialUser) {
+    return canEdit && !user.isUbtResponsible
+  }
+
+  function canDeleteUser(user: AccessCredentialUser) {
+    return canDelete && !user.isUbtResponsible
+  }
+
+  const hasActiveFilters = Boolean(
+    filters && (filters.search.trim() || filters.profile || filters.status),
+  )
+
   return (
     <>
       <section className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          {filters && onFiltersChange ? (
+            <div className="flex shrink-0 flex-wrap items-center gap-3 border-b border-gray-200 px-5 py-4 sm:px-6">
+              <label className="relative min-w-0 flex-1 sm:max-w-md">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="search"
+                  value={filters.search}
+                  onChange={(e) =>
+                    onFiltersChange({ ...filters, search: e.target.value })
+                  }
+                  placeholder="Buscar por nome, e-mail, função ou CPF..."
+                  className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15"
+                />
+              </label>
+
+              <CustomSelect
+                value={filters.profile}
+                onChange={(value) => onFiltersChange({ ...filters, profile: value })}
+                options={profileOptions}
+                className="w-full py-2 text-sm sm:w-52"
+              />
+
+              <CustomSelect
+                value={filters.status}
+                onChange={(value) =>
+                  onFiltersChange({
+                    ...filters,
+                    status: value as UbtCredentialsListFilters['status'],
+                  })
+                }
+                options={statusFilterOptions}
+                className="w-full py-2 text-sm sm:w-44"
+              />
+
+              {hasActiveFilters ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    onFiltersChange({
+                      search: '',
+                      profile: '',
+                      status: '',
+                    })
+                  }
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-primary)] transition hover:underline"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Limpar filtros
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
           <div className="min-h-0 flex-1 overflow-auto">
             <table className="w-full table-fixed border-collapse text-left">
               <colgroup>
@@ -159,14 +174,19 @@ export function AccessCredentialsMainPanel({ userDrawer }: AccessCredentialsMain
                 {sortedUsers.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-5 py-16 text-center text-sm text-gray-500 sm:px-6">
-                      Nenhum usuário cadastrado. Clique em &quot;Novo usuário&quot; para começar.
+                      {hasActiveFilters
+                        ? 'Nenhum usuário encontrado com os filtros atuais.'
+                        : 'Nenhum usuário cadastrado. Clique em "Novo usuário" para começar.'}
                     </td>
                   </tr>
                 ) : null}
                 {sortedUsers.map((user) => (
                   <tr
                     key={user.id}
-                    className="align-middle text-sm text-gray-700 hover:bg-gray-50/80"
+                    className={[
+                      'align-middle text-sm text-gray-700 hover:bg-gray-50/80',
+                      user.isUbtResponsible ? 'bg-amber-50/60' : '',
+                    ].join(' ')}
                   >
                     <td className="px-5 py-4 sm:px-6">
                       <div className="flex items-center gap-3">
@@ -185,7 +205,14 @@ export function AccessCredentialsMainPanel({ userDrawer }: AccessCredentialsMain
                           </span>
                         )}
                         <span className="min-w-0">
-                          <span className="block font-semibold text-gray-900">{user.name}</span>
+                          <span className="flex flex-wrap items-center gap-2">
+                            <span className="block font-semibold text-gray-900">{user.name}</span>
+                            {user.isUbtResponsible ? (
+                              <span className="rounded-md border border-amber-200 bg-amber-100/80 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800">
+                                Responsável UBT
+                              </span>
+                            ) : null}
+                          </span>
                           <span className="mt-0.5 block truncate text-xs text-gray-500">
                             {user.email}
                           </span>
@@ -215,12 +242,16 @@ export function AccessCredentialsMainPanel({ userDrawer }: AccessCredentialsMain
                         onClose={closeMenu}
                         onView={() => {
                           closeMenu()
-                          openView(user)
+                          openView(user as Parameters<typeof openView>[0])
                         }}
-                        onEdit={() => requestEditUser(user)}
-                        onTransferUbt={() => requestTransferUbt(user)}
-                        onDeactivate={() => requestDeactivateUser(user)}
-                        onDelete={() => requestDeleteUser(user)}
+                        onEdit={canEditUser(user) ? () => requestEditUser(user) : undefined}
+                        onDeactivate={
+                          canEditUser(user) ? () => requestDeactivateUser(user) : undefined
+                        }
+                        onReactivate={
+                          canEditUser(user) ? () => requestReactivateUser(user) : undefined
+                        }
+                        onDelete={canDeleteUser(user) ? () => requestDeleteUser(user) : undefined}
                       />
                     </td>
                   </tr>
@@ -238,23 +269,6 @@ export function AccessCredentialsMainPanel({ userDrawer }: AccessCredentialsMain
           </footer>
         </div>
       </section>
-
-      <TransferCredentialUbtModal
-        open={transferUser !== null}
-        user={transferUser}
-        ubtOptions={prefeituraCredentialsUbtOptions}
-        onClose={() => setTransferUser(null)}
-        onConfirm={confirmTransferUbt}
-      />
-
-      <CredentialActionPinModal
-        open={pendingAction !== null}
-        action={pendingAction?.type ?? null}
-        userName={pendingAction?.user.name ?? ''}
-        transferTargetUbtName={pendingAction?.transferTargetUbtName}
-        onClose={() => setPendingAction(null)}
-        onSuccess={executePendingAction}
-      />
 
       <Toast message={toast?.message ?? ''} visible={toast !== null} onClose={() => setToast(null)} />
     </>

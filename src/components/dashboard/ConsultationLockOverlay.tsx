@@ -3,7 +3,13 @@ import lottie from 'lottie-web'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { brand } from '../../config/brand'
+import { readWaitingRoomSession } from '../../data/waitingRoomSession'
 import { useConsultationSessionGuard } from '../../hooks/useConsultationSessionGuard'
+import { useUbtAuth } from '../../contexts/UbtAuthContext'
+import {
+  isUbtConsultasApiError,
+  registrarUbtConsultaAvaliacao,
+} from '../../lib/services/ubt/consultas'
 import {
   ConsultationFeedbackPanel,
   type ConsultationFeedback,
@@ -21,7 +27,10 @@ export function ConsultationLockOverlay({
   active,
   onComplete,
 }: ConsultationLockOverlayProps) {
+  const { getAccessToken } = useUbtAuth()
   const [showFeedback, setShowFeedback] = useState(false)
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false)
+  const [feedbackError, setFeedbackError] = useState<string | null>(null)
   const guardActive = active && !showFeedback
   const { showBlockModal, dismissBlockModal } = useConsultationSessionGuard(guardActive)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -33,8 +42,43 @@ export function ConsultationLockOverlay({
   useEffect(() => {
     if (active) {
       setShowFeedback(false)
+      setFeedbackError(null)
     }
   }, [active])
+
+  function finishOverlay() {
+    setShowFeedback(false)
+    setFeedbackError(null)
+    onComplete()
+  }
+
+  async function handleFeedbackSubmit(feedback: ConsultationFeedback) {
+    const accessToken = getAccessToken()
+    const codigo = readWaitingRoomSession()?.token
+    if (!accessToken || !codigo) {
+      setFeedbackError('Sessão de atendimento não encontrada. Tente encerrar novamente.')
+      return
+    }
+
+    setIsSubmittingFeedback(true)
+    setFeedbackError(null)
+    try {
+      await registrarUbtConsultaAvaliacao(
+        accessToken,
+        codigo,
+        feedback.rating,
+        feedback.comment || undefined,
+      )
+      finishOverlay()
+    } catch (error) {
+      const message = isUbtConsultasApiError(error)
+        ? error.message
+        : 'Não foi possível registrar a avaliação.'
+      setFeedbackError(message)
+    } finally {
+      setIsSubmittingFeedback(false)
+    }
+  }
 
   useEffect(() => {
     if (!active || showFeedback || !containerRef.current) return
@@ -75,12 +119,12 @@ export function ConsultationLockOverlay({
 
   function handleRequestEnd() {
     dismissBlockModal()
+    setFeedbackError(null)
     setShowFeedback(true)
   }
 
-  function handleFeedbackDone(_feedback?: ConsultationFeedback) {
-    setShowFeedback(false)
-    onComplete()
+  function handleFeedbackSkip() {
+    finishOverlay()
   }
 
   if (!visible) return null
@@ -98,10 +142,28 @@ export function ConsultationLockOverlay({
 
         <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto py-10">
           {showFeedback ? (
-            <ConsultationFeedbackPanel
-              onSubmit={handleFeedbackDone}
-              onSkip={() => handleFeedbackDone()}
-            />
+            <div className="flex w-full max-w-md flex-col items-center">
+              <ConsultationFeedbackPanel
+                onSubmit={(feedback) => void handleFeedbackSubmit(feedback)}
+                onSkip={handleFeedbackSkip}
+                allowSkip={!isSubmittingFeedback}
+                isSubmitting={isSubmittingFeedback}
+              />
+              {feedbackError ? (
+                <p
+                  role="alert"
+                  className="mt-4 w-full rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700"
+                >
+                  {feedbackError}
+                </p>
+              ) : null}
+              {isSubmittingFeedback ? (
+                <p className="mt-3 flex items-center gap-2 text-sm text-gray-500">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Enviando avaliação…
+                </p>
+              ) : null}
+            </div>
           ) : (
             <div className="flex w-full max-w-md flex-col items-center text-center">
               <div className="relative mx-auto h-[min(280px,38vh)] w-full max-w-[320px]">

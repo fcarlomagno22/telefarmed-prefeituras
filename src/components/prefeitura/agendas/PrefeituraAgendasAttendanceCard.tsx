@@ -1,4 +1,4 @@
-import { prefeituraAgendasAttendanceByUbs } from '../../../data/prefeituraAgendasMock'
+import type { AttendanceRow } from '../../../data/prefeituraAgendasMock'
 import {
   formatAgendasNumber,
   prefeituraAgendasBottomCardHeightClass,
@@ -11,9 +11,11 @@ function absenceBarTone(rate: number) {
   return 'from-emerald-400 to-green-500'
 }
 
-export function PrefeituraAgendasAttendanceCard() {
-  const rows = prefeituraAgendasAttendanceByUbs
+type PrefeituraAgendasAttendanceCardProps = {
+  rows: AttendanceRow[]
+}
 
+export function PrefeituraAgendasAttendanceCard({ rows }: PrefeituraAgendasAttendanceCardProps) {
   return (
     <article
       className={[
@@ -32,55 +34,61 @@ export function PrefeituraAgendasAttendanceCard() {
           prefeituraAgendasScrollClass,
         ].join(' ')}
       >
-        <table className="w-full min-w-0 border-separate border-spacing-0 text-xs">
-          <thead className="sticky top-0 z-20">
-            <tr className="text-[10px] font-bold uppercase tracking-wide text-gray-400 shadow-[0_-1rem_0_0_#ffffff,0_1px_0_0_rgb(243,244,246)]">
-              <th className="border-b border-gray-100 bg-white px-3 py-2 text-center">
-                UNIDADE
-              </th>
-              <th className="border-b border-gray-100 bg-white px-3 py-2 text-center">
-                COMPARECIMENTO
-              </th>
-              <th className="border-b border-gray-100 bg-white px-3 py-2 text-center">
-                FALTAS
-              </th>
-              <th className="border-b border-gray-100 bg-white px-3 py-2 pr-5 text-center">
-                TAXA DE FALTA
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {rows.map((row) => (
-              <tr key={row.id}>
-                <td className="px-3 py-2.5 text-center font-semibold text-gray-800">
-                  {row.label}
-                </td>
-                <td className="px-3 py-2.5 text-center font-bold tabular-nums text-emerald-600">
-                  {formatAgendasNumber(row.attended)}
-                </td>
-                <td className="px-3 py-2.5 text-center font-bold tabular-nums text-red-600">
-                  {formatAgendasNumber(row.absences)}
-                </td>
-                <td className="px-3 py-2.5 pr-5">
-                  <div className="mx-auto flex w-full max-w-[8.75rem] items-center justify-center gap-2.5">
-                    <div className="h-1.5 w-[3.25rem] shrink-0 overflow-hidden rounded-full bg-gray-100">
-                      <div
-                        className={[
-                          'h-full rounded-full bg-gradient-to-r transition-all duration-700',
-                          absenceBarTone(row.absenceRate),
-                        ].join(' ')}
-                        style={{ width: `${Math.min(row.absenceRate, 100)}%` }}
-                      />
-                    </div>
-                    <span className="min-w-[2.25rem] shrink-0 text-center font-semibold tabular-nums text-gray-700">
-                      {row.absenceRate}%
-                    </span>
-                  </div>
-                </td>
+        {rows.length === 0 ? (
+          <p className="px-3 py-10 text-center text-sm text-gray-500">
+            Nenhum dado de comparecimento na semana selecionada.
+          </p>
+        ) : (
+          <table className="w-full min-w-0 border-separate border-spacing-0 text-xs">
+            <thead className="sticky top-0 z-20">
+              <tr className="text-[10px] font-bold uppercase tracking-wide text-gray-400 shadow-[0_-1rem_0_0_#ffffff,0_1px_0_0_rgb(243,244,246)]">
+                <th className="border-b border-gray-100 bg-white px-3 py-2 text-center">
+                  UNIDADE
+                </th>
+                <th className="border-b border-gray-100 bg-white px-3 py-2 text-center">
+                  COMPARECIMENTO
+                </th>
+                <th className="border-b border-gray-100 bg-white px-3 py-2 text-center">
+                  FALTAS
+                </th>
+                <th className="border-b border-gray-100 bg-white px-3 py-2 pr-5 text-center">
+                  TAXA DE FALTA
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  <td className="px-3 py-2.5 text-center font-semibold text-gray-800">
+                    {row.label}
+                  </td>
+                  <td className="px-3 py-2.5 text-center font-bold tabular-nums text-emerald-600">
+                    {formatAgendasNumber(row.attended)}
+                  </td>
+                  <td className="px-3 py-2.5 text-center font-bold tabular-nums text-red-600">
+                    {formatAgendasNumber(row.absences)}
+                  </td>
+                  <td className="px-3 py-2.5 pr-5">
+                    <div className="mx-auto flex w-full max-w-[8.75rem] items-center justify-center gap-2.5">
+                      <div className="h-1.5 w-[3.25rem] shrink-0 overflow-hidden rounded-full bg-gray-100">
+                        <div
+                          className={[
+                            'h-full rounded-full bg-gradient-to-r transition-all duration-700',
+                            absenceBarTone(row.absenceRate),
+                          ].join(' ')}
+                          style={{ width: `${Math.min(row.absenceRate, 100)}%` }}
+                        />
+                      </div>
+                      <span className="min-w-[2.25rem] shrink-0 text-center font-semibold tabular-nums text-gray-700">
+                        {row.absenceRate}%
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </article>
   )

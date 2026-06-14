@@ -12,6 +12,10 @@ const departmentSchema = z.enum([
 ])
 const portalScopeSchema = z.enum(['Prefeitura', 'UBT'])
 
+function isValidCpfDigits(value: string): boolean {
+  return value.replace(/\D/g, '').length === 11
+}
+
 export const listInternosQuerySchema = z.object({
   search: z.string().optional(),
   departmentId: departmentSchema.optional(),
@@ -61,28 +65,54 @@ export const listPortalQuerySchema = z.object({
   status: statusSchema.optional(),
 })
 
-export const createPortalBodySchema = z.object({
-  scope: portalScopeSchema,
-  name: z.string().trim().min(1),
-  email: z.string().trim().email(),
-  cpf: z.string().trim().min(11).optional(),
-  role: z.string().trim().min(1),
-  accessLevel: accessLevelSchema,
-  status: statusSchema.default('ativo'),
-  contractingEntityId: z.string().uuid(),
-  ubtId: z.string().uuid().optional(),
-  isUbtResponsible: z.boolean().optional(),
-  pagePermissions: z.record(z.string(), z.array(z.string())).optional(),
-  password: z.string().min(6),
-  authorizationPin: z
-    .string()
-    .regex(/^\d{6}$/)
-    .optional(),
-})
+export const createPortalBodySchema = z
+  .object({
+    scope: portalScopeSchema,
+    name: z.string().trim().min(1),
+    email: z.string().trim().email(),
+    cpf: z.string().trim().min(11).optional(),
+    role: z.string().trim().min(1),
+    accessLevel: accessLevelSchema,
+    status: statusSchema.default('ativo'),
+    contractingEntityId: z.string().uuid(),
+    ubtId: z.string().uuid().optional(),
+    isUbtResponsible: z.boolean().optional(),
+    pagePermissions: z.record(z.string(), z.array(z.string())).optional(),
+    password: z.string().min(6),
+    authorizationPin: z
+      .string()
+      .regex(/^\d{6}$/)
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.scope === 'Prefeitura') {
+      if (!data.cpf || !isValidCpfDigits(data.cpf)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['cpf'],
+          message: 'Informe um CPF válido com 11 dígitos.',
+        })
+      }
+      return
+    }
+
+    if (!data.ubtId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['ubtId'],
+        message: 'Selecione uma UBT para operadores de unidade.',
+      })
+    }
+  })
 
 export const updatePortalBodySchema = z.object({
   name: z.string().trim().min(1).optional(),
   email: z.string().trim().email().optional(),
+  cpf: z
+    .string()
+    .trim()
+    .refine(isValidCpfDigits, 'Informe um CPF válido com 11 dígitos.')
+    .optional(),
   role: z.string().trim().min(1).optional(),
   accessLevel: accessLevelSchema.optional(),
   status: statusSchema.optional(),

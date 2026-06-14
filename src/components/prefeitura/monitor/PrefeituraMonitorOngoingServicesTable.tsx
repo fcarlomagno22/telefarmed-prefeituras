@@ -1,9 +1,15 @@
-import { monitorOngoingServices } from '../../../data/prefeituraMonitorMock'
+import type { MonitorOngoingServiceRow } from '../../../types/prefeituraMonitor'
 import { DashCard } from '../prefeituraDashboardUi'
 import { monitorOngoingTableScrollClass, monitorTableHeadStickyClass } from './monitorTableScroll'
 
-export function PrefeituraMonitorOngoingServicesTable() {
-  const count = monitorOngoingServices.length
+type PrefeituraMonitorOngoingServicesTableProps = {
+  services: MonitorOngoingServiceRow[]
+}
+
+export function PrefeituraMonitorOngoingServicesTable({
+  services,
+}: PrefeituraMonitorOngoingServicesTableProps) {
+  const count = services.length
 
   return (
     <DashCard
@@ -31,7 +37,14 @@ export function PrefeituraMonitorOngoingServicesTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {monitorOngoingServices.map((row) => (
+            {services.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="px-4 py-10 text-center text-sm text-gray-500">
+                  Nenhum atendimento em andamento no recorte
+                </td>
+              </tr>
+            ) : null}
+            {services.map((row) => (
               <tr key={row.id} className="text-gray-800 transition hover:bg-slate-50/80">
                 <td className="px-4 py-3 text-left font-semibold text-gray-900">{row.unitRoom}</td>
                 <td className="px-4 py-3 text-center">{row.patientName}</td>

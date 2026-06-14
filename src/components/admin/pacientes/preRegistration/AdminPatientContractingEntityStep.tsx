@@ -1,6 +1,6 @@
 import { Building2, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import type { AdminPatientContractingEntity } from '../../../../data/adminPacientesMock'
+import type { AdminPatientContractingEntity } from '../../../../types/adminPacientes'
 import { AttendanceFieldHighlight } from '../../../dashboard/AttendanceFieldHighlight'
 import { AttendanceStepFooter } from '../../../dashboard/AttendanceStepFooter'
 import { AttendanceStepShell } from '../../../dashboard/AttendanceStepShell'

@@ -12,16 +12,28 @@ import {
 } from '../components/layout/dashboardPageLayout'
 import { DashboardPageHeader } from '../components/users/DashboardPageHeader'
 import { getReportCategory } from '../config/reportsCategories'
-import { ubtRoutes } from '../config/ubtRoutes'
+import type { RelatoriosPortal } from '../types/relatorios'
 import { useBrandTheme } from '../hooks/useBrandTheme'
 
-export function RelatoriosCategoryPage() {
+type RelatoriosCategoryPageProps = {
+  portal?: RelatoriosPortal
+  backPath: string
+  invalidRedirectPath: string
+  unitLabel?: string
+}
+
+export function RelatoriosCategoryPage({
+  portal = 'ubt',
+  backPath,
+  invalidRedirectPath,
+  unitLabel,
+}: RelatoriosCategoryPageProps) {
   useBrandTheme()
   const { categoryId } = useParams<{ categoryId: string }>()
   const category = getReportCategory(categoryId)
 
   if (!category) {
-    return <Navigate to={ubtRoutes.relatorios} replace />
+    return <Navigate to={invalidRedirectPath} replace />
   }
 
   const Icon = category.icon
@@ -51,7 +63,12 @@ export function RelatoriosCategoryPage() {
                     Relatórios / <span className="font-medium text-gray-800">{category.title}</span>
                   </span>
                 </div>
-                <RelatoriosCategoryPanel category={category} />
+                <RelatoriosCategoryPanel
+                  category={category}
+                  portal={portal}
+                  backPath={backPath}
+                  unitLabel={unitLabel}
+                />
               </div>
               <RelatoriosQuickGuideSidebar />
             </section>

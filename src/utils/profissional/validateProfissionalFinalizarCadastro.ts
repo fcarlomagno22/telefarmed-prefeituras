@@ -1,6 +1,5 @@
 import {
   PROFISSIONAL_FINALIZAR_CADASTRO_MIN_PASSWORD_LENGTH,
-  PROFISSIONAL_FINALIZAR_CADASTRO_MOCK_CODE,
 } from '../../config/profissionalFinalizarCadastro'
 import type { ProfissionalFinalizarCadastroFormErrors } from '../../types/profissionalFinalizarCadastro'
 import type { ProfissionalFinalizarCadastroFormValues } from '../../types/profissionalFinalizarCadastro'
@@ -18,11 +17,6 @@ export function validateProfissionalFinalizarCadastroAccessStep(
 
   if (digits.length !== 6) {
     errors.accessCode = 'Informe o código de 6 dígitos enviado por e-mail.'
-    return errors
-  }
-
-  if (digits !== PROFISSIONAL_FINALIZAR_CADASTRO_MOCK_CODE) {
-    errors.accessCode = 'Código inválido ou expirado. Verifique o e-mail de aprovação.'
   }
 
   return errors

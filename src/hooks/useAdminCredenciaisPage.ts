@@ -1,7 +1,8 @@
 import { Building2, Key, Landmark, UserCheck } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { KpiStatCardItem } from '../components/ui/KpiStatCards'
 import type { AdminInternoCredentialUser } from '../config/adminCredenciaisConfig'
+import type { PrefeituraCredentialUser } from '../config/prefeituraCredenciaisConfig'
 import { useAdminAuth } from '../contexts/AdminAuthContext'
 import type { AdminOperatorRow } from '../data/adminOperadoresMock'
 import type { PrefeituraCredentialUbtOption } from '../data/prefeituraAccessCredentialsMock'
@@ -10,10 +11,11 @@ import {
   fetchCredenciaisKpis,
   fetchInternoCredentials,
   fetchPortalCredentials,
+  fetchPrefeituraCredentials,
   fetchUbtOptions,
   isCredenciaisApiError,
   type CredenciaisKpis,
-} from '../lib/api/adminCredenciaisApi'
+} from '../lib/services/admin/credenciais'
 
 function formatKpiNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
@@ -66,7 +68,11 @@ function buildKpiCards(kpis: CredenciaisKpis): KpiStatCardItem[] {
 
 export function useAdminCredenciaisPage() {
   const { getAccessToken, isAuthenticated, isBootstrapping } = useAdminAuth()
+  const getAccessTokenRef = useRef(getAccessToken)
+  getAccessTokenRef.current = getAccessToken
+
   const [internoRows, setInternoRows] = useState<AdminInternoCredentialUser[]>([])
+  const [prefeituraRows, setPrefeituraRows] = useState<PrefeituraCredentialUser[]>([])
   const [operatorRows, setOperatorRows] = useState<AdminOperatorRow[]>([])
   const [ubtOptions, setUbtOptions] = useState<PrefeituraCredentialUbtOption[]>([])
   const [contractingEntityOptions, setContractingEntityOptions] = useState<
@@ -75,52 +81,61 @@ export function useAdminCredenciaisPage() {
   const [kpiCards, setKpiCards] = useState<KpiStatCardItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const hasLoadedRef = useRef(false)
 
-  const reload = useCallback(async () => {
-    const token = getAccessToken()
+  const reload = useCallback(async (options?: { showLoading?: boolean }) => {
+    const token = getAccessTokenRef.current()
     if (!token) return
 
-    setIsLoading(true)
+    const showLoading = options?.showLoading ?? !hasLoadedRef.current
+    if (showLoading) {
+      setIsLoading(true)
+    }
     setLoadError(null)
 
     try {
       const [kpis, internos, prefeitura, ubt, ubts, entities] = await Promise.all([
         fetchCredenciaisKpis(token),
         fetchInternoCredentials(token),
-        fetchPortalCredentials(token, 'Prefeitura'),
+        fetchPrefeituraCredentials(token),
         fetchPortalCredentials(token, 'UBT'),
         fetchUbtOptions(token),
         fetchContractingEntities(token),
       ])
 
       setInternoRows(internos)
-      setOperatorRows([...prefeitura, ...ubt])
+      setPrefeituraRows(prefeitura)
+      setOperatorRows(ubt)
       setUbtOptions(ubts)
       setContractingEntityOptions(
         entities.map((entity) => ({ value: entity.id, label: entity.label })),
       )
       setKpiCards(buildKpiCards(kpis))
+      hasLoadedRef.current = true
     } catch (error) {
       const message = isCredenciaisApiError(error)
         ? error.message
         : 'Não foi possível carregar as credenciais.'
       setLoadError(message)
     } finally {
-      setIsLoading(false)
+      if (showLoading) {
+        setIsLoading(false)
+      }
     }
-  }, [getAccessToken])
+  }, [])
 
   useEffect(() => {
     if (isBootstrapping) return
     if (!isAuthenticated) {
+      hasLoadedRef.current = false
       setIsLoading(false)
       return
     }
-    void reload()
+    void reload({ showLoading: true })
   }, [isAuthenticated, isBootstrapping, reload])
 
   const refreshKpis = useCallback(async () => {
-    const token = getAccessToken()
+    const token = getAccessTokenRef.current()
     if (!token) return
     try {
       const kpis = await fetchCredenciaisKpis(token)
@@ -128,16 +143,18 @@ export function useAdminCredenciaisPage() {
     } catch {
       // KPIs secundários — falha silenciosa
     }
-  }, [getAccessToken])
+  }, [])
 
   const afterMutation = useCallback(async () => {
-    await reload()
+    await reload({ showLoading: false })
   }, [reload])
 
   return useMemo(
     () => ({
       internoRows,
       setInternoRows,
+      prefeituraRows,
+      setPrefeituraRows,
       operatorRows,
       setOperatorRows,
       ubtOptions,
@@ -152,6 +169,7 @@ export function useAdminCredenciaisPage() {
     }),
     [
       internoRows,
+      prefeituraRows,
       operatorRows,
       ubtOptions,
       contractingEntityOptions,

@@ -1,7 +1,8 @@
 import { Send } from 'lucide-react'
 import { useMemo } from 'react'
-import { computeUbtNotificacoesOriginSlices } from '../../../data/ubtNotificacoesMock'
 import type { PrefeituraNotification } from '../../../data/prefeituraNotificacoesMock'
+import { useUbtPageAccess } from '../../../hooks/useUbtPageAccess'
+import { computeUbtNotificacoesOriginSlices } from '../../../utils/notificacoes/ubtNotificacoesOriginSlices'
 import { PrefeituraNotificacoesIllustration } from '../../prefeitura/notificacoes/PrefeituraNotificacoesIllustration'
 import { buildPrefeituraNotificationOriginBadge } from '../../prefeitura/notificacoes/prefeituraNotificacoesUi'
 import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
@@ -19,6 +20,7 @@ export function UbtNotificacoesSidebarPanel({
   notifications,
   onCompose,
 }: UbtNotificacoesSidebarPanelProps) {
+  const { pageAccess } = useUbtPageAccess('notificacoes')
   const originSlices = useMemo(
     () => computeUbtNotificacoesOriginSlices(notifications),
     [notifications],
@@ -31,23 +33,25 @@ export function UbtNotificacoesSidebarPanel({
 
   return (
     <aside className="flex h-full min-h-0 w-full flex-col gap-3">
-      <section className="shrink-0 rounded-2xl border border-gray-200 bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
-        <h2 className="text-sm font-bold text-gray-900">Enviar para a gestão</h2>
-        <p className="mt-0.5 text-xs text-gray-500">
-          Comunique a administração municipal do contrato
-        </p>
-        <button
-          type="button"
-          onClick={onCompose}
-          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-105 active:brightness-95"
-        >
-          <Send className="h-4 w-4" strokeWidth={2.25} />
-          Nova notificação
-        </button>
-        <p className="mt-2 text-[10px] leading-snug text-gray-500">
-          Mensagens da Telefarmed são somente leitura. Para a operadora, use Suporte técnico.
-        </p>
-      </section>
+      {pageAccess.canInsert ? (
+        <section className="shrink-0 rounded-2xl border border-gray-200 bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
+          <h2 className="text-sm font-bold text-gray-900">Enviar para profissionais</h2>
+          <p className="mt-0.5 text-xs text-gray-500">
+            Comunique profissionais vinculados a esta unidade
+          </p>
+          <button
+            type="button"
+            onClick={onCompose}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-105 active:brightness-95"
+          >
+            <Send className="h-4 w-4" strokeWidth={2.25} />
+            Nova notificação
+          </button>
+          <p className="mt-2 text-[10px] leading-snug text-gray-500">
+            Mensagens da Telefarmed são somente leitura. Para a operadora, use Suporte técnico.
+          </p>
+        </section>
+      ) : null}
 
       <PrefeituraNotificacoesIllustration />
 

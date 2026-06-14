@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
-import { simulateProfissionalPerfilPhotoUpload } from '../utils/profissional/profissionalPerfilPhotoUpload'
 
-export function useProfissionalPerfilAvatar(initialAvatarUrl: string) {
+type UseProfissionalPerfilAvatarOptions = {
+  onSaveFoto?: (previewDataUrl: string) => Promise<string>
+}
+
+export function useProfissionalPerfilAvatar(
+  initialAvatarUrl: string,
+  options: UseProfissionalPerfilAvatarOptions = {},
+) {
+  const { onSaveFoto } = options
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl)
   const [alterarFotoOpen, setAlterarFotoOpen] = useState(false)
 
@@ -19,10 +26,17 @@ export function useProfissionalPerfilAvatar(initialAvatarUrl: string) {
 
   const saveAvatar = useCallback(
     async (_file: File, previewDataUrl: string, onProgress: (progress: number) => void) => {
-      await simulateProfissionalPerfilPhotoUpload(onProgress)
+      onProgress(30)
+      if (onSaveFoto) {
+        const savedUrl = await onSaveFoto(previewDataUrl)
+        onProgress(100)
+        setAvatarUrl(savedUrl)
+        return
+      }
+      onProgress(100)
       setAvatarUrl(previewDataUrl)
     },
-    [],
+    [onSaveFoto],
   )
 
   return {

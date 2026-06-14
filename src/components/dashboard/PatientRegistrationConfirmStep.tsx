@@ -4,7 +4,7 @@ import type { FormEvent } from 'react'
 import {
   getPatientPreferredName,
   type PatientRegistration,
-} from '../../data/unitDashboardMock'
+} from '../../types/attendance'
 import { CustomSelect } from '../ui/CustomSelect'
 import { maskCep, maskPhone } from '../../utils/masks'
 import { AttendanceStepFooter } from './AttendanceStepFooter'
@@ -19,6 +19,8 @@ type PatientRegistrationConfirmStepProps = {
   onOpenPhotoCapture: () => void
   /** Oculta seção de foto (ex.: agendamento pela agenda). */
   hidePhoto?: boolean
+  /** Bloqueia o botão Continuar enquanto a etapa salva/navega (ex.: triagem etapa 3). */
+  continueLoading?: boolean
   continueLabel?: string
   embedded?: boolean
 }
@@ -47,6 +49,7 @@ export function PatientRegistrationConfirmStep({
   onBack,
   onOpenPhotoCapture,
   hidePhoto = false,
+  continueLoading = false,
   continueLabel = 'Confirmar',
   embedded = false,
 }: PatientRegistrationConfirmStepProps) {
@@ -90,6 +93,7 @@ export function PatientRegistrationConfirmStep({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (continueLoading) return
     onSubmit()
   }
 
@@ -109,6 +113,7 @@ export function PatientRegistrationConfirmStep({
           continueType="submit"
           formId="patient-confirm-registration-form"
           continueReady
+          continueLoading={continueLoading}
         />
       }
     >
@@ -290,7 +295,7 @@ export function PatientRegistrationConfirmStep({
               </label>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1.15fr)_4.25rem]">
+            <div className="grid grid-cols-1 gap-3 sm:col-span-2 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1.15fr)_minmax(5.5rem,6rem)]">
               <label className="block min-w-0">
                 <span className="mb-1.5 block text-xs font-medium text-gray-700">
                   Bairro
@@ -329,7 +334,9 @@ export function PatientRegistrationConfirmStep({
                     ...brazilianStates.map((uf) => ({ value: uf, label: uf })),
                   ]}
                   placeholder="UF"
-                  className="py-2.5 px-2 text-center text-sm"
+                  size="compact"
+                  menuMinWidthPx={72}
+                  className="px-3 text-center text-sm"
                 />
               </label>
             </div>

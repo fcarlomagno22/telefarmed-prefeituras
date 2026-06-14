@@ -1,78 +1,56 @@
 import {
-  adminClienteContratoTipoLabels,
   adminClientesRows,
   type AdminClienteContrato,
   type AdminClienteContratoTipo,
 } from './adminClientesMock'
 
-export type AdminContaReceberStatus = 'pendente' | 'faturado' | 'recebido' | 'atrasado'
-export type AdminContaReceberStatusVencimento = 'a_vencer' | 'paga' | 'atrasada'
-export type AdminContaPagarStatus = 'pendente' | 'pago' | 'atrasado'
-export type AdminContaPagarRecorrencia = 'mensal' | 'unica'
-export type AdminFechamentoCompetenciaStatus =
-  | 'aberto'
-  | 'em_apuracao'
-  | 'pre_fechado'
-  | 'fechado'
-  | 'reaberto'
+export type {
+  AdminCentroCusto,
+  AdminContaPagarOrigem,
+  AdminContaPagarRecorrencia,
+  AdminContaPagarRepasseConferenciaStatus,
+  AdminContaPagarRow,
+  AdminContaPagarStatus,
+  AdminContaReceberRow,
+  AdminContaReceberStatus,
+  AdminContaReceberStatusVencimento,
+  AdminFechamentoCompetenciaRow,
+  AdminFechamentoCompetenciaStatus,
+  AdminFornecedorRow,
+} from '../types/adminFinanceiro'
 
-export type AdminContaReceberRow = {
-  id: string
-  prefeitura: string
-  municipio: string
-  contratoNumero: string
-  contratoModalidade: AdminClienteContratoTipo
-  contratoStatus: AdminClienteContrato['status']
-  consultasContratadas: number | null
-  percentualUtilizado: number | null
-  excedeuLimite: boolean
-  permiteUltrapassar: boolean
-  valorFaturado: number
-  vencimento: string
-  status: AdminContaReceberStatus
-}
+export {
+  adminContaPagarRecorrenciaLabel,
+  adminContaPagarStatusLabel,
+  adminContaReceberStatusLabel,
+  adminContaReceberStatusVencimentoLabel,
+  adminFechamentoCompetenciaStatusLabel,
+  getContratoModalidadeLabel,
+} from '../types/adminFinanceiro'
 
-export type AdminCentroCusto = {
-  id: string
-  nome: string
-}
+import type {
+  AdminContaReceberRow,
+  AdminContaReceberStatus,
+  AdminContaReceberStatusVencimento,
+  AdminCentroCusto,
+  AdminContaPagarRow,
+  AdminFechamentoCompetenciaRow,
+  AdminFechamentoCompetenciaStatus,
+  AdminFornecedorRow,
+} from '../types/adminFinanceiro'
 
-export type AdminFornecedorRow = {
-  id: string
-  cnpj: string
-  razaoSocial: string
-  situacao: 'ativa' | 'inativa' | 'nao_informado'
-  contatoEmail: string
-  contatoTelefone: string
-  pessoaContato: string
-}
-
-export type AdminContaPagarRow = {
-  id: string
-  fornecedorId: string
-  descricao: string
-  centroCustoId: string
-  recorrencia: AdminContaPagarRecorrencia
-  valor: number
-  vencimento: string
-  status: AdminContaPagarStatus
-}
-
-export type AdminFechamentoCompetenciaRow = {
-  id: string
-  prefeitura: string
-  contratoNumero: string
-  modalidade: AdminClienteContratoTipo
-  competencia: string
-  consumoPercentual: number | null
-  excedeuLimite: boolean
-  valorBase: number
-  valorExcedente: number
-  ajustes: number
-  valorFinal: number
-  status: AdminFechamentoCompetenciaStatus
-  vencimento: string
-  statusVencimento: AdminContaReceberStatusVencimento
+function resolveFinanceiroContratoModalidade(
+  contrato: AdminClienteContrato,
+): AdminClienteContratoTipo {
+  if (contrato.modalidade) return contrato.modalidade
+  if (
+    contrato.tipo === 'mensal' ||
+    contrato.tipo === 'pacote_fechado' ||
+    contrato.tipo === 'sob_demanda'
+  ) {
+    return contrato.tipo
+  }
+  return 'pacote_fechado'
 }
 
 const statusReceberCycle: AdminContaReceberStatus[] = ['faturado', 'pendente', 'recebido', 'atrasado']
@@ -105,6 +83,7 @@ export const adminFornecedoresIniciais: AdminFornecedorRow[] = [
     contatoEmail: 'financeiro@cloudhealth.com.br',
     contatoTelefone: '(11) 3245-8899',
     pessoaContato: 'Fernanda Ribeiro',
+    observacoes: 'Plataforma de telemedicina e integrações.',
   },
   {
     id: 'forn-002',
@@ -114,6 +93,7 @@ export const adminFornecedoresIniciais: AdminFornecedorRow[] = [
     contatoEmail: 'contas@mediplantoes.com.br',
     contatoTelefone: '(61) 98455-1032',
     pessoaContato: 'Carlos Nascimento',
+    observacoes: 'Fornecimento de plantões médicos.',
   },
   {
     id: 'forn-003',
@@ -123,6 +103,7 @@ export const adminFornecedoresIniciais: AdminFornecedorRow[] = [
     contatoEmail: 'cobranca@ativasuporte.com.br',
     contatoTelefone: '(31) 3333-5500',
     pessoaContato: 'Priscila Duarte',
+    observacoes: '',
   },
 ]
 
@@ -188,11 +169,12 @@ export function buildAdminContasReceberFromContratos(): AdminContaReceberRow[] {
         percentualUtilizado !== null
           ? percentualUtilizado > 100
           : (contrato.consultasRealizadas ?? 0) > (consultasContratadas ?? Number.MAX_SAFE_INTEGER)
-      const permiteUltrapassar = contrato.detalhes?.permiteUltrapassar ?? contrato.tipo === 'sob_demanda'
+      const modalidade = resolveFinanceiroContratoModalidade(contrato)
+      const permiteUltrapassar = contrato.detalhes?.permiteUltrapassar ?? modalidade === 'sob_demanda'
       const valorBase =
-        contrato.tipo === 'pacote_fechado'
+        modalidade === 'pacote_fechado'
           ? (consultasContratadas ?? 2_000) * 92
-          : contrato.tipo === 'mensal'
+          : modalidade === 'mensal'
             ? 185_000
             : (contrato.consultasRealizadas ?? 1_100) * 118
 
@@ -201,7 +183,7 @@ export function buildAdminContasReceberFromContratos(): AdminContaReceberRow[] {
         prefeitura: cliente.prefeitura,
         municipio: `${cliente.municipio}/${cliente.uf}`,
         contratoNumero: contrato.numero ?? contratoNumeroFallback(cliente.prefeitura, contrato.id),
-        contratoModalidade: contrato.tipo,
+        contratoModalidade: modalidade,
         contratoStatus: contrato.status,
         consultasContratadas,
         percentualUtilizado,
@@ -229,22 +211,23 @@ export function buildAdminFechamentosCompetenciaFromContratos(): AdminFechamento
 
       const consumoPercentual = contrato.percentualUtilizado
       const consultasContratadas = contrato.detalhes?.consultasContratadas ?? 0
+      const modalidade = resolveFinanceiroContratoModalidade(contrato)
       const valorBase =
-        contrato.tipo === 'pacote_fechado'
+        modalidade === 'pacote_fechado'
           ? (consultasContratadas || 2_000) * 92
-          : contrato.tipo === 'mensal'
+          : modalidade === 'mensal'
             ? 185_000
             : (contrato.consultasRealizadas ?? 1_100) * 118
       const excedeuLimite = consumoPercentual !== null ? consumoPercentual > 100 : false
       const valorExcedente = excedeuLimite ? Math.round(valorBase * 0.08) : 0
-      const ajustes = contrato.tipo === 'mensal' ? -2_300 : 0
+      const ajustes = modalidade === 'mensal' ? -2_300 : 0
       const valorFinal = valorBase + valorExcedente + ajustes
 
       rows.push({
         id: `fc-${contrato.id}`,
         prefeitura: cliente.prefeitura,
         contratoNumero: contrato.numero ?? contratoNumeroFallback(cliente.prefeitura, contrato.id),
-        modalidade: contrato.tipo,
+        modalidade,
         competencia: index % 2 === 0 ? '05/2026' : '04/2026',
         consumoPercentual,
         excedeuLimite,
@@ -265,41 +248,3 @@ export function buildAdminFechamentosCompetenciaFromContratos(): AdminFechamento
   return rows
 }
 
-export const adminContaReceberStatusVencimentoLabel: Record<
-  AdminContaReceberStatusVencimento,
-  string
-> = {
-  a_vencer: 'À Vencer',
-  paga: 'Paga',
-  atrasada: 'Atrasada',
-}
-
-export const adminContaReceberStatusLabel: Record<AdminContaReceberStatus, string> = {
-  pendente: 'Pendente',
-  faturado: 'Faturado',
-  recebido: 'Recebido',
-  atrasado: 'Atrasado',
-}
-
-export const adminContaPagarStatusLabel: Record<AdminContaPagarStatus, string> = {
-  pendente: 'Pendente',
-  pago: 'Pago',
-  atrasado: 'Atrasado',
-}
-
-export const adminContaPagarRecorrenciaLabel: Record<AdminContaPagarRecorrencia, string> = {
-  mensal: 'Mensal',
-  unica: 'Unica',
-}
-
-export const adminFechamentoCompetenciaStatusLabel: Record<AdminFechamentoCompetenciaStatus, string> = {
-  aberto: 'Aberto',
-  em_apuracao: 'Em apuração',
-  pre_fechado: 'Pré-fechado',
-  fechado: 'Fechado',
-  reaberto: 'Reaberto',
-}
-
-export function getContratoModalidadeLabel(modalidade: AdminClienteContratoTipo) {
-  return adminClienteContratoTipoLabels[modalidade]
-}

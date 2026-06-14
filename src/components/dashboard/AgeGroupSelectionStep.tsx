@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   ageGroupLabels,
   type PatientAgeGroup,
-} from '../../data/unitDashboardMock'
+} from '../../types/attendance'
 import { AttendanceFieldHighlight } from './AttendanceFieldHighlight'
 import { AttendanceStepFooter } from './AttendanceStepFooter'
 import { AttendanceStepShell } from './AttendanceStepShell'

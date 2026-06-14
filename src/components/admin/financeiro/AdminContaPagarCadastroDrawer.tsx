@@ -1,13 +1,13 @@
 import { Building2, Eye, Loader2, MoreVertical, Pencil, Plus, Search, Trash2, X } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import type {
   AdminCentroCusto,
   AdminContaPagarRecorrencia,
   AdminContaPagarRow,
   AdminFornecedorRow,
-} from '../../../data/adminFinanceiroMock'
-import { adminContaPagarRecorrenciaLabel } from '../../../data/adminFinanceiroMock'
+} from '../../../types/adminFinanceiro'
+import { adminContaPagarRecorrenciaLabel } from '../../../types/adminFinanceiro'
 import { maskBirthDate, maskCnpj, maskCurrencyBrl, maskPhone, parseCurrencyBrl } from '../../../utils/masks'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { Toast } from '../../ui/Toast'
@@ -23,7 +23,15 @@ type AdminContaPagarCadastroDrawerProps = {
   onTransitionEnd: () => void
   onCreateFornecedor: (payload: Omit<AdminFornecedorRow, 'id'>) => void
   onUpdateFornecedor: (payload: AdminFornecedorRow) => void
-  onDeleteFornecedor: (fornecedorId: string) => void
+  onDeleteFornecedor: (fornecedorId: string, pin: string) => void | Promise<void>
+  onVerifyPin?: (pin: string) => Promise<boolean>
+  onLookupCnpj?: (digits: string) => Promise<{
+    razaoSocial?: string
+    situacao?: AdminFornecedorRow['situacao']
+    contatoEmail?: string
+    contatoTelefone?: string
+    pessoaContato?: string
+  }>
   onCreateContaPagar: (payload: {
     fornecedorId: string
     descricao: string
@@ -55,6 +63,7 @@ const EMPTY_FORNECEDOR_FORM: FornecedorForm = {
   contatoEmail: '',
   contatoTelefone: '',
   pessoaContato: '',
+  observacoes: '',
 }
 
 function getFornecedorSituacaoLabel(situacao: AdminFornecedorRow['situacao']) {
@@ -108,7 +117,10 @@ export function AdminContaPagarCadastroDrawer({
   onUpdateFornecedor,
   onDeleteFornecedor,
   onCreateContaPagar,
+  onVerifyPin,
+  onLookupCnpj,
 }: AdminContaPagarCadastroDrawerProps) {
+  const deleteFornecedorPinRef = useRef('')
   const [entered, setEntered] = useState(false)
   const isActive = open || closing
   const panelVisible = isActive && entered && !closing
@@ -126,6 +138,9 @@ export function AdminContaPagarCadastroDrawer({
   const [fornecedorEditId, setFornecedorEditId] = useState<string | null>(null)
   const [fornecedorForm, setFornecedorForm] = useState<FornecedorForm>(EMPTY_FORNECEDOR_FORM)
   const [isCnpjLookupLoading, setIsCnpjLookupLoading] = useState(false)
+  const [cnpjLookupError, setCnpjLookupError] = useState<string | null>(null)
+  const lastCnpjLookupDigitsRef = useRef<string | null>(null)
+  const isCnpjLookupLoadingRef = useRef(false)
 
   const [viewFornecedorId, setViewFornecedorId] = useState<string | null>(null)
   const [successToast, setSuccessToast] = useState<string | null>(null)
@@ -306,10 +321,13 @@ export function AdminContaPagarCadastroDrawer({
   function openFornecedorCreateForm() {
     setFornecedorEditId(null)
     setFornecedorForm(EMPTY_FORNECEDOR_FORM)
+    lastCnpjLookupDigitsRef.current = null
+    setCnpjLookupError(null)
     setIsFornecedorFormOpen(true)
   }
 
   function openFornecedorEditForm(row: AdminFornecedorRow) {
+    const digits = row.cnpj.replace(/\D/g, '')
     setFornecedorEditId(row.id)
     setFornecedorForm({
       cnpj: row.cnpj,
@@ -318,49 +336,97 @@ export function AdminContaPagarCadastroDrawer({
       contatoEmail: row.contatoEmail,
       contatoTelefone: row.contatoTelefone,
       pessoaContato: row.pessoaContato,
+      observacoes: row.observacoes ?? '',
     })
+    lastCnpjLookupDigitsRef.current = digits.length === 14 ? digits : null
+    setCnpjLookupError(null)
     setIsFornecedorFormOpen(true)
   }
 
-  async function handleBuscarCnpj() {
-    const digits = fornecedorForm.cnpj.replace(/\D/g, '')
-    if (digits.length !== 14) return
+  const lookupFornecedorCnpj = useCallback(
+    async (digits: string, force = false) => {
+      if (digits.length !== 14 || isCnpjLookupLoadingRef.current) return
+      if (!force && lastCnpjLookupDigitsRef.current === digits) return
 
-    setIsCnpjLookupLoading(true)
-    try {
-      const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`)
-      if (!response.ok) throw new Error('Falha ao consultar CNPJ')
-      const payload = (await response.json()) as {
-        razao_social?: string
-        descricao_situacao_cadastral?: string
-        situacao_cadastral?: number | string
-        email?: string
-        ddd_telefone_1?: string
-        qsa?: Array<{ nome_socio?: string }>
+      isCnpjLookupLoadingRef.current = true
+      setIsCnpjLookupLoading(true)
+      setCnpjLookupError(null)
+      try {
+        const payload = onLookupCnpj
+          ? await onLookupCnpj(digits)
+          : await (async () => {
+              const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`, {
+                headers: {
+                  Accept: 'application/json',
+                  'User-Agent': 'Telefarmed/1.0 (+https://telefarmed.com.br)',
+                },
+              })
+              if (!response.ok) throw new Error('Falha ao consultar CNPJ')
+              const data = (await response.json()) as {
+                razao_social?: string
+                descricao_situacao_cadastral?: string
+                situacao_cadastral?: number | string
+                email?: string
+                ddd_telefone_1?: string
+                qsa?: Array<{ nome_socio?: string }>
+              }
+              return {
+                razaoSocial: data.razao_social,
+                situacao: parseSituacaoFromCnpjResponse(data),
+                contatoEmail: data.email,
+                contatoTelefone: data.ddd_telefone_1,
+                pessoaContato: data.qsa?.[0]?.nome_socio,
+              }
+            })()
+
+        lastCnpjLookupDigitsRef.current = digits
+        setFornecedorForm((prev) => ({
+          ...prev,
+          razaoSocial: payload.razaoSocial ?? prev.razaoSocial,
+          situacao: payload.situacao ?? prev.situacao,
+          contatoEmail: payload.contatoEmail ?? prev.contatoEmail,
+          contatoTelefone: payload.contatoTelefone
+            ? maskPhone(payload.contatoTelefone)
+            : prev.contatoTelefone,
+          pessoaContato: payload.pessoaContato ?? prev.pessoaContato,
+        }))
+      } catch {
+        lastCnpjLookupDigitsRef.current = null
+        setCnpjLookupError('Não foi possível consultar o CNPJ na Receita. Tente novamente ou preencha manualmente.')
+      } finally {
+        isCnpjLookupLoadingRef.current = false
+        setIsCnpjLookupLoading(false)
       }
+    },
+    [onLookupCnpj],
+  )
 
-      setFornecedorForm((prev) => ({
-        ...prev,
-        razaoSocial: payload.razao_social ?? prev.razaoSocial,
-        situacao: parseSituacaoFromCnpjResponse(payload),
-        contatoEmail: payload.email ?? prev.contatoEmail,
-        contatoTelefone: payload.ddd_telefone_1 ? maskPhone(payload.ddd_telefone_1) : prev.contatoTelefone,
-        pessoaContato: payload.qsa?.[0]?.nome_socio ?? prev.pessoaContato,
-      }))
-    } catch {
-      // mantém preenchimento manual
-    } finally {
-      setIsCnpjLookupLoading(false)
+  useEffect(() => {
+    if (!isFornecedorFormOpen) return
+
+    const digits = fornecedorForm.cnpj.replace(/\D/g, '')
+    if (digits.length < 14) {
+      if (digits.length === 0) lastCnpjLookupDigitsRef.current = null
+      return
     }
+
+    void lookupFornecedorCnpj(digits)
+  }, [fornecedorForm.cnpj, isFornecedorFormOpen, lookupFornecedorCnpj])
+
+  function handleBuscarCnpj() {
+    const digits = fornecedorForm.cnpj.replace(/\D/g, '')
+    void lookupFornecedorCnpj(digits, true)
   }
 
   function handleSaveFornecedor() {
     const payload: FornecedorForm = {
       cnpj: fornecedorForm.cnpj,
       razaoSocial: fornecedorForm.razaoSocial.trim(),
+      situacao: fornecedorForm.situacao,
       contatoEmail: fornecedorForm.contatoEmail.trim(),
       contatoTelefone: fornecedorForm.contatoTelefone,
       pessoaContato: fornecedorForm.pessoaContato.trim(),
+      observacoes: fornecedorForm.observacoes.trim(),
     }
     if (!payload.cnpj || !payload.razaoSocial) return
 
@@ -483,6 +549,9 @@ export function AdminContaPagarCadastroDrawer({
                         >
                           <p className="truncate text-sm font-semibold text-gray-900">{row.razaoSocial}</p>
                           <p className="mt-0.5 text-xs text-gray-500">{row.cnpj}</p>
+                          {row.observacoes?.trim() ? (
+                            <p className="mt-0.5 truncate text-xs text-slate-500">{row.observacoes}</p>
+                          ) : null}
                           <span
                             className={[
                               'mt-1 inline-flex rounded-md border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide',
@@ -727,9 +796,14 @@ export function AdminContaPagarCadastroDrawer({
                       <input
                         className="h-10 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm outline-none transition focus:border-[var(--brand-primary)]"
                         value={fornecedorForm.cnpj}
-                        onChange={(event) =>
+                        onChange={(event) => {
+                          setCnpjLookupError(null)
                           setFornecedorForm((prev) => ({ ...prev, cnpj: maskCnpj(event.target.value) }))
-                        }
+                        }}
+                        onBlur={() => {
+                          const digits = fornecedorForm.cnpj.replace(/\D/g, '')
+                          if (digits.length === 14) void lookupFornecedorCnpj(digits, true)
+                        }}
                         placeholder="00.000.000/0001-00"
                       />
                       <button
@@ -742,6 +816,11 @@ export function AdminContaPagarCadastroDrawer({
                         Buscar
                       </button>
                     </div>
+                    {cnpjLookupError ? (
+                      <p className="text-xs text-red-600">{cnpjLookupError}</p>
+                    ) : isCnpjLookupLoading ? (
+                      <p className="text-xs text-slate-500">Consultando dados na Receita Federal…</p>
+                    ) : null}
                   </label>
                   <label className="space-y-1.5 rounded-xl border border-slate-100 bg-slate-50/70 p-3 sm:col-span-2">
                     <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Razão social</span>
@@ -805,6 +884,22 @@ export function AdminContaPagarCadastroDrawer({
                         setFornecedorForm((prev) => ({ ...prev, pessoaContato: event.target.value }))
                       }
                     />
+                  </label>
+                  <label className="space-y-1.5 rounded-xl border border-slate-100 bg-slate-50/70 p-3 sm:col-span-2">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Observações</span>
+                    <textarea
+                      className="min-h-[88px] w-full resize-y rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[var(--brand-primary)]"
+                      value={fornecedorForm.observacoes}
+                      onChange={(event) =>
+                        setFornecedorForm((prev) => ({ ...prev, observacoes: event.target.value }))
+                      }
+                      placeholder="Ex.: fornecedor de insumos médicos, serviços de limpeza, empresa de TI…"
+                      maxLength={2000}
+                      rows={3}
+                    />
+                    <p className="text-xs text-slate-500">
+                      Anote o que este fornecedor oferece ou outras informações úteis para identificá-lo depois.
+                    </p>
                   </label>
                 </div>
                 <div className="flex justify-end border-t border-gray-100 px-5 py-4">
@@ -873,6 +968,14 @@ export function AdminContaPagarCadastroDrawer({
                       {viewFornecedor.contatoTelefone || 'Não informado'}
                     </dd>
                   </div>
+                  {viewFornecedor.observacoes ? (
+                    <div>
+                      <dt className="text-xs uppercase tracking-wide text-gray-500">Observações</dt>
+                      <dd className="mt-1 whitespace-pre-wrap font-medium text-gray-900">
+                        {viewFornecedor.observacoes}
+                      </dd>
+                    </div>
+                  ) : null}
                 </dl>
               </div>
             </div>,
@@ -925,18 +1028,35 @@ export function AdminContaPagarCadastroDrawer({
 
       <PinUnlockModal
         open={isDeleteFornecedorPinOpen}
+        verifyPin={async (pin) => {
+          if (onVerifyPin) {
+            const ok = await onVerifyPin(pin)
+            if (ok) deleteFornecedorPinRef.current = pin
+            return ok
+          }
+          deleteFornecedorPinRef.current = pin
+          return true
+        }}
         onClose={() => {
           setIsDeleteFornecedorPinOpen(false)
           setPendingDeleteFornecedorId(null)
         }}
-        onSuccess={() => {
+        onSuccess={async () => {
           if (!pendingDeleteFornecedorId) return
+          const pin = deleteFornecedorPinRef.current
+          if (!pin) return
           const fornecedorNome =
             fornecedores.find((item) => item.id === pendingDeleteFornecedorId)?.razaoSocial ?? 'Fornecedor'
-          onDeleteFornecedor(pendingDeleteFornecedorId)
-          setIsDeleteFornecedorPinOpen(false)
-          setPendingDeleteFornecedorId(null)
-          setSuccessToast(`${fornecedorNome} e contas vinculadas excluídos com sucesso.`)
+          try {
+            await onDeleteFornecedor(pendingDeleteFornecedorId, pin)
+            setSuccessToast(`${fornecedorNome} e contas vinculadas excluídos com sucesso.`)
+          } catch {
+            setSuccessToast('Não foi possível excluir o fornecedor.')
+          } finally {
+            setIsDeleteFornecedorPinOpen(false)
+            setPendingDeleteFornecedorId(null)
+            deleteFornecedorPinRef.current = ''
+          }
         }}
         title="Confirmar exclusão de fornecedor"
         titleId="admin-financeiro-delete-fornecedor-pin-title"

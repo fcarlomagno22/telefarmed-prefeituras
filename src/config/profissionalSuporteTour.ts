@@ -1,4 +1,6 @@
 export const PROFISSIONAL_SUPORTE_TOUR_STORAGE_KEY = 'telefarmed:profissional-suporte-tour-v1'
+export const PROFISSIONAL_SUPORTE_TOUR_INVITE_STORAGE_KEY =
+  'telefarmed:profissional-suporte-tour-invite-v1'
 
 /** Chamado usado nos passos de abrir detalhe e conversa. */
 export const PROFISSIONAL_SUPORTE_TOUR_DEMO_TICKET_ID = 'pr1'
@@ -19,8 +21,6 @@ export type ProfissionalSuporteTourStep = {
   skipIfMissing?: boolean
 }
 
-export const profissionalSuporteTourFirstVisitBody =
-  'Na sua primeira visita, pedimos que conclua este tour — são poucos minutos e ajudam você a abrir chamados e acompanhar respostas com mais segurança. Depois, você pode rever quando quiser pelo botão "Ver tour guiado" no topo da página.'
 
 export const profissionalSuporteTourSteps: ProfissionalSuporteTourStep[] = [
   {

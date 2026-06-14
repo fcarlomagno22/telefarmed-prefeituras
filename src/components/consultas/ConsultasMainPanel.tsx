@@ -1,23 +1,28 @@
-import { CalendarDays, Eye, Filter, RotateCcw, Search } from 'lucide-react'
-import { useCallback, useMemo, useState, type ReactNode } from 'react'
-import { CustomSelect } from '../ui/CustomSelect'
-import { CompactDateRangePicker } from '../ui/CompactDateRangePicker'
+import { CalendarDays, Eye, Filter, Loader2, Search } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  consultasFilterOptions,
-  consultasPagination,
-  consultasRecords,
-  defaultConsultasPeriod,
   type ConsultationRecord,
   type ConsultationStatus,
 } from '../../data/consultasMock'
+import { useUbtAuth } from '../../contexts/UbtAuthContext'
 import type { useNetworkUserDrawer } from '../../hooks/useNetworkUserDrawer'
 import {
-  applyConsultasFilters,
+  fetchUbtConsultasList,
+  isUbtConsultasApiError,
+  type UbtConsultasOverviewApi,
+} from '../../lib/services/ubt/consultas'
+import {
   defaultConsultasFilters,
+  countActiveConsultasFilters,
   type ConsultasFilters,
 } from '../../utils/consultasFilters'
+import {
+  consultasStaticFilterOptions,
+  withAllOption,
+} from '../../utils/consultasFilterConstants'
+import { getDefaultConsultasPeriod } from '../../utils/consultasPeriod'
 import { findNetworkUserForConsultation } from '../../utils/consultasPatientUser'
-import { unitStation } from '../../data/unitDashboardMock'
+import { consultaDateTimeCaption } from '../../utils/consultasDateTimeLabel'
 import {
   exportConsultasExcel,
   exportConsultasPdf,
@@ -26,6 +31,10 @@ import {
 import { maskCpfForDisplay } from '../../utils/lgpdDisplay'
 import { getLoggedOperatorName } from '../../utils/sessionUser'
 import { ConsultasExportMenu, type ConsultasExportFormat } from './ConsultasExportMenu'
+import {
+  CONSULTAS_FILTERS_TRIGGER_ID,
+  ConsultasFiltersMegamenu,
+} from './ConsultasFiltersMegamenu'
 import { Toast, type ToastVariant } from '../ui/Toast'
 
 function formatNumber(value: number) {
@@ -61,23 +70,17 @@ const statusConfig: Record<
 export type ConsultasNetworkUserDrawer = Pick<
   ReturnType<typeof useNetworkUserDrawer>,
   | 'sensitiveDataUnlocked'
-  | 'setSensitiveDataUnlocked'
+  | 'lockSensitiveData'
   | 'openUnlockModal'
   | 'openUser'
+  | 'openUserWithPacienteDetail'
   | 'drawerLayer'
 >
 
 type ConsultasMainPanelProps = {
   networkUserDrawer: ConsultasNetworkUserDrawer
-}
-
-function FilterField({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div>
-      <label className="mb-1.5 block text-xs font-semibold text-gray-600">{label}</label>
-      {children}
-    </div>
-  )
+  filterOptions?: UbtConsultasOverviewApi['filterOptions']
+  onAppliedPeriodChange?: (periodStart: string, periodEnd: string) => void
 }
 
 function StatusBadge({ status }: { status: ConsultationStatus }) {
@@ -112,29 +115,95 @@ function GenderAgeCell({ record }: { record: ConsultationRecord }) {
   )
 }
 
-export function ConsultasMainPanel({ networkUserDrawer }: ConsultasMainPanelProps) {
+export function ConsultasMainPanel({
+  networkUserDrawer,
+  filterOptions,
+  onAppliedPeriodChange,
+}: ConsultasMainPanelProps) {
+  const { getAccessToken, isAuthenticated, user } = useUbtAuth()
+  const defaultPeriod = getDefaultConsultasPeriod()
   const {
     sensitiveDataUnlocked,
-    setSensitiveDataUnlocked,
+    lockSensitiveData,
     openUnlockModal,
     openUser,
+    openUserWithPacienteDetail,
     drawerLayer,
   } = networkUserDrawer
 
   const [draftFilters, setDraftFilters] = useState<ConsultasFilters>({
     ...defaultConsultasFilters,
-    periodStart: defaultConsultasPeriod.start,
-    periodEnd: defaultConsultasPeriod.end,
+    periodStart: defaultPeriod.start,
+    periodEnd: defaultPeriod.end,
   })
   const [appliedFilters, setAppliedFilters] = useState<ConsultasFilters>({
     ...defaultConsultasFilters,
-    periodStart: defaultConsultasPeriod.start,
-    periodEnd: defaultConsultasPeriod.end,
+    periodStart: defaultPeriod.start,
+    periodEnd: defaultPeriod.end,
   })
   const [currentPage, setCurrentPage] = useState(1)
+  const [records, setRecords] = useState<ConsultationRecord[]>([])
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 10,
+    total: 0,
+    totalPages: 1,
+  })
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [patientSearch, setPatientSearch] = useState('')
+  const [debouncedPatientSearch, setDebouncedPatientSearch] = useState('')
 
-  const pageSize = consultasPagination.pageSize
+  const pageSize = pagination.pageSize
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedPatientSearch(patientSearch)
+      setCurrentPage(1)
+    }, 300)
+    return () => window.clearTimeout(timer)
+  }, [patientSearch])
+
+  const loadRecords = useCallback(async () => {
+    const token = getAccessToken()
+    if (!token || !isAuthenticated) {
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+    setLoadError(null)
+    try {
+      const result = await fetchUbtConsultasList(
+        token,
+        { ...appliedFilters, generalSearch: debouncedPatientSearch },
+        currentPage,
+        pageSize,
+      )
+      setRecords(result.records)
+      setPagination(result.pagination)
+    } catch (error) {
+      const message = isUbtConsultasApiError(error)
+        ? error.message
+        : 'Não foi possível carregar as consultas.'
+      setLoadError(message)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [
+    appliedFilters,
+    currentPage,
+    debouncedPatientSearch,
+    getAccessToken,
+    isAuthenticated,
+    pageSize,
+  ])
+
+  useEffect(() => {
+    void loadRecords()
+  }, [loadRecords])
 
   const showToast = useCallback((message: string, variant: ToastVariant) => {
     setToast(null)
@@ -143,37 +212,37 @@ export function ConsultasMainPanel({ networkUserDrawer }: ConsultasMainPanelProp
 
   const dismissToast = useCallback(() => setToast(null), [])
 
-  const filteredRecords = useMemo(
-    () =>
-      applyConsultasFilters(consultasRecords, {
-        ...appliedFilters,
-        generalSearch: draftFilters.generalSearch,
-      }),
-    [appliedFilters, draftFilters.generalSearch],
-  )
-
-  const totalFiltered = filteredRecords.length
-  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize))
-  const safePage = Math.min(currentPage, totalPages)
-  const paginatedRecords = useMemo(() => {
-    const start = (safePage - 1) * pageSize
-    return filteredRecords.slice(start, start + pageSize)
-  }, [filteredRecords, safePage, pageSize])
-
+  const paginatedRecords = records
+  const totalFiltered = pagination.total
+  const totalPages = pagination.totalPages
+  const safePage = pagination.page
   const showingFrom = totalFiltered === 0 ? 0 : (safePage - 1) * pageSize + 1
   const showingTo = Math.min(safePage * pageSize, totalFiltered)
-  const catalogTotal = consultasPagination.total
+  const catalogTotal = pagination.total
 
-  function updateDraft<K extends keyof ConsultasFilters>(key: K, value: ConsultasFilters[K]) {
-    setDraftFilters((prev) => ({ ...prev, [key]: value }))
-    if (key === 'generalSearch') {
-      setCurrentPage(1)
-    }
-  }
+  const mergedFilterOptions = useMemo(
+    () => ({
+      specialties: withAllOption(filterOptions?.specialties ?? [], 'Todas'),
+      doctors: withAllOption(filterOptions?.doctors ?? [], 'Todos'),
+      neighborhoods: withAllOption(filterOptions?.neighborhoods ?? [], 'Todos'),
+      genders: consultasStaticFilterOptions.genders,
+      ageRanges: consultasStaticFilterOptions.ageRanges,
+      statuses: consultasStaticFilterOptions.statuses,
+    }),
+    [filterOptions],
+  )
+
+  const unitLabel = user?.unidadeUbtNome ?? 'Unidade UBT'
+
+  const activeFilterCount = useMemo(
+    () => countActiveConsultasFilters(appliedFilters),
+    [appliedFilters],
+  )
 
   function applyFilters() {
     setAppliedFilters({ ...draftFilters })
     setCurrentPage(1)
+    onAppliedPeriodChange?.(draftFilters.periodStart, draftFilters.periodEnd)
   }
 
   function displayCpf(cpf: string) {
@@ -183,21 +252,38 @@ export function ConsultasMainPanel({ networkUserDrawer }: ConsultasMainPanelProp
   function clearFilters() {
     const cleared: ConsultasFilters = {
       ...defaultConsultasFilters,
-      periodStart: defaultConsultasPeriod.start,
-      periodEnd: defaultConsultasPeriod.end,
+      periodStart: defaultPeriod.start,
+      periodEnd: defaultPeriod.end,
     }
     setDraftFilters(cleared)
     setAppliedFilters(cleared)
     setCurrentPage(1)
+    onAppliedPeriodChange?.(cleared.periodStart, cleared.periodEnd)
   }
+
+  useEffect(() => {
+    if (!filtersOpen) return
+
+    function handlePointerDown(event: MouseEvent) {
+      const target = event.target as Node
+      const trigger = document.getElementById(CONSULTAS_FILTERS_TRIGGER_ID)
+      const panel = document.getElementById('consultas-filters-megamenu')
+      if (trigger?.contains(target) || panel?.contains(target)) return
+      setFiltersOpen(false)
+      setDraftFilters(appliedFilters)
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+    return () => document.removeEventListener('mousedown', handlePointerDown)
+  }, [appliedFilters, filtersOpen])
 
   function buildExportContext(): ConsultasExportContext {
     return {
-      records: filteredRecords,
+      records: paginatedRecords,
       filters: appliedFilters,
-      generalSearch: draftFilters.generalSearch,
+      generalSearch: debouncedPatientSearch,
       sensitiveDataUnlocked,
-      unitLabel: unitStation.unitName,
+      unitLabel: user?.unidadeUbtNome ?? 'Unidade UBT',
       operatorName: getLoggedOperatorName(),
     }
   }
@@ -223,133 +309,49 @@ export function ConsultasMainPanel({ networkUserDrawer }: ConsultasMainPanelProp
     }
   }
 
-  const selectClass = 'py-2.5'
-
   return (
     <>
-      <div className="flex h-full min-h-0 min-w-0 flex-col gap-4">
-        <section className="shrink-0 rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
-          <header className="flex items-center gap-2 border-b border-gray-200 px-5 py-4 sm:px-6">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--brand-primary-light)] text-[var(--brand-primary)]">
-              <Filter className="h-4 w-4" strokeWidth={2} />
-            </span>
-            <h2 className="text-base font-bold text-gray-900">Filtros de busca</h2>
-          </header>
-
-          <div className="px-5 py-5 sm:px-6">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <FilterField label="Período de atendimento">
-                <CompactDateRangePicker
-                  start={draftFilters.periodStart}
-                  end={draftFilters.periodEnd}
-                  onStartChange={(value) => updateDraft('periodStart', value)}
-                  onEndChange={(value) => updateDraft('periodEnd', value)}
-                />
-              </FilterField>
-              <FilterField label="Especialidade">
-                <CustomSelect
-                  value={draftFilters.specialty}
-                  onChange={(value) => updateDraft('specialty', value)}
-                  options={[...consultasFilterOptions.specialties]}
-                  className={selectClass}
-                />
-              </FilterField>
-              <FilterField label="Médico">
-                <CustomSelect
-                  value={draftFilters.doctor}
-                  onChange={(value) => updateDraft('doctor', value)}
-                  options={[...consultasFilterOptions.doctors]}
-                  className={selectClass}
-                />
-              </FilterField>
-              <FilterField label="Bairro">
-                <CustomSelect
-                  value={draftFilters.neighborhood}
-                  onChange={(value) => updateDraft('neighborhood', value)}
-                  options={[...consultasFilterOptions.neighborhoods]}
-                  className={selectClass}
-                />
-              </FilterField>
-
-              <FilterField label="Sexo">
-                <CustomSelect
-                  value={draftFilters.gender}
-                  onChange={(value) => updateDraft('gender', value)}
-                  options={[...consultasFilterOptions.genders]}
-                  className={selectClass}
-                />
-              </FilterField>
-              <FilterField label="Faixa etária">
-                <CustomSelect
-                  value={draftFilters.ageRange}
-                  onChange={(value) => updateDraft('ageRange', value)}
-                  options={[...consultasFilterOptions.ageRanges]}
-                  className={selectClass}
-                />
-              </FilterField>
-              <FilterField label="Status da consulta">
-                <CustomSelect
-                  value={draftFilters.status}
-                  onChange={(value) => updateDraft('status', value)}
-                  options={[...consultasFilterOptions.statuses]}
-                  className={selectClass}
-                />
-              </FilterField>
-              <FilterField label="Unidade de atendimento">
-                <CustomSelect
-                  value={draftFilters.unit}
-                  onChange={(value) => updateDraft('unit', value)}
-                  options={[...consultasFilterOptions.units]}
-                  className={selectClass}
-                />
-              </FilterField>
-
-              <div className="col-span-1 sm:col-span-2 xl:col-span-4">
-                <FilterField label="Busca geral">
-                  <label className="relative block">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="search"
-                      value={draftFilters.generalSearch}
-                      onChange={(e) => updateDraft('generalSearch', e.target.value)}
-                      placeholder="Paciente, médico, CPF, CRM, especialidade, bairro, protocolo..."
-                      className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15"
-                    />
-                  </label>
-                </FilterField>
-              </div>
-            </div>
-
-            <div className="mt-5 flex flex-col items-end gap-2 border-t border-gray-200 pt-5 sm:flex-row sm:items-center sm:justify-end">
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-              >
-                <RotateCcw className="h-4 w-4" strokeWidth={2} />
-                Limpar filtros
-              </button>
-              <button
-                type="button"
-                onClick={applyFilters}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
-              >
-                <Search className="h-4 w-4" strokeWidth={2} />
-                Aplicar filtros
-              </button>
-            </div>
-          </div>
-        </section>
-
+      <div className="flex h-full min-h-0 min-w-0 flex-col">
         <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
-          <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4 sm:px-6">
+          <header className="relative z-[1] flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4 sm:px-6">
             <div className="flex items-center gap-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--brand-primary-light)] text-[var(--brand-primary)]">
                 <CalendarDays className="h-4 w-4" strokeWidth={2} />
               </span>
               <h2 className="text-base font-bold text-gray-900">Histórico de consultas</h2>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-3 sm:flex-none">
+              <label className="relative block w-full min-w-[12rem] max-w-xs sm:w-56">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="search"
+                  value={patientSearch}
+                  onChange={(event) => setPatientSearch(event.target.value)}
+                  placeholder="Nome ou CPF do paciente"
+                  className="h-10 w-full rounded-xl border border-gray-200 bg-white py-2 pl-10 pr-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15"
+                />
+              </label>
+              <button
+                id={CONSULTAS_FILTERS_TRIGGER_ID}
+                type="button"
+                aria-expanded={filtersOpen}
+                aria-controls="consultas-filters-megamenu"
+                onClick={() => setFiltersOpen((open) => !open)}
+                className={[
+                  'inline-flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border px-4 text-sm font-semibold transition',
+                  filtersOpen || activeFilterCount > 0
+                    ? 'border-[var(--brand-primary)] bg-[var(--brand-primary-light)] text-[var(--brand-primary)]'
+                    : 'border-[var(--brand-primary)] bg-white text-[var(--brand-primary)] hover:bg-[var(--brand-primary-light)]',
+                ].join(' ')}
+              >
+                <Filter className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                Aplicar filtros
+                {activeFilterCount > 0 ? (
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--brand-primary)] px-1.5 text-[10px] font-bold text-white tabular-nums">
+                    {activeFilterCount}
+                  </span>
+                ) : null}
+              </button>
               <ConsultasExportMenu resultCount={totalFiltered} onSelect={handleExport} />
               <span className="text-sm text-gray-500">
                 <span className="font-semibold text-gray-800">{formatNumber(totalFiltered)}</span>{' '}
@@ -360,6 +362,28 @@ export function ConsultasMainPanel({ networkUserDrawer }: ConsultasMainPanelProp
               </span>
             </div>
           </header>
+
+          {filtersOpen ? (
+            <ConsultasFiltersMegamenu
+              open={filtersOpen}
+              filters={draftFilters}
+              unitLabel={unitLabel}
+              filterOptions={mergedFilterOptions}
+              onChange={setDraftFilters}
+              onApply={() => {
+                applyFilters()
+                setFiltersOpen(false)
+              }}
+              onCancel={() => {
+                setDraftFilters(appliedFilters)
+                setFiltersOpen(false)
+              }}
+              onClear={() => {
+                clearFilters()
+                setFiltersOpen(false)
+              }}
+            />
+          ) : null}
 
           <div className="flex shrink-0 items-center justify-end gap-3 border-b border-gray-200 bg-gray-50/60 px-5 py-2 sm:px-6">
             {!sensitiveDataUnlocked ? (
@@ -382,7 +406,7 @@ export function ConsultasMainPanel({ networkUserDrawer }: ConsultasMainPanelProp
                 </span>
                 <button
                   type="button"
-                  onClick={() => setSensitiveDataUnlocked(false)}
+                  onClick={() => lockSensitiveData()}
                   className="text-sm font-semibold text-gray-600 underline-offset-2 transition hover:text-gray-900 hover:underline"
                 >
                   Ocultar dados
@@ -407,10 +431,25 @@ export function ConsultasMainPanel({ networkUserDrawer }: ConsultasMainPanelProp
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
-                {paginatedRecords.length === 0 ? (
+                {isLoading ? (
                   <tr>
                     <td colSpan={9} className="px-5 py-12 text-center text-sm text-gray-500 sm:px-6">
-                      {draftFilters.generalSearch.trim() ||
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Carregando consultas…
+                      </span>
+                    </td>
+                  </tr>
+                ) : loadError ? (
+                  <tr>
+                    <td colSpan={9} className="px-5 py-12 text-center text-sm text-red-600 sm:px-6">
+                      {loadError}
+                    </td>
+                  </tr>
+                ) : paginatedRecords.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="px-5 py-12 text-center text-sm text-gray-500 sm:px-6">
+                      {debouncedPatientSearch.trim() ||
                       appliedFilters.specialty ||
                       appliedFilters.doctor ||
                       appliedFilters.neighborhood ||
@@ -425,7 +464,10 @@ export function ConsultasMainPanel({ networkUserDrawer }: ConsultasMainPanelProp
                 {paginatedRecords.map((record) => (
                   <tr key={record.id} className="text-sm text-gray-700 hover:bg-gray-50/80">
                     <td className="px-4 py-3.5 text-center align-middle sm:px-5">
-                      <span className="block font-medium text-gray-900">{record.date}</span>
+                      <span className="block text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                        {consultaDateTimeCaption(record.status)}
+                      </span>
+                      <span className="mt-0.5 block font-medium text-gray-900">{record.date}</span>
                       <span className="mt-0.5 block text-xs text-gray-500">{record.time}</span>
                     </td>
                     <td className="px-3 py-3.5 text-center align-middle">
@@ -462,7 +504,14 @@ export function ConsultasMainPanel({ networkUserDrawer }: ConsultasMainPanelProp
                     <td className="px-3 py-3.5 text-center align-middle sm:px-5">
                       <button
                         type="button"
-                        onClick={() => openUser(findNetworkUserForConsultation(record))}
+                        onClick={() => {
+                          const fallbackUser = findNetworkUserForConsultation(record)
+                          if (record.pacienteId) {
+                            openUserWithPacienteDetail(record.pacienteId, fallbackUser)
+                          } else {
+                            openUser(fallbackUser)
+                          }
+                        }}
                         className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-[var(--brand-primary)]/30 hover:bg-[var(--brand-primary-light)] hover:text-[var(--brand-primary)]"
                         aria-label={`Ver perfil de ${record.patientName}`}
                       >

@@ -16,11 +16,24 @@ const ATTACH_OPTIONS = [
   { id: 'pdf' as const, label: 'Anexar PDF', icon: FileText, accept: 'application/pdf,.pdf' },
 ]
 
-function createAttachmentFromFile(file: File, type: 'image' | 'pdf'): ConsultationChatAttachment {
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
+
+function createAttachmentFromFile(
+  file: File,
+  type: 'image' | 'pdf',
+  url: string,
+): ConsultationChatAttachment {
   return {
     id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     type,
-    url: URL.createObjectURL(file),
+    url,
     name: file.name,
     size: file.size,
   }
@@ -38,14 +51,28 @@ export type ConsultationChatPanelProps = {
   viewerRole: ConsultationChatViewerRole
   cardClassName?: string
   className?: string
+  messages?: ConsultationChatMessage[]
+  readOnly?: boolean
+  loading?: boolean
+  onSendMessage?: (text: string) => void | Promise<void>
+  onSendAttachment?: (attachment: ConsultationChatAttachment) => void | Promise<void>
+  /** Preferido com API real — envia o arquivo original sem converter para data URL. */
+  onSendAttachmentFile?: (file: File, type: 'image' | 'pdf') => void | Promise<void>
 }
 
 export function ConsultationChatPanel({
   viewerRole,
   cardClassName = patientConsultationCardClass,
   className,
+  messages: externalMessages,
+  readOnly = false,
+  loading = false,
+  onSendMessage,
+  onSendAttachment,
+  onSendAttachmentFile,
 }: ConsultationChatPanelProps) {
-  const [messages, setMessages] = useState<ConsultationChatMessage[]>(() => CONSULTATION_CHAT_MOCK)
+  const [localMessages, setLocalMessages] = useState<ConsultationChatMessage[]>(() => CONSULTATION_CHAT_MOCK)
+  const messages = externalMessages ?? localMessages
   const [draft, setDraft] = useState('')
   const [attachOpen, setAttachOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -54,14 +81,6 @@ export function ConsultationChatPanel({
   const pdfInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLLIElement>(null)
   const [menuStyle, setMenuStyle] = useState<{ top: number; left: number } | null>(null)
-  const blobUrlsRef = useRef<string[]>([])
-
-  useEffect(() => {
-    const urls = blobUrlsRef.current
-    return () => {
-      urls.forEach((url) => URL.revokeObjectURL(url))
-    }
-  }, [])
 
   useLayoutEffect(() => {
     if (!attachOpen) {
@@ -124,7 +143,8 @@ export function ConsultationChatPanel({
   }, [messages])
 
   function appendOwnMessage(message: Omit<ConsultationChatMessage, 'id' | 'from' | 'time'>) {
-    setMessages((current) => [
+    if (readOnly || externalMessages) return
+    setLocalMessages((current) => [
       ...current,
       {
         id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -139,13 +159,19 @@ export function ConsultationChatPanel({
     const text = draft.trim()
     if (!text) return
 
+    if (onSendMessage) {
+      void Promise.resolve(onSendMessage(text)).then(() => setDraft(''))
+      return
+    }
+
     appendOwnMessage({ text })
     setDraft('')
   }
 
   function appendAttachmentMessage(attachment: ConsultationChatAttachment) {
-    if (attachment.url.startsWith('blob:')) {
-      blobUrlsRef.current.push(attachment.url)
+    if (onSendAttachment) {
+      void Promise.resolve(onSendAttachment(attachment))
+      return
     }
 
     appendOwnMessage({ attachments: [attachment] })
@@ -153,9 +179,18 @@ export function ConsultationChatPanel({
 
   function handleFileSelected(type: 'image' | 'pdf', file: File | undefined) {
     if (!file) return
-    const attachment = createAttachmentFromFile(file, type)
-    appendAttachmentMessage(attachment)
     setAttachOpen(false)
+
+    if (onSendAttachmentFile) {
+      void Promise.resolve(onSendAttachmentFile(file, type))
+      return
+    }
+
+    void fileToDataUrl(file)
+      .then((url) => appendAttachmentMessage(createAttachmentFromFile(file, type, url)))
+      .catch(() => {
+        // Falha silenciosa — o usuário pode tentar anexar novamente.
+      })
   }
 
   const attachMenu =
@@ -220,6 +255,9 @@ export function ConsultationChatPanel({
       </div>
 
       <ul className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-3">
+        {loading && messages.length === 0 ? (
+          <li className="py-6 text-center text-sm text-gray-500">Carregando mensagens…</li>
+        ) : null}
         {messages.map((message) => {
           const isOwn = message.from === viewerRole
           const hasText = Boolean(message.text?.trim())
@@ -278,6 +316,11 @@ export function ConsultationChatPanel({
         <li ref={messagesEndRef} className="h-0 shrink-0" aria-hidden />
       </ul>
 
+      {readOnly ? (
+        <div className="shrink-0 border-t border-gray-100 px-4 py-3 text-center text-xs text-gray-500">
+          Chat somente leitura.
+        </div>
+      ) : (
       <div className="shrink-0 border-t border-gray-100 px-4 py-3">
         <div className="flex items-center gap-2">
           <button
@@ -321,6 +364,7 @@ export function ConsultationChatPanel({
           </button>
         </div>
       </div>
+      )}
 
       {attachMenu}
     </section>

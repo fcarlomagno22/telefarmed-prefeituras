@@ -1,5 +1,5 @@
 import { AlertTriangle, ChevronRight, Clock } from 'lucide-react'
-import type { PrefeituraAlert } from '../../data/prefeituraDashboardMock'
+import type { PrefeituraAlert } from '../../types/prefeituraDashboard'
 import { DashCard, DashLinkAction } from './prefeituraDashboardUi'
 
 type PrefeituraAlertsPanelProps = {

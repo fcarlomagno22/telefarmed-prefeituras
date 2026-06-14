@@ -1,8 +1,7 @@
-import { useMemo, useState, type ReactNode } from 'react'
-import type { PrefeituraAgendasFuturePeriodId } from '../../../data/prefeituraAgendasMock'
-import {
-  prefeituraAgendasFuture30Days,
-  prefeituraAgendasFuture7Days,
+import { useMemo, type ReactNode } from 'react'
+import type {
+  FutureAppointmentsSummary,
+  PrefeituraAgendasFuturePeriodId,
 } from '../../../data/prefeituraAgendasMock'
 import {
   formatAgendasNumber,
@@ -31,14 +30,21 @@ function StatRow({ label, value, valueClassName = 'font-bold text-gray-900' }: S
   )
 }
 
-export function PrefeituraAgendasFutureCard() {
-  const [period, setPeriod] = useState<PrefeituraAgendasFuturePeriodId>('7d')
-  const summary = useMemo(
-    () => (period === '7d' ? prefeituraAgendasFuture7Days : prefeituraAgendasFuture30Days),
-    [period],
-  )
+type PrefeituraAgendasFutureCardProps = {
+  period: PrefeituraAgendasFuturePeriodId
+  summary: FutureAppointmentsSummary | null
+  onPeriodChange: (period: PrefeituraAgendasFuturePeriodId) => void
+}
 
-  const confirmedPercent = Math.round((summary.confirmed / summary.total) * 100)
+export function PrefeituraAgendasFutureCard({
+  period,
+  summary,
+  onPeriodChange,
+}: PrefeituraAgendasFutureCardProps) {
+  const confirmedPercent = useMemo(() => {
+    if (!summary || summary.total === 0) return 0
+    return Math.round((summary.confirmed / summary.total) * 100)
+  }, [summary])
 
   return (
     <article
@@ -56,7 +62,7 @@ export function PrefeituraAgendasFutureCard() {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setPeriod(tab.id)}
+                onClick={() => onPeriodChange(tab.id)}
                 className={[
                   'rounded-lg px-2.5 py-1 text-xs font-semibold transition',
                   isActive
@@ -78,76 +84,79 @@ export function PrefeituraAgendasFutureCard() {
           '[&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-transparent',
         ].join(' ')}
       >
-        <StatRow label="Total de agendamentos" value={formatAgendasNumber(summary.total)} />
-        <StatRow label="Média por dia" value={formatAgendasNumber(summary.dailyAverage)} />
-        <StatRow
-          label="Dia mais movimentado"
-          value={
-            <>
-              {summary.busiestDay}{' '}
-              <span className="font-semibold text-red-600">
-                ({formatAgendasNumber(summary.busiestCount)})
-              </span>
-            </>
-          }
-          valueClassName="font-bold text-gray-800"
-        />
-        <StatRow
-          label="Dia menos movimentado"
-          value={
-            <>
-              {summary.quietestDay}{' '}
-              <span className="font-semibold text-emerald-600">
-                ({formatAgendasNumber(summary.quietestCount)})
-              </span>
-            </>
-          }
-          valueClassName="font-bold text-gray-800"
-        />
+        {!summary ? (
+          <p className="text-sm text-gray-500">Carregando projeções...</p>
+        ) : (
+          <>
+            <StatRow label="Total de agendamentos" value={formatAgendasNumber(summary.total)} />
+            <StatRow label="Média por dia" value={formatAgendasNumber(summary.dailyAverage)} />
+            <StatRow
+              label="Dia mais movimentado"
+              value={
+                <>
+                  {summary.busiestDay}{' '}
+                  <span className="font-semibold text-red-600">
+                    ({formatAgendasNumber(summary.busiestCount)})
+                  </span>
+                </>
+              }
+              valueClassName="font-bold text-gray-800"
+            />
+            <StatRow
+              label="Dia menos movimentado"
+              value={
+                <>
+                  {summary.quietestDay}{' '}
+                  <span className="font-semibold text-emerald-600">
+                    ({formatAgendasNumber(summary.quietestCount)})
+                  </span>
+                </>
+              }
+              valueClassName="font-bold text-gray-800"
+            />
 
-        <div className="my-0.5 h-px bg-gray-100" aria-hidden />
+            <div className="my-0.5 h-px bg-gray-100" aria-hidden />
 
-        <StatRow
-          label="Confirmados"
-          value={
-            <>
-              {formatAgendasNumber(summary.confirmed)}{' '}
-              <span className="text-gray-500">({confirmedPercent}%)</span>
-            </>
-          }
-          valueClassName="font-bold text-emerald-700"
-        />
-        <StatRow
-          label="Aguardando confirmação"
-          value={formatAgendasNumber(summary.pendingConfirmation)}
-          valueClassName="font-bold text-amber-700"
-        />
-        <StatRow
-          label="Primeira consulta"
-          value={formatAgendasNumber(summary.firstVisits)}
-        />
-        <StatRow label="Retorno" value={formatAgendasNumber(summary.returnVisits)} />
+            <StatRow
+              label="Confirmados"
+              value={
+                <>
+                  {formatAgendasNumber(summary.confirmed)}{' '}
+                  <span className="text-gray-500">({confirmedPercent}%)</span>
+                </>
+              }
+              valueClassName="font-bold text-emerald-700"
+            />
+            <StatRow
+              label="Aguardando confirmação"
+              value={formatAgendasNumber(summary.pendingConfirmation)}
+              valueClassName="font-bold text-amber-700"
+            />
+            <StatRow label="Primeira consulta" value={formatAgendasNumber(summary.firstVisits)} />
+            <StatRow label="Retorno" value={formatAgendasNumber(summary.returnVisits)} />
 
-        <div className="my-0.5 h-px bg-gray-100" aria-hidden />
+            <div className="my-0.5 h-px bg-gray-100" aria-hidden />
 
-        <StatRow
-          label="Unidade com mais agendamentos"
-          value={
-            <>
-              {summary.topUnit}{' '}
-              <span className="text-gray-500">
-                ({formatAgendasNumber(summary.topUnitBookings)})
-              </span>
-            </>
-          }
-          valueClassName="font-bold text-gray-800"
-        />
-        <StatRow label="Horário de pico" value={summary.peakHour} />
-        <StatRow
-          label="Ocupação prevista da rede"
-          value={`${summary.occupancyForecastPercent}%`}
-          valueClassName="font-bold text-[var(--brand-primary)]"
-        />
+            <StatRow
+              label="Unidade com mais agendamentos"
+              value={
+                <>
+                  {summary.topUnit}{' '}
+                  <span className="text-gray-500">
+                    ({formatAgendasNumber(summary.topUnitBookings)})
+                  </span>
+                </>
+              }
+              valueClassName="font-bold text-gray-800"
+            />
+            <StatRow label="Horário de pico" value={summary.peakHour} />
+            <StatRow
+              label="Ocupação prevista da rede"
+              value={`${summary.occupancyForecastPercent}%`}
+              valueClassName="font-bold text-[var(--brand-primary)]"
+            />
+          </>
+        )}
       </dl>
     </article>
   )

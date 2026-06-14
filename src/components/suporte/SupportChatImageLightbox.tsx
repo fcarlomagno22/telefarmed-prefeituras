@@ -8,19 +8,37 @@ type SupportChatImageLightboxProps = {
   onClose: () => void
 }
 
+export const SUPPORT_IMAGE_LIGHTBOX_SELECTOR = '[data-support-image-lightbox="true"]'
+export const SUPPORT_ATTACHMENT_VIEWER_SELECTOR = '[data-support-attachment-viewer="true"]'
+
+export function isSupportMediaOverlayOpen() {
+  return (
+    document.querySelector(SUPPORT_IMAGE_LIGHTBOX_SELECTOR) !== null ||
+    document.querySelector(SUPPORT_ATTACHMENT_VIEWER_SELECTOR) !== null
+  )
+}
+
+/** @deprecated Use isSupportMediaOverlayOpen */
+export function isSupportImageLightboxOpen() {
+  return isSupportMediaOverlayOpen()
+}
+
 export function SupportChatImageLightbox({ url, name, onClose }: SupportChatImageLightboxProps) {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose()
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      onClose()
     }
 
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('keydown', handleKeyDown, true)
 
     return () => {
       document.body.style.overflow = previousOverflow
-      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('keydown', handleKeyDown, true)
     }
   }, [onClose])
 
@@ -35,7 +53,10 @@ export function SupportChatImageLightbox({ url, name, onClose }: SupportChatImag
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[10000] flex flex-col bg-gray-950/95">
+    <div
+      data-support-image-lightbox="true"
+      className="fixed inset-0 z-[10000] flex flex-col bg-gray-950/95"
+    >
       <button
         type="button"
         aria-label="Fechar visualização"

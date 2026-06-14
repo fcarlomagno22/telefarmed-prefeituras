@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { CalendarCheck, TrendingUp, Wallet } from 'lucide-react'
+import type { ProfissionalFinanceiroSummary } from '../../../types/profissionalFinanceiroApi'
 import type { ProfissionalFinanceiroStats } from '../../../utils/profissional/computeProfissionalFinanceiroStats'
 import { formatProfissionalCurrency } from '../../../utils/profissional/formatProfissionalCurrency'
 import { profissionalFinanceiroPanelClass } from './profissionalFinanceiroUi'
@@ -7,6 +8,7 @@ import { profissionalFinanceiroPanelClass } from './profissionalFinanceiroUi'
 type ProfissionalFinanceiroHeroCardProps = {
   competenceLabel: string
   stats: ProfissionalFinanceiroStats
+  summary: ProfissionalFinanceiroSummary | null
   isCurrentMonth: boolean
 }
 
@@ -17,6 +19,7 @@ function formatNumber(value: number) {
 export function ProfissionalFinanceiroHeroCard({
   competenceLabel,
   stats,
+  summary,
   isCurrentMonth,
 }: ProfissionalFinanceiroHeroCardProps) {
   return (
@@ -46,16 +49,16 @@ export function ProfissionalFinanceiroHeroCard({
           </h2>
           <p className="mt-2 text-sm leading-snug text-gray-600">
             <span className="font-semibold text-gray-900">
-              {formatNumber(stats.realizedCount)} plantão
-              {stats.realizedCount === 1 ? ' realizado' : 's realizados'}
+              {formatNumber(stats.realizedCount)} consulta
+              {stats.realizedCount === 1 ? '' : 's'} concluída
+              {stats.realizedCount === 1 ? '' : 's'}
             </span>
-            {stats.scheduledCount > 0 ? (
+            {summary ? (
               <>
                 {' '}
                 ·{' '}
-                <span className="font-semibold text-sky-700">
-                  {formatNumber(stats.scheduledCount)} previsto
-                  {stats.scheduledCount === 1 ? '' : 's'}
+                <span className="font-semibold text-amber-700">
+                  {formatProfissionalCurrency(summary.totalPendenteCentavos)} pendente
                 </span>
               </>
             ) : null}
@@ -65,29 +68,30 @@ export function ProfissionalFinanceiroHeroCard({
         <div className="grid min-w-0 flex-1 grid-cols-4 gap-2">
           <HeroKpi
             icon={<Wallet className="h-4 w-4" aria-hidden />}
-            label="Previsão (realizados)"
+            label="Repasse competência"
             value={formatProfissionalCurrency(stats.forecastCents)}
             tone="emerald"
             currency
           />
           <HeroKpi
             icon={<TrendingUp className="h-4 w-4" aria-hidden />}
-            label="Se todos ocorrerem"
-            value={formatProfissionalCurrency(stats.potentialCents)}
+            label="Pago no ano"
+            value={formatProfissionalCurrency(summary?.totalPagoAnoCentavos ?? 0)}
             tone="brand"
             currency
           />
           <HeroKpi
             icon={<CalendarCheck className="h-4 w-4" aria-hidden />}
-            label="Realizados"
-            value={String(stats.realizedCount)}
+            label="Consultas no mês"
+            value={String(summary?.consultasMesAtual ?? stats.realizedCount)}
             tone="neutral"
           />
           <HeroKpi
             icon={<CalendarCheck className="h-4 w-4" aria-hidden />}
-            label="Previstos"
-            value={String(stats.scheduledCount)}
+            label="Pendente total"
+            value={formatProfissionalCurrency(summary?.totalPendenteCentavos ?? 0)}
             tone="neutral"
+            currency
           />
         </div>
       </div>

@@ -1,8 +1,6 @@
 import { Search, Star } from 'lucide-react'
 import { ProfissionalAvaliacaoHeroCard } from './ProfissionalAvaliacaoHeroCard'
 import { ProfissionalAvaliacaoTabs } from './ProfissionalAvaliacaoTabs'
-import { useMemo } from 'react'
-import { profissionalAvaliacoesReviews } from '../../../data/profissionalAvaliacoesMock'
 import {
   PROFISSIONAL_AVALIACAO_TOUR_DEMO_CRITICAL_REVIEW_ID,
   PROFISSIONAL_AVALIACAO_TOUR_DEMO_REVIEW_ID,
@@ -12,43 +10,30 @@ import type {
   ProfissionalAvaliacoesTab,
   ProfissionalPatientReview,
 } from '../../../types/profissionalAvaliacoes'
-import {
-  countProfissionalCriticalReviews,
-  filterProfissionalAvaliacoes,
-} from '../../../utils/profissional/filterProfissionalAvaliacoes'
+import type { ProfissionalAvaliacoesApiSummary } from '../../../types/profissionalAvaliacoesApi'
 import { ProfissionalAvaliacaoReviewCard } from './ProfissionalAvaliacaoReviewCard'
 import { profissionalAvaliacoesPanelClass } from './profissionalAvaliacoesUi'
 
 type ProfissionalAvaliacaoMainPanelProps = {
   filters: ProfissionalAvaliacoesFilters
   onFiltersChange: (filters: ProfissionalAvaliacoesFilters) => void
-}
-
-function formatNumber(value: number) {
-  return new Intl.NumberFormat('pt-BR').format(value)
+  reviews: ProfissionalPatientReview[]
+  summary: ProfissionalAvaliacoesApiSummary | null
+  isLoading?: boolean
 }
 
 export function ProfissionalAvaliacaoMainPanel({
   filters,
   onFiltersChange,
+  reviews,
+  summary,
+  isLoading = false,
 }: ProfissionalAvaliacaoMainPanelProps) {
-  const allReviews = profissionalAvaliacoesReviews
-
-  const filteredReviews = useMemo(
-    () => filterProfissionalAvaliacoes(allReviews, filters),
-    [allReviews, filters],
-  )
-
-  const totalReviews = allReviews.length
-  const criticalTotal = countProfissionalCriticalReviews(allReviews)
-  const averageRating =
-    totalReviews > 0
-      ? Number(
-          (allReviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1),
-        )
-      : 0
-  const fiveStarCount = allReviews.filter((r) => r.rating === 5).length
-  const fourStarCount = allReviews.filter((r) => r.rating === 4).length
+  const totalReviews = summary?.totalReviews ?? 0
+  const criticalTotal = summary?.criticalCount ?? 0
+  const averageRating = summary?.averageRating ?? 0
+  const fiveStarCount = summary?.fiveStarCount ?? 0
+  const fourStarCount = summary?.fourStarCount ?? 0
 
   function setTab(tab: ProfissionalAvaliacoesTab) {
     onFiltersChange({ ...filters, tab })
@@ -111,11 +96,15 @@ export function ProfissionalAvaliacaoMainPanel({
           data-tour="avaliacao-reviews-list"
           className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 py-4 sm:px-5"
         >
-          {filteredReviews.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16 text-sm text-gray-500">
+              Carregando avaliações…
+            </div>
+          ) : reviews.length === 0 ? (
             <EmptyReviewsState tab={filters.tab} hasSearch={filters.search.trim().length > 0} />
           ) : (
             <ul className="space-y-4">
-              {filteredReviews.map((review) => (
+              {reviews.map((review) => (
                 <ProfissionalAvaliacaoReviewCard
                   key={review.id}
                   review={review}

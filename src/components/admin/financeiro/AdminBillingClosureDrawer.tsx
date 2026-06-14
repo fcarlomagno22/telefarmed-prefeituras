@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { AdminFechamentoCompetenciaRow } from '../../../data/adminFinanceiroMock'
+import type { AdminFechamentoCompetenciaRow } from '../../../types/adminFinanceiro'
 
 type AdminBillingClosureDrawerProps = {
   open: boolean

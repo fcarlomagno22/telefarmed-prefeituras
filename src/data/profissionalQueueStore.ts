@@ -18,6 +18,7 @@ const MAX_RECALLS = 2
 
 export type ProfissionalActiveShiftSession = {
   shiftId: string
+  plantaoId?: string
   enteredAt: string
   endedAt?: string
   summary?: ProfissionalEndShiftSummary
@@ -154,6 +155,28 @@ function buildSeedQueue(shift: ProfissionalShift, now = new Date()): Profissiona
   ]
 }
 
+const DEMO_QUEUE_ID_PATTERN = /-q\d+$/
+
+/** Pacientes fictícios do tour/demo — nunca devem aparecer com API ativa. */
+export function isDemoQueuePatient(patient: ProfissionalQueuePatient): boolean {
+  return DEMO_QUEUE_ID_PATTERN.test(patient.id)
+}
+
+export function stripDemoQueuePatients(
+  patients: ProfissionalQueuePatient[],
+): ProfissionalQueuePatient[] {
+  return patients.filter((patient) => !isDemoQueuePatient(patient))
+}
+
+export function purgeDemoQueuePatients(shiftId: string) {
+  const queues = loadAllQueues()
+  const current = queues[shiftId]
+  if (!current?.some(isDemoQueuePatient)) return
+  queues[shiftId] = stripDemoQueuePatients(current)
+  saveAllQueues(queues)
+}
+
+/** Apenas tour guiado — dados fictícios locais. */
 export function ensureProfissionalQueueSeeded(shift: ProfissionalShift) {
   const queues = loadAllQueues()
   if (queues[shift.id]?.length) return
@@ -161,15 +184,78 @@ export function ensureProfissionalQueueSeeded(shift: ProfissionalShift) {
   saveAllQueues(queues)
 }
 
-export function getProfissionalQueue(shiftId: string): ProfissionalQueuePatient[] {
+const LOCAL_PRIORITY_STATUSES: ProfissionalQueuePatientStatus[] = [
+  'chamado',
+  'em_atendimento',
+  'finalizado',
+  'nao_compareceu',
+  'desistiu',
+]
+
+export function syncProfissionalQueueFromApi(
+  shiftId: string,
+  apiPatients: ProfissionalQueuePatient[],
+) {
   const queues = loadAllQueues()
-  const current = queues[shiftId] ?? []
-  const normalized = enforceSinglePatientInRoom(current)
-  if (normalized !== current) {
-    queues[shiftId] = normalized
-    saveAllQueues(queues)
+  const existing = stripDemoQueuePatients(queues[shiftId] ?? [])
+
+  const byId = new Map(existing.map((patient) => [patient.id, patient]))
+  const merged = apiPatients.map((apiPatient) => {
+    const local =
+      byId.get(apiPatient.id) ??
+      (apiPatient.agendaConsultaId ? byId.get(apiPatient.agendaConsultaId) : undefined)
+    if (!local) return apiPatient
+    const keepLocalStatus = LOCAL_PRIORITY_STATUSES.includes(local.status)
+    return {
+      ...local,
+      ...apiPatient,
+      id: apiPatient.id,
+      status: keepLocalStatus ? local.status : apiPatient.status,
+      recallCount: local.recallCount,
+      calledAt: local.calledAt,
+      attendanceId: local.attendanceId ?? apiPatient.attendanceId,
+    }
+  })
+
+  queues[shiftId] = enforceSinglePatientInRoom(merged)
+  saveAllQueues(queues)
+}
+
+export function persistProfissionalQueue(
+  shiftId: string,
+  patients: ProfissionalQueuePatient[],
+) {
+  const queues = loadAllQueues()
+  queues[shiftId] = enforceSinglePatientInRoom(patients)
+  saveAllQueues(queues)
+}
+
+export function syncAllProfissionalQueuesFromApi(
+  consultas: ProfissionalQueuePatient[],
+  shiftIds?: string[],
+) {
+  const byShift = new Map<string, ProfissionalQueuePatient[]>()
+  for (const consulta of consultas) {
+    const list = byShift.get(consulta.shiftId) ?? []
+    list.push(consulta)
+    byShift.set(consulta.shiftId, list)
   }
-  return sortProfissionalQueue(normalized)
+
+  const targets = shiftIds ?? [...byShift.keys()]
+  for (const shiftId of targets) {
+    purgeDemoQueuePatients(shiftId)
+    syncProfissionalQueueFromApi(shiftId, byShift.get(shiftId) ?? [])
+  }
+}
+
+export function getProfissionalQueue(
+  shiftId: string,
+  options?: { includeDemo?: boolean },
+): ProfissionalQueuePatient[] {
+  const queues = loadAllQueues()
+  const raw = queues[shiftId] ?? []
+  const patients = options?.includeDemo ? raw : stripDemoQueuePatients(raw)
+  return sortProfissionalQueue(enforceSinglePatientInRoom(patients))
 }
 
 export function updateProfissionalQueuePatient(
@@ -205,7 +291,7 @@ export function computeShiftStatsFromQueue(
     (patient) => patient.status === 'finalizado',
   ).length
   const finished = patients.filter((patient) => patient.status === 'finalizado')
-  const tempoMedioMin = finished.length > 0 ? 22 : 0
+  const tempoMedioMin = 0
 
   return { previstos, naFila, atendidos, tempoMedioMin }
 }
@@ -229,9 +315,10 @@ export function writeActiveShiftSession(session: ProfissionalActiveShiftSession 
   window.dispatchEvent(new CustomEvent(PROFISSIONAL_QUEUE_UPDATED_EVENT))
 }
 
-export function enterProfissionalShift(shiftId: string) {
+export function enterProfissionalShift(shiftId: string, plantaoId?: string) {
   writeActiveShiftSession({
     shiftId,
+    plantaoId,
     enteredAt: new Date().toISOString(),
   })
 }

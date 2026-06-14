@@ -1,86 +1,29 @@
+/** Dados seed para modo mock — tipos em `types/adminMedicos`. */
 import { doctorsOnline } from './dashboardMock'
 import { adminMunicipalityCatalog } from './adminPacientesMock'
 import { specialties } from './specialties'
+import type {
+  AdminDoctor,
+  AdminDoctorAllocation,
+  AdminDoctorAttendance,
+  AdminDoctorContractingEntity,
+  AdminDoctorDocument,
+  AdminDoctorDocumentKind,
+  AdminDoctorReview,
+  AdminProfessionalCategory,
+} from '../types/adminMedicos'
 
-export type AdminDoctorAllocation = 'nacional' | 'por_contrato'
-export type AdminProfessionalCategory =
-  | 'Médicos'
-  | 'Psicólogos'
-  | 'Nutricionistas'
-  | 'Fonoaudiólogos'
-
-export type AdminDoctorDocumentKind = 'identidade' | 'crm' | 'comprovante_endereco' | 'outro'
-
-export type AdminDoctorDocument = {
-  id: string
-  kind: AdminDoctorDocumentKind
-  label: string
-  fileName: string
-  uploadedAt: string
-}
-
-export type AdminDoctorAttendance = {
-  id: string
-  dateTimeLabel: string
-  contractCity: string
-  patientName: string
-  durationMinutes: number
-  documents: {
-    id: string
-    label: string
-    fileName: string
-  }[]
-}
-
-export type AdminDoctorReview = {
-  id: string
-  rating: number
-  author: string
-  comment: string
-  createdAtLabel: string
-}
-
-export type AdminDoctorStatus = 'ativo' | 'inativo'
-
-export type AdminDoctorContractingEntity = {
-  id: string
-  razaoSocial: string
-  municipality: string
-  uf: string
-}
-
-export type AdminDoctor = {
-  id: string
-  name: string
-  phone: string
-  cpf: string
-  rg: string
-  crm: string
-  ufCrm: string
-  profession: AdminProfessionalCategory
-  specialty: string
-  avatarUrl: string
-  zipCode: string
-  street: string
-  number: string
-  complement: string
-  neighborhood: string
-  city: string
-  state: string
-  allocation: AdminDoctorAllocation
-  contractingEntity: AdminDoctorContractingEntity | null
-  onCallLabel: string
-  status: AdminDoctorStatus
-  isOnlineNow: boolean
-  totalPatientsThisMonth: number
-  averageRating: number
-  totalReviews: number
-  lastLoginAt: string
-  lastLogoutAt: string | null
-  documents: AdminDoctorDocument[]
-  attendances: AdminDoctorAttendance[]
-  reviews: AdminDoctorReview[]
-}
+export type {
+  AdminDoctor,
+  AdminDoctorAllocation,
+  AdminDoctorAttendance,
+  AdminDoctorContractingEntity,
+  AdminDoctorDocument,
+  AdminDoctorDocumentKind,
+  AdminDoctorReview,
+  AdminDoctorStatus,
+  AdminProfessionalCategory,
+} from '../types/adminMedicos'
 
 function buildDoc(
   id: string,
@@ -97,41 +40,7 @@ function buildDoc(
   }
 }
 
-export function createEmptyAdminDoctor(): AdminDoctor {
-  return {
-    id: `prof-${Date.now()}`,
-    name: '',
-    phone: '',
-    cpf: '',
-    rg: '',
-    crm: '',
-    ufCrm: 'SP',
-    profession: 'Médicos',
-    specialty: '',
-    avatarUrl: '',
-    zipCode: '',
-    street: '',
-    number: '',
-    complement: '',
-    neighborhood: '',
-    city: '',
-    state: 'SP',
-    allocation: 'por_contrato',
-    contractingEntity: null,
-    onCallLabel: '',
-    status: 'ativo',
-    isOnlineNow: false,
-    totalPatientsThisMonth: 0,
-    averageRating: 0,
-    totalReviews: 0,
-    lastLoginAt: '—',
-    lastLogoutAt: null,
-    documents: [],
-    attendances: [],
-    reviews: [],
-  }
-}
-
+export { createEmptyAdminDoctor } from '../utils/admin/createEmptyAdminDoctor'
 export const adminDoctors: AdminDoctor[] = doctorsOnline.map((base, index) => {
   const id = String(index + 1)
   const allocation: AdminDoctorAllocation = index % 3 === 0 ? 'nacional' : 'por_contrato'
@@ -224,6 +133,14 @@ export const adminDoctors: AdminDoctor[] = doctorsOnline.map((base, index) => {
     ufCrm: 'SP',
     profession,
     specialty,
+    ...(profession === 'Médicos' && index % 4 === 0
+      ? {
+          specialties: [
+            { name: specialty, rqe: `${45000 + index}` },
+            { name: 'Cardiologia', rqe: `${46000 + index}` },
+          ],
+        }
+      : {}),
     avatarUrl: base.avatar,
     zipCode: '',
     street: '',

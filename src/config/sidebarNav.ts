@@ -1,5 +1,4 @@
 import {
-  BarChart3,
   Bell,
   CalendarDays,
   ClipboardList,
@@ -36,12 +35,6 @@ export const defaultSidebarItems: SidebarNavItemProps[] = [
     label: 'Usuários da rede',
     icon: Users,
     end: true,
-  },
-  {
-    to: ubtRoutes.relatorios,
-    label: 'Relatórios',
-    icon: BarChart3,
-    end: false,
   },
   {
     to: ubtRoutes.notificacoes,

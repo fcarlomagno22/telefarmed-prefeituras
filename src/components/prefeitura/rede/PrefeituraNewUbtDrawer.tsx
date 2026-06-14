@@ -1,12 +1,9 @@
 import {
   Building2,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  KeyRound,
   Loader2,
   MapPin,
-  Stethoscope,
   UserRound,
   X,
 } from 'lucide-react'
@@ -16,20 +13,34 @@ import {
   findPrefeituraAdministrativeRegion,
   getPrefeituraAdministrativeRegions,
 } from '../../../data/prefeituraAdministrativeRegions'
-import { buildCadastralProfileFromNewUbtForm } from '../../../data/prefeituraRedeUnitDetail'
-import type { PrefeituraRedeUnit } from '../../../data/prefeituraRedeMock'
-import { specialties } from '../../../data/specialties'
+import { usePrefeituraAuth } from '../../../contexts/PrefeituraAuthContext'
+import { usePrefeituraClinicoCatalog } from '../../../hooks/usePrefeituraClinicoCatalog'
+import {
+  createPrefeituraRedeUnit,
+  isPrefeituraRedeApiError,
+} from '../../../lib/services/prefeitura/rede'
 import { fetchAddressByCep } from '../../../utils/viacep'
+import {
+  addressMatchesEntityTerritory,
+  buildTerritoryMismatchMessage,
+} from '../../../utils/municipalityTerritory'
 import { maskCep, maskCpf, maskLandline, maskPhone } from '../../../utils/masks'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { PrefeituraAdministrativeRegionManager } from './newUbt/PrefeituraAdministrativeRegionManager'
 import { PrefeituraNewUbtFlowStepper } from './newUbt/PrefeituraNewUbtFlowStepper'
+import { PrefeituraNewUbtProfessionsSpecialtiesPanel } from './newUbt/PrefeituraNewUbtProfessionsSpecialtiesPanel'
 import { PrefeituraNewUbtReviewStep } from './newUbt/PrefeituraNewUbtReviewStep'
-import { ResponsibleAccessCredentialsModal } from './newUbt/ResponsibleAccessCredentialsModal'
+import {
+  buildUbtEspecialidadeNames,
+  getSelectedProfessionNames,
+  getVisibleSpecialtiesForUbtForm,
+  groupSpecialtiesBySelectedProfessions,
+  selectAllVisibleUbtSpecialties,
+  toggleProfessionInUbtForm,
+  validateUbtProfessionsAndSpecialties,
+} from './newUbt/newUbtCatalogUtils'
 import {
   createEmptyNewUbtForm,
-  formatNewUbtAddress,
-  hasResponsibleAccessCredentials,
   isValidCpf,
   isValidEmail,
   newUbtFlowSteps,
@@ -46,40 +57,12 @@ const labelClass = 'mb-1 block text-xs font-semibold text-gray-800'
 const inputClass =
   'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 outline-none transition focus:border-[var(--brand-primary)]/40 focus:shadow-[0_0_0_3px_rgba(255,107,0,0.12)]'
 
-const allSpecialties = [...specialties].sort((a, b) =>
-  a.name.localeCompare(b.name, 'pt-BR'),
-)
-
 type PrefeituraNewUbtDrawerProps = {
   open: boolean
   closing: boolean
   onClose: () => void
   onTransitionEnd: () => void
-  onRegistered?: (
-    unit: PrefeituraRedeUnit,
-    profile: ReturnType<typeof buildCadastralProfileFromNewUbtForm>,
-  ) => void
-}
-
-function buildUnitFromForm(form: NewUbtFormState): PrefeituraRedeUnit | null {
-  const region = findPrefeituraAdministrativeRegion(form.regionId)
-  if (!region) return null
-
-  const stations = Math.max(1, parseInt(form.stationsTotal, 10) || 1)
-
-  return {
-    id: `rede-new-${Date.now()}`,
-    name: form.name.trim(),
-    address: formatNewUbtAddress(form),
-    cnes: form.cnes.replace(/\D/g, ''),
-    region: region.label,
-    regionKey: region.key,
-    responsibleName: form.responsibleName.trim(),
-    responsiblePhone: form.responsiblePhone.trim(),
-    stationsTotal: stations,
-    stationsOnline: stations,
-    status: form.status,
-  }
+  onRegistered?: (unitName: string) => void
 }
 
 export function PrefeituraNewUbtDrawer({
@@ -89,7 +72,15 @@ export function PrefeituraNewUbtDrawer({
   onTransitionEnd,
   onRegistered,
 }: PrefeituraNewUbtDrawerProps) {
+  const { getAccessToken, user } = usePrefeituraAuth()
+  const {
+    professions: catalogProfessions,
+    specialties: catalogSpecialties,
+    isLoading: catalogLoading,
+    error: catalogError,
+  } = usePrefeituraClinicoCatalog()
   const [entered, setEntered] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [step, setStep] = useState<NewUbtFormStep>('unit')
   const [form, setForm] = useState<NewUbtFormState>(() =>
     createEmptyNewUbtForm(getPrefeituraAdministrativeRegions()[0]?.id ?? ''),
@@ -98,17 +89,37 @@ export function PrefeituraNewUbtDrawer({
   const [cepLoading, setCepLoading] = useState(false)
   const [cepError, setCepError] = useState<string | null>(null)
   const [regionsVersion, setRegionsVersion] = useState(0)
-  const [credentialsModalOpen, setCredentialsModalOpen] = useState(false)
   const lastFetchedCepRef = useRef('')
 
-  const responsibleCredentialsReady = hasResponsibleAccessCredentials(form)
+  const operationNames = useMemo(
+    () => buildUbtEspecialidadeNames(form, catalogProfessions, catalogSpecialties),
+    [form.professionIds, form.specialtyIds, catalogProfessions, catalogSpecialties],
+  )
 
-  const selectedSpecialtyNames = useMemo(
+  const selectedProfessionNames = useMemo(
+    () => getSelectedProfessionNames(form, catalogProfessions),
+    [form.professionIds, catalogProfessions],
+  )
+
+  const reviewSpecialtyGroups = useMemo(
     () =>
-      allSpecialties
-        .filter((item) => form.specialtyIds.has(item.id))
-        .map((item) => item.name),
-    [form.specialtyIds],
+      groupSpecialtiesBySelectedProfessions(
+        catalogSpecialties,
+        form.professionIds,
+        catalogProfessions,
+      ).map(({ profession, specialties }) => ({
+        professionName: profession.name,
+        specialtyNames: specialties
+          .filter((item) => form.specialtyIds.has(item.id))
+          .map((item) => item.name),
+        hasCatalogSpecialties: specialties.length > 0,
+      })),
+    [catalogProfessions, catalogSpecialties, form.professionIds, form.specialtyIds],
+  )
+
+  const visibleCatalogSpecialties = useMemo(
+    () => getVisibleSpecialtiesForUbtForm(catalogSpecialties, form.professionIds),
+    [catalogSpecialties, form.professionIds],
   )
 
   const cepDigits = form.cep.replace(/\D/g, '')
@@ -139,21 +150,17 @@ export function PrefeituraNewUbtDrawer({
     }
 
     const regions = getPrefeituraAdministrativeRegions()
-    const defaultSpecialtyIds = new Set(allSpecialties.map((item) => item.id))
     lastFetchedCepRef.current = ''
     setStep('unit')
     setStepError(null)
     setCepError(null)
-    setForm({
-      ...createEmptyNewUbtForm(regions[0]?.id ?? ''),
-      specialtyIds: defaultSpecialtyIds,
-    })
+    setForm(createEmptyNewUbtForm(regions[0]?.id ?? '', user?.municipio ?? '', user?.uf ?? ''))
 
     const frame = requestAnimationFrame(() => {
       requestAnimationFrame(() => setEntered(true))
     })
     return () => cancelAnimationFrame(frame)
-  }, [open])
+  }, [open, user?.municipio, user?.uf])
 
   useEffect(() => {
     if (!isActive) return
@@ -200,6 +207,25 @@ export function PrefeituraNewUbtDrawer({
         return
       }
 
+      if (
+        user &&
+        !addressMatchesEntityTerritory(address.city, address.state, user.municipio, user.uf)
+      ) {
+        setCepError(
+          buildTerritoryMismatchMessage(user.municipio, user.uf, address.city, address.state),
+        )
+        setForm((prev) => ({
+          ...prev,
+          street: '',
+          number: '',
+          complement: '',
+          neighborhood: '',
+          city: address.city,
+          state: address.state,
+        }))
+        return
+      }
+
       setForm((prev) => ({
         ...prev,
         street: address.street || prev.street,
@@ -214,7 +240,7 @@ export function PrefeituraNewUbtDrawer({
     return () => {
       cancelled = true
     }
-  }, [cepDigits, form.cep, step])
+  }, [cepDigits, form.cep, step, user])
 
   function patchForm(patch: Partial<NewUbtFormState>) {
     setForm((prev) => ({ ...prev, ...patch }))
@@ -228,6 +254,18 @@ export function PrefeituraNewUbtDrawer({
         return null
       case 'location':
         if (form.cep.replace(/\D/g, '').length !== 8) return 'Informe um CEP válido.'
+        if (!user) return 'Sessão expirada. Faça login novamente.'
+        if (cepError) return cepError
+        if (
+          !addressMatchesEntityTerritory(form.city, form.state, user.municipio, user.uf)
+        ) {
+          return buildTerritoryMismatchMessage(
+            user.municipio,
+            user.uf,
+            form.city,
+            form.state,
+          )
+        }
         if (!form.street.trim()) return 'Informe o logradouro.'
         if (!form.neighborhood.trim()) return 'Informe o bairro.'
         if (!form.city.trim() || !form.state.trim()) return 'Cidade e UF são obrigatórios.'
@@ -238,13 +276,19 @@ export function PrefeituraNewUbtDrawer({
         if (form.responsiblePhone.replace(/\D/g, '').length < 11) {
           return 'Informe um celular válido com DDD.'
         }
-        if (!hasResponsibleAccessCredentials(form)) {
-          return 'Defina a senha de acesso e a senha de autorização do responsável.'
-        }
         return null
       case 'operation':
         if ((parseInt(form.stationsTotal, 10) || 0) < 1) return 'Informe ao menos 1 terminal.'
-        if (form.specialtyIds.size === 0) return 'Selecione ao menos uma especialidade.'
+        if (catalogLoading) return 'Aguarde o carregamento do catálogo clínico.'
+        if (catalogError) return catalogError
+        {
+          const catalogValidation = validateUbtProfessionsAndSpecialties(
+            form,
+            catalogProfessions,
+            catalogSpecialties,
+          )
+          if (catalogValidation) return catalogValidation
+        }
         if (form.enableDailyCapacityLimit && (parseInt(form.dailyCapacityPerUnit, 10) || 0) < 1) {
           return 'Informe a capacidade diária por unidade.'
         }
@@ -271,6 +315,10 @@ export function PrefeituraNewUbtDrawer({
     if (prev) setStep(prev.id)
   }
 
+  function toggleProfession(professionId: string) {
+    setForm((prev) => toggleProfessionInUbtForm(prev, professionId, catalogSpecialties))
+  }
+
   function toggleSpecialty(id: string) {
     setForm((prev) => {
       const next = new Set(prev.specialtyIds)
@@ -280,16 +328,62 @@ export function PrefeituraNewUbtDrawer({
     })
   }
 
-  function handleSubmit() {
-    const unit = buildUnitFromForm(form)
-    if (!unit) {
+  async function handleSubmit() {
+    const region = findPrefeituraAdministrativeRegion(form.regionId)
+    if (!region) {
       setStepError('Selecione uma região administrativa válida.')
       setStep('location')
       return
     }
 
-    onRegistered?.(unit, buildCadastralProfileFromNewUbtForm(form))
-    onClose()
+    const token = getAccessToken()
+    if (!token) {
+      setStepError('Sessão expirada. Faça login novamente.')
+      return
+    }
+
+    const stations = Math.max(1, parseInt(form.stationsTotal, 10) || 1)
+    const specialtyNames = buildUbtEspecialidadeNames(form, catalogProfessions, catalogSpecialties)
+
+    setIsSubmitting(true)
+    setStepError(null)
+
+    try {
+      const detail = await createPrefeituraRedeUnit(token, {
+        name: form.name.trim(),
+        cnes: form.cnes.replace(/\D/g, ''),
+        unitType: form.unitType,
+        status: form.status,
+        regionKey: region.key,
+        regionLabel: region.label,
+        phone: form.unitLandlinePhone.trim() || form.responsiblePhone.trim(),
+        dailyCapacity: form.enableDailyCapacityLimit
+          ? Number.parseInt(form.dailyCapacityPerUnit, 10) || 0
+          : 0,
+        specialties: specialtyNames,
+        notes: form.notes.trim(),
+        stationsTotal: stations,
+        address: {
+          cep: form.cep.trim(),
+          street: form.street.trim(),
+          number: form.number.trim(),
+          complement: form.complement.trim(),
+          neighborhood: form.neighborhood.trim(),
+          city: form.city.trim(),
+          state: form.state.trim(),
+        },
+      })
+
+      onRegistered?.(detail.unit.name)
+      onClose()
+    } catch (error) {
+      const message = isPrefeituraRedeApiError(error)
+        ? error.message
+        : 'Não foi possível cadastrar a UBT.'
+      setStepError(message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (!isActive) return null
@@ -385,6 +479,7 @@ export function PrefeituraNewUbtDrawer({
                   <label className="block">
                     <span className={labelClass}>Tipo da unidade</span>
                     <CustomSelect
+                      size="compact"
                       value={form.unitType}
                       onChange={(value) =>
                         patchForm({ unitType: value as NewUbtFormState['unitType'] })
@@ -395,6 +490,7 @@ export function PrefeituraNewUbtDrawer({
                   <label className="block sm:col-span-2 lg:col-span-1 xl:col-span-1">
                     <span className={labelClass}>Status inicial</span>
                     <CustomSelect
+                      size="compact"
                       value={form.status}
                       onChange={(value) =>
                         patchForm({ status: value as NewUbtFormState['status'] })
@@ -427,6 +523,11 @@ export function PrefeituraNewUbtDrawer({
                     <MapPin className="h-4 w-4 text-[var(--brand-primary)]" strokeWidth={2} />
                     Endereço da unidade
                   </p>
+                  {user ? (
+                    <p className="text-xs text-gray-500">
+                      O CEP deve pertencer a {user.municipio}/{user.uf}, área do município contratante.
+                    </p>
+                  ) : null}
                   <label className="relative block max-w-xs sm:max-w-sm">
                     <span className={labelClass}>CEP</span>
                     <input
@@ -437,6 +538,7 @@ export function PrefeituraNewUbtDrawer({
                         const cep = maskCep(e.target.value)
                         const digits = cep.replace(/\D/g, '')
                         if (digits.length < 8) lastFetchedCepRef.current = ''
+                        setCepError(null)
                         patchForm({ cep })
                       }}
                       placeholder="00000-000"
@@ -529,6 +631,7 @@ export function PrefeituraNewUbtDrawer({
                     <label className="block">
                       <span className={labelClass}>Região administrativa (RA) da unidade</span>
                       <CustomSelect
+                        size="compact"
                         value={form.regionId}
                         onChange={(value) => patchForm({ regionId: value })}
                         options={regionOptions}
@@ -585,52 +688,6 @@ export function PrefeituraNewUbtDrawer({
                           className={inputClass}
                         />
                       </label>
-                    </div>
-
-                    <div
-                      className={[
-                        'flex flex-col gap-3 rounded-xl border px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between',
-                        responsibleCredentialsReady
-                          ? 'border-emerald-200 bg-emerald-50/50'
-                          : 'border-amber-200/80 bg-amber-50/40',
-                      ].join(' ')}
-                    >
-                      <div className="flex min-w-0 items-start gap-3">
-                        <span
-                          className={[
-                            'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg',
-                            responsibleCredentialsReady
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : 'bg-[var(--brand-primary-light)] text-[var(--brand-primary)]',
-                          ].join(' ')}
-                        >
-                          {responsibleCredentialsReady ? (
-                            <CheckCircle2 className="h-5 w-5" strokeWidth={2} />
-                          ) : (
-                            <KeyRound className="h-5 w-5" strokeWidth={1.75} />
-                          )}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-sm font-bold text-gray-900">Senhas de acesso do responsável</p>
-                          <p className="mt-0.5 text-xs text-gray-600">
-                            {responsibleCredentialsReady
-                              ? 'Senha da plataforma e senha de autorização (6 dígitos) definidas.'
-                              : 'Obrigatório: senha de login na plataforma e senha numérica de autorização.'}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setCredentialsModalOpen(true)}
-                        className={[
-                          'shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition',
-                          responsibleCredentialsReady
-                            ? 'border border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-50'
-                            : 'btn-brand-gradient',
-                        ].join(' ')}
-                      >
-                        {responsibleCredentialsReady ? 'Alterar senhas' : 'Definir senhas de acesso'}
-                      </button>
                     </div>
                   </div>
                 </section>
@@ -706,52 +763,21 @@ export function PrefeituraNewUbtDrawer({
                   ) : null}
                 </section>
 
-                <section className={`${drawerPanelShell} min-h-0 flex-1`}>
-                  <header className="flex shrink-0 items-center justify-between gap-3 border-b border-gray-100 px-3 py-2 sm:px-4">
-                    <p className="flex items-center gap-2 text-sm font-bold text-gray-900">
-                      <Stethoscope className="h-4 w-4 text-[var(--brand-primary)]" strokeWidth={2} />
-                      Especialidades disponíveis
-                    </p>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-gray-600">
-                      {form.specialtyIds.size} selecionada{form.specialtyIds.size === 1 ? '' : 's'}
-                    </span>
-                  </header>
-                  <div className="flex shrink-0 gap-2 border-b border-gray-100 px-3 py-1.5 sm:px-4">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        patchForm({
-                          specialtyIds: new Set(allSpecialties.map((item) => item.id)),
-                        })
-                      }
-                      className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                    >
-                      Marcar todas
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => patchForm({ specialtyIds: new Set() })}
-                      className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                    >
-                      Limpar todas
-                    </button>
-                  </div>
-                  <ul className="grid min-h-0 flex-1 gap-1.5 overflow-y-auto overscroll-y-contain p-2 sm:grid-cols-2 sm:p-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-                    {allSpecialties.map((specialty) => (
-                      <li key={specialty.id}>
-                        <label className="flex h-full cursor-pointer items-center gap-2 rounded-lg border border-gray-100 bg-slate-50/50 px-2.5 py-2 text-sm transition hover:border-[var(--brand-primary)]/20 hover:bg-white">
-                          <input
-                            type="checkbox"
-                            checked={form.specialtyIds.has(specialty.id)}
-                            onChange={() => toggleSpecialty(specialty.id)}
-                            className="h-4 w-4 shrink-0 rounded border-gray-300 text-[var(--brand-primary)]"
-                          />
-                          <span className="font-medium text-gray-800">{specialty.name}</span>
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+                <PrefeituraNewUbtProfessionsSpecialtiesPanel
+                  form={form}
+                  professions={catalogProfessions}
+                  specialties={catalogSpecialties}
+                  isLoading={catalogLoading}
+                  error={catalogError}
+                  onToggleProfession={toggleProfession}
+                  onToggleSpecialty={toggleSpecialty}
+                  onSelectAllSpecialties={() =>
+                    setForm((prev) =>
+                      selectAllVisibleUbtSpecialties(prev, visibleCatalogSpecialties),
+                    )
+                  }
+                  onClearSpecialties={() => patchForm({ specialtyIds: new Set() })}
+                />
               </div>
             ) : null}
 
@@ -760,8 +786,9 @@ export function PrefeituraNewUbtDrawer({
                 <PrefeituraNewUbtReviewStep
                   form={form}
                   regionLabel={selectedRegion?.label ?? '—'}
-                  specialtyNames={selectedSpecialtyNames}
-                  credentialsReady={responsibleCredentialsReady}
+                  professionNames={selectedProfessionNames}
+                  specialtyGroups={reviewSpecialtyGroups}
+                  operationNames={operationNames}
                 />
               </section>
             ) : null}
@@ -781,10 +808,11 @@ export function PrefeituraNewUbtDrawer({
           {isLastStep ? (
             <button
               type="button"
-              onClick={handleSubmit}
-              className="btn-brand-gradient inline-flex items-center gap-2 rounded-xl px-8 py-3 text-sm font-semibold"
+              onClick={() => void handleSubmit()}
+              disabled={isSubmitting}
+              className="btn-brand-gradient inline-flex items-center gap-2 rounded-xl px-8 py-3 text-sm font-semibold disabled:opacity-60"
             >
-              Cadastrar UBT
+              {isSubmitting ? 'Cadastrando…' : 'Cadastrar UBT'}
             </button>
           ) : (
             <button
@@ -798,18 +826,6 @@ export function PrefeituraNewUbtDrawer({
           )}
         </footer>
       </aside>
-
-      <ResponsibleAccessCredentialsModal
-        open={credentialsModalOpen}
-        responsibleName={form.responsibleName}
-        onClose={() => setCredentialsModalOpen(false)}
-        onComplete={({ accessPassword, authorizationPin }) => {
-          patchForm({
-            responsibleAccessPassword: accessPassword,
-            responsibleAuthorizationPin: authorizationPin,
-          })
-        }}
-      />
     </div>,
     document.body,
   )

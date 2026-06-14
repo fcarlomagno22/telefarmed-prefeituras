@@ -2,13 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Video } from 'lucide-react'
 
-export const CONSULTATION_COUNTDOWN_SECONDS = 30
+export const CONSULTATION_COUNTDOWN_SECONDS = 10
 export const CONSULTATION_REVEAL_AT_SECONDS = 5
 
 type RevealPhase = 'idle' | 'fade' | 'travel' | 'center' | 'ready'
 
 type WaitingRoomConsultationTransitionProps = {
   onEnterConsultation?: () => void
+  readyForConsultation?: boolean
+  countdownSessionKey?: string
   children: (api: {
     revealPhase: RevealPhase
     countdownAnchorRef: React.RefObject<HTMLDivElement | null>
@@ -23,12 +25,15 @@ function prefersReducedMotion() {
 
 export function WaitingRoomConsultationTransition({
   onEnterConsultation,
+  readyForConsultation = false,
+  countdownSessionKey,
   children,
 }: WaitingRoomConsultationTransitionProps) {
   const reducedMotion = prefersReducedMotion()
   const countdownAnchorRef = useRef<HTMLDivElement>(null)
   const revealStartedRef = useRef(false)
   const pendingReadyRef = useRef(false)
+  const secondsLeftRef = useRef(CONSULTATION_COUNTDOWN_SECONDS)
 
   const [revealPhase, setRevealPhase] = useState<RevealPhase>('idle')
   const [secondsLeft, setSecondsLeft] = useState(CONSULTATION_COUNTDOWN_SECONDS)
@@ -54,7 +59,7 @@ export function WaitingRoomConsultationTransition({
       setFlyToCenter(true)
       setRevealPhase('fade')
       window.setTimeout(() => {
-        if (secondsLeft <= 0) setRevealPhase('ready')
+        if (secondsLeftRef.current <= 0) setRevealPhase('ready')
         else setRevealPhase('center')
       }, 480)
       return
@@ -76,12 +81,36 @@ export function WaitingRoomConsultationTransition({
         requestAnimationFrame(() => setFlyToCenter(true))
       })
     }, 420)
-  }, [reducedMotion, secondsLeft])
+  }, [reducedMotion])
 
   useEffect(() => {
+    if (!readyForConsultation) return
+
+    if (countdownSessionKey) {
+      try {
+        if (sessionStorage.getItem(countdownSessionKey) === '1') {
+          secondsLeftRef.current = 0
+          setSecondsLeft(0)
+          revealStartedRef.current = true
+          setRevealPhase('ready')
+          return
+        }
+      } catch {
+        // sessionStorage indisponível
+      }
+    }
+
+    secondsLeftRef.current = CONSULTATION_COUNTDOWN_SECONDS
+    setSecondsLeft(CONSULTATION_COUNTDOWN_SECONDS)
+    revealStartedRef.current = false
+    setRevealPhase('idle')
+    setFlyToCenter(false)
+    setFlyOrigin(null)
+
     const id = window.setInterval(() => {
       setSecondsLeft((current) => {
         const next = Math.max(0, current - 1)
+        secondsLeftRef.current = next
 
         if (next === CONSULTATION_REVEAL_AT_SECONDS && !revealStartedRef.current) {
           window.queueMicrotask(() => beginReveal())
@@ -92,7 +121,7 @@ export function WaitingRoomConsultationTransition({
     }, 1000)
 
     return () => window.clearInterval(id)
-  }, [beginReveal])
+  }, [countdownSessionKey, readyForConsultation, beginReveal])
 
   useEffect(() => {
     if (secondsLeft !== 0) return
@@ -175,7 +204,16 @@ export function WaitingRoomConsultationTransition({
               </div>
               <button
                 type="button"
-                onClick={onEnterConsultation}
+                onClick={() => {
+                  if (countdownSessionKey) {
+                    try {
+                      sessionStorage.setItem(countdownSessionKey, '1')
+                    } catch {
+                      // ignore
+                    }
+                  }
+                  onEnterConsultation?.()
+                }}
                 className="btn-brand-gradient w-full max-w-sm rounded-xl px-8 py-3.5 text-sm font-semibold sm:text-base"
               >
                 Iniciar Consulta

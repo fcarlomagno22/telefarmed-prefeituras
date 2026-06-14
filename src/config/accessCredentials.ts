@@ -9,9 +9,10 @@ export type SystemPageId =
   | 'agenda'
   | 'consultas'
   | 'usuarios'
-  | 'relatorios'
   | 'suporte'
   | 'credenciais'
+  | 'notificacoes'
+  | 'auditoria'
 
 export type SystemPageDefinition = {
   id: SystemPageId
@@ -57,22 +58,28 @@ export const systemPages: SystemPageDefinition[] = [
     route: ubtRoutes.usuarios,
   },
   {
-    id: 'relatorios',
-    label: 'Relatórios',
-    description: 'Indicadores e exportações',
-    route: ubtRoutes.relatorios,
-  },
-  {
     id: 'suporte',
     label: 'Suporte técnico',
     description: 'Chamados e atendimento ao operador',
     route: ubtRoutes.suporte,
   },
   {
+    id: 'notificacoes',
+    label: 'Notificações',
+    description: 'Comunicados da gestão e da Telefarmed',
+    route: ubtRoutes.notificacoes,
+  },
+  {
     id: 'credenciais',
     label: 'Credenciais de acesso',
     description: 'Gestão de usuários e permissões',
     route: ubtRoutes.credenciais,
+  },
+  {
+    id: 'auditoria',
+    label: 'Logs de auditoria',
+    description: 'Rastreabilidade de ações na unidade',
+    route: ubtRoutes.auditoria,
   },
 ]
 
@@ -108,6 +115,17 @@ const viewOnly: PermissionAction[] = ['visualizar']
 const viewEdit: PermissionAction[] = ['visualizar', 'editar']
 const operatorActions: PermissionAction[] = ['visualizar', 'inserir', 'editar']
 
+/** Permissões mínimas para operar o Terminal de triagem (/ubt/triagem). */
+export function triagemTerminalPagePermissions(): Record<SystemPageId, PermissionAction[]> {
+  const empty = emptyPagePermissions()
+  empty.triagem = ['visualizar', 'inserir', 'editar']
+  empty.agenda = ['visualizar', 'inserir', 'editar']
+  empty.usuarios = ['visualizar', 'inserir', 'editar']
+  empty.consultas = ['visualizar', 'inserir', 'editar']
+  empty.notificacoes = ['visualizar']
+  return empty
+}
+
 export function buildPresetPagePermissions(level: AccessLevelId): Record<SystemPageId, PermissionAction[]> {
   const empty = Object.fromEntries(
     systemPages.map((page) => [page.id, [] as PermissionAction[]]),
@@ -130,19 +148,20 @@ export function buildPresetPagePermissions(level: AccessLevelId): Record<SystemP
   }
 
   if (level === 'editor') {
-    const editorPages: SystemPageId[] = ['agenda', 'consultas', 'usuarios', 'relatorios']
+    const editorPages: SystemPageId[] = ['agenda', 'consultas', 'usuarios', 'notificacoes']
     for (const pageId of editorPages) {
       empty[pageId] = [...viewEdit]
     }
     empty.triagem = [...viewOnly]
+    empty.auditoria = [...viewOnly]
     return empty
   }
 
-  const operatorPages: SystemPageId[] = ['triagem', 'agenda', 'consultas', 'usuarios', 'suporte']
+  const operatorPages: SystemPageId[] = ['triagem', 'agenda', 'consultas', 'usuarios', 'suporte', 'notificacoes']
   for (const pageId of operatorPages) {
     empty[pageId] = [...operatorActions]
   }
-  empty.relatorios = [...viewOnly]
+  empty.auditoria = [...viewOnly]
   return empty
 }
 

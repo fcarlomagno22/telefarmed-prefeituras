@@ -1,6 +1,6 @@
 import { AlertTriangle, Building2, ChevronRight, Timer } from 'lucide-react'
 import { DashCard, DashLinkAction } from '../../prefeitura/prefeituraDashboardUi'
-import type { PrefeituraSlaStatus } from '../../../data/prefeituraDashboardMock'
+import type { PrefeituraSlaStatus } from '../../../types/prefeituraDashboard'
 import {
   adminDashboardHourlyBodyClass,
   adminHealthDotClass,

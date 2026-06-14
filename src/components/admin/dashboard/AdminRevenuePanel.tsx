@@ -1,6 +1,6 @@
 import type { AdminRevenueView } from '../../../utils/adminDashboardFilters'
 import { DashCard } from '../../prefeitura/prefeituraDashboardUi'
-import { adminDashboardHourlyBodyClass, formatAdminCurrency } from './adminDashboardUi'
+import { adminDashboardHourlyBodyClass, formatAdminCurrency, formatAdminCurrencyCompact } from './adminDashboardUi'
 
 type AdminRevenuePanelProps = {
   className?: string
@@ -34,7 +34,7 @@ export function AdminRevenuePanel({ className = '', revenue, onClick }: AdminRev
       }
     >
       <p className="text-center text-2xl font-bold tracking-tight text-gray-900">
-        {formatAdminCurrency(revenue.grandTotal)}
+        {formatAdminCurrencyCompact(revenue.grandTotal)}
       </p>
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 px-3 py-2.5 text-center">

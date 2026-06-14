@@ -55,16 +55,6 @@ export function PrefeituraContratoSidebarPanelSkeleton() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-4 w-4 rounded" />
-          <Skeleton className="h-4 w-32" />
-        </div>
-        <Skeleton className="mt-2 h-3 w-full" />
-        <Skeleton className="mt-2 h-3 w-[85%]" />
-        <Skeleton className="mt-3 h-4 w-48" />
-      </section>
-
       <section className="mt-auto shrink-0 rounded-xl border border-dashed border-gray-200 bg-gradient-to-br from-slate-50/90 to-white p-3">
         <Skeleton className="h-8 w-full" />
         <Skeleton className="mt-2.5 h-9 w-full rounded-lg" />

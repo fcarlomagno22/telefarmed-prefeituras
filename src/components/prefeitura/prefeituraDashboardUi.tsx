@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { PrefeituraSlaStatus } from '../../data/prefeituraDashboardMock'
+import type { PrefeituraSlaStatus } from '../../types/prefeituraDashboard'
 import type { SituationStatusBadgeStyle } from '../ui/SituationStatusBadge'
 
 export function formatPrefeituraNumber(value: number) {

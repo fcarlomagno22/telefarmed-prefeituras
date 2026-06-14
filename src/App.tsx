@@ -1,13 +1,13 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom'
-import { ubtRelatoriosCategoryPath, ubtRoutes } from './config/ubtRoutes'
+import { ubtAtendimentoAvaliacaoPath, ubtAtendimentoPath, ubtRoutes } from './config/ubtRoutes'
 import { AgendaPage } from './pages/AgendaPage'
 import { HomePage } from './pages/HomePage'
-import { LoginPage } from './pages/LoginPage'
+import { UbtLoginPage } from './pages/UbtLoginPage'
+import { UbtRoutesShell } from './pages/UbtRoutesShell'
 import { LoginTransitionPage } from './pages/LoginTransitionPage'
 import { ConsultasPage } from './pages/ConsultasPage'
 import { NetworkUsersPage } from './pages/NetworkUsersPage'
-import { RelatoriosPage } from './pages/RelatoriosPage'
-import { RelatoriosCategoryPage } from './pages/RelatoriosCategoryPage'
 import { SuportePage } from './pages/SuportePage'
 import { AccessCredentialsPage } from './pages/AccessCredentialsPage'
 import { AuditLogsPage } from './pages/AuditLogsPage'
@@ -20,21 +20,28 @@ import { AdminProtectedRoute } from './components/auth/AdminProtectedRoute'
 import { AdminDashboardPage } from './pages/AdminDashboardPage'
 import { AdminClientesPage } from './pages/AdminClientesPage'
 import { AdminPacientesPage } from './pages/AdminPacientesPage'
+import { AdminOperadoresPage } from './pages/AdminOperadoresPage'
+import { AdminProfissionaisPage } from './pages/AdminProfissionaisPage'
 import { AdminPlaceholderPage } from './pages/AdminPlaceholderPage'
 import { AdminSuportePage } from './pages/AdminSuportePage'
 import { AdminAuditLogsPage } from './pages/AdminAuditLogsPage'
-import { AdminNotificacoesPage } from './pages/AdminNotificacoesPage'
 import { AdminCredenciaisPage } from './pages/AdminCredenciaisPage'
 import { AdminConfiguracoesPage } from './pages/AdminConfiguracoesPage'
 import { AdminMonitorPage } from './pages/AdminMonitorPage'
 import { AdminEscalaPage } from './pages/AdminEscalaPage'
-import { AdminFinanceiroPage } from './pages/AdminFinanceiroPage'
 import { PrefeituraLoginPage } from './pages/PrefeituraLoginPage'
+import { PrefeituraRoutesShell } from './pages/PrefeituraRoutesShell'
+import { PrefeituraHomeRedirect } from './components/auth/PrefeituraPagePermissionGuard'
+import { PrefeituraProtectedRoute } from './components/auth/PrefeituraProtectedRoute'
 import { ProfissionalLoginPage } from './pages/ProfissionalLoginPage'
+import { ProfissionalRoutesShell } from './pages/ProfissionalRoutesShell'
 import { MedicoCadastroLandingPage } from './pages/MedicoCadastroLandingPage'
+import { MinhaCandidaturaPage } from './pages/MinhaCandidaturaPage'
 import { ProfissionalFinalizarCadastroPage } from './pages/ProfissionalFinalizarCadastroPage'
 import { medicoCadastroLandingRoute } from './config/medicoCadastroLanding'
 import { ProfissionalLayout } from './pages/ProfissionalLayout'
+import { ProfissionalHomeRedirect, ProfissionalPagePermissionGuard } from './components/auth/ProfissionalPagePermissionGuard'
+import { ProfissionalProtectedRoute } from './components/auth/ProfissionalProtectedRoute'
 import { ProfissionalAgendaPage } from './pages/ProfissionalAgendaPage'
 import { ProfissionalAtendimentosPage } from './pages/ProfissionalAtendimentosPage'
 import { ProfissionalEscalaPage } from './pages/ProfissionalEscalaPage'
@@ -43,7 +50,7 @@ import { ProfissionalAvaliacaoPage } from './pages/ProfissionalAvaliacaoPage'
 import { ProfissionalSuportePage } from './pages/ProfissionalSuportePage'
 import { ProfissionalNotificacoesPage } from './pages/ProfissionalNotificacoesPage'
 import { ProfissionalPerfilPage } from './pages/ProfissionalPerfilPage'
-import { profissionalRoutes } from './config/profissionalRoutes'
+import { profissionalAtendimentoSessaoPath, profissionalRoutes } from './config/profissionalRoutes'
 import { PrefeituraLayout } from './pages/PrefeituraLayout'
 import { PrefeituraDashboardPage } from './pages/PrefeituraDashboardPage'
 import { PrefeituraRedePage } from './pages/PrefeituraRedePage'
@@ -56,17 +63,48 @@ import { PrefeituraSuportePage } from './pages/PrefeituraSuportePage'
 import { PrefeituraAccessCredentialsPage } from './pages/PrefeituraAccessCredentialsPage'
 import { PrefeituraContratoPage } from './pages/PrefeituraContratoPage'
 import { PrefeituraNotificacoesPage } from './pages/PrefeituraNotificacoesPage'
+import {
+  PrefeituraRelatoriosCategoryPage,
+  PrefeituraRelatoriosPage,
+} from './pages/PrefeituraRelatoriosPage'
+import { PrefeituraRelatorioViewPage } from './pages/PrefeituraRelatorioViewPage'
+import { PrefeituraRelatoriosCompiledView } from './components/prefeitura/relatorios/PrefeituraRelatoriosCompiledView'
 import { UbtNotificacoesPage } from './pages/UbtNotificacoesPage'
+import { UbtHomeRedirect } from './components/auth/UbtPagePermissionGuard'
+import { UbtProtectedRoute } from './components/auth/UbtProtectedRoute'
+import { UbtPagePermissionGuard } from './components/auth/UbtPagePermissionGuard'
 import { UbtNotificacoesProviderLayout } from './pages/UbtNotificacoesProviderLayout'
 import { SalaDeEsperaPage } from './pages/SalaDeEsperaPage'
 import { AtendimentoPacientePage } from './pages/AtendimentoPacientePage'
 import { AtendimentoAvaliacaoPage } from './pages/AtendimentoAvaliacaoPage'
 import { AtendimentoMedicoPage } from './pages/AtendimentoMedicoPage'
+import { VerificarDocumentoPage } from './pages/VerificarDocumentoPage'
+import { VidaPlusPage } from './pages/VidaPlusPage'
+import { vidaPlusRoutes } from './config/vidaPlusRoutes'
 
-function LegacyUbtRelatoriosCategoryRedirect() {
-  const { categoryId } = useParams<{ categoryId: string }>()
-  if (!categoryId) return <Navigate to={ubtRoutes.relatorios} replace />
-  return <Navigate to={ubtRelatoriosCategoryPath(categoryId)} replace />
+const AdminNotificacoesPage = lazy(() =>
+  import('./pages/AdminNotificacoesPage').then((module) => ({
+    default: module.AdminNotificacoesPage,
+  })),
+)
+
+const AdminFinanceiroPage = lazy(() =>
+  import('./pages/AdminFinanceiroPage').then((module) => ({
+    default: module.AdminFinanceiroPage,
+  })),
+)
+
+function LegacyAtendimentoRedirect() {
+  const { attendanceId, '*': suffix } = useParams<{ attendanceId: string; '*': string }>()
+  if (!attendanceId) return <Navigate to={ubtRoutes.triagem} replace />
+
+  if (suffix === 'avaliacao') {
+    return <Navigate to={ubtAtendimentoAvaliacaoPath(attendanceId)} replace />
+  }
+  if (suffix === 'medico') {
+    return <Navigate to={profissionalAtendimentoSessaoPath(attendanceId)} replace />
+  }
+  return <Navigate to={ubtAtendimentoPath(attendanceId)} replace />
 }
 
 function App() {
@@ -74,26 +112,13 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<RootPage />} />
-        <Route path="/sala-de-espera" element={<SalaDeEsperaPage />} />
-        <Route path="/atendimento/:attendanceId/avaliacao" element={<AtendimentoAvaliacaoPage />} />
-        <Route path="/atendimento/:attendanceId/medico" element={<AtendimentoMedicoPage />} />
-        <Route path="/atendimento/:attendanceId" element={<AtendimentoPacientePage />} />
-        <Route path="/ubt/login" element={<LoginPage />} />
+        <Route path={vidaPlusRoutes.home} element={<VidaPlusPage />} />
+        <Route path="/sala-de-espera" element={<Navigate to={ubtRoutes.salaDeEspera} replace />} />
+        <Route path="/verificar/:codigo" element={<VerificarDocumentoPage />} />
+        <Route path="/atendimento/:attendanceId/*" element={<LegacyAtendimentoRedirect />} />
         <Route path="/login" element={<Navigate to="/ubt/login" replace />} />
         <Route path="/ubs/login" element={<Navigate to="/ubt/login" replace />} />
-        <Route path="/prefeitura/login" element={<PrefeituraLoginPage />} />
-        <Route path="/profissional/login" element={<ProfissionalLoginPage />} />
-        <Route
-          path={medicoCadastroLandingRoute}
-          element={<MedicoCadastroLandingPage />}
-        />
-        <Route
-          path={profissionalRoutes.finalizarCadastro}
-          element={<ProfissionalFinalizarCadastroPage />}
-        />
         <Route path="/entrando" element={<Navigate to={ubtRoutes.entrando} replace />} />
-        <Route path="/ubt/entrando" element={<LoginTransitionPage />} />
-        <Route path="/prefeitura/entrando" element={<LoginTransitionPage />} />
         <Route path="/admin" element={<AdminRoutesShell />}>
           <Route path="login" element={<AdminLoginPage />} />
           <Route element={<AdminProtectedRoute />}>
@@ -104,13 +129,41 @@ function App() {
               <Route path="clientes" element={<AdminClientesPage />} />
               <Route path="monitor-operacional" element={<AdminMonitorPage />} />
               <Route path="monitor" element={<Navigate to="/admin/monitor-operacional" replace />} />
-              <Route path="pessoas" element={<AdminPacientesPage />} />
-              <Route path="pacientes" element={<Navigate to="/admin/pessoas" replace />} />
-              <Route path="medicos" element={<AdminPlaceholderPage />} />
+              <Route path="pessoas" element={<Navigate to="/admin/pacientes" replace />} />
+              <Route path="pacientes" element={<AdminPacientesPage />} />
+              <Route path="operadores" element={<AdminOperadoresPage />} />
+              <Route path="profissionais" element={<AdminProfissionaisPage />} />
+              <Route path="medicos" element={<Navigate to="/admin/profissionais" replace />} />
               <Route path="escala" element={<AdminEscalaPage />} />
               <Route path="gestao-escala" element={<Navigate to="/admin/escala" replace />} />
-              <Route path="financeiro" element={<AdminFinanceiroPage />} />
-              <Route path="notificacoes" element={<AdminNotificacoesPage />} />
+              <Route
+                path="financeiro"
+                element={
+                  <Suspense
+                    fallback={
+                      <div className="flex flex-1 items-center justify-center p-8 text-sm text-gray-500">
+                        Carregando financeiro…
+                      </div>
+                    }
+                  >
+                    <AdminFinanceiroPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="notificacoes"
+                element={
+                  <Suspense
+                    fallback={
+                      <div className="flex flex-1 items-center justify-center p-8 text-sm text-gray-500">
+                        Carregando notificações…
+                      </div>
+                    }
+                  >
+                    <AdminNotificacoesPage />
+                  </Suspense>
+                }
+              />
               <Route path="suporte" element={<AdminSuportePage />} />
               <Route path="auditoria" element={<AdminAuditLogsPage />} />
               <Route path="credenciais" element={<AdminCredenciaisPage />} />
@@ -119,36 +172,66 @@ function App() {
             </Route>
           </Route>
         </Route>
-        <Route path="/profissional/entrando" element={<LoginTransitionPage />} />
-        <Route path="/profissional" element={<ProfissionalLayout />}>
-          <Route index element={<Navigate to="agenda" replace />} />
-          <Route path="agenda" element={<ProfissionalAgendaPage />} />
-          <Route path="atendimentos" element={<ProfissionalAtendimentosPage />} />
-          <Route path="historico" element={<Navigate to="atendimentos" replace />} />
-          <Route path="escala" element={<ProfissionalEscalaPage />} />
-          <Route path="financeiro" element={<ProfissionalFinanceiroPage />} />
-          <Route path="avaliacao" element={<ProfissionalAvaliacaoPage />} />
-          <Route path="suporte" element={<ProfissionalSuportePage />} />
-          <Route path="notificacoes" element={<ProfissionalNotificacoesPage />} />
-          <Route path="perfil" element={<ProfissionalPerfilPage />} />
-          <Route path="*" element={<Navigate to={profissionalRoutes.agenda} replace />} />
+        <Route path="/profissional" element={<ProfissionalRoutesShell />}>
+          <Route path="login" element={<ProfissionalLoginPage />} />
+          <Route
+            path={medicoCadastroLandingRoute.replace('/profissional/', '')}
+            element={<MedicoCadastroLandingPage />}
+          />
+          <Route
+            path={profissionalRoutes.minhaCandidatura.replace('/profissional/', '')}
+            element={<MinhaCandidaturaPage />}
+          />
+          <Route
+            path={profissionalRoutes.finalizarCadastro.replace('/profissional/', '')}
+            element={<ProfissionalFinalizarCadastroPage />}
+          />
+          <Route element={<ProfissionalProtectedRoute />}>
+            <Route path="entrando" element={<LoginTransitionPage />} />
+            <Route element={<ProfissionalPagePermissionGuard />}>
+              <Route path="atendimento/:attendanceId" element={<AtendimentoMedicoPage />} />
+            </Route>
+            <Route element={<ProfissionalLayout />}>
+              <Route index element={<ProfissionalHomeRedirect />} />
+              <Route path="agenda" element={<ProfissionalAgendaPage />} />
+              <Route path="atendimentos" element={<ProfissionalAtendimentosPage />} />
+              <Route path="historico" element={<Navigate to="atendimentos" replace />} />
+              <Route path="escala" element={<ProfissionalEscalaPage />} />
+              <Route path="financeiro" element={<ProfissionalFinanceiroPage />} />
+              <Route path="avaliacao" element={<ProfissionalAvaliacaoPage />} />
+              <Route path="suporte" element={<ProfissionalSuportePage />} />
+              <Route path="notificacoes" element={<ProfissionalNotificacoesPage />} />
+              <Route path="perfil" element={<ProfissionalPerfilPage />} />
+              <Route path="*" element={<ProfissionalHomeRedirect />} />
+            </Route>
+          </Route>
         </Route>
-        <Route path="/prefeitura" element={<PrefeituraLayout />}>
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<PrefeituraDashboardPage />} />
-          <Route path="rede" element={<PrefeituraRedePage />} />
-          <Route path="monitor" element={<PrefeituraMonitorPage />} />
-          <Route path="consultas" element={<PrefeituraConsultasPage />} />
-          <Route path="agendas" element={<PrefeituraAgendasPage />} />
-          <Route path="agenda" element={<Navigate to="/prefeitura/agendas" replace />} />
-          <Route path="usuarios" element={<PrefeituraUsuariosPage />} />
-          <Route path="auditoria" element={<PrefeituraAuditLogsPage />} />
-          <Route path="suporte" element={<PrefeituraSuportePage />} />
-          <Route path="credenciais" element={<PrefeituraAccessCredentialsPage />} />
-          <Route path="contrato" element={<PrefeituraContratoPage />} />
-          <Route path="notificacoes" element={<PrefeituraNotificacoesPage />} />
-          <Route path="alertas" element={<Navigate to="/prefeitura/notificacoes" replace />} />
-          <Route path="*" element={<PrefeituraDashboardPage />} />
+        <Route path="/prefeitura" element={<PrefeituraRoutesShell />}>
+          <Route path="login" element={<PrefeituraLoginPage />} />
+          <Route element={<PrefeituraProtectedRoute />}>
+            <Route path="entrando" element={<LoginTransitionPage />} />
+            <Route path="relatorios/compilado" element={<PrefeituraRelatoriosCompiledView />} />
+            <Route path="relatorios/gerar/:reportId" element={<PrefeituraRelatorioViewPage />} />
+            <Route element={<PrefeituraLayout />}>
+              <Route index element={<PrefeituraHomeRedirect />} />
+              <Route path="dashboard" element={<PrefeituraDashboardPage />} />
+              <Route path="rede" element={<PrefeituraRedePage />} />
+              <Route path="monitor" element={<PrefeituraMonitorPage />} />
+              <Route path="consultas" element={<PrefeituraConsultasPage />} />
+              <Route path="agendas" element={<PrefeituraAgendasPage />} />
+              <Route path="agenda" element={<Navigate to="/prefeitura/agendas" replace />} />
+              <Route path="usuarios" element={<PrefeituraUsuariosPage />} />
+              <Route path="auditoria" element={<PrefeituraAuditLogsPage />} />
+              <Route path="suporte" element={<PrefeituraSuportePage />} />
+              <Route path="credenciais" element={<PrefeituraAccessCredentialsPage />} />
+              <Route path="contrato" element={<PrefeituraContratoPage />} />
+              <Route path="relatorios" element={<PrefeituraRelatoriosPage />} />
+              <Route path="relatorios/:categoryId" element={<PrefeituraRelatoriosCategoryPage />} />
+              <Route path="notificacoes" element={<PrefeituraNotificacoesPage />} />
+              <Route path="alertas" element={<Navigate to="/prefeitura/notificacoes" replace />} />
+              <Route path="*" element={<PrefeituraHomeRedirect />} />
+            </Route>
+          </Route>
         </Route>
         <Route path="/triagem" element={<Navigate to={ubtRoutes.triagem} replace />} />
         <Route path="/home" element={<Navigate to={ubtRoutes.triagem} replace />} />
@@ -156,29 +239,38 @@ function App() {
         <Route path="/agenda" element={<Navigate to={ubtRoutes.agenda} replace />} />
         <Route path="/consultas" element={<Navigate to={ubtRoutes.consultas} replace />} />
         <Route path="/usuarios" element={<Navigate to={ubtRoutes.usuarios} replace />} />
-        <Route path="/relatorios" element={<Navigate to={ubtRoutes.relatorios} replace />} />
-        <Route
-          path="/relatorios/:categoryId"
-          element={<LegacyUbtRelatoriosCategoryRedirect />}
-        />
+        <Route path="/relatorios" element={<Navigate to={ubtRoutes.triagem} replace />} />
+        <Route path="/relatorios/*" element={<Navigate to={ubtRoutes.triagem} replace />} />
         <Route path="/notificacoes" element={<Navigate to={ubtRoutes.notificacoes} replace />} />
         <Route path="/suporte" element={<Navigate to={ubtRoutes.suporte} replace />} />
         <Route path="/credenciais" element={<Navigate to={ubtRoutes.credenciais} replace />} />
         <Route path="/auditoria" element={<Navigate to={ubtRoutes.auditoria} replace />} />
-        <Route path="/ubt" element={<UbtNotificacoesProviderLayout />}>
-          <Route index element={<Navigate to="agenda" replace />} />
-          <Route path="triagem" element={<HomePage />} />
-          <Route path="home" element={<Navigate to="triagem" replace />} />
-          <Route path="agenda" element={<AgendaPage />} />
-          <Route path="consultas" element={<ConsultasPage />} />
-          <Route path="usuarios" element={<NetworkUsersPage />} />
-          <Route path="relatorios" element={<RelatoriosPage />} />
-          <Route path="relatorios/:categoryId" element={<RelatoriosCategoryPage />} />
-          <Route path="notificacoes" element={<UbtNotificacoesPage />} />
-          <Route path="suporte" element={<SuportePage />} />
-          <Route path="credenciais" element={<AccessCredentialsPage />} />
-          <Route path="auditoria" element={<AuditLogsPage />} />
-          <Route path="dashboard" element={<Navigate to="triagem" replace />} />
+        <Route path="/ubt" element={<UbtRoutesShell />}>
+          <Route path="login" element={<UbtLoginPage />} />
+          <Route element={<UbtProtectedRoute />}>
+            <Route path="entrando" element={<LoginTransitionPage />} />
+            <Route element={<UbtPagePermissionGuard />}>
+              <Route path="sala-de-espera" element={<SalaDeEsperaPage />} />
+              <Route path="atendimento/:attendanceId/avaliacao" element={<AtendimentoAvaliacaoPage />} />
+              <Route path="atendimento/:attendanceId" element={<AtendimentoPacientePage />} />
+              <Route element={<UbtNotificacoesProviderLayout />}>
+                <Route index element={<UbtHomeRedirect />} />
+                <Route path="triagem" element={<HomePage />} />
+                <Route path="home" element={<Navigate to="triagem" replace />} />
+                <Route path="agenda" element={<AgendaPage />} />
+                <Route path="consultas" element={<ConsultasPage />} />
+                <Route path="usuarios" element={<NetworkUsersPage />} />
+                <Route path="relatorios" element={<Navigate to="triagem" replace />} />
+                <Route path="relatorios/*" element={<Navigate to="triagem" replace />} />
+                <Route path="notificacoes" element={<UbtNotificacoesPage />} />
+                <Route path="suporte" element={<SuportePage />} />
+                <Route path="credenciais" element={<AccessCredentialsPage />} />
+                <Route path="auditoria" element={<AuditLogsPage />} />
+                <Route path="dashboard" element={<Navigate to="triagem" replace />} />
+                <Route path="*" element={<UbtHomeRedirect />} />
+              </Route>
+            </Route>
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

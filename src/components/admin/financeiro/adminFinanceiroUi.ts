@@ -1,7 +1,7 @@
 import {
   adminFechamentoCompetenciaStatusLabel,
   type AdminFechamentoCompetenciaStatus,
-} from '../../../data/adminFinanceiroMock'
+} from '../../../types/adminFinanceiro'
 import type { SituationStatusBadgeStyle } from '../../ui/SituationStatusBadge'
 
 export const ADMIN_FECHAMENTO_STATUS_BADGE_WIDTH = 'w-[9rem]'

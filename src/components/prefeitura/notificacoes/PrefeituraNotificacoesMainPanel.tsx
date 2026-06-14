@@ -1,6 +1,7 @@
 import { CheckCheck, Eye, Search } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import type { PrefeituraNotification } from '../../../data/prefeituraNotificacoesMock'
+import { usePrefeituraNotificacoesOptional } from '../../../contexts/PrefeituraNotificacoesContext'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
 import { Toast, type ToastVariant } from '../../ui/Toast'
@@ -60,6 +61,7 @@ export function PrefeituraNotificacoesMainPanel({
   notifications,
   onNotificationsChange,
 }: PrefeituraNotificacoesMainPanelProps) {
+  const notificacoesContext = usePrefeituraNotificacoesOptional()
   const [search, setSearch] = useState('')
   const [directionFilter, setDirectionFilter] = useState<DirectionFilter>('all')
   const [readFilter, setReadFilter] = useState<ReadFilter>('all')
@@ -98,6 +100,10 @@ export function PrefeituraNotificacoesMainPanel({
   const unreadInList = filteredNotifications.filter(isPrefeituraNotificationUnread).length
 
   function markAsRead(id: string) {
+    if (notificacoesContext) {
+      void notificacoesContext.markAsRead(id)
+      return
+    }
     onNotificationsChange(
       notifications.map((item) =>
         item.id === id && item.direction === 'inbox' && item.readAt === null
@@ -111,6 +117,16 @@ export function PrefeituraNotificacoesMainPanel({
     const unreadCount = notifications.filter(isPrefeituraNotificationUnread).length
     if (unreadCount === 0) {
       showToast('Não há mensagens não lidas na caixa de entrada.', 'warning')
+      return
+    }
+
+    if (notificacoesContext) {
+      void notificacoesContext.markAllInboxRead().then((count) => {
+        showToast(
+          `${count} notificação${count === 1 ? '' : 'ões'} marcada${count === 1 ? '' : 's'} como lida${count === 1 ? '' : 's'}.`,
+          'success',
+        )
+      })
       return
     }
 

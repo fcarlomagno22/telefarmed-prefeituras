@@ -3,9 +3,11 @@ import {
   profissionalEscalaTourSteps,
   type ProfissionalEscalaTourStep,
 } from '../config/profissionalEscalaTour'
+import { useProfissionalTourInviteGate } from './useProfissionalTourInviteGate'
 import {
-  isProfissionalEscalaTourCompleted,
+  isProfissionalEscalaTourInvitePending,
   markProfissionalEscalaTourCompleted,
+  markProfissionalEscalaTourInviteHandled,
 } from '../utils/profissional/profissionalEscalaTourStorage'
 
 type TourAdvanceSource = 'next' | 'target-click'
@@ -48,7 +50,6 @@ export function useProfissionalEscalaTour({
   const [active, setActive] = useState(false)
   const [stepIndex, setStepIndex] = useState(0)
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
-  const [isMandatorySession, setIsMandatorySession] = useState(false)
   const completedRef = useRef(false)
   const onBeforeAdvanceRef = useRef(onBeforeAdvance)
   const onStepActiveRef = useRef(onStepActive)
@@ -67,10 +68,18 @@ export function useProfissionalEscalaTour({
 
   const startTour = useCallback((options?: { replay?: boolean }) => {
     completedRef.current = false
-    setIsMandatorySession(!options?.replay)
+    markProfissionalEscalaTourInviteHandled()
     setStepIndex(0)
     setActive(true)
   }, [])
+
+  const isInvitePending = useCallback(() => isProfissionalEscalaTourInvitePending(), [])
+
+  const { inviteOpen, acceptInvite, dismissInvite } = useProfissionalTourInviteGate({
+    isInvitePending,
+    markInviteHandled: markProfissionalEscalaTourInviteHandled,
+    onStartTour: startTour,
+  })
 
   const finishTour = useCallback(() => {
     setActive(false)
@@ -106,11 +115,6 @@ export function useProfissionalEscalaTour({
   useEffect(() => {
     if (forceStart) {
       startTour({ replay: true })
-      return
-    }
-    if (!isProfissionalEscalaTourCompleted()) {
-      const timer = window.setTimeout(() => startTour(), 600)
-      return () => window.clearTimeout(timer)
     }
   }, [forceStart, startTour])
 
@@ -227,7 +231,9 @@ export function useProfissionalEscalaTour({
     targetRect,
     highlightedTarget,
     isLastStep,
-    isMandatorySession,
+    inviteOpen,
+    acceptInvite,
+    dismissInvite,
     startTour,
     finishTour,
     goNext,

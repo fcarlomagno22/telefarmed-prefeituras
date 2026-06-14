@@ -1,4 +1,3 @@
-import { useLocation } from 'react-router-dom'
 import { ProfissionalPageHeader } from '../components/profissional/ProfissionalPageHeader'
 import { ProfissionalPageHeaderSkeleton } from '../components/profissional/ProfissionalPageHeaderSkeleton'
 import { ProfissionalPerfilPageContent } from '../components/profissional/perfil/ProfissionalPerfilPageContent'
@@ -9,8 +8,10 @@ import {
   dashboardPageShellClass,
 } from '../components/layout/dashboardPageLayout'
 import { findProfissionalNavByPathname } from '../config/profissionalSidebarNav'
-import { profissionalLoggedProfile } from '../data/profissionalPerfilMock'
-import { usePageSkeletonLoading } from '../hooks/usePageSkeletonLoading'
+import { useProfissionalPerfilPage } from '../hooks/useProfissionalPerfilPage'
+import { shouldShowPortalPageLoadingBlock } from '../utils/portal/portalPageLoading'
+import { ProfissionalPerfilPageSkeleton } from '../components/profissional/skeletons/ProfissionalPerfilPageSkeleton'
+import { useLocation } from 'react-router-dom'
 
 const fallbackMeta = {
   title: 'Meu perfil',
@@ -21,12 +22,13 @@ const fallbackMeta = {
 export function ProfissionalPerfilPage() {
   const { pathname } = useLocation()
   const meta = findProfissionalNavByPathname(pathname) ?? fallbackMeta
-  const isLoading = usePageSkeletonLoading(900)
+  const { profile, isLoading, loadError, isSaving, saveProfile } = useProfissionalPerfilPage()
+  const showLoadingBlock = shouldShowPortalPageLoadingBlock(isLoading, profile != null)
 
   return (
-    <div className={dashboardPageShellClass} aria-busy={isLoading} aria-label={meta.title}>
+    <div className={dashboardPageShellClass} aria-busy={showLoadingBlock} aria-label={meta.title}>
       <div className={dashboardPageHeaderWrapClass}>
-        {isLoading ? (
+        {showLoadingBlock ? (
           <ProfissionalPageHeaderSkeleton />
         ) : (
           <ProfissionalPageHeader
@@ -39,23 +41,19 @@ export function ProfissionalPerfilPage() {
 
       <div className={dashboardPageScrollAreaClass}>
         <div className={['@container', dashboardPageScrollPaddingClass, 'mt-4'].join(' ')}>
-          {isLoading ? (
-            <div
-              className="grid animate-pulse grid-cols-1 gap-5 @min-[920px]:grid-cols-[1fr_1fr_288px] @min-[920px]:grid-rows-[auto_auto]"
-              aria-busy="true"
-            >
-              <div className="h-[26rem] rounded-xl bg-gray-100 @min-[920px]:col-start-1 @min-[920px]:row-start-1" />
-              <div className="h-[26rem] rounded-xl bg-gray-100 @min-[920px]:col-start-2 @min-[920px]:row-start-1" />
-              <div className="flex flex-col gap-5 @min-[920px]:row-span-2">
-                <div className="h-36 rounded-xl bg-gray-100" />
-                <div className="h-44 rounded-xl bg-gray-100" />
-                <div className="h-48 rounded-xl bg-gray-100" />
-              </div>
-              <div className="h-52 rounded-xl bg-gray-100 @min-[920px]:col-span-2" />
+          {showLoadingBlock ? (
+            <ProfissionalPerfilPageSkeleton />
+          ) : loadError ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {loadError}
             </div>
-          ) : (
-            <ProfissionalPerfilPageContent profile={profissionalLoggedProfile} />
-          )}
+          ) : profile ? (
+            <ProfissionalPerfilPageContent
+              profile={profile}
+              isSaving={isSaving}
+              onSaveProfile={saveProfile}
+            />
+          ) : null}
         </div>
       </div>
     </div>

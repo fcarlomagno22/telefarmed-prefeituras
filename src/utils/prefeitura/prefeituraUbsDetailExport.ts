@@ -1,5 +1,5 @@
 import { brand } from '../../config/brand'
-import type { PrefeituraSlaStatus } from '../../data/prefeituraDashboardMock'
+import type { PrefeituraSlaStatus } from '../../types/prefeituraDashboard'
 import {
   formatPrefeituraRedeUnitLocation,
   type PrefeituraRedeUnitCadastral,

@@ -8,6 +8,7 @@ export type ConsultationDocumentItem = {
   meta: string
   downloadLabel: string
   iconClass: string
+  downloadUrl?: string
 }
 
 export const CONSULTATION_DOCUMENTS_DEFAULT: ConsultationDocumentItem[] = [
@@ -32,6 +33,7 @@ type ConsultationDocumentsPanelProps = {
   documents?: ConsultationDocumentItem[]
   className?: string
   onDeleteDocument?: (documentId: string) => void
+  onDownloadDocument?: (document: ConsultationDocumentItem) => void
 }
 
 export function ConsultationDocumentsPanel({
@@ -39,6 +41,7 @@ export function ConsultationDocumentsPanel({
   documents = [],
   className,
   onDeleteDocument,
+  onDownloadDocument,
 }: ConsultationDocumentsPanelProps) {
   const [documentPendingDelete, setDocumentPendingDelete] =
     useState<ConsultationDocumentItem | null>(null)
@@ -93,6 +96,13 @@ export function ConsultationDocumentsPanel({
                 <div className="flex shrink-0 items-center gap-0.5">
                   <button
                     type="button"
+                    onClick={() => {
+                      if (doc.downloadUrl) {
+                        window.open(doc.downloadUrl, '_blank', 'noopener,noreferrer')
+                        return
+                      }
+                      onDownloadDocument?.(doc)
+                    }}
                     className="rounded-lg p-2 text-gray-500 transition hover:bg-gray-50 hover:text-[var(--brand-primary)]"
                     aria-label={doc.downloadLabel}
                   >

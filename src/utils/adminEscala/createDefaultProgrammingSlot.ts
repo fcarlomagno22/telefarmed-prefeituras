@@ -1,17 +1,13 @@
 import { PROFISSIONAL_SHIFT_AMOUNT_CENTS } from '../../config/profissionalShiftRates'
-import { getSpecialtyById } from '../../data/specialties'
-import { adminEscalaDoctorOptions } from '../../data/adminEscalaMock'
 import type { AdminEscalaProgrammingSlot } from '../../types/adminEscala'
+import { createDefaultRepasseRule } from './repasseRule'
 import { defaultClosedWeekdays } from './buildClosedSchedule'
-
+import { getDoctorsForEscalaSpecialty } from './doctorsForSpecialty'
 import { createProgrammingSlotId } from './programmingSlotId'
 
 export function createDefaultProgrammingSlot(specialtyId: string): AdminEscalaProgrammingSlot {
-  const specialtyName = getSpecialtyById(specialtyId)?.name
-  const doctor =
-    adminEscalaDoctorOptions.find(
-      (d) => specialtyName && d.specialty.toLowerCase() === specialtyName.toLowerCase(),
-    ) ?? adminEscalaDoctorOptions[0]
+  const doctors = getDoctorsForEscalaSpecialty(specialtyId)
+  const doctor = doctors[0]
 
   return {
     id: createProgrammingSlotId(),
@@ -20,11 +16,12 @@ export function createDefaultProgrammingSlot(specialtyId: string): AdminEscalaPr
     dailyEnd: '14:00',
     weekdays: [...defaultClosedWeekdays],
     modality: 'tele',
-    assignmentMode: 'assigned',
-    primaryDoctorId: doctor?.value ?? '1',
+    assignmentMode: 'open',
+    primaryDoctorId: doctor?.value ?? '',
     backupDoctorIds: [],
-    vacancies: 2,
+    vacancies: 1,
     amountCents: PROFISSIONAL_SHIFT_AMOUNT_CENTS,
+    repasseRule: createDefaultRepasseRule(PROFISSIONAL_SHIFT_AMOUNT_CENTS),
     unitName: 'UBT',
     city: 'Brasília',
     cityUf: 'Brasília / DF',

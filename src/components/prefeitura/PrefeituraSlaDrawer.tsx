@@ -1,7 +1,7 @@
 import { Building2, Clock, MapPin, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { PrefeituraSlaStatus, PrefeituraUbsRow } from '../../data/prefeituraDashboardMock'
+import type { PrefeituraSlaStatus, PrefeituraUbsRow } from '../../types/prefeituraDashboard'
 import { SituationStatusBadge } from '../ui/SituationStatusBadge'
 import {
   formatPrefeituraNumber,

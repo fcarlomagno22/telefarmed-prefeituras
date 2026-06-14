@@ -1,6 +1,6 @@
-import type { PatientContact } from './unitDashboardMock'
+import type { PatientContact } from '../types/attendance'
 import type { NetworkUser } from './networkUsersMock'
-import { photoUrlForNetworkUser } from './networkUserPhotos'
+import { NETWORK_USER_PHOTOS, photoUrlForNetworkUser } from './networkUserPhotos'
 
 export type ConsultationRecord = {
   id: string
@@ -390,6 +390,56 @@ const profiles: Record<string, NetworkUserFullProfile> = {
     registrationUnit: 'UBT Centro — Sala de Teleatendimento',
     notes: 'Alergia a dipirona informada no cadastro.',
   },
+  '8': {
+    ageGroupLabel: 'Maior de idade',
+    genderLabel: 'Feminino',
+    email: 'fernanda.carlomagno@email.com',
+    guardianName: '',
+    guardianCpf: '',
+    photoDataUrl: photoUrlForNetworkUser('8', 'Feminino'),
+    zipCode: '12245-000',
+    street: 'Rua das Palmeiras',
+    number: '245',
+    complement: 'Casa',
+    neighborhood: 'Centro',
+    city: 'São José dos Campos',
+    state: 'SP',
+    contacts: [
+      {
+        id: 'c8-1',
+        name: 'Marcos Carlomagno',
+        phone: '(12) 99876-5432',
+        relationship: 'conjuge',
+      },
+    ],
+    consultations: [
+      {
+        id: 'h8-1',
+        date: '02/06/2026',
+        time: '09:30',
+        specialty: 'Clínico geral',
+        professional: 'Dr. Marcos Silva',
+        status: 'concluida',
+        protocol: 'ATD-490812',
+      },
+      {
+        id: 'h8-2',
+        date: '14/04/2026',
+        time: '16:00',
+        specialty: 'Cardiologia',
+        professional: 'Dr. Paulo Mendes',
+        status: 'concluida',
+        protocol: 'ATD-488901',
+      },
+    ],
+    registeredAt: '12/01/2024',
+    registrationUnit: 'UBT Centro — Sala de Teleatendimento',
+    notes: 'Paciente cadastrado na rede municipal. Sem restrições informadas.',
+  },
+}
+
+function usesDemoNetworkUserPhoto(userId: string): boolean {
+  return Boolean(profiles[userId] || NETWORK_USER_PHOTOS[userId])
 }
 
 export function getNetworkUserProfile(user: NetworkUser): NetworkUserFullProfile {
@@ -415,11 +465,15 @@ export function getNetworkUserProfile(user: NetworkUser): NetworkUserFullProfile
     notes: '',
   }
 
+  const explicitPhoto = user.avatarUrl?.trim() || base.photoDataUrl?.trim() || ''
+  const photoDataUrl =
+    explicitPhoto ||
+    (usesDemoNetworkUserPhoto(user.id)
+      ? photoUrlForNetworkUser(user.id, base.genderLabel !== '—' ? base.genderLabel : undefined)
+      : '')
+
   return {
     ...base,
-    photoDataUrl:
-      base.photoDataUrl ||
-      user.avatarUrl ||
-      photoUrlForNetworkUser(user.id, base.genderLabel !== '—' ? base.genderLabel : undefined),
+    photoDataUrl,
   }
 }

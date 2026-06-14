@@ -15,6 +15,8 @@ import {
 import type { AccessCredentialUser, CredentialUserStatus } from '../../data/accessCredentialsMock'
 import type { PrefeituraCredentialUbtOption } from '../../data/prefeituraAccessCredentialsMock'
 import { isResponsibleUbtRole, RESPONSIBLE_UBT_ROLE } from '../../data/prefeituraAccessCredentialsMock'
+import { cpfDigits, isValidCpf } from '../../utils/cpf'
+import { maskCpf } from '../../utils/masks'
 import { CustomSelect } from '../ui/CustomSelect'
 import { PinInput } from '../ui/PinInput'
 
@@ -33,6 +35,7 @@ type AccessCredentialUserDrawerProps = {
     }[]
     ubtOptionsByContractingEntityId?: Record<string, PrefeituraCredentialUbtOption[]>
     skipPasswordOnCreate?: boolean
+    requireCpfOnCreate?: boolean
     viewActions?: {
       onEditPermissions: () => void
       onDeactivate: () => void
@@ -46,6 +49,7 @@ type AccessCredentialUserDrawerProps = {
     user: AccessCredentialUser,
     meta?: {
       contractingEntityId?: string
+      cpf?: string
       password?: string
       authorizationPin?: string | null
     },
@@ -166,11 +170,17 @@ export function AccessCredentialUserDrawer({
   onSave,
 }: AccessCredentialUserDrawerProps) {
   const isMunicipal = Boolean(municipalConfig)
+  const contractingEntityOptions = municipalConfig?.contractingEntityOptions ?? []
+  const fixedContractingEntity =
+    contractingEntityOptions.length === 1 ? contractingEntityOptions[0] : null
   const usesContractingEntitySelection =
-    Boolean(municipalConfig?.contractingEntityOptions?.length) && Boolean(municipalConfig?.ubtOptionsByContractingEntityId)
+    contractingEntityOptions.length > 1 &&
+    Boolean(municipalConfig?.ubtOptionsByContractingEntityId)
 
   const [entered, setEntered] = useState(false)
   const [name, setName] = useState('')
+  const [cpf, setCpf] = useState('')
+  const [cpfTouched, setCpfTouched] = useState(false)
   const [email, setEmail] = useState('')
   const [role, setRole] = useState('')
   const [selectedContractingEntityId, setSelectedContractingEntityId] = useState('')
@@ -200,6 +210,7 @@ export function AccessCredentialUserDrawer({
   const isFormReadOnly = isViewMode || isEditPermissionsMode
   const mustSetPassword = isEditMode && editingUser !== null && !editingUser.hasPassword
   const skipPasswordOnCreate = Boolean(municipalConfig?.skipPasswordOnCreate)
+  const requireCpfOnCreate = Boolean(municipalConfig?.requireCpfOnCreate)
   const showPasswordFields =
     !isViewMode && ((isCreateMode && !skipPasswordOnCreate) || changePassword || mustSetPassword)
   const showPinFields = !isViewMode && !isEditPermissionsMode
@@ -232,6 +243,8 @@ export function AccessCredentialUserDrawer({
 
     if (editingUser) {
       setName(editingUser.name)
+      setCpf(editingUser.cpf ? maskCpf(editingUser.cpf) : '')
+      setCpfTouched(false)
       setEmail(editingUser.email)
       setRole(editingUser.role)
       setSelectedContractingEntityId('')
@@ -239,7 +252,7 @@ export function AccessCredentialUserDrawer({
       setIsUbtResponsible(editingUser.isUbtResponsible ?? isResponsibleUbtRole(editingUser.role))
       setStatus(editingUser.status)
       setAccessLevel(editingUser.accessLevel)
-      setPagePermissions({ ...editingUser.pagePermissions })
+      setPagePermissions({ ...emptyPagePermissions(), ...editingUser.pagePermissions })
       setChangePassword(!editingUser.hasPassword)
       return
     }
@@ -247,15 +260,24 @@ export function AccessCredentialUserDrawer({
     setChangePassword(false)
 
     setName('')
+    setCpf('')
+    setCpfTouched(false)
     setEmail('')
     setRole('')
-    setSelectedContractingEntityId('')
-    setSelectedUbtId('')
+    setSelectedContractingEntityId(
+      fixedContractingEntity?.value ??
+        (contractingEntityOptions.length === 1 ? contractingEntityOptions[0]?.value ?? '' : ''),
+    )
+    setSelectedUbtId(
+      municipalConfig?.ubtOptions?.length === 1
+        ? (municipalConfig.ubtOptions[0]?.value ?? '')
+        : '',
+    )
     setIsUbtResponsible(false)
     setStatus('ativo')
     setAccessLevel('operador')
     setPagePermissions(buildPresetPagePermissions('operador'))
-  }, [editingUser])
+  }, [editingUser, municipalConfig, fixedContractingEntity, contractingEntityOptions])
 
   useEffect(() => {
     if (!open) {
@@ -302,7 +324,7 @@ export function AccessCredentialUserDrawer({
     setPagePermissions((prev) => {
       const next = {
         ...prev,
-        [pageId]: toggleAction(prev[pageId], action),
+        [pageId]: toggleAction(prev[pageId] ?? [], action),
       }
       setAccessLevel(inferAccessLevelFromPermissions(next))
       return next
@@ -311,9 +333,10 @@ export function AccessCredentialUserDrawer({
 
   function togglePageEnabled(pageId: SystemPageId, enabled: boolean) {
     setPagePermissions((prev) => {
+      const current = prev[pageId] ?? []
       const next = {
         ...prev,
-        [pageId]: enabled ? (prev[pageId].length ? prev[pageId] : ['visualizar']) : [],
+        [pageId]: enabled ? (current.length ? current : ['visualizar']) : [],
       }
       setAccessLevel(inferAccessLevelFromPermissions(next))
       return next
@@ -323,10 +346,12 @@ export function AccessCredentialUserDrawer({
   function validatePasswordFields(): string | null {
     if (!showPasswordFields) return null
 
-    if (password.length < MIN_PASSWORD_LENGTH) {
+    const trimmedPassword = password.trim()
+    const trimmedConfirm = confirmPassword.trim()
+    if (trimmedPassword.length < MIN_PASSWORD_LENGTH) {
       return `A senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`
     }
-    if (password !== confirmPassword) {
+    if (trimmedPassword !== trimmedConfirm) {
       return 'As senhas não coincidem.'
     }
     return null
@@ -349,7 +374,12 @@ export function AccessCredentialUserDrawer({
     const trimmedName = name.trim()
     const trimmedEmail = email.trim().toLowerCase()
     const trimmedRole = role.trim()
+    const cpfValue = cpfDigits(cpf)
     if (!trimmedName || !trimmedEmail || !trimmedRole) return
+    if (requireCpfOnCreate && isCreateMode) {
+      setCpfTouched(true)
+      if (!isValidCpf(cpfValue)) return
+    }
     if (isMunicipal && usesContractingEntitySelection && isCreateMode && !selectedContractingEntityId) return
 
     const passwordValidationError = validatePasswordFields()
@@ -366,7 +396,9 @@ export function AccessCredentialUserDrawer({
     }
     setPinError(null)
 
-    const hasAnyPermission = systemPages.some((page) => pagePermissions[page.id].length > 0)
+    const hasAnyPermission = systemPages.some(
+      (page) => (pagePermissions[page.id] ?? []).length > 0,
+    )
     if (!hasAnyPermission) return
 
     const resolvedLevel = inferAccessLevelFromPermissions(pagePermissions)
@@ -411,9 +443,13 @@ export function AccessCredentialUserDrawer({
         isMunicipal && usesContractingEntitySelection && isCreateMode
           ? selectedContractingEntityId
           : undefined,
+      cpf:
+        requireCpfOnCreate && isCreateMode && cpfValue.length === 11
+          ? cpfValue
+          : undefined,
       password:
-        showPasswordFields && password.length >= MIN_PASSWORD_LENGTH
-          ? password
+        showPasswordFields && password.trim().length >= MIN_PASSWORD_LENGTH
+          ? password.trim()
           : undefined,
       authorizationPin:
         pin.length === PIN_LENGTH && pin === confirmPin
@@ -456,13 +492,20 @@ export function AccessCredentialUserDrawer({
   const locksAccessProfile =
     isMunicipal && isUbtResponsible && !isViewMode && !isEditPermissionsMode
 
+  const cpfValid =
+    !requireCpfOnCreate ||
+    !isCreateMode ||
+    isFormReadOnly ||
+    (cpfDigits(cpf).length > 0 && isValidCpf(cpfDigits(cpf)))
+
   const canSubmit =
     name.trim().length > 0 &&
     email.trim().length > 0 &&
     role.trim().length > 0 &&
+    cpfValid &&
     contractingEntitySelected &&
     ubtSelected &&
-    systemPages.some((page) => pagePermissions[page.id].length > 0) &&
+    systemPages.some((page) => (pagePermissions[page.id] ?? []).length > 0) &&
     passwordValid &&
     pinValid &&
     (isEditPermissionsMode ||
@@ -552,7 +595,14 @@ export function AccessCredentialUserDrawer({
               <div className="mt-3 grid gap-4 sm:grid-cols-2">
                 {isMunicipal ? (
                   <div className="sm:col-span-2">
-                    {usesContractingEntitySelection && isCreateMode && !isFormReadOnly ? (
+                    {fixedContractingEntity && isCreateMode && !isFormReadOnly ? (
+                      <div className="mb-4">
+                        <FieldLabel>Unidade contratante</FieldLabel>
+                        <div className={`${inputClass} bg-gray-50 text-gray-700`}>
+                          {fixedContractingEntity.label}
+                        </div>
+                      </div>
+                    ) : usesContractingEntitySelection && isCreateMode && !isFormReadOnly ? (
                       <div className="mb-4">
                         <FieldLabel required>Unidade contratante</FieldLabel>
                         <CustomSelect
@@ -563,7 +613,7 @@ export function AccessCredentialUserDrawer({
                           }}
                           options={[
                             { value: '', label: 'Selecione a unidade contratante' },
-                            ...(municipalConfig?.contractingEntityOptions ?? []),
+                            ...contractingEntityOptions,
                           ]}
                         />
                       </div>
@@ -622,6 +672,32 @@ export function AccessCredentialUserDrawer({
                     disabled={isFormReadOnly}
                   />
                 </div>
+                {requireCpfOnCreate && isCreateMode && !isFormReadOnly ? (
+                  <div className="sm:col-span-2">
+                    <FieldLabel required>CPF (login no terminal UBT)</FieldLabel>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={cpf}
+                      onChange={(e) => setCpf(maskCpf(e.target.value))}
+                      onBlur={() => setCpfTouched(true)}
+                      className={inputClass}
+                      placeholder="000.000.000-00"
+                      required
+                    />
+                    {cpfTouched && cpf.length > 0 && !isValidCpf(cpfDigits(cpf)) ? (
+                      <p className="mt-1 text-xs text-red-600">Informe um CPF válido.</p>
+                    ) : null}
+                  </div>
+                ) : null}
+                {isFormReadOnly && editingUser?.cpf ? (
+                  <div className="sm:col-span-2">
+                    <FieldLabel>CPF</FieldLabel>
+                    <div className={`${inputClass} bg-gray-50 text-gray-700`}>
+                      {maskCpf(editingUser.cpf)}
+                    </div>
+                  </div>
+                ) : null}
                 <div>
                   <FieldLabel required>Função</FieldLabel>
                   <input
@@ -735,7 +811,7 @@ export function AccessCredentialUserDrawer({
                       onToggleShow={() => setShowPassword((v) => !v)}
                       placeholder="Mínimo 6 caracteres"
                       required
-                      autoComplete="new-password"
+                      autoComplete="off"
                     />
                     <PasswordField
                       label="Confirmar senha"
@@ -748,7 +824,7 @@ export function AccessCredentialUserDrawer({
                       onToggleShow={() => setShowConfirmPassword((v) => !v)}
                       placeholder="Repita a senha"
                       required
-                      autoComplete="new-password"
+                      autoComplete="off"
                     />
                   </div>
                   {passwordError ? (
@@ -891,7 +967,7 @@ export function AccessCredentialUserDrawer({
 
                 <ul className="divide-y divide-gray-100">
                   {systemPages.map((page) => {
-                    const actions = pagePermissions[page.id]
+                    const actions = pagePermissions[page.id] ?? []
                     const pageEnabled = actions.length > 0
 
                     return (

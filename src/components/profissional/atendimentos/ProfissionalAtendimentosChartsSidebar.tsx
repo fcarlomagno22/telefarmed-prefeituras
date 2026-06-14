@@ -5,6 +5,8 @@ import { computeProfissionalAtendimentosStats } from '../../../utils/profissiona
 import type { ProfissionalAttendanceRecord } from '../../../types/profissionalAtendimentos'
 import { profissionalAtendimentosPanelClass } from './profissionalAtendimentosUi'
 import { ChartTooltipPortal, useChartTooltip } from './profissionalChartTooltip'
+import { ProfissionalAtendimentosChartsSidebarSkeleton } from './ProfissionalAtendimentosChartsSidebarSkeleton'
+import { shouldShowPortalPageLoadingBlock } from '../../../utils/portal/portalPageLoading'
 
 const CHART_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)'
 const DONUT_RADIUS = 40
@@ -45,11 +47,19 @@ function patientWord(count: number) {
 
 type ProfissionalAtendimentosChartsSidebarProps = {
   records: ProfissionalAttendanceRecord[]
+  isLoading?: boolean
 }
 
 export function ProfissionalAtendimentosChartsSidebar({
   records,
+  isLoading = false,
 }: ProfissionalAtendimentosChartsSidebarProps) {
+  const showLoadingBlock = shouldShowPortalPageLoadingBlock(isLoading, records.length > 0)
+
+  if (showLoadingBlock) {
+    return <ProfissionalAtendimentosChartsSidebarSkeleton />
+  }
+
   const stats = computeProfissionalAtendimentosStats(records)
 
   return (

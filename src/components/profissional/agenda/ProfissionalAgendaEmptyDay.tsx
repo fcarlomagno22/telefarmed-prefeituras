@@ -10,7 +10,7 @@ export function ProfissionalAgendaEmptyDay({ dateLabel }: ProfissionalAgendaEmpt
     <section
       className={[
         profissionalAgendaPanelClass,
-        'flex flex-col items-center justify-center px-6 py-10 text-center',
+        'flex min-h-[12rem] flex-1 flex-col items-center justify-center px-6 py-10 text-center xl:min-h-0 xl:h-full',
       ].join(' ')}
     >
       <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-50 text-gray-400 ring-1 ring-gray-100">

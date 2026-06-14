@@ -1,12 +1,11 @@
 import {
   Briefcase,
-  CircleDollarSign,
   Lock,
   Mail,
   Package,
   ScrollText,
 } from 'lucide-react'
-import type { PrefeituraContratoInfo } from '../../../data/prefeituraContratoMock'
+import type { PrefeituraContratoInfo } from '../../../types/prefeituraContrato'
 import type { PrefeituraContratoExpiryView } from '../../../utils/prefeituraContrato'
 import type { PrefeituraPackageUsageView } from '../../../utils/prefeituraConsultationPackage'
 import {
@@ -14,6 +13,7 @@ import {
 } from '../../../utils/prefeituraConsultationPackage'
 import { PrefeituraPackageUsageBar } from '../PrefeituraPackageUsageBar'
 import { formatPrefeituraNumber } from '../prefeituraDashboardUi'
+import { buildPrefeituraContratoPackageQuantityLabel } from './prefeituraContratoUi'
 
 type PrefeituraContratoSidebarPanelProps = {
   contract: PrefeituraContratoInfo
@@ -117,8 +117,14 @@ export function PrefeituraContratoSidebarPanel({
           <DetailRow label="Início" value={expiry.startsAtLabel} />
           <DetailRow label="Término" value={expiry.endsAtLabel} />
           <DetailRow
-            label="Pacote mensal"
-            value={`${formatPrefeituraNumber(contract.monthlyPackageConsultations)} consultas`}
+            label={
+              contract.modalidade === 'pacote_fechado'
+                ? 'Franquia global'
+                : contract.modalidade === 'sob_demanda'
+                  ? 'Modalidade'
+                  : 'Pacote mensal'
+            }
+            value={buildPrefeituraContratoPackageQuantityLabel(contract)}
           />
         </div>
       </section>
@@ -171,28 +177,6 @@ export function PrefeituraContratoSidebarPanel({
               {formatPrefeituraNumber(currentUsage.avulsoCount)} avulsas
             </span>{' '}
             no ciclo — cobrança à parte.
-          </p>
-        ) : null}
-      </section>
-
-      <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
-        <div className="flex items-center gap-2">
-          <CircleDollarSign className="h-4 w-4 text-gray-500" strokeWidth={2} />
-          <h2 className="text-sm font-bold text-gray-900">Consultas avulsas</h2>
-        </div>
-        <p className="mt-2 text-[11px] leading-relaxed text-gray-600">
-          {contract.allowsAvulsoAfterPackage
-            ? 'Após esgotar o pacote mensal, consultas excedentes podem ser faturadas como avulso.'
-            : 'O contrato não prevê consultas avulsas após o pacote.'}
-        </p>
-        {contract.allowsAvulsoAfterPackage ? (
-          <p className="mt-2 text-sm font-bold text-gray-800">
-            Valor de referência:{' '}
-            {new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
-            }).format(contract.avulsoUnitValueBrl)}{' '}
-            <span className="text-xs font-normal text-gray-500">/ consulta</span>
           </p>
         ) : null}
       </section>

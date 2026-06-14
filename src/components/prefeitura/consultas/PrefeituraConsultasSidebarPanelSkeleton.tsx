@@ -11,7 +11,7 @@ export function PrefeituraConsultasSidebarPanelSkeleton() {
       aria-busy="true"
       aria-label="Carregando painel lateral de consultas"
     >
-      <section className={['shrink-0 p-4', prefeituraConsultasCardClass].join(' ')}>
+      <section className={['shrink-0 overflow-hidden p-4', prefeituraConsultasCardClass].join(' ')}>
         <Skeleton className="h-4 w-[8.5rem]" />
         <Skeleton className="mt-0.5 h-3 w-44" />
         <div className="mt-2.5">
@@ -19,12 +19,12 @@ export function PrefeituraConsultasSidebarPanelSkeleton() {
         </div>
       </section>
 
-      <section className={['flex min-h-0 flex-1 flex-col p-4', prefeituraConsultasCardClass].join(' ')}>
-        <div className="shrink-0">
+      <section className={['shrink-0 overflow-hidden p-4', prefeituraConsultasCardClass].join(' ')}>
+        <div>
           <Skeleton className="h-4 w-52" />
           <Skeleton className="mt-0.5 h-3 w-40" />
         </div>
-        <ul className="mt-3 flex min-h-0 flex-1 flex-col justify-between gap-2">
+        <ul className="mt-3 flex flex-col gap-2">
           {Array.from({ length: SPECIALTY_COUNT }).map((_, index) => (
             <li key={index} className="flex items-center justify-between gap-3">
               <Skeleton

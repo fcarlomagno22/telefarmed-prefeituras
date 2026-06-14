@@ -1,17 +1,25 @@
-import { CalendarDays, FileText, Stethoscope, Users, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { CalendarDays, FileText, Pencil, Stethoscope, Users, X } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { AdminClienteContrato, AdminClienteRow } from '../../../data/adminClientesMock'
-import { adminClienteContratoTipoLabels } from '../../../data/adminClientesMock'
+import type { AdminClienteContrato, AdminClienteRow } from '../../../types/adminClientes'
+import { resolveClienteContratoTipoLabel, useAdminClientesContratoCatalog } from '../../../hooks/useAdminClientesContratoCatalog'
+import {
+  getClienteSpecialtyById,
+  useAdminClientesClinicoCatalog,
+} from '../../../hooks/useAdminClientesClinicoCatalog'
 import { getSpecialtyById } from '../../../data/specialties'
+import { maskIntegerPtBr } from '../../../utils/masks'
 import { ConsultationChatAttachmentViewer } from '../../attendance/ConsultationChatAttachmentViewer'
 import type { ConsultationChatAttachment } from '../../attendance/consultationChatTypes'
+import { AdminClienteEditContratoPanel } from './AdminClienteEditContratoPanel'
+import type { AddContratoFormState } from './adminClienteContratoForm'
 
 type AdminClienteContratoDrawerProps = {
   open: boolean
   closing: boolean
   cliente: AdminClienteRow | null
   contrato: AdminClienteContrato | null
+  onSaveContrato?: (contratoId: string, form: AddContratoFormState) => Promise<void>
   onClose: () => void
   onTransitionEnd: () => void
 }
@@ -33,10 +41,23 @@ export function AdminClienteContratoDrawer({
   closing,
   cliente,
   contrato,
+  onSaveContrato,
   onClose,
   onTransitionEnd,
 }: AdminClienteContratoDrawerProps) {
+  const { labelById: contratoTipoLabels } = useAdminClientesContratoCatalog()
+  const { specialties, professions } = useAdminClientesClinicoCatalog({ activeOnly: false })
+  const contratoTipoLabel = resolveClienteContratoTipoLabel(contratoTipoLabels, contrato?.tipo ?? '')
+
+  const resolveSpecialtyLabel = useCallback(
+    (specialtyId: string) =>
+      getClienteSpecialtyById(specialties, specialtyId)?.name ??
+      getSpecialtyById(specialtyId)?.name ??
+      specialtyId,
+    [specialties],
+  )
   const [entered, setEntered] = useState(false)
+  const [editing, setEditing] = useState(false)
   const [nfViewer, setNfViewer] = useState<ConsultationChatAttachment | null>(null)
 
   const isActive = open || closing
@@ -45,6 +66,7 @@ export function AdminClienteContratoDrawer({
   useEffect(() => {
     if (!open) {
       setEntered(false)
+      setEditing(false)
       return
     }
     const frame = requestAnimationFrame(() => setEntered(true))
@@ -67,6 +89,11 @@ export function AdminClienteContratoDrawer({
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [isActive, onClose])
+
+  useEffect(() => {
+    if (!open) return
+    setEditing(false)
+  }, [open, contrato?.id])
 
   useEffect(() => {
     if (!closing) return
@@ -128,7 +155,7 @@ export function AdminClienteContratoDrawer({
                   {cliente.prefeitura}
                 </h2>
                 <p className="mt-0.5 text-xs text-gray-600">
-                  {adminClienteContratoTipoLabels[contrato.tipo]} · assinado em{' '}
+                  {contratoTipoLabel} · assinado em{' '}
                   {contrato.dataAssinatura}
                 </p>
               </div>
@@ -143,9 +170,37 @@ export function AdminClienteContratoDrawer({
               <X className="h-4 w-4" strokeWidth={2} />
             </button>
           </div>
+          {!editing && onSaveContrato ? (
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="inline-flex h-9 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+              >
+                <Pencil className="h-4 w-4" />
+                Editar contrato
+              </button>
+            </div>
+          ) : null}
         </header>
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-slate-50/70 px-5 py-4 sm:px-6">
+          {editing && cliente && contrato && onSaveContrato ? (
+            <AdminClienteEditContratoPanel
+              cliente={cliente}
+              contrato={contrato}
+              professions={professions}
+              specialties={specialties}
+              onCancel={() => setEditing(false)}
+              onSubmit={(form) => {
+                if (!onSaveContrato) return
+                void onSaveContrato(contrato.id, form)
+                  .then(() => setEditing(false))
+                  .catch(() => undefined)
+              }}
+            />
+          ) : (
+            <>
           <section className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
             <h3 className="text-xs font-bold uppercase tracking-wide text-gray-500">
               Dados do contrato
@@ -162,7 +217,7 @@ export function AdminClienteContratoDrawer({
                   Tipo
                 </p>
                 <p className="mt-0.5 font-medium">
-                  {adminClienteContratoTipoLabels[contrato.tipo]}
+                  {contratoTipoLabel}
                 </p>
               </div>
               <div>
@@ -190,7 +245,9 @@ export function AdminClienteContratoDrawer({
                       Consultas contratadas
                     </p>
                     <p className="mt-0.5 font-medium">
-                      {detalhes.consultasContratadas ?? 'Sob demanda'}
+                      {detalhes.consultasContratadas == null
+                        ? 'Sob demanda'
+                        : maskIntegerPtBr(String(detalhes.consultasContratadas))}
                     </p>
                   </div>
                   <div>
@@ -203,11 +260,21 @@ export function AdminClienteContratoDrawer({
                   </div>
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                      Pacientes de outros municípios
+                    </p>
+                    <p className="mt-0.5 font-medium">
+                      {(detalhes.aceitaPacientesOutrosMunicipios ?? false)
+                        ? 'Aceitos'
+                        : 'Apenas do município contratante'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
                       Especialidades autorizadas
                     </p>
                     <p className="mt-0.5 text-sm text-gray-800">
                       {detalhes.especialidadesAutorizadas
-                        .map((id) => getSpecialtyById(id)?.name ?? id)
+                        .map((id) => resolveSpecialtyLabel(id))
                         .join(' · ') || '—'}
                     </p>
                   </div>
@@ -284,14 +351,13 @@ export function AdminClienteContratoDrawer({
                     </tr>
                   ) : (
                     detalhes.precosPorEspecialidade.map((item) => {
-                      const specialty = getSpecialtyById(item.specialtyId)
                       const excedente = detalhes.excedentePrecosPorEspecialidade?.find(
                         (e) => e.specialtyId === item.specialtyId,
                       )
                       return (
                         <tr key={item.specialtyId} className="border-t border-gray-100">
                           <td className="px-3 py-2 text-center">
-                            {specialty?.name ?? item.specialtyId}
+                            {resolveSpecialtyLabel(item.specialtyId)}
                           </td>
                           <td className="whitespace-nowrap px-3 py-2 text-center">
                             {formatCurrency(item.valorConsulta)}
@@ -367,6 +433,8 @@ export function AdminClienteContratoDrawer({
               </table>
             </div>
           </section>
+            </>
+          )}
         </div>
       </aside>
 

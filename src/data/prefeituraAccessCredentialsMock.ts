@@ -1,3 +1,4 @@
+import type { AdminOperatorRow } from './adminOperadoresMock'
 import {
   buildPresetPagePermissions,
   type AccessLevelId,
@@ -253,6 +254,37 @@ export function groupPrefeituraCredentialsByUbt(
       }
     })
     .sort((a, b) => a.ubtName.localeCompare(b.ubtName, 'pt-BR'))
+}
+
+export function mapOperatorRowToPrefeituraAccessCredentialUser(
+  row: AdminOperatorRow,
+): PrefeituraAccessCredentialUser {
+  return {
+    ...row,
+    ubtId: row.ubtId ?? '',
+    ubtName: row.ubtName ?? row.unitName,
+    raKey: row.raKey ?? '',
+    raLabel: row.raLabel ?? '',
+    isUbtResponsible: row.isUbtResponsible ?? false,
+  }
+}
+
+export function buildPrefeituraCredentialsRaFilterOptions(
+  ubtOptions: PrefeituraCredentialUbtOption[],
+): Array<{ value: string; label: string }> {
+  const raMap = new Map<string, string>()
+  for (const option of ubtOptions) {
+    if (option.raKey) {
+      raMap.set(option.raKey, option.raLabel)
+    }
+  }
+
+  return [
+    { value: '', label: 'Todas as RAs' },
+    ...Array.from(raMap.entries())
+      .sort((a, b) => a[1].localeCompare(b[1], 'pt-BR'))
+      .map(([value, label]) => ({ value, label })),
+  ]
 }
 
 function demoteResponsibleFields(user: AccessCredentialUser): AccessCredentialUser {

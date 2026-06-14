@@ -39,6 +39,10 @@ import {
   validateProfissionalFinalizarCadastroSenhaStep,
 } from '../../../utils/profissional/validateProfissionalFinalizarCadastro'
 import {
+  finalizeProfissionalCadastro,
+  isProfissionalCadastroApiError,
+} from '../../../lib/services/profissional/cadastro'
+import {
   fetchProfissionalFinalizarCadastroProfissional,
 } from '../../../utils/profissional/fetchProfissionalFinalizarCadastroProfissional'
 import {
@@ -47,6 +51,9 @@ import {
 } from '../../../utils/profissional/fetchProfissionalEmpresaByCnpj'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { PinInput } from '../../ui/PinInput'
+import { ProfissionalFinalizarCadastroScrollHint } from './ProfissionalFinalizarCadastroScrollHint'
+import { useScrollMoreHint } from './useScrollMoreHint'
+import { ProfissionalFinalizarCadastroIdentidadePanel } from './ProfissionalFinalizarCadastroIdentidadePanel'
 import { ProfissionalFinalizarCadastroFotoPanel } from './ProfissionalFinalizarCadastroFotoPanel'
 import { ProfissionalFinalizarCadastroContratoPanel } from './ProfissionalFinalizarCadastroContratoPanel'
 import { ProfissionalFinalizarCadastroEmpresaConfirmPanel } from './ProfissionalFinalizarCadastroEmpresaConfirmPanel'
@@ -101,15 +108,30 @@ export function ProfissionalFinalizarCadastroForm({
   const [isFetchingEmpresa, setIsFetchingEmpresa] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [completed, setCompleted] = useState(false)
+  const [contractReadCardAttentionToken, setContractReadCardAttentionToken] = useState(0)
   const bodyRef = useRef<HTMLDivElement>(null)
 
   const stepIndex = resolveStepIndex(step)
   const isFirstStep = stepIndex === 0
   const isLastStep = stepIndex === profissionalFinalizarCadastroSteps.length - 1
+  const showScrollHint = useScrollMoreHint(bodyRef, [
+    step,
+    completed,
+    profissionalData,
+    empresaData,
+    values.empresaConfirmed,
+    values.contractScrolledToEnd,
+    isFetchingEmpresa,
+  ])
 
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
   }, [step, completed])
+
+  useEffect(() => {
+    if (step !== 'contrato' || values.contractScrolledToEnd) return
+    setContractReadCardAttentionToken((current) => current + 1)
+  }, [step])
 
   function validateCurrentStep() {
     if (step === 'access') return validateProfissionalFinalizarCadastroAccessStep(values.accessCode)
@@ -151,19 +173,30 @@ export function ProfissionalFinalizarCadastroForm({
     })
   }
 
+  function pulseContractReadCard() {
+    setContractReadCardAttentionToken((current) => current + 1)
+  }
+
   async function goNext() {
     const stepErrors = validateCurrentStep()
     setErrors(stepErrors)
-    if (hasProfissionalFinalizarCadastroErrors(stepErrors)) return
+    if (hasProfissionalFinalizarCadastroErrors(stepErrors)) {
+      if (step === 'contrato' && !values.contractScrolledToEnd) {
+        pulseContractReadCard()
+      }
+      return
+    }
 
     if (step === 'access') {
       try {
         const profissional = await fetchProfissionalFinalizarCadastroProfissional(values.accessCode)
         setProfissionalData(profissional)
-      } catch {
-        setErrors({
-          accessCode: 'Não foi possível carregar seus dados de cadastro. Tente novamente.',
-        })
+      } catch (error) {
+        const message =
+          error instanceof Error && error.message
+            ? error.message
+            : 'Não foi possível identificar o profissional vinculado a este código.'
+        setErrors({ accessCode: message })
         return
       }
     }
@@ -214,8 +247,17 @@ export function ProfissionalFinalizarCadastroForm({
 
     setIsSubmitting(true)
     try {
-      await new Promise((resolve) => window.setTimeout(resolve, 900))
+      if (!empresaData) {
+        setErrors({ cnpj: 'Consulte o CNPJ antes de finalizar.' })
+        return
+      }
+      await finalizeProfissionalCadastro({ values, empresa: empresaData })
       setCompleted(true)
+    } catch (error) {
+      const message = isProfissionalCadastroApiError(error)
+        ? error.message
+        : 'Não foi possível finalizar o cadastro. Tente novamente.'
+      setErrors({ password: message })
     } finally {
       setIsSubmitting(false)
     }
@@ -289,7 +331,7 @@ export function ProfissionalFinalizarCadastroForm({
   return (
     <div
       className={[
-        'flex max-h-[min(720px,calc(100vh-8rem))] min-h-[480px] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-white/60 bg-white shadow-[0_12px_48px_rgba(15,23,42,0.1)] ring-1 ring-gray-900/[0.04]',
+        'flex h-[min(720px,calc(100vh-8rem))] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-white/60 bg-white shadow-[0_12px_48px_rgba(15,23,42,0.1)] ring-1 ring-gray-900/[0.04]',
         className,
       ].join(' ')}
     >
@@ -307,11 +349,19 @@ export function ProfissionalFinalizarCadastroForm({
 
       {!completed ? <ProfissionalFinalizarCadastroStepper currentStep={step} /> : null}
 
-      <div ref={bodyRef} className="min-h-0 flex-1 overflow-y-auto px-5 py-5 no-scrollbar sm:px-6">
+      <div className="relative min-h-0 flex-1 overflow-hidden">
+        <div
+          ref={bodyRef}
+          className="absolute inset-0 overflow-y-auto overscroll-y-contain px-5 py-5 no-scrollbar sm:px-6"
+        >
         {completed ? (
           <ProfissionalFinalizarCadastroWelcome />
         ) : (
           <form className="space-y-4" onSubmit={isLastStep ? handleSubmit : undefined} noValidate>
+            {profissionalData ? (
+              <ProfissionalFinalizarCadastroIdentidadePanel profissional={profissionalData} />
+            ) : null}
+
             {step === 'access' ? (
               <div className="space-y-4">
                 <div className="flex items-start gap-2 rounded-xl border border-sky-100 bg-sky-50/90 px-3 py-2.5 text-xs leading-relaxed text-sky-900">
@@ -453,6 +503,7 @@ export function ProfissionalFinalizarCadastroForm({
                 contractOpened={values.contractOpened}
                 contractScrolledToEnd={values.contractScrolledToEnd}
                 contractAccepted={values.contractAccepted}
+                readCardAttentionToken={contractReadCardAttentionToken}
                 onContractOpened={handleContractOpened}
                 onContractScrolledToEnd={handleContractScrolledToEnd}
                 onContractAcceptedChange={handleContractAcceptedChange}
@@ -572,6 +623,17 @@ export function ProfissionalFinalizarCadastroForm({
             </div>
           </form>
         )}
+        </div>
+        {!completed ? (
+          <ProfissionalFinalizarCadastroScrollHint
+            visible={showScrollHint}
+            label={
+              step === 'confirmarEmpresa'
+                ? 'Role para confirmar e continuar'
+                : 'Role para ver mais'
+            }
+          />
+        ) : null}
       </div>
     </div>
   )

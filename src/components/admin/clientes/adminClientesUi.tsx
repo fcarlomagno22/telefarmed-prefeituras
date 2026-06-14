@@ -2,7 +2,7 @@ import type {
   AdminClienteContratoStatus,
   AdminClienteRow,
   AdminClienteStatus,
-} from '../../../data/adminClientesMock'
+} from '../../../types/adminClientes'
 import type { SituationStatusBadgeStyle } from '../../ui/SituationStatusBadge'
 
 export const ADMIN_CLIENTE_STATUS_BADGE_WIDTH = 'w-[9rem]'
@@ -116,5 +116,9 @@ export const adminClientesCardsRowClass = [
 
 export const adminClientesPageStackClass =
   'flex min-w-0 w-full max-w-full flex-1 min-h-0 flex-col gap-3'
+
+/** Card da tabela — estica até o footer; scroll só no corpo da grade. */
+export const adminClientesTableSlotClass =
+  'flex min-h-0 min-w-0 w-full flex-1 flex-col'
 
 export const ADMIN_CLIENTE_TABLE_COL_COUNT = 9

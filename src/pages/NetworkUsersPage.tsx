@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { DashboardPageHeader } from '../components/users/DashboardPageHeader'
 import { DashboardPageHeaderSkeleton } from '../components/users/DashboardPageHeaderSkeleton'
 import { NetworkUsersAboutPanel } from '../components/users/NetworkUsersAboutPanel'
@@ -10,15 +11,63 @@ import {
   dashboardPageScrollPaddingClass,
   dashboardPageShellClass,
 } from '../components/layout/dashboardPageLayout'
-import { unitStation } from '../data/unitDashboardMock'
+import { useUbtPacientesPage } from '../hooks/useUbtPacientesPage'
 import { useBrandTheme } from '../hooks/useBrandTheme'
-import { usePageSkeletonLoading } from '../hooks/usePageSkeletonLoading'
+import { useNetworkUserDrawer } from '../hooks/useNetworkUserDrawer'
+import { useUbtPageAccess } from '../hooks/useUbtPageAccess'
+import { useUbtAuth } from '../contexts/UbtAuthContext'
+import {
+  fetchUbtPacienteConsultas,
+  fetchUbtPacienteDetail,
+  fetchUbtPacienteRow,
+} from '../lib/services/ubt/pacientes'
+import { loadUbtPacienteDrawerData } from '../utils/ubtPacientesDetail'
 
 export function NetworkUsersPage() {
   useBrandTheme()
-  const isLoading = usePageSkeletonLoading(2000)
+  const { getAccessToken } = useUbtAuth()
+  const { can } = useUbtPageAccess()
+  const {
+    users,
+    summary,
+    about,
+    pagination,
+    search,
+    setSearch,
+    filters,
+    setFilters,
+    availableNeighborhoods,
+    availableRegistrationUnits,
+    unitLabel,
+    isLoading,
+    loadError,
+    reload,
+    setPage,
+  } = useUbtPacientesPage()
 
-  const unitLabel = unitStation.unitName.split('—')[0]?.trim() ?? unitStation.unitName
+  const loadPacienteDetail = useCallback(
+    async (pacienteId: string) => {
+      const token = getAccessToken()
+      if (!token) {
+        throw new Error('Sessão expirada.')
+      }
+
+      return loadUbtPacienteDrawerData(
+        (id) => fetchUbtPacienteRow(token, id),
+        (id) => fetchUbtPacienteDetail(token, id),
+        pacienteId,
+        (id) => fetchUbtPacienteConsultas(token, id),
+      )
+    },
+    [getAccessToken],
+  )
+
+  const networkUserDrawer = useNetworkUserDrawer({
+    loadPacienteDetail,
+    getAccessToken,
+    canInactivate: can('usuarios', 'excluir'),
+    onPatientInactivated: () => void reload(),
+  })
 
   return (
     <DashboardLayout>
@@ -33,6 +82,12 @@ export function NetworkUsersPage() {
             />
           )}
         </div>
+
+        {loadError ? (
+          <div className="mx-5 mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {loadError}
+          </div>
+        ) : null}
 
         <div
           className={[
@@ -57,8 +112,20 @@ export function NetworkUsersPage() {
               </>
             ) : (
               <>
-                <NetworkUsersMainPanel />
-                <NetworkUsersAboutPanel />
+                <NetworkUsersMainPanel
+                  users={users}
+                  summary={summary}
+                  pagination={pagination}
+                  search={search}
+                  onSearchChange={setSearch}
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  availableNeighborhoods={availableNeighborhoods}
+                  availableRegistrationUnits={availableRegistrationUnits}
+                  onPageChange={setPage}
+                  networkUserDrawer={networkUserDrawer}
+                />
+                <NetworkUsersAboutPanel about={about} />
               </>
             )}
           </section>

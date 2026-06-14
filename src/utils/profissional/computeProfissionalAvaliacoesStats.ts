@@ -1,8 +1,12 @@
 import type { ProfissionalPatientReview } from '../../types/profissionalAvaliacoes'
 import { isProfissionalCriticalRating } from './profissionalAvaliacoesCritical'
+import {
+  getProfissionalStarGradient,
+  type ProfissionalStarLevel,
+} from './profissionalStarRatingColors'
 
 export type ProfissionalAvaliacoesStarBar = {
-  stars: 1 | 2 | 3 | 4 | 5
+  stars: ProfissionalStarLevel
   count: number
   percent: number
 }
@@ -30,13 +34,13 @@ export type ProfissionalAvaliacoesStats = {
   monthlyCounts: { label: string; count: number }[]
 }
 
-const STAR_COLORS: Record<number, { from: string; to: string }> = {
-  5: { from: '#f59e0b', to: '#fbbf24' },
-  4: { from: '#fb923c', to: '#fdba74' },
-  3: { from: '#94a3b8', to: '#cbd5e1' },
-  2: { from: '#f87171', to: '#fca5a5' },
-  1: { from: '#dc2626', to: '#f87171' },
-}
+const STAR_COLORS = {
+  5: getProfissionalStarGradient(5),
+  4: getProfissionalStarGradient(4),
+  3: getProfissionalStarGradient(3),
+  2: getProfissionalStarGradient(2),
+  1: getProfissionalStarGradient(1),
+} as const
 
 function startOfWeek(date: Date) {
   const copy = new Date(date)

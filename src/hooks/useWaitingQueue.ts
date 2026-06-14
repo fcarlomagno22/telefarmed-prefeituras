@@ -1,39 +1,58 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import {
-  WAITING_QUEUE_UPDATED_EVENT,
-  getWaitingQueueEntries,
-  removeWaitingQueueEntry,
-  type WaitingQueueEntry,
-} from '../data/waitingQueueStore'
+import { useUbtAuth } from '../contexts/UbtAuthContext'
+import { fetchUbtFilaLive, isUbtTriagemApiError } from '../lib/services/ubt/triagem'
+import type { WaitingQueueEntry } from '../types/waitingQueue'
 import { countPriorityWaiting, sortWaitingQueue } from '../utils/waitingQueueSort'
 
 export function useWaitingQueue() {
-  const [entries, setEntries] = useState<WaitingQueueEntry[]>(() => getWaitingQueueEntries())
+  const { getAccessToken, isAuthenticated, isBootstrapping } = useUbtAuth()
+  const [entries, setEntries] = useState<WaitingQueueEntry[]>([])
+  const [priorityCount, setPriorityCount] = useState(0)
   const [now, setNow] = useState(() => new Date())
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const refresh = useCallback(() => {
-    setEntries(getWaitingQueueEntries())
-    setNow(new Date())
-  }, [])
+  const refresh = useCallback(async () => {
+    const token = getAccessToken()
+    if (!token) {
+      setEntries([])
+      setPriorityCount(0)
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const fila = await fetchUbtFilaLive(token)
+      setEntries(fila.entries)
+      setPriorityCount(fila.priorityCount)
+      setNow(new Date(fila.serverTime))
+      setLoadError(null)
+    } catch (error) {
+      const message = isUbtTriagemApiError(error)
+        ? error.message
+        : 'Não foi possível carregar a fila de espera.'
+      setLoadError(message)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [getAccessToken])
 
   useEffect(() => {
-    refresh()
-
-    function handleUpdate() {
-      refresh()
+    if (isBootstrapping) return
+    if (!isAuthenticated) {
+      setIsLoading(false)
+      setEntries([])
+      return
     }
 
-    window.addEventListener(WAITING_QUEUE_UPDATED_EVENT, handleUpdate)
-    window.addEventListener('storage', handleUpdate)
-
+    void refresh()
+    const poll = window.setInterval(() => void refresh(), 15_000)
     const tick = window.setInterval(() => setNow(new Date()), 30_000)
-
     return () => {
-      window.removeEventListener(WAITING_QUEUE_UPDATED_EVENT, handleUpdate)
-      window.removeEventListener('storage', handleUpdate)
+      window.clearInterval(poll)
       window.clearInterval(tick)
     }
-  }, [refresh])
+  }, [isAuthenticated, isBootstrapping, refresh])
 
   const waitingEntries = useMemo(
     () => entries.filter((entry) => entry.status === 'aguardando'),
@@ -44,21 +63,18 @@ export function useWaitingQueue() {
     () => sortWaitingQueue(waitingEntries, now),
     [waitingEntries, now],
   )
-  const priorityCount = useMemo(
-    () => countPriorityWaiting(waitingEntries, now),
-    [waitingEntries, now],
-  )
 
-  const removeEntry = useCallback((entryId: string) => {
-    removeWaitingQueueEntry(entryId)
-    refresh()
-  }, [refresh])
+  const computedPriorityCount = useMemo(
+    () => (priorityCount > 0 ? priorityCount : countPriorityWaiting(waitingEntries, now)),
+    [priorityCount, waitingEntries, now],
+  )
 
   return {
     ordered,
-    priorityCount,
+    priorityCount: computedPriorityCount,
     now,
-    removeEntry,
     refresh,
+    isLoading,
+    loadError,
   }
 }

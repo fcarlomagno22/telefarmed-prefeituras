@@ -1,6 +1,6 @@
 import { brand } from '../../config/brand'
-import type { AuditLogEntry, AuditLogSeverity } from '../../data/auditLogsMock'
-import { auditLogPlatformLabels } from '../../components/auditoria/auditLogPlatformConfig'
+import type { AuditLogEntry, AuditLogSeverity } from '../../types/auditLogs'
+import { resolveAuditLogPlatformLabel } from '../../components/auditoria/auditLogPlatformConfig'
 import {
   formatAuditPrefeituraLabel,
   formatAuditUbtLabel,
@@ -99,7 +99,7 @@ function buildAuditLogsReportHtml(context: AuditLogsExportContext) {
     .map((entry) => {
       const severityClass = `severity-${entry.severity}`
       const platformCell = context.showPlatformColumn
-        ? `<td>${escapeHtml(auditLogPlatformLabels[entry.platform])}</td>`
+        ? `<td>${escapeHtml(resolveAuditLogPlatformLabel(entry.platform))}</td>`
         : ''
       const tenantCells =
         context.tenantColumnMode === 'full'
@@ -258,7 +258,7 @@ export function exportAuditLogsExcel(context: AuditLogsExportContext) {
 
   const rows = context.entries.map((entry) => [
     SEVERITY_LABELS[entry.severity],
-    ...(context.showPlatformColumn ? [auditLogPlatformLabels[entry.platform]] : []),
+    ...(context.showPlatformColumn ? [resolveAuditLogPlatformLabel(entry.platform)] : []),
     ...(context.tenantColumnMode === 'full'
       ? [
           formatAuditPrefeituraLabel(entry.prefeituraName),

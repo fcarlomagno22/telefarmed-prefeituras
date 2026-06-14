@@ -23,9 +23,21 @@ export type AuditLogsAdvancedFilters = {
   outcome: string
 }
 
-export const defaultAuditLogsAdvancedFilters = (): AuditLogsAdvancedFilters => ({
-  startDate: '2026-05-12',
-  endDate: '2026-05-19',
+function toDateInputValue(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+export const defaultAuditLogsAdvancedFilters = (): AuditLogsAdvancedFilters => {
+  const end = new Date()
+  const start = new Date()
+  start.setDate(start.getDate() - 7)
+
+  return {
+  startDate: toDateInputValue(start),
+  endDate: toDateInputValue(end),
   timeFrom: '00:00',
   timeTo: '23:59',
   userId: '',
@@ -44,85 +56,8 @@ export const defaultAuditLogsAdvancedFilters = (): AuditLogsAdvancedFilters => (
   serverResponse: '',
   httpCode: '',
   outcome: '',
-})
-
-export const auditLogsAdvancedFilterOptions = {
-  users: [
-    { value: '', label: 'Selecione um usuário' },
-    { value: 'juliana', label: 'Juliana Silva' },
-    { value: 'carlos', label: 'Carlos Mendes' },
-    { value: 'ana', label: 'Ana Paula Costa' },
-    { value: 'roberto', label: 'Roberto Alves' },
-  ],
-  userTypes: [
-    { value: '', label: 'Todos os tipos' },
-    { value: 'administrador', label: 'Administrador' },
-    { value: 'operador', label: 'Operador' },
-    { value: 'editor', label: 'Editor' },
-    { value: 'visualizador', label: 'Visualizador' },
-  ],
-  units: [
-    { value: '', label: 'Todas as unidades' },
-    { value: 'ubt-central', label: 'UBT Central' },
-    { value: 'ubt-norte', label: 'UBT Norte' },
-    { value: 'ubt-sul', label: 'UBT Sul' },
-  ],
-  platforms: [
-    { value: '', label: 'Todas as plataformas' },
-    { value: 'admin', label: 'Admin Telefarmed' },
-    { value: 'prefeitura', label: 'Prefeitura' },
-    { value: 'ubt', label: 'UBT' },
-    { value: 'atendimento', label: 'Atendimento' },
-  ],
-  prefeituras: [
-    { value: '', label: 'Todas as prefeituras' },
-    { value: 'brasilia', label: 'Brasília' },
-    { value: 'campinas', label: 'Campinas' },
-    { value: 'sorocaba', label: 'Sorocaba' },
-  ],
-  ubts: [
-    { value: '', label: 'Todas as UBTs' },
-    { value: 'ubt-centro-historico', label: 'UBT Centro Histórico' },
-    { value: 'ubt-norte-i', label: 'UBT Norte I' },
-    { value: 'ubt-taguatinga', label: 'UBT Taguatinga' },
-    { value: 'ubt-sul', label: 'UBT Sul' },
-  ],
-  actions: [
-    { value: '', label: 'Todas as ações' },
-    { value: 'view', label: 'Visualizações' },
-    { value: 'create', label: 'Criações' },
-    { value: 'update', label: 'Atualizações' },
-    { value: 'delete', label: 'Exclusões' },
-    { value: 'auth', label: 'Autenticação' },
-  ],
-  eventCategories: [
-    { value: '', label: 'Todas as categorias' },
-    { value: 'access', label: 'Acesso e sessão' },
-    { value: 'data', label: 'Dados e registros' },
-    { value: 'security', label: 'Segurança' },
-    { value: 'export', label: 'Exportação' },
-  ],
-  modules: [
-    { value: '', label: 'Todos os módulos' },
-    { value: 'pacientes', label: 'Pacientes' },
-    { value: 'consultas', label: 'Consultas' },
-    { value: 'agenda', label: 'Agenda' },
-    { value: 'usuarios', label: 'Usuários da rede' },
-    { value: 'credenciais', label: 'Credenciais de acesso' },
-    { value: 'relatorios', label: 'Relatórios' },
-  ],
-  serverResponses: [
-    { value: '', label: 'Todos os resultados' },
-    { value: '2xx', label: 'Sucesso (2xx)' },
-    { value: '4xx', label: 'Erro do cliente (4xx)' },
-    { value: '5xx', label: 'Erro do servidor (5xx)' },
-  ],
-  outcomes: [
-    { value: '', label: 'Todos' },
-    { value: 'success', label: 'Sucesso' },
-    { value: 'failure', label: 'Falha' },
-  ],
-} as const
+  }
+}
 
 export const auditCriticalityOptions = [
   { value: 'all' as const, label: 'Todas' },

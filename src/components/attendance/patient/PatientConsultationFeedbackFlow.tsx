@@ -15,7 +15,7 @@ type PatientConsultationFeedbackFlowProps = {
 
 const STEPS: { id: FeedbackStep; label: string }[] = [
   { id: 'doctor', label: 'Profissional' },
-  { id: 'experience', label: 'Telemedicina' },
+  { id: 'experience', label: 'Teleconsulta' },
 ]
 
 export function PatientConsultationFeedbackFlow({
@@ -158,23 +158,25 @@ export function PatientConsultationFeedbackFlow({
           </span>
 
           <h2 className="text-xl font-bold text-gray-900 sm:text-2xl">
-            Como foi sua experiência com a telemedicina?
+            Você gostou de ser atendido(a) por teleconsulta?
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-gray-500 sm:text-base">
-            Avalie o atendimento por vídeo, áudio, conexão e facilidade de uso da plataforma.
+            Conte como foi a sua experiência de consulta à distância — se sentiu bem atendido(a) por
+            esse formato, se foi prático e confortável para você. Esta avaliação é sobre a
+            teleconsulta em si, não sobre o profissional.
           </p>
 
           <div className="mt-8 w-full">
             <FeedbackStarRating
               value={experienceRating}
               onChange={setExperienceRating}
-              ariaLabel="Nota da experiência com telemedicina"
+              ariaLabel="Nota da experiência com teleconsulta"
             />
           </div>
 
           <label className="mt-8 w-full text-left">
             <span className="mb-2 block text-sm font-medium text-gray-700">
-              Comentário sobre a telemedicina{' '}
+              Como foi a experiência?{' '}
               <span className="font-normal text-gray-400">(opcional)</span>
             </span>
             <textarea
@@ -182,7 +184,7 @@ export function PatientConsultationFeedbackFlow({
               onChange={(event) => setExperienceComment(event.target.value)}
               rows={4}
               maxLength={500}
-              placeholder="Conte como foi a consulta por vídeo e o uso da plataforma..."
+              placeholder="Ex.: gostei de ser atendido(a) de casa, me senti à vontade, preferi ir presencialmente..."
               className="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15"
             />
           </label>

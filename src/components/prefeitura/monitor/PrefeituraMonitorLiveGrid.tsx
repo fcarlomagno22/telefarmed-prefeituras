@@ -1,11 +1,9 @@
 import { RefreshCw } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import {
-  monitorLiveGridRows,
-  monitorRegionFilterOptions,
   monitorStationLegend,
   type MonitorLiveGridRow,
-} from '../../../data/prefeituraMonitorMock'
+} from '../../../types/prefeituraMonitor'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { DashCard } from '../prefeituraDashboardUi'
 import { monitorCardTableScrollClass, monitorTableHeadStickyClass } from './monitorTableScroll'
@@ -50,100 +48,92 @@ function UnitStatusCell({ row }: { row: MonitorLiveGridRow }) {
 
 type PrefeituraMonitorLiveGridProps = {
   className?: string
+  rows: MonitorLiveGridRow[]
+  region: string
+  onRegionChange: (value: string) => void
+  regionOptions: Array<{ value: string; label: string }>
+  onRefresh: () => void
 }
 
 const REFRESH_MS = 900
 
-export function PrefeituraMonitorLiveGrid({ className = '' }: PrefeituraMonitorLiveGridProps) {
-  const [region, setRegion] = useState('todas')
+export function PrefeituraMonitorLiveGrid({
+  className = '',
+  rows,
+  region,
+  onRegionChange,
+  regionOptions,
+  onRefresh,
+}: PrefeituraMonitorLiveGridProps) {
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0)
 
   const handleRefresh = useCallback(() => {
     if (isRefreshing) return
     setIsRefreshing(true)
-    window.setTimeout(() => {
-      setRefreshKey((key) => key + 1)
-      setIsRefreshing(false)
-    }, REFRESH_MS)
-  }, [isRefreshing])
+    void onRefresh()
+    window.setTimeout(() => setIsRefreshing(false), REFRESH_MS)
+  }, [isRefreshing, onRefresh])
 
-  const rows = useMemo(() => {
-    if (region === 'todas') return monitorLiveGridRows
-    return monitorLiveGridRows.filter((row) => row.regionKey === region)
-  }, [region])
+  const filteredRows = useMemo(() => {
+    if (region === 'todas') return rows
+    return rows.filter((row) => row.regionKey === region)
+  }, [region, rows])
 
   return (
     <DashCard
       fillHeight
       className={className}
       title="Grade ao vivo"
-      subtitle="Visão geral da ocupação e fluxo por unidade básica de teleatendimento."
+      subtitle="Status operacional das UBTs em tempo real."
       bodyClassName="flex min-h-0 flex-1 flex-col p-0"
       action={
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="w-[11rem]">
+        <div className="flex items-center gap-2">
+          <div className="w-[8.5rem]">
             <CustomSelect
               value={region}
-              onChange={setRegion}
-              options={[...monitorRegionFilterOptions]}
-              menuMinWidthPx={180}
+              onChange={onRegionChange}
+              options={regionOptions}
+              menuMinWidthPx={160}
             />
           </div>
           <button
             type="button"
             onClick={handleRefresh}
             disabled={isRefreshing}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-[var(--brand-primary)]/30 hover:text-[var(--brand-primary)] disabled:opacity-60"
             aria-label="Atualizar grade ao vivo"
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition hover:border-gray-300 hover:bg-gray-50 hover:text-[var(--brand-primary)] disabled:cursor-wait disabled:opacity-70"
           >
             <RefreshCw
-              className={`h-4 w-4 ${isRefreshing ? 'animate-spin text-[var(--brand-primary)]' : ''}`}
+              className={['h-4 w-4', isRefreshing ? 'animate-spin' : ''].join(' ')}
               strokeWidth={2}
             />
           </button>
         </div>
       }
     >
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-gray-100 px-4 py-2.5">
-        {monitorStationLegend.map((item) => (
-          <span key={item.key} className="inline-flex items-center gap-1.5 text-[11px] font-medium text-gray-600">
-            <span className={`h-2 w-2 rounded-full ${item.dotClass}`} aria-hidden />
-            {item.label}
-          </span>
-        ))}
-      </div>
-
-      <div
-        key={refreshKey}
-        className={[
-          monitorCardTableScrollClass,
-          'transition-opacity duration-300',
-          isRefreshing ? 'opacity-50' : 'opacity-100',
-        ].join(' ')}
-      >
-        <table className="w-full min-w-[640px] text-left text-sm">
+      <div className={monitorCardTableScrollClass}>
+        <table className="w-full min-w-[640px] table-fixed text-sm">
           <thead className={monitorTableHeadStickyClass}>
             <tr className="border-b border-gray-200 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-              <th className="px-4 py-3">Unidade</th>
-              <th className="px-4 py-3 text-center">Terminais livres</th>
-              <th className="px-4 py-3 text-center">Terminais ocupados</th>
-              <th className="px-4 py-3 text-center">Pacientes na fila</th>
-              <th className="px-4 py-3 text-center">Em consulta</th>
-              <th className="px-4 py-3 text-center">Status</th>
+              <th className="w-[28%] px-4 py-3 text-left">Unidade</th>
+              <th className="w-[14%] px-4 py-3 text-center">Livres</th>
+              <th className="w-[14%] px-4 py-3 text-center">Ocupados</th>
+              <th className="w-[14%] px-4 py-3 text-center">Fila</th>
+              <th className="w-[16%] px-4 py-3 text-center">Em consulta</th>
+              <th className="w-[14%] px-4 py-3 text-center">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {rows.length === 0 ? (
+            {filteredRows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-500">
-                  Nenhuma unidade no recorte selecionado
+                <td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-500">
+                  Nenhuma UBT no recorte selecionado
                 </td>
               </tr>
             ) : null}
-            {rows.map((row) => (
+            {filteredRows.map((row) => (
               <tr key={row.id} className="text-gray-800 transition hover:bg-slate-50/80">
-                <td className="px-4 py-3 font-semibold text-gray-900">{row.name}</td>
+                <td className="px-4 py-3 text-left font-semibold text-gray-900">{row.name}</td>
                 <td className="px-4 py-3 text-center">
                   <MetricPill value={row.freeStations} tone="free" />
                 </td>
@@ -163,6 +153,15 @@ export function PrefeituraMonitorLiveGrid({ className = '' }: PrefeituraMonitorL
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex shrink-0 flex-wrap gap-x-4 gap-y-2 border-t border-gray-100 px-4 py-3">
+        {monitorStationLegend.map((item) => (
+          <span key={item.key} className="inline-flex items-center gap-1.5 text-[11px] text-gray-600">
+            <span className={['h-2 w-2 rounded-full', item.dotClass].join(' ')} aria-hidden />
+            {item.label}
+          </span>
+        ))}
       </div>
     </DashCard>
   )

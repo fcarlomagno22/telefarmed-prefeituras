@@ -63,11 +63,15 @@ type ProfissionalFinanceiroClosureModalProps = {
   empresa: ProfissionalPrestadorEmpresa
   stats: ProfissionalFinanceiroStats
   canSubmit: boolean
+  isSaving?: boolean
   onClose: () => void
   onSubmit: (payload: {
+    invoiceFile: File
     invoiceFileName: string
     pixKey: string
-  }) => void
+    pixKeyType: string
+    onUploadProgress?: (percent: number) => void
+  }) => void | Promise<void>
   tourLockClose?: boolean
   tourStepOverride?: ClosureStepId | null
   tourActive?: boolean
@@ -88,6 +92,7 @@ export function ProfissionalFinanceiroClosureModal({
   empresa,
   stats,
   canSubmit,
+  isSaving = false,
   onClose,
   onSubmit,
   tourLockClose = false,
@@ -96,6 +101,7 @@ export function ProfissionalFinanceiroClosureModal({
 }: ProfissionalFinanceiroClosureModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [step, setStep] = useState<ClosureStepId>(1)
+  const [invoiceFile, setInvoiceFile] = useState<File | null>(null)
   const [invoiceFileName, setInvoiceFileName] = useState('')
   const [pixKeyType, setPixKeyType] = useState<ProfissionalPixKeyType>(empresa.pixKeyType)
   const [pixKey, setPixKey] = useState(() => defaultPixKeyForType(empresa.pixKeyType, empresa))
@@ -108,7 +114,6 @@ export function ProfissionalFinanceiroClosureModal({
   const [issuedAt, setIssuedAt] = useState<Date | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
-  const pendingSubmissionRef = useRef<{ invoiceFileName: string; pixKey: string } | null>(null)
 
   const isLocked =
     closure.status === 'em_analise' ||
@@ -134,7 +139,7 @@ export function ProfissionalFinanceiroClosureModal({
     setUploadProgress(0)
     setIssuedAt(null)
     setIsSubmitting(false)
-    pendingSubmissionRef.current = null
+    setInvoiceFile(null)
     setInvoiceFileName('')
   }, [open, tourStepOverride])
 
@@ -146,6 +151,7 @@ export function ProfissionalFinanceiroClosureModal({
     }
     if (tourStepOverride >= 2) {
       setInvoiceFileName(PROFISSIONAL_FINANCEIRO_TOUR_DEMO_INVOICE_FILE)
+      setInvoiceFile(null)
     }
   }, [open, tourStepOverride])
 
@@ -203,6 +209,7 @@ export function ProfissionalFinanceiroClosureModal({
       return
     }
     setFormError(null)
+    setInvoiceFile(file)
     setInvoiceFileName(file.name)
     setInvoiceAttentionKey(0)
   }
@@ -264,22 +271,49 @@ export function ProfissionalFinanceiroClosureModal({
     const submissionDate = new Date()
     setIssuedAt(submissionDate)
 
-    await simulateProfissionalInvoiceUpload(setUploadProgress)
+    try {
+      if (tourActive) {
+        await simulateProfissionalInvoiceUpload(setUploadProgress)
+        await onSubmit({
+          invoiceFile: new File(['demo'], invoiceFileName.trim() || 'nota-fiscal-demo.pdf', {
+            type: 'application/pdf',
+          }),
+          invoiceFileName: invoiceFileName.trim(),
+          pixKey: pixKey.trim(),
+          pixKeyType,
+        })
+      } else {
+        if (!invoiceFile) {
+          setFormError('Selecione o arquivo da nota fiscal.')
+          setSubmitPhase('idle')
+          setIsSubmitting(false)
+          return
+        }
 
-    pendingSubmissionRef.current = {
-      invoiceFileName: invoiceFileName.trim(),
-      pixKey: pixKey.trim(),
+        await onSubmit({
+          invoiceFile,
+          invoiceFileName: invoiceFile.name,
+          pixKey: pixKey.trim(),
+          pixKeyType,
+          onUploadProgress: setUploadProgress,
+        })
+      }
+
+      setSubmitPhase('success')
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Não foi possível enviar o fechamento.'
+      setFormError(message)
+      setSubmitPhase('idle')
+      setIssuedAt(null)
+    } finally {
+      setIsSubmitting(false)
     }
-    setSubmitPhase('success')
-    setIsSubmitting(false)
   }
 
   function handleFinishSuccess() {
-    const pending = pendingSubmissionRef.current
-    if (pending) {
-      onSubmit(pending)
-      pendingSubmissionRef.current = null
-    }
     onClose()
   }
 

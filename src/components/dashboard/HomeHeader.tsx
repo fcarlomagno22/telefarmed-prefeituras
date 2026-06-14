@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { brand } from '../../config/brand'
-import { unitStation } from '../../data/unitDashboardMock'
+import { useUbtUnitStation } from '../../hooks/useUbtUnitStation'
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat('pt-BR', {
@@ -18,8 +18,17 @@ function formatTime(date: Date) {
   }).format(date)
 }
 
-export function HomeHeader() {
+type HomeHeaderProps = {
+  unitName?: string
+  stationLabel?: string
+}
+
+export function HomeHeader({ unitName, stationLabel }: HomeHeaderProps) {
+  const fallback = useUbtUnitStation()
   const [now, setNow] = useState(() => new Date())
+
+  const resolvedUnitName = unitName ?? fallback.unitName
+  const resolvedStationLabel = stationLabel ?? fallback.stationLabel
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30_000)
@@ -32,7 +41,10 @@ export function HomeHeader() {
         <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
           {brand.dashboardTitle}
         </h1>
-        <p className="mt-0.5 text-sm text-gray-500">{unitStation.unitName}</p>
+        <p className="mt-0.5 text-sm text-gray-500">{resolvedUnitName}</p>
+        {resolvedStationLabel ? (
+          <p className="text-xs text-gray-400">{resolvedStationLabel}</p>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

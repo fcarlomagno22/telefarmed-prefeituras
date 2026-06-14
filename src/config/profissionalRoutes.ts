@@ -2,6 +2,7 @@
 export const profissionalRoutes = {
   login: '/profissional/login',
   cadastro: '/profissional/cadastro',
+  minhaCandidatura: '/profissional/cadastro/minha-candidatura',
   finalizarCadastro: '/profissional/finalizar-cadastro',
   entrando: '/profissional/entrando',
   agenda: '/profissional/agenda',
@@ -13,3 +14,7 @@ export const profissionalRoutes = {
   notificacoes: '/profissional/notificacoes',
   perfil: '/profissional/perfil',
 } as const
+
+export function profissionalAtendimentoSessaoPath(codigo: string) {
+  return `/profissional/atendimento/${encodeURIComponent(codigo)}`
+}

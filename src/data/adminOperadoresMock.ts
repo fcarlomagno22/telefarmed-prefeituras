@@ -19,6 +19,7 @@ export type AdminOperatorContractingEntity = {
 }
 
 export type AdminOperatorRow = AccessCredentialUser & {
+  cpf?: string
   scope: AdminOperatorScope
   unitName: string
   contractingEntity: AdminOperatorContractingEntity

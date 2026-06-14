@@ -1,5 +1,6 @@
 export type AgendaWalkInReceptionStep =
   | 'specialty'
+  | 'schedule_datetime'
   | 'cpf_lookup'
   | 'confirm_registration'
   | 'age_group'
@@ -11,6 +12,7 @@ export type AgendaWalkInReceptionStep =
 
 export const walkInReceptionFlowSteps = [
   { id: 'specialty', label: 'Especialidade' },
+  { id: 'schedule', label: 'Médico e horário' },
   { id: 'register', label: 'Cadastro' },
   { id: 'photo', label: 'Foto' },
   { id: 'queue', label: 'Na fila' },
@@ -18,7 +20,8 @@ export const walkInReceptionFlowSteps = [
 
 export function resolveWalkInReceptionStepIndex(step: AgendaWalkInReceptionStep): number {
   if (step === 'specialty') return 0
-  if (step === 'photo') return 2
-  if (step === 'success') return 3
-  return 1
+  if (step === 'schedule_datetime') return 1
+  if (step === 'photo') return 3
+  if (step === 'success') return 4
+  return 2
 }

@@ -13,7 +13,10 @@ export function OperatorFooter({
   role = brand.operatorRole,
 }: OperatorFooterProps = {}) {
   return (
-    <footer className="absolute bottom-0 left-0 right-0 z-50 rounded-xl border border-gray-200/90 bg-white/95 shadow-[0_4px_20px_rgba(0,0,0,0.08)] backdrop-blur-sm">
+    <footer
+      data-tour="operator-footer"
+      className="absolute bottom-0 left-0 right-0 z-50 rounded-xl border border-gray-200/90 bg-white/95 shadow-[0_4px_20px_rgba(0,0,0,0.08)] backdrop-blur-sm"
+    >
       <div className="flex h-11 w-full items-center gap-3 px-4 sm:px-5">
         <UserRound
           className="h-4 w-4 shrink-0 text-[var(--brand-primary)]"

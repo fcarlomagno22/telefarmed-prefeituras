@@ -70,6 +70,34 @@ export function claimEscalaShift(
   return claimed
 }
 
+export function releaseEscalaShift(shiftId: string, doctorId: string): boolean {
+  let released = false
+  updateEscalaShifts((current) =>
+    current.map((shift) => {
+      if (shift.id !== shiftId) return shift
+      const captureIndex = shift.claimedCaptures.findIndex((capture) => capture.doctorId === doctorId)
+      if (captureIndex < 0) return shift
+
+      released = true
+      const claimedCaptures = shift.claimedCaptures.filter((capture) => capture.doctorId !== doctorId)
+      const vacancies = shift.vacancies + 1
+      const primaryDoctorId =
+        shift.primaryDoctorId === doctorId
+          ? (claimedCaptures[0]?.doctorId ?? null)
+          : shift.primaryDoctorId
+
+      return {
+        ...shift,
+        vacancies,
+        primaryDoctorId,
+        claimedCaptures,
+        updatedAt: new Date().toISOString(),
+      }
+    }),
+  )
+  return released
+}
+
 export function resetEscalaShiftsToMock() {
   setEscalaShifts(adminEscalaShiftsInitial)
 }

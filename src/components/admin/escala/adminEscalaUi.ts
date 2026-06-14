@@ -1,10 +1,10 @@
 import {
-  adminEscalaPrefeituras,
-  adminEscalaUbts,
+  getAdminEscalaDoctorOptions,
+  getAdminEscalaPrefeituras,
+  getAdminEscalaUbts,
   getPrefeituraById,
   getUbtById,
-} from '../../../data/adminEscalaRecipients'
-import { adminEscalaDoctorOptions } from '../../../data/adminEscalaMock'
+} from '../../../data/adminEscalaCatalog'
 import type {
   AdminEscalaFillStatus,
   AdminEscalaShift,
@@ -13,7 +13,7 @@ import type {
 import { computeAdminEscalaFillStatus } from '../../../utils/escala/escalaShiftMeta'
 
 export function getAdminEscalaDoctorLabel(doctorId: string) {
-  return adminEscalaDoctorOptions.find((d) => d.value === doctorId)?.label ?? 'Médico'
+  return getAdminEscalaDoctorOptions().find((d) => d.value === doctorId)?.label ?? 'Médico'
 }
 
 export function formatAdminEscalaDateTime(iso: string) {
@@ -71,10 +71,10 @@ export function formatAdminEscalaScopeSummary(shift: AdminEscalaShift): string {
   } else if (shift.ubtScope.mode === 'all') {
     const scoped =
       shift.prefeituraScope.mode === 'selected'
-        ? adminEscalaUbts.filter((u) =>
+        ? getAdminEscalaUbts().filter((u) =>
             shift.prefeituraScope.prefeituraIds.includes(u.municipalityId),
           )
-        : adminEscalaUbts
+        : getAdminEscalaUbts()
     parts.push(`Todas as UBTs (${scoped.length})`)
   } else {
     const names = shift.ubtScope.ubtIds
@@ -302,5 +302,5 @@ export function findDoctorScheduleConflictsForShifts(
 }
 
 export function countActivePrefeituras() {
-  return adminEscalaPrefeituras.length
+  return getAdminEscalaPrefeituras().length
 }

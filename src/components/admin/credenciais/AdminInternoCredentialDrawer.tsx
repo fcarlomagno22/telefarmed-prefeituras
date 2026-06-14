@@ -1,5 +1,5 @@
 import { Eye, EyeOff, X } from 'lucide-react'
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
   accessLevels,
@@ -165,6 +165,7 @@ export function AdminInternoCredentialDrawer({
   const [pinError, setPinError] = useState<string | null>(null)
   const [cpfTouched, setCpfTouched] = useState(false)
   const [cpfError, setCpfError] = useState<string | null>(null)
+  const [submitAttempted, setSubmitAttempted] = useState(false)
 
   const isActive = open || closing
   const isViewMode = mode === 'view'
@@ -193,6 +194,7 @@ export function AdminInternoCredentialDrawer({
     setPinError(null)
     setCpfTouched(false)
     setCpfError(null)
+    setSubmitAttempted(false)
 
     if (editingUser) {
       setName(editingUser.name)
@@ -265,9 +267,11 @@ export function AdminInternoCredentialDrawer({
 
   function validatePinFields(): string | null {
     if (isViewMode) return null
-    if (pin.length === 0 && confirmPin.length === 0) return null
-    if (pin.length !== PIN_LENGTH) {
-      return 'Se informar, a senha de autorização deve ter 6 dígitos.'
+    const pinStarted = pin.length > 0
+    const confirmStarted = confirmPin.length > 0
+    if (!pinStarted && !confirmStarted) return null
+    if (pin.length !== PIN_LENGTH || confirmPin.length !== PIN_LENGTH) {
+      return 'A senha de autorização deve ter 6 dígitos em ambos os campos.'
     }
     if (pin !== confirmPin) {
       return 'As senhas de autorização não coincidem.'
@@ -294,7 +298,17 @@ export function AdminInternoCredentialDrawer({
     event.preventDefault()
     if (isViewMode) return
 
+    setSubmitAttempted(true)
     setCpfTouched(true)
+
+    if (!name.trim() || !email.trim() || !role.trim()) {
+      return
+    }
+
+    if (!adminPortalPages.some((page) => pagePermissions[page.id].length > 0)) {
+      return
+    }
+
     const cpfValidationError = validateCpfField()
     if (cpfValidationError) {
       setCpfError(cpfValidationError)
@@ -352,16 +366,59 @@ export function AdminInternoCredentialDrawer({
   const cpfValid = validateCpfField() === null
   const cpfDigitsCount = cpfDigits(cpf).length
   const cpfInvalid = cpfTouched && cpfDigitsCount > 0 && !isValidCpf(cpf)
-  const cpfShowError = Boolean(cpfError) || (cpfTouched && !cpfValid && !isViewMode)
+  const cpfShowError =
+    Boolean(cpfError) ||
+    ((cpfTouched || submitAttempted) && !cpfValid && !isViewMode) ||
+    (cpfDigitsCount === 11 && !isValidCpf(cpf) && !isViewMode)
+
+  const hasPagePermissions = adminPortalPages.some((page) => pagePermissions[page.id].length > 0)
 
   const canSubmit =
     name.trim().length > 0 &&
     email.trim().length > 0 &&
     cpfValid &&
     role.trim().length > 0 &&
-    adminPortalPages.some((page) => pagePermissions[page.id].length > 0) &&
+    hasPagePermissions &&
     passwordValid &&
     pinValid
+
+  const formIssues = useMemo(() => {
+    if (isViewMode) return []
+
+    const issues: string[] = []
+    if (!name.trim()) issues.push('nome completo')
+    if (!email.trim()) issues.push('e-mail')
+    if (!role.trim()) issues.push('função')
+
+    const cpfIssue = validateCpfField()
+    if (cpfIssue) issues.push(cpfIssue)
+
+    if (showPasswordFields) {
+      const passwordIssue = validatePasswordFields()
+      if (passwordIssue) issues.push(passwordIssue)
+    }
+
+    const pinIssue = validatePinFields()
+    if (pinIssue) issues.push(pinIssue)
+
+    if (!hasPagePermissions) {
+      issues.push('marque ao menos uma página com permissão')
+    }
+
+    return issues
+  }, [
+    cpf,
+    confirmPassword,
+    confirmPin,
+    hasPagePermissions,
+    isViewMode,
+    name,
+    email,
+    password,
+    pin,
+    role,
+    showPasswordFields,
+  ])
 
   if (!isActive) return null
 
@@ -599,8 +656,10 @@ export function AdminInternoCredentialDrawer({
                 <section>
                   <h3 className="text-sm font-bold text-gray-900">Senha de autorização</h3>
                   <p className="mt-1 text-xs text-gray-500">
-                    Senha numérica de 6 dígitos para confirmar ações sensíveis no painel admin
-                    (opcional).
+                    Senha numérica de 6 dígitos para confirmar ações sensíveis no painel admin.
+                    {isCreateMode
+                      ? ' Opcional no cadastro — deixe em branco se o colaborador não precisará de PIN.'
+                      : ' Opcional ao editar — deixe em branco para manter o PIN atual.'}
                   </p>
                   {isEditMode && editingUser ? (
                     <div className="mt-2">
@@ -781,7 +840,15 @@ export function AdminInternoCredentialDrawer({
             </section>
           </div>
 
-          <footer className="flex shrink-0 justify-end gap-2 border-t border-gray-200 px-5 py-3 sm:px-6">
+          <footer className="flex shrink-0 flex-col gap-2 border-t border-gray-200 px-5 py-3 sm:px-6">
+            {!isViewMode && formIssues.length > 0 && !isSaving ? (
+              <p className="text-xs text-amber-800" role="status">
+                {canSubmit
+                  ? null
+                  : `Pendências: ${formIssues.join(' · ')}. Corrija e clique em cadastrar.`}
+              </p>
+            ) : null}
+            <div className="flex justify-end gap-2">
             <button
               type="button"
               onClick={onClose}
@@ -792,7 +859,7 @@ export function AdminInternoCredentialDrawer({
             {!isViewMode ? (
               <button
                 type="submit"
-                disabled={!canSubmit || isSaving}
+                disabled={isSaving}
                 className="btn-brand-gradient rounded-lg px-3.5 py-2 text-xs font-semibold disabled:opacity-50"
               >
                 {isSaving
@@ -802,6 +869,7 @@ export function AdminInternoCredentialDrawer({
                     : 'Cadastrar colaborador'}
               </button>
             ) : null}
+            </div>
           </footer>
         </form>
       </aside>

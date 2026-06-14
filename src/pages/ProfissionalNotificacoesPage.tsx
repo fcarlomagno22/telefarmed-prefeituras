@@ -10,34 +10,44 @@ import {
   dashboardPageShellClass,
   dashboardTwoColumnLayoutClass,
 } from '../components/layout/dashboardPageLayout'
-import { PrefeituraNotificacoesMainPanelSkeleton } from '../components/prefeitura/notificacoes/PrefeituraNotificacoesMainPanelSkeleton'
-import { PrefeituraNotificacoesSidebarPanelSkeleton } from '../components/prefeitura/notificacoes/PrefeituraNotificacoesSidebarPanelSkeleton'
+import { ProfissionalNotificacoesMainPanelSkeleton } from '../components/profissional/skeletons/ProfissionalNotificacoesMainPanelSkeleton'
+import { ProfissionalNotificacoesSidebarPanelSkeleton } from '../components/profissional/skeletons/ProfissionalNotificacoesSidebarPanelSkeleton'
 import { KpiStatCards } from '../components/ui/KpiStatCards'
 import { findProfissionalNavByPathname } from '../config/profissionalSidebarNav'
-import { useProfissionalNotificationsState } from '../contexts/ProfissionalNotificacoesContext'
-import { computeProfissionalNotificacoesKpiCards } from '../data/profissionalNotificacoesMock'
-import { usePageSkeletonLoading } from '../hooks/usePageSkeletonLoading'
+import {
+  useProfissionalNotificacoes,
+  useProfissionalNotificationsState,
+} from '../contexts/ProfissionalNotificacoesContext'
+import { buildProfissionalNotificacoesKpiCards } from '../utils/notificacoes/portalNotificacoesKpiCards'
+import { shouldShowPortalPageLoadingBlock } from '../utils/portal/portalPageLoading'
 import { KpiCardsRowSkeleton } from '../components/prefeitura/skeletons/prefeituraSkeletonUi'
 
 export function ProfissionalNotificacoesPage() {
   const { pathname } = useLocation()
   const meta = findProfissionalNavByPathname(pathname)
-  const isLoading = usePageSkeletonLoading(1200)
+  const { kpis, isLoading, loadError } = useProfissionalNotificacoes()
   const [notifications, setNotifications] = useProfissionalNotificationsState()
 
-  const kpiCards = useMemo(() => computeProfissionalNotificacoesKpiCards(notifications), [notifications])
+  const kpiCards = useMemo(
+    () => buildProfissionalNotificacoesKpiCards(kpis, notifications),
+    [kpis, notifications],
+  )
+  const showLoadingBlock = shouldShowPortalPageLoadingBlock(
+    isLoading,
+    notifications.length > 0 || kpis.unreadCount > 0,
+  )
 
   return (
-    <div className={dashboardPageShellClass} aria-busy={isLoading} aria-label="Notificações">
+    <div className={dashboardPageShellClass} aria-busy={showLoadingBlock} aria-label="Notificações">
       <div className={dashboardPageHeaderWrapClass}>
-        {isLoading ? (
+        {showLoadingBlock ? (
           <ProfissionalPageHeaderSkeleton />
         ) : (
           <ProfissionalPageHeader
             title={meta?.title ?? 'Notificações'}
             description={
               meta?.description ??
-              'Comunicados da Telefarmed, da gestão municipal e do corpo clínico — somente leitura.'
+              'Comunicados da Telefarmed — somente leitura.'
             }
           />
         )}
@@ -49,18 +59,24 @@ export function ProfissionalNotificacoesPage() {
           'mt-4 flex min-h-0 flex-1 flex-col gap-4 overflow-hidden pb-5',
         ].join(' ')}
       >
-        {isLoading ? (
+        {showLoadingBlock ? (
           <KpiCardsRowSkeleton count={4} className="shrink-0 gap-3 sm:grid-cols-2 xl:grid-cols-4" />
         ) : (
           <KpiStatCards items={kpiCards} className="shrink-0 sm:grid-cols-2 xl:grid-cols-4" />
         )}
 
+        {loadError ? (
+          <div className="shrink-0 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {loadError}
+          </div>
+        ) : null}
+
         <section
           className={[dashboardTwoColumnLayoutClass, 'min-h-0 flex-1 overflow-hidden'].join(' ')}
         >
           <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
-            {isLoading ? (
-              <PrefeituraNotificacoesMainPanelSkeleton />
+            {showLoadingBlock ? (
+              <ProfissionalNotificacoesMainPanelSkeleton />
             ) : (
               <ProfissionalNotificacoesMainPanel
                 notifications={notifications}
@@ -70,8 +86,8 @@ export function ProfissionalNotificacoesPage() {
           </div>
 
           <div className="flex h-full min-h-0 min-w-0 flex-col max-xl:min-h-0">
-            {isLoading ? (
-              <PrefeituraNotificacoesSidebarPanelSkeleton />
+            {showLoadingBlock ? (
+              <ProfissionalNotificacoesSidebarPanelSkeleton />
             ) : (
               <ProfissionalNotificacoesSidebarPanel notifications={notifications} />
             )}

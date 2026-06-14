@@ -4,7 +4,7 @@ export const profissionalEscalaPageGridClass = [
   'max-xl:overflow-y-auto max-xl:overscroll-y-contain',
   'xl:grid xl:min-h-0 xl:flex-1',
   'xl:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]',
-  'xl:grid-rows-[minmax(0,1fr)_auto]',
+  'xl:grid-rows-[minmax(0,1fr)]',
   'xl:items-stretch xl:gap-5 xl:overflow-hidden',
 ].join(' ')
 
@@ -22,4 +22,3 @@ export const profissionalEscalaFiltersSlotClass = 'shrink-0'
 export const profissionalEscalaKpiSlotClass = 'shrink-0'
 export const profissionalEscalaShiftsSlotClass = 'flex min-h-0 min-w-0 flex-1 flex-col'
 export const profissionalEscalaSidebarPanelSlotClass = 'flex min-h-0 min-w-0 flex-1 flex-col'
-export const profissionalEscalaStatusSlotClass = 'shrink-0 xl:col-span-2 xl:row-start-2'

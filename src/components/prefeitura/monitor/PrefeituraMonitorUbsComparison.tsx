@@ -1,23 +1,22 @@
 import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
-import {
-  monitorComparisonByTab,
-  type MonitorComparisonTab,
-} from '../../../data/prefeituraMonitorMock'
+import type { MonitorComparisonRow, MonitorComparisonTab } from '../../../types/prefeituraMonitor'
 import { DashCard, DashLinkAction } from '../prefeituraDashboardUi'
 import { PrefeituraMonitorUbsComparisonTable } from './PrefeituraMonitorUbsComparisonTable'
 
 type PrefeituraMonitorUbsComparisonProps = {
   onOpenFullRanking: (tab: MonitorComparisonTab) => void
   className?: string
+  rankingByTab: Record<MonitorComparisonTab, MonitorComparisonRow[]>
 }
 
 export function PrefeituraMonitorUbsComparison({
   onOpenFullRanking,
   className = '',
+  rankingByTab,
 }: PrefeituraMonitorUbsComparisonProps) {
   const [activeTab, setActiveTab] = useState<MonitorComparisonTab>('produtividade')
-  const rows = monitorComparisonByTab[activeTab]
+  const rows = rankingByTab[activeTab] ?? []
 
   return (
     <DashCard

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback, type CSSProperties } from 'react'
 import {
   CheckCircle,
   CheckCircle2,
@@ -21,14 +21,10 @@ import {
 } from 'lucide-react'
 import { AdminPageHeader } from '../AdminPageHeader'
 import {
-  adminCentrosCustoIniciais,
-  adminFornecedoresIniciais,
   adminContaPagarRecorrenciaLabel,
   adminContaPagarStatusLabel,
   adminFechamentoCompetenciaStatusLabel,
-  adminContasPagarIniciais,
   adminContaReceberStatusVencimentoLabel,
-  buildAdminFechamentosCompetenciaFromContratos,
   getContratoModalidadeLabel,
   type AdminCentroCusto,
   type AdminFornecedorRow,
@@ -37,7 +33,30 @@ import {
   type AdminContaReceberStatusVencimento,
   type AdminFechamentoCompetenciaRow,
   type AdminFechamentoCompetenciaStatus,
-} from '../../../data/adminFinanceiroMock'
+} from '../../../types/adminFinanceiro'
+import { useAdminFinanceiroPage } from '../../../hooks/useAdminFinanceiroPage'
+import { useAdminPageAccess } from '../../../hooks/useAdminPageAccess'
+import { useAdminAuth } from '../../../contexts/AdminAuthContext'
+import { verifyAdminAuthorizationPin } from '../../../lib/services/admin/auth'
+import {
+  clearFinanceiroBalancoAjuste,
+  closeFinanceiroFechamento,
+  createFinanceiroCentroCusto,
+  createFinanceiroContaPagar,
+  createFinanceiroFornecedor,
+  deleteFinanceiroContaPagar,
+  deleteFinanceiroFornecedor,
+  deleteFinanceiroReceber,
+  emitFinanceiroNotaFiscal,
+  fetchFinanceiroNotaFiscalDownloadUrl,
+  lookupFinanceiroCnpj,
+  isAdminFinanceiroApiError,
+  toggleFinanceiroContaPagarPagamento,
+  toggleFinanceiroReceberPagamento,
+  updateFinanceiroContaPagar,
+  updateFinanceiroFornecedor,
+  upsertFinanceiroBalancoAjuste,
+} from '../../../lib/services/admin/financeiro'
 import {
   dashboardPageHeaderWrapClass,
   dashboardPageScrollAreaClass,
@@ -45,10 +64,18 @@ import {
   dashboardPageShellClass,
 } from '../../layout/dashboardPageLayout'
 import { KpiStatCards, type KpiStatCardItem } from '../../ui/KpiStatCards'
+import { AdminFinanceiroMainPanelSkeleton } from './skeletons/AdminFinanceiroMainPanelSkeleton'
 import { AdminBillingClosureDrawer } from './AdminBillingClosureDrawer'
 import { AdminContaPagarCadastroDrawer } from './AdminContaPagarCadastroDrawer'
+import {
+  AdminProfissionalRepasseTabPanel,
+} from './AdminProfissionalRepasseTabPanel'
+import { AdminContaPagarOrigemTag, AdminContaPagarRepasseSummary } from './AdminContaPagarRepasseSummary'
+import { repasseDraftFromContaPagar } from '../../../utils/admin/repasseDraftFromContaPagar'
+import { useAdminProfissionalRepassePage } from '../../../hooks/useAdminProfissionalRepassePage'
 import { AdminFechamentoCompetenciaStatusBadge } from './AdminFechamentoCompetenciaStatusBadge'
 import { CustomSelect } from '../../ui/CustomSelect'
+import { ExportFormatMenu, type ExportFormat } from '../../ui/ExportFormatMenu'
 import { PinUnlockModal } from '../../users/PinUnlockModal'
 import { Toast } from '../../ui/Toast'
 import {
@@ -56,10 +83,14 @@ import {
   type SituationStatusBadgeStyle,
 } from '../../ui/SituationStatusBadge'
 import { createPortal } from 'react-dom'
-import jsPDF from 'jspdf'
 import { maskBirthDate } from '../../../utils/masks'
+import {
+  exportBalancoExcel,
+  exportBalancoPdf,
+  type BalancoExportContext,
+} from '../../../utils/financeiro/balancoExport'
 
-type FinanceiroTab = 'fechamentos' | 'receber' | 'pagar' | 'balanco'
+type FinanceiroTab = 'fechamentos' | 'receber' | 'pagar' | 'repasse_profissionais' | 'balanco'
 
 type ContaPagarForm = {
   descricao: string
@@ -82,6 +113,7 @@ const tabLabels: Record<FinanceiroTab, string> = {
   fechamentos: 'Fechamentos',
   receber: 'Contas a receber',
   pagar: 'Contas a pagar',
+  repasse_profissionais: 'Repasse profissionais',
   balanco: 'Balanço da operação',
 }
 
@@ -151,12 +183,13 @@ const adminUltrapassagemStatusBadgeConfig: Record<'sim' | 'nao', SituationStatus
 }
 
 function formatCurrency(value: number) {
+  const safe = Number.isFinite(value) ? value : 0
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(value)
+  }).format(safe)
 }
 
 function formatNumber(value: number) {
@@ -190,7 +223,8 @@ function sanitizeFilePart(value: string) {
     .toLowerCase()
 }
 
-function parseBrazilianDate(value: string) {
+function parseBrazilianDate(value: string | null | undefined) {
+  if (!value?.trim()) return null
   const [day, month, year] = value.split('/').map((part) => Number(part))
   if (!day || !month || !year) return null
   const date = new Date(year, month - 1, day)
@@ -198,7 +232,8 @@ function parseBrazilianDate(value: string) {
   return date
 }
 
-function getMonthYearFromBrazilianDate(value: string) {
+function getMonthYearFromBrazilianDate(value: string | null | undefined) {
+  if (!value?.trim()) return null
   const parts = value.split('/')
   const month = parts[1]
   const year = parts[2]
@@ -233,11 +268,42 @@ const MENU_GAP_PX = 6
 const VIEWPORT_PADDING_PX = 12
 
 export function AdminFinanceiroMainPanel() {
+  const { getAccessToken } = useAdminAuth()
+  const { pageAccess } = useAdminPageAccess('financeiro')
+  const { canInsert, canEdit, canDelete } = pageAccess
+  const verifiedPinRef = useRef('')
+  const {
+    fechamentos,
+    setFechamentos,
+    contasPagar,
+    setContasPagar,
+    fornecedores,
+    setFornecedores,
+    centrosCusto,
+    setCentrosCusto,
+    summary: financeiroSummary,
+    balanco: balancoFromApi,
+    despesaAjustePorCentro,
+    setDespesaAjustePorCentro,
+    notaFiscalByFechamentoId,
+    setNotaFiscalByFechamentoId,
+    isLoading: isFinanceiroLoading,
+    isBalancoLoading,
+    loadError: financeiroLoadError,
+    reload: reloadFinanceiro,
+    loadBalanco,
+    applyBalancoAjustes,
+  } = useAdminFinanceiroPage()
+
   const [activeTab, setActiveTab] = useState<FinanceiroTab>('fechamentos')
-  const [centrosCusto, setCentrosCusto] = useState<AdminCentroCusto[]>(adminCentrosCustoIniciais)
-  const [fornecedores, setFornecedores] = useState<AdminFornecedorRow[]>(adminFornecedoresIniciais)
-  const [contasPagar, setContasPagar] = useState<AdminContaPagarRow[]>(adminContasPagarIniciais)
-  const [fechamentos, setFechamentos] = useState(buildAdminFechamentosCompetenciaFromContratos)
+
+  const repasse = useAdminProfissionalRepassePage({
+    setFornecedores,
+    onContaPagarCreated: (conta) => setContasPagar((prev) => [conta, ...prev]),
+  })
+  const { openAuditoria: openRepasseAuditoria } = repasse
+
+  const repasseProfissionalKpis = repasse.kpis
   const [novoCentroNome, setNovoCentroNome] = useState('')
   const [selectedFechamentoId, setSelectedFechamentoId] = useState<string | null>(null)
   const [isFechamentoDrawerClosing, setIsFechamentoDrawerClosing] = useState(false)
@@ -285,9 +351,6 @@ export function AdminFinanceiroMainPanel() {
   const [isReceberPinOpen, setIsReceberPinOpen] = useState(false)
   const receberMenuTriggerRef = useRef<HTMLButtonElement | null>(null)
   const receberMenuRef = useRef<HTMLDivElement | null>(null)
-  const [notaFiscalByFechamentoId, setNotaFiscalByFechamentoId] = useState<
-    Record<string, NotaFiscalState>
-  >({})
   const [openPagarMenuId, setOpenPagarMenuId] = useState<string | null>(null)
   const [pagarMenuStyle, setPagarMenuStyle] = useState<CSSProperties | null>(null)
   const [pendingPagarSecureAction, setPendingPagarSecureAction] = useState<{
@@ -298,10 +361,10 @@ export function AdminFinanceiroMainPanel() {
   const [viewingContaPagarId, setViewingContaPagarId] = useState<string | null>(null)
   const [editingContaPagarId, setEditingContaPagarId] = useState<string | null>(null)
   const [editingContaPagarForm, setEditingContaPagarForm] = useState<ContaPagarForm | null>(null)
+  const [editingRepasseMotivo, setEditingRepasseMotivo] = useState('')
   const [editSuccessToast, setEditSuccessToast] = useState<string | null>(null)
   const [openBalancoMenuCentroId, setOpenBalancoMenuCentroId] = useState<string | null>(null)
   const [balancoMenuStyle, setBalancoMenuStyle] = useState<CSSProperties | null>(null)
-  const [despesaAjustePorCentro, setDespesaAjustePorCentro] = useState<Record<string, number>>({})
   const [editingDespesaCentroId, setEditingDespesaCentroId] = useState<string | null>(null)
   const [editingDespesaValor, setEditingDespesaValor] = useState('')
   const [balancoToast, setBalancoToast] = useState<string | null>(null)
@@ -316,11 +379,58 @@ export function AdminFinanceiroMainPanel() {
 
   const [contaPagarForm, setContaPagarForm] = useState<ContaPagarForm>({
     descricao: '',
-    centroCustoId: adminCentrosCustoIniciais[0]?.id ?? '',
+    centroCustoId: '',
     recorrencia: 'mensal',
     valor: '',
     vencimento: '',
   })
+
+  useEffect(() => {
+    if (!centrosCusto.length) return
+    setContaPagarForm((prev) =>
+      prev.centroCustoId ? prev : { ...prev, centroCustoId: centrosCusto[0].id },
+    )
+  }, [centrosCusto])
+
+  useEffect(() => {
+    if (isFinanceiroLoading || activeTab !== 'balanco') return
+
+    void loadBalanco({
+      viewMode: balancoViewMode,
+      competencia:
+        balancoViewMode === 'competencia' && balancoCompetenciaFilter !== 'all'
+          ? balancoCompetenciaFilter
+          : undefined,
+      dataInicial:
+        balancoViewMode === 'periodo' && balancoDataInicial.trim()
+          ? balancoDataInicial.trim()
+          : undefined,
+      dataFinal:
+        balancoViewMode === 'periodo' && balancoDataFinal.trim()
+          ? balancoDataFinal.trim()
+          : undefined,
+    })
+  }, [
+    activeTab,
+    balancoCompetenciaFilter,
+    balancoDataFinal,
+    balancoDataInicial,
+    balancoViewMode,
+    isFinanceiroLoading,
+    loadBalanco,
+  ])
+
+  const verifyAdminPin = async (pin: string) => {
+    const token = getAccessToken()
+    if (!token) return false
+    try {
+      await verifyAdminAuthorizationPin(token, pin)
+      verifiedPinRef.current = pin
+      return true
+    } catch {
+      return false
+    }
+  }
 
   const contasReceber = useMemo(
     () => fechamentos.filter((row) => row.status === 'fechado'),
@@ -356,11 +466,16 @@ export function AdminFinanceiroMainPanel() {
   )
   const totalDespesas = totalDespesasBase + totalAjustesDespesa
   const saldoOperacional = totalReceberPrevisto - totalDespesas
+  const receitaPrevistaKpi = financeiroSummary?.receitaPrevista ?? 0
+  const receitaRecebidaKpi = financeiroSummary?.receitaRecebida ?? 0
+  const despesasTotaisKpi = financeiroSummary?.despesasTotais ?? 0
+  const saldoOperacionalKpi = financeiroSummary?.saldoOperacional ?? 0
+
   const financeKpis = useMemo<KpiStatCardItem[]>(
     () => [
       {
         label: 'Receita prevista',
-        value: formatCurrency(totalReceberPrevisto),
+        value: formatCurrency(receitaPrevistaKpi),
         suffix: 'Contratos ativos e em implantacao',
         icon: TrendingUp,
         iconGradient: 'from-sky-500 via-blue-500 to-indigo-600',
@@ -370,7 +485,7 @@ export function AdminFinanceiroMainPanel() {
       },
       {
         label: 'Receita recebida',
-        value: formatCurrency(totalRecebido),
+        value: formatCurrency(receitaRecebidaKpi),
         suffix: 'Titulos liquidados pelas prefeituras',
         icon: Landmark,
         iconGradient: 'from-emerald-500 via-green-500 to-teal-600',
@@ -380,7 +495,7 @@ export function AdminFinanceiroMainPanel() {
       },
       {
         label: 'Despesas totais',
-        value: formatCurrency(totalDespesas),
+        value: formatCurrency(despesasTotaisKpi),
         suffix: 'Contas a pagar cadastradas no periodo',
         icon: TrendingDown,
         iconGradient: 'from-orange-500 via-amber-500 to-orange-600',
@@ -390,23 +505,27 @@ export function AdminFinanceiroMainPanel() {
       },
       {
         label: 'Saldo operacional',
-        value: formatCurrency(saldoOperacional),
+        value: formatCurrency(saldoOperacionalKpi),
         suffix: 'Receita prevista menos despesas totais',
         icon: Wallet,
         iconGradient:
-          saldoOperacional >= 0
+          saldoOperacionalKpi >= 0
             ? 'from-emerald-500 via-green-500 to-teal-600'
             : 'from-rose-500 via-red-500 to-red-600',
         iconShadow:
-          saldoOperacional >= 0
+          saldoOperacionalKpi >= 0
             ? 'shadow-[0_8px_20px_rgba(16,185,129,0.35)]'
             : 'shadow-[0_8px_20px_rgba(239,68,68,0.35)]',
-        iconRing: saldoOperacional >= 0 ? 'ring-emerald-100/80' : 'ring-red-100/80',
-        topBar: saldoOperacional >= 0 ? 'from-emerald-400 to-green-500' : 'from-rose-400 to-red-500',
+        iconRing: saldoOperacionalKpi >= 0 ? 'ring-emerald-100/80' : 'ring-red-100/80',
+        topBar:
+          saldoOperacionalKpi >= 0 ? 'from-emerald-400 to-green-500' : 'from-rose-400 to-red-500',
       },
     ],
-    [saldoOperacional, totalDespesas, totalReceberPrevisto, totalRecebido],
+    [despesasTotaisKpi, receitaPrevistaKpi, receitaRecebidaKpi, saldoOperacionalKpi],
   )
+
+  const activeKpiItems =
+    activeTab === 'repasse_profissionais' ? repasseProfissionalKpis : financeKpis
 
   const despesasPorCentro = useMemo(
     () =>
@@ -425,14 +544,23 @@ export function AdminFinanceiroMainPanel() {
     [centrosCusto, contasPagar, despesaAjustePorCentro],
   )
 
-  const handleAdicionarCentroCusto = () => {
+  const handleAdicionarCentroCusto = async () => {
+    if (!canInsert) return
     const nome = novoCentroNome.trim()
     if (!nome) return
-    const id = `cc-${nome.toLowerCase().replace(/\s+/g, '-')}-${Date.now().toString().slice(-4)}`
-    const novoCentro = { id, nome }
-    setCentrosCusto((prev) => [...prev, novoCentro])
-    setContaPagarForm((prev) => ({ ...prev, centroCustoId: prev.centroCustoId || id }))
-    setNovoCentroNome('')
+    const token = getAccessToken()
+    if (!token) return
+    try {
+      const novoCentro = await createFinanceiroCentroCusto(token, nome)
+      setCentrosCusto((prev) => [...prev, novoCentro])
+      setContaPagarForm((prev) => ({ ...prev, centroCustoId: prev.centroCustoId || novoCentro.id }))
+      setNovoCentroNome('')
+    } catch (error) {
+      const message = isAdminFinanceiroApiError(error)
+        ? error.message
+        : 'Não foi possível criar o centro de custo.'
+      setBalancoToast(message)
+    }
   }
 
   const handleContaPagarFormChange = <K extends keyof ContaPagarForm>(
@@ -443,6 +571,7 @@ export function AdminFinanceiroMainPanel() {
   }
 
   const handleCriarContaPagar = () => {
+    if (!canInsert) return
     setIsContaPagarDrawerOpen(true)
   }
 
@@ -456,24 +585,33 @@ export function AdminFinanceiroMainPanel() {
     setIsContaPagarDrawerClosing(false)
   }
 
-  const handleCreateFornecedor = (payload: Omit<AdminFornecedorRow, 'id'>) => {
-    const novoFornecedor: AdminFornecedorRow = {
-      id: `forn-${Date.now()}`,
-      ...payload,
-    }
-    setFornecedores((prev) => [novoFornecedor, ...prev])
+  const handleCreateFornecedor = async (payload: Omit<AdminFornecedorRow, 'id'>) => {
+    if (!canInsert) return
+    const token = getAccessToken()
+    if (!token) return
+    const row = await createFinanceiroFornecedor(token, payload)
+    setFornecedores((prev) => [row, ...prev])
   }
 
-  const handleUpdateFornecedor = (payload: AdminFornecedorRow) => {
-    setFornecedores((prev) => prev.map((item) => (item.id === payload.id ? payload : item)))
+  const handleUpdateFornecedor = async (payload: AdminFornecedorRow) => {
+    if (!canEdit) return
+    const token = getAccessToken()
+    if (!token) return
+    const row = await updateFinanceiroFornecedor(token, payload)
+    setFornecedores((prev) => prev.map((item) => (item.id === row.id ? row : item)))
   }
 
-  const handleDeleteFornecedor = (fornecedorId: string) => {
+  const handleDeleteFornecedor = async (fornecedorId: string, pin: string) => {
+    if (!canDelete) return
+    const token = getAccessToken()
+    if (!token) return
+    await deleteFinanceiroFornecedor(token, fornecedorId, pin)
     setFornecedores((prev) => prev.filter((item) => item.id !== fornecedorId))
     setContasPagar((prev) => prev.filter((item) => item.fornecedorId !== fornecedorId))
+    await reloadFinanceiro()
   }
 
-  const handleCreateContaPagarByDrawer = (payload: {
+  const handleCreateContaPagarByDrawer = async (payload: {
     fornecedorId: string
     descricao: string
     centroCustoId: string
@@ -481,15 +619,18 @@ export function AdminFinanceiroMainPanel() {
     valor: number
     vencimento: string
   }) => {
-    setContasPagar((prev) => [
-      {
-        id: `cp-${Date.now()}`,
-        status: 'pendente',
-        ...payload,
-      },
-      ...prev,
-    ])
+    const token = getAccessToken()
+    if (!token) return
+    const row = await createFinanceiroContaPagar(token, payload)
+    setContasPagar((prev) => [row, ...prev])
+    await reloadFinanceiro()
   }
+
+  const handleOpenRepasseAuditoria = useCallback((competenciaId: string) => {
+    setViewingContaPagarId(null)
+    setActiveTab('repasse_profissionais')
+    openRepasseAuditoria(competenciaId)
+  }, [openRepasseAuditoria])
 
   const resolveCentroCusto = (centroId: string) =>
     centrosCusto.find((centro) => centro.id === centroId)?.nome ?? 'Nao informado'
@@ -498,9 +639,17 @@ export function AdminFinanceiroMainPanel() {
     () => contasPagar.find((row) => row.id === viewingContaPagarId) ?? null,
     [contasPagar, viewingContaPagarId],
   )
+  const viewingRepasseDraft = useMemo(
+    () => (viewingContaPagar ? repasseDraftFromContaPagar(viewingContaPagar) : null),
+    [viewingContaPagar],
+  )
   const editingContaPagar = useMemo(
     () => contasPagar.find((row) => row.id === editingContaPagarId) ?? null,
     [contasPagar, editingContaPagarId],
+  )
+  const editingRepasseDraft = useMemo(
+    () => (editingContaPagar ? repasseDraftFromContaPagar(editingContaPagar) : null),
+    [editingContaPagar],
   )
 
   const selectedPagarMenuRow = useMemo(
@@ -527,6 +676,7 @@ export function AdminFinanceiroMainPanel() {
     const row = contasPagar.find((item) => item.id === rowId)
     if (!row) return
     setEditingContaPagarId(row.id)
+    setEditingRepasseMotivo('')
     setEditingContaPagarForm({
       descricao: row.descricao,
       centroCustoId: row.centroCustoId,
@@ -537,77 +687,84 @@ export function AdminFinanceiroMainPanel() {
   }
 
   const requestPagarSecureAction = (type: PagarSecureAction, rowId: string) => {
+    if (type === 'delete' && !canDelete) return
+    if (type !== 'delete' && !canEdit) return
     setOpenPagarMenuId(null)
     setPendingPagarSecureAction({ type, rowId })
     setIsPagarPinOpen(true)
   }
 
   const requestReceberSecureAction = (type: ReceberSecureAction, rowId: string) => {
+    if (!canEdit) return
     setOpenReceberMenuId(null)
     setPendingReceberSecureAction({ type, rowId })
     setIsReceberPinOpen(true)
   }
 
-  const handleReceberSecureActionSuccess = () => {
+  const handleReceberSecureActionSuccess = async () => {
     if (!pendingReceberSecureAction) return
 
-    const { rowId } = pendingReceberSecureAction
-    setFechamentos((prev) =>
-      prev.map((item) => {
-        if (item.id !== rowId) return item
+    const token = getAccessToken()
+    const pin = verifiedPinRef.current
+    if (!token || !pin) return
 
-        if (item.statusVencimento === 'paga') {
-          const vencimento = parseBrazilianDate(item.vencimento)
-          if (!vencimento) {
-            return { ...item, statusVencimento: 'a_vencer' }
-          }
-          const hoje = new Date()
-          hoje.setHours(0, 0, 0, 0)
-          vencimento.setHours(0, 0, 0, 0)
-          return { ...item, statusVencimento: vencimento < hoje ? 'atrasada' : 'a_vencer' }
-        }
-
-        return { ...item, statusVencimento: 'paga' }
-      }),
-    )
-
-    setIsReceberPinOpen(false)
-    setPendingReceberSecureAction(null)
+    try {
+      await toggleFinanceiroReceberPagamento(token, pendingReceberSecureAction.rowId, pin)
+      await reloadFinanceiro()
+    } catch (error) {
+      const message = isAdminFinanceiroApiError(error)
+        ? error.message
+        : 'Não foi possível atualizar o pagamento.'
+      setBalancoToast(message)
+    } finally {
+      setIsReceberPinOpen(false)
+      setPendingReceberSecureAction(null)
+      verifiedPinRef.current = ''
+    }
   }
 
-  const handlePagarSecureActionSuccess = () => {
+  const handlePagarSecureActionSuccess = async () => {
     if (!pendingPagarSecureAction) return
 
-    const { type, rowId } = pendingPagarSecureAction
-    if (type === 'delete') {
-      setContasPagar((prev) => prev.filter((item) => item.id !== rowId))
-      if (viewingContaPagarId === rowId) setViewingContaPagarId(null)
-      if (editingContaPagarId === rowId) {
-        setEditingContaPagarId(null)
-        setEditingContaPagarForm(null)
-      }
-    } else if (type === 'toggle_paid') {
-      setContasPagar((prev) =>
-        prev.map((item) =>
-          item.id === rowId
-            ? { ...item, status: item.status === 'pago' ? 'pendente' : 'pago' }
-            : item,
-        ),
-      )
-    } else if (type === 'edit') {
-      openEditContaPagar(rowId)
-    }
+    const token = getAccessToken()
+    const pin = verifiedPinRef.current
+    if (!token || !pin) return
 
-    setIsPagarPinOpen(false)
-    setPendingPagarSecureAction(null)
+    const { type, rowId } = pendingPagarSecureAction
+
+    try {
+      if (type === 'delete') {
+        await deleteFinanceiroContaPagar(token, rowId, pin)
+        if (viewingContaPagarId === rowId) setViewingContaPagarId(null)
+        if (editingContaPagarId === rowId) {
+          setEditingContaPagarId(null)
+          setEditingContaPagarForm(null)
+        }
+      } else if (type === 'toggle_paid') {
+        await toggleFinanceiroContaPagarPagamento(token, rowId, pin)
+      } else if (type === 'edit') {
+        openEditContaPagar(rowId)
+      }
+      await reloadFinanceiro()
+    } catch (error) {
+      const message = isAdminFinanceiroApiError(error)
+        ? error.message
+        : 'Não foi possível concluir a ação.'
+      setBalancoToast(message)
+    } finally {
+      setIsPagarPinOpen(false)
+      setPendingPagarSecureAction(null)
+      verifiedPinRef.current = ''
+    }
   }
 
   const closeEditContaPagarModal = () => {
     setEditingContaPagarId(null)
     setEditingContaPagarForm(null)
+    setEditingRepasseMotivo('')
   }
 
-  const handleSaveContaPagarEdits = () => {
+  const handleSaveContaPagarEdits = async () => {
     if (!editingContaPagarId || !editingContaPagarForm) return
     if (
       !editingContaPagarForm.descricao.trim() ||
@@ -619,25 +776,44 @@ export function AdminFinanceiroMainPanel() {
 
     const valor = parseCurrencyMaskedInput(editingContaPagarForm.valor)
     if (valor <= 0) return
+
+    const editingRow = contasPagar.find((item) => item.id === editingContaPagarId)
+    if (editingRow?.origem === 'repasse_profissional') {
+      const draft = repasseDraftFromContaPagar(editingRow)
+      const valorOriginal = draft ? draft.valorAprovadoCentavos / 100 : editingRow.valor
+      if (Math.abs(valor - valorOriginal) > 0.009 && !editingRepasseMotivo.trim()) {
+        setBalancoToast('Informe o motivo para alterar o valor de um repasse profissional.')
+        return
+      }
+    }
+
     const descricaoAtualizada = editingContaPagarForm.descricao.trim()
+    const token = getAccessToken()
+    const pin = verifiedPinRef.current
+    if (!token || !pin) return
 
-    setContasPagar((prev) =>
-      prev.map((item) =>
-        item.id === editingContaPagarId
-          ? {
-              ...item,
-              descricao: descricaoAtualizada,
-              centroCustoId: editingContaPagarForm.centroCustoId,
-              recorrencia: editingContaPagarForm.recorrencia,
-              valor,
-              vencimento: editingContaPagarForm.vencimento,
-            }
-          : item,
-      ),
-    )
-
-    closeEditContaPagarModal()
-    setEditSuccessToast(`Conta a pagar "${descricaoAtualizada}" atualizada com sucesso.`)
+    try {
+      await updateFinanceiroContaPagar(token, editingContaPagarId, pin, {
+        descricao: descricaoAtualizada,
+        centroCustoId: editingContaPagarForm.centroCustoId,
+        recorrencia: editingContaPagarForm.recorrencia,
+        valor,
+        vencimento: editingContaPagarForm.vencimento,
+        ...(editingRow?.origem === 'repasse_profissional' && editingRepasseMotivo.trim()
+          ? { motivoAjuste: editingRepasseMotivo.trim() }
+          : {}),
+      })
+      closeEditContaPagarModal()
+      setEditSuccessToast(`Conta a pagar "${descricaoAtualizada}" atualizada com sucesso.`)
+      await reloadFinanceiro()
+    } catch (error) {
+      const message = isAdminFinanceiroApiError(error)
+        ? error.message
+        : 'Não foi possível salvar a conta a pagar.'
+      setBalancoToast(message)
+    } finally {
+      verifiedPinRef.current = ''
+    }
   }
 
   const handleOpenEditDespesaConsolidada = (centroId: string) => {
@@ -648,34 +824,60 @@ export function AdminFinanceiroMainPanel() {
     setOpenBalancoMenuCentroId(null)
   }
 
-  const handleSaveEditDespesaConsolidada = () => {
+  const handleSaveEditDespesaConsolidada = async () => {
+    if (!canEdit) return
     if (!editingDespesaCentro) return
     const novoValor = parseCurrencyMaskedInput(editingDespesaValor)
     if (novoValor < 0) return
-    const novoAjuste = novoValor - editingDespesaCentro.valorBase
-    setDespesaAjustePorCentro((prev) => ({ ...prev, [editingDespesaCentro.id]: novoAjuste }))
-    setBalancoToast(`Despesa consolidada de "${editingDespesaCentro.nome}" atualizada.`)
-    setEditingDespesaCentroId(null)
-    setEditingDespesaValor('')
+    const token = getAccessToken()
+    if (!token) return
+
+    try {
+      const balanco = await upsertFinanceiroBalancoAjuste(token, editingDespesaCentro.id, novoValor)
+      applyBalancoAjustes(balanco.despesasPorCentro)
+      setBalancoToast(`Despesa consolidada de "${editingDespesaCentro.nome}" atualizada.`)
+      setEditingDespesaCentroId(null)
+      setEditingDespesaValor('')
+      await reloadFinanceiro()
+    } catch (error) {
+      const message = isAdminFinanceiroApiError(error)
+        ? error.message
+        : 'Não foi possível salvar o ajuste.'
+      setBalancoToast(message)
+    }
   }
 
-  const handleDeleteDespesaConsolidada = (centroId: string) => {
+  const handleDeleteDespesaConsolidada = async (centroId: string, pin: string) => {
     const centro = balancoDespesasPorCentro.find((item) => item.id === centroId)
     if (!centro) return
-    setDespesaAjustePorCentro((prev) => ({ ...prev, [centroId]: -centro.valorBase }))
-    setBalancoToast(`Despesa consolidada de "${centro.nome}" removida.`)
-    setOpenBalancoMenuCentroId(null)
+    const token = getAccessToken()
+    if (!token) return
+
+    try {
+      const balanco = await clearFinanceiroBalancoAjuste(token, centroId, pin)
+      applyBalancoAjustes(balanco.despesasPorCentro)
+      setBalancoToast(`Despesa consolidada de "${centro.nome}" removida.`)
+      setOpenBalancoMenuCentroId(null)
+      await reloadFinanceiro()
+    } catch (error) {
+      const message = isAdminFinanceiroApiError(error)
+        ? error.message
+        : 'Não foi possível remover o ajuste.'
+      setBalancoToast(message)
+    }
   }
 
   const requestDeleteDespesaConsolidada = (centroId: string) => {
+    if (!canDelete) return
     setPendingDeleteBalancoCentroId(centroId)
     setIsBalancoDeletePinOpen(true)
     setOpenBalancoMenuCentroId(null)
   }
 
-  const handleDownloadDespesaConsolidada = (centroId: string) => {
+  const handleDownloadDespesaConsolidada = async (centroId: string) => {
     const centro = balancoDespesasPorCentro.find((item) => item.id === centroId)
     if (!centro) return
+    const { default: jsPDF } = await import('jspdf')
     const doc = new jsPDF()
     let y = 18
     doc.setFont('helvetica', 'bold')
@@ -763,84 +965,75 @@ export function AdminFinanceiroMainPanel() {
     [competenciasOptions],
   )
 
-  const balancoContasPagar = useMemo(() => {
-    if (balancoViewMode === 'consolidado') return contasPagar
-
-    if (balancoViewMode === 'competencia' && balancoCompetenciaFilter !== 'all') {
-      return contasPagar.filter(
-        (row) => getMonthYearFromBrazilianDate(row.vencimento) === balancoCompetenciaFilter,
-      )
-    }
-
-    if (balancoViewMode === 'periodo') {
-      const dataInicial = parseBrazilianDate(balancoDataInicial)
-      const dataFinal = parseBrazilianDate(balancoDataFinal)
-      if (!dataInicial || !dataFinal) return contasPagar
-      return contasPagar.filter((row) => {
-        const vencimento = parseBrazilianDate(row.vencimento)
-        if (!vencimento) return false
-        return vencimento >= dataInicial && vencimento <= dataFinal
-      })
-    }
-
-    return contasPagar
-  }, [balancoCompetenciaFilter, balancoDataFinal, balancoDataInicial, balancoViewMode, contasPagar])
-
-  const balancoFechamentos = useMemo(() => {
-    if (balancoViewMode === 'consolidado') return contasReceber
-
-    if (balancoViewMode === 'competencia' && balancoCompetenciaFilter !== 'all') {
-      return contasReceber.filter((row) => row.competencia === balancoCompetenciaFilter)
-    }
-
-    if (balancoViewMode === 'periodo') {
-      const dataInicial = parseBrazilianDate(balancoDataInicial)
-      const dataFinal = parseBrazilianDate(balancoDataFinal)
-      if (!dataInicial || !dataFinal) return contasReceber
-      return contasReceber.filter((row) => {
-        const [month, year] = row.competencia.split('/').map(Number)
-        if (!month || !year) return false
-        const competenciaDate = new Date(year, month - 1, 1)
-        return competenciaDate >= dataInicial && competenciaDate <= dataFinal
-      })
-    }
-
-    return contasReceber
-  }, [balancoCompetenciaFilter, balancoDataFinal, balancoDataInicial, balancoViewMode, contasReceber])
-
-  const balancoReceita = useMemo(
-    () => balancoFechamentos.reduce((acc, row) => acc + row.valorFinal, 0),
-    [balancoFechamentos],
-  )
-  const balancoDespesasBase = useMemo(
-    () => balancoContasPagar.reduce((acc, row) => acc + row.valor, 0),
-    [balancoContasPagar],
-  )
-  const balancoDespesas = balancoDespesasBase + totalAjustesDespesa
-  const balancoResultado = balancoReceita - balancoDespesas
-  const balancoDespesasPagas = useMemo(
-    () =>
-      balancoContasPagar.filter((row) => row.status === 'pago').reduce((acc, row) => acc + row.valor, 0),
-    [balancoContasPagar],
-  )
-  const balancoDespesasPorCentro = centrosCusto.map((centro) => {
-    const valorBase = balancoContasPagar
-      .filter((conta) => conta.centroCustoId === centro.id)
-      .reduce((acc, conta) => acc + conta.valor, 0)
-    const ajuste = despesaAjustePorCentro[centro.id] ?? 0
-    return {
-      ...centro,
-      valorBase,
-      ajuste,
-      valor: Math.max(0, valorBase + ajuste),
-    }
-  })
+  const balancoReceita = balancoFromApi?.receita ?? 0
+  const balancoDespesas = balancoFromApi?.despesa ?? 0
+  const balancoResultado = balancoFromApi?.resultado ?? 0
+  const balancoDespesasPagas = balancoFromApi?.despesasPagas ?? 0
+  const balancoDespesasPorCentro = (balancoFromApi?.despesasPorCentro ?? []).map((centro) => ({
+    id: centro.id,
+    nome: centro.nome,
+    valorBase: centro.valorBase,
+    ajuste: centro.ajuste,
+    valor: centro.valor,
+  }))
   const selectedBalancoCentro =
     balancoDespesasPorCentro.find((centro) => centro.id === openBalancoMenuCentroId) ?? null
   const editingDespesaCentro =
     balancoDespesasPorCentro.find((centro) => centro.id === editingDespesaCentroId) ?? null
   const pendingDeleteBalancoCentro =
     balancoDespesasPorCentro.find((centro) => centro.id === pendingDeleteBalancoCentroId) ?? null
+
+  const handleExportBalanco = async (format: ExportFormat) => {
+    const viewModeLabel =
+      balancoViewMode === 'consolidado'
+        ? 'Consolidado'
+        : balancoViewMode === 'competencia'
+          ? 'Por competência'
+          : 'Por período'
+
+    const filterSummaryLines = [`Visualização: ${viewModeLabel}`]
+
+    if (balancoViewMode === 'competencia' && balancoCompetenciaFilter !== 'all') {
+      const competenciaLabel =
+        balancoCompetenciaOptions.find((item) => item.value === balancoCompetenciaFilter)?.label ??
+        balancoCompetenciaFilter
+      filterSummaryLines.push(`Competência: ${competenciaLabel}`)
+    }
+
+    if (balancoViewMode === 'periodo') {
+      if (balancoDataInicial.trim()) filterSummaryLines.push(`Data inicial: ${balancoDataInicial}`)
+      if (balancoDataFinal.trim()) filterSummaryLines.push(`Data final: ${balancoDataFinal}`)
+    }
+
+    const lucratividadePercentual =
+      balancoReceita > 0 ? (balancoResultado / balancoReceita) * 100 : 0
+
+    const context: BalancoExportContext = {
+      filterSummaryLines,
+      receita: balancoReceita,
+      despesas: balancoDespesas,
+      resultado: balancoResultado,
+      lucratividadePercentual,
+      despesasPagas: balancoDespesasPagas,
+      totalEmAtrasoReceber: balancoFromApi?.totalEmAtrasoReceber ?? totalEmAtrasoReceber,
+      despesasPorCentro: balancoDespesasPorCentro.map((centro) => ({
+        nome: centro.nome,
+        valorBase: centro.valorBase,
+        ajuste: centro.ajuste,
+        valor: centro.valor,
+      })),
+    }
+
+    try {
+      if (format === 'pdf') {
+        await exportBalancoPdf(context)
+      } else {
+        exportBalancoExcel(context)
+      }
+    } catch {
+      setBalancoToast('Não foi possível exportar o balanço.')
+    }
+  }
 
   const balancoKpis = useMemo<KpiStatCardItem[]>(
     () => {
@@ -1068,29 +1261,29 @@ export function AdminFinanceiroMainPanel() {
     setSelectedFechamentoId(null)
   }
 
-  const handleConfirmCloseCompetencia = (id: string) => {
-    setFechamentos((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, status: 'fechado' } : item)),
-    )
-    handleCloseFechamentoDrawer()
-  }
-
-  async function emitirNotaFiscalNaApiFutura(row: AdminFechamentoCompetenciaRow) {
-    return new Promise<{ invoiceNumber: string; issuedAt: string }>((resolve) => {
-      window.setTimeout(() => {
-        resolve({
-          invoiceNumber: `NF-${sanitizeFilePart(row.prefeitura).slice(0, 3).toUpperCase()}-${Date.now()
-            .toString()
-            .slice(-6)}`,
-          issuedAt: new Date().toISOString(),
-        })
-      }, 1100)
-    })
+  const handleConfirmCloseCompetencia = async (id: string) => {
+    if (!canEdit) return
+    const token = getAccessToken()
+    if (!token) return
+    try {
+      await closeFinanceiroFechamento(token, id)
+      await reloadFinanceiro()
+      handleCloseFechamentoDrawer()
+    } catch (error) {
+      const message = isAdminFinanceiroApiError(error)
+        ? error.message
+        : 'Não foi possível fechar a competência.'
+      setBalancoToast(message)
+    }
   }
 
   const handleEmitirNotaFiscal = async (row: AdminFechamentoCompetenciaRow) => {
+    if (!canEdit) return
     const current = notaFiscalByFechamentoId[row.id]
     if (current?.status === 'emitting' || current?.status === 'issued') return
+
+    const token = getAccessToken()
+    if (!token) return
 
     setNotaFiscalByFechamentoId((prev) => ({
       ...prev,
@@ -1098,7 +1291,7 @@ export function AdminFinanceiroMainPanel() {
     }))
 
     try {
-      const response = await emitirNotaFiscalNaApiFutura(row)
+      const response = await emitFinanceiroNotaFiscal(token, row.id)
       setNotaFiscalByFechamentoId((prev) => ({
         ...prev,
         [row.id]: {
@@ -1107,6 +1300,7 @@ export function AdminFinanceiroMainPanel() {
           issuedAt: response.issuedAt,
         },
       }))
+      await reloadFinanceiro()
     } catch {
       setNotaFiscalByFechamentoId((prev) => {
         const next = { ...prev }
@@ -1116,71 +1310,18 @@ export function AdminFinanceiroMainPanel() {
     }
   }
 
-  const handleDownloadNotaFiscal = (row: AdminFechamentoCompetenciaRow) => {
-    const notaState = notaFiscalByFechamentoId[row.id]
-    if (!notaState || notaState.status !== 'issued') return
-
-    const doc = new jsPDF({
-      unit: 'pt',
-      format: 'a4',
-    })
-
-    const left = 44
-    let y = 56
-    const lineGap = 20
-    const nfNumber = notaState.invoiceNumber ?? `NF-${Date.now().toString().slice(-6)}`
-
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(16)
-    doc.text('Nota Fiscal de Servicos - Telefarmed', left, y)
-
-    y += 28
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(11)
-    doc.text(`Numero da nota: ${nfNumber}`, left, y)
-    y += lineGap
-    doc.text(`Prefeitura: ${row.prefeitura}`, left, y)
-    y += lineGap
-    doc.text(`Contrato: ${row.contratoNumero}`, left, y)
-    y += lineGap
-    doc.text(`Competencia: ${row.competencia}`, left, y)
-    y += lineGap
-    doc.text(`Tipo de contrato: ${getContratoModalidadeLabel(row.modalidade)}`, left, y)
-    y += lineGap
-    doc.text(`Ultrapassagem: ${row.excedeuLimite ? 'Sim' : 'Nao'}`, left, y)
-    y += lineGap
-    doc.text(`Valor base: ${formatCurrency(row.valorBase)}`, left, y)
-    y += lineGap
-    doc.text(`Excedente: ${formatCurrency(row.valorExcedente)}`, left, y)
-    y += lineGap
-
-    doc.setFont('helvetica', 'bold')
-    doc.text(`Valor total: ${formatCurrency(row.valorFinal)}`, left, y)
-
-    y += 36
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.text('Documento emitido para fins de fluxo operacional interno.', left, y)
-    if (notaState.issuedAt) {
-      y += lineGap
-      doc.text(
-        `Emitida em: ${new Intl.DateTimeFormat('pt-BR', {
-          dateStyle: 'short',
-          timeStyle: 'short',
-        }).format(new Date(notaState.issuedAt))}`,
-        left,
-        y,
-      )
+  const handleDownloadNotaFiscal = async (row: AdminFechamentoCompetenciaRow) => {
+    const token = getAccessToken()
+    if (!token) return
+    try {
+      const url = await fetchFinanceiroNotaFiscalDownloadUrl(token, row.id)
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch (error) {
+      const message = isAdminFinanceiroApiError(error)
+        ? error.message
+        : 'Não foi possível baixar a nota fiscal.'
+      setBalancoToast(message)
     }
-
-    const fileName = [
-      'nota-fiscal',
-      sanitizeFilePart(row.prefeitura),
-      sanitizeFilePart(row.competencia),
-      sanitizeFilePart(row.contratoNumero),
-    ].join('-')
-
-    doc.save(`${fileName}.pdf`)
   }
 
   const selectedReceberMenuRow = useMemo(
@@ -1395,7 +1536,7 @@ export function AdminFinanceiroMainPanel() {
   }, [openBalancoMenuCentroId])
 
   return (
-    <div className={dashboardPageShellClass} aria-label="Financeiro">
+    <div className={dashboardPageShellClass} aria-label="Financeiro" aria-busy={isFinanceiroLoading}>
       <div className={dashboardPageHeaderWrapClass}>
         <AdminPageHeader
           sectionLabel="Gestao"
@@ -1405,8 +1546,26 @@ export function AdminFinanceiroMainPanel() {
       </div>
 
       <div className={dashboardPageScrollAreaClass}>
+        {isFinanceiroLoading ? (
+          <AdminFinanceiroMainPanelSkeleton />
+        ) : (
         <div className={[dashboardPageScrollPaddingClass, 'mt-4 space-y-4 pb-5'].join(' ')}>
-          <KpiStatCards items={financeKpis} />
+          {financeiroLoadError ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <p>{financeiroLoadError}</p>
+              <button
+                type="button"
+                onClick={() => void reloadFinanceiro()}
+                className="rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          ) : null}
+          <KpiStatCards
+            items={activeKpiItems}
+            updateKey={activeTab}
+          />
 
           <section className={[cardSurfaceClass, financeiroMainCardHeightClass, 'flex min-h-0 flex-col overflow-hidden'].join(' ')}>
             <nav
@@ -1566,16 +1725,18 @@ export function AdminFinanceiroMainPanel() {
                               >
                                 <Eye className="h-4 w-4" strokeWidth={2} />
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => handleOpenFechamentoDrawer(row.id)}
-                                disabled={row.status === 'fechado'}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-gray-200 disabled:hover:bg-transparent disabled:hover:text-gray-500"
-                                aria-label={`Fechar competência ${row.competencia} — ${row.prefeitura}`}
-                                title="Fechar competência"
-                              >
-                                <Lock className="h-4 w-4" strokeWidth={2} />
-                              </button>
+                              {canEdit ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenFechamentoDrawer(row.id)}
+                                  disabled={row.status === 'fechado'}
+                                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-gray-200 disabled:hover:bg-transparent disabled:hover:text-gray-500"
+                                  aria-label={`Fechar competência ${row.competencia} — ${row.prefeitura}`}
+                                  title="Fechar competência"
+                                >
+                                  <Lock className="h-4 w-4" strokeWidth={2} />
+                                </button>
+                              ) : null}
                             </div>
                           </td>
                         </tr>
@@ -1769,14 +1930,16 @@ export function AdminFinanceiroMainPanel() {
                         Cadastre despesas mensais ou pontuais com vínculo a centro de custo.
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleCriarContaPagar}
-                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Criar conta a pagar
-                    </button>
+                    {canInsert ? (
+                      <button
+                        type="button"
+                        onClick={handleCriarContaPagar}
+                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Criar conta a pagar
+                      </button>
+                    ) : null}
                   </div>
                   <div className="grid gap-3 border-b border-gray-200 p-4 lg:grid-cols-6">
                     <input
@@ -1830,6 +1993,7 @@ export function AdminFinanceiroMainPanel() {
                       <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
                         <tr>
                           <th className="px-4 py-3">Descrição</th>
+                          <th className="px-4 py-3 text-center">Origem</th>
                           <th className="px-4 py-3 text-center">Centros de custo</th>
                           <th className="px-4 py-3 text-center">Recorrência</th>
                           <th className="px-4 py-3 text-center">Valor</th>
@@ -1841,7 +2005,23 @@ export function AdminFinanceiroMainPanel() {
                       <tbody>
                         {contasPagar.map((row) => (
                           <tr key={row.id} className="border-t border-gray-100">
-                            <td className="px-4 py-3 font-medium text-gray-900">{row.descricao}</td>
+                            <td className="px-4 py-3">
+                              <p className="font-medium text-gray-900">{row.descricao}</p>
+                              {row.origem === 'repasse_profissional' && row.repasseCompetenciaId ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleOpenRepasseAuditoria(row.repasseCompetenciaId!)
+                                  }
+                                  className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--brand-primary)] hover:underline"
+                                >
+                                  Ver auditoria
+                                </button>
+                              ) : null}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <AdminContaPagarOrigemTag origem={row.origem ?? 'manual'} />
+                            </td>
                             <td className="px-4 py-3 text-center text-gray-700">
                               {resolveCentroCusto(row.centroCustoId)}
                             </td>
@@ -1892,13 +2072,15 @@ export function AdminFinanceiroMainPanel() {
                       value={novoCentroNome}
                       onChange={(event) => setNovoCentroNome(event.target.value)}
                     />
-                    <button
-                      type="button"
-                      onClick={handleAdicionarCentroCusto}
-                      className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-                    >
-                      Adicionar
-                    </button>
+                    {canInsert ? (
+                      <button
+                        type="button"
+                        onClick={handleAdicionarCentroCusto}
+                        className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                      >
+                        Adicionar
+                      </button>
+                    ) : null}
                   </div>
                   <ul className="mt-4 space-y-2">
                     {despesasPorCentro.map((centro) => (
@@ -1912,14 +2094,46 @@ export function AdminFinanceiroMainPanel() {
               </div>
             ) : null}
 
+            {activeTab === 'repasse_profissionais' ? (
+              <AdminProfissionalRepasseTabPanel
+                rows={repasse.rows}
+                permissions={repasse.permissions}
+                isLoading={repasse.isLoading}
+                isMutating={repasse.isMutating}
+                error={repasse.error}
+                competenciaOptions={repasse.competenciaOptions}
+                profissionalOptions={repasse.profissionalOptions}
+                openCompetenciaId={repasse.auditoriaRequestId}
+                onOpenCompetenciaConsumed={repasse.consumeAuditoriaRequest}
+                onReload={() => void repasse.reload()}
+                onApprove={repasse.approveCompetencia}
+                onReject={repasse.rejectCompetencia}
+                onRequestCorrecao={repasse.requestCorrecao}
+                onMarkPaid={repasse.markCompetenciaPago}
+                onSubmitPlantaoDecisao={repasse.submitPlantaoDecisao}
+              />
+            ) : null}
+
             {activeTab === 'balanco' ? (
-              <div className="grid h-full min-h-0 gap-4 overflow-auto p-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+              <div
+                className="grid h-full min-h-0 gap-4 overflow-auto p-4 xl:grid-cols-[minmax(0,1fr)_22rem]"
+                aria-busy={isBalancoLoading}
+              >
                 <div className="rounded-xl border border-gray-200 p-4">
-                  <div>
-                    <h2 className="text-sm font-bold text-gray-900">Balanço financeiro da operação</h2>
-                    <p className="mt-1 text-xs text-gray-500">
-                      Receita prevista das prefeituras menos despesas operacionais e administrativas.
-                    </p>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h2 className="text-sm font-bold text-gray-900">Balanço financeiro da operação</h2>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Receita prevista das prefeituras menos despesas operacionais e administrativas.
+                      </p>
+                    </div>
+                    <ExportFormatMenu
+                      resultCount={balancoDespesasPorCentro.length}
+                      itemSingular="centro de custo"
+                      itemPlural="centros de custo"
+                      resultScopeLabel="no balanço filtrado"
+                      onSelect={handleExportBalanco}
+                    />
                   </div>
 
                   <div className="mt-4 rounded-xl border border-gray-200/80 bg-slate-50/70 p-3">
@@ -2130,6 +2344,7 @@ export function AdminFinanceiroMainPanel() {
             ) : null}
           </section>
         </div>
+        )}
       </div>
 
       <AdminBillingClosureDrawer
@@ -2165,6 +2380,7 @@ export function AdminFinanceiroMainPanel() {
                   ? 'Desmarcar como paga'
                   : 'Marcar como paga'}
               </button>
+              {canEdit ? (
               <button
                 type="button"
                 role="menuitem"
@@ -2186,6 +2402,7 @@ export function AdminFinanceiroMainPanel() {
                   ? 'Emitindo nota fiscal...'
                   : 'Emitir nota fiscal'}
               </button>
+              ) : null}
               {selectedReceberNotaState?.status === 'issued' ? (
                 <button
                   type="button"
@@ -2201,6 +2418,7 @@ export function AdminFinanceiroMainPanel() {
                   Download da nota fiscal
                 </button>
               ) : null}
+              {canDelete ? (
               <button
                 type="button"
                 role="menuitem"
@@ -2214,6 +2432,7 @@ export function AdminFinanceiroMainPanel() {
                 <Trash2 className="h-4 w-4 shrink-0" strokeWidth={2} />
                 Excluir
               </button>
+              ) : null}
             </div>,
             document.body,
           )
@@ -2228,6 +2447,7 @@ export function AdminFinanceiroMainPanel() {
               style={pagarMenuStyle}
               className="overflow-hidden rounded-xl border border-gray-200/90 bg-white py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
             >
+              {canEdit ? (
               <button
                 type="button"
                 role="menuitem"
@@ -2241,6 +2461,7 @@ export function AdminFinanceiroMainPanel() {
                 )}
                 {selectedPagarMenuRow.status === 'pago' ? 'Desmarcar como paga' : 'Marcar como paga'}
               </button>
+              ) : null}
               <button
                 type="button"
                 role="menuitem"
@@ -2253,6 +2474,7 @@ export function AdminFinanceiroMainPanel() {
                 <Eye className="h-4 w-4 shrink-0 text-gray-500" strokeWidth={2} />
                 Visualizar
               </button>
+              {canEdit ? (
               <button
                 type="button"
                 role="menuitem"
@@ -2262,6 +2484,8 @@ export function AdminFinanceiroMainPanel() {
                 <Pencil className="h-4 w-4 shrink-0 text-gray-500" strokeWidth={2} />
                 Editar
               </button>
+              ) : null}
+              {canDelete ? (
               <button
                 type="button"
                 role="menuitem"
@@ -2271,6 +2495,7 @@ export function AdminFinanceiroMainPanel() {
                 <Trash2 className="h-4 w-4 shrink-0" strokeWidth={2} />
                 Excluir
               </button>
+              ) : null}
             </div>,
             document.body,
           )
@@ -2285,6 +2510,7 @@ export function AdminFinanceiroMainPanel() {
               style={balancoMenuStyle}
               className="overflow-hidden rounded-xl border border-gray-200/90 bg-white py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
             >
+              {canEdit ? (
               <button
                 type="button"
                 role="menuitem"
@@ -2294,6 +2520,7 @@ export function AdminFinanceiroMainPanel() {
                 <Pencil className="h-4 w-4 shrink-0 text-gray-500" strokeWidth={2} />
                 Editar
               </button>
+              ) : null}
               <button
                 type="button"
                 role="menuitem"
@@ -2303,6 +2530,7 @@ export function AdminFinanceiroMainPanel() {
                 <Download className="h-4 w-4 shrink-0 text-gray-500" strokeWidth={2} />
                 Baixar nota fiscal
               </button>
+              {canDelete ? (
               <button
                 type="button"
                 role="menuitem"
@@ -2312,6 +2540,7 @@ export function AdminFinanceiroMainPanel() {
                 <Trash2 className="h-4 w-4 shrink-0" strokeWidth={2} />
                 Excluir
               </button>
+              ) : null}
             </div>,
             document.body,
           )
@@ -2404,9 +2633,28 @@ export function AdminFinanceiroMainPanel() {
                 </div>
 
                 <dl className="grid gap-3 px-5 py-4 text-sm sm:grid-cols-2">
+                  {viewingRepasseDraft ? (
+                    <div className="sm:col-span-2">
+                      <AdminContaPagarRepasseSummary
+                        draft={viewingRepasseDraft}
+                        onVerAuditoria={
+                          viewingContaPagar.repasseCompetenciaId
+                            ? () =>
+                                handleOpenRepasseAuditoria(viewingContaPagar.repasseCompetenciaId!)
+                            : undefined
+                        }
+                      />
+                    </div>
+                  ) : null}
                   <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 sm:col-span-2">
                     <dt className="text-xs uppercase tracking-wide text-slate-500">Descrição</dt>
                     <dd className="mt-1 font-semibold text-slate-900">{viewingContaPagar.descricao}</dd>
+                  </div>
+                  <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-center">
+                    <dt className="text-xs uppercase tracking-wide text-slate-500">Origem</dt>
+                    <dd className="mt-2 flex justify-center">
+                      <AdminContaPagarOrigemTag origem={viewingContaPagar.origem ?? 'manual'} />
+                    </dd>
                   </div>
                   <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-center">
                     <dt className="text-xs uppercase tracking-wide text-slate-500">Centro de custo</dt>
@@ -2435,7 +2683,9 @@ export function AdminFinanceiroMainPanel() {
                     <dt className="text-xs uppercase tracking-wide text-slate-500">Categoria</dt>
                     <dd className="mt-1 flex items-center justify-center gap-2 font-medium text-slate-900">
                       <Wallet className="h-4 w-4 text-slate-500" />
-                      Conta operacional
+                      {viewingContaPagar.origem === 'repasse_profissional'
+                        ? 'Repasse profissional'
+                        : 'Conta operacional'}
                     </dd>
                   </div>
                 </dl>
@@ -2455,7 +2705,9 @@ export function AdminFinanceiroMainPanel() {
                     <div>
                       <h3 className="text-base font-semibold text-slate-900">Editar conta a pagar</h3>
                       <p className="mt-1 text-sm text-slate-500">
-                        Atualize os dados da despesa e salve as mudanças.
+                        {editingContaPagar.origem === 'repasse_profissional'
+                          ? 'Conta gerada pelo repasse. Valor só pode ser alterado com motivo.'
+                          : 'Atualize os dados da despesa e salve as mudanças.'}
                       </p>
                     </div>
                     <button
@@ -2484,15 +2736,29 @@ export function AdminFinanceiroMainPanel() {
                     </p>
                   </article>
                 </div>
+                {editingRepasseDraft ? (
+                  <div className="border-b border-slate-100 px-5 py-4">
+                    <AdminContaPagarRepasseSummary
+                      draft={editingRepasseDraft}
+                      compact
+                      onVerAuditoria={
+                        editingContaPagar.repasseCompetenciaId
+                          ? () => handleOpenRepasseAuditoria(editingContaPagar.repasseCompetenciaId!)
+                          : undefined
+                      }
+                    />
+                  </div>
+                ) : null}
                 <div className="grid gap-3 px-5 py-4 sm:grid-cols-2">
                   <label className="space-y-1.5 rounded-xl border border-slate-100 bg-slate-50/70 p-3 sm:col-span-2">
                     <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Descrição
                     </span>
                     <input
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[var(--brand-primary)]"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[var(--brand-primary)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-600"
                       placeholder="Descrição da despesa"
                       value={editingContaPagarForm.descricao}
+                      readOnly={editingContaPagar.origem === 'repasse_profissional'}
                       onChange={(event) =>
                         setEditingContaPagarForm((prev) =>
                           prev ? { ...prev, descricao: event.target.value } : prev,
@@ -2519,26 +2785,32 @@ export function AdminFinanceiroMainPanel() {
                     <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Recorrência
                     </span>
-                    <CustomSelect
-                      value={editingContaPagarForm.recorrencia}
-                      onChange={(value) =>
-                        setEditingContaPagarForm((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                recorrencia: value as AdminContaPagarRecorrencia,
-                              }
-                            : prev,
-                        )
-                      }
-                      options={[
-                        { value: 'mensal', label: 'Mensal' },
-                        { value: 'unica', label: 'Única' },
-                      ]}
-                      size="compact"
-                      className="w-full"
-                      menuMinWidthPx={220}
-                    />
+                    {editingContaPagar.origem === 'repasse_profissional' ? (
+                      <p className="rounded-xl border border-gray-200 bg-slate-100 px-3 py-2 text-sm text-slate-600">
+                        {adminContaPagarRecorrenciaLabel[editingContaPagarForm.recorrencia]}
+                      </p>
+                    ) : (
+                      <CustomSelect
+                        value={editingContaPagarForm.recorrencia}
+                        onChange={(value) =>
+                          setEditingContaPagarForm((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  recorrencia: value as AdminContaPagarRecorrencia,
+                                }
+                              : prev,
+                          )
+                        }
+                        options={[
+                          { value: 'mensal', label: 'Mensal' },
+                          { value: 'unica', label: 'Única' },
+                        ]}
+                        size="compact"
+                        className="w-full"
+                        menuMinWidthPx={220}
+                      />
+                    )}
                   </label>
                   <label className="space-y-1.5 rounded-xl border border-slate-100 bg-slate-50/70 p-3">
                     <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -2571,6 +2843,24 @@ export function AdminFinanceiroMainPanel() {
                       }
                     />
                   </label>
+                  {editingContaPagar.origem === 'repasse_profissional' &&
+                  editingRepasseDraft &&
+                  Math.abs(
+                    parseCurrencyMaskedInput(editingContaPagarForm.valor) -
+                      editingRepasseDraft.valorAprovadoCentavos / 100,
+                  ) > 0.009 ? (
+                    <label className="space-y-1.5 rounded-xl border border-amber-200 bg-amber-50/70 p-3 sm:col-span-2">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-amber-800">
+                        Motivo da alteração de valor
+                      </span>
+                      <textarea
+                        className="min-h-[4.5rem] w-full rounded-xl border border-amber-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-[var(--brand-primary)]"
+                        placeholder="Descreva por que o valor difere do total aprovado na competência"
+                        value={editingRepasseMotivo}
+                        onChange={(event) => setEditingRepasseMotivo(event.target.value)}
+                      />
+                    </label>
+                  ) : null}
                 </div>
                 <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
                   <button
@@ -2589,6 +2879,7 @@ export function AdminFinanceiroMainPanel() {
 
       <PinUnlockModal
         open={isReceberPinOpen}
+        verifyPin={verifyAdminPin}
         onClose={() => {
           setIsReceberPinOpen(false)
           setPendingReceberSecureAction(null)
@@ -2608,20 +2899,29 @@ export function AdminFinanceiroMainPanel() {
 
       <PinUnlockModal
         open={isDeletePinOpen}
+        verifyPin={verifyAdminPin}
         onClose={() => {
           setIsDeletePinOpen(false)
           setPendingDeleteReceberId(null)
         }}
-        onSuccess={() => {
+        onSuccess={async () => {
           if (!pendingDeleteReceberId) return
-          setFechamentos((prev) => prev.filter((item) => item.id !== pendingDeleteReceberId))
-          setNotaFiscalByFechamentoId((prev) => {
-            const next = { ...prev }
-            delete next[pendingDeleteReceberId]
-            return next
-          })
-          setIsDeletePinOpen(false)
-          setPendingDeleteReceberId(null)
+          const token = getAccessToken()
+          const pin = verifiedPinRef.current
+          if (!token || !pin) return
+          try {
+            await deleteFinanceiroReceber(token, pendingDeleteReceberId, pin)
+            await reloadFinanceiro()
+          } catch (error) {
+            const message = isAdminFinanceiroApiError(error)
+              ? error.message
+              : 'Não foi possível excluir o título.'
+            setBalancoToast(message)
+          } finally {
+            setIsDeletePinOpen(false)
+            setPendingDeleteReceberId(null)
+            verifiedPinRef.current = ''
+          }
         }}
         title="Excluir conta a receber"
         titleId="admin-financeiro-delete-receber-pin-title"
@@ -2633,6 +2933,7 @@ export function AdminFinanceiroMainPanel() {
 
       <PinUnlockModal
         open={isPagarPinOpen}
+        verifyPin={verifyAdminPin}
         onClose={() => {
           setIsPagarPinOpen(false)
           setPendingPagarSecureAction(null)
@@ -2662,15 +2963,19 @@ export function AdminFinanceiroMainPanel() {
 
       <PinUnlockModal
         open={isBalancoDeletePinOpen}
+        verifyPin={verifyAdminPin}
         onClose={() => {
           setIsBalancoDeletePinOpen(false)
           setPendingDeleteBalancoCentroId(null)
         }}
-        onSuccess={() => {
+        onSuccess={async () => {
           if (!pendingDeleteBalancoCentroId) return
-          handleDeleteDespesaConsolidada(pendingDeleteBalancoCentroId)
+          const pin = verifiedPinRef.current
+          if (!pin) return
+          await handleDeleteDespesaConsolidada(pendingDeleteBalancoCentroId, pin)
           setIsBalancoDeletePinOpen(false)
           setPendingDeleteBalancoCentroId(null)
+          verifiedPinRef.current = ''
         }}
         title="Excluir despesa consolidada"
         titleId="admin-financeiro-delete-balanco-pin-title"
@@ -2691,6 +2996,12 @@ export function AdminFinanceiroMainPanel() {
         onCreateFornecedor={handleCreateFornecedor}
         onUpdateFornecedor={handleUpdateFornecedor}
         onDeleteFornecedor={handleDeleteFornecedor}
+        onVerifyPin={verifyAdminPin}
+        onLookupCnpj={async (digits) => {
+          const token = getAccessToken()
+          if (!token) return {}
+          return lookupFinanceiroCnpj(token, digits)
+        }}
         onCreateContaPagar={handleCreateContaPagarByDrawer}
       />
 
@@ -2705,6 +3016,12 @@ export function AdminFinanceiroMainPanel() {
         visible={Boolean(balancoToast)}
         variant="success"
         onClose={() => setBalancoToast(null)}
+      />
+      <Toast
+        message={repasse.toastMessage ?? ''}
+        visible={Boolean(repasse.toastMessage)}
+        variant={repasse.toastVariant}
+        onClose={() => repasse.setToastMessage(null)}
       />
     </div>
   )

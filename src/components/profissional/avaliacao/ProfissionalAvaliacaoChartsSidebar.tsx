@@ -1,8 +1,10 @@
 import { BarChart3, Star, ThumbsUp, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import type { ProfissionalPatientReview } from '../../../types/profissionalAvaliacoes'
 import type { ProfissionalAvaliacoesStats } from '../../../utils/profissional/computeProfissionalAvaliacoesStats'
-import { computeProfissionalAvaliacoesStats } from '../../../utils/profissional/computeProfissionalAvaliacoesStats'
+import {
+  PROFISSIONAL_STAR_RATING_COLORS,
+  type ProfissionalStarLevel,
+} from '../../../utils/profissional/profissionalStarRatingColors'
 import { ChartTooltipPortal, useChartTooltip } from '../atendimentos/profissionalChartTooltip'
 import { ProfissionalStarRating } from './ProfissionalStarRating'
 import { profissionalAvaliacoesPanelClass } from './profissionalAvaliacoesUi'
@@ -11,21 +13,7 @@ const CHART_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)'
 const DONUT_RADIUS = 40
 const DONUT_STROKE = 12
 
-const STAR_MIX_COLORS: Record<
-  1 | 2 | 3 | 4 | 5,
-  { from: string; to: string; dot: string; track: string }
-> = {
-  5: { from: '#f59e0b', to: '#fbbf24', dot: 'bg-amber-400', track: 'from-amber-400 to-amber-300' },
-  4: {
-    from: '#fb923c',
-    to: '#fdba74',
-    dot: 'bg-orange-400',
-    track: 'from-orange-500 to-orange-300',
-  },
-  3: { from: '#94a3b8', to: '#cbd5e1', dot: 'bg-slate-400', track: 'from-slate-400 to-slate-300' },
-  2: { from: '#f87171', to: '#fca5a5', dot: 'bg-red-400', track: 'from-red-500 to-red-300' },
-  1: { from: '#dc2626', to: '#f87171', dot: 'bg-red-600', track: 'from-red-600 to-red-400' },
-}
+const STAR_MIX_COLORS = PROFISSIONAL_STAR_RATING_COLORS
 const LINE_HEIGHT = 88
 const VERTICAL_CHART_HEIGHT_PX = 112
 
@@ -47,13 +35,21 @@ function reviewWord(count: number) {
 }
 
 type ProfissionalAvaliacaoChartsSidebarProps = {
-  reviews: ProfissionalPatientReview[]
+  stats: ProfissionalAvaliacoesStats | null
+  isLoading?: boolean
 }
 
 export function ProfissionalAvaliacaoChartsSidebar({
-  reviews,
+  stats,
+  isLoading = false,
 }: ProfissionalAvaliacaoChartsSidebarProps) {
-  const stats = computeProfissionalAvaliacoesStats(reviews)
+  if (isLoading || !stats) {
+    return (
+      <aside className="flex h-full min-h-0 w-full items-center justify-center rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-500">
+        Carregando métricas…
+      </aside>
+    )
+  }
 
   return (
     <aside
@@ -187,12 +183,8 @@ function StarBreakdownCard({ stats }: { stats: ProfissionalAvaliacoesStats }) {
               <button
                 type="button"
                 className={[
-                  'block h-full rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]/40',
-                  bar.stars >= 4
-                    ? 'bg-gradient-to-r from-amber-400 to-amber-300'
-                    : bar.stars === 3
-                      ? 'bg-gradient-to-r from-slate-400 to-slate-300'
-                      : 'bg-gradient-to-r from-red-500 to-red-300',
+                  'block h-full rounded-full bg-gradient-to-r outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]/40',
+                  STAR_MIX_COLORS[bar.stars as ProfissionalStarLevel].trackClass,
                 ].join(' ')}
                 style={{
                   width: animate ? `${(bar.count / max) * 100}%` : '0%',
@@ -617,6 +609,7 @@ function MonthlyBarsCard({ stats }: { stats: ProfissionalAvaliacoesStats }) {
 }
 
 function StarRatingDots({ filledCount }: { filledCount: number }) {
+  const filledClass = PROFISSIONAL_STAR_RATING_COLORS[filledCount as ProfissionalStarLevel].starClass
   return (
     <span className="flex items-center gap-px" aria-hidden>
       {Array.from({ length: 5 }).map((_, index) => (
@@ -624,9 +617,7 @@ function StarRatingDots({ filledCount }: { filledCount: number }) {
           key={index}
           className={[
             'h-3 w-3',
-            index < filledCount
-              ? 'fill-amber-400 text-amber-500'
-              : 'fill-gray-100 text-gray-200',
+            index < filledCount ? filledClass : 'fill-gray-100 text-gray-200',
           ].join(' ')}
           strokeWidth={1.5}
         />
@@ -676,7 +667,7 @@ function StarMixLegendRow({
       >
         <div className="flex items-center gap-2">
           <span
-            className={['size-2 shrink-0 rounded-full ring-2 ring-white', colors.dot].join(' ')}
+            className={['size-2 shrink-0 rounded-full ring-2 ring-white', colors.dotClass].join(' ')}
             aria-hidden
           />
           <StarRatingDots filledCount={stars} />
@@ -696,7 +687,7 @@ function StarMixLegendRow({
           <span
             className={[
               'block h-full rounded-full bg-gradient-to-r',
-              colors.track,
+              colors.trackClass,
             ].join(' ')}
             style={{
               width: animate ? `${percent}%` : '0%',

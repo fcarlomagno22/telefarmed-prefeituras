@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import {
   getAdminMunicipalityStateFilterOptions,
   type AdminMunicipalityRow,
-} from '../../../data/adminDashboardMock'
+} from '../../../types/adminDashboard'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
 import {

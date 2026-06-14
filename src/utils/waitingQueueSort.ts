@@ -1,4 +1,4 @@
-import type { WaitingQueueEntry } from '../data/waitingQueueStore'
+import type { WaitingQueueEntry } from '../types/waitingQueue'
 
 const PRIORITY_WINDOW_MINUTES = 20
 

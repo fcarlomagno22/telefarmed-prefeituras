@@ -68,16 +68,19 @@ export const dashboardPageFillScrollAreaClass = [
 ].join(' ')
 
 /** Agenda profissional — header/tabs fixos; colunas rolam de forma independente (xl+). */
-export const profissionalAgendaBodyClass = 'mt-4 flex min-h-0 flex-1 flex-col pb-5'
+export const profissionalAgendaBodyClass = [
+  'mt-4 flex min-h-0 flex-1 flex-col overflow-hidden pb-5',
+].join(' ')
 
 export const profissionalAgendaGridClass = [
   'grid w-full min-w-0 grid-cols-1 gap-4',
-  'xl:grid-cols-[minmax(0,1fr)_minmax(14rem,16rem)] xl:items-start',
+  'xl:grid-cols-[minmax(0,1fr)_minmax(17rem,22%)] xl:items-stretch',
+  '2xl:grid-cols-[minmax(0,1fr)_minmax(19rem,24%)]',
 ].join(' ')
 
-export const profissionalAgendaMainColumnClass = 'flex w-full min-w-0 flex-col gap-4'
+export const profissionalAgendaMainColumnClass = 'flex h-full w-full min-w-0 flex-1 flex-col gap-4 min-h-0'
 
 export const profissionalAgendaSidebarColumnClass = [
-  'flex w-full min-w-0 flex-col gap-3',
-  'xl:sticky xl:top-0 xl:self-start',
+  'flex h-full w-full min-w-0 flex-col gap-3',
+  'xl:gap-4',
 ].join(' ')

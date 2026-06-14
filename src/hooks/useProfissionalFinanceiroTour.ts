@@ -3,9 +3,11 @@ import {
   profissionalFinanceiroTourSteps,
   type ProfissionalFinanceiroTourStep,
 } from '../config/profissionalFinanceiroTour'
+import { useProfissionalTourInviteGate } from './useProfissionalTourInviteGate'
 import {
-  isProfissionalFinanceiroTourCompleted,
+  isProfissionalFinanceiroTourInvitePending,
   markProfissionalFinanceiroTourCompleted,
+  markProfissionalFinanceiroTourInviteHandled,
 } from '../utils/profissional/profissionalFinanceiroTourStorage'
 
 type TourAdvanceSource = 'next' | 'target-click'
@@ -53,7 +55,6 @@ export function useProfissionalFinanceiroTour({
   const [active, setActive] = useState(false)
   const [stepIndex, setStepIndex] = useState(0)
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
-  const [isMandatorySession, setIsMandatorySession] = useState(false)
   const completedRef = useRef(false)
   const onBeforeAdvanceRef = useRef(onBeforeAdvance)
   const onStepActiveRef = useRef(onStepActive)
@@ -72,10 +73,18 @@ export function useProfissionalFinanceiroTour({
 
   const startTour = useCallback((options?: { replay?: boolean }) => {
     completedRef.current = false
-    setIsMandatorySession(!options?.replay)
+    markProfissionalFinanceiroTourInviteHandled()
     setStepIndex(0)
     setActive(true)
   }, [])
+
+  const isInvitePending = useCallback(() => isProfissionalFinanceiroTourInvitePending(), [])
+
+  const { inviteOpen, acceptInvite, dismissInvite } = useProfissionalTourInviteGate({
+    isInvitePending,
+    markInviteHandled: markProfissionalFinanceiroTourInviteHandled,
+    onStartTour: startTour,
+  })
 
   const finishTour = useCallback(() => {
     setActive(false)
@@ -111,11 +120,6 @@ export function useProfissionalFinanceiroTour({
   useEffect(() => {
     if (forceStart) {
       startTour({ replay: true })
-      return
-    }
-    if (!isProfissionalFinanceiroTourCompleted()) {
-      const timer = window.setTimeout(() => startTour(), 600)
-      return () => window.clearTimeout(timer)
     }
   }, [forceStart, startTour])
 
@@ -232,7 +236,9 @@ export function useProfissionalFinanceiroTour({
     targetRect,
     highlightedTarget,
     isLastStep,
-    isMandatorySession,
+    inviteOpen,
+    acceptInvite,
+    dismissInvite,
     startTour,
     finishTour,
     goNext,

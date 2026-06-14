@@ -1,12 +1,13 @@
 import { Plus } from 'lucide-react'
-import { unitStation } from '../../data/unitDashboardMock'
+import { useUbtUnitStation } from '../../hooks/useUbtUnitStation'
 
 type AccessCredentialsPageHeaderProps = {
-  onNewUser: () => void
+  onNewUser?: () => void
 }
 
 export function AccessCredentialsPageHeader({ onNewUser }: AccessCredentialsPageHeaderProps) {
-  const breadcrumb = unitStation.unitName.toUpperCase()
+  const { unitName } = useUbtUnitStation()
+  const breadcrumb = unitName.toUpperCase()
 
   return (
     <header className="shrink-0">
@@ -22,14 +23,16 @@ export function AccessCredentialsPageHeader({ onNewUser }: AccessCredentialsPage
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onNewUser}
-          className="btn-brand-gradient inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl px-5 py-2.5 text-sm font-semibold"
-        >
-          <Plus className="h-4 w-4" strokeWidth={2.5} />
-          Novo usuário
-        </button>
+        {onNewUser ? (
+          <button
+            type="button"
+            onClick={onNewUser}
+            className="btn-brand-gradient inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl px-5 py-2.5 text-sm font-semibold"
+          >
+            <Plus className="h-4 w-4" strokeWidth={2.5} />
+            Novo usuário
+          </button>
+        ) : null}
       </div>
     </header>
   )

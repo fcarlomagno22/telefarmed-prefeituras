@@ -2,20 +2,19 @@ import { ChevronLeft, ChevronRight, Eye, Search, Stethoscope } from 'lucide-reac
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { CompactDateRangePicker } from '../../ui/CompactDateRangePicker'
+import { Skeleton } from '../../ui/Skeleton'
 import { PROFISSIONAL_ATENDIMENTOS_TOUR_DEMO_RECORD_ID } from '../../../config/profissionalAtendimentosTour'
+import { useProfissionalAuth } from '../../../contexts/ProfissionalAuthContext'
+import { resolveProfissionalAtendimentosTourRecords } from '../../../utils/profissional/profissionalTourDemoFallbacks'
+import { shouldShowPortalPageLoadingBlock } from '../../../utils/portal/portalPageLoading'
 import {
-  profissionalAtendimentosDefaultPeriod,
-  profissionalAtendimentosPagination,
-  profissionalAtendimentosRecords,
-} from '../../../data/profissionalAtendimentosMock'
+  createDefaultProfissionalAtendimentosFilters,
+  useProfissionalAtendimentosPage,
+} from '../../../hooks/useProfissionalAtendimentosPage'
 import type {
   ProfissionalAttendanceRecord,
   ProfissionalAtendimentosFilters,
 } from '../../../types/profissionalAtendimentos'
-import {
-  defaultProfissionalAtendimentosFilters,
-  filterProfissionalAtendimentos,
-} from '../../../utils/profissional/filterProfissionalAtendimentos'
 import {
   profissionalAtendimentosPanelClass,
   profissionalAtendimentosStatusConfig,
@@ -25,10 +24,13 @@ import {
   type ProfissionalAtendimentoDetailDrawerHandle,
 } from './ProfissionalAtendimentoDetailDrawer'
 import { ProfissionalAttendanceDocsCell } from './ProfissionalAttendanceDocsCell'
+import { ProfissionalAtendimentosTableSkeleton } from './ProfissionalAtendimentosTableSkeleton'
 
 type ProfissionalAtendimentosMainPanelProps = {
   onFilteredRecordsChange?: (records: ProfissionalAttendanceRecord[]) => void
+  onLoadingChange?: (loading: boolean) => void
   tourLockDrawerClose?: boolean
+  tourActive?: boolean
 }
 
 export type ProfissionalAtendimentosMainPanelHandle = {
@@ -77,14 +79,14 @@ function AgeCell({ age }: { age: number }) {
   return <span className="text-sm tabular-nums text-gray-700">{age} anos</span>
 }
 
-function GenderCell({ gender }: { gender: ProfissionalAttendanceRecord['gender'] }) {
+function PatientGenderSubtitle({ gender }: { gender: ProfissionalAttendanceRecord['gender'] }) {
   const dotColor = gender === 'F' ? 'bg-pink-500' : 'bg-blue-500'
   const genderLabel = gender === 'F' ? 'Feminino' : 'Masculino'
   return (
-    <span className="inline-flex items-center justify-center gap-2 text-sm text-gray-700">
-      <span className={`h-2 w-2 shrink-0 rounded-full ${dotColor}`} aria-hidden />
+    <p className="inline-flex items-center gap-1.5 truncate text-[11px] leading-none text-gray-500">
+      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dotColor}`} aria-hidden />
       {genderLabel}
-    </span>
+    </p>
   )
 }
 
@@ -111,41 +113,58 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
   ProfissionalAtendimentosMainPanelHandle,
   ProfissionalAtendimentosMainPanelProps
 >(function ProfissionalAtendimentosMainPanel(
-  { onFilteredRecordsChange, tourLockDrawerClose = false },
+  { onFilteredRecordsChange, onLoadingChange, tourLockDrawerClose = false, tourActive = false },
   ref,
 ) {
+  const { isBootstrapping } = useProfissionalAuth()
   const drawerRef = useRef<ProfissionalAtendimentoDetailDrawerHandle>(null)
-  const [filters, setFilters] = useState<ProfissionalAtendimentosFilters>({
-    ...defaultProfissionalAtendimentosFilters,
-    periodStart: profissionalAtendimentosDefaultPeriod.start,
-    periodEnd: profissionalAtendimentosDefaultPeriod.end,
-  })
+  const [filters, setFilters] = useState<ProfissionalAtendimentosFilters>(
+    createDefaultProfissionalAtendimentosFilters,
+  )
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedRecord, setSelectedRecord] = useState<ProfissionalAttendanceRecord | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerClosing, setDrawerClosing] = useState(false)
 
-  const pageSize = profissionalAtendimentosPagination.pageSize
+  const pageSize = 10
+  const { records: apiRecords, pagination: apiPagination, isLoading, loadError } = useProfissionalAtendimentosPage(
+    filters,
+    currentPage,
+    pageSize,
+  )
 
-  const filteredRecords = useMemo(
-    () => filterProfissionalAtendimentos(profissionalAtendimentosRecords, filters),
-    [filters],
+  const paginatedRecords = useMemo(
+    () => resolveProfissionalAtendimentosTourRecords(apiRecords, tourActive),
+    [apiRecords, tourActive],
+  )
+
+  const pagination = useMemo(() => {
+    if (!tourActive || apiRecords.length > 0) return apiPagination
+    return {
+      page: 1,
+      pageSize,
+      total: paginatedRecords.length,
+      totalPages: Math.max(1, Math.ceil(paginatedRecords.length / pageSize)),
+    }
+  }, [apiPagination, apiRecords.length, pageSize, paginatedRecords.length, tourActive])
+
+  useEffect(() => {
+    onFilteredRecordsChange?.(paginatedRecords)
+  }, [paginatedRecords, onFilteredRecordsChange])
+
+  const totalFiltered = pagination.total
+  const totalPages = pagination.totalPages
+  const safePage = pagination.page
+  const showingFrom = totalFiltered === 0 ? 0 : (safePage - 1) * pageSize + 1
+  const showingTo = Math.min(safePage * pageSize, totalFiltered)
+  const showLoadingBlock = shouldShowPortalPageLoadingBlock(
+    isLoading || isBootstrapping,
+    paginatedRecords.length > 0,
   )
 
   useEffect(() => {
-    onFilteredRecordsChange?.(filteredRecords)
-  }, [filteredRecords, onFilteredRecordsChange])
-
-  const totalFiltered = filteredRecords.length
-  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize))
-  const safePage = Math.min(currentPage, totalPages)
-  const paginatedRecords = useMemo(() => {
-    const start = (safePage - 1) * pageSize
-    return filteredRecords.slice(start, start + pageSize)
-  }, [filteredRecords, safePage, pageSize])
-
-  const showingFrom = totalFiltered === 0 ? 0 : (safePage - 1) * pageSize + 1
-  const showingTo = Math.min(safePage * pageSize, totalFiltered)
+    onLoadingChange?.(isLoading || isBootstrapping)
+  }, [isBootstrapping, isLoading, onLoadingChange])
 
   function updateFilter<K extends keyof ProfissionalAtendimentosFilters>(
     key: K,
@@ -178,9 +197,9 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
     ref,
     () => ({
       openDemoRecord: () => {
-        const record = profissionalAtendimentosRecords.find(
+        const record = paginatedRecords.find(
           (item) => item.id === PROFISSIONAL_ATENDIMENTOS_TOUR_DEMO_RECORD_ID,
-        )
+        ) ?? paginatedRecords[0]
         if (record) openRecord(record)
       },
       closeDrawer: () => {
@@ -199,7 +218,7 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
         setDrawerClosing(true)
       },
     }),
-    [],
+    [paginatedRecords],
   )
 
   return (
@@ -219,9 +238,13 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
               </span>
               <div>
                 <p className="text-sm font-bold text-gray-900">Histórico de atendimentos</p>
-                <p className="text-xs text-gray-500">
-                  {formatNumber(totalFiltered)} consulta{totalFiltered === 1 ? '' : 's'} no período
-                </p>
+                {showLoadingBlock ? (
+                  <Skeleton className="mt-1 h-3 w-40" />
+                ) : (
+                  <p className="text-xs text-gray-500">
+                    {formatNumber(totalFiltered)} consulta{totalFiltered === 1 ? '' : 's'} no período
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -272,7 +295,9 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
         </div>
 
         <div className="min-h-0 flex-1 overflow-auto">
-          {paginatedRecords.length === 0 ? (
+          {showLoadingBlock ? (
+            <ProfissionalAtendimentosTableSkeleton />
+          ) : paginatedRecords.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 px-6 py-20 text-center">
               <Stethoscope className="h-10 w-10 text-gray-300" strokeWidth={1.5} />
               <p className="text-sm font-semibold text-gray-800">Nenhum atendimento encontrado</p>
@@ -290,11 +315,12 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
                   <th className="px-5 py-3">Data</th>
                   <th className="px-5 py-3">Paciente</th>
                   <th className="px-5 py-3 text-center">Idade</th>
-                  <th className="px-5 py-3 text-center">Gênero</th>
                   <th className="px-5 py-3 text-center">Duração</th>
                   <th className="px-5 py-3 text-center">Docs</th>
                   <th className="px-5 py-3 text-center">Status</th>
-                  <th className="w-12 px-3 py-3" aria-label="Ações" />
+                  <th className="w-20 px-3 py-3 text-center whitespace-nowrap">
+                    <span className="relative -left-[23px] inline-block">Detalhes</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -313,19 +339,16 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
                           alt=""
                           className="h-9 w-9 shrink-0 rounded-lg border border-white object-cover shadow-sm ring-1 ring-gray-100"
                         />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-gray-900">
+                        <div className="flex min-w-0 flex-col gap-0.5">
+                          <p className="truncate text-sm font-semibold leading-tight text-gray-900">
                             {record.patientName}
                           </p>
-                          <p className="truncate text-[11px] text-gray-400">{record.attendanceId}</p>
+                          <PatientGenderSubtitle gender={record.gender} />
                         </div>
                       </div>
                     </td>
                     <td className="px-5 py-3.5 text-center">
                       <AgeCell age={record.age} />
-                    </td>
-                    <td className="px-5 py-3.5 text-center">
-                      <GenderCell gender={record.gender} />
                     </td>
                     <td className="px-5 py-3.5 text-center text-sm tabular-nums text-gray-700">
                       {record.durationMinutes} min
@@ -339,7 +362,7 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
                     <td className="px-5 py-3.5 text-center">
                       <StatusBadge status={record.status} />
                     </td>
-                    <td className="px-3 py-3.5">
+                    <td className="w-20 px-3 py-3 text-center">
                       <button
                         type="button"
                         onClick={() => openRecord(record)}
@@ -348,7 +371,7 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
                             ? 'atendimentos-view-details-btn'
                             : undefined
                         }
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition hover:bg-orange-50 hover:text-[var(--brand-primary)]"
+                        className="mx-auto -translate-x-[23px] inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition hover:bg-orange-50 hover:text-[var(--brand-primary)]"
                         aria-label={`Ver detalhes de ${record.patientName}`}
                       >
                         <Eye className="h-4 w-4" strokeWidth={2} />
@@ -365,10 +388,24 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
           data-tour="atendimentos-pagination"
           className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-5 py-3.5 sm:px-6"
         >
-          <p className="text-xs text-gray-500">
-            Exibindo {showingFrom}–{showingTo} de {formatNumber(totalFiltered)}
-          </p>
+          <div className="text-xs text-gray-500">
+            {showLoadingBlock ? (
+              <Skeleton className="inline-block h-3 w-44" />
+            ) : (
+              <>
+                Exibindo {showingFrom}–{showingTo} de {formatNumber(totalFiltered)}
+              </>
+            )}
+          </div>
           <div className="flex items-center gap-1">
+            {showLoadingBlock ? (
+              <>
+                <Skeleton className="h-8 w-8 rounded-lg" />
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-8 w-8 rounded-lg" />
+              </>
+            ) : (
+              <>
             <button
               type="button"
               disabled={safePage <= 1}
@@ -390,6 +427,8 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
             >
               <ChevronRight className="h-4 w-4" strokeWidth={2} />
             </button>
+              </>
+            )}
           </div>
         </div>
       </section>

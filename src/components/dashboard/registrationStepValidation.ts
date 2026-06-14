@@ -1,4 +1,4 @@
-import type { PatientAgeGroup, PatientRegistration } from '../../data/unitDashboardMock'
+import type { PatientAgeGroup, PatientRegistration } from '../../types/attendance'
 import { isValidCpf } from '../../utils/cpf'
 
 export type RegistrationFieldKey =

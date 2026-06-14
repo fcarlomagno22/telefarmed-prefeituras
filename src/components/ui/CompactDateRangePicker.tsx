@@ -10,6 +10,8 @@ type CompactDateRangePickerProps = {
   onStartChange: (value: string) => void
   onEndChange: (value: string) => void
   className?: string
+  /** Altura alinhada a inputs de toolbar (~42px). */
+  compact?: boolean
 }
 
 type MenuPosition = {
@@ -36,6 +38,7 @@ export function CompactDateRangePicker({
   onStartChange,
   onEndChange,
   className = '',
+  compact = false,
 }: CompactDateRangePickerProps) {
   const [open, setOpen] = useState(false)
   const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null)
@@ -160,7 +163,10 @@ export function CompactDateRangePicker({
         <button
           type="button"
           onClick={() => setOpen((current) => !current)}
-          className="min-w-0 flex-1 px-4 py-3 text-left text-sm text-gray-800 outline-none"
+          className={[
+            'min-w-0 flex-1 text-left text-sm text-gray-800 outline-none',
+            compact ? 'px-3 py-2.5' : 'px-4 py-3',
+          ].join(' ')}
           aria-expanded={open}
           aria-haspopup="dialog"
           aria-controls={open ? panelId : undefined}
@@ -172,7 +178,8 @@ export function CompactDateRangePicker({
           onClick={() => setOpen((current) => !current)}
           aria-label="Abrir seletor de período"
           className={[
-            'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border transition',
+            'inline-flex shrink-0 items-center justify-center rounded-lg border transition',
+            compact ? 'mr-1 h-7 w-7' : 'h-8 w-8',
             open
               ? 'border-[var(--brand-primary)]/40 bg-orange-50 text-[var(--brand-primary)]'
               : 'border-transparent text-gray-500 hover:bg-orange-50 hover:text-[var(--brand-primary)]',

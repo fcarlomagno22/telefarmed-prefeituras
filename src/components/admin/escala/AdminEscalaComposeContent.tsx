@@ -1,191 +1,142 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
-import { adminEscalaPrefeituras } from '../../../data/adminEscalaRecipients'
-import { specialties } from '../../../data/specialties'
-import { adminEscalaDoctorOptions } from '../../../data/adminEscalaMock'
-import { PROFISSIONAL_SHIFT_AMOUNT_CENTS } from '../../../config/profissionalShiftRates'
-import { getUbtById } from '../../../data/adminEscalaRecipients'
+import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useAdminAuth } from '../../../contexts/AdminAuthContext'
+import { getAdminEscalaPrefeituras, getAdminEscalaSpecialties } from '../../../data/adminEscalaCatalog'
+import { getSpecialtyById } from '../../../data/specialties'
+import { verifyAdminAuthorizationPin } from '../../../lib/services/admin/auth'
+import type { EscalaContratoOptionApi } from '../../../lib/services/admin/escala'
 import type {
-  AdminEscalaAssignmentMode,
-  AdminEscalaModality,
   AdminEscalaPrefeituraScope,
+  AdminEscalaProgrammingSlot,
   AdminEscalaShift,
   AdminEscalaShiftStatus,
   AdminEscalaUbtScope,
 } from '../../../types/adminEscala'
-import { normalizeAdminEscalaShift } from '../../../utils/escala/normalizeAdminEscalaShift'
-import { CustomSelect } from '../../ui/CustomSelect'
-import { AdminEscalaScopeFields } from './AdminEscalaScopeFields'
-import { AdminEscalaBackupQueueEditor } from './AdminEscalaBackupQueueEditor'
+import { buildProgrammingSlotsShifts, countProgrammingSlotsShifts } from '../../../utils/adminEscala/buildProgrammingSlots'
+import { escalaDateRangeError, isSingleDayEscalaPeriod, isValidEscalaDateRange } from '../../../utils/adminEscala/dateRange'
+import { createDefaultProgrammingSlot } from '../../../utils/adminEscala/createDefaultProgrammingSlot'
+import { getDoctorsForEscalaSpecialty } from '../../../utils/adminEscala/doctorsForSpecialty'
+import { createProgrammingSlotId } from '../../../utils/adminEscala/programmingSlotId'
 import {
-  AdminEscalaPresencialLocationFields,
-  applyPresencialLocationFromUbtScope,
-} from './AdminEscalaPresencialLocationFields'
-import { findDoctorScheduleConflictsForShifts } from './adminEscalaUi'
+  buildSpecialtyOptionsFromContratos,
+  registerContratosById,
+} from '../../../utils/adminEscala/specialtyOptionsFromContratos'
+import { shiftsToProgrammingSlots } from '../../../utils/adminEscala/shiftsToProgrammingSlots'
+import { resolveSingleScheduleWeekday } from '../../../utils/adminEscala/resolveSingleScheduleWeekday'
 import { findPresencialShiftMissingAddress } from '../../../utils/escala/validateAdminEscalaShifts'
-
-type ComposeStepId = 1 | 2
-
-type DaySpecialtyAssignment = {
-  specialtyId: string
-  assignmentMode: AdminEscalaAssignmentMode
-  primaryDoctorId: string
-  backupDoctorIds: string[]
-  dailyStart: string
-  dailyEnd: string
-  modality: AdminEscalaModality
-  vacancies: number
-  amountCents: number
-  unitName: string
-  city: string
-  cityUf: string
-  fullAddress: string | null
-}
-
-type DayPlan = {
-  dateKey: string
-  specialtyIds: string[]
-  assignments: DaySpecialtyAssignment[]
-}
-
-const stepTitles: Record<ComposeStepId, { title: string; hint: string }> = {
-  1: {
-    title: 'Prefeitura e UBT',
-    hint: 'Escolha onde a escala vai rodar.',
-  },
-  2: {
-    title: 'Próximos 30 dias',
-    hint: 'Defina especialidades por dia e escolha os médicos. Depois copie para próximos dias quando fizer sentido.',
-  },
-}
-
-const inputClass =
-  'w-full rounded-xl border border-gray-200/80 bg-white px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15'
-const timeInputClass = `${inputClass} h-[46px]`
+import { AdminEscalaComposeContratoColumn } from './AdminEscalaComposeContratoColumn'
+import { AdminEscalaComposePeriodStep } from './AdminEscalaComposePeriodStep'
+import { AdminEscalaComposePrefeituraList } from './AdminEscalaComposePrefeituraList'
+import {
+  AdminEscalaContratoField,
+  validateAdminEscalaContratosPorPrefeitura,
+  type AdminEscalaContratoLoadState,
+} from './AdminEscalaContratoField'
+import { AdminEscalaComposeScopeCompact } from './AdminEscalaComposeScopeCompact'
+import {
+  AdminEscalaComposeSteps,
+  type AdminEscalaComposeStepId,
+} from './AdminEscalaComposeSteps'
+import { AdminEscalaPlantaoBlockCard } from './AdminEscalaPlantaoBlockCard'
+import { AdminEscalaPlantaoSummaryList } from './AdminEscalaPlantaoSummaryList'
+import { findDoctorScheduleConflictsForShifts } from './adminEscalaUi'
+import { validateProgrammingSlot } from '../../../utils/adminEscala/validateProgrammingSlot'
+import { PinUnlockModal } from '../../users/PinUnlockModal'
 
 function emptyScope(): { prefeituraScope: AdminEscalaPrefeituraScope; ubtScope: AdminEscalaUbtScope } {
   return {
-    prefeituraScope: { mode: 'selected', prefeituraIds: ['cli-bsb'] },
-    ubtScope: { mode: 'all', ubtIds: [] },
+    prefeituraScope: { mode: 'selected', prefeituraIds: [] },
+    ubtScope: { mode: 'tele_only', ubtIds: [] },
   }
 }
 
-function formatDateLabel(dateKey: string) {
-  const [year, month, day] = dateKey.split('-').map(Number)
-  const date = new Date(year, month - 1, day)
-  return date.toLocaleDateString('pt-BR', {
-    weekday: 'short',
-    day: '2-digit',
-    month: '2-digit',
-  })
+function getSelectedPrefeituraIds(scope: AdminEscalaPrefeituraScope): string[] {
+  if (scope.mode === 'all') {
+    return getAdminEscalaPrefeituras().map((p) => p.id)
+  }
+  return scope.prefeituraIds
 }
 
-function toDateKey(iso: string) {
-  const date = new Date(iso)
+function buildInitialContratosPorPrefeitura(
+  scope: AdminEscalaPrefeituraScope,
+  contratoEntidadeId?: string | null,
+): Record<string, string> {
+  if (scope.contratosPorPrefeitura && Object.keys(scope.contratosPorPrefeitura).length > 0) {
+    return scope.contratosPorPrefeitura
+  }
+  const ids = getSelectedPrefeituraIds(scope)
+  if (contratoEntidadeId && ids.length === 1) {
+    return { [ids[0]!]: contratoEntidadeId }
+  }
+  return {}
+}
+
+function buildPrefeituraScopeWithContratos(
+  scope: AdminEscalaPrefeituraScope,
+  contratosPorPrefeitura: Record<string, string>,
+): AdminEscalaPrefeituraScope {
+  return { ...scope, contratosPorPrefeitura }
+}
+
+function resolvePrimaryContratoEntidadeId(
+  scope: AdminEscalaPrefeituraScope,
+  contratosPorPrefeitura: Record<string, string>,
+): string {
+  for (const id of getSelectedPrefeituraIds(scope)) {
+    const contratoId = contratosPorPrefeitura[id]
+    if (contratoId) return contratoId
+  }
+  return ''
+}
+
+function toDateInputValue(date: Date) {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
-function dateKeyToIso(dateKey: string, time: string) {
-  return `${dateKey}T${time}:00`
+function defaultDateRange() {
+  const start = new Date()
+  const end = new Date()
+  end.setDate(end.getDate() + 13)
+  return { rangeStart: toDateInputValue(start), rangeEnd: toDateInputValue(end) }
 }
 
-function generateNext30DayKeys(startDate: Date) {
-  const days: string[] = []
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const base = new Date(startDate)
-  base.setHours(0, 0, 0, 0)
-  for (let i = 0; i < 30; i += 1) {
-    const d = new Date(base)
-    d.setDate(base.getDate() + i)
-    days.push(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`)
-  }
-  return days
+function createInitialSlot(specialtyId?: string): AdminEscalaProgrammingSlot {
+  const fallbackId =
+    specialtyId ??
+    getAdminEscalaSpecialties().find((s) => s.active)?.id ??
+    '4'
+  return createDefaultProgrammingSlot(fallbackId)
 }
 
-function defaultDoctorForSpecialty(specialtyName: string) {
-  const bySpecialty = adminEscalaDoctorOptions.find(
-    (d) => d.specialty.toLowerCase() === specialtyName.toLowerCase(),
-  )
-  return bySpecialty?.value ?? adminEscalaDoctorOptions[0]?.value ?? '1'
+function slotNeedsUbt(slot: AdminEscalaProgrammingSlot) {
+  return slot.modality === 'presencial_ubt' || slot.modality === 'hibrido'
 }
 
-function defaultLocationFromScope(scope: AdminEscalaUbtScope) {
-  const ubtId = scope.mode === 'selected' ? scope.ubtIds[0] : undefined
-  const ubt = ubtId ? getUbtById(ubtId) : undefined
-  const city = ubt?.municipalityName ?? 'Brasília'
-  return {
-    unitName: ubt?.name ?? 'UBT',
-    city,
-    cityUf: `${city} / DF`,
-    fullAddress: ubt ? `${ubt.name}, ${city}` : null,
-  }
-}
-
-function createDefaultAssignment(specialtyId: string, ubtScope: AdminEscalaUbtScope) {
-  const specialtyName = specialties.find((s) => s.id === specialtyId)?.name ?? ''
-  const loc = defaultLocationFromScope(ubtScope)
-  return {
-    specialtyId,
-    assignmentMode: 'assigned' as const,
-    primaryDoctorId: defaultDoctorForSpecialty(specialtyName),
-    backupDoctorIds: [],
-    dailyStart: '08:00',
-    dailyEnd: '14:00',
-    modality: 'tele' as const,
-    vacancies: 2,
-    amountCents: PROFISSIONAL_SHIFT_AMOUNT_CENTS,
-    unitName: loc.unitName,
-    city: loc.city,
-    cityUf: loc.cityUf,
-    fullAddress: loc.fullAddress,
-  }
-}
-
-function getAssignment(plan: DayPlan, specialtyId: string) {
-  return plan.assignments.find((a) => a.specialtyId === specialtyId)
-}
-
-function dayPlanSummary(plan: DayPlan) {
-  if (plan.specialtyIds.length === 0) return 'Sem especialidades configuradas'
-  return plan.specialtyIds
-    .map((specialtyId) => {
-      const spec = specialties.find((s) => s.id === specialtyId)?.name ?? 'Especialidade'
-      const assignment = getAssignment(plan, specialtyId)
-      if (!assignment) return spec
-      return `${spec} · ${assignment.dailyStart}-${assignment.dailyEnd}`
-    })
-    .join(' | ')
-}
-
-const specialtyCatalogByPrefeituraId: Record<string, string[]> = {
-  'cli-bsb': ['4', '3', '7', '19', '26', '132', '38'],
-  'cli-campinas': ['4', '3', '14', '16', '18', '29', '33'],
-}
-
-function getEligibleSpecialtiesForScope(prefeituraScope: AdminEscalaPrefeituraScope) {
-  const available = specialties.filter((s) => s.available)
-  if (prefeituraScope.prefeituraIds.length === 0) return available
-  const idSet = new Set<string>()
-  for (const prefeituraId of prefeituraScope.prefeituraIds) {
-    const mapped = specialtyCatalogByPrefeituraId[prefeituraId]
-    if (!mapped) {
-      for (const spec of available) idSet.add(spec.id)
-      continue
-    }
-    for (const specId of mapped) idSet.add(specId)
-  }
-  return available.filter((spec) => idSet.has(spec.id))
+const stepHints: Record<AdminEscalaComposeStepId, { title: string; hint: string }> = {
+  1: {
+    title: 'Onde a escala será publicada',
+    hint: 'Selecione a prefeitura e o contrato operacional.',
+  },
+  2: {
+    title: 'Período da escala',
+    hint: 'Defina o intervalo de datas em que os plantões serão gerados.',
+  },
+  3: {
+    title: 'Configure os plantões',
+    hint: 'Especialidade, dias da semana, horário, valor e modalidade de atendimento.',
+  },
 }
 
 type AdminEscalaComposeContentProps = {
   editingBatch: AdminEscalaShift[] | null
   allShifts: AdminEscalaShift[]
-  onActiveStepChange?: (step: ComposeStepId) => void
+  onActiveStepChange?: (step: 1 | 2) => void
   onSaved: (
     shifts: AdminEscalaShift[],
     options?: { replaceBatchId?: string; removeShiftIds?: string[] },
-  ) => void
+  ) => void | boolean | Promise<void | boolean>
+  isSaving?: boolean
 }
 
 export function AdminEscalaComposeContent({
@@ -193,166 +144,485 @@ export function AdminEscalaComposeContent({
   allShifts,
   onActiveStepChange,
   onSaved,
+  isSaving = false,
 }: AdminEscalaComposeContentProps) {
+  const { getAccessToken } = useAdminAuth()
   const isEdit = editingBatch !== null && editingBatch.length > 0
   const batchId = editingBatch?.[0]?.batchId ?? `esc-batch-${Date.now()}`
+  const batchRepasseReadOnly = useMemo(
+    () => Boolean(editingBatch?.some((shift) => shift.status === 'publicada')),
+    [editingBatch],
+  )
 
   const initial = useMemo(() => {
-    const baseDate = editingBatch?.[0] ? new Date(editingBatch[0].startAt) : new Date()
-    const dayKeys = generateNext30DayKeys(baseDate)
-    const blankPlans: DayPlan[] = dayKeys.map((dateKey) => ({
-      dateKey,
-      specialtyIds: [],
-      assignments: [],
-    }))
+    const defaultRange = defaultDateRange()
     if (!editingBatch?.length) {
-      return { ...emptyScope(), plans: blankPlans }
-    }
-    const planMap = new Map(blankPlans.map((p) => [p.dateKey, p]))
-    for (const shift of editingBatch) {
-      const dateKey = toDateKey(shift.startAt)
-      const plan = planMap.get(dateKey)
-      if (!plan || !shift.specialtyId) continue
-      if (!plan.specialtyIds.includes(shift.specialtyId)) {
-        plan.specialtyIds.push(shift.specialtyId)
+      return {
+        ...emptyScope(),
+        contratosPorPrefeitura: {} as Record<string, string>,
+        rangeStart: defaultRange.rangeStart,
+        rangeEnd: defaultRange.rangeEnd,
+        slots: [] as AdminEscalaProgrammingSlot[],
+        draftSlot: createInitialSlot(),
       }
-      const start = new Date(shift.startAt)
-      const end = new Date(shift.endAt)
-      const pad = (n: number) => String(n).padStart(2, '0')
-      plan.assignments.push({
-        specialtyId: shift.specialtyId,
-        assignmentMode: shift.assignmentMode,
-        primaryDoctorId: shift.primaryDoctorId,
-        backupDoctorIds: [...shift.backupDoctorIds],
-        dailyStart: `${pad(start.getHours())}:${pad(start.getMinutes())}`,
-        dailyEnd: `${pad(end.getHours())}:${pad(end.getMinutes())}`,
-        modality: shift.modality,
-        vacancies: shift.totalVacancies || shift.vacancies || 1,
-        amountCents: shift.amountCents,
-        unitName: shift.unitName,
-        city: shift.city,
-        cityUf: shift.cityUf,
-        fullAddress: shift.fullAddress,
-      })
     }
+
+    const reconstructed = shiftsToProgrammingSlots(editingBatch)
+    const editScope =
+      editingBatch[0].prefeituraScope.mode === 'all'
+        ? {
+            mode: 'selected' as const,
+            prefeituraIds: getAdminEscalaPrefeituras().map((p) => p.id),
+          }
+        : editingBatch[0].prefeituraScope
+
     return {
-      prefeituraScope:
-        editingBatch[0].prefeituraScope.mode === 'all'
-          ? {
-              mode: 'selected' as const,
-              prefeituraIds: adminEscalaPrefeituras.map((p) => p.id),
-            }
-          : editingBatch[0].prefeituraScope,
+      prefeituraScope: editScope,
       ubtScope: editingBatch[0].ubtScope,
-      plans: blankPlans,
+      contratosPorPrefeitura: buildInitialContratosPorPrefeitura(
+        editScope,
+        editingBatch[0].contratoEntidadeId,
+      ),
+      rangeStart: reconstructed.rangeStart || defaultRange.rangeStart,
+      rangeEnd: reconstructed.rangeEnd || defaultRange.rangeEnd,
+      slots: reconstructed.slots,
+      draftSlot: createInitialSlot(),
     }
   }, [editingBatch])
 
-  const [activeStep, setActiveStep] = useState<ComposeStepId>(1)
-
-  useEffect(() => {
-    onActiveStepChange?.(activeStep)
-  }, [activeStep, onActiveStepChange])
+  const [activeStep, setActiveStep] = useState<AdminEscalaComposeStepId>(1)
   const [prefeituraScope, setPrefeituraScope] = useState(initial.prefeituraScope)
   const [ubtScope, setUbtScope] = useState(initial.ubtScope)
-  const [plans, setPlans] = useState<DayPlan[]>(initial.plans)
+  const [contratosPorPrefeitura, setContratosPorPrefeitura] = useState(initial.contratosPorPrefeitura)
+  const [contratoLoadStateByPrefeitura, setContratoLoadStateByPrefeitura] = useState<
+    Record<string, AdminEscalaContratoLoadState>
+  >({})
+  const [contratosById, setContratosById] = useState<Record<string, EscalaContratoOptionApi>>({})
+  const [rangeStart, setRangeStart] = useState(initial.rangeStart)
+  const [rangeEnd, setRangeEnd] = useState(initial.rangeEnd)
+  const [slots, setSlots] = useState<AdminEscalaProgrammingSlot[]>(initial.slots)
+  const [draftSlot, setDraftSlot] = useState<AdminEscalaProgrammingSlot>(initial.draftSlot)
+  const [editingSlotId, setEditingSlotId] = useState<string | null>(null)
+  const [editingOriginalSlot, setEditingOriginalSlot] = useState<AdminEscalaProgrammingSlot | null>(
+    null,
+  )
+  const [deletePlantaoTarget, setDeletePlantaoTarget] = useState<{
+    slotId: string
+    label: string
+  } | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)
-  const [showOnlyConfiguredDays, setShowOnlyConfiguredDays] = useState(false)
-  const [expandedDayKey, setExpandedDayKey] = useState<string | null>(initial.plans[0]?.dateKey ?? null)
+  const [activePrefeituraId, setActivePrefeituraId] = useState<string | null>(
+    initial.prefeituraScope.prefeituraIds[0] ?? null,
+  )
 
-  const eligibleSpecialties = useMemo(
-    () => getEligibleSpecialtiesForScope(prefeituraScope),
+  useEffect(() => {
+    onActiveStepChange?.(activeStep === 1 ? 1 : 2)
+  }, [activeStep, onActiveStepChange])
+
+  const hasPresencialSlot = useMemo(() => slots.some(slotNeedsUbt), [slots])
+  const hasPresencialInForm = useMemo(
+    () => slots.some(slotNeedsUbt) || slotNeedsUbt(draftSlot),
+    [slots, draftSlot],
+  )
+
+  useEffect(() => {
+    if (!hasPresencialSlot) {
+      setUbtScope({ mode: 'tele_only', ubtIds: [] })
+    } else if (ubtScope.mode === 'tele_only') {
+      setUbtScope({ mode: 'all', ubtIds: [] })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasPresencialSlot])
+
+  const selectedPrefeituraIds = useMemo(
+    () => getSelectedPrefeituraIds(prefeituraScope),
     [prefeituraScope],
   )
-  const eligibleSpecialtyIds = useMemo(
-    () => new Set(eligibleSpecialties.map((s) => s.id)),
-    [eligibleSpecialties],
+
+  const prefeituraScopeWithContratos = useMemo(
+    () => buildPrefeituraScopeWithContratos(prefeituraScope, contratosPorPrefeitura),
+    [prefeituraScope, contratosPorPrefeitura],
   )
 
-  const selectedSpecialtyIds = useMemo(
-    () => [...new Set(plans.flatMap((p) => p.specialtyIds))],
-    [plans],
+  const primaryContratoEntidadeId = useMemo(
+    () => resolvePrimaryContratoEntidadeId(prefeituraScope, contratosPorPrefeitura),
+    [prefeituraScope, contratosPorPrefeitura],
   )
-  const visiblePlans = useMemo(
+
+  const selectedContratoIds = useMemo(
     () =>
-      showOnlyConfiguredDays ? plans.filter((plan) => plan.specialtyIds.length > 0) : plans,
-    [plans, showOnlyConfiguredDays],
+      [
+        ...new Set(
+          selectedPrefeituraIds
+            .map((prefeituraId) => contratosPorPrefeitura[prefeituraId])
+            .filter(Boolean),
+        ),
+      ] as string[],
+    [selectedPrefeituraIds, contratosPorPrefeitura],
+  )
+
+  const singleDayPeriod = useMemo(
+    () => isSingleDayEscalaPeriod(rangeStart, rangeEnd),
+    [rangeStart, rangeEnd],
+  )
+
+  const slotValidationOptions = useMemo(
+    () => ({ singleDayPeriod }),
+    [singleDayPeriod],
+  )
+
+  const specialtyOptions = useMemo(
+    () => buildSpecialtyOptionsFromContratos(selectedContratoIds, contratosById),
+    [selectedContratoIds, contratosById],
+  )
+
+  useEffect(() => {
+    if (specialtyOptions.length === 0) return
+    const allowed = new Set(specialtyOptions.map((option) => option.value))
+    setDraftSlot((current) => {
+      if (allowed.has(current.specialtyId)) return current
+      const nextSpecialtyId = specialtyOptions[0]!.value
+      const doctors = getDoctorsForEscalaSpecialty(nextSpecialtyId)
+      return {
+        ...current,
+        specialtyId: nextSpecialtyId,
+        primaryDoctorId: doctors[0]?.value ?? '',
+        backupDoctorIds: [],
+      }
+    })
+  }, [specialtyOptions])
+
+  const programmingSlotsForPreview = useMemo(
+    () =>
+      slots.length > 0
+        ? slots
+        : [{ ...draftSlot, id: draftSlot.id || 'preview-draft' }],
+    [slots, draftSlot],
+  )
+
+  const singleScheduleWeekday = useMemo(
+    () => resolveSingleScheduleWeekday(slots, slots.length > 0 ? null : draftSlot),
+    [slots, draftSlot],
+  )
+
+  const previewShiftCount = useMemo(
+    () =>
+      countProgrammingSlotsShifts({
+        batchId,
+        rangeStart,
+        rangeEnd,
+        slots: programmingSlotsForPreview,
+        prefeituraScope: prefeituraScopeWithContratos,
+        ubtScope,
+        status: 'rascunho',
+      }),
+    [
+      batchId,
+      rangeStart,
+      rangeEnd,
+      programmingSlotsForPreview,
+      prefeituraScopeWithContratos,
+      ubtScope,
+    ],
   )
 
   const previewShifts = useMemo(() => {
-    const all: AdminEscalaShift[] = []
-    for (const plan of plans) {
-      for (const specialtyId of plan.specialtyIds) {
-        const assignment = getAssignment(plan, specialtyId)
-        if (!assignment || assignment.dailyEnd <= assignment.dailyStart) continue
-        const specialty = specialties.find((s) => s.id === specialtyId)?.name ?? 'Especialidade'
-        all.push(
-          normalizeAdminEscalaShift({
-            id: `${batchId}-${specialtyId}-${plan.dateKey}-${assignment.assignmentMode}`,
-            batchId,
-            assignmentMode: assignment.assignmentMode,
-            primaryDoctorId:
-              assignment.assignmentMode === 'open' ? '' : assignment.primaryDoctorId,
-            backupDoctorIds:
-              assignment.assignmentMode === 'open' ? [] : assignment.backupDoctorIds,
-            specialtyId,
-            specialty,
-            modality: assignment.modality,
-            startAt: dateKeyToIso(plan.dateKey, assignment.dailyStart),
-            endAt: dateKeyToIso(plan.dateKey, assignment.dailyEnd),
-            prefeituraScope,
-            ubtScope,
-            status: 'rascunho',
-            vacancies: assignment.assignmentMode === 'open' ? assignment.vacancies : 0,
-            totalVacancies: assignment.assignmentMode === 'open' ? assignment.vacancies : 0,
-            amountCents: assignment.amountCents,
-            unitName: assignment.unitName,
-            city: assignment.city,
-            cityUf: assignment.cityUf,
-            fullAddress:
-              assignment.modality === 'presencial_ubt' ? assignment.fullAddress : null,
-            claimedCaptures: [],
-            notes: '',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          }),
-        )
-      }
+    if (!isValidEscalaDateRange(rangeStart, rangeEnd) || activeStep < 3) {
+      return []
     }
-    return all
-  }, [plans, batchId, prefeituraScope, ubtScope])
+    return buildProgrammingSlotsShifts({
+      batchId,
+      rangeStart,
+      rangeEnd,
+      slots,
+      prefeituraScope: prefeituraScopeWithContratos,
+      ubtScope,
+      status: 'rascunho',
+    })
+  }, [
+    activeStep,
+    batchId,
+    rangeStart,
+    rangeEnd,
+    slots,
+    prefeituraScopeWithContratos,
+    ubtScope,
+  ])
 
-  function stepError(step: ComposeStepId): string | null {
+  const previewShiftsWithContrato = useMemo(
+    () =>
+      previewShifts.map((shift) => ({
+        ...shift,
+        contratoEntidadeId: primaryContratoEntidadeId || null,
+      })),
+    [previewShifts, primaryContratoEntidadeId],
+  )
+
+  const handleContratosResolved = useCallback((contratos: EscalaContratoOptionApi[]) => {
+    setContratosById((current) => registerContratosById(current, contratos))
+  }, [])
+
+  const handleContratoChange = useCallback(
+    (prefeituraId: string, contratoId: string, contrato?: EscalaContratoOptionApi | null) => {
+      setContratosPorPrefeitura((current) => ({ ...current, [prefeituraId]: contratoId }))
+      if (contrato) {
+        setContratosById((current) => registerContratosById(current, [contrato]))
+      }
+    setPrefeituraScope((current) => {
+      if (current.prefeituraIds.includes(prefeituraId)) return current
+      return { mode: 'selected', prefeituraIds: [...current.prefeituraIds, prefeituraId] }
+    })
+    setActivePrefeituraId(prefeituraId)
+    },
+    [],
+  )
+
+  const handleContratoLoadStateChange = useCallback(
+    (prefeituraId: string, state: AdminEscalaContratoLoadState) => {
+      setContratoLoadStateByPrefeitura((current) => ({ ...current, [prefeituraId]: state }))
+    },
+    [],
+  )
+
+  function handlePrefeituraScopeChange(scope: AdminEscalaPrefeituraScope) {
+    setPrefeituraScope(scope)
+    const nextIds = getSelectedPrefeituraIds(scope)
+    setContratosPorPrefeitura((current) =>
+      Object.fromEntries(Object.entries(current).filter(([id]) => nextIds.includes(id))),
+    )
+    setContratoLoadStateByPrefeitura((current) =>
+      Object.fromEntries(Object.entries(current).filter(([id]) => nextIds.includes(id))),
+    )
+    if (activePrefeituraId && !nextIds.includes(activePrefeituraId)) {
+      setActivePrefeituraId(nextIds[0] ?? null)
+    }
+  }
+
+  function focusPrefeitura(id: string) {
+    setActivePrefeituraId(id)
+    if (!prefeituraScope.prefeituraIds.includes(id)) {
+      handlePrefeituraScopeChange({
+        mode: 'selected',
+        prefeituraIds: [...prefeituraScope.prefeituraIds, id],
+      })
+    }
+  }
+
+  function togglePrefeituraSelection(id: string) {
+    const isSelected = prefeituraScope.prefeituraIds.includes(id)
+    const prefeituraIds = isSelected
+      ? prefeituraScope.prefeituraIds.filter((pid) => pid !== id)
+      : [...prefeituraScope.prefeituraIds, id]
+    handlePrefeituraScopeChange({ mode: 'selected', prefeituraIds })
+    if (!isSelected) {
+      setActivePrefeituraId(id)
+    } else if (activePrefeituraId === id) {
+      setActivePrefeituraId(prefeituraIds[0] ?? null)
+    }
+  }
+
+  function updateDraftSlot(patch: Partial<AdminEscalaProgrammingSlot>) {
+    setDraftSlot((current) => ({ ...current, ...patch }))
+  }
+
+  function resetDraftSlot() {
+    setDraftSlot(createInitialSlot())
+    setEditingSlotId(null)
+    setEditingOriginalSlot(null)
+  }
+
+  function cancelDraftEdit() {
+    if (editingSlotId && editingOriginalSlot) {
+      setSlots((current) => [...current, editingOriginalSlot])
+    }
+    resetDraftSlot()
+    setValidationError(null)
+  }
+
+  function commitDraftSlot() {
+    const err = validateProgrammingSlot(draftSlot, slotValidationOptions)
+    if (err) {
+      setValidationError(err)
+      return
+    }
+    setValidationError(null)
+    const committed: AdminEscalaProgrammingSlot = {
+      ...draftSlot,
+      id: editingSlotId ?? createProgrammingSlotId(),
+    }
+    setSlots((current) => [...current, committed])
+    resetDraftSlot()
+  }
+
+  function editCommittedSlot(slotId: string) {
+    const slot = slots.find((item) => item.id === slotId)
+    if (!slot) return
+    if (editingSlotId) {
+      setValidationError('Salve ou cancele a edição em andamento antes de editar outro plantão.')
+      return
+    }
+    setValidationError(null)
+    setDraftSlot({ ...slot })
+    setEditingOriginalSlot({ ...slot })
+    setEditingSlotId(slotId)
+    setSlots((current) => current.filter((item) => item.id !== slotId))
+  }
+
+  function removeCommittedSlot(slotId: string) {
+    if (editingSlotId === slotId) {
+      resetDraftSlot()
+    }
+    setSlots((current) => current.filter((item) => item.id !== slotId))
+    setValidationError(null)
+  }
+
+  function requestDeleteCommittedSlot(slotId: string) {
+    const slot = slots.find((item) => item.id === slotId)
+    if (!slot) return
+    if (editingSlotId) {
+      setValidationError('Salve ou cancele a edição em andamento antes de excluir um plantão.')
+      return
+    }
+    const label = getSpecialtyById(slot.specialtyId)?.name ?? 'Plantão'
+    setValidationError(null)
+    setDeletePlantaoTarget({ slotId, label })
+  }
+
+  const verifyAdminPin = useCallback(
+    async (pin: string) => {
+      const token = getAccessToken()
+      if (!token) return false
+      try {
+        await verifyAdminAuthorizationPin(token, pin)
+        return true
+      } catch {
+        return false
+      }
+    },
+    [getAccessToken],
+  )
+
+  function stepError(step: AdminEscalaComposeStepId): string | null {
     if (step === 1) {
       if (prefeituraScope.mode === 'selected' && prefeituraScope.prefeituraIds.length === 0) {
         return 'Selecione ao menos uma prefeitura.'
       }
-      if (ubtScope.mode === 'selected' && ubtScope.ubtIds.length === 0) {
-        return 'Selecione UBTs ou altere para “Todas” / “Só tele”.'
+      return validateAdminEscalaContratosPorPrefeitura({
+        prefeituraIds: selectedPrefeituraIds,
+        contratosPorPrefeitura,
+        loadStateByPrefeitura: contratoLoadStateByPrefeitura,
+      })
+    }
+    if (step === 2) {
+      return escalaDateRangeError(rangeStart, rangeEnd)
+    }
+    if (step === 3) {
+      if (specialtyOptions.length === 0) {
+        return 'O contrato selecionado não possui especialidades autorizadas.'
+      }
+      if (hasPresencialSlot && ubtScope.mode === 'selected' && ubtScope.ubtIds.length === 0) {
+        return 'Selecione ao menos uma UBT para plantão presencial.'
+      }
+      const slotsToCheck = slots.length > 0 ? slots : [draftSlot]
+      if (slots.length === 0) {
+        const draftError = validateProgrammingSlot(draftSlot, slotValidationOptions)
+        if (draftError) return draftError
+      } else {
+        const allowedSpecialtyIds = new Set(specialtyOptions.map((option) => option.value))
+        for (const slot of slotsToCheck) {
+          if (!allowedSpecialtyIds.has(slot.specialtyId)) {
+            return 'Uma ou mais especialidades não estão autorizadas no contrato selecionado.'
+          }
+          const slotError = validateProgrammingSlot(slot, slotValidationOptions)
+          if (slotError) return slotError
+        }
       }
       return null
-    }
-    if (selectedSpecialtyIds.length === 0) {
-      return 'Escolha ao menos uma especialidade em algum dia.'
-    }
-    if (previewShifts.length === 0) {
-      return 'Defina horário válido e modo do plantão em pelo menos um dia.'
     }
     return null
   }
 
   const maxReachableStep = useMemo(() => {
     if (stepError(1)) return 1
-    return 2
-  }, [prefeituraScope, ubtScope])
+    if (stepError(2)) return 2
+    return 3
+  }, [
+    prefeituraScope,
+    selectedPrefeituraIds,
+    contratosPorPrefeitura,
+    contratoLoadStateByPrefeitura,
+    rangeStart,
+    rangeEnd,
+    specialtyOptions,
+    hasPresencialSlot,
+    ubtScope,
+    slots,
+    draftSlot,
+  ])
 
-  function validateAll(publish: boolean): string | null {
-    for (const step of [1, 2] as const) {
+  function validateProgrammingSlotsList(slotsToValidate: AdminEscalaProgrammingSlot[]): string | null {
+    if (specialtyOptions.length === 0) {
+      return 'O contrato selecionado não possui especialidades autorizadas.'
+    }
+    if (
+      slotsToValidate.some(
+        (slot) => slot.modality === 'presencial_ubt' || slot.modality === 'hibrido',
+      ) &&
+      ubtScope.mode === 'selected' &&
+      ubtScope.ubtIds.length === 0
+    ) {
+      return 'Selecione ao menos uma UBT para plantão presencial.'
+    }
+    if (slotsToValidate.length === 0) {
+      return 'Adicione ao menos um plantão à lista.'
+    }
+    const allowedSpecialtyIds = new Set(specialtyOptions.map((option) => option.value))
+    for (const slot of slotsToValidate) {
+      if (!allowedSpecialtyIds.has(slot.specialtyId)) {
+        return 'Uma ou mais especialidades não estão autorizadas no contrato selecionado.'
+      }
+      const slotError = validateProgrammingSlot(slot, slotValidationOptions)
+      if (slotError) return slotError
+    }
+    const shiftCount = countProgrammingSlotsShifts({
+      batchId,
+      rangeStart,
+      rangeEnd,
+      slots: slotsToValidate,
+      prefeituraScope: prefeituraScopeWithContratos,
+      ubtScope,
+      status: 'rascunho',
+    })
+    if (shiftCount === 0) {
+      return singleDayPeriod
+        ? 'Nenhum plantão será criado — revise o horário do plantão.'
+        : 'Nenhum plantão será criado — revise dias da semana e o período.'
+    }
+    return null
+  }
+
+  function validateAll(publish: boolean, slotsToValidate = slots): string | null {
+    for (const step of [1, 2, 3] as const) {
       const err = stepError(step)
       if (err) return err
     }
+    const slotsErr = validateProgrammingSlotsList(slotsToValidate)
+    if (slotsErr) return slotsErr
+
     const status: AdminEscalaShiftStatus = publish ? 'publicada' : 'rascunho'
-    const generated = previewShifts.map((shift) => ({ ...shift, status }))
+    const generated = buildProgrammingSlotsShifts({
+      batchId,
+      rangeStart,
+      rangeEnd,
+      slots: slotsToValidate,
+      prefeituraScope: prefeituraScopeWithContratos,
+      ubtScope,
+      status,
+    }).map((shift) => ({
+      ...shift,
+      contratoEntidadeId: primaryContratoEntidadeId || null,
+      status,
+    }))
     const doctorIds = [
       ...new Set(
         generated
@@ -370,31 +640,10 @@ export function AdminEscalaComposeContent({
 
     const presencialSemEndereco = findPresencialShiftMissingAddress(generated)
     if (presencialSemEndereco) {
-      return 'Plantões presenciais exigem nome do local, cidade e endereço completo.'
+      return 'Plantões presenciais precisam de endereço completo.'
     }
 
     return null
-  }
-
-  function handlePublish(status: AdminEscalaShiftStatus) {
-    const error = validateAll(status === 'publicada')
-    if (error) {
-      setValidationError(error)
-      return
-    }
-    setValidationError(null)
-    const generated = previewShifts.map((shift) => ({
-      ...shift,
-      status,
-      updatedAt: new Date().toISOString(),
-    }))
-    onSaved(generated, {
-      replaceBatchId: isEdit && editingBatch?.[0]?.batchId ? batchId : undefined,
-      removeShiftIds:
-        isEdit && editingBatch && !editingBatch[0]?.batchId
-          ? editingBatch.map((s) => s.id)
-          : undefined,
-    })
   }
 
   function goNext() {
@@ -404,576 +653,347 @@ export function AdminEscalaComposeContent({
       return
     }
     setValidationError(null)
-    if (activeStep < 2) setActiveStep((activeStep + 1) as ComposeStepId)
+    if (activeStep < 3) setActiveStep((activeStep + 1) as AdminEscalaComposeStepId)
   }
 
   function goBack() {
     setValidationError(null)
-    if (activeStep > 1) setActiveStep((activeStep - 1) as ComposeStepId)
+    if (activeStep > 1) setActiveStep((activeStep - 1) as AdminEscalaComposeStepId)
   }
 
-  const { title, hint } = stepTitles[activeStep]
-
-  function toggleSpecialtyForDay(planIndex: number, specialtyId: string) {
-    setPlans((current) =>
-      current.map((plan, idx) => {
-        if (idx !== planIndex) return plan
-        const enabled = plan.specialtyIds.includes(specialtyId)
-        if (enabled) {
-          return {
-            ...plan,
-            specialtyIds: plan.specialtyIds.filter((id) => id !== specialtyId),
-            assignments: plan.assignments.filter((a) => a.specialtyId !== specialtyId),
-          }
-        }
-        return {
-          ...plan,
-          specialtyIds: [...plan.specialtyIds, specialtyId],
-          assignments: [...plan.assignments, createDefaultAssignment(specialtyId, ubtScope)],
-        }
-      }),
-    )
+  function handleRangeStartChange(value: string) {
+    setRangeStart(value)
+    if (rangeEnd && value > rangeEnd) {
+      setRangeEnd(value)
+    }
   }
 
-  function handlePrefeituraScopeChange(scope: AdminEscalaPrefeituraScope) {
-    setPrefeituraScope(scope)
-    const allowedIds = new Set(getEligibleSpecialtiesForScope(scope).map((s) => s.id))
-    setPlans((current) =>
-      current.map((plan) => ({
-        ...plan,
-        specialtyIds: plan.specialtyIds.filter((id) => allowedIds.has(id)),
-        assignments: plan.assignments.filter((assignment) => allowedIds.has(assignment.specialtyId)),
-      })),
-    )
+  function handleRangeEndChange(value: string) {
+    setRangeEnd(value)
   }
 
-  function updateAssignment(
-    planIndex: number,
-    specialtyId: string,
-    patch: Partial<DaySpecialtyAssignment>,
-  ) {
-    setPlans((current) =>
-      current.map((plan, idx) => {
-        if (idx !== planIndex) return plan
-        return {
-          ...plan,
-          assignments: plan.assignments.map((assignment) =>
-            assignment.specialtyId === specialtyId ? { ...assignment, ...patch } : assignment,
-          ),
-        }
-      }),
-    )
-  }
+  async function handlePublish(status: AdminEscalaShiftStatus) {
+    let slotsToSave = slots
+    if (slotsToSave.length === 0 && !editingSlotId) {
+      const draftError = validateProgrammingSlot(draftSlot, slotValidationOptions)
+      if (draftError) {
+        setValidationError(draftError)
+        return
+      }
+      slotsToSave = [{ ...draftSlot, id: createProgrammingSlotId() }]
+    }
 
-  function copyDayForward(fromIndex: number, mode: 'next7' | 'all') {
-    setPlans((current) => {
-      const source = current[fromIndex]
-      const end =
-        mode === 'next7'
-          ? Math.min(current.length - 1, fromIndex + 7)
-          : current.length - 1
-      return current.map((plan, index) => {
-        if (index <= fromIndex || index > end) return plan
-        return {
-          ...plan,
-          specialtyIds: [...source.specialtyIds],
-          assignments: source.assignments.map((a) => ({ ...a })),
-        }
-      })
+    const error = validateAll(status === 'publicada', slotsToSave)
+    if (error) {
+      setValidationError(error)
+      return
+    }
+    setValidationError(null)
+    const generated = buildProgrammingSlotsShifts({
+      batchId,
+      rangeStart,
+      rangeEnd,
+      slots: slotsToSave,
+      prefeituraScope: prefeituraScopeWithContratos,
+      ubtScope,
+      status,
+    }).map((shift) => ({
+      ...shift,
+      contratoEntidadeId: primaryContratoEntidadeId || null,
+      status,
+      updatedAt: new Date().toISOString(),
+    }))
+    await onSaved(generated, {
+      replaceBatchId: isEdit && editingBatch?.[0]?.batchId ? batchId : undefined,
+      removeShiftIds:
+        isEdit && editingBatch && !editingBatch[0]?.batchId
+          ? editingBatch.map((s) => s.id)
+          : undefined,
     })
   }
 
-  const activeDaysCount = new Set(previewShifts.map((s) => toDateKey(s.startAt))).size
+  const { title, hint } = stepHints[activeStep]
 
-  const isScopeStep = activeStep === 1
+  const contentPadding =
+    activeStep === 2
+      ? 'px-5 py-5 sm:px-8 sm:py-6 lg:px-10'
+      : 'px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-10'
+
+  const headerClass =
+    activeStep === 1 || activeStep === 2 || activeStep === 3 ? 'mb-5 max-w-none' : 'mb-8 max-w-4xl'
+
+  const stepBodyClass =
+    activeStep === 1 || activeStep === 2 || activeStep === 3 ? 'w-full' : 'max-w-4xl'
 
   return (
-    <div
-      className={[
-        'flex flex-col gap-3',
-        isScopeStep ? 'shrink-0' : 'flex min-h-0 flex-1 flex-col',
-      ].join(' ')}
-    >
-      <div
-        className={[
-          'flex overflow-hidden rounded-2xl',
-          isScopeStep ? 'shrink-0 flex-col' : 'min-h-0 flex-1 flex-col',
-          'bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_64px_rgba(15,23,42,0.08)]',
-          'ring-1 ring-gray-200/80',
-        ].join(' ')}
-      >
-        <main
-          className={[
-            'flex min-w-0 flex-col',
-            isScopeStep ? 'shrink-0' : 'min-h-0 flex-1',
-          ].join(' ')}
-        >
-          <header className="shrink-0 border-b border-gray-200/60 bg-white px-4 py-4 sm:px-6 lg:px-8">
-            <div className="mb-3 flex items-center gap-2">
-              {[1, 2].map((step) => (
-                <button
-                  key={step}
-                  type="button"
-                  onClick={() => {
-                    if (step <= maxReachableStep) {
-                      setValidationError(null)
-                      setActiveStep(step as ComposeStepId)
-                    }
-                  }}
-                  className={[
-                    'rounded-full px-3 py-1.5 text-xs font-bold',
-                    activeStep === step
-                      ? 'bg-[var(--brand-primary)] text-white'
-                      : 'bg-gray-100 text-gray-600',
-                  ].join(' ')}
-                >
-                  Etapa {step}
-                </button>
-              ))}
-              <p className="ml-2 text-xs text-gray-500">
-                {previewShifts.length} plantões em {activeDaysCount} dias
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold tracking-tight text-gray-900 sm:text-xl">
-                {title}
-              </h3>
-              <p className="mt-0.5 text-sm text-gray-500">{hint}</p>
-            </div>
+    <>
+    <div className="flex min-h-0 flex-1 flex-col bg-white lg:flex-row">
+      <div className="shrink-0 border-b border-gray-100 bg-[#f8f9fb] px-4 py-3 lg:hidden">
+        <AdminEscalaComposeSteps
+          activeStep={activeStep}
+          maxReachableStep={maxReachableStep}
+          onStepChange={(step) => {
+            setValidationError(null)
+            setActiveStep(step)
+          }}
+          layout="horizontal"
+        />
+      </div>
+
+      <aside className="hidden w-72 shrink-0 flex-col border-r border-gray-100 bg-[#f8f9fb] px-5 py-6 lg:flex xl:w-80">
+        <p className="mb-5 text-[11px] font-bold uppercase tracking-[0.14em] text-gray-400">
+          Nova escala
+        </p>
+        <AdminEscalaComposeSteps
+          activeStep={activeStep}
+          maxReachableStep={maxReachableStep}
+          onStepChange={(step) => {
+            setValidationError(null)
+            setActiveStep(step)
+          }}
+          layout="vertical"
+        />
+      </aside>
+
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className={`min-h-0 flex-1 overflow-y-auto ${contentPadding}`}>
+          <header className={headerClass}>
+            <h3 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-[1.65rem]">
+              {title}
+            </h3>
+            <p className="mt-1.5 text-sm text-gray-500 sm:text-base">{hint}</p>
           </header>
 
-          <div
-            className={[
-              isScopeStep
-                ? 'shrink-0 bg-slate-100/50 p-4 sm:p-6'
-                : 'min-h-0 flex-1 overflow-y-auto bg-[#f8f9fb] p-4 sm:p-6 lg:p-8',
-            ].join(' ')}
-          >
-            {isScopeStep ? (
-              <div className="mx-auto w-full max-w-none">
-                <AdminEscalaScopeFields
-                  variant="premium"
-                  prefeituraScope={prefeituraScope}
-                  ubtScope={ubtScope}
-                  onPrefeituraScopeChange={handlePrefeituraScopeChange}
-                  onUbtScopeChange={setUbtScope}
-                />
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Especialidades disponíveis por dia ({eligibleSpecialties.length})
-                  </p>
-                  <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-gray-600">
-                    <input
-                      type="checkbox"
-                      checked={showOnlyConfiguredDays}
-                      onChange={(e) => setShowOnlyConfiguredDays(e.target.checked)}
-                      className="h-4 w-4 rounded border-gray-300 text-[var(--brand-primary)]"
-                    />
-                    Mostrar só dias configurados
-                  </label>
+          <div className={stepBodyClass}>
+            {activeStep === 1 ? (
+              <div className="grid min-h-[min(32rem,55vh)] gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-0">
+                <div className="min-w-0 lg:border-r lg:border-gray-100 lg:pr-8">
+                  <p className="mb-4 text-sm font-bold text-gray-900">Prefeituras</p>
+                  <AdminEscalaComposePrefeituraList
+                    prefeituraScope={prefeituraScope}
+                    activePrefeituraId={activePrefeituraId}
+                    onTogglePrefeitura={togglePrefeituraSelection}
+                    onActivePrefeituraChange={focusPrefeitura}
+                  />
                 </div>
-                <div className="space-y-3">
-                  {visiblePlans.map((plan) => {
-                    const planIndex = plans.findIndex((p) => p.dateKey === plan.dateKey)
-                    const isExpanded = expandedDayKey === plan.dateKey
-                    return (
-                    <article
-                      key={plan.dateKey}
-                      onClick={() => {
-                        if (!isExpanded) setExpandedDayKey(plan.dateKey)
-                      }}
-                      className={[
-                        'rounded-2xl border bg-white p-4 shadow-sm transition',
-                        !isExpanded ? 'cursor-pointer' : '',
-                        isExpanded ? 'border-[var(--brand-primary)]/30 ring-2 ring-[var(--brand-primary)]/10' : 'border-gray-200',
-                      ].join(' ')}
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation()
-                            setExpandedDayKey(isExpanded ? null : plan.dateKey)
+                <div className="min-w-0 lg:pl-8">
+                  <AdminEscalaComposeContratoColumn
+                    prefeituraId={activePrefeituraId}
+                    contratoId={
+                      activePrefeituraId
+                        ? (contratosPorPrefeitura[activePrefeituraId] ?? '')
+                        : ''
+                    }
+                    specialtyIds={[...new Set(slots.map((s) => s.specialtyId))]}
+                    onContratoChange={(contratoId, contrato) => {
+                      if (!activePrefeituraId) return
+                      handleContratoChange(activePrefeituraId, contratoId, contrato)
+                    }}
+                    onLoadStateChange={(state) => {
+                      if (!activePrefeituraId) return
+                      handleContratoLoadStateChange(activePrefeituraId, state)
+                    }}
+                    onContractsResolved={handleContratosResolved}
+                  />
+                  {selectedPrefeituraIds
+                    .filter((id) => id !== activePrefeituraId)
+                    .map((prefeituraId) => (
+                      <div key={`contrato-loader-${prefeituraId}`} className="hidden" aria-hidden>
+                        <AdminEscalaContratoField
+                          variant="flat"
+                          prefeituraScope={{ mode: 'selected', prefeituraIds: [prefeituraId] }}
+                          specialtyIds={[...new Set(slots.map((s) => s.specialtyId))]}
+                          value={contratosPorPrefeitura[prefeituraId] ?? ''}
+                          onChange={(contratoId, contrato) =>
+                            handleContratoChange(prefeituraId, contratoId, contrato)
+                          }
+                          onContractsLoaded={(count, contratos) => {
+                            handleContratoLoadStateChange(prefeituraId, { count, resolved: true })
+                            if (contratos?.length) handleContratosResolved(contratos)
                           }}
-                          className="min-w-0 flex-1 rounded-lg px-1 py-0.5 text-left focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/30"
-                        >
-                          <h4 className="text-sm font-bold text-gray-900">
-                            {formatDateLabel(plan.dateKey)}
-                          </h4>
-                          <p className="mt-0.5 text-xs text-gray-500">
-                            {plan.specialtyIds.length} especialidade{plan.specialtyIds.length === 1 ? '' : 's'} ·{' '}
-                            {plan.assignments.length} médico{plan.assignments.length === 1 ? '' : 's'}
-                          </p>
-                        </button>
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              copyDayForward(planIndex, 'next7')
-                            }}
-                            className="rounded-lg border border-gray-200 px-2.5 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-50"
-                          >
-                            Copiar +7 dias
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              copyDayForward(planIndex, 'all')
-                            }}
-                            className="rounded-lg border border-gray-200 px-2.5 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-50"
-                          >
-                            Copiar até o fim
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              setExpandedDayKey(isExpanded ? null : plan.dateKey)
-                            }}
-                            className="rounded-lg border border-gray-200 px-2.5 py-1 text-[11px] font-semibold text-gray-700 hover:bg-gray-50"
-                          >
-                            {isExpanded ? 'Recolher' : 'Editar dia'}
-                          </button>
-                        </div>
+                        />
                       </div>
-
-                      {!isExpanded ? (
-                        <p className="mt-2 line-clamp-2 text-xs text-gray-500">{dayPlanSummary(plan)}</p>
-                      ) : (
-                        <>
-                          <div className="mb-3 mt-3 flex flex-wrap gap-2">
-                            {eligibleSpecialties.map((spec) => {
-                              const enabled = plan.specialtyIds.includes(spec.id)
-                              return (
-                                <button
-                                  key={spec.id}
-                                  type="button"
-                                  onClick={() => toggleSpecialtyForDay(planIndex, spec.id)}
-                                  className={[
-                                    'rounded-full px-3 py-1.5 text-xs font-semibold',
-                                    enabled
-                                      ? 'bg-[var(--brand-primary)] text-white'
-                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
-                                  ].join(' ')}
-                                >
-                                  {spec.name}
-                                </button>
-                              )
-                            })}
-                          </div>
-
-                          {plan.specialtyIds.length === 0 ? (
-                            <p className="text-xs text-gray-500">
-                              Nenhuma especialidade selecionada para este dia.
-                            </p>
-                          ) : (
-                            <div className="space-y-2">
-                              {plan.specialtyIds.map((specialtyId) => {
-                            if (!eligibleSpecialtyIds.has(specialtyId)) return null
-                            const spec = specialties.find((s) => s.id === specialtyId)
-                            const assignment = getAssignment(plan, specialtyId)
-                            if (!assignment) return null
-                            const doctorChoices = adminEscalaDoctorOptions.filter(
-                              (d) =>
-                                !spec ||
-                                d.specialty.toLowerCase() === spec.name.toLowerCase(),
-                            )
-                            const options =
-                              doctorChoices.length > 0
-                                ? doctorChoices
-                                : adminEscalaDoctorOptions
-                            return (
-                              <div
-                                key={`${plan.dateKey}-${specialtyId}`}
-                                className="space-y-3 rounded-xl bg-gray-50 p-3"
-                              >
-                                <div className="flex flex-wrap gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      updateAssignment(planIndex, specialtyId, {
-                                        assignmentMode: 'assigned',
-                                      })
-                                    }
-                                    className={[
-                                      'rounded-full px-3 py-1 text-xs font-semibold',
-                                      assignment.assignmentMode === 'assigned'
-                                        ? 'bg-[var(--brand-primary)] text-white'
-                                        : 'bg-gray-100 text-gray-700',
-                                    ].join(' ')}
-                                  >
-                                    Médico definido
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      updateAssignment(planIndex, specialtyId, {
-                                        assignmentMode: 'open',
-                                        primaryDoctorId: '',
-                                        backupDoctorIds: [],
-                                      })
-                                    }
-                                    className={[
-                                      'rounded-full px-3 py-1 text-xs font-semibold',
-                                      assignment.assignmentMode === 'open'
-                                        ? 'bg-[var(--brand-primary)] text-white'
-                                        : 'bg-gray-100 text-gray-700',
-                                    ].join(' ')}
-                                  >
-                                    Aberto (portal)
-                                  </button>
-                                </div>
-
-                                <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_10rem_10rem_10rem]">
-                                  <div>
-                                    <p className="text-xs font-bold text-gray-700">{spec?.name}</p>
-                                    {assignment.assignmentMode === 'assigned' ? (
-                                      <CustomSelect
-                                        value={assignment.primaryDoctorId}
-                                        onChange={(value) =>
-                                          updateAssignment(planIndex, specialtyId, {
-                                            primaryDoctorId: value,
-                                            backupDoctorIds: assignment.backupDoctorIds.filter(
-                                              (id) => id !== value,
-                                            ),
-                                          })
-                                        }
-                                        options={options.map((d) => ({
-                                          value: d.value,
-                                          label: d.label,
-                                        }))}
-                                      />
-                                    ) : (
-                                      <p className="mt-2 text-xs text-gray-500">
-                                        Sem titular — médicos reservam no portal.
-                                      </p>
-                                    )}
-                                  </div>
-                                  <div>
-                                    <p className="mb-1 text-[11px] font-semibold text-gray-600">Início</p>
-                                    <input
-                                      type="time"
-                                      value={assignment.dailyStart}
-                                      onChange={(e) =>
-                                        updateAssignment(planIndex, specialtyId, {
-                                          dailyStart: e.target.value,
-                                        })
-                                      }
-                                      className={timeInputClass}
-                                    />
-                                  </div>
-                                  <div>
-                                    <p className="mb-1 text-[11px] font-semibold text-gray-600">Fim</p>
-                                    <input
-                                      type="time"
-                                      value={assignment.dailyEnd}
-                                      onChange={(e) =>
-                                        updateAssignment(planIndex, specialtyId, {
-                                          dailyEnd: e.target.value,
-                                        })
-                                      }
-                                      className={timeInputClass}
-                                    />
-                                  </div>
-                                  <div>
-                                    <p className="mb-1 text-[11px] font-semibold text-gray-600">Modalidade</p>
-                                    <CustomSelect
-                                      value={assignment.modality}
-                                      onChange={(value) => {
-                                        const modality = value as AdminEscalaModality
-                                        const patch: Partial<DaySpecialtyAssignment> = {
-                                          modality,
-                                        }
-                                        if (modality === 'presencial_ubt') {
-                                          Object.assign(
-                                            patch,
-                                            applyPresencialLocationFromUbtScope(
-                                              ubtScope,
-                                              assignment,
-                                            ),
-                                          )
-                                        } else {
-                                          patch.fullAddress = null
-                                        }
-                                        updateAssignment(planIndex, specialtyId, patch)
-                                      }}
-                                      options={[
-                                        { value: 'tele', label: 'Tele' },
-                                        { value: 'hibrido', label: 'Híbrido' },
-                                        { value: 'presencial_ubt', label: 'Presencial UBT' },
-                                      ]}
-                                    />
-                                  </div>
-                                </div>
-
-                                {assignment.modality === 'presencial_ubt' ? (
-                                  <AdminEscalaPresencialLocationFields
-                                    values={assignment}
-                                    onChange={(patch) =>
-                                      updateAssignment(planIndex, specialtyId, patch)
-                                    }
-                                    inputClass={inputClass}
-                                    ubtScope={ubtScope}
-                                  />
-                                ) : null}
-
-                                {assignment.assignmentMode === 'open' ? (
-                                  <div className="grid gap-2 sm:grid-cols-2">
-                                    <div>
-                                      <p className="mb-1 text-[11px] font-semibold text-gray-600">
-                                        Vagas
-                                      </p>
-                                      <input
-                                        type="number"
-                                        min={1}
-                                        value={assignment.vacancies}
-                                        onChange={(e) =>
-                                          updateAssignment(planIndex, specialtyId, {
-                                            vacancies: Math.max(1, Number(e.target.value) || 1),
-                                          })
-                                        }
-                                        className={inputClass}
-                                      />
-                                    </div>
-                                    <div>
-                                      <p className="mb-1 text-[11px] font-semibold text-gray-600">
-                                        Valor (R$)
-                                      </p>
-                                      <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        value={String(assignment.amountCents / 100)}
-                                        onChange={(e) => {
-                                          const reais = Number(
-                                            e.target.value.replace(/[^\d]/g, ''),
-                                          )
-                                          updateAssignment(planIndex, specialtyId, {
-                                            amountCents: Number.isFinite(reais)
-                                              ? reais * 100
-                                              : PROFISSIONAL_SHIFT_AMOUNT_CENTS,
-                                          })
-                                        }}
-                                        className={inputClass}
-                                      />
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <AdminEscalaBackupQueueEditor
-                                    primaryDoctorId={assignment.primaryDoctorId}
-                                    backupDoctorIds={assignment.backupDoctorIds}
-                                    onBackupDoctorIdsChange={(ids) =>
-                                      updateAssignment(planIndex, specialtyId, {
-                                        backupDoctorIds: ids,
-                                      })
-                                    }
-                                    variant="premium"
-                                  />
-                                )}
-                              </div>
-                            )
-                          })}
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </article>
-                    )
-                  })}
-                  {visiblePlans.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-8 text-center text-sm text-gray-500">
-                      Nenhum dia configurado ainda. Desative o filtro para editar os próximos 30 dias.
-                    </div>
+                    ))}
+                  {selectedPrefeituraIds.length > 1 ? (
+                    <p className="mt-4 text-xs text-gray-500">
+                      {selectedPrefeituraIds.length} prefeituras selecionadas — clique em cada uma
+                      à esquerda para definir o contrato.
+                    </p>
                   ) : null}
                 </div>
               </div>
-            )}
-          </div>
+            ) : null}
 
-          <footer className="shrink-0 border-t border-gray-200/60 bg-white px-4 py-4 sm:px-6 lg:px-8">
-            {validationError ? (
-              <p className="mb-3 rounded-xl border border-red-200/80 bg-red-50 px-4 py-2.5 text-sm text-red-700">
+            {activeStep === 2 ? (
+              <AdminEscalaComposePeriodStep
+                rangeStart={rangeStart}
+                rangeEnd={rangeEnd}
+                onRangeStartChange={handleRangeStartChange}
+                onRangeEndChange={handleRangeEndChange}
+                previewShiftCount={previewShiftCount}
+                singleWeekday={singleScheduleWeekday}
+              />
+            ) : null}
+
+            {activeStep === 3 ? (
+              <div className="space-y-6">
+                {hasPresencialInForm ? (
+                  <div className="rounded-2xl bg-sky-50/80 p-5 ring-1 ring-sky-100 sm:p-6">
+                    <p className="mb-4 text-sm font-bold text-gray-900">Unidade presencial (UBT)</p>
+                    <AdminEscalaComposeScopeCompact
+                      prefeituraScope={prefeituraScope}
+                      ubtScope={ubtScope}
+                      showUbtFields
+                      ubtOnly
+                      onPrefeituraScopeChange={handlePrefeituraScopeChange}
+                      onUbtScopeChange={setUbtScope}
+                    />
+                  </div>
+                ) : null}
+
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8 xl:gap-10">
+                  <div className="min-w-0 space-y-4">
+                    {specialtyOptions.length === 0 ? (
+                      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
+                        O contrato selecionado não possui especialidades autorizadas. Cadastre as
+                        especialidades em Admin → Clientes → contrato da entidade.
+                      </div>
+                    ) : (
+                    <AdminEscalaPlantaoBlockCard
+                      slot={draftSlot}
+                      title={editingSlotId ? 'Editando plantão' : 'Novo plantão'}
+                      rangeStart={rangeStart}
+                      rangeEnd={rangeEnd}
+                      specialtyOptions={specialtyOptions}
+                      ubtScope={ubtScope}
+                      repasseReadOnly={batchRepasseReadOnly}
+                      onChange={updateDraftSlot}
+                    />
+                    )}
+
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <button
+                        type="button"
+                        onClick={commitDraftSlot}
+                        disabled={specialtyOptions.length === 0}
+                        className="btn-brand-gradient inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold shadow-[0_6px_20px_rgba(255,107,0,0.28)] disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <Plus className="h-4 w-4" />
+                        {editingSlotId
+                          ? 'Salvar alterações na lista'
+                          : 'Adicionar outro horário ou especialidade'}
+                      </button>
+                      {editingSlotId ? (
+                        <button
+                          type="button"
+                          onClick={cancelDraftEdit}
+                          className="rounded-xl px-5 py-3 text-sm font-semibold text-gray-600 ring-1 ring-gray-200 hover:bg-gray-50"
+                        >
+                          Cancelar edição
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="min-w-0">
+                    <AdminEscalaPlantaoSummaryList
+                      slots={slots}
+                      rangeStart={rangeStart}
+                      rangeEnd={rangeEnd}
+                      onEdit={editCommittedSlot}
+                      onRemove={requestDeleteCommittedSlot}
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {validationError && activeStep !== 1 ? (
+              <p className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {validationError}
               </p>
             ) : null}
-            <div className="flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={goBack}
-                disabled={activeStep === 1}
-                className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-700 ring-1 ring-gray-200/80 hover:bg-gray-50 disabled:opacity-35"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Voltar
-              </button>
-
-              {activeStep < 2 ? (
-                <button
-                  type="button"
-                  onClick={goNext}
-                  className="btn-brand-gradient inline-flex items-center gap-1.5 rounded-xl px-6 py-2.5 text-sm font-bold shadow-[0_6px_20px_rgba(255,107,0,0.28)]"
-                >
-                  Continuar
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handlePublish('rascunho')}
-                    disabled={previewShifts.length === 0}
-                    className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-40"
-                  >
-                    Salvar rascunho
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handlePublish('publicada')}
-                    disabled={previewShifts.length === 0}
-                    className="btn-brand-gradient rounded-xl px-5 py-2.5 text-sm font-bold disabled:opacity-40"
-                  >
-                    Publicar escala
-                  </button>
-                </div>
-              )}
-            </div>
-          </footer>
-        </main>
-      </div>
-
-      <div className="mt-3 shrink-0 rounded-2xl bg-gray-950 px-4 py-4 text-white lg:hidden">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Prévia</p>
-            <p className="text-2xl font-bold tabular-nums">
-              {previewShifts.length}{' '}
-              <span className="text-sm font-medium text-gray-400">plantões</span>
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => handlePublish('rascunho')}
-              disabled={previewShifts.length === 0}
-              className="rounded-xl bg-white/10 px-3 py-2.5 text-xs font-bold ring-1 ring-white/15 disabled:opacity-40"
-            >
-              Rascunho
-            </button>
-            <button
-              type="button"
-              onClick={() => handlePublish('publicada')}
-              disabled={previewShifts.length === 0 || activeStep < 2}
-              className="rounded-xl bg-[var(--brand-primary)] px-4 py-2.5 text-xs font-bold disabled:opacity-40"
-            >
-              Publicar
-            </button>
           </div>
         </div>
+
+        <footer className="shrink-0 border-t border-gray-100 bg-white px-5 py-4 sm:px-8 lg:px-10">
+          {validationError ? (
+            <p
+              role="alert"
+              className="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700"
+            >
+              {validationError}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={goBack}
+              disabled={activeStep === 1}
+              className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-30"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Voltar
+            </button>
+
+            <p className="order-last w-full text-center text-sm text-gray-500 lg:hidden">
+              <span className="font-bold text-gray-900">{previewShiftCount}</span> plantões
+            </p>
+
+            {activeStep < 3 ? (
+              <button
+                type="button"
+                onClick={goNext}
+                className="btn-brand-gradient inline-flex items-center gap-1.5 rounded-xl px-7 py-2.5 text-sm font-bold shadow-[0_6px_20px_rgba(255,107,0,0.28)]"
+              >
+                Continuar
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handlePublish('rascunho')}
+                  disabled={previewShiftCount === 0 || isSaving}
+                  className="rounded-xl px-4 py-2.5 text-sm font-bold text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 disabled:opacity-40"
+                >
+                  Salvar rascunho
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePublish('publicada')}
+                  disabled={previewShiftCount === 0 || isSaving}
+                  className="btn-brand-gradient rounded-xl px-6 py-2.5 text-sm font-bold shadow-[0_6px_20px_rgba(255,107,0,0.28)] disabled:opacity-40"
+                >
+                  Publicar escala
+                </button>
+              </div>
+            )}
+          </div>
+        </footer>
       </div>
     </div>
+
+    <PinUnlockModal
+      open={deletePlantaoTarget !== null}
+      onClose={() => setDeletePlantaoTarget(null)}
+      onSuccess={() => {
+        if (!deletePlantaoTarget) return
+        removeCommittedSlot(deletePlantaoTarget.slotId)
+        setDeletePlantaoTarget(null)
+      }}
+      verifyPin={verifyAdminPin}
+      title="Excluir plantão"
+      titleId="escala-delete-plantao-pin-title"
+      description={
+        deletePlantaoTarget
+          ? `Para remover ${deletePlantaoTarget.label} da escala, informe sua senha de autorização de 6 dígitos.`
+          : 'Informe sua senha de autorização de 6 dígitos para confirmar a exclusão.'
+      }
+      submitLabel="Confirmar exclusão"
+      pinCompleteHint="Senha completa. Toque em confirmar exclusão."
+      icon={Trash2}
+    />
+    </>
   )
 }

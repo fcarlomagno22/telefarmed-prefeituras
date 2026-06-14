@@ -10,6 +10,9 @@ type PatientPhotoStepProps = {
   onOpenCapture: () => void
   onContinue: () => void
   onBack: () => void
+  isSubmitting?: boolean
+  continueLabel?: string
+  submittingLabel?: string
 }
 
 export function PatientPhotoStep({
@@ -18,6 +21,9 @@ export function PatientPhotoStep({
   onOpenCapture,
   onContinue,
   onBack,
+  isSubmitting = false,
+  continueLabel = 'Continuar',
+  submittingLabel = 'Finalizando…',
 }: PatientPhotoStepProps) {
   const [showHints, setShowHints] = useState(false)
   const continueReady = Boolean(photoDataUrl)
@@ -33,7 +39,9 @@ export function PatientPhotoStep({
         <AttendanceStepFooter
           onBack={onBack}
           onContinue={onContinue}
+          continueLabel={isSubmitting ? submittingLabel : continueLabel}
           continueReady={continueReady}
+          continueLoading={isSubmitting}
           onContinueBlocked={() => setShowHints(true)}
         />
       }
@@ -79,7 +87,8 @@ export function PatientPhotoStep({
         <button
           type="button"
           onClick={onOpenCapture}
-          className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
+          disabled={isSubmitting}
+          className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Camera className="h-4 w-4" strokeWidth={2} />
           Tirar foto

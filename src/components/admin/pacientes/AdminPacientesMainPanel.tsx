@@ -1,41 +1,79 @@
-import { Eye, MapPinned, Search, UserCheck, UserMinus, UsersRound } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { AdminMunicipalPatient } from '../../../data/adminPacientesMock'
-import { getAdminPatientContractingEntities } from '../../../data/adminPacientesMock'
+import { Download, Eye, FileText, MapPinned, Search, UserCheck, UserMinus, UsersRound } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type {
+  AdminMunicipalPatient,
+  AdminMunicipalPatientDetail,
+  AdminPatientContractingEntity,
+} from '../../../types/adminPacientes'
+import type {
+  PacientesSummaryResponse,
+  PreCadastroRegistrationPayload,
+  UpdatePacientePayload,
+} from '../../../lib/services/admin/pacientes'
+import { fetchPacienteProntuario } from '../../../lib/services/admin/pacientes'
+import { AdminAuthApiError, verifyAdminAuthorizationPin } from '../../../lib/services/admin/auth'
+import type { PatientRegistration } from '../../../types/attendance'
+import { useAdminAuth } from '../../../contexts/AdminAuthContext'
+import { adminUserIsAdministrator } from '../../../config/adminPageAccess'
+import { userEditsToUpdatePayload } from '../../../utils/adminPacientesEdits'
+import type { NetworkUserFullProfile } from '../../../data/networkUserProfiles'
+import {
+  buildAdminPatientExtraContext,
+  mapAdminPatientDetailToProfile,
+} from '../../../utils/adminPacientesDetail'
 import { KpiStatCards } from '../../ui/KpiStatCards'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { SituationStatusBadge, type SituationStatusBadgeStyle } from '../../ui/SituationStatusBadge'
-import { maskCpfForDisplay, onlyDigits } from '../../../utils/lgpdDisplay'
-import { Toast } from '../../ui/Toast'
+import { maskCpfForDisplay } from '../../../utils/lgpdDisplay'
+import { Toast, type ToastVariant } from '../../ui/Toast'
 import { LgpdUnlockModal } from '../../users/LgpdUnlockModal'
 import { EditUnlockModal } from '../../users/EditUnlockModal'
+import { PinUnlockModal } from '../../users/PinUnlockModal'
 import { UserDetailDrawer } from '../../users/UserDetailDrawer'
-import type { NetworkUser } from '../../../data/networkUsersMock'
-import {
-  createActivityId,
-  type ContactChannel,
-  type PatientContactLogEntry,
-  type TeamContactRecord,
-} from '../../../data/networkUserActivity'
+import { PatientMedicalRecordDrawer } from '../../users/PatientMedicalRecordDrawer'
 import {
   adminPessoasPanelEmbeddedShellClass,
   adminPessoasPanelShellClass,
 } from '../pessoas/adminPessoasMainPanelShell'
-import {
-  createAnnotationId,
-  type UserAnnotation,
-  type UserProfileEdits,
-} from '../../../data/networkUserLocalData'
-import type { PatientContact } from '../../../data/unitDashboardMock'
-import { getNetworkUserProfile } from '../../../data/networkUserProfiles'
-import { getLoggedOperatorName } from '../../../utils/sessionUser'
+import { type UserProfileEdits } from '../../../data/networkUserLocalData'
+import type { PatientContact } from '../../../types/attendance'
 import { AdminPatientPreRegistrationDrawer } from './preRegistration/AdminPatientPreRegistrationDrawer'
+import { registrationToPreCadastroPayload, registrationToUpdatePayload } from './preRegistration/adminPatientRegistrationMapper'
 
 type AdminPacientesMainPanelProps = {
   patients: AdminMunicipalPatient[]
+  summary?: PacientesSummaryResponse | null
+  contractingEntities: AdminPatientContractingEntity[]
   municipalityOptions: string[]
   selectedMunicipality: string
   onMunicipalityChange: (value: string) => void
+  onPatientUpsert?: (patient: AdminMunicipalPatient) => void
+  onLoadPatientDetail?: (id: string) => Promise<AdminMunicipalPatientDetail | null>
+  onLookupPatientByCpf?: (
+    cpf: string,
+    entidadeContratanteId: string,
+  ) => Promise<AdminMunicipalPatient | null>
+  onCompletePreCadastro?: (
+    payload: PreCadastroRegistrationPayload,
+  ) => Promise<AdminMunicipalPatient>
+  onSavePreCadastroDraft?: (
+    payload: PreCadastroRegistrationPayload,
+  ) => Promise<{ preCadastroId: string }>
+  onConcludePreCadastroById?: (preCadastroId: string) => Promise<AdminMunicipalPatient>
+  onCancelPreCadastro?: (preCadastroId: string) => Promise<void>
+  onCreatePatientDirect?: (
+    payload: PreCadastroRegistrationPayload,
+  ) => Promise<AdminMunicipalPatient>
+  onInactivatePatient?: (id: string) => Promise<void>
+  onSavePatientEdits?: (
+    id: string,
+    payload: UpdatePacientePayload,
+  ) => Promise<AdminMunicipalPatientDetail>
+  searchQuery?: string
+  onSearchQueryChange?: (value: string) => void
+  onExportCsv?: () => Promise<void>
+  isExporting?: boolean
+  /** @deprecated use onPatientUpsert */
   onPatientsChange?: (patients: AdminMunicipalPatient[]) => void
   /** Registra ação do botão global da aba (barra superior). */
   bindAddAction?: (action: (() => void) | null) => void
@@ -45,21 +83,6 @@ type AdminPacientesMainPanelProps = {
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
-}
-
-function filterPatients(query: string, patients: AdminMunicipalPatient[]) {
-  const trimmed = query.trim()
-  if (!trimmed) return patients
-  const normalized = trimmed.toLowerCase()
-  const queryDigits = onlyDigits(trimmed)
-
-  return patients.filter((patient) => {
-    const haystack =
-      `${patient.name} ${patient.bairro} ${patient.municipality} ${patient.cpf} ${patient.phone}`.toLowerCase()
-    if (haystack.includes(normalized)) return true
-    if (!queryDigits) return false
-    return `${onlyDigits(patient.cpf)} ${onlyDigits(patient.phone)}`.includes(queryDigits)
-  })
 }
 
 const ADMIN_PACIENTE_STATUS_BADGE_WIDTH = 'w-[8.5rem]'
@@ -82,53 +105,121 @@ const adminPacienteContratoStatusBadgeConfig: Record<
   },
 }
 
+function AdminPatientAvatar({
+  patient,
+}: {
+  patient: Pick<AdminMunicipalPatient, 'avatarUrl' | 'avatarClassName' | 'initials' | 'name'>
+}) {
+  const [imageFailed, setImageFailed] = useState(false)
+  const showPhoto = Boolean(patient.avatarUrl?.trim()) && !imageFailed
+
+  if (!showPhoto) {
+    return (
+      <span
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${patient.avatarClassName}`}
+      >
+        {patient.initials}
+      </span>
+    )
+  }
+
+  return (
+    <img
+      src={patient.avatarUrl}
+      alt=""
+      loading="lazy"
+      onError={() => setImageFailed(true)}
+      className="h-10 w-10 shrink-0 rounded-full border border-gray-200 object-cover shadow-sm"
+    />
+  )
+}
+
 export function AdminPacientesMainPanel({
   patients,
+  summary,
+  contractingEntities,
   municipalityOptions,
   selectedMunicipality,
   onMunicipalityChange,
+  onPatientUpsert,
+  onLoadPatientDetail,
+  onLookupPatientByCpf,
+  onCompletePreCadastro,
+  onSavePreCadastroDraft,
+  onConcludePreCadastroById,
+  onCancelPreCadastro,
+  onCreatePatientDirect,
+  onInactivatePatient,
+  onSavePatientEdits,
+  searchQuery = '',
+  onSearchQueryChange,
+  onExportCsv,
+  isExporting = false,
   onPatientsChange,
   bindAddAction,
   embedded = false,
 }: AdminPacientesMainPanelProps) {
-  const [search, setSearch] = useState('')
+  const { getAccessToken, user } = useAdminAuth()
+  const canAccessProntuario = adminUserIsAdministrator(user)
+  const prontuarioPinRef = useRef<string | null>(null)
   const [sensitiveDataUnlocked, setSensitiveDataUnlocked] = useState(false)
   const [unlockModalOpen, setUnlockModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editSessionKey, setEditSessionKey] = useState(0)
-  const [toast, setToast] = useState<{ message: string } | null>(null)
-  const [drawerUser, setDrawerUser] = useState<NetworkUser | null>(null)
+  const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
+  const [drawerUser, setDrawerUser] = useState<AdminMunicipalPatient | null>(null)
+  const [drawerDetail, setDrawerDetail] = useState<AdminMunicipalPatientDetail | null>(null)
+  const [drawerProfileOverride, setDrawerProfileOverride] = useState<NetworkUserFullProfile | null>(
+    null,
+  )
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerClosing, setDrawerClosing] = useState(false)
   const [userEditsMap, setUserEditsMap] = useState<Record<string, UserProfileEdits>>({})
-  const [annotationsMap, setAnnotationsMap] = useState<Record<string, UserAnnotation[]>>({})
   const [lastReviewedMap, setLastReviewedMap] = useState<Record<string, string>>({})
-  const [contactLogsMap, setContactLogsMap] = useState<Record<string, PatientContactLogEntry[]>>({})
+  const [drawerSaving, setDrawerSaving] = useState(false)
   const [preRegistrationOpen, setPreRegistrationOpen] = useState(false)
   const [preRegistrationClosing, setPreRegistrationClosing] = useState(false)
+  const [prontuarioPinOpen, setProntuarioPinOpen] = useState(false)
+  const [medicalRecordOpen, setMedicalRecordOpen] = useState(false)
+  const [medicalRecordClosing, setMedicalRecordClosing] = useState(false)
 
-  const municipalityScopedPatients = useMemo(() => {
-    if (selectedMunicipality === 'all') return patients
-    return patients.filter((patient) => patient.municipality === selectedMunicipality)
-  }, [patients, selectedMunicipality])
+  const filtered = patients
 
-  const filtered = useMemo(
-    () => filterPatients(search, municipalityScopedPatients),
-    [search, municipalityScopedPatients],
+  const loadMedicalRecord = useCallback(
+    async (patientId: string) => {
+      const pin = prontuarioPinRef.current
+      if (!pin) {
+        throw new Error('Informe sua senha de autorização para acessar o prontuário.')
+      }
+
+      const token = getAccessToken()
+      if (!token) {
+        throw new Error('Sessão expirada.')
+      }
+
+      return fetchPacienteProntuario(token, patientId, pin)
+    },
+    [getAccessToken],
   )
-  const loggedOperatorName = getLoggedOperatorName()
 
-  const contractingEntities = useMemo(() => getAdminPatientContractingEntities(), [])
+  const [preRegistrationSubmitting, setPreRegistrationSubmitting] = useState(false)
 
   const defaultContractingEntityId = useMemo(() => {
     if (selectedMunicipality === 'all') return undefined
     return contractingEntities.find((entity) => entity.municipality === selectedMunicipality)?.id
   }, [contractingEntities, selectedMunicipality])
 
-  const showSuccessToast = useCallback((message: string) => {
+  const showToast = useCallback((message: string, variant: ToastVariant = 'success') => {
     setToast(null)
-    requestAnimationFrame(() => setToast({ message }))
+    requestAnimationFrame(() => setToast({ message, variant }))
   }, [])
+
+  const showSuccessToast = useCallback(
+    (message: string) => showToast(message, 'success'),
+    [showToast],
+  )
+
+  const showErrorToast = useCallback((message: string) => showToast(message, 'error'), [showToast])
 
   const openAddPatient = useCallback(() => {
     setPreRegistrationClosing(false)
@@ -150,14 +241,89 @@ export function AdminPacientesMainPanel({
     setPreRegistrationClosing(false)
   }
 
-  function handlePreRegistrationCompleted(patient: AdminMunicipalPatient, isUpdate: boolean) {
-    if (!onPatientsChange) return
+  async function handlePreRegistrationCompleted(patient: AdminMunicipalPatient, isUpdate: boolean) {
+    void isUpdate
+    onPatientUpsert?.(patient)
+    if (onPatientsChange) {
+      onPatientsChange(
+        isUpdate
+          ? patients.map((row) => (row.id === patient.id ? patient : row))
+          : [patient, ...patients],
+      )
+    }
+  }
 
-    onPatientsChange(
-      isUpdate
-        ? patients.map((row) => (row.id === patient.id ? patient : row))
-        : [patient, ...patients],
-    )
+  async function handleFinalizePreRegistration(
+    registration: PatientRegistration,
+    entity: AdminPatientContractingEntity,
+  ) {
+    if (!onCompletePreCadastro) {
+      throw new Error('Pré-cadastro indisponível.')
+    }
+    setPreRegistrationSubmitting(true)
+    try {
+      const payload = registrationToPreCadastroPayload(registration, entity)
+      return await onCompletePreCadastro(payload)
+    } finally {
+      setPreRegistrationSubmitting(false)
+    }
+  }
+
+  async function handleSavePreCadastroDraft(
+    registration: PatientRegistration,
+    entity: AdminPatientContractingEntity,
+  ) {
+    if (!onSavePreCadastroDraft) {
+      throw new Error('Salvar rascunho indisponível.')
+    }
+    const payload = registrationToPreCadastroPayload(registration, entity)
+    return onSavePreCadastroDraft(payload)
+  }
+
+  async function handleCreatePatientDirect(
+    registration: PatientRegistration,
+    entity: AdminPatientContractingEntity,
+  ) {
+    if (!onCreatePatientDirect) {
+      throw new Error('Cadastro direto indisponível.')
+    }
+    setPreRegistrationSubmitting(true)
+    try {
+      const payload = registrationToPreCadastroPayload(registration, entity)
+      return await onCreatePatientDirect(payload)
+    } finally {
+      setPreRegistrationSubmitting(false)
+    }
+  }
+
+  async function handleUpdateExistingPatient(
+    patientId: string,
+    registration: PatientRegistration,
+  ) {
+    if (!onSavePatientEdits) {
+      throw new Error('Atualização indisponível.')
+    }
+    setPreRegistrationSubmitting(true)
+    try {
+      const updated = await onSavePatientEdits(patientId, registrationToUpdatePayload(registration))
+      return updated
+    } finally {
+      setPreRegistrationSubmitting(false)
+    }
+  }
+
+  function handleInactivatePatient() {
+    if (!drawerUser || !onInactivatePatient) return
+
+    void (async () => {
+      try {
+        await onInactivatePatient(drawerUser.id)
+        closePatientDrawer()
+        showSuccessToast('Cadastro inativado com sucesso.')
+      } catch {
+        showErrorToast('Não foi possível inativar o cadastro do paciente.')
+      }
+    })()
   }
 
   const dismissToast = useCallback(() => setToast(null), [])
@@ -165,8 +331,23 @@ export function AdminPacientesMainPanel({
   function openPatientDrawer(patient: AdminMunicipalPatient) {
     setDrawerClosing(false)
     setDrawerUser(patient)
+    setDrawerDetail(null)
+    setDrawerProfileOverride(null)
     setDrawerOpen(true)
-    seedAnnotationsIfNeeded(patient)
+
+    if (!onLoadPatientDetail) return
+
+    void (async () => {
+      try {
+        const detail = await onLoadPatientDetail(patient.id)
+        if (!detail) return
+        setDrawerUser(detail)
+        setDrawerDetail(detail)
+        setDrawerProfileOverride(mapAdminPatientDetailToProfile(detail))
+      } catch {
+        // Mantém dados da listagem se o detalhe falhar.
+      }
+    })()
   }
 
   function closePatientDrawer() {
@@ -177,109 +358,113 @@ export function AdminPacientesMainPanel({
     if (drawerClosing) {
       setDrawerOpen(false)
       setDrawerUser(null)
+      setDrawerDetail(null)
+      setDrawerProfileOverride(null)
       setDrawerClosing(false)
       setEditSessionKey(0)
+    }
+  }
+
+  function handleRequestMedicalRecord() {
+    if (!canAccessProntuario) return
+    prontuarioPinRef.current = null
+    setProntuarioPinOpen(true)
+  }
+
+  function handleMedicalRecordTransitionEnd() {
+    if (medicalRecordClosing) {
+      setMedicalRecordOpen(false)
+      setMedicalRecordClosing(false)
+      prontuarioPinRef.current = null
+    }
+  }
+
+  function closeMedicalRecordDrawer() {
+    setMedicalRecordClosing(true)
+  }
+
+  function resolveDetailForEdits() {
+    if (drawerDetail) return drawerDetail
+    if (!drawerUser) return null
+    return {
+      birthDate: drawerUser.birthDate,
+      profile: drawerProfileOverride
+        ? { genderLabel: drawerProfileOverride.genderLabel }
+        : undefined,
+    }
+  }
+
+  async function persistDrawerEdits(edits: UserProfileEdits) {
+    if (!drawerUser || !onSavePatientEdits) {
+      throw new Error('Não foi possível salvar as alterações.')
+    }
+
+    const detailSource = resolveDetailForEdits()
+    if (!detailSource) {
+      throw new Error('Aguarde o carregamento do paciente e tente novamente.')
+    }
+
+    setDrawerSaving(true)
+    try {
+      const payload = userEditsToUpdatePayload(detailSource, edits)
+      const updated = await onSavePatientEdits(drawerUser.id, payload)
+      setDrawerUser(updated)
+      setDrawerDetail(updated)
+      setDrawerProfileOverride(mapAdminPatientDetailToProfile(updated))
+      setUserEditsMap((prev) => {
+        const next = { ...prev }
+        delete next[drawerUser.id]
+        return next
+      })
+      setLastReviewedMap((prev) => ({ ...prev, [drawerUser.id]: new Date().toISOString() }))
+      onPatientUpsert?.(updated)
+      showSuccessToast('Alterações salvas com sucesso.')
+    } finally {
+      setDrawerSaving(false)
     }
   }
 
   function handleSaveUserEdits(edits: UserProfileEdits, changedFields: string[]) {
     void changedFields
     if (!drawerUser) return
-    setUserEditsMap((prev) => ({ ...prev, [drawerUser.id]: edits }))
-    setLastReviewedMap((prev) => ({ ...prev, [drawerUser.id]: new Date().toISOString() }))
-    showSuccessToast('Alterações salvas com sucesso.')
+    void persistDrawerEdits(edits).catch(() => {
+      showErrorToast('Não foi possível salvar as alterações.')
+    })
   }
 
   function handleSaveUserContacts(contacts: PatientContact[]) {
     if (!drawerUser) return
+    const profile = drawerProfileOverride
     const previous = userEditsMap[drawerUser.id]
-    const profile = getNetworkUserProfile(drawerUser)
     const merged: UserProfileEdits = {
       phone: previous?.phone ?? drawerUser.phone,
-      email: previous?.email ?? profile.email,
-      zipCode: previous?.zipCode ?? profile.zipCode,
-      street: previous?.street ?? profile.street,
-      number: previous?.number ?? profile.number,
-      complement: previous?.complement ?? profile.complement,
-      neighborhood: previous?.neighborhood ?? profile.neighborhood,
-      city: previous?.city ?? profile.city,
-      state: previous?.state ?? profile.state,
-      guardianName: previous?.guardianName ?? profile.guardianName,
-      guardianCpf: previous?.guardianCpf ?? profile.guardianCpf,
+      email: previous?.email ?? profile?.email ?? '—',
+      zipCode: previous?.zipCode ?? profile?.zipCode ?? '—',
+      street: previous?.street ?? profile?.street ?? '—',
+      number: previous?.number ?? profile?.number ?? '—',
+      complement: previous?.complement ?? profile?.complement ?? '',
+      neighborhood: previous?.neighborhood ?? profile?.neighborhood ?? drawerUser.bairro,
+      city: previous?.city ?? profile?.city ?? drawerUser.municipality,
+      state: previous?.state ?? profile?.state ?? '—',
+      guardianName: previous?.guardianName ?? profile?.guardianName ?? '',
+      guardianCpf: previous?.guardianCpf ?? profile?.guardianCpf ?? '',
       contacts,
     }
-    setUserEditsMap((prev) => ({ ...prev, [drawerUser.id]: merged }))
-    showSuccessToast('Alterações salvas com sucesso.')
-  }
-
-  function lastTeamContactForUser(userId: string): TeamContactRecord | null {
-    const logs = contactLogsMap[userId] ?? []
-    if (!logs.length) return null
-    const latest = logs[0]
-    return {
-      at: latest.at,
-      channel: latest.channel,
-      note: latest.note,
-      authorLabel: latest.authorLabel,
-    }
-  }
-
-  function handleRegisterContact(channel: ContactChannel, phone: string, note: string) {
-    if (!drawerUser) return
-    const entry: PatientContactLogEntry = {
-      id: createActivityId('contact'),
-      at: new Date().toISOString(),
-      channel,
-      phone,
-      note: note.trim(),
-      authorLabel: loggedOperatorName,
-    }
-    setContactLogsMap((prev) => ({
-      ...prev,
-      [drawerUser.id]: [entry, ...(prev[drawerUser.id] ?? [])],
-    }))
-    showSuccessToast('Contato registrado com sucesso.')
-  }
-
-  function handleAddAnnotation(text: string) {
-    if (!drawerUser) return
-    const annotation: UserAnnotation = {
-      id: createAnnotationId(),
-      text,
-      createdAt: new Date().toISOString(),
-      authorLabel: loggedOperatorName,
-    }
-    setAnnotationsMap((prev) => ({
-      ...prev,
-      [drawerUser.id]: [annotation, ...(prev[drawerUser.id] ?? [])],
-    }))
-    showSuccessToast('Anotação criada com sucesso.')
-  }
-
-  function seedAnnotationsIfNeeded(user: NetworkUser) {
-    const profile = getNetworkUserProfile(user)
-    if (!profile.notes) return
-    setAnnotationsMap((prev) => {
-      if (prev[user.id]?.length) return prev
-      return {
-        ...prev,
-        [user.id]: [
-          {
-            id: createAnnotationId(),
-            text: profile.notes,
-            createdAt: new Date(Date.now() - 86400000 * 7).toISOString(),
-            authorLabel: 'Cadastro inicial',
-          },
-        ],
-      }
+    void persistDrawerEdits(merged).catch(() => {
+      showErrorToast('Não foi possível salvar os contatos.')
     })
   }
 
-  const kpiCards = useMemo(
-    () => [
+  const kpiCards = useMemo(() => {
+    const total = summary?.totalPacientes ?? 0
+    const novosMes = summary?.novosNoMesAtual ?? 0
+    const ativo = summary?.contratoAtivo ?? 0
+    const encerrado = summary?.contratoEncerrado ?? 0
+
+    return [
       {
         label: 'Base consolidada',
-        value: formatNumber(municipalityScopedPatients.length),
+        value: formatNumber(total),
         suffix: 'pacientes únicos',
         icon: UsersRound,
         iconGradient: 'from-sky-500 via-blue-500 to-indigo-600',
@@ -289,10 +474,7 @@ export function AdminPacientesMainPanel({
       },
       {
         label: 'Novos cadastros',
-        value: formatNumber(
-          municipalityScopedPatients.filter((patient) => patient.registrationMonthLabel === 'Mai')
-            .length,
-        ),
+        value: formatNumber(novosMes),
         suffix: 'no mês atual',
         icon: MapPinned,
         iconGradient: 'from-orange-500 via-amber-500 to-orange-600',
@@ -302,9 +484,7 @@ export function AdminPacientesMainPanel({
       },
       {
         label: 'Contrato ativo',
-        value: formatNumber(
-          municipalityScopedPatients.filter((patient) => patient.contractStatus === 'ativo').length,
-        ),
+        value: formatNumber(ativo),
         suffix: 'usuários na base ativa',
         icon: UserCheck,
         iconGradient: 'from-emerald-500 via-teal-500 to-emerald-600',
@@ -314,10 +494,7 @@ export function AdminPacientesMainPanel({
       },
       {
         label: 'Contrato encerrado',
-        value: formatNumber(
-          municipalityScopedPatients.filter((patient) => patient.contractStatus === 'encerrado')
-            .length,
-        ),
+        value: formatNumber(encerrado),
         suffix: 'usuários em municípios encerrados',
         icon: UserMinus,
         iconGradient: 'from-violet-500 via-purple-500 to-fuchsia-600',
@@ -325,14 +502,21 @@ export function AdminPacientesMainPanel({
         iconRing: 'ring-violet-100/80',
         topBar: 'from-violet-400 to-purple-500',
       },
-    ],
-    [municipalityScopedPatients],
-  )
+    ]
+  }, [summary])
 
-  const drawerUserAdmin = useMemo(
-    () => (drawerUser ? patients.find((patient) => patient.id === drawerUser.id) ?? null : null),
-    [drawerUser, patients],
-  )
+  const drawerExtraContext = useMemo(() => {
+    if (drawerDetail) return buildAdminPatientExtraContext(drawerDetail)
+    if (!drawerUser) return []
+    return [
+      { label: 'Entidade contratante', value: drawerUser.contractingEntityRazaoSocial },
+      { label: 'Contratante', value: drawerUser.municipality },
+      {
+        label: 'Status do contrato',
+        value: drawerUser.contractStatus === 'ativo' ? 'Ativo' : 'Encerrado',
+      },
+    ]
+  }, [drawerDetail, drawerUser])
 
   return (
     <>
@@ -341,13 +525,10 @@ export function AdminPacientesMainPanel({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <h2 className="text-lg font-bold text-gray-900">Pacientes</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Visão consolidada de pacientes de municípios com contrato ativo ou encerrado.
-            </p>
           </div>
           <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:max-w-4xl lg:justify-end">
             <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Cidade contratante
+              Contratante
               <CustomSelect
                 value={selectedMunicipality}
                 onChange={(value) => onMunicipalityChange(value)}
@@ -362,12 +543,23 @@ export function AdminPacientesMainPanel({
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
                 type="search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                value={searchQuery}
+                onChange={(event) => onSearchQueryChange?.(event.target.value)}
                 placeholder="Buscar por nome ou CPF..."
                 className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-800 outline-none transition placeholder:text-sm placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15"
               />
             </label>
+            {onExportCsv ? (
+              <button
+                type="button"
+                onClick={() => void onExportCsv().catch(() => showErrorToast('Não foi possível exportar.'))}
+                disabled={isExporting}
+                className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-semibold text-gray-700 transition hover:border-[var(--brand-primary)] hover:text-[var(--brand-primary)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Download className="h-4 w-4" />
+                {isExporting ? 'Exportando…' : 'Exportar CSV'}
+              </button>
+            ) : null}
           </div>
         </div>
         <KpiStatCards items={kpiCards} className="mt-5" />
@@ -435,20 +627,7 @@ export function AdminPacientesMainPanel({
               <tr key={patient.id} className="align-middle text-sm text-gray-700 hover:bg-gray-50/80">
                 <td className="px-5 py-4 sm:px-6">
                   <div className="flex items-center gap-3">
-                    {patient.avatarUrl ? (
-                      <img
-                        src={patient.avatarUrl}
-                        alt=""
-                        loading="lazy"
-                        className="h-10 w-10 shrink-0 rounded-full border border-gray-200 object-cover shadow-sm"
-                      />
-                    ) : (
-                      <span
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${patient.avatarClassName}`}
-                      >
-                        {patient.initials}
-                      </span>
-                    )}
+                    <AdminPatientAvatar patient={patient} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold text-gray-900">{patient.name}</p>
                       <p className="mt-0.5 truncate text-xs text-gray-500">{patient.bairro}</p>
@@ -471,7 +650,7 @@ export function AdminPacientesMainPanel({
                 </td>
                 <td className="px-3 py-4 text-center align-middle text-gray-700">{patient.bairro}</td>
                 <td className="px-3 py-4 text-center align-middle text-gray-700">
-                  {getNetworkUserProfile(patient).lastConsultationSpecialty || '—'}
+                  {patient.totalAppointments > 0 ? `${patient.totalAppointments} consulta(s)` : '—'}
                 </td>
                 <td className="px-3 py-4 text-center align-middle">
                   <span className="block text-gray-700">{patient.lastAppointmentDate}</span>
@@ -503,9 +682,7 @@ export function AdminPacientesMainPanel({
 
       <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-gray-200 px-5 py-4 sm:px-6">
         <p className="text-xs text-gray-500">
-          Mostrando {formatNumber(filtered.length)} de{' '}
-          {formatNumber(municipalityScopedPatients.length)} pacientes da
-          base selecionada.
+          Mostrando {formatNumber(filtered.length)} paciente(s) na base selecionada.
         </p>
       </footer>
       </section>
@@ -529,7 +706,12 @@ export function AdminPacientesMainPanel({
         }}
       />
 
-      <Toast message={toast?.message ?? ''} visible={toast !== null} onClose={dismissToast} />
+      <Toast
+        message={toast?.message ?? ''}
+        visible={toast !== null}
+        variant={toast?.variant ?? 'success'}
+        onClose={dismissToast}
+      />
 
       <UserDetailDrawer
         user={drawerUser}
@@ -538,30 +720,69 @@ export function AdminPacientesMainPanel({
         sensitiveDataUnlocked={sensitiveDataUnlocked}
         editSessionKey={editSessionKey}
         userEdits={drawerUser ? userEditsMap[drawerUser.id] ?? null : null}
-        annotations={drawerUser ? annotationsMap[drawerUser.id] ?? [] : []}
+        annotations={[]}
         onClose={closePatientDrawer}
         onTransitionEnd={handleDrawerTransitionEnd}
         onRequestUnlock={() => setUnlockModalOpen(true)}
         onRequestEditUnlock={() => setEditModalOpen(true)}
         lastReviewedAt={drawerUser ? lastReviewedMap[drawerUser.id] ?? null : null}
-        contactLogs={drawerUser ? contactLogsMap[drawerUser.id] ?? [] : []}
-        lastTeamContact={drawerUser ? lastTeamContactForUser(drawerUser.id) : null}
-        onSaveEdits={handleSaveUserEdits}
-        onSaveContacts={handleSaveUserContacts}
-        onRegisterContact={handleRegisterContact}
-        onAddAnnotation={handleAddAnnotation}
-        extraContextItems={
-          drawerUserAdmin
-            ? [
-                { label: 'Entidade contratante', value: drawerUserAdmin.contractingEntityRazaoSocial },
-                { label: 'Cidade contratante', value: drawerUserAdmin.municipality },
-                {
-                  label: 'Status do contrato',
-                  value: drawerUserAdmin.contractStatus === 'ativo' ? 'Ativo' : 'Encerrado',
-                },
-              ]
-            : []
-        }
+        contactLogs={[]}
+        lastTeamContact={null}
+        onSaveEdits={drawerSaving ? () => {} : handleSaveUserEdits}
+        onSaveContacts={drawerSaving ? () => {} : handleSaveUserContacts}
+        onRegisterContact={() => {}}
+        onAddAnnotation={() => {}}
+        canInactivate={Boolean(onInactivatePatient)}
+        onInactivate={handleInactivatePatient}
+        profileOverride={drawerProfileOverride}
+        extraContextItems={drawerExtraContext}
+        teamInteractionsEnabled={false}
+        canAccessMedicalRecord={canAccessProntuario}
+        onRequestMedicalRecord={handleRequestMedicalRecord}
+      />
+
+      <PinUnlockModal
+        open={prontuarioPinOpen}
+        onClose={() => setProntuarioPinOpen(false)}
+        onSuccess={() => {
+          setMedicalRecordOpen(true)
+          setMedicalRecordClosing(false)
+        }}
+        verifyPin={async (pin) => {
+          const token = getAccessToken()
+          if (!token) return false
+          try {
+            await verifyAdminAuthorizationPin(token, pin)
+            prontuarioPinRef.current = pin
+            return true
+          } catch (error) {
+            if (error instanceof AdminAuthApiError && error.code === 'PIN_NOT_CONFIGURED') {
+              showErrorToast(error.message)
+            }
+            return false
+          }
+        }}
+        title="Acesso ao prontuário médico"
+        titleId="admin-prontuario-pin-title"
+        description="Somente administradores podem consultar prontuários. Informe sua senha de autorização de 6 dígitos para continuar."
+        submitLabel="Acessar prontuário"
+        pinCompleteHint="Senha completa. Toque em acessar prontuário."
+        icon={FileText}
+      />
+
+      <PatientMedicalRecordDrawer
+        open={medicalRecordOpen}
+        closing={medicalRecordClosing}
+        onClose={closeMedicalRecordDrawer}
+        onTransitionEnd={handleMedicalRecordTransitionEnd}
+        patientId={drawerUser?.id ?? null}
+        patientName={drawerUser?.name ?? ''}
+        patientPhotoUrl={drawerUser?.avatarUrl}
+        birthDate={drawerUser?.birthDate ?? ''}
+        age={drawerUser?.age ?? 0}
+        city={drawerProfileOverride?.city ?? drawerUser?.municipality ?? ''}
+        recordId={drawerUser?.municipalRecordId ?? ''}
+        loadProntuario={canAccessProntuario ? loadMedicalRecord : undefined}
       />
 
       <AdminPatientPreRegistrationDrawer
@@ -570,10 +791,19 @@ export function AdminPacientesMainPanel({
         contractingEntities={contractingEntities}
         defaultEntityId={defaultContractingEntityId}
         existingPatients={patients}
+        submitting={preRegistrationSubmitting}
         onClose={closePreRegistrationDrawer}
         onTransitionEnd={handlePreRegistrationTransitionEnd}
+        onFinalize={onCompletePreCadastro ? handleFinalizePreRegistration : undefined}
+        onSaveDraft={onSavePreCadastroDraft ? handleSavePreCadastroDraft : undefined}
+        onConcludeDraft={onConcludePreCadastroById}
+        onCancelDraft={onCancelPreCadastro}
+        onCreateDirect={onCreatePatientDirect ? handleCreatePatientDirect : undefined}
+        onUpdateExisting={onSavePatientEdits ? handleUpdateExistingPatient : undefined}
+        onLookupPatientByCpf={onLookupPatientByCpf}
+        onDraftSaved={() => showSuccessToast('Rascunho salvo com sucesso.')}
         onCompleted={(patient, isUpdate) => {
-          handlePreRegistrationCompleted(patient, isUpdate)
+          void handlePreRegistrationCompleted(patient, isUpdate)
           showSuccessToast(
             isUpdate
               ? `${patient.name} atualizado com sucesso.`

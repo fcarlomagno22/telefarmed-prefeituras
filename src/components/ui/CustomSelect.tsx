@@ -1,6 +1,7 @@
 import { ChevronDown } from 'lucide-react'
-import { useEffect, useId, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { FLOATING_POPOVER_Z_INDEX } from '../../config/overlayLayers'
+import { FloatingOverlayPortal } from './FloatingOverlayPortal'
 
 export type CustomSelectOption = {
   value: string
@@ -58,8 +59,8 @@ export function CustomSelect({
   const displayLabel = selected?.label ?? placeholder
   const isPlaceholder = !selected?.value
 
-  function updateMenuPosition() {
-    if (!triggerRef.current) return
+  function computeMenuPosition(): MenuPosition | null {
+    if (!triggerRef.current) return null
     const rect = triggerRef.current.getBoundingClientRect()
     const gap = 6
     const menuMaxHeight = 224
@@ -73,15 +74,20 @@ export function CustomSelect({
       ? Math.max(gap, rect.top - gap - maxHeight)
       : rect.bottom + gap
 
-    setMenuPosition({
+    return {
       top,
       left: rect.left,
       width: Math.max(rect.width, menuMinWidthPx),
       maxHeight,
-    })
+    }
   }
 
-  useEffect(() => {
+  function updateMenuPosition() {
+    const next = computeMenuPosition()
+    if (next) setMenuPosition(next)
+  }
+
+  useLayoutEffect(() => {
     if (!open) {
       setMenuPosition(null)
       return
@@ -96,7 +102,7 @@ export function CustomSelect({
       window.removeEventListener('resize', updateMenuPosition)
       window.removeEventListener('scroll', updateMenuPosition, true)
     }
-  }, [open])
+  }, [open, options.length, menuMinWidthPx])
 
   useEffect(() => {
     if (!open) return
@@ -129,47 +135,57 @@ export function CustomSelect({
     setOpen(false)
   }
 
+  function handleTriggerClick() {
+    if (open) {
+      setOpen(false)
+      return
+    }
+    const position = computeMenuPosition()
+    if (position) setMenuPosition(position)
+    setOpen(true)
+  }
+
   const dropdownMenu =
-    open && menuPosition
-      ? createPortal(
-          <ul
-            ref={menuRef}
-            id={listboxId}
-            role="listbox"
-            style={{
-              position: 'fixed',
-              top: menuPosition.top,
-              left: menuPosition.left,
-              width: menuPosition.width,
-              maxHeight: menuPosition.maxHeight,
-              zIndex: 10050,
-            }}
-            className="overflow-auto rounded-xl border border-gray-200/90 bg-white py-1 shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
-          >
-            {options.map((opt) => {
-              const isSelected = opt.value === value
-              return (
-                <li key={opt.value || '__empty'} role="presentation">
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => selectOption(opt.value)}
-                    className={`flex w-full whitespace-nowrap px-4 py-2.5 text-left text-sm transition ${
-                      isSelected
-                        ? 'bg-[var(--brand-primary-light)]/60 font-medium text-[var(--brand-primary)]'
-                        : 'text-gray-800 hover:bg-gray-50'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                </li>
-              )
-            })}
-          </ul>,
-          document.body,
-        )
-      : null
+    open && menuPosition ? (
+      <FloatingOverlayPortal>
+        <ul
+          ref={menuRef}
+          id={listboxId}
+          role="listbox"
+          style={{
+            position: 'fixed',
+            top: menuPosition.top,
+            left: menuPosition.left,
+            width: menuPosition.width,
+            maxHeight: menuPosition.maxHeight,
+            zIndex: FLOATING_POPOVER_Z_INDEX,
+            pointerEvents: 'auto',
+          }}
+            className="pointer-events-auto overflow-auto rounded-xl border border-gray-200/90 bg-white py-1 shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
+        >
+          {options.map((opt) => {
+            const isSelected = opt.value === value
+            return (
+              <li key={opt.value || '__empty'} role="presentation">
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={() => selectOption(opt.value)}
+                  className={`flex w-full whitespace-nowrap px-4 py-2.5 text-left text-sm transition ${
+                    isSelected
+                      ? 'bg-[var(--brand-primary-light)]/60 font-medium text-[var(--brand-primary)]'
+                      : 'text-gray-800 hover:bg-gray-50'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </FloatingOverlayPortal>
+    ) : null
 
   return (
     <div ref={containerRef} className="relative">
@@ -179,7 +195,7 @@ export function CustomSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listboxId}
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={handleTriggerClick}
         className={`${triggerBaseClass} ${triggerSizeClass[size]} ${open ? 'border-[var(--brand-primary)] ring-2 ring-[var(--brand-primary)]/15' : ''} ${className}`}
       >
         <span

@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { PrefeituraRegionDrawer } from '../components/prefeitura/PrefeituraRegionDrawer'
-import type { PrefeituraUbsRow } from '../data/prefeituraDashboardMock'
+import type { PrefeituraUbsRow } from '../types/prefeituraDashboard'
 import type { PrefeituraRegionVolume } from '../utils/prefeituraDashboardFilters'
 
 export type PrefeituraRegionDrawerPayload = {
