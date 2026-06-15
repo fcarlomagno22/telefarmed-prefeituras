@@ -93,6 +93,24 @@ export function computeStatsFromConsultas(
   return { previstos, naFila, atendidos, tempoMedioMin }
 }
 
+function parseReserveQueue(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value.map(String).filter(Boolean)
+}
+
+/** Titular na escala fechada, reserva na fila de backup, ou titular em plantão aberto confirmado. */
+export function resolvePlantaoRole(
+  slot: Pick<SlotAgendaRow, 'profissional_titular_id' | 'fila_reserva'>,
+  profissionalId: string,
+): 'titular' | 'reserva' {
+  if (slot.profissional_titular_id === profissionalId) return 'titular'
+
+  const reserveQueue = parseReserveQueue(slot.fila_reserva)
+  if (reserveQueue.includes(profissionalId)) return 'reserva'
+
+  return 'titular'
+}
+
 export function formatPlantaoApi(
   plantaoId: string,
   slot: SlotAgendaRow,
@@ -104,10 +122,7 @@ export function formatPlantaoApi(
   const { modality, modalityLabel } = mapModality(slot.modalidade)
   const inicioEm = `${slot.data} ${slot.hora_inicio}`
   const fimEm = `${slot.data} ${slot.hora_fim}`
-  const role =
-    slot.profissional_titular_id && slot.profissional_titular_id === profissionalId
-      ? 'titular'
-      : 'reserva'
+  const role = resolvePlantaoRole(slot, profissionalId)
 
   const municipality =
     [slot.cidade?.trim(), slot.cidade_uf?.trim()].filter(Boolean).join(' - ') || '—'

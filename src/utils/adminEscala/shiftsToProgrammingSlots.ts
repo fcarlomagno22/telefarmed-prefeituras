@@ -1,6 +1,7 @@
 import { specialties } from '../../data/specialties'
 import type { AdminEscalaProgrammingSlot, AdminEscalaShift } from '../../types/adminEscala'
 import type { AdminEscalaWeekday } from './buildClosedSchedule'
+import { toBrazilTimeInputValue } from './brazilDateTime'
 import { createDefaultRepasseRule } from './repasseRule'
 
 function toDateInputValue(iso: string) {
@@ -11,10 +12,7 @@ function toDateInputValue(iso: string) {
 }
 
 function toTimeInputValue(iso: string) {
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return '08:00'
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${pad(date.getHours())}:${pad(date.getMinutes())}`
+  return toBrazilTimeInputValue(iso)
 }
 
 function slotSignature(shift: AdminEscalaShift) {

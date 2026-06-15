@@ -65,10 +65,16 @@ export function mapEscalaError(error: unknown): {
     }
   }
 
-  if (pgCode === '23503' || pgCode === '23514' || pgCode === '22023') {
+  if (pgCode === '23503' || pgCode === '23514' || pgCode === '22023' || pgCode === '22008') {
     return {
-      statusCode: pgCode === '22023' ? 400 : 409,
-      body: { error: 'Não é possível concluir a operação com os dados informados.', code: 'CONFLICT' },
+      statusCode: 400,
+      body: {
+        error:
+          pgCode === '22008'
+            ? 'Horário do plantão inválido. Revise início e fim do turno.'
+            : 'Não é possível concluir a operação com os dados informados.',
+        code: 'INVALID_DATA',
+      },
     }
   }
 

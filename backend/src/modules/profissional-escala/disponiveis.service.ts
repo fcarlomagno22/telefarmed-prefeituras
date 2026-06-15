@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../../db/supabase.js'
 import { formatLocalTimestampAsIso } from '../../lib/escalaDateTime.js'
+import { isEscalaSlotHorarioEncerrado } from '../../lib/escalaSlotLifecycle.js'
 import { slotMatchesProfissionalScope } from './context.service.js'
 import { ProfissionalEscalaError } from './errors.js'
 import { formatProfissionalSlotRow } from './formatters.js'
@@ -47,6 +48,9 @@ export async function listProfissionalEscalaDisponiveis(
     .filter((row) => slotMatchesProfissionalScope(row, ctx))
     .filter((row) => !claimedSlotIds.has(String(row.id)))
     .filter((row) => Number(row.vagas_disponiveis ?? 0) > 0)
+    .filter(
+      (row) => !isEscalaSlotHorarioEncerrado(String(row.data), String(row.hora_fim)),
+    )
     .map((row) => formatProfissionalSlotRow(row))
 }
 
@@ -78,6 +82,14 @@ export async function loadSlotDisponivelForClaim(
   if (Number(row.vagas_disponiveis ?? 0) <= 0) {
     throw new ProfissionalEscalaError(
       'Não foi possível reservar este plantão.',
+      'SLOT_UNAVAILABLE',
+      409,
+    )
+  }
+
+  if (isEscalaSlotHorarioEncerrado(String(row.data), String(row.hora_fim))) {
+    throw new ProfissionalEscalaError(
+      'Este plantão já foi encerrado.',
       'SLOT_UNAVAILABLE',
       409,
     )

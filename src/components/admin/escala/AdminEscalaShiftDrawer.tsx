@@ -18,6 +18,8 @@ import {
   defaultClosedWeekdays,
   type AdminEscalaWeekday,
 } from '../../../utils/adminEscala/buildClosedSchedule'
+import { toBrazilTimeInputValue } from '../../../utils/adminEscala/brazilDateTime'
+import { isDailyTimeRangeValid } from '../../../utils/adminEscala/timeRange'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { AdminEscalaScopeFields } from './AdminEscalaScopeFields'
 import {
@@ -51,10 +53,7 @@ function toDateInputValue(iso: string) {
 }
 
 function toTimeInputValue(iso: string) {
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return '08:00'
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${pad(date.getHours())}:${pad(date.getMinutes())}`
+  return toBrazilTimeInputValue(iso)
 }
 
 function defaultClosedRange() {
@@ -280,7 +279,7 @@ export function AdminEscalaShiftDrawer({
     if (closedRangeEnd < closedRangeStart) {
       return 'A data final deve ser igual ou posterior à inicial.'
     }
-    if (dailyEnd <= dailyStart) {
+    if (!isDailyTimeRangeValid(dailyStart, dailyEnd)) {
       return 'O horário diário de término deve ser posterior ao início.'
     }
     if (weekdays.length === 0) {

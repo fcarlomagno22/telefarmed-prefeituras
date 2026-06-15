@@ -4,6 +4,7 @@ import type {
   ProfissionalShiftLifecycle,
   ProfissionalQueuePatient,
 } from '../../types/profissionalAgenda'
+import { isProfissionalPlantaoEncerrado } from './profissionalPlantaoEncerrado'
 
 function mapModality(modality: ProfissionalAgendaPlantaoApi['modality']): ProfissionalShift['modality'] {
   return modality === 'presencial' ? 'presencial_ubt' : 'tele'
@@ -97,7 +98,17 @@ export function mapPlantoesApiToProfissionalShifts(
     endedShiftIds?: Set<string>
   },
 ): ProfissionalShift[] {
+  const now = options?.now ?? new Date()
+
   return plantoes
+    .filter(
+      (plantao) =>
+        !isProfissionalPlantaoEncerrado({
+          plantaoStatus: plantao.plantaoStatus,
+          endAt: plantao.endAt,
+          now,
+        }),
+    )
     .map((plantao) => mapPlantaoApiToProfissionalShift(plantao, options))
     .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
 }

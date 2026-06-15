@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '../../db/supabase.js'
 import { EscalaError } from './errors.js'
 import { escapeIlikeTerm, formatSlotRow, groupCapturesBySlot } from './formatters.js'
+import { loadExecutionSummariesForSlots, assertSlotsMutableForAdmin } from './execution.service.js'
 import {
   collectLinkedProfissionaisBySlot,
   notifyLinkedProfessionalsPlantaoRemoved,
@@ -82,9 +83,18 @@ export async function listEscalaShifts(params: ListShiftsQuery = {}): Promise<Ad
   if (error) throw error
 
   const rows = (data ?? []) as SlotListagemRow[]
-  const capturesBySlot = await loadClaimCaptures(rows.map((row) => row.id))
+  const [capturesBySlot, executionBySlot] = await Promise.all([
+    loadClaimCaptures(rows.map((row) => row.id)),
+    loadExecutionSummariesForSlots(rows),
+  ])
 
-  return rows.map((row) => formatSlotRow(row, capturesBySlot.get(row.id) ?? []))
+  return rows.map((row) =>
+    formatSlotRow(
+      row,
+      capturesBySlot.get(row.id) ?? [],
+      executionBySlot.get(row.id),
+    ),
+  )
 }
 
 export async function deleteEscalaShifts(
@@ -97,6 +107,8 @@ export async function deleteEscalaShifts(
   if (rows.length !== uniqueIds.length) {
     throw new EscalaError('Um ou mais plantões não foram encontrados.', 'NOT_FOUND', 404)
   }
+
+  await assertSlotsMutableForAdmin(uniqueIds)
 
   const linkedBySlot = await collectLinkedProfissionaisBySlot(uniqueIds, rows)
   const notifiedCount = await notifyLinkedProfessionalsPlantaoRemoved(rows, linkedBySlot, admin)
@@ -127,6 +139,8 @@ export async function cancelEscalaPlantao(
   if (slot.status === 'cancelada') {
     throw new EscalaError('Plantão já está cancelado.', 'CONFLICT', 409)
   }
+
+  await assertSlotsMutableForAdmin([slotId])
 
   const now = new Date().toISOString()
   const { error: slotError } = await supabaseAdmin

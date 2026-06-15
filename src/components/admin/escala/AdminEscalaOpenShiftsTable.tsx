@@ -9,8 +9,13 @@ import {
 } from '../../profissional/escala/profissionalEscalaUi'
 import { formatProfissionalCurrency } from '../../../utils/profissional/formatProfissionalCurrency'
 import {
+  buildAdminEscalaExecutionStatusBadge,
   buildAdminEscalaFillStatusBadge,
+  canDeleteAdminEscalaShift,
+  canEditAdminEscalaShift,
+  canSuspendAdminEscalaShift,
   formatAdminEscalaModality,
+  shouldShowExecutionBadge,
 } from './adminEscalaUi'
 import { AdminEscalaListaShiftActionsMenu } from './AdminEscalaListaShiftActionsMenu'
 import { AdminEscalaRepasseBadge } from './AdminEscalaRepasseBadge'
@@ -173,13 +178,17 @@ export function AdminEscalaOpenShiftsTable({
               {shifts.map((shift) => {
                 const date = formatProfissionalEscalaCardDate(shift.startAt)
                 const fillBadge = buildAdminEscalaFillStatusBadge(shift)
+                const executionBadge = buildAdminEscalaExecutionStatusBadge(shift.executionStatus)
+                const showExecution = shouldShowExecutionBadge(shift)
                 const modeLabel = shift.assignmentMode === 'open' ? 'Aberto' : 'Atribuído'
                 const captures =
                   shift.claimedCaptures.length > 0
                     ? shift.claimedCaptures.map((c) => c.doctorName).join(', ')
                     : '—'
                 const isSelected = selectedIds.has(shift.id)
-                const canSuspend = canEdit && shift.status !== 'cancelada'
+                const rowCanEdit = canEdit && canEditAdminEscalaShift(shift)
+                const rowCanDelete = canDelete && canDeleteAdminEscalaShift(shift)
+                const canSuspend = canEdit && canSuspendAdminEscalaShift(shift)
 
                 return (
                   <tr
@@ -251,22 +260,38 @@ export function AdminEscalaOpenShiftsTable({
                       )}
                     </td>
                     <td className="px-3 py-3">
-                      <span
-                        className={[
-                          'inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ring-1',
-                          fillBadge.className,
-                        ].join(' ')}
-                      >
-                        {fillBadge.label}
-                      </span>
+                      <div className="flex flex-col items-center gap-1">
+                        {showExecution ? (
+                          <span
+                            className={[
+                              'inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ring-1',
+                              executionBadge.className,
+                            ].join(' ')}
+                          >
+                            {executionBadge.label}
+                          </span>
+                        ) : (
+                          <span
+                            className={[
+                              'inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ring-1',
+                              fillBadge.className,
+                            ].join(' ')}
+                          >
+                            {fillBadge.label}
+                          </span>
+                        )}
+                        {showExecution ? (
+                          <span className="text-[10px] text-gray-500">{fillBadge.label}</span>
+                        ) : null}
+                      </div>
                     </td>
                     <td className="px-2 py-3 align-middle">
                       <div className="flex justify-center">
                         <AdminEscalaListaShiftActionsMenu
                           label={formatShiftMenuLabel(shift)}
                           open={openMenuId === shift.id}
-                          canEdit={canEdit}
-                          canDelete={canDelete}
+                          canEdit={rowCanEdit}
+                          canDelete={rowCanDelete}
                           canSuspend={canSuspend}
                           onToggle={() =>
                             onToggleMenu(openMenuId === shift.id ? null : shift.id)

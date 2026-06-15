@@ -1,4 +1,4 @@
-import type { AdminEscalaShift, EscalaRepasseRule } from '../../../types/adminEscala'
+import type { AdminEscalaShift, AdminEscalaShiftExecutionDetail, EscalaRepasseRule } from '../../../types/adminEscala'
 import { adminEscalaDoctorOptions, adminEscalaShiftsInitial } from '../../../data/adminEscalaMock'
 import { adminClientesRows } from '../../../data/adminClientesMock'
 import { prefeituraRedeUnits } from '../../../data/prefeituraRedeMock'
@@ -146,6 +146,87 @@ export async function fetchAdminEscalaShifts(
   return mockDelay(clone(filtered), 60)
 }
 
+const mockExecutionByShiftId: Record<string, AdminEscalaShiftExecutionDetail> = {
+  'esc-1': {
+    slotId: 'esc-1',
+    scheduledStartAt: '2026-05-27T08:00:00',
+    scheduledEndAt: '2026-05-27T14:00:00',
+    executionStatus: 'realizado',
+    realizadoCount: 1,
+    confirmadoCount: 0,
+    totalPlantoes: 1,
+    plantoes: [
+      {
+        plantaoId: 'mock-plantao-esc-1',
+        profissionalId: '1',
+        profissionalNome: 'Dr. Carlos Mendes',
+        plantaoStatus: 'realizado',
+        confirmadoEm: '2026-05-26T18:00:00',
+        enteredAt: '2026-05-27T07:58:00',
+        endedAt: '2026-05-27T14:02:00',
+        sessaoAtiva: false,
+        plantaoEncerrado: true,
+        consultasAgendadas: 8,
+        encaixes: 2,
+        atendidos: 7,
+        naoCompareceu: 2,
+        desistiu: 1,
+        tempoMedioMin: 14,
+        duracaoPlantaoMin: 364,
+        percentualOnline: 92,
+        encerramentoFormal: true,
+      },
+    ],
+  },
+}
+
+export async function fetchAdminEscalaShiftExecution(
+  _accessToken: string,
+  shiftId: string,
+): Promise<AdminEscalaShiftExecutionDetail> {
+  void _accessToken
+  const shift = shiftsState.find((item) => item.id === shiftId)
+  if (!shift) {
+    throw new AdminEscalaApiError('Plantão não encontrado.', 404, 'NOT_FOUND')
+  }
+
+  const preset = mockExecutionByShiftId[shiftId]
+  if (preset) return mockDelay(clone(preset), 80)
+
+  return mockDelay(
+    {
+      slotId: shift.id,
+      scheduledStartAt: shift.startAt,
+      scheduledEndAt: shift.endAt,
+      executionStatus: shift.executionStatus,
+      realizadoCount: shift.realizadoCount,
+      confirmadoCount: shift.confirmadoCount,
+      totalPlantoes: shift.totalPlantoes,
+      plantoes: shift.claimedCaptures.map((capture, index) => ({
+        plantaoId: `mock-plantao-${shift.id}-${index}`,
+        profissionalId: capture.doctorId,
+        profissionalNome: capture.doctorName,
+        plantaoStatus: shift.executionStatus === 'realizado' ? 'realizado' : 'confirmado',
+        confirmadoEm: capture.claimedAt,
+        enteredAt: null,
+        endedAt: null,
+        sessaoAtiva: false,
+        plantaoEncerrado: shift.executionStatus === 'realizado',
+        consultasAgendadas: 0,
+        encaixes: 0,
+        atendidos: 0,
+        naoCompareceu: 0,
+        desistiu: 0,
+        tempoMedioMin: null,
+        duracaoPlantaoMin: null,
+        percentualOnline: null,
+        encerramentoFormal: false,
+      })),
+    },
+    80,
+  )
+}
+
 export async function fetchAdminEscalaSummary(_accessToken: string): Promise<EscalaSummaryApi> {
   void _accessToken
   const published = shiftsState.filter((item) => item.status === 'publicada')
@@ -236,19 +317,46 @@ export async function saveAdminEscalaBatch(
   _accessToken: string,
   payload: BatchSavePayload,
 ): Promise<{ shifts: AdminEscalaShift[]; programacaoId: string; batchId: string }> {
+  const mutableCheckIds = [
+    ...(payload.removeShiftIds ?? []),
+    ...payload.shifts.map((shift) => shift.id).filter((id): id is string => Boolean(id)),
+  ]
+  const locked = shiftsState.filter(
+    (item) =>
+      mutableCheckIds.includes(item.id) &&
+      (item.executionStatus === 'em_andamento' || item.executionStatus === 'realizado'),
+  )
+  if (locked.length > 0) {
+    throw new AdminEscalaApiError(
+      'Plantões em andamento ou já realizados não podem ser editados.',
+      'CONFLICT',
+      409,
+    )
+  }
+
   if (payload.removeShiftIds?.length) {
     shiftsState = shiftsState.filter((item) => !payload.removeShiftIds?.includes(item.id))
   }
-  if (payload.replaceBatchId) {
+
+  const existingById = new Map(
+    shiftsState
+      .filter((item) => item.batchId === (payload.replaceBatchId ?? payload.batchId))
+      .map((item) => [item.id, item]),
+  )
+
+  if (payload.replaceBatchId && existingById.size === 0) {
     shiftsState = shiftsState.filter((item) => item.batchId !== payload.replaceBatchId)
   }
-  const created: AdminEscalaShift[] = payload.shifts.map((item, index) => {
+
+  const saved: AdminEscalaShift[] = payload.shifts.map((item, index) => {
     const specialtyName =
       item.specialty ??
       adminConfiguracoesInitial.specialties.find((specialty) => specialty.id === item.specialtyId)?.name ??
       'Especialidade'
+    const existing = item.id ? existingById.get(item.id) : undefined
+    const now = new Date().toISOString()
     return {
-      id: `esc-${Date.now()}-${index}`,
+      id: existing?.id ?? item.id ?? `esc-${Date.now()}-${index}`,
       batchId: payload.batchId,
       contratoEntidadeId: payload.contratoEntidadeId ?? null,
       assignmentMode: item.assignmentMode,
@@ -259,8 +367,8 @@ export async function saveAdminEscalaBatch(
       modality: item.modality,
       startAt: item.startAt,
       endAt: item.endAt,
-      turn: 'manha',
-      turnLabel: 'Manhã',
+      turn: existing?.turn ?? 'manha',
+      turnLabel: existing?.turnLabel ?? 'Manhã',
       prefeituraScope: payload.prefeituraScope,
       ubtScope: payload.ubtScope,
       status: payload.status,
@@ -272,16 +380,25 @@ export async function saveAdminEscalaBatch(
       city: item.city ?? 'Brasília',
       cityUf: item.cityUf ?? 'Brasília / DF',
       fullAddress: item.fullAddress ?? null,
-      claimedCaptures: [],
+      claimedCaptures: existing?.claimedCaptures ?? [],
       notes: item.notes ?? '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
     }
   })
-  shiftsState = [...created, ...shiftsState]
+
+  if (payload.replaceBatchId) {
+    const keepIds = new Set(saved.map((item) => item.id))
+    shiftsState = shiftsState.filter(
+      (item) => item.batchId !== payload.replaceBatchId || keepIds.has(item.id),
+    )
+  }
+
+  const savedIds = new Set(saved.map((item) => item.id))
+  shiftsState = [...saved, ...shiftsState.filter((item) => !savedIds.has(item.id))]
   return mockDelay(
     {
-      shifts: clone(created),
+      shifts: clone(saved),
       programacaoId: `prog-${payload.batchId}`,
       batchId: payload.batchId,
     },
@@ -293,6 +410,18 @@ export async function deleteAdminEscalaShifts(
   _accessToken: string,
   shiftIds: string[],
 ): Promise<{ message: string; notifiedCount: number }> {
+  const locked = shiftsState.filter(
+    (item) =>
+      shiftIds.includes(item.id) &&
+      (item.executionStatus === 'em_andamento' || item.executionStatus === 'realizado'),
+  )
+  if (locked.length > 0) {
+    throw new AdminEscalaApiError(
+      'Plantões em andamento ou já realizados não podem ser excluídos.',
+      'CONFLICT',
+      409,
+    )
+  }
   shiftsState = shiftsState.filter((item) => !shiftIds.includes(item.id))
   return mockDelay({ message: 'Plantão(ões) excluído(s) com sucesso.', notifiedCount: 0 }, 60)
 }
@@ -387,6 +516,13 @@ export async function cancelAdminEscalaPlantao(
 ): Promise<void> {
   const row = shiftsState.find((item) => item.id === plantaoId)
   if (!row) throw new AdminEscalaApiError('Plantão não encontrado.', 404)
+  if (row.executionStatus === 'em_andamento' || row.executionStatus === 'realizado') {
+    throw new AdminEscalaApiError(
+      'Plantões em andamento ou já realizados não podem ser suspensos.',
+      'CONFLICT',
+      409,
+    )
+  }
   row.status = 'cancelada'
   row.notes = motivoCancelamento
   row.updatedAt = new Date().toISOString()

@@ -1,5 +1,7 @@
 import type { AdminEscalaShift, AdminEscalaShiftStatus } from '../../types/adminEscala'
+import { buildBrazilWallClockIso } from './brazilDateTime'
 import { getEscalaRangeDaySpan, isSingleDayEscalaPeriod, parseDateOnly } from './dateRange'
+import { isDailyTimeRangeValid } from './timeRange'
 
 export type AdminEscalaWeekday = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
@@ -15,11 +17,6 @@ export type BuildClosedScheduleInput = {
   weekdays: AdminEscalaWeekday[]
   batchId: string
   status: AdminEscalaShiftStatus
-}
-
-function parseTimeParts(time: string) {
-  const [hours, minutes] = time.split(':').map(Number)
-  return { hours: hours ?? 0, minutes: minutes ?? 0 }
 }
 
 function toDateKey(date: Date) {
@@ -40,31 +37,27 @@ export function buildClosedScheduleShifts(input: BuildClosedScheduleInput): Admi
 
   const singleDay = isSingleDayEscalaPeriod(input.rangeStart, input.rangeEnd)
   const weekdaySet = new Set(input.weekdays)
-  const { hours: startH, minutes: startM } = parseTimeParts(input.dailyStart)
-  const { hours: endH, minutes: endM } = parseTimeParts(input.dailyEnd)
   const stamp = new Date().toISOString()
   const shifts: AdminEscalaShift[] = []
+
+  if (!isDailyTimeRangeValid(input.dailyStart, input.dailyEnd)) {
+    return []
+  }
 
   const cursor = new Date(start)
   while (cursor <= end) {
     if (singleDay || weekdaySet.has(cursor.getDay() as AdminEscalaWeekday)) {
-      const dayStart = new Date(cursor)
-      dayStart.setHours(startH, startM, 0, 0)
-      const dayEnd = new Date(cursor)
-      dayEnd.setHours(endH, endM, 0, 0)
-      if (dayEnd > dayStart) {
-        const dateKey = toDateKey(cursor)
-        shifts.push({
-          ...input.template,
-          id: `${input.batchId}-${dateKey}`,
-          batchId: input.batchId,
-          startAt: dayStart.toISOString(),
-          endAt: dayEnd.toISOString(),
-          status: input.status,
-          createdAt: stamp,
-          updatedAt: stamp,
-        })
-      }
+      const dateKey = toDateKey(cursor)
+      shifts.push({
+        ...input.template,
+        id: `${input.batchId}-${dateKey}`,
+        batchId: input.batchId,
+        startAt: buildBrazilWallClockIso(dateKey, input.dailyStart),
+        endAt: buildBrazilWallClockIso(dateKey, input.dailyEnd),
+        status: input.status,
+        createdAt: stamp,
+        updatedAt: stamp,
+      })
     }
     cursor.setDate(cursor.getDate() + 1)
   }

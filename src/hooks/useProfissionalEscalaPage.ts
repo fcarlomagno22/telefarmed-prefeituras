@@ -13,6 +13,7 @@ import {
   type ProfissionalEscalaSummaryApi,
 } from '../lib/services/profissional/escala'
 import { normalizeProfissionalEscalaShifts } from '../utils/profissional/normalizeProfissionalEscalaShift'
+import { filterPlantoesAtivosParaProfissional } from '../utils/profissional/profissionalPlantaoEncerrado'
 import {
   readPortalPageCache,
   writePortalPageCache,
@@ -88,12 +89,15 @@ export function useProfissionalEscalaPage(dateFilters?: EscalaDateFilters) {
         status: 'reservado_mim' as const,
       }))
 
-      setAvailableShifts(normalizeProfissionalEscalaShifts(disponiveis))
-      setReservedShifts(normalizeProfissionalEscalaShifts(nextReserved))
+      const activeDisponiveis = filterPlantoesAtivosParaProfissional(disponiveis)
+      const activeReserved = filterPlantoesAtivosParaProfissional(nextReserved)
+
+      setAvailableShifts(normalizeProfissionalEscalaShifts(activeDisponiveis))
+      setReservedShifts(normalizeProfissionalEscalaShifts(activeReserved))
       setSummary(summaryData)
       writePortalPageCache(cacheKey, {
-        availableShifts: normalizeProfissionalEscalaShifts(disponiveis),
-        reservedShifts: normalizeProfissionalEscalaShifts(nextReserved),
+        availableShifts: normalizeProfissionalEscalaShifts(activeDisponiveis),
+        reservedShifts: normalizeProfissionalEscalaShifts(activeReserved),
         summary: summaryData,
       })
     } catch (error) {

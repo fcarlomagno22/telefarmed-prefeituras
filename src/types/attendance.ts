@@ -8,6 +8,7 @@ export type StationStatus =
   | 'contacts'
   | 'address'
   | 'photo'
+  | 'clinical_triage'
   | 'waiting_room'
   | 'waiting_doctor'
   | 'in_consultation'
@@ -197,11 +198,16 @@ export const unitGuideSteps = [
   },
   {
     step: 3,
+    title: 'Triagem clínica',
+    description: 'Registre motivo, sintomas e informações de saúde para o médico.',
+  },
+  {
+    step: 4,
     title: 'Entre na videochamada',
     description: 'O paciente usa este equipamento para falar com o médico.',
   },
   {
-    step: 4,
+    step: 5,
     title: 'Finalize e libere o Terminal',
     description: 'Encerre a consulta para atender o próximo paciente.',
   },

@@ -19,6 +19,9 @@ export type EscalaInscricaoApi = api.EscalaInscricaoApi
 export const AdminEscalaApiError = useApi ? api.AdminEscalaApiError : mock.AdminEscalaApiError
 
 export const fetchAdminEscalaShifts = useApi ? api.fetchAdminEscalaShifts : mock.fetchAdminEscalaShifts
+export const fetchAdminEscalaShiftExecution = useApi
+  ? api.fetchAdminEscalaShiftExecution
+  : mock.fetchAdminEscalaShiftExecution
 export const fetchAdminEscalaSummary = useApi ? api.fetchAdminEscalaSummary : mock.fetchAdminEscalaSummary
 export const fetchAdminEscalaCatalog = useApi ? api.fetchAdminEscalaCatalog : mock.fetchAdminEscalaCatalog
 export const fetchAdminEscalaContratos = useApi ? api.fetchAdminEscalaContratos : mock.fetchAdminEscalaContratos

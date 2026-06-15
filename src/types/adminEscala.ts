@@ -46,6 +46,46 @@ export type EscalaRepasseRule = {
 
 export type AdminEscalaFillStatus = 'na' | 'aberto' | 'parcial' | 'lotado'
 
+export type AdminEscalaExecutionStatus =
+  | 'na'
+  | 'agendado'
+  | 'em_andamento'
+  | 'realizado'
+  | 'parcial'
+  | 'expirado'
+
+export type AdminEscalaPlantaoExecution = {
+  plantaoId: string
+  profissionalId: string
+  profissionalNome: string
+  plantaoStatus: 'confirmado' | 'realizado' | 'cancelado' | 'falta_profissional'
+  confirmadoEm: string
+  enteredAt: string | null
+  endedAt: string | null
+  sessaoAtiva: boolean
+  plantaoEncerrado: boolean
+  consultasAgendadas: number
+  encaixes: number
+  atendidos: number
+  naoCompareceu: number
+  desistiu: number
+  tempoMedioMin: number | null
+  duracaoPlantaoMin: number | null
+  percentualOnline: number | null
+  encerramentoFormal: boolean
+}
+
+export type AdminEscalaShiftExecutionDetail = {
+  slotId: string
+  scheduledStartAt: string
+  scheduledEndAt: string
+  executionStatus: AdminEscalaExecutionStatus
+  realizadoCount: number
+  confirmadoCount: number
+  totalPlantoes: number
+  plantoes: AdminEscalaPlantaoExecution[]
+}
+
 export type AdminEscalaClaimCapture = {
   doctorId: string
   doctorName: string
@@ -120,6 +160,10 @@ export type AdminEscalaShift = {
   notes: string
   createdAt: string
   updatedAt: string
+  executionStatus: AdminEscalaExecutionStatus
+  realizadoCount: number
+  confirmadoCount: number
+  totalPlantoes: number
 }
 
 /** JSON em `escala_slots.repasse_regra` — espelha `escalaRepasseRuleSchema` do backend. */

@@ -10,6 +10,7 @@ import { CustomSelect } from '../ui/CustomSelect'
 import { KpiStatCards } from '../ui/KpiStatCards'
 import { SituationStatusBadge } from '../ui/SituationStatusBadge'
 import { buildPrefeituraDashboardFilterSummary } from '../../utils/prefeituraDashboardFilters'
+import { AdminTriageChartsSection } from '../admin/dashboard/AdminTriageChartsSection'
 import { PrefeituraAlertsPanel } from './PrefeituraAlertsPanel'
 import { PrefeituraConsultationPackagePanel } from './PrefeituraConsultationPackagePanel'
 import { PrefeituraHourlyChart } from './PrefeituraHourlyChart'
@@ -274,6 +275,18 @@ export function PrefeituraDashboardMainPanel() {
               />
             </div>
           </section>
+
+          <AdminTriageChartsSection
+            data={dashboard.triageCharts}
+            animationKey={dashboard.filterKey}
+            periodLabel={
+              filterOptions.period.find((option) => option.value === period)?.label ??
+              'Período selecionado'
+            }
+            sectionLabel="Saúde da população"
+            title="Triagem clínica da rede municipal"
+            scopeHint="somente pacientes da sua prefeitura"
+          />
 
           <DashCard
             className="w-full xl:col-span-12"

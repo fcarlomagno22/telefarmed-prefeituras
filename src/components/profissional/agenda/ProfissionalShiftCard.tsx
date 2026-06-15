@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import type { ProfissionalShift } from '../../../types/profissionalAgenda'
 import {
+  canEnterProfissionalShift,
   formatProfissionalShiftDateLong,
   formatRelativeMinutes,
   getProfissionalShiftTiming,
@@ -61,8 +62,9 @@ export function ProfissionalShiftCard({
   tourHighlightEnterShift = false,
 }: ProfissionalShiftCardProps) {
   const timing = getProfissionalShiftTiming(shift)
-  const canEnter =
-    shift.lifecycle === 'aguardando_inicio' || shift.lifecycle === 'em_andamento'
+  const canEnter = canEnterProfissionalShift(shift)
+  const awaitingStart =
+    shift.lifecycle === 'aguardando_inicio' && timing.startsInMinutes !== null
   const isEnded = shift.lifecycle === 'encerrado'
   const showStats =
     shift.stats.previstos > 0 ||
@@ -129,6 +131,13 @@ export function ProfissionalShiftCard({
               {shift.lifecycle === 'em_andamento' ? 'Continuar plantão' : 'Entrar no plantão'}
               <ArrowRight className="h-4 w-4 shrink-0" strokeWidth={2.25} />
             </button>
+          ) : awaitingStart ? (
+            <span
+              className="inline-flex w-full items-center justify-center rounded-xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm font-semibold text-amber-900 lg:w-auto lg:justify-self-end"
+              title={`Plantão disponível a partir das ${shift.startTime}`}
+            >
+              Disponível às {shift.startTime}
+            </span>
           ) : isEnded ? (
             <span className="inline-flex w-full justify-center rounded-xl bg-gray-100 px-4 py-2.5 text-xs font-semibold text-gray-600 lg:w-auto lg:justify-self-end">
               Plantão encerrado

@@ -90,6 +90,53 @@ export type AdminEscalaShiftDto = {
   notes: string
   createdAt: string
   updatedAt: string
+  executionStatus: AdminEscalaExecutionStatus
+  realizadoCount: number
+  confirmadoCount: number
+  totalPlantoes: number
+}
+
+export type AdminEscalaExecutionStatus =
+  | 'na'
+  | 'agendado'
+  | 'em_andamento'
+  | 'realizado'
+  | 'parcial'
+  | 'expirado'
+
+export type AdminEscalaShiftExecutionSummaryDto = {
+  executionStatus: AdminEscalaExecutionStatus
+  realizadoCount: number
+  confirmadoCount: number
+  totalPlantoes: number
+}
+
+export type AdminEscalaPlantaoExecutionDto = {
+  plantaoId: string
+  profissionalId: string
+  profissionalNome: string
+  plantaoStatus: 'confirmado' | 'realizado' | 'cancelado' | 'falta_profissional'
+  confirmadoEm: string
+  enteredAt: string | null
+  endedAt: string | null
+  sessaoAtiva: boolean
+  plantaoEncerrado: boolean
+  consultasAgendadas: number
+  encaixes: number
+  atendidos: number
+  naoCompareceu: number
+  desistiu: number
+  tempoMedioMin: number | null
+  duracaoPlantaoMin: number | null
+  percentualOnline: number | null
+  encerramentoFormal: boolean
+}
+
+export type AdminEscalaShiftExecutionDetailDto = AdminEscalaShiftExecutionSummaryDto & {
+  slotId: string
+  scheduledStartAt: string
+  scheduledEndAt: string
+  plantoes: AdminEscalaPlantaoExecutionDto[]
 }
 
 export type EscalaSummaryDto = {

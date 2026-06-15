@@ -1,4 +1,6 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { isPlantaoEncerradoParaProfissional } from '../../lib/escalaSlotLifecycle.js'
+import { isSlotStartReached } from '../../lib/escalaDateTime.js'
 import { isMissingSupabaseResource } from '../../lib/supabaseErrors.js'
 import { ProfissionalAgendaError } from './errors.js'
 import type {
@@ -42,6 +44,36 @@ export async function enterProfissionalPlantao(
 ): Promise<ProfissionalAgendaActiveSessionApi> {
   const plantao = await assertPlantaoBelongsToProfissional(profissionalId, plantaoId)
 
+  if (plantao.status === 'realizado') {
+    throw new ProfissionalAgendaError('Este plantão já foi encerrado.', 'CONFLICT', 409)
+  }
+
+  const { data: slot, error: slotError } = await supabaseAdmin
+    .from('escala_slots')
+    .select('data, hora_inicio, hora_fim, status')
+    .eq('id', plantao.slot_id)
+    .maybeSingle()
+
+  if (slotError) throw slotError
+  if (slot && !isSlotStartReached(String(slot.data), String(slot.hora_inicio))) {
+    throw new ProfissionalAgendaError(
+      'O plantão ainda não começou. Aguarde o horário de início previsto.',
+      'INVALID_DATA',
+      400,
+    )
+  }
+  if (
+    slot &&
+    isPlantaoEncerradoParaProfissional({
+      plantaoStatus: plantao.status,
+      slotData: String(slot.data),
+      slotHoraFim: String(slot.hora_fim),
+      slotStatus: String(slot.status),
+    })
+  ) {
+    throw new ProfissionalAgendaError('Este plantão já foi encerrado.', 'CONFLICT', 409)
+  }
+
   const active = await getActivePlantaoSession(profissionalId)
   if (active && active.plantaoId !== plantaoId) {
     throw new ProfissionalAgendaError(
@@ -84,10 +116,16 @@ export async function enterProfissionalPlantao(
   return mapSessaoRow(data as SessaoRow)
 }
 
+export type EndProfissionalPlantaoOptions = {
+  endedAt?: string
+  encerramentoAutomatico?: boolean
+}
+
 export async function endProfissionalPlantao(
   profissionalId: string,
   plantaoId: string,
   summary: ProfissionalAgendaEndShiftSummaryInput,
+  options?: EndProfissionalPlantaoOptions,
 ): Promise<ProfissionalAgendaActiveSessionApi> {
   await assertPlantaoBelongsToProfissional(profissionalId, plantaoId)
 
@@ -114,12 +152,17 @@ export async function endProfissionalPlantao(
     throw new ProfissionalAgendaError('Nenhuma sessão ativa para este plantão.', 'NOT_FOUND', 404)
   }
 
-  const endedAt = new Date().toISOString()
+  const endedAt = options?.endedAt ?? new Date().toISOString()
+  const summaryPayload = {
+    ...summary,
+    encerramentoFormal: true,
+    ...(options?.encerramentoAutomatico ? { encerramentoAutomatico: true } : {}),
+  }
   const { data, error } = await supabaseAdmin
     .from('profissional_plantao_sessoes')
     .update({
       ended_at: endedAt,
-      summary,
+      summary: summaryPayload,
     })
     .eq('id', sessao.id)
     .select('id, plantao_id, entered_at, ended_at, summary')

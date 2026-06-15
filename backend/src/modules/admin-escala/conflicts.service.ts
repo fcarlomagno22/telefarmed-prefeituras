@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '../../db/supabase.js'
-import { parseIsoToLocalDateAndTime } from '../../lib/escalaDateTime.js'
+import { resolveSlotClockBoundsFromIso } from '../../lib/escalaDateTime.js'
 import { EscalaError } from './errors.js'
 import {
   assertValidRepasseRule,
@@ -180,21 +180,101 @@ export async function validateContratoEntidade(contratoId: string | undefined): 
   }
 }
 
-export function buildSlotInsertRow(input: {
-  shift: ConflictsBody['shifts'][number] & {
-    specialtyId: string
-    modality: 'tele' | 'hibrido' | 'presencial_ubt'
-    assignmentMode: 'assigned' | 'open'
-    amountCents: number
-    repasseRule: EscalaRepasseRule
-    unitName?: string
-    city?: string
-    cityUf?: string
-    fullAddress?: string | null
-    notes?: string
-    vacancies?: number
-    totalVacancies?: number
+type SlotPayloadInput = ConflictsBody['shifts'][number] & {
+  specialtyId: string
+  modality: 'tele' | 'hibrido' | 'presencial_ubt'
+  assignmentMode: 'assigned' | 'open'
+  amountCents: number
+  repasseRule: EscalaRepasseRule
+  unitName?: string
+  city?: string
+  cityUf?: string
+  fullAddress?: string | null
+  notes?: string
+  vacancies?: number
+  totalVacancies?: number
+}
+
+function buildSlotPayloadFields(
+  shift: SlotPayloadInput,
+  context: {
+    programacaoId: string
+    batchId: string
+    status: 'rascunho' | 'publicada'
+    prefeituraScope: unknown
+    ubtScope: unknown
+    contratoEntidadeId?: string
+    publishedAt: string | null
+  },
+): Record<string, unknown> {
+  let date: string
+  let horaInicio: string
+  let horaFim: string
+
+  try {
+    const bounds = resolveSlotClockBoundsFromIso(shift.startAt, shift.endAt)
+    date = bounds.date
+    horaInicio = bounds.horaInicio
+    horaFim = bounds.horaFim
+  } catch (error) {
+    const message =
+      error instanceof Error && error.message === 'Horário final deve ser posterior ao inicial.'
+        ? error.message
+        : 'Data/hora do plantão inválida.'
+    throw new EscalaError(message, 'INVALID_DATA', 400)
   }
+
+  if (shift.modality === 'presencial_ubt' && !shift.fullAddress?.trim()) {
+    throw new EscalaError('Plantões presenciais precisam de endereço completo.', 'INVALID_DATA', 400)
+  }
+
+  if (shift.assignmentMode === 'assigned' && !shift.primaryDoctorId) {
+    throw new EscalaError('Modo atribuído exige médico titular.', 'INVALID_DATA', 400)
+  }
+
+  const totalVacancies =
+    shift.assignmentMode === 'open'
+      ? Math.max(1, shift.vacancies ?? shift.totalVacancies ?? 1)
+      : 0
+
+  if (shift.assignmentMode === 'open' && totalVacancies <= 0) {
+    throw new EscalaError('Plantões abertos precisam de ao menos uma vaga.', 'INVALID_DATA', 400)
+  }
+
+  assertValidRepasseRule(shift.repasseRule)
+  const valorCentavos = resolveValorCentavosFromRepasseRule(shift.repasseRule)
+
+  return {
+    programacao_id: context.programacaoId,
+    lote_id: context.batchId,
+    data: date,
+    hora_inicio: horaInicio,
+    hora_fim: horaFim,
+    especialidade_id: shift.specialtyId,
+    modalidade: shift.modality,
+    modo_atribuicao: shift.assignmentMode,
+    vagas: totalVacancies,
+    valor_centavos: valorCentavos,
+    repasse_regra: serializeRepasseRule(shift.repasseRule),
+    status: context.status,
+    profissional_titular_id: shift.assignmentMode === 'assigned' ? shift.primaryDoctorId : null,
+    fila_reserva: shift.backupDoctorIds ?? [],
+    escopo_prefeitura: context.prefeituraScope,
+    escopo_ubt: context.ubtScope,
+    contrato_entidade_id: context.contratoEntidadeId ?? null,
+    unidade_nome: shift.unitName?.trim() || '',
+    cidade: shift.city?.trim() || '',
+    cidade_uf: shift.cityUf?.trim() || '',
+    endereco_completo:
+      shift.modality === 'presencial_ubt' ? shift.fullAddress?.trim() || null : null,
+    notas: shift.notes?.trim() || '',
+    publicado_em: context.status === 'publicada' ? context.publishedAt : null,
+    atualizado_em: new Date().toISOString(),
+  }
+}
+
+export function buildSlotInsertRow(input: {
+  shift: SlotPayloadInput
   programacaoId: string
   batchId: string
   status: 'rascunho' | 'publicada'
@@ -203,60 +283,20 @@ export function buildSlotInsertRow(input: {
   contratoEntidadeId?: string
   publishedAt: string | null
 }): Record<string, unknown> {
-  const { date, time: horaInicio } = parseIsoToLocalDateAndTime(input.shift.startAt)
-  const { time: horaFim } = parseIsoToLocalDateAndTime(input.shift.endAt)
+  return buildSlotPayloadFields(input.shift, input)
+}
 
-  if (horaFim <= horaInicio) {
-    throw new EscalaError('Horário final deve ser posterior ao inicial.', 'INVALID_DATA', 400)
-  }
-
-  if (input.shift.modality === 'presencial_ubt' && !input.shift.fullAddress?.trim()) {
-    throw new EscalaError('Plantões presenciais precisam de endereço completo.', 'INVALID_DATA', 400)
-  }
-
-  if (input.shift.assignmentMode === 'assigned' && !input.shift.primaryDoctorId) {
-    throw new EscalaError('Modo atribuído exige médico titular.', 'INVALID_DATA', 400)
-  }
-
-  const totalVacancies =
-    input.shift.assignmentMode === 'open'
-      ? Math.max(1, input.shift.vacancies ?? input.shift.totalVacancies ?? 1)
-      : 0
-
-  if (input.shift.assignmentMode === 'open' && totalVacancies <= 0) {
-    throw new EscalaError('Plantões abertos precisam de ao menos uma vaga.', 'INVALID_DATA', 400)
-  }
-
-  assertValidRepasseRule(input.shift.repasseRule)
-  const valorCentavos = resolveValorCentavosFromRepasseRule(input.shift.repasseRule)
-
-  return {
-    programacao_id: input.programacaoId,
-    lote_id: input.batchId,
-    data: date,
-    hora_inicio: horaInicio,
-    hora_fim: horaFim,
-    especialidade_id: input.shift.specialtyId,
-    modalidade: input.shift.modality,
-    modo_atribuicao: input.shift.assignmentMode,
-    vagas: totalVacancies,
-    valor_centavos: valorCentavos,
-    repasse_regra: serializeRepasseRule(input.shift.repasseRule),
-    status: input.status,
-    profissional_titular_id:
-      input.shift.assignmentMode === 'assigned' ? input.shift.primaryDoctorId : null,
-    fila_reserva: input.shift.backupDoctorIds ?? [],
-    escopo_prefeitura: input.prefeituraScope,
-    escopo_ubt: input.ubtScope,
-    contrato_entidade_id: input.contratoEntidadeId ?? null,
-    unidade_nome: input.shift.unitName?.trim() || '',
-    cidade: input.shift.city?.trim() || '',
-    cidade_uf: input.shift.cityUf?.trim() || '',
-    endereco_completo:
-      input.shift.modality === 'presencial_ubt' ? input.shift.fullAddress?.trim() || null : null,
-    notas: input.shift.notes?.trim() || '',
-    publicado_em: input.status === 'publicada' ? input.publishedAt : null,
-  }
+export function buildSlotUpdateRow(input: {
+  shift: SlotPayloadInput
+  programacaoId: string
+  batchId: string
+  status: 'rascunho' | 'publicada'
+  prefeituraScope: unknown
+  ubtScope: unknown
+  contratoEntidadeId?: string
+  publishedAt: string | null
+}): Record<string, unknown> {
+  return buildSlotPayloadFields(input.shift, input)
 }
 
 export async function formatSavedSlots(slotIds: string[]) {

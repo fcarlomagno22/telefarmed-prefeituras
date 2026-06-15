@@ -150,6 +150,21 @@ export function PrefeituraDashboardMainPanelSkeleton() {
             </div>
           </section>
 
+          <section className="min-w-0 space-y-3 xl:col-span-12">
+            <div className="px-0.5">
+              <Skeleton className="h-4 w-36" />
+              <Skeleton className="mt-2 h-6 w-64" />
+              <Skeleton className="mt-1 h-3 w-80" />
+            </div>
+            <div className="grid gap-4 xl:grid-cols-12">
+              <Skeleton className="min-h-[18rem] rounded-2xl xl:col-span-4" />
+              <Skeleton className="min-h-[18rem] rounded-2xl xl:col-span-8" />
+              <Skeleton className="min-h-[16rem] rounded-2xl xl:col-span-4" />
+              <Skeleton className="min-h-[16rem] rounded-2xl xl:col-span-4" />
+              <Skeleton className="min-h-[16rem] rounded-2xl xl:col-span-4" />
+            </div>
+          </section>
+
           <DashCardSkeleton
             className="w-full xl:col-span-12"
             titleWidth="w-56"

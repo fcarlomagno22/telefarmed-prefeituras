@@ -2,17 +2,25 @@ import type { ReactNode } from 'react'
 import { CalendarClock, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import type { AdminEscalaShift } from '../../../types/adminEscala'
+import type { AdminEscalaShift, AdminEscalaShiftExecutionDetail } from '../../../types/adminEscala'
+import { useAdminAuth } from '../../../contexts/AdminAuthContext'
+import { fetchAdminEscalaShiftExecution, isAdminEscalaApiError } from '../../../lib/services/admin/escala'
 import { formatProfissionalCurrency } from '../../../utils/profissional/formatProfissionalCurrency'
 import {
+  buildAdminEscalaExecutionStatusBadge,
   buildAdminEscalaFillStatusBadge,
   buildAdminEscalaStatusBadge,
   formatAdminEscalaModality,
   formatAdminEscalaPeriod,
   formatAdminEscalaScopeSummary,
   getAdminEscalaDoctorLabel,
+  shouldShowExecutionBadge,
 } from './adminEscalaUi'
 import { AdminEscalaRepasseBadge } from './AdminEscalaRepasseBadge'
+import {
+  AdminEscalaShiftExecutionPanel,
+  AdminEscalaShiftExecutionSectionHeader,
+} from './AdminEscalaShiftExecutionPanel'
 import {
   formatCriteriosPresencaResumo,
   formatRepasseRuleSummary,
@@ -42,7 +50,11 @@ export function AdminEscalaShiftViewDrawer({
   onClose,
   onTransitionEnd,
 }: AdminEscalaShiftViewDrawerProps) {
+  const { getAccessToken } = useAdminAuth()
   const [entered, setEntered] = useState(false)
+  const [execution, setExecution] = useState<AdminEscalaShiftExecutionDetail | null>(null)
+  const [executionLoading, setExecutionLoading] = useState(false)
+  const [executionError, setExecutionError] = useState<string | null>(null)
   const isActive = open || closing
   const panelVisible = isActive && entered && !closing
 
@@ -77,10 +89,51 @@ export function AdminEscalaShiftViewDrawer({
     return () => window.clearTimeout(fallback)
   }, [closing, onTransitionEnd])
 
+  useEffect(() => {
+    if (!open || !shift) {
+      setExecution(null)
+      setExecutionError(null)
+      setExecutionLoading(false)
+      return
+    }
+
+    const token = getAccessToken()
+    if (!token) return
+
+    let cancelled = false
+    setExecutionLoading(true)
+    setExecutionError(null)
+
+    void fetchAdminEscalaShiftExecution(token, shift.id)
+      .then((detail) => {
+        if (cancelled) return
+        setExecution(detail)
+      })
+      .catch((error) => {
+        if (cancelled) return
+        const message = isAdminEscalaApiError(error)
+          ? error.message
+          : error instanceof Error
+            ? error.message
+            : 'Não foi possível carregar a execução do plantão.'
+        setExecutionError(message)
+        setExecution(null)
+      })
+      .finally(() => {
+        if (!cancelled) setExecutionLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [getAccessToken, open, shift?.id])
+
   if (!isActive || !shift) return null
 
   const statusBadge = buildAdminEscalaStatusBadge(shift.status)
   const fillBadge = buildAdminEscalaFillStatusBadge(shift)
+  const executionBadge = buildAdminEscalaExecutionStatusBadge(shift.executionStatus)
+  const showExecution = shouldShowExecutionBadge(shift)
   const modeLabel = shift.assignmentMode === 'open' ? 'Aberto (marketplace)' : 'Médico definido'
 
   return createPortal(
@@ -151,6 +204,16 @@ export function AdminEscalaShiftViewDrawer({
             >
               {fillBadge.label}
             </span>
+            {showExecution ? (
+              <span
+                className={[
+                  'inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ring-1',
+                  executionBadge.className,
+                ].join(' ')}
+              >
+                {executionBadge.label}
+              </span>
+            ) : null}
           </div>
 
           <DetailField label="Período">{formatAdminEscalaPeriod(shift.startAt, shift.endAt)}</DetailField>
@@ -208,6 +271,15 @@ export function AdminEscalaShiftViewDrawer({
           ) : null}
 
           {shift.notes ? <DetailField label="Observações">{shift.notes}</DetailField> : null}
+
+          <div className="space-y-3 border-t border-gray-100 pt-2">
+            <AdminEscalaShiftExecutionSectionHeader />
+            <AdminEscalaShiftExecutionPanel
+              plantoes={execution?.plantoes ?? []}
+              loading={executionLoading}
+              error={executionError}
+            />
+          </div>
         </div>
       </aside>
     </div>,

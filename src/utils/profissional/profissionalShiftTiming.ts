@@ -91,3 +91,16 @@ export function getProfissionalShiftTiming(
     isWithinWindow,
   }
 }
+
+/** Plantão pode ser iniciado apenas no horário previsto (ou se já está em andamento). */
+export function canEnterProfissionalShift(shift: ProfissionalShift, now = new Date()): boolean {
+  if (shift.lifecycle === 'encerrado') return false
+  if (shift.lifecycle === 'em_andamento') return true
+
+  const startMs = new Date(shift.startAt).getTime()
+  const endMs = new Date(shift.endAt).getTime()
+  const nowMs = now.getTime()
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) return false
+
+  return shift.lifecycle === 'aguardando_inicio' && nowMs >= startMs && nowMs <= endMs
+}

@@ -14,6 +14,7 @@ import { AdminEscalaOpenShiftsTable } from '../components/admin/escala/AdminEsca
 import { AdminEscalaPendingInscriptionsPanel } from '../components/admin/escala/AdminEscalaPendingInscriptionsPanel'
 import { AdminEscalaSidebarPanel } from '../components/admin/escala/AdminEscalaSidebarPanel'
 import type { AdminEscalaTableRow } from '../components/admin/escala/adminEscalaUi'
+import { getAdminEscalaShiftsMutationFlags } from '../components/admin/escala/adminEscalaUi'
 import {
   adminEscalaContentSlotClass,
   adminEscalaKpiSlotClass,
@@ -41,6 +42,8 @@ import {
 } from '../utils/escala/filterAdminEscalaOpenShifts'
 import { buildAdminEscalaKpiCardsFromSummary } from '../utils/escala/buildAdminEscalaKpiCards'
 import { checkAdminEscalaConflicts, isAdminEscalaApiError } from '../lib/services/admin/escala'
+import { isUuid } from '../utils/adminEscala/preserveShiftIdsOnEdit'
+import { resolveAdminEscalaSpecialtyId } from '../utils/adminEscala/resolveAdminEscalaSpecialtyId'
 
 type EscalaGroupingMode = 'lista' | 'escopo'
 
@@ -136,11 +139,18 @@ export function AdminEscalaPage() {
   const openEditShifts = useCallback(
     (batch: AdminEscalaShift[]) => {
       if (!canEdit || batch.length === 0) return
+      if (!getAdminEscalaShiftsMutationFlags(batch).canEdit) {
+        showToast(
+          'Plantões em andamento ou já realizados não podem ser editados.',
+          'error',
+        )
+        return
+      }
       setEditingBatch(batch)
       setComposeClosing(false)
       setComposeOpen(true)
     },
-    [canEdit],
+    [canEdit, showToast],
   )
 
   const listaActions = useAdminEscalaListaActions({
@@ -168,17 +178,24 @@ export function AdminEscalaPage() {
   const openEditRow = useCallback(
     (row: AdminEscalaTableRow) => {
       if (!canEdit) return
-      if (row.kind === 'closed') {
-        setEditingBatch(row.shifts)
-      } else if (row.shift.batchId) {
-        setEditingBatch(shifts.filter((s) => s.batchId === row.shift.batchId))
-      } else {
-        setEditingBatch([row.shift])
+      const batch =
+        row.kind === 'closed'
+          ? row.shifts
+          : row.shift.batchId
+            ? shifts.filter((s) => s.batchId === row.shift.batchId)
+            : [row.shift]
+      if (!getAdminEscalaShiftsMutationFlags(batch).canEdit) {
+        showToast(
+          'Plantões em andamento ou já realizados não podem ser editados.',
+          'error',
+        )
+        return
       }
+      setEditingBatch(batch)
       setComposeClosing(false)
       setComposeOpen(true)
     },
-    [canEdit, shifts],
+    [canEdit, shifts, showToast],
   )
 
   const closeCompose = useCallback(() => {
@@ -216,7 +233,8 @@ export function AdminEscalaPage() {
           prefeituraScope: first.prefeituraScope,
           ubtScope: first.ubtScope,
           shifts: newShifts.map((shift) => ({
-            specialtyId: shift.specialtyId ?? shift.specialty,
+            id: isUuid(shift.id) ? shift.id : undefined,
+            specialtyId: resolveAdminEscalaSpecialtyId(shift),
             specialty: shift.specialty,
             startAt: shift.startAt,
             endAt: shift.endAt,
@@ -235,6 +253,10 @@ export function AdminEscalaPage() {
             notes: shift.notes,
           })),
         })
+
+        if (groupingMode === 'lista') {
+          await loadMarketplaceShifts(appliedFilters)
+        }
 
         const published = status === 'publicada'
         const days = new Set(newShifts.map((s) => s.startAt.slice(0, 10))).size
@@ -256,7 +278,7 @@ export function AdminEscalaPage() {
         setIsSaving(false)
       }
     },
-    [canInsert, canEdit, editingBatch, saveBatch, showToast],
+    [canInsert, canEdit, editingBatch, saveBatch, showToast, groupingMode, loadMarketplaceShifts, appliedFilters],
   )
 
   const handleSaved = useCallback(

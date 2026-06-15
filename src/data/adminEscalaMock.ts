@@ -46,6 +46,10 @@ function seed(partial: Partial<AdminEscalaShift> & Pick<AdminEscalaShift, 'id' |
     cityUf: 'Brasília / DF',
     fullAddress: null,
     claimedCaptures: [],
+    executionStatus: 'na',
+    realizadoCount: 0,
+    confirmadoCount: 0,
+    totalPlantoes: 0,
     ...partial,
   } as AdminEscalaShift)
 }
@@ -73,6 +77,10 @@ const adminEscalaShiftsBase: AdminEscalaShift[] = [
     notes: 'Cobertura manhã — rede Brasília.',
     createdAt: '2026-05-20T10:00:00',
     updatedAt: '2026-05-26T09:00:00',
+    executionStatus: 'realizado',
+    realizadoCount: 1,
+    confirmadoCount: 0,
+    totalPlantoes: 1,
   }),
   seed({
     id: 'esc-2',

@@ -100,6 +100,26 @@ export type AdminDashboardFilterOptionDto = {
   label: string
 }
 
+export type AdminDashboardTriageBarItemDto = {
+  key: string
+  label: string
+  count: number
+  percent: number
+}
+
+export type AdminDashboardTriageChartsDto = {
+  totalTriages: number
+  chronicShare: {
+    withChronicCount: number
+    withoutChronicCount: number
+    withChronicPercent: number
+  }
+  chronicConditions: AdminDashboardTriageBarItemDto[]
+  comorbidities: AdminDashboardTriageBarItemDto[]
+  chiefComplaints: AdminDashboardTriageBarItemDto[]
+  associatedSymptoms: AdminDashboardTriageBarItemDto[]
+}
+
 export type AdminDashboardOverviewDto = {
   filterKey: string
   municipalities: AdminMunicipalityRowDto[]
@@ -113,6 +133,7 @@ export type AdminDashboardOverviewDto = {
   revenue: AdminDashboardRevenueDto
   terminals: AdminDashboardTerminalsDto
   avgSlaMinutes: number
+  triageCharts: AdminDashboardTriageChartsDto
   isEmpty: boolean
   filterOptions: {
     period: AdminDashboardFilterOptionDto[]

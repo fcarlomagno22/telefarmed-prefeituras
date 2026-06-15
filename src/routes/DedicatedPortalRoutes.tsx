@@ -81,6 +81,7 @@ import { AtendimentoPacientePage } from '../pages/AtendimentoPacientePage'
 import { AtendimentoAvaliacaoPage } from '../pages/AtendimentoAvaliacaoPage'
 import { AtendimentoMedicoPage } from '../pages/AtendimentoMedicoPage'
 import { VerificarDocumentoPage } from '../pages/VerificarDocumentoPage'
+import { PlantaoAceitePublicPage } from '../pages/PlantaoAceitePublicPage'
 
 const AdminNotificacoesPage = lazy(() =>
   import('../pages/AdminNotificacoesPage').then((module) => ({
@@ -95,7 +96,12 @@ const AdminFinanceiroPage = lazy(() =>
 )
 
 function SharedPublicRoutes() {
-  return <Route path="/verificar/:codigo" element={<VerificarDocumentoPage />} />
+  return (
+    <>
+      <Route path="/verificar/:codigo" element={<VerificarDocumentoPage />} />
+      <Route path="/plantao/aceitar/:token" element={<PlantaoAceitePublicPage />} />
+    </>
+  )
 }
 
 export const adminDedicatedRoutes = (

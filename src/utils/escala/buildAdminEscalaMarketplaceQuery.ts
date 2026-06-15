@@ -1,5 +1,8 @@
 import type { EscalaCatalogApi } from '../../lib/mockServices/admin/escala'
-import type { AdminEscalaOpenFilters } from './filterAdminEscalaOpenShifts'
+import {
+  isExecutionStatusFilter,
+  type AdminEscalaOpenFilters,
+} from './filterAdminEscalaOpenShifts'
 
 export function buildAdminEscalaMarketplaceQuery(
   filters: AdminEscalaOpenFilters,
@@ -10,7 +13,9 @@ export function buildAdminEscalaMarketplaceQuery(
   const search = filters.search.trim()
   if (search) params.search = search
 
-  if (filters.status !== 'all') params.status = filters.status
+  if (filters.status !== 'all' && !isExecutionStatusFilter(filters.status)) {
+    params.status = filters.status
+  }
 
   if (filters.modality !== 'all') {
     params.modalidade =
@@ -37,6 +42,7 @@ export function marketplaceNeedsClientFilter(filters: AdminEscalaOpenFilters): b
     filters.turn !== 'all' ||
     filters.fillStatus !== 'all' ||
     filters.minAmountReais.trim().length > 0 ||
-    filters.maxAmountReais.trim().length > 0
+    filters.maxAmountReais.trim().length > 0 ||
+    isExecutionStatusFilter(filters.status)
   )
 }

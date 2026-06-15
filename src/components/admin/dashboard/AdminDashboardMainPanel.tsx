@@ -24,6 +24,7 @@ import { AdminNocCentralPanel } from './AdminNocCentralPanel'
 import { AdminPlatformPackagePanel } from './AdminPlatformPackagePanel'
 import { AdminRevenuePanel } from './AdminRevenuePanel'
 import { AdminTerminalsPanel } from './AdminTerminalsPanel'
+import { AdminTriageChartsSection } from './AdminTriageChartsSection'
 import { AdminDashboardMainPanelSkeleton } from './skeletons/AdminDashboardMainPanelSkeleton'
 import { adminDashboardTopRowSectionClass } from './adminDashboardUi'
 
@@ -273,6 +274,15 @@ export function AdminDashboardMainPanel() {
               onOpenHealthDetail={() => openKpiDrill('saude')}
             />
           </section>
+
+          <AdminTriageChartsSection
+            data={dashboard.triageCharts}
+            animationKey={dashboard.filterKey}
+            periodLabel={
+              adminDashboardFilterOptions.period.find((option) => option.value === filters.period)
+                ?.label ?? 'Período selecionado'
+            }
+          />
 
           <section className="min-w-0 xl:col-span-12">
             <AdminMunicipalitiesTable

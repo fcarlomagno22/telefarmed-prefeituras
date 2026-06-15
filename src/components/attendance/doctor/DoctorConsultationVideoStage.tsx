@@ -20,6 +20,7 @@ type DoctorConsultationVideoStageProps = {
   patientAgeGender: string
   patientVideoPosterUrl: string
   doctorPhotoUrl: string
+  onViewClinicalTriage?: () => void
   className?: string
 }
 
@@ -36,6 +37,7 @@ export const DoctorConsultationVideoStage = forwardRef<
     patientAgeGender,
     patientVideoPosterUrl,
     doctorPhotoUrl,
+    onViewClinicalTriage,
     className,
   },
   ref,
@@ -223,6 +225,15 @@ export const DoctorConsultationVideoStage = forwardRef<
           </p>
           <p className="mt-1 text-xs text-white/90">CPF {patientCpfMasked}</p>
           <p className="mt-0.5 text-xs text-white/75">{patientAgeGender}</p>
+          {onViewClinicalTriage ? (
+            <button
+              type="button"
+              onClick={onViewClinicalTriage}
+              className="mt-2 text-left text-xs font-semibold text-sky-300 underline-offset-2 transition hover:text-sky-200 hover:underline"
+            >
+              Ver triagem clínica
+            </button>
+          ) : null}
         </div>
       </div>
     </section>

@@ -7,6 +7,7 @@ import type {
   PrefeituraSpecialtyStat,
   PrefeituraUbsRow,
 } from '../../../types/prefeituraDashboard'
+import type { AdminDashboardTriageChartsView } from '../../../types/adminDashboardTriage'
 import { ApiError, apiFetch } from '../http'
 
 export class PrefeituraDashboardApiError extends ApiError {
@@ -33,6 +34,7 @@ export type PrefeituraDashboardOverviewApi = {
   slaRows: PrefeituraSlaRow[]
   alerts: PrefeituraAlert[]
   allAlerts: PrefeituraAlert[]
+  triageCharts: AdminDashboardTriageChartsView
   filterOptions: PrefeituraDashboardFilterOptions
   isEmpty: boolean
 }

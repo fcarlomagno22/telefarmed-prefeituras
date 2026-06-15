@@ -1,4 +1,5 @@
 import type { AdminMunicipalityRow, AdminNocIncident } from '../../../types/adminDashboard'
+import type { AdminDashboardTriageChartsView } from '../../../types/adminDashboardTriage'
 import type {
   AdminDashboardView,
   AdminPlatformPackageView,
@@ -20,6 +21,7 @@ export type AdminDashboardOverviewApi = {
   revenue: AdminRevenueView
   terminals: AdminTerminalsView
   avgSlaMinutes: number
+  triageCharts: AdminDashboardTriageChartsView
   isEmpty: boolean
   filterOptions: NonNullable<AdminDashboardView['filterOptions']>
 }

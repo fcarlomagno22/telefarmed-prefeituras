@@ -1,6 +1,7 @@
 import { HandMetal, Stethoscope } from 'lucide-react'
 import { PROFISSIONAL_ESCALA_TOUR_DEMO_SHIFT_ID } from '../../../config/profissionalEscalaTour'
 import type { ProfissionalEscalaDisponivel } from '../../../types/profissionalEscalaDisponivel'
+import { isProfissionalPlantaoEncerrado } from '../../../utils/profissional/profissionalPlantaoEncerrado'
 import { ProfissionalEscalaCityTooltip } from './ProfissionalEscalaCityTooltip'
 import { ProfissionalEscalaRepasseChip } from './ProfissionalEscalaRepasseChip'
 import { formatProfissionalCurrency } from '../../../utils/profissional/formatProfissionalCurrency'
@@ -21,6 +22,17 @@ type ProfissionalEscalaShiftsListProps = {
   onClaim: (shift: ProfissionalEscalaDisponivel) => void
   tourHighlightCity?: boolean
   tourSuppressCityTooltip?: boolean
+}
+
+function canClaimShift(shift: ProfissionalEscalaDisponivel) {
+  return (
+    shift.status === 'disponivel' &&
+    shift.vacancies > 0 &&
+    !isProfissionalPlantaoEncerrado({
+      plantaoStatus: shift.plantaoStatus,
+      endAt: shift.endAt,
+    })
+  )
 }
 
 function ShiftsTableColGroup() {
@@ -121,7 +133,7 @@ function EscalaCityCell({
 }
 
 function EscalaValorCell({ shift }: { shift: ProfissionalEscalaDisponivel }) {
-  const canClaim = shift.status === 'disponivel' && shift.vacancies > 0
+  const canClaim = canClaimShift(shift)
   return (
     <div className="text-center">
       <p className="text-sm font-bold tabular-nums text-gray-900">
@@ -145,7 +157,7 @@ function EscalaActionCell({
   shift: ProfissionalEscalaDisponivel
   onClaim: (shift: ProfissionalEscalaDisponivel) => void
 }) {
-  const canClaim = shift.status === 'disponivel' && shift.vacancies > 0
+  const canClaim = canClaimShift(shift)
   if (!canClaim) {
     return <span className="text-xs text-gray-300">—</span>
   }

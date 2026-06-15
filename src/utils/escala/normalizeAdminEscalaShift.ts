@@ -64,6 +64,10 @@ export function normalizeAdminEscalaShift(raw: Partial<AdminEscalaShift> & Pick<
     notes: raw.notes ?? '',
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
+    executionStatus: raw.executionStatus ?? 'na',
+    realizadoCount: raw.realizadoCount ?? 0,
+    confirmadoCount: raw.confirmadoCount ?? 0,
+    totalPlantoes: raw.totalPlantoes ?? 0,
   }
 
   void computeAdminEscalaFillStatus(shift)

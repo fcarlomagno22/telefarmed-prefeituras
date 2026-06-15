@@ -1,3 +1,5 @@
+import type { AdminDashboardTriageChartsDto } from '../admin-dashboard/types.js'
+
 export type DashboardPeriod = 'hoje' | '7d' | '30d'
 
 export type PrefeituraSlaStatus = 'normal' | 'atencao' | 'critico'
@@ -79,6 +81,7 @@ export type PrefeituraDashboardOverviewDto = {
   slaRows: PrefeituraDashboardSlaRowDto[]
   alerts: PrefeituraDashboardAlertDto[]
   allAlerts: PrefeituraDashboardAlertDto[]
+  triageCharts: AdminDashboardTriageChartsDto
   filterOptions: {
     period: Array<{ value: string; label: string }>
     region: Array<{ value: string; label: string }>

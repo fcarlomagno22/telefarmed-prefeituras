@@ -10,6 +10,7 @@ const flowSteps = [
   { id: 'contacts', label: 'Contatos' },
   { id: 'address', label: 'Endereço' },
   { id: 'photo', label: 'Foto' },
+  { id: 'clinical_triage', label: 'Triagem' },
   { id: 'waiting_room', label: 'Sala de espera' },
 ] as const
 

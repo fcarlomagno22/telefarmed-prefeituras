@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../../db/supabase.js'
 import { EscalaError } from './errors.js'
+import { isEscalaSlotEncerrado } from '../../lib/escalaSlotLifecycle.js'
 import type { ListInscricoesQuery } from './schemas.js'
 import type { EscalaInscricaoDto } from './types.js'
 
@@ -19,7 +20,13 @@ export async function listEscalaInscricoes(
   const { data, error } = await query
   if (error) throw error
 
-  return (data ?? []).map((row) => {
+  const rows = data ?? []
+  const slotIds = [...new Set(rows.map((row) => String(row.slot_id)))]
+  const encerradoSlotIds = await loadEncerradoSlotIds(slotIds)
+
+  return rows
+    .filter((row) => !encerradoSlotIds.has(String(row.slot_id)))
+    .map((row) => {
     const profissional = row.usuarios_profissionais as unknown as { nome: string }
     return {
       id: String(row.id),
@@ -32,6 +39,31 @@ export async function listEscalaInscricoes(
       motivoRejeicao: row.motivo_rejeicao ? String(row.motivo_rejeicao) : null,
     }
   })
+}
+
+async function loadEncerradoSlotIds(slotIds: string[]): Promise<Set<string>> {
+  if (slotIds.length === 0) return new Set()
+
+  const { data, error } = await supabaseAdmin
+    .from('escala_slots')
+    .select('id, data, hora_fim, status')
+    .in('id', slotIds)
+
+  if (error) throw error
+
+  const encerrados = new Set<string>()
+  for (const row of data ?? []) {
+    if (
+      isEscalaSlotEncerrado(
+        String(row.data),
+        String(row.hora_fim),
+        String(row.status),
+      )
+    ) {
+      encerrados.add(String(row.id))
+    }
+  }
+  return encerrados
 }
 
 async function loadInscricaoForAction(inscricaoId: string) {
@@ -55,7 +87,7 @@ async function loadInscricaoForAction(inscricaoId: string) {
 async function loadSlotVacancy(slotId: string): Promise<number> {
   const { data, error } = await supabaseAdmin
     .from('vw_admin_escala_slots_listagem')
-    .select('vagas_disponiveis, modo_atribuicao, status')
+    .select('vagas_disponiveis, modo_atribuicao, status, data, hora_fim')
     .eq('id', slotId)
     .maybeSingle()
 
@@ -65,6 +97,15 @@ async function loadSlotVacancy(slotId: string): Promise<number> {
   }
   if (data.status !== 'publicada') {
     throw new EscalaError('Plantão não está publicado.', 'CONFLICT', 409)
+  }
+  if (
+    isEscalaSlotEncerrado(
+      String(data.data),
+      String(data.hora_fim),
+      String(data.status),
+    )
+  ) {
+    throw new EscalaError('Plantão encerrado.', 'CONFLICT', 409)
   }
   if (data.modo_atribuicao !== 'open') {
     throw new EscalaError('Plantão não aceita inscrições.', 'CONFLICT', 409)

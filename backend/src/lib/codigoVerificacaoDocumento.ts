@@ -16,10 +16,37 @@ export function buildDocumentoVerificacaoUrl(codigoVerificacao: string): string 
 
 export function resolvePublicAppUrl(): string {
   const explicit = process.env.PUBLIC_APP_URL?.trim()
-  if (explicit) return explicit.replace(/\/$/, '')
+  const lanFallback = process.env.PUBLIC_APP_LAN_URL?.trim()
+
+  if (explicit) {
+    const normalized = explicit.replace(/\/$/, '')
+    if (isLocalhostUrl(normalized) && lanFallback) {
+      return lanFallback.replace(/\/$/, '')
+    }
+    return normalized
+  }
 
   const cors = process.env.CORS_ORIGIN?.split(',')[0]?.trim()
-  if (cors) return cors.replace(/\/$/, '')
+  if (cors) {
+    const normalized = cors.replace(/\/$/, '')
+    if (isLocalhostUrl(normalized) && lanFallback) {
+      return lanFallback.replace(/\/$/, '')
+    }
+    return normalized
+  }
 
-  return 'http://localhost:5173'
+  return lanFallback?.replace(/\/$/, '') ?? 'http://localhost:5173'
+}
+
+function isLocalhostUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname
+    return host === 'localhost' || host === '127.0.0.1' || host === '::1'
+  } catch {
+    return /localhost|127\.0\.0\.1/i.test(url)
+  }
+}
+
+export function isPublicAppUrlLocalOnly(): boolean {
+  return isLocalhostUrl(resolvePublicAppUrl())
 }

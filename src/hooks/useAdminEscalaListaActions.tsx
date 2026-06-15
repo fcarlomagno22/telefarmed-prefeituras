@@ -7,6 +7,7 @@ import { verifyAdminAuthorizationPin } from '../lib/services/admin/auth'
 import { isAdminEscalaApiError } from '../lib/services/admin/escala'
 import type { AdminEscalaShift } from '../types/adminEscala'
 import { formatProfissionalEscalaCardDate } from '../components/profissional/escala/profissionalEscalaUi'
+import { canDeleteAdminEscalaShift, canEditAdminEscalaShift, canSuspendAdminEscalaShift } from '../components/admin/escala/adminEscalaUi'
 import type { ToastVariant } from '../components/ui/Toast'
 
 const SUSPEND_REASON = 'Suspenso pelo administrador.'
@@ -75,7 +76,10 @@ export function useAdminEscalaListaActions({
   )
 
   const suspendableSelectedIds = useMemo(
-    () => selectedShifts.filter((shift) => shift.status !== 'cancelada').map((shift) => shift.id),
+    () =>
+      selectedShifts
+        .filter((shift) => canSuspendAdminEscalaShift(shift))
+        .map((shift) => shift.id),
     [selectedShifts],
   )
 
@@ -213,7 +217,7 @@ export function useAdminEscalaListaActions({
 
   const requestEdit = useCallback(
     (shift: AdminEscalaShift) => {
-      if (!canEdit) return
+      if (!canEdit || !canEditAdminEscalaShift(shift)) return
       setPendingPin({ kind: 'edit', shift })
     },
     [canEdit],
@@ -221,7 +225,7 @@ export function useAdminEscalaListaActions({
 
   const requestSuspend = useCallback(
     (shift: AdminEscalaShift) => {
-      if (!canEdit || shift.status === 'cancelada') return
+      if (!canEdit || !canSuspendAdminEscalaShift(shift)) return
       setPendingPin({
         kind: 'suspend',
         shiftIds: [shift.id],
@@ -233,7 +237,7 @@ export function useAdminEscalaListaActions({
 
   const requestDelete = useCallback(
     (shift: AdminEscalaShift) => {
-      if (!canDelete) return
+      if (!canDelete || !canDeleteAdminEscalaShift(shift)) return
       setPendingPin({
         kind: 'delete',
         shiftIds: [shift.id],
@@ -253,7 +257,10 @@ export function useAdminEscalaListaActions({
   }, [canEdit, suspendableSelectedIds])
 
   const deletableSelectedIds = useMemo(
-    () => selectedShifts.map((shift) => shift.id),
+    () =>
+      selectedShifts
+        .filter((shift) => canDeleteAdminEscalaShift(shift))
+        .map((shift) => shift.id),
     [selectedShifts],
   )
 

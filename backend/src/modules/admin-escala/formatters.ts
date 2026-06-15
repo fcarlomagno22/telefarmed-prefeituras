@@ -5,6 +5,7 @@ import {
 import { parseRepasseRule } from './repasseRule.js'
 import type {
   AdminEscalaShiftDto,
+  AdminEscalaShiftExecutionSummaryDto,
   ClaimCaptureRow,
   EscalaScopePrefeitura,
   EscalaScopeUbt,
@@ -67,6 +68,12 @@ function mapSlotStatus(status: SlotListagemRow['status']): AdminEscalaShiftDto['
 export function formatSlotRow(
   row: SlotListagemRow,
   captures: ClaimCaptureRow[] = [],
+  execution: AdminEscalaShiftExecutionSummaryDto = {
+    executionStatus: 'na',
+    realizadoCount: 0,
+    confirmadoCount: 0,
+    totalPlantoes: 0,
+  },
 ): AdminEscalaShiftDto {
   const assignmentMode = row.modo_atribuicao
   const totalVacancies = assignmentMode === 'open' ? row.vagas : 0
@@ -106,6 +113,10 @@ export function formatSlotRow(
     notes: row.notas,
     createdAt: row.criado_em,
     updatedAt: row.atualizado_em,
+    executionStatus: execution.executionStatus,
+    realizadoCount: execution.realizadoCount,
+    confirmadoCount: execution.confirmadoCount,
+    totalPlantoes: execution.totalPlantoes,
   }
 }
 

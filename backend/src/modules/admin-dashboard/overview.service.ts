@@ -3,9 +3,11 @@ import {
   loadConsultasMetrics,
   loadQueueByUnit,
   loadRevenueByEntidade,
+  loadTriageSummariesForDashboard,
   resolveEntidadeContractStatus,
   type DashboardContratoRow,
 } from './catalog.service.js'
+import { aggregateTriageCharts } from './triage-metrics.service.js'
 import {
   ADMIN_DASHBOARD_FILTER_OPTIONS,
   buildCityFilterOptions,
@@ -248,6 +250,13 @@ export async function getAdminDashboardOverview(params: {
 
   const stateKeys = new Set(municipalities.map((row) => row.stateKey))
 
+  const triageSummaries = await loadTriageSummariesForDashboard(
+    filtered.map((row) => row.id),
+    periodRange.startIso,
+    periodRange.endIso,
+  )
+  const triageCharts = aggregateTriageCharts(triageSummaries)
+
   return {
     filterKey: `${params.period}:${params.state}:${params.city}:${params.contract}:${params.health}`,
     municipalities: filtered,
@@ -261,6 +270,7 @@ export async function getAdminDashboardOverview(params: {
     revenue,
     terminals,
     avgSlaMinutes,
+    triageCharts,
     isEmpty: filtered.length === 0,
     filterOptions: {
       period: [...ADMIN_DASHBOARD_FILTER_OPTIONS.period],

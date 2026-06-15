@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import type { KpiStatCardItem } from '../../../components/ui/KpiStatCards'
 import type { AdminKpiDrillKind } from '../../../types/adminDashboard'
+import { EMPTY_ADMIN_DASHBOARD_TRIAGE_CHARTS } from '../../../types/adminDashboardTriage'
 import type { AdminDashboardView } from '../../../utils/adminDashboardFilters'
 import { isBackendApiEnabled } from '../../api/config'
 import * as api from '../../api/admin/dashboard'
@@ -99,6 +100,7 @@ export function mapOverviewToAdminDashboardView(
     revenue: overview.revenue,
     terminals: overview.terminals,
     avgSlaMinutes: overview.avgSlaMinutes,
+    triageCharts: overview.triageCharts ?? EMPTY_ADMIN_DASHBOARD_TRIAGE_CHARTS,
     isEmpty: overview.isEmpty,
     filterOptions: overview.filterOptions,
   }

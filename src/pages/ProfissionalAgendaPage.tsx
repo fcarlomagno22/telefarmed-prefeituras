@@ -49,6 +49,7 @@ import { shouldShowPortalPageLoadingBlock } from '../utils/portal/portalPageLoad
 import { ProfissionalAgendaPageSkeleton } from '../components/profissional/skeletons/ProfissionalAgendaPageSkeleton'
 import { useProfissionalAuth } from '../contexts/ProfissionalAuthContext'
 import { unlockProfissionalWaitingRoomAlertAudio } from '../utils/profissional/profissionalWaitingRoomAlertAudio'
+import { canEnterProfissionalShift } from '../utils/profissional/profissionalShiftTiming'
 import { isSameCalendarMonth } from '../utils/calendar'
 import {
   mergeProfissionalAgendaTourDemoShifts,
@@ -76,6 +77,7 @@ export function ProfissionalAgendaPage() {
     shifts,
     activeShift,
     activeSession,
+    activeSessionApi,
     notices,
     shiftCountByDate,
     monthSummaryLabel,
@@ -185,10 +187,7 @@ export function ProfissionalAgendaPage() {
 
   const tourEnterShiftId = useMemo(() => {
     if (tour.active) return PROFISSIONAL_AGENDA_TOUR_DEMO_SHIFT_ID
-    return selectedShifts.find(
-      (shift) =>
-        shift.lifecycle === 'aguardando_inicio' || shift.lifecycle === 'em_andamento',
-    )?.id
+    return selectedShifts.find((shift) => canEnterProfissionalShift(shift))?.id
   }, [selectedShifts, tour.active])
 
   useEffect(() => {
@@ -201,6 +200,7 @@ export function ProfissionalAgendaPage() {
   function handleShiftEnded() {
     setAgendaTab('dia')
     refresh()
+    void reload()
   }
 
   const selectedDayHeading = useMemo(() => {
@@ -244,6 +244,10 @@ export function ProfissionalAgendaPage() {
 
   const displayShiftSessionActive = Boolean(
     displayActiveShift && activeSession && !activeSession.endedAt,
+  )
+
+  const displayAutoClosePending = Boolean(
+    displayShiftSessionActive && activeSessionApi?.autoClosePending,
   )
 
   const displayFilaSessionEnteredAt =
@@ -346,6 +350,8 @@ export function ProfissionalAgendaPage() {
                   shiftSessionActive={displayShiftSessionActive}
                   onEnterShift={() => handleDisplayEnterShift(displayFilaShift.id)}
                   onShiftEnded={handleShiftEnded}
+                  autoClosePending={displayAutoClosePending}
+                  onReloadAgenda={() => void reload()}
                   tourUseLocalQueue={
                     tour.active && isProfissionalAgendaTourDemoShiftId(displayFilaShift.id)
                   }

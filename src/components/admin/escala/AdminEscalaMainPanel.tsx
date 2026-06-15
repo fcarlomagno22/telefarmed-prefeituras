@@ -18,6 +18,7 @@ import { CustomSelect } from '../../ui/CustomSelect'
 import { ConfirmDialog } from '../../ui/ConfirmDialog'
 import {
   buildAdminEscalaStatusBadge,
+  getAdminEscalaShiftsMutationFlags,
   getRowStatus,
   groupEscalaShiftsForTable,
   rowIntersectsWeek,
@@ -471,7 +472,7 @@ export function AdminEscalaMainPanel({
               scopedGroups.flatMap((group) => {
                 const prefMetrics = buildMetrics(group.shifts)
                 const isExpanded = Boolean(expandedPrefeituras[group.key])
-                const prefIds = [...new Set(group.shifts.map((s) => s.id))]
+                const prefMutation = getAdminEscalaShiftsMutationFlags(group.shifts)
                 const prefBadge = buildAdminEscalaStatusBadge(prefMetrics.status)
                 return [
                   <tr
@@ -546,11 +547,14 @@ export function AdminEscalaMainPanel({
                             setOpenMenuKey(null)
                           }}
                           onExcluir={() => {
-                            setConfirmDelete({ ids: prefIds, label: group.label })
+                            setConfirmDelete({
+                              ids: prefMutation.deletableIds,
+                              label: group.label,
+                            })
                             setOpenMenuKey(null)
                           }}
-                          canEdit={canEdit}
-                          canDelete={canDelete}
+                          canEdit={canEdit && prefMutation.canEdit}
+                          canDelete={canDelete && prefMutation.canDelete}
                         />
                       </div>
                     </td>
@@ -558,7 +562,7 @@ export function AdminEscalaMainPanel({
                   ...(isExpanded
                     ? group.ubts.map((ubt) => {
                         const ubtMetrics = buildMetrics(ubt.shifts)
-                        const ubtIds = [...new Set(ubt.shifts.map((s) => s.id))]
+                        const ubtMutation = getAdminEscalaShiftsMutationFlags(ubt.shifts)
                         const ubtBadge = buildAdminEscalaStatusBadge(ubtMetrics.status)
                         return (
                           <tr
@@ -615,11 +619,14 @@ export function AdminEscalaMainPanel({
                                     setOpenMenuKey(null)
                                   }}
                                   onExcluir={() => {
-                                    setConfirmDelete({ ids: ubtIds, label: `${group.label} / ${ubt.label}` })
+                                    setConfirmDelete({
+                                      ids: ubtMutation.deletableIds,
+                                      label: `${group.label} / ${ubt.label}`,
+                                    })
                                     setOpenMenuKey(null)
                                   }}
-                                  canEdit={canEdit}
-                                  canDelete={canDelete}
+                                  canEdit={canEdit && ubtMutation.canEdit}
+                                  canDelete={canDelete && ubtMutation.canDelete}
                                 />
                               </div>
                             </td>

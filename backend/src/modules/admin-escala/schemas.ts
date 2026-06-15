@@ -38,6 +38,7 @@ import { escalaRepasseRuleSchema } from './repasseRule.js'
 const repasseRuleBodySchema = escalaRepasseRuleSchema
 
 const batchShiftSchema = z.object({
+  id: z.string().uuid().optional(),
   specialtyId: z.string().trim().min(1, 'Informe a especialidade.'),
   specialty: z.string().trim().optional(),
   startAt: z.string().min(1),

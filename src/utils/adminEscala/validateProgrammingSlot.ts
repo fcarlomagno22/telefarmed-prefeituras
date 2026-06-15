@@ -1,5 +1,6 @@
 import type { AdminEscalaProgrammingSlot } from '../../types/adminEscala'
 import { normalizeProgrammingSlot, validateRepasseRule } from './repasseRule'
+import { isDailyTimeRangeValid } from './timeRange'
 
 export { normalizeProgrammingSlot } from './repasseRule'
 
@@ -12,7 +13,7 @@ export function validateProgrammingSlot(
   options?: ValidateProgrammingSlotOptions,
 ): string | null {
   const normalized = normalizeProgrammingSlot(slot)
-  if (slot.dailyEnd <= slot.dailyStart) {
+  if (!isDailyTimeRangeValid(slot.dailyStart, slot.dailyEnd)) {
     return 'O horário final deve ser depois do inicial.'
   }
   if (!options?.singleDayPeriod && slot.weekdays.length === 0) {

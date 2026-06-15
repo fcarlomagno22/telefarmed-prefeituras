@@ -9,6 +9,7 @@ import {
 import type { KpiStatCardItem } from '../../../components/ui/KpiStatCards'
 import { adminClientesRows } from '../../../data/adminClientesMock'
 import { adminPlatformHourlyBase, adminNocIncidents } from '../../../data/adminDashboardMock'
+import { buildMockAdminDashboardTriageCharts } from '../../../data/adminDashboardTriageMock'
 import {
   adminDashboardFilterOptions,
   getAdminMunicipalityCityFilterOptions,
@@ -23,6 +24,8 @@ import type {
   AdminTerminalsView,
 } from '../../../utils/adminDashboardFilters'
 import type { AdminKpiDrillKind } from '../../../types/adminDashboard'
+import type { AdminDashboardTriageChartsView } from '../../../types/adminDashboardTriage'
+import { EMPTY_ADMIN_DASHBOARD_TRIAGE_CHARTS } from '../../../types/adminDashboardTriage'
 import { mockDelay } from '../delay'
 
 export class AdminDashboardApiError extends Error {
@@ -99,6 +102,7 @@ type DashboardOverviewApi = {
   revenue: AdminRevenueView
   terminals: AdminTerminalsView
   avgSlaMinutes: number
+  triageCharts: AdminDashboardTriageChartsView
   isEmpty: boolean
   filterOptions: {
     period: Array<{ value: string; label: string }>
@@ -262,6 +266,8 @@ function buildOverview(params: AdminDashboardFiltersParams): DashboardOverviewAp
     },
   ]
 
+  const consultationVolume = filtered.reduce((sum, row) => sum + row.consultationsToday, 0)
+
   return {
     filterKey: `${params.period ?? 'hoje'}:${params.state ?? 'all'}:${params.city ?? 'all'}:${params.contract ?? 'all'}:${params.health ?? 'all'}`,
     municipalities: filtered,
@@ -275,6 +281,7 @@ function buildOverview(params: AdminDashboardFiltersParams): DashboardOverviewAp
     revenue,
     terminals,
     avgSlaMinutes: 16,
+    triageCharts: buildMockAdminDashboardTriageCharts(consultationVolume),
     isEmpty: filtered.length === 0,
     filterOptions: {
       period: [...adminDashboardFilterOptions.period],
@@ -300,6 +307,7 @@ export function mapOverviewToAdminDashboardView(overview: DashboardOverviewApi):
     revenue: overview.revenue,
     terminals: overview.terminals,
     avgSlaMinutes: overview.avgSlaMinutes,
+    triageCharts: overview.triageCharts ?? EMPTY_ADMIN_DASHBOARD_TRIAGE_CHARTS,
     isEmpty: overview.isEmpty,
     filterOptions: overview.filterOptions,
   }

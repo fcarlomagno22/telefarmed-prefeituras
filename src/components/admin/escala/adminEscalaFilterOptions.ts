@@ -32,6 +32,11 @@ export const adminEscalaStatusOptions = [
   { value: 'publicada', label: 'Publicada' },
   { value: 'rascunho', label: 'Rascunho' },
   { value: 'cancelada', label: 'Cancelada' },
+  { value: 'agendado', label: 'Agendado' },
+  { value: 'em_andamento', label: 'Em andamento' },
+  { value: 'realizado', label: 'Realizado' },
+  { value: 'parcial', label: 'Parcial' },
+  { value: 'expirado', label: 'Não realizado' },
 ] as const
 
 export const adminEscalaFilterControlClass = [

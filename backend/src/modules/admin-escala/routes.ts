@@ -22,6 +22,7 @@ import {
   rejectInscricaoBodySchema,
 } from './schemas.js'
 import { cancelEscalaPlantao, deleteEscalaShifts, listEscalaShifts } from './shifts.service.js'
+import { getEscalaShiftExecution } from './execution.service.js'
 import { getEscalaSummary } from './summary.service.js'
 
 const canView = requireAdminPagePermission('gestaoEscala', 'visualizar')
@@ -78,6 +79,21 @@ export async function registerAdminEscalaRoutes(app: FastifyInstance): Promise<v
     try {
       const shifts = await listEscalaShifts(parsed.data)
       return reply.send({ shifts })
+    } catch (error) {
+      const mapped = mapEscalaError(error)
+      return reply.status(mapped.statusCode).send(mapped.body)
+    }
+  })
+
+  app.get('/shifts/:id/execution', { preHandler: canView }, async (request, reply) => {
+    const params = idParamSchema.safeParse(request.params)
+    if (!params.success) {
+      return reply.status(400).send({ error: 'ID inválido.' })
+    }
+
+    try {
+      const execution = await getEscalaShiftExecution(params.data.id)
+      return reply.send(execution)
     } catch (error) {
       const mapped = mapEscalaError(error)
       return reply.status(mapped.statusCode).send(mapped.body)

@@ -82,12 +82,16 @@ export type ProfissionalAgendaActiveSessionApi = {
   plantaoId: string
   enteredAt: string
   endedAt?: string
+  scheduledEndAt?: string
+  autoClosePending?: boolean
   summary?: {
     atendidos: number
     naoCompareceu: number
     desistiu: number
     tempoMedioMin: number
     duracaoPlantaoMin: number
+    encerramentoFormal?: boolean
+    encerramentoAutomatico?: boolean
   }
 }
 
@@ -145,6 +149,7 @@ export type SlotAgendaRow = {
   hora_fim: string
   modalidade: string
   profissional_titular_id: string | null
+  fila_reserva: unknown
   unidade_nome: string | null
   cidade: string | null
   cidade_uf: string | null

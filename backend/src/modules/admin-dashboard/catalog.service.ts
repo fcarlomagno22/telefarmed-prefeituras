@@ -1,8 +1,9 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { normalizeMaintenanceIndexes } from '../prefeitura-rede/formatters.js'
 import {
-  computeStationsOnline,
-  normalizeMaintenanceIndexes,
-} from '../prefeitura-rede/formatters.js'
+  loadActiveUbtTerminalSessionsByUnit,
+  resolveStationsOnlineFromActiveSessions,
+} from '../prefeitura-rede/terminal-sessions.service.js'
 import type { UnidadeUbtRow } from '../prefeitura-rede/types.js'
 import { getMonthlyCycle } from '../prefeitura-contrato/cycle.js'
 import { daysUntilDate, stateKeyFromUf } from './formatters.js'
@@ -151,16 +152,22 @@ export async function loadAdminDashboardCatalog(): Promise<DashboardCatalog> {
     contratosByEntidade.set(row.entidade_contratante_id, bucket)
   }
 
+  const unitRows = (unitsResult.data ?? []) as UnidadeUbtRow[]
+  const activeSessionsByUnit = await loadActiveUbtTerminalSessionsByUnit(
+    unitRows.map((row) => row.id),
+  )
+
   const unitsByEntidade = new Map<string, DashboardUnitRow[]>()
-  for (const row of (unitsResult.data ?? []) as UnidadeUbtRow[]) {
+  for (const row of unitRows) {
     const maintenanceIndexes = normalizeMaintenanceIndexes(
       row.terminais_manutencao,
       row.terminais_total,
     )
-    const stationsOnline = computeStationsOnline(
+    const stationsOnline = resolveStationsOnlineFromActiveSessions(
       row.terminais_total,
       maintenanceIndexes,
       row.estado_operacional,
+      activeSessionsByUnit.get(row.id) ?? 0,
     )
     const bucket = unitsByEntidade.get(row.entidade_contratante_id) ?? []
     bucket.push({
@@ -350,4 +357,36 @@ export async function loadQueueByUnit(unitIds: string[]): Promise<Map<string, nu
   }
 
   return queueByUnit
+}
+
+export async function loadTriageSummariesForDashboard(
+  entidadeIds: string[],
+  periodStartIso: string,
+  periodEndIso: string,
+  unitIds?: string[],
+): Promise<string[]> {
+  if (entidadeIds.length === 0) return []
+
+  let query = supabaseAdmin
+    .from('consultas')
+    .select('triagem_resumo')
+    .in('entidade_contratante_id', entidadeIds)
+    .gte('criado_em', periodStartIso)
+    .lte('criado_em', periodEndIso)
+    .neq('triagem_resumo', '')
+
+  if (unitIds && unitIds.length > 0) {
+    query = query.in('unidade_ubt_id', unitIds)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    throwUnlessMissingRelation(error)
+    return []
+  }
+
+  return ((data ?? []) as Array<{ triagem_resumo: string | null }>)
+    .map((row) => row.triagem_resumo?.trim() ?? '')
+    .filter(Boolean)
 }

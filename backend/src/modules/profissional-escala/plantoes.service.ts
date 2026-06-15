@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../../db/supabase.js'
 import { formatLocalTimestampAsIso } from '../../lib/escalaDateTime.js'
+import { isPlantaoEncerradoParaProfissional } from '../../lib/escalaSlotLifecycle.js'
 import { formatProfissionalPlantao, formatProfissionalSlotRow } from './formatters.js'
 import type { ProfissionalEscalaContext, ProfissionalPlantaoDto, ProfissionalSlotDisponivelRow } from './types.js'
 
@@ -25,7 +26,7 @@ async function loadSlotRowsByIds(slotIds: string[]): Promise<Map<string, Profiss
   const { data: slotRows, error: slotError } = await supabaseAdmin
     .from('escala_slots')
     .select(
-      'id, data, hora_inicio, hora_fim, especialidade_id, modalidade, valor_centavos, repasse_regra, vagas, unidade_nome, cidade, cidade_uf, endereco_completo, notas, escopo_prefeitura, escopo_ubt, publicado_em, config_especialidades!inner(nome)',
+      'id, data, hora_inicio, hora_fim, status, especialidade_id, modalidade, valor_centavos, repasse_regra, vagas, unidade_nome, cidade, cidade_uf, endereco_completo, notas, escopo_prefeitura, escopo_ubt, publicado_em, config_especialidades!inner(nome)',
     )
     .in('id', missingIds)
 
@@ -84,6 +85,17 @@ export async function listProfissionalMeusPlantoes(
   for (const plantao of plantoes) {
     const slotRow = slotsById.get(String(plantao.slot_id))
     if (!slotRow) continue
+
+    if (
+      isPlantaoEncerradoParaProfissional({
+        plantaoStatus: String(plantao.status),
+        slotData: String(slotRow.data),
+        slotHoraFim: String(slotRow.hora_fim),
+        slotStatus: String('status' in slotRow ? slotRow.status : 'publicada'),
+      })
+    ) {
+      continue
+    }
 
     const slot = formatProfissionalSlotRow(slotRow, {
       status: 'reservado_mim',

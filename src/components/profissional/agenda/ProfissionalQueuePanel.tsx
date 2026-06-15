@@ -1,5 +1,5 @@
 import { Clock3, PhoneOff, Play, Search, Stethoscope, UserRound } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   dashboardMainPanelMinHeightClass,
@@ -28,6 +28,7 @@ import { startProfissionalAttendanceFromQueue } from '../../../utils/profissiona
 import { profissionalAtendimentoSessaoPath } from '../../../config/profissionalRoutes'
 import { useProfissionalAuth } from '../../../contexts/ProfissionalAuthContext'
 import { unlockProfissionalWaitingRoomAlertAudio } from '../../../utils/profissional/profissionalWaitingRoomAlertAudio'
+import { canEnterProfissionalShift } from '../../../utils/profissional/profissionalShiftTiming'
 import { isBackendApiEnabled } from '../../../lib/api/config'
 import {
   endProfissionalAgendaPlantao,
@@ -56,6 +57,9 @@ type ProfissionalQueuePanelProps = {
   onEnterShift?: () => void
   /** Tour guiado: usa fila local demo em vez da API. */
   tourUseLocalQueue?: boolean
+  /** Horário do plantão passou, mas há consulta em andamento. */
+  autoClosePending?: boolean
+  onReloadAgenda?: () => void
 }
 
 const STATUS_BADGE_WIDTH = 'w-[11.5rem]'
@@ -583,6 +587,8 @@ export function ProfissionalQueuePanel({
   shiftSessionActive = true,
   onEnterShift,
   tourUseLocalQueue = false,
+  autoClosePending = false,
+  onReloadAgenda,
 }: ProfissionalQueuePanelProps) {
   const navigate = useNavigate()
   const { getAccessToken, user } = useProfissionalAuth()
@@ -591,6 +597,7 @@ export function ProfissionalQueuePanel({
   const [noShowTarget, setNoShowTarget] = useState<ProfissionalQueuePatient | null>(null)
   const [search, setSearch] = useState('')
   const [queueListTab, setQueueListTab] = useState<ProfissionalQueueListTab>('active')
+  const autoClosingRef = useRef(false)
 
   const { patients: queuePatients, now, callDisabled, refresh } = useProfissionalQueue(
     shift.id,
@@ -614,6 +621,48 @@ export function ProfissionalQueuePanel({
     () => patients.find((patient) => patient.status === 'em_atendimento'),
     [patients],
   )
+
+  const shiftEnded = useMemo(
+    () => new Date(shift.endAt).getTime() <= now.getTime(),
+    [now, shift.endAt],
+  )
+
+  const shouldAutoCloseShift = shiftSessionActive && shiftEnded && !inProgressPatient
+
+  useEffect(() => {
+    if (!shouldAutoCloseShift || tourUseLocalQueue || autoClosingRef.current) return
+
+    autoClosingRef.current = true
+    const summary = buildEndShiftSummary(patients, sessionEnteredAt, shift.stats)
+
+    void (async () => {
+      try {
+        if (isBackendApiEnabled() && accessToken) {
+          try {
+            await endProfissionalAgendaPlantao(accessToken, shift.plantaoId, summary)
+          } catch {
+            // Sessão pode já ter sido encerrada automaticamente no servidor.
+          }
+        }
+        endProfissionalShift(summary)
+        writeConsultationLockToStorage(false)
+        onShiftEnded()
+        onReloadAgenda?.()
+      } finally {
+        autoClosingRef.current = false
+      }
+    })()
+  }, [
+    accessToken,
+    onReloadAgenda,
+    onShiftEnded,
+    patients,
+    sessionEnteredAt,
+    shift.plantaoId,
+    shift.stats,
+    shouldAutoCloseShift,
+    tourUseLocalQueue,
+  ])
 
   const waitingCount = useMemo(
     () => patients.filter(isTeleconsultaQueueVisible).length,
@@ -664,7 +713,13 @@ export function ProfissionalQueuePanel({
     return formatted.charAt(0).toUpperCase() + formatted.slice(1)
   }, [shift.dateKey])
 
+  const canEnterShift = useMemo(
+    () => canEnterProfissionalShift(shift, now),
+    [now, shift],
+  )
+
   function handleEnterShiftClick() {
+    if (!canEnterShift) return
     unlockProfissionalWaitingRoomAlertAudio(user?.sexo ?? 'nao_informado')
     onEnterShift?.()
   }
@@ -826,15 +881,30 @@ export function ProfissionalQueuePanel({
                 Encerrar plantão
               </button>
             ) : onEnterShift ? (
-              <button
-                type="button"
-                onClick={handleEnterShiftClick}
-                className="shrink-0 rounded-xl bg-gradient-to-b from-[var(--brand-primary)] to-[#ff8c33] px-4 py-2 text-xs font-semibold text-white shadow-[0_2px_10px_rgba(255,107,0,0.3)] hover:brightness-[1.03]"
-              >
-                Entrar no plantão
-              </button>
+              canEnterShift ? (
+                <button
+                  type="button"
+                  onClick={handleEnterShiftClick}
+                  className="shrink-0 rounded-xl bg-gradient-to-b from-[var(--brand-primary)] to-[#ff8c33] px-4 py-2 text-xs font-semibold text-white shadow-[0_2px_10px_rgba(255,107,0,0.3)] hover:brightness-[1.03]"
+                >
+                  Entrar no plantão
+                </button>
+              ) : (
+                <span className="shrink-0 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-900">
+                  Disponível às {shift.startTime}
+                </span>
+              )
             ) : null}
           </div>
+
+          {(autoClosePending || (shiftEnded && inProgressPatient)) ? (
+            <div className="mt-4 shrink-0 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              O horário do plantão encerrou.{' '}
+              {inProgressPatient
+                ? 'Finalize o atendimento em andamento para encerrar o plantão automaticamente.'
+                : 'O plantão será encerrado automaticamente em instantes.'}
+            </div>
+          ) : null}
 
           <label className="relative mt-5 block shrink-0" data-tour="queue-search">
             <Search

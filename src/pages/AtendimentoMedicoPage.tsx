@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ConsultationDocumentsPanel } from '../components/attendance/ConsultationDocumentsPanel'
+import { DoctorClinicalTriageDrawer } from '../components/attendance/doctor/DoctorClinicalTriageDrawer'
 import { DoctorConsultationChatPanel } from '../components/attendance/doctor/DoctorConsultationChatPanel'
 import { DoctorConsultationEndConfirmModal } from '../components/attendance/doctor/DoctorConsultationEndConfirmModal'
 import { DoctorConsultationHeader } from '../components/attendance/doctor/DoctorConsultationHeader'
@@ -92,6 +93,7 @@ export function AtendimentoMedicoPage() {
   const [examCatalog, setExamCatalog] = useState<ExamCatalogItem[]>([])
   const [navBlockToastVisible, setNavBlockToastVisible] = useState(false)
   const [finishConfirmOpen, setFinishConfirmOpen] = useState(false)
+  const [triageDrawerOpen, setTriageDrawerOpen] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const allowLeaveRef = useRef(false)
   const videoStageRef = useRef<ConsultationVideoStageHandle>(null)
@@ -381,6 +383,7 @@ export function AtendimentoMedicoPage() {
               patientAgeGender={patientAgeGender}
               patientVideoPosterUrl={attendanceSession.patientPhotoUrl}
               doctorPhotoUrl={attendanceSession.doctorPhotoUrl}
+              onViewClinicalTriage={() => setTriageDrawerOpen(true)}
             />
 
             <DoctorConsultationChatPanel
@@ -463,6 +466,15 @@ export function AtendimentoMedicoPage() {
           specialty: attendanceSession.doctorSpecialty,
           crm: attendanceSession.doctorCrm,
         }}
+      />
+
+      <DoctorClinicalTriageDrawer
+        open={triageDrawerOpen}
+        onClose={() => setTriageDrawerOpen(false)}
+        patientName={attendanceSession.patientName}
+        patientAgeGender={patientAgeGender}
+        unitName={sessao.unitName}
+        triageSummary={sessao.triageSummary}
       />
 
       <DoctorConsultationEndConfirmModal

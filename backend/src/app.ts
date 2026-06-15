@@ -48,6 +48,7 @@ import { registerUbtNotificacoesRoutes } from './modules/ubt-notificacoes/routes
 import { registerUbtSuporteRoutes } from './modules/ubt-suporte/routes.js'
 import { registerProfissionalSuporteRoutes } from './modules/profissional-suporte/routes.js'
 import { registerPublicAtendimentoRoutes } from './modules/public-atendimento/routes.js'
+import { registerPublicPlantaoAceiteRoutes } from './modules/public-plantao-aceite/routes.js'
 import { registerAuditoriaMiddleware } from './lib/auditoria/middleware.js'
 import { registerAdminAuditoriaRoutes } from './modules/admin-auditoria/routes.js'
 import { registerAdminMonitorRoutes } from './modules/admin-monitor/routes.js'
@@ -272,6 +273,13 @@ export async function buildApp() {
       await registerPublicAtendimentoRoutes(publicAtendimento)
     },
     { prefix: '/api/v1/atendimento' },
+  )
+
+  await app.register(
+    async (publicPlantaoAceite) => {
+      await registerPublicPlantaoAceiteRoutes(publicPlantaoAceite)
+    },
+    { prefix: '/api/v1/public/plantao-aceite' },
   )
 
   await app.register(

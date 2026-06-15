@@ -83,6 +83,8 @@ export type ProfissionalAgendaOverviewApi = {
     plantaoId: string
     enteredAt: string
     endedAt?: string
+    scheduledEndAt?: string
+    autoClosePending?: boolean
     summary?: ProfissionalEndShiftSummary
   } | null
   notices: ProfissionalAgendaNoticeApi[]

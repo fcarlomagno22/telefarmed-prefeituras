@@ -1,4 +1,4 @@
-import type { AdminEscalaShift, EscalaRepasseRule } from '../../../types/adminEscala'
+import type { AdminEscalaShift, AdminEscalaShiftExecutionDetail, EscalaRepasseRule } from '../../../types/adminEscala'
 import { apiFetch, ApiError } from '../http'
 
 export class AdminEscalaApiError extends ApiError {
@@ -93,6 +93,7 @@ export type BatchSavePayload = {
   prefeituraScope: EscalaScopePrefeituraApi
   ubtScope: EscalaScopeUbtApi
   shifts: Array<{
+    id?: string
     specialtyId: string
     specialty?: string
     startAt: string
@@ -154,6 +155,20 @@ export async function fetchAdminEscalaShifts(
       { accessToken },
     )
     return data.shifts
+  } catch (error) {
+    throw mapError(error)
+  }
+}
+
+export async function fetchAdminEscalaShiftExecution(
+  accessToken: string,
+  shiftId: string,
+): Promise<AdminEscalaShiftExecutionDetail> {
+  try {
+    return await apiFetch<AdminEscalaShiftExecutionDetail>(
+      `/admin/escala/shifts/${encodeURIComponent(shiftId)}/execution`,
+      { accessToken },
+    )
   } catch (error) {
     throw mapError(error)
   }

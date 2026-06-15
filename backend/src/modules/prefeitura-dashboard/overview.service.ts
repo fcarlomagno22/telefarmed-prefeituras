@@ -1,4 +1,6 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { loadTriageSummariesForDashboard } from '../admin-dashboard/catalog.service.js'
+import { aggregateTriageCharts } from '../admin-dashboard/triage-metrics.service.js'
 import { aggregateConsultas } from '../prefeitura-consultas/formatters.js'
 import { fetchConsultasForPeriod } from '../prefeitura-consultas/query.service.js'
 import { fetchUnitsMetrics } from '../prefeitura-rede/metrics.service.js'
@@ -256,6 +258,14 @@ export async function getPrefeituraDashboardOverview(
           (unit) => unit.status !== 'inativa' && unit.regionKey === params.regionKey,
         )
 
+  const triageSummaries = await loadTriageSummariesForDashboard(
+    [entidadeId],
+    range.startIso,
+    range.endIso,
+    unitIds,
+  )
+  const triageCharts = aggregateTriageCharts(triageSummaries)
+
   return {
     kpis: buildKpis({
       period: params.period,
@@ -275,6 +285,7 @@ export async function getPrefeituraDashboardOverview(
     slaRows,
     alerts: allAlerts.slice(0, 3),
     allAlerts,
+    triageCharts,
     filterOptions: buildFilterOptions(allUnits, filterRegionUnits),
     isEmpty: visibleUnits.length === 0,
   }

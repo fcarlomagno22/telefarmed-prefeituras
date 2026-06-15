@@ -79,6 +79,7 @@ import { AtendimentoPacientePage } from './pages/AtendimentoPacientePage'
 import { AtendimentoAvaliacaoPage } from './pages/AtendimentoAvaliacaoPage'
 import { AtendimentoMedicoPage } from './pages/AtendimentoMedicoPage'
 import { VerificarDocumentoPage } from './pages/VerificarDocumentoPage'
+import { PlantaoAceitePublicPage } from './pages/PlantaoAceitePublicPage'
 import { VidaPlusPage } from './pages/VidaPlusPage'
 import { vidaPlusRoutes } from './config/vidaPlusRoutes'
 import { getDedicatedPortal } from './config/portalHost'
@@ -133,6 +134,7 @@ function App() {
         <Route path={vidaPlusRoutes.home} element={<VidaPlusPage />} />
         <Route path="/sala-de-espera" element={<Navigate to={ubtRoutes.salaDeEspera} replace />} />
         <Route path="/verificar/:codigo" element={<VerificarDocumentoPage />} />
+        <Route path="/plantao/aceitar/:token" element={<PlantaoAceitePublicPage />} />
         <Route path="/atendimento/:attendanceId/*" element={<LegacyAtendimentoRedirect />} />
         <Route path="/login" element={<Navigate to="/ubt/login" replace />} />
         <Route path="/ubs/login" element={<Navigate to="/ubt/login" replace />} />

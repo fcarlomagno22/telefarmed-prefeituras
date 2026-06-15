@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   computeShiftStatsFromQueue,
+  endProfissionalShift,
   enterProfissionalShift,
   getEndedShiftIds,
   getProfissionalQueue,
@@ -14,6 +15,7 @@ import {
   enterProfissionalAgendaPlantao,
   fetchProfissionalAgendaOverview,
   isProfissionalAgendaApiError,
+  type ProfissionalAgendaOverviewApi,
   type ProfissionalAgendaPlantaoApi,
 } from '../lib/services/profissional/agenda'
 import { isBackendApiEnabled } from '../lib/api/config'
@@ -24,6 +26,7 @@ import {
   mapConsultaApiToQueuePatient,
   mapPlantoesApiToProfissionalShifts,
 } from '../utils/profissional/mapProfissionalAgendaApi'
+import { canEnterProfissionalShift } from '../utils/profissional/profissionalShiftTiming'
 import {
   readPortalPageCache,
   writePortalPageCache,
@@ -113,6 +116,9 @@ export function useProfissionalAgendaState() {
     return shouldBlockPortalPageWithCache(agendaCacheKey(dateFrom, dateTo))
   })
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [activeSessionApi, setActiveSessionApi] = useState<
+    ProfissionalAgendaOverviewApi['activeSession']
+  >(null)
 
   const refresh = useCallback(() => setRevision((value) => value + 1), [])
 
@@ -140,6 +146,7 @@ export function useProfissionalAgendaState() {
       setPlantoesApi(overview.plantoes)
       setShiftCountByDateApi(overview.shiftCountByDate)
       setNotices(overview.notices ?? [])
+      setActiveSessionApi(overview.activeSession)
       writePortalPageCache(cacheKey, {
         plantoes: overview.plantoes,
         shiftCountByDate: overview.shiftCountByDate,
@@ -150,15 +157,28 @@ export function useProfissionalAgendaState() {
         overview.plantoes.map((plantao) => plantao.shiftId),
       )
 
-      if (isBackendApiEnabled() && overview.activeSession) {
-        writeActiveShiftSession({
-          shiftId: overview.activeSession.shiftId,
-          plantaoId: overview.activeSession.plantaoId,
-          enteredAt: overview.activeSession.enteredAt,
-          ...(overview.activeSession.endedAt
-            ? { endedAt: overview.activeSession.endedAt, summary: overview.activeSession.summary }
-            : {}),
-        })
+      if (isBackendApiEnabled()) {
+        const local = readActiveShiftSession()
+        if (overview.activeSession && !overview.activeSession.endedAt) {
+          writeActiveShiftSession({
+            shiftId: overview.activeSession.shiftId,
+            plantaoId: overview.activeSession.plantaoId,
+            enteredAt: overview.activeSession.enteredAt,
+          })
+        } else if (local && !local.endedAt) {
+          const plantaoId = local.plantaoId ?? local.shiftId
+          const plantao = overview.plantoes.find((item) => item.plantaoId === plantaoId)
+          endProfissionalShift({
+            atendidos: plantao?.stats.atendidos ?? 0,
+            naoCompareceu: 0,
+            desistiu: 0,
+            tempoMedioMin: plantao?.stats.tempoMedioMin ?? 0,
+            duracaoPlantaoMin: Math.max(
+              1,
+              Math.round((Date.now() - new Date(local.enteredAt).getTime()) / 60_000),
+            ),
+          })
+        }
       }
 
       refresh()
@@ -188,6 +208,18 @@ export function useProfissionalAgendaState() {
     window.addEventListener(PROFISSIONAL_QUEUE_UPDATED_EVENT, handleUpdate)
     return () => window.removeEventListener(PROFISSIONAL_QUEUE_UPDATED_EVENT, handleUpdate)
   }, [refresh])
+
+  useEffect(() => {
+    if (isBootstrapping) return
+    if (!isAuthenticated) return
+    if (!activeSessionApi || activeSessionApi.endedAt) return
+
+    const interval = window.setInterval(() => {
+      void reload()
+    }, 30_000)
+
+    return () => window.clearInterval(interval)
+  }, [activeSessionApi, isAuthenticated, isBootstrapping, reload])
 
   const activeSession = useMemo(() => readActiveShiftSession(), [revision])
   const activeShiftId = activeSession?.endedAt ? null : activeSession?.shiftId ?? null
@@ -271,7 +303,7 @@ export function useProfissionalAgendaState() {
   const handleEnterShift = useCallback(
     (shiftId: string) => {
       const shift = shifts.find((item) => item.id === shiftId)
-      if (!shift) return
+      if (!shift || !canEnterProfissionalShift(shift)) return
 
       const token = getAccessToken()
       if (isBackendApiEnabled() && token) {
@@ -327,6 +359,7 @@ export function useProfissionalAgendaState() {
     shifts,
     activeShift,
     activeSession,
+    activeSessionApi,
     notices,
     shiftCountByDate,
     monthShiftCount,

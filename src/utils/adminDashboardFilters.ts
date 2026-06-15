@@ -7,6 +7,7 @@ import {
   type AdminMunicipalityRow,
   type AdminNocIncident,
 } from '../types/adminDashboard'
+import type { AdminDashboardTriageChartsView } from '../types/adminDashboardTriage'
 import { adminHealthLabels, formatAdminCurrency } from '../components/admin/dashboard/adminDashboardUi'
 import type { PrefeituraHourlyPoint } from './prefeituraDashboardFilters'
 
@@ -52,6 +53,7 @@ export type AdminDashboardView = {
   revenue: AdminRevenueView
   terminals: AdminTerminalsView
   avgSlaMinutes: number
+  triageCharts: AdminDashboardTriageChartsView
   isEmpty: boolean
   filterOptions?: {
     period: Array<{ value: string; label: string }>

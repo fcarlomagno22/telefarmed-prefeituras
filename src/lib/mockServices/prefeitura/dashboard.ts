@@ -14,7 +14,10 @@ import {
 } from '../../../data/prefeituraDashboardMock'
 import { prefeituraRedeUnits } from '../../../data/prefeituraRedeMock'
 import { buildPrefeituraRedeUnitFullDetail } from '../../../data/prefeituraRedeUnitDetail'
+import { buildMockAdminDashboardTriageCharts } from '../../../data/adminDashboardTriageMock'
 import { prefeituraSpecialtyStats } from '../../../data/prefeituraSpecialtyStats'
+import type { AdminDashboardTriageChartsView } from '../../../types/adminDashboardTriage'
+import { EMPTY_ADMIN_DASHBOARD_TRIAGE_CHARTS } from '../../../types/adminDashboardTriage'
 import type {
   PrefeituraAlert,
   PrefeituraDashboardFilterOptions,
@@ -95,6 +98,7 @@ type DashboardOverviewApi = {
   slaRows: PrefeituraSlaRow[]
   alerts: PrefeituraAlert[]
   allAlerts: PrefeituraAlert[]
+  triageCharts: AdminDashboardTriageChartsView
   filterOptions: PrefeituraDashboardFilterOptions
   isEmpty: boolean
 }
@@ -247,6 +251,7 @@ function buildOverview(params: {
     })),
     alerts: alerts.slice(0, 3),
     allAlerts: alerts,
+    triageCharts: buildMockAdminDashboardTriageCharts(consultationsToday),
     filterOptions: {
       period: [...prefeituraFilterOptions.period],
       region: [...prefeituraFilterOptions.region],
@@ -286,6 +291,7 @@ export type PrefeituraDashboardView = {
   slaRows: PrefeituraSlaRow[]
   alerts: PrefeituraAlert[]
   allAlerts: PrefeituraAlert[]
+  triageCharts: AdminDashboardTriageChartsView
   packageUsage: PrefeituraPackageUsageView
   isEmpty: boolean
   filterOptions: PrefeituraDashboardFilterOptions
@@ -306,6 +312,7 @@ export function mapOverviewToDashboardView(
     slaRows: overview.slaRows,
     alerts: overview.alerts,
     allAlerts: overview.allAlerts,
+    triageCharts: overview.triageCharts ?? EMPTY_ADMIN_DASHBOARD_TRIAGE_CHARTS,
     isEmpty: overview.isEmpty,
     filterOptions: overview.filterOptions,
   }

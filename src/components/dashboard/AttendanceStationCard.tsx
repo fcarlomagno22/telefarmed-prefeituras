@@ -42,6 +42,8 @@ import { PatientRegistrationConfirmStep } from './PatientRegistrationConfirmStep
 import { PatientRegistrationForm } from './PatientRegistrationForm'
 import { SpecialtySelectionStep } from './SpecialtySelectionStep'
 import { WaitingRoomPanel } from './WaitingRoomPanel'
+import { TriageAnamnesisStep } from '../triage/TriageAnamnesisStep'
+import { emptyTriageClinicalData } from '../../types/triageClinical'
 import {
   clearWaitingRoomSession,
   formatWaitingRoomScheduledAt,
@@ -86,6 +88,10 @@ const statusLabels: Record<StationStatus, { label: string; className: string }> 
     label: 'Foto de cadastro',
     className: 'bg-pink-50 text-pink-700 ring-pink-200',
   },
+  clinical_triage: {
+    label: 'Triagem clínica',
+    className: 'bg-rose-50 text-rose-700 ring-rose-200',
+  },
   waiting_room: {
     label: 'Sala de espera',
     className: 'bg-amber-50 text-amber-700 ring-amber-200',
@@ -110,6 +116,7 @@ const flowSteps: StationStatus[] = [
   'contacts',
   'address',
   'photo',
+  'clinical_triage',
   'waiting_room',
 ]
 
@@ -129,7 +136,7 @@ function cardBackgroundImage(status: StationStatus): string {
   if (status === 'address') {
     return brand.dashboardAddressImageUrl
   }
-  if (status === 'photo') {
+  if (status === 'photo' || status === 'clinical_triage') {
     return brand.dashboardPhotoImageUrl
   }
   if (status === 'waiting_room') {
@@ -277,7 +284,11 @@ export function AttendanceStationCard({
   const [enteringWaitingRoom, setEnteringWaitingRoom] = useState(false)
   const [isSavingForWaitingRoom, setIsSavingForWaitingRoom] = useState(false)
   const [flowError, setFlowError] = useState<string | null>(null)
-  const [pendingAutoWaitingRoom, setPendingAutoWaitingRoom] = useState(false)
+  const [clinicalData, setClinicalData] = useState(emptyTriageClinicalData)
+  const [triagemResumo, setTriagemResumo] = useState('')
+  const [clinicalTriageBackStep, setClinicalTriageBackStep] = useState<
+    'photo' | 'confirm_registration'
+  >('photo')
 
   const patchFilaStatus = useCallback(
     (filaId: string, nextStatus: 'em_atendimento' | 'finalizado' | 'desistiu') => {
@@ -348,9 +359,11 @@ export function AttendanceStationCard({
 
         if (canAutoStart) {
           setPatient(registrationToPatient(start.registration, start.session.specialtyName))
-          setStatus('waiting_room')
+          setClinicalTriageBackStep('confirm_registration')
+          setClinicalData(emptyTriageClinicalData())
+          setTriagemResumo('')
+          setStatus('clinical_triage')
           patchFilaStatus(target.id, 'em_atendimento')
-          setPendingAutoWaitingRoom(true)
         } else {
           setStatus(start.initialStatus)
         }
@@ -374,13 +387,6 @@ export function AttendanceStationCard({
       cancelled = true
     }
   }, [loadByPacienteId, lookupByCpf, patchFilaStatus, queueCallTargetId])
-
-  useEffect(() => {
-    if (!pendingAutoWaitingRoom || status !== 'waiting_room') return
-    setPendingAutoWaitingRoom(false)
-    void handleAccessWaitingRoom()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- dispara uma vez após auto-carregar da fila
-  }, [pendingAutoWaitingRoom, status])
 
   const isAttendanceActive = status !== 'idle' || isLoadingFromQueue
 
@@ -418,6 +424,9 @@ export function AttendanceStationCard({
     setCalledFromQueueName(null)
     setFlowError(null)
     setIsSavingForWaitingRoom(false)
+    setClinicalData(emptyTriageClinicalData())
+    setTriagemResumo('')
+    setClinicalTriageBackStep('photo')
     setStatus('idle')
     setSession(emptyAttendanceSession())
     setRegistration(emptyPatientRegistration())
@@ -425,8 +434,15 @@ export function AttendanceStationCard({
     setRegisteredPatientId(null)
   }
 
-  async function goToWaitingRoom(registrationData: PatientRegistration) {
+  async function goToWaitingRoom(
+    registrationData: PatientRegistration,
+    resumo?: string,
+  ) {
     if (isSavingForWaitingRoom) return
+
+    if (resumo) {
+      setTriagemResumo(resumo)
+    }
 
     setIsSavingForWaitingRoom(true)
     setFlowError(null)
@@ -473,6 +489,7 @@ export function AttendanceStationCard({
         pacienteId: registeredPatientId,
         especialidadeId: session.specialtyId,
         filaEsperaId: activeFilaEntryId ?? undefined,
+        triagemResumo: triagemResumo || undefined,
       })
 
       const fila = await entrarUbtSalaEspera(accessToken, codigoAtendimento)
@@ -656,11 +673,14 @@ export function AttendanceStationCard({
         <PatientRegistrationConfirmStep
           data={registration}
           onChange={setRegistration}
-          onSubmit={() => void goToWaitingRoom(registration)}
+          onSubmit={() => {
+            setClinicalTriageBackStep('confirm_registration')
+            setClinicalData(emptyTriageClinicalData())
+            setTriagemResumo('')
+            setStatus('clinical_triage')
+          }}
           onBack={() => setStatus('cpf_lookup')}
           onOpenPhotoCapture={() => setPhotoCaptureOpen(true)}
-          continueLoading={isSavingForWaitingRoom}
-          continueLabel={isSavingForWaitingRoom ? 'Salvando…' : 'Continuar'}
         />
       )}
 
@@ -723,10 +743,28 @@ export function AttendanceStationCard({
               : undefined
           }
           onOpenCapture={() => setPhotoCaptureOpen(true)}
-          onContinue={() => void goToWaitingRoom(registration)}
+          onContinue={() => {
+            setClinicalTriageBackStep('photo')
+            setClinicalData(emptyTriageClinicalData())
+            setTriagemResumo('')
+            setStatus('clinical_triage')
+          }}
           onBack={() => setStatus('address')}
+        />
+      )}
+
+      {!isLoadingFromQueue && status === 'clinical_triage' && (
+        <TriageAnamnesisStep
+          data={clinicalData}
+          onChange={setClinicalData}
+          patientGender={registration.gender}
+          patientBirthDate={registration.birthDate}
+          ageGroup={session.ageGroup}
           isSubmitting={isSavingForWaitingRoom}
-          submittingLabel="Salvando…"
+          onBack={() => setStatus(clinicalTriageBackStep)}
+          onSubmit={(resumo) => {
+            void goToWaitingRoom(registration, resumo)
+          }}
         />
       )}
 

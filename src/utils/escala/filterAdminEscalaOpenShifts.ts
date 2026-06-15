@@ -1,8 +1,35 @@
-import type { AdminEscalaShift } from '../../types/adminEscala'
+import type { AdminEscalaShift, AdminEscalaExecutionStatus } from '../../types/adminEscala'
 import type { ProfissionalEscalaTurn } from '../../types/profissionalEscalaDisponivel'
 import { parseBrlCurrencyInput } from '../formatBrlCurrency'
 import { adminModalityToProfissional } from './escalaModality'
 import { computeAdminEscalaFillStatus } from './escalaShiftMeta'
+
+export type AdminEscalaPublicationFilterStatus = 'publicada' | 'rascunho' | 'cancelada'
+
+export type AdminEscalaExecutionFilterStatus = Exclude<
+  AdminEscalaExecutionStatus,
+  'na'
+>
+
+export type AdminEscalaFilterStatus =
+  | AdminEscalaPublicationFilterStatus
+  | AdminEscalaExecutionFilterStatus
+
+const EXECUTION_STATUS_FILTERS = new Set<AdminEscalaExecutionFilterStatus>([
+  'agendado',
+  'em_andamento',
+  'realizado',
+  'parcial',
+  'expirado',
+])
+
+function isExecutionStatusFilter(
+  status: AdminEscalaOpenFilters['status'],
+): status is AdminEscalaExecutionFilterStatus {
+  return status !== 'all' && EXECUTION_STATUS_FILTERS.has(status as AdminEscalaExecutionFilterStatus)
+}
+
+export { isExecutionStatusFilter }
 
 export type AdminEscalaOpenFilters = {
   specialty: string
@@ -12,7 +39,7 @@ export type AdminEscalaOpenFilters = {
   modality: 'all' | 'tele' | 'presencial' | 'hibrido'
   assignmentMode: 'all' | 'open' | 'assigned'
   fillStatus: 'all' | 'aberto' | 'parcial' | 'lotado'
-  status: 'all' | 'publicada' | 'rascunho' | 'cancelada'
+  status: 'all' | AdminEscalaFilterStatus
   minAmountReais: string
   maxAmountReais: string
   search: string
@@ -77,7 +104,13 @@ export function filterAdminEscalaShifts(
 
   return shifts
     .filter((shift) => {
-      if (filters.status !== 'all' && shift.status !== filters.status) return false
+      if (filters.status !== 'all') {
+        if (isExecutionStatusFilter(filters.status)) {
+          if (shift.executionStatus !== filters.status) return false
+        } else if (shift.status !== filters.status) {
+          return false
+        }
+      }
       if (filters.assignmentMode !== 'all' && shift.assignmentMode !== filters.assignmentMode) {
         return false
       }

@@ -13,6 +13,7 @@ import type {
   AdminEscalaUbtScope,
 } from '../../../types/adminEscala'
 import { buildProgrammingSlotsShifts, countProgrammingSlotsShifts } from '../../../utils/adminEscala/buildProgrammingSlots'
+import { preserveShiftIdsOnEdit } from '../../../utils/adminEscala/preserveShiftIdsOnEdit'
 import { escalaDateRangeError, isSingleDayEscalaPeriod, isValidEscalaDateRange } from '../../../utils/adminEscala/dateRange'
 import { createDefaultProgrammingSlot } from '../../../utils/adminEscala/createDefaultProgrammingSlot'
 import { getDoctorsForEscalaSpecialty } from '../../../utils/adminEscala/doctorsForSpecialty'
@@ -703,7 +704,11 @@ export function AdminEscalaComposeContent({
       status,
       updatedAt: new Date().toISOString(),
     }))
-    await onSaved(generated, {
+    const shiftsToSavePayload =
+      isEdit && editingBatch?.length
+        ? preserveShiftIdsOnEdit(generated, editingBatch)
+        : generated
+    await onSaved(shiftsToSavePayload, {
       replaceBatchId: isEdit && editingBatch?.[0]?.batchId ? batchId : undefined,
       removeShiftIds:
         isEdit && editingBatch && !editingBatch[0]?.batchId

@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { isPlantaoEncerradoParaProfissional } from '../../lib/escalaSlotLifecycle.js'
 import { isMissingSupabaseResource } from '../../lib/supabaseErrors.js'
 import { loadProfissionalEscalaContext } from '../profissional-escala/context.service.js'
 import {
@@ -7,12 +8,17 @@ import {
   formatPlantaoApi,
 } from './formatters.js'
 import { buildProfissionalAgendaNotices } from './notices.service.js'
+import {
+  resolveActiveSessionAutoCloseMeta,
+  tryAutoClosePlantaoForProfissional,
+} from './auto-close-plantao.service.js'
 import { getActivePlantaoSession } from './sessao.service.js'
 import type {
   AgendaConsultaRow,
   ConsultaClinicaRow,
   ProfissionalAgendaConsultaApi,
   ProfissionalAgendaOverviewApi,
+  ProfissionalAgendaActiveSessionApi,
   SlotAgendaRow,
 } from './types.js'
 import type { OverviewQuery } from './schemas.js'
@@ -32,19 +38,87 @@ async function loadPlantoesInRange(
 ): Promise<Array<{ plantaoId: string; slotId: string; status: string }>> {
   const { data, error } = await supabaseAdmin
     .from('escala_plantoes_confirmados')
-    .select('id, slot_id, status, escala_slots!inner(data)')
+    .select('id, slot_id, status, escala_slots!inner(data, hora_fim, status)')
     .eq('profissional_id', ctx.profissionalId)
-    .in('status', ['confirmado', 'realizado'])
+    .eq('status', 'confirmado')
     .gte('escala_slots.data', dateFrom)
     .lte('escala_slots.data', dateTo)
 
   if (error) throw error
 
-  return (data ?? []).map((row) => ({
-    plantaoId: String(row.id),
-    slotId: String(row.slot_id),
-    status: String(row.status),
-  }))
+  return (data ?? [])
+    .filter((row) => {
+      const slot = row.escala_slots as unknown as {
+        data: string
+        hora_fim: string
+        status: string
+      }
+      return !isPlantaoEncerradoParaProfissional({
+        plantaoStatus: String(row.status),
+        slotData: String(slot.data),
+        slotHoraFim: String(slot.hora_fim),
+        slotStatus: String(slot.status),
+      })
+    })
+    .map((row) => ({
+      plantaoId: String(row.id),
+      slotId: String(row.slot_id),
+      status: String(row.status),
+    }))
+}
+
+function parseReserveQueueIds(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return value.map(String).filter(Boolean)
+}
+
+function buildReservePlantaoId(slotId: string): string {
+  return `reserva-${slotId}`
+}
+
+async function loadReserveSlotsInRange(
+  ctx: ProfissionalAgendaContext,
+  dateFrom: string,
+  dateTo: string,
+  confirmedSlotIds: Set<string>,
+): Promise<Array<{ plantaoId: string; slotId: string; status: string }>> {
+  const { data, error } = await supabaseAdmin
+    .from('escala_slots')
+    .select('id, data, hora_fim, status, fila_reserva')
+    .eq('status', 'publicada')
+    .gte('data', dateFrom)
+    .lte('data', dateTo)
+
+  if (error) throw error
+
+  const items: Array<{ plantaoId: string; slotId: string; status: string }> = []
+
+  for (const row of data ?? []) {
+    const slotId = String(row.id)
+    if (confirmedSlotIds.has(slotId)) continue
+
+    const reserveQueue = parseReserveQueueIds(row.fila_reserva)
+    if (!reserveQueue.includes(ctx.profissionalId)) continue
+
+    if (
+      isPlantaoEncerradoParaProfissional({
+        plantaoStatus: 'confirmado',
+        slotData: String(row.data),
+        slotHoraFim: String(row.hora_fim),
+        slotStatus: String(row.status),
+      })
+    ) {
+      continue
+    }
+
+    items.push({
+      plantaoId: buildReservePlantaoId(slotId),
+      slotId,
+      status: 'confirmado',
+    })
+  }
+
+  return items
 }
 
 async function loadSlotsByIds(slotIds: string[]): Promise<Map<string, SlotAgendaRow>> {
@@ -54,7 +128,7 @@ async function loadSlotsByIds(slotIds: string[]): Promise<Map<string, SlotAgenda
   const { data, error } = await supabaseAdmin
     .from('escala_slots')
     .select(
-      'id, data, hora_inicio, hora_fim, modalidade, profissional_titular_id, unidade_nome, cidade, cidade_uf, especialidade_id, config_especialidades!inner(nome)',
+      'id, data, hora_inicio, hora_fim, modalidade, profissional_titular_id, fila_reserva, unidade_nome, cidade, cidade_uf, especialidade_id, config_especialidades!inner(nome)',
     )
     .in('id', unique)
 
@@ -221,17 +295,25 @@ export async function getProfissionalAgendaOverview(
   query: OverviewQuery,
 ): Promise<ProfissionalAgendaOverviewApi> {
   const plantoesRaw = await loadPlantoesInRange(ctx, query.dateFrom, query.dateTo)
-  const slotIds = plantoesRaw.map((item) => item.slotId)
+  const confirmedSlotIds = new Set(plantoesRaw.map((item) => item.slotId))
+  const reserveSlotsRaw = await loadReserveSlotsInRange(
+    ctx,
+    query.dateFrom,
+    query.dateTo,
+    confirmedSlotIds,
+  )
+  const allPlantoesRaw = [...plantoesRaw, ...reserveSlotsRaw]
+  const slotIds = allPlantoesRaw.map((item) => item.slotId)
   const slotsById = await loadSlotsByIds(slotIds)
 
   const plantaoBySlotId = new Map<string, { plantaoId: string; shiftId: string }>()
-  for (const item of plantoesRaw) {
+  for (const item of allPlantoesRaw) {
     plantaoBySlotId.set(item.slotId, {
       plantaoId: item.plantaoId,
       shiftId: item.plantaoId,
     })
   }
-  const plantoesByDate = buildPlantoesByDate(plantoesRaw, slotsById)
+  const plantoesByDate = buildPlantoesByDate(allPlantoesRaw, slotsById)
 
   const agendaRows = await loadAgendaConsultas(ctx, slotIds, query.dateFrom, query.dateTo)
   const agendaIds = agendaRows.map((row) => row.id)
@@ -264,7 +346,7 @@ export async function getProfissionalAgendaOverview(
     consultasByPlantao.set(plantaoRef.plantaoId, list)
   }
 
-  const plantoes = plantoesRaw
+  const plantoes = allPlantoesRaw
     .map((item) => {
       const slot = slotsById.get(item.slotId)
       if (!slot) return null
@@ -285,7 +367,7 @@ export async function getProfissionalAgendaOverview(
     shiftCountByDate[plantao.dateKey] = (shiftCountByDate[plantao.dateKey] ?? 0) + 1
   }
 
-  const activeSession = await getActivePlantaoSession(ctx.profissionalId)
+  const activeSession = await resolveActiveSessionForOverview(ctx.profissionalId)
   const todayKey = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/Sao_Paulo',
     year: 'numeric',
@@ -339,6 +421,39 @@ export async function listProfissionalAgendaPlantaoConsultas(
   })
 
   return overview.consultas.filter((consulta) => consulta.plantaoId === plantaoId)
+}
+
+async function resolveActiveSessionForOverview(
+  profissionalId: string,
+): Promise<ProfissionalAgendaActiveSessionApi | null> {
+  await tryAutoClosePlantaoForProfissional(profissionalId)
+
+  const activeSession = await getActivePlantaoSession(profissionalId)
+  if (!activeSession) return null
+
+  const { data: plantao, error } = await supabaseAdmin
+    .from('escala_plantoes_confirmados')
+    .select('slot_id')
+    .eq('id', activeSession.plantaoId)
+    .eq('profissional_id', profissionalId)
+    .maybeSingle()
+
+  if (error) throw error
+  if (!plantao) return activeSession
+
+  const meta = await resolveActiveSessionAutoCloseMeta(
+    profissionalId,
+    activeSession.plantaoId,
+    String(plantao.slot_id),
+  )
+
+  if (!meta) return activeSession
+
+  return {
+    ...activeSession,
+    scheduledEndAt: meta.scheduledEndAt,
+    autoClosePending: meta.autoClosePending,
+  }
 }
 
 export async function loadProfissionalAgendaContext(

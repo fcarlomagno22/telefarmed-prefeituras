@@ -7,6 +7,7 @@ import {
 } from '../../../data/adminEscalaCatalog'
 import type {
   AdminEscalaFillStatus,
+  AdminEscalaExecutionStatus,
   AdminEscalaShift,
   AdminEscalaShiftStatus,
 } from '../../../types/adminEscala'
@@ -141,6 +142,79 @@ export function buildAdminEscalaFillStatusBadge(shift: AdminEscalaShift) {
   return {
     label: fillStatusLabels[key],
     className: fillStatusClasses[key],
+  }
+}
+
+const executionStatusLabels: Record<AdminEscalaExecutionStatus, string> = {
+  na: '—',
+  agendado: 'Agendado',
+  em_andamento: 'Em andamento',
+  realizado: 'Realizado',
+  parcial: 'Parcial',
+  expirado: 'Não realizado',
+}
+
+const executionStatusClasses: Record<AdminEscalaExecutionStatus, string> = {
+  na: 'bg-gray-100 text-gray-500 ring-gray-200',
+  agendado: 'bg-indigo-50 text-indigo-800 ring-indigo-200',
+  em_andamento: 'bg-violet-50 text-violet-800 ring-violet-200',
+  realizado: 'bg-emerald-50 text-emerald-800 ring-emerald-200',
+  parcial: 'bg-teal-50 text-teal-800 ring-teal-200',
+  expirado: 'bg-rose-50 text-rose-800 ring-rose-200',
+}
+
+export function buildAdminEscalaExecutionStatusBadge(
+  executionStatus: AdminEscalaExecutionStatus,
+) {
+  return {
+    label: executionStatusLabels[executionStatus],
+    className: executionStatusClasses[executionStatus],
+    visible: executionStatus !== 'na',
+  }
+}
+
+export function shouldShowExecutionBadge(shift: AdminEscalaShift) {
+  return shift.executionStatus !== 'na'
+}
+
+export function isAdminEscalaShiftLockedForMutation(
+  shift: Pick<AdminEscalaShift, 'executionStatus'>,
+): boolean {
+  return shift.executionStatus === 'em_andamento' || shift.executionStatus === 'realizado'
+}
+
+export function canEditAdminEscalaShift(
+  shift: Pick<AdminEscalaShift, 'executionStatus'>,
+): boolean {
+  return !isAdminEscalaShiftLockedForMutation(shift)
+}
+
+export function canDeleteAdminEscalaShift(
+  shift: Pick<AdminEscalaShift, 'executionStatus'>,
+): boolean {
+  return !isAdminEscalaShiftLockedForMutation(shift)
+}
+
+export function canSuspendAdminEscalaShift(
+  shift: Pick<AdminEscalaShift, 'executionStatus' | 'status'>,
+): boolean {
+  return shift.status !== 'cancelada' && !isAdminEscalaShiftLockedForMutation(shift)
+}
+
+export function getAdminEscalaShiftsMutationFlags(
+  shifts: Array<Pick<AdminEscalaShift, 'id' | 'executionStatus' | 'status'>>,
+) {
+  const hasLocked = shifts.some(isAdminEscalaShiftLockedForMutation)
+  const mutableShifts = shifts.filter((shift) => !isAdminEscalaShiftLockedForMutation(shift))
+
+  return {
+    canEdit: shifts.length > 0 && !hasLocked,
+    canDelete: mutableShifts.length > 0,
+    canSuspend: mutableShifts.some((shift) => shift.status !== 'cancelada'),
+    deletableIds: mutableShifts.map((shift) => shift.id),
+    suspendableIds: mutableShifts
+      .filter((shift) => shift.status !== 'cancelada')
+      .map((shift) => shift.id),
   }
 }
 
