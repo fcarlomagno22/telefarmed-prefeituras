@@ -100,7 +100,7 @@ export function createSeedAppointments(patientCpf: string): StoredAppointment[] 
       selectedUbtId: ubt3.id,
       selectedUbtName: ubt3.name,
       selectedUbtAddress: `${ubt3.address} · ${ubt3.neighborhood}`,
-      selectedDate: toDateKey(addDays(today, -18)),
+      selectedDate: toDateKey(addDays(today, -6)),
       selectedDoctorId: dr3.id,
       selectedDoctorName: dr3.name,
       selectedTime: '10:00',

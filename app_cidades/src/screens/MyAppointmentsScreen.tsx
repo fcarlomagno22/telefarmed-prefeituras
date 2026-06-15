@@ -15,11 +15,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AppointmentCancelDrawer } from '../components/appointments/AppointmentCancelDrawer'
 import { AppointmentCard } from '../components/appointments/AppointmentCard'
 import { AppointmentDetailDrawer } from '../components/appointments/AppointmentDetailDrawer'
+import { AppointmentDirectionsDrawer } from '../components/appointments/AppointmentDirectionsDrawer'
+import { AppointmentDocumentsDrawer } from '../components/appointments/AppointmentDocumentsDrawer'
+import { AppointmentPostConsultationDrawer } from '../components/appointments/AppointmentPostConsultationDrawer'
 import { AppointmentEmptyState } from '../components/appointments/AppointmentEmptyState'
 import { AppointmentSegmentTabs } from '../components/appointments/AppointmentSegmentTabs'
+import { PosConsultaCheckinDrawer } from '../components/postConsultation/PosConsultaCheckinDrawer'
 import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
 import { MenuDrawer } from '../components/MenuDrawer'
 import { MetricsPeriodDrawer } from '../components/metrics/MetricsPeriodDrawer'
+import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { SkeletonBone } from '../components/SkeletonBone'
 import { appEnv } from '../config/env'
 import {
@@ -31,8 +36,15 @@ import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useSimulatedPageSkeleton } from '../hooks/useSimulatedPageSkeleton'
 import { colors } from '../theme/colors'
 import { PeriodSelection } from '../types/metrics'
+import type {
+  AppointmentPosConsultaCheckinItem,
+  AppointmentPosConsultaPlan,
+} from '../types/appointmentPostConsultation'
 import { MyAppointmentsTab, StoredAppointment } from '../types/myAppointments'
-import { openAppointmentDirections } from '../utils/appointmentMaps'
+import {
+  NavigationApp,
+  openAppointmentDirections,
+} from '../utils/appointmentMaps'
 import { playSuccessSound } from '../utils/appSounds'
 import {
   filterAppointmentsByTab,
@@ -59,6 +71,19 @@ export function MyAppointmentsScreen() {
   const [detailVisible, setDetailVisible] = useState(false)
   const [cancelTarget, setCancelTarget] = useState<StoredAppointment | null>(null)
   const [cancelVisible, setCancelVisible] = useState(false)
+  const [directionsTarget, setDirectionsTarget] = useState<StoredAppointment | null>(null)
+  const [directionsVisible, setDirectionsVisible] = useState(false)
+  const [documentsTarget, setDocumentsTarget] = useState<StoredAppointment | null>(null)
+  const [documentsVisible, setDocumentsVisible] = useState(false)
+  const [postConsultationTarget, setPostConsultationTarget] =
+    useState<StoredAppointment | null>(null)
+  const [postConsultationVisible, setPostConsultationVisible] = useState(false)
+  const [postConsultationPlan, setPostConsultationPlan] =
+    useState<AppointmentPosConsultaPlan | null>(null)
+  const [checkinTarget, setCheckinTarget] =
+    useState<AppointmentPosConsultaCheckinItem | null>(null)
+  const [checkinVisible, setCheckinVisible] = useState(false)
+  const [postConsultationRefreshKey, setPostConsultationRefreshKey] = useState(0)
   const [isCancelling, setIsCancelling] = useState(false)
   const [menuVisible, setMenuVisible] = useState(false)
   const [historyPeriod, setHistoryPeriod] = useState<PeriodSelection | null>(null)
@@ -120,13 +145,32 @@ export function MyAppointmentsScreen() {
   )
 
   function handleBack() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     navigateTo('home')
   }
 
   useAndroidBackHandler(() => {
     if (cancelVisible) {
       closeCancelFlow()
+      return true
+    }
+
+    if (directionsVisible) {
+      closeDirectionsDrawer()
+      return true
+    }
+
+    if (checkinVisible) {
+      closeCheckinDrawer()
+      return true
+    }
+
+    if (postConsultationVisible) {
+      closePostConsultationDrawer()
+      return true
+    }
+
+    if (documentsVisible) {
+      closeDocumentsDrawer()
       return true
     }
 
@@ -169,6 +213,67 @@ export function MyAppointmentsScreen() {
     setCancelTarget(null)
   }
 
+  function openDirectionsDrawer(appointment: StoredAppointment) {
+    setDirectionsTarget(appointment)
+    setDirectionsVisible(true)
+  }
+
+  function closeDirectionsDrawer() {
+    setDirectionsVisible(false)
+    setDirectionsTarget(null)
+  }
+
+  async function handleSelectNavigationApp(app: NavigationApp) {
+    if (!directionsTarget) return
+
+    await openAppointmentDirections(directionsTarget.selectedUbtId, app)
+    closeDirectionsDrawer()
+  }
+
+  function openDocumentsDrawer(appointment: StoredAppointment) {
+    setDocumentsTarget(appointment)
+    setDocumentsVisible(true)
+  }
+
+  function closeDocumentsDrawer() {
+    setDocumentsVisible(false)
+    setDocumentsTarget(null)
+  }
+
+  function openPostConsultationDrawer(appointment: StoredAppointment) {
+    setDetailVisible(false)
+    setPostConsultationTarget(appointment)
+    setPostConsultationVisible(true)
+  }
+
+  function closePostConsultationDrawer() {
+    setPostConsultationVisible(false)
+    setPostConsultationTarget(null)
+    setPostConsultationPlan(null)
+  }
+
+  function openCheckinDrawer(
+    checkin: AppointmentPosConsultaCheckinItem,
+    plan: AppointmentPosConsultaPlan,
+  ) {
+    setPostConsultationPlan(plan)
+    setCheckinTarget(checkin)
+    setCheckinVisible(true)
+  }
+
+  function closeCheckinDrawer() {
+    setCheckinVisible(false)
+    setCheckinTarget(null)
+  }
+
+  function handleCheckinSubmitted() {
+    setPostConsultationRefreshKey((value) => value + 1)
+  }
+
+  function handlePrescriptionsPress(appointment: StoredAppointment) {
+    openDocumentsDrawer(appointment)
+  }
+
   async function handleAddToCalendar(appointment: StoredAppointment) {
     if (!user) return
 
@@ -186,8 +291,8 @@ export function MyAppointmentsScreen() {
     })
   }
 
-  async function handleDirections(appointment: StoredAppointment) {
-    await openAppointmentDirections(appointment.selectedUbtId)
+  function handleDirections(appointment: StoredAppointment) {
+    openDirectionsDrawer(appointment)
   }
 
   function handleReschedule() {
@@ -196,12 +301,8 @@ export function MyAppointmentsScreen() {
     navigateTo('schedule-appointment')
   }
 
-  function handlePostConsultationPress() {
-    closeDetail()
-  }
-
-  function handlePrescriptionsPress() {
-    closeDetail()
+  function handlePostConsultationPress(appointment: StoredAppointment) {
+    openPostConsultationDrawer(appointment)
   }
 
   async function handleConfirmCancel(reason: string) {
@@ -238,6 +339,18 @@ export function MyAppointmentsScreen() {
       return
     }
 
+    if (tab === 'my-metrics') {
+      setMenuVisible(false)
+      navigateTo('my-metrics')
+      return
+    }
+
+    if (tab === 'pos-consulta') {
+      setMenuVisible(false)
+      navigateTo('post-consultation')
+      return
+    }
+
     setMenuVisible(false)
     setBottomTab(tab)
   }
@@ -269,25 +382,12 @@ export function MyAppointmentsScreen() {
           pointerEvents="none"
         />
 
-        <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
-          <Pressable
-            onPress={handleBack}
-            style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-            accessibilityRole="button"
-            accessibilityLabel="Voltar"
-          >
-            <Ionicons name="chevron-back" size={22} color={colors.text} />
-          </Pressable>
-
-          <View style={styles.headerTextCol}>
-            <Text style={styles.headerTitle}>Minhas Consultas</Text>
-            <Text style={styles.headerSubtitle}>
-              Agendadas · Realizadas · Canceladas
-            </Text>
-          </View>
-
-          <View style={styles.headerPlaceholder} />
-        </View>
+        <ScreenStackHeader
+          title="Minhas Consultas"
+          subtitle="Agendadas · Realizadas · Canceladas"
+          paddingTop={Math.max(insets.top, 12) + 8}
+          onBack={handleBack}
+        />
 
         <ScrollView
           style={styles.body}
@@ -325,11 +425,11 @@ export function MyAppointmentsScreen() {
                     appointment={nextAppointment}
                     highlighted
                     onCalendarPress={() => void handleAddToCalendar(nextAppointment)}
-                    onDirectionsPress={() => void handleDirections(nextAppointment)}
+                    onDirectionsPress={() => handleDirections(nextAppointment)}
                     onReschedulePress={handleReschedule}
                     onCancelPress={() => openCancelFlow(nextAppointment)}
                     onPostConsultationPress={handlePostConsultationPress}
-                    onPrescriptionsPress={handlePrescriptionsPress}
+                    onPrescriptionsPress={() => handlePrescriptionsPress(nextAppointment)}
                   />
                 </View>
               ) : null}
@@ -381,11 +481,11 @@ export function MyAppointmentsScreen() {
                         key={appointment.id}
                         appointment={appointment}
                         onCalendarPress={() => void handleAddToCalendar(appointment)}
-                        onDirectionsPress={() => void handleDirections(appointment)}
+                        onDirectionsPress={() => handleDirections(appointment)}
                         onReschedulePress={handleReschedule}
                         onCancelPress={() => openCancelFlow(appointment)}
                         onPostConsultationPress={handlePostConsultationPress}
-                        onPrescriptionsPress={handlePrescriptionsPress}
+                        onPrescriptionsPress={() => handlePrescriptionsPress(appointment)}
                       />
                     ))}
                 </View>
@@ -442,14 +542,57 @@ export function MyAppointmentsScreen() {
           if (selectedAppointment) void handleAddToCalendar(selectedAppointment)
         }}
         onDirectionsPress={() => {
-          if (selectedAppointment) void handleDirections(selectedAppointment)
+          if (selectedAppointment) handleDirections(selectedAppointment)
         }}
         onReschedulePress={handleReschedule}
         onCancelPress={() => {
           if (selectedAppointment) openCancelFlow(selectedAppointment)
         }}
-        onPostConsultationPress={handlePostConsultationPress}
-        onPrescriptionsPress={handlePrescriptionsPress}
+        onPostConsultationPress={(appointment) => {
+          closeDetail()
+          handlePostConsultationPress(appointment)
+        }}
+      />
+
+      <AppointmentPostConsultationDrawer
+        visible={postConsultationVisible}
+        appointment={postConsultationTarget}
+        patientCpf={user?.cpf}
+        patientName={user?.name}
+        refreshKey={postConsultationRefreshKey}
+        onClose={closePostConsultationDrawer}
+        onRespondCheckin={openCheckinDrawer}
+      />
+
+      <PosConsultaCheckinDrawer
+        visible={checkinVisible}
+        appointment={postConsultationTarget}
+        plan={postConsultationPlan}
+        checkin={checkinTarget}
+        patientCpf={user?.cpf}
+        onClose={closeCheckinDrawer}
+        onSubmitted={handleCheckinSubmitted}
+      />
+
+      <AppointmentDirectionsDrawer
+        visible={directionsVisible}
+        destination={
+          directionsTarget
+            ? {
+                ubtId: directionsTarget.selectedUbtId,
+                ubtName: directionsTarget.selectedUbtName,
+              }
+            : null
+        }
+        onClose={closeDirectionsDrawer}
+        onSelectApp={(app) => void handleSelectNavigationApp(app)}
+      />
+
+      <AppointmentDocumentsDrawer
+        visible={documentsVisible}
+        appointment={documentsTarget}
+        patientName={user?.name}
+        onClose={closeDocumentsDrawer}
       />
 
       <AppointmentCancelDrawer
@@ -493,45 +636,6 @@ const styles = StyleSheet.create({
   },
   screenOverlay: {
     ...StyleSheet.absoluteFillObject,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  headerPlaceholder: {
-    width: 40,
-    height: 40,
-  },
-  backButtonPressed: {
-    opacity: 0.82,
-  },
-  headerTextCol: {
-    flex: 1,
-    gap: 2,
-  },
-  headerTitle: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-  headerSubtitle: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '500',
   },
   body: {
     flex: 1,

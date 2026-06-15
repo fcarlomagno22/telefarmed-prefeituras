@@ -67,7 +67,7 @@ const QUICK_ACTIONS: QuickActionConfig[] = [
   },
   {
     id: 'prescriptions',
-    title: 'Receitas e +',
+    title: 'Atestados e +',
     icon: 'pill',
     ...ACTION_ICON_PALETTES.prescriptions,
   },

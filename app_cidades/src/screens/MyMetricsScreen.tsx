@@ -588,7 +588,7 @@ export function MyMetricsScreen() {
   const { user, isAuthenticated, navigateTo, logout, isBootstrapping } = useAuth()
   const showSkeleton = useSimulatedPageSkeleton(isBootstrapping)
 
-  const [activeTab, setActiveTab] = useState<BottomTabId | null>(null)
+  const [activeTab, setActiveTab] = useState<BottomTabId | null>('my-metrics')
   const [menuVisible, setMenuVisible] = useState(false)
   const [guestFeatureKey, setGuestFeatureKey] = useState<GuestFeatureKey | null>(null)
   const [drawerVisible, setDrawerVisible] = useState(false)
@@ -1428,6 +1428,24 @@ export function MyMetricsScreen() {
     if (tab === 'menu') {
       setMenuVisible(true)
       setActiveTab('menu')
+      return
+    }
+
+    if (tab === 'agendar') {
+      setMenuVisible(false)
+      navigateTo('schedule-appointment')
+      return
+    }
+
+    if (tab === 'my-metrics') {
+      setMenuVisible(false)
+      setActiveTab('my-metrics')
+      return
+    }
+
+    if (tab === 'pos-consulta') {
+      setMenuVisible(false)
+      navigateTo('post-consultation')
       return
     }
 

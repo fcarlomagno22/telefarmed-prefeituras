@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   ImageBackground,
   Pressable,
@@ -44,6 +44,7 @@ import {
   toDateKey,
 } from '../utils/scheduleDate'
 import { resolveBrandImage } from '../utils/resolveBrandImage'
+import { consumeScheduleUbtPrefill } from '../utils/schedulePrefill'
 
 const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const SCHEDULE_FOOTER_HEIGHT = 82
@@ -67,6 +68,17 @@ export function ScheduleAppointmentScreen() {
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const [menuVisible, setMenuVisible] = useState(false)
+  const [skipUbtStep, setSkipUbtStep] = useState(false)
+
+  useEffect(() => {
+    const prefill = consumeScheduleUbtPrefill()
+    if (!prefill) return
+
+    setSelectedUbtId(prefill.ubtId)
+    setSelectedUbtName(prefill.ubtName)
+    setSelectedUbtAddress(prefill.ubtAddress)
+    setSkipUbtStep(true)
+  }, [])
 
   const bottomContentPadding =
     SCHEDULE_FOOTER_HEIGHT + Math.max(insets.bottom, 12) + 16
@@ -124,7 +136,7 @@ export function ScheduleAppointmentScreen() {
     }
 
     if (step === 'schedule_mode') {
-      setStep('ubt')
+      setStep(skipUbtStep ? 'specialty' : 'ubt')
       return
     }
 
@@ -170,7 +182,7 @@ export function ScheduleAppointmentScreen() {
     }
 
     if (step === 'schedule_mode') {
-      setStep('ubt')
+      setStep(skipUbtStep ? 'specialty' : 'ubt')
       return true
     }
 
@@ -199,6 +211,10 @@ export function ScheduleAppointmentScreen() {
 
     if (step === 'specialty' && specialtyId) {
       resetSchedulingState()
+      if (skipUbtStep && selectedUbtId) {
+        setStep('schedule_mode')
+        return
+      }
       resetUbtSelection()
       setStep('ubt')
       return

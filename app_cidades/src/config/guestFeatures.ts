@@ -14,7 +14,7 @@ export type GuestFeatureKey =
   | 'vida:my-goals'
   | 'vida:my-routine'
   | 'tab:menu'
-  | 'tab:suporte'
+  | 'tab:my-metrics'
   | 'tab:home'
   | 'tab:agendar'
   | 'tab:pos-consulta'
@@ -42,11 +42,11 @@ const FEATURES: Record<GuestFeatureKey, GuestFeatureContent> = {
   'quick:post-consultation': {
     title: 'Pós-consulta',
     description:
-      'Acompanhe orientações, retornos e próximos passos depois da sua consulta — tudo organizado em um só lugar.',
+      'Acompanhe seus check-ins de 14 dias após a consulta, responda pelo app e veja sua evolução.',
     icon: 'clipboard-pulse-outline',
   },
   'quick:prescriptions': {
-    title: 'Receitas e +',
+    title: 'Atestados e +',
     description:
       'Consulte receitas digitais, renovações e documentos de saúde com praticidade e segurança.',
     icon: 'pill',
@@ -117,11 +117,11 @@ const FEATURES: Record<GuestFeatureKey, GuestFeatureContent> = {
       'Acesse perfil, configurações, documentos e atalhos extras do app. Disponível após entrar na sua conta.',
     icon: 'menu',
   },
-  'tab:suporte': {
-    title: 'Suporte',
+  'tab:my-metrics': {
+    title: 'Minhas métricas',
     description:
-      'Fale com nossa equipe, tire dúvidas e receba ajuda sobre consultas, cadastro e uso do app.',
-    icon: 'face-agent',
+      'Acompanhe peso, pressão, glicose, hidratação e outros indicadores de saúde em um só lugar.',
+    icon: 'ruler',
   },
   'tab:home': {
     title: 'Home',
@@ -138,7 +138,7 @@ const FEATURES: Record<GuestFeatureKey, GuestFeatureContent> = {
   'tab:pos-consulta': {
     title: 'Pós-consulta',
     description:
-      'Retome orientações médicas, exames solicitados e retornos agendados após cada atendimento.',
+      'Receba 7 check-ins em 14 dias após cada consulta realizada. Responda pelo app e acompanhe sua evolução.',
     icon: 'clipboard-text-outline',
   },
   'promo:carousel': {

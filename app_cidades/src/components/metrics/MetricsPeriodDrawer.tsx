@@ -29,6 +29,8 @@ type MetricsPeriodDrawerProps = {
   onClose: () => void
   onApply: (period: PeriodSelection) => void
   subtitle?: string
+  title?: string
+  markedDateKeys?: ReadonlySet<string>
 }
 
 const PRESETS: { id: PeriodPreset; label: string }[] = [
@@ -94,6 +96,8 @@ export function MetricsPeriodDrawer({
   onClose,
   onApply,
   subtitle = 'Escolha como deseja visualizar a evolução',
+  title = 'Período',
+  markedDateKeys,
 }: MetricsPeriodDrawerProps) {
   const insets = useSafeAreaInsets()
   const [isMounted, setIsMounted] = useState(false)
@@ -228,7 +232,7 @@ export function MetricsPeriodDrawer({
 
           <View style={styles.headerRow}>
             <View style={styles.titleWrap}>
-              <WaveTitle text="Período" />
+              <WaveTitle text={title} />
             </View>
             <Pressable
               onPress={handleDismiss}
@@ -300,6 +304,7 @@ export function MetricsPeriodDrawer({
                 const selectedEnd = rangeEnd && isSameDay(cell.date, rangeEnd)
                 const inRange = isBetween(cell.date, rangeStart, rangeEnd)
                 const isFuture = cell.date.getTime() > Date.now()
+                const hasMarker = markedDateKeys?.has(formatDateKey(cell.date)) ?? false
 
                 return (
                   <Pressable
@@ -329,6 +334,14 @@ export function MetricsPeriodDrawer({
                       >
                         {cell.date.getDate()}
                       </Text>
+                      {hasMarker ? (
+                        <View
+                          style={[
+                            styles.markerDot,
+                            (selectedStart || selectedEnd) && styles.markerDotSelected,
+                          ]}
+                        />
+                      ) : null}
                     </View>
                   </Pressable>
                 )
@@ -480,7 +493,7 @@ const styles = StyleSheet.create({
   },
   dayCell: {
     width: `${100 / 7}%`,
-    height: 40,
+    height: 44,
     padding: 2,
   },
   dayCellContent: {
@@ -488,6 +501,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
+    gap: 2,
+    paddingVertical: 2,
   },
   dayCellInRange: {
     backgroundColor: 'rgba(255, 107, 0, 0.12)',
@@ -518,6 +533,15 @@ const styles = StyleSheet.create({
   },
   dayLabelDisabled: {
     color: colors.textSubtle,
+  },
+  markerDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: '#c4b5fd',
+  },
+  markerDotSelected: {
+    backgroundColor: '#fff',
   },
   rangeHint: {
     color: colors.textMuted,

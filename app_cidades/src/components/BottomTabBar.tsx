@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons'
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
@@ -7,7 +7,7 @@ import { colors } from '../theme/colors'
 
 export type BottomTabId =
   | 'menu'
-  | 'suporte'
+  | 'my-metrics'
   | 'home'
   | 'agendar'
   | 'pos-consulta'
@@ -18,6 +18,7 @@ type TabConfig = {
   labelLines?: readonly [string, string]
   icon: keyof typeof Ionicons.glyphMap
   iconActive: keyof typeof Ionicons.glyphMap
+  materialIcon?: keyof typeof MaterialCommunityIcons.glyphMap
 }
 
 const TABS: TabConfig[] = [
@@ -28,10 +29,12 @@ const TABS: TabConfig[] = [
     iconActive: 'menu',
   },
   {
-    id: 'suporte',
-    label: 'Suporte',
-    icon: 'headset-outline',
-    iconActive: 'headset',
+    id: 'my-metrics',
+    label: 'Minhas métricas',
+    labelLines: ['Minhas', 'métricas'],
+    icon: 'pulse-outline',
+    iconActive: 'pulse',
+    materialIcon: 'ruler',
   },
   {
     id: 'home',
@@ -45,18 +48,38 @@ const TABS: TabConfig[] = [
     labelLines: ['Agendar', 'consulta'],
     icon: 'calendar-outline',
     iconActive: 'calendar',
+    materialIcon: 'calendar-clock',
   },
   {
     id: 'pos-consulta',
     label: 'Pós-consulta',
     icon: 'clipboard-outline',
     iconActive: 'clipboard',
+    materialIcon: 'clipboard-pulse-outline',
   },
 ]
 
 type BottomTabBarProps = {
   activeTab: BottomTabId | null
   onTabPress: (tab: BottomTabId) => void
+}
+
+function TabIcon({
+  tab,
+  active,
+  color,
+  size,
+}: {
+  tab: TabConfig
+  active: boolean
+  color: string
+  size: number
+}) {
+  if (tab.materialIcon) {
+    return <MaterialCommunityIcons name={tab.materialIcon} size={size} color={color} />
+  }
+
+  return <Ionicons name={active ? tab.iconActive : tab.icon} size={size} color={color} />
 }
 
 function ActiveTabContent({ tab }: { tab: TabConfig }) {
@@ -88,7 +111,7 @@ function ActiveTabContent({ tab }: { tab: TabConfig }) {
               style={styles.activeIconShine}
               pointerEvents="none"
             />
-            <Ionicons name={tab.iconActive} size={21} color="#fff" />
+            <TabIcon tab={tab} active size={21} color="#fff" />
           </LinearGradient>
         </View>
 
@@ -147,7 +170,7 @@ function TabItem({
       ) : (
         <View style={styles.inactiveWrap}>
           <View style={styles.iconSlot}>
-            <Ionicons name={tab.icon} size={22} color={colors.textMuted} />
+            <TabIcon tab={tab} active={false} size={22} color={colors.textMuted} />
           </View>
           <TabLabel tab={tab} />
         </View>

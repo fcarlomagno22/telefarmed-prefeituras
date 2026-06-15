@@ -6,6 +6,16 @@ export type AppScreen =
   | 'my-metrics'
   | 'my-appointments'
   | 'schedule-appointment'
+  | 'post-consultation'
+  | 'my-documents'
+  | 'nearby-units'
+  | 'functional-training'
+  | 'functional-exercise'
+
+export type FunctionalRouteParams = {
+  exerciseId?: string
+  startCircuit?: boolean
+}
 
 export type RegistrationAddress = {
   cep: string

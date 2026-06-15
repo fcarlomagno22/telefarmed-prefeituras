@@ -29,7 +29,7 @@ type AppointmentCardProps = {
   onDirectionsPress: () => void
   onReschedulePress: () => void
   onCancelPress: () => void
-  onPostConsultationPress: () => void
+  onPostConsultationPress: (appointment: StoredAppointment) => void
   onPrescriptionsPress: () => void
 }
 
@@ -246,12 +246,12 @@ export function AppointmentCard({
                     label="Pós-consulta"
                     icon="clipboard-pulse-outline"
                     palette={ACTION_ICON_PALETTES.postConsultation}
-                    onPress={onPostConsultationPress}
+                    onPress={() => onPostConsultationPress(appointment)}
                   />
                 </View>
                 <View style={styles.actionsRow}>
                   <AppointmentActionButton
-                    label="Receitas e +"
+                    label="Atestados e +"
                     icon="pill"
                     palette={ACTION_ICON_PALETTES.prescriptions}
                     onPress={onPrescriptionsPress}

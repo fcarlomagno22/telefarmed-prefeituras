@@ -38,8 +38,7 @@ type AppointmentDetailDrawerProps = {
   onDirectionsPress: () => void
   onReschedulePress: () => void
   onCancelPress: () => void
-  onPostConsultationPress: () => void
-  onPrescriptionsPress: () => void
+  onPostConsultationPress: (appointment: StoredAppointment) => void
 }
 
 export function AppointmentDetailDrawer({
@@ -51,7 +50,6 @@ export function AppointmentDetailDrawer({
   onReschedulePress,
   onCancelPress,
   onPostConsultationPress,
-  onPrescriptionsPress,
 }: AppointmentDetailDrawerProps) {
   const insets = useSafeAreaInsets()
   const [isMounted, setIsMounted] = useState(false)
@@ -264,13 +262,9 @@ export function AppointmentDetailDrawer({
                   label="Pós-consulta"
                   icon="clipboard-pulse-outline"
                   palette={ACTION_ICON_PALETTES.postConsultation}
-                  onPress={onPostConsultationPress}
-                />
-                <AppointmentQuickAction
-                  label="Receitas e +"
-                  icon="pill"
-                  palette={ACTION_ICON_PALETTES.prescriptions}
-                  onPress={onPrescriptionsPress}
+                  onPress={() => {
+                    if (appointment) onPostConsultationPress(appointment)
+                  }}
                 />
               </View>
             ) : null}

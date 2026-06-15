@@ -75,6 +75,21 @@ export function HomeScreen() {
 
     if (actionId === 'my-appointments') {
       navigateTo('my-appointments')
+      return
+    }
+
+    if (actionId === 'post-consultation') {
+      navigateTo('post-consultation')
+      return
+    }
+
+    if (actionId === 'prescriptions') {
+      navigateTo('my-documents')
+      return
+    }
+
+    if (actionId === 'nearby-units') {
+      navigateTo('nearby-units')
     }
   }
 
@@ -86,6 +101,11 @@ export function HomeScreen() {
 
     if (actionId === 'my-metrics') {
       navigateTo('my-metrics')
+      return
+    }
+
+    if (actionId === 'functional-training') {
+      navigateTo('functional-training')
     }
   }
 
@@ -104,6 +124,18 @@ export function HomeScreen() {
     if (tab === 'agendar') {
       setMenuVisible(false)
       navigateTo('schedule-appointment')
+      return
+    }
+
+    if (tab === 'my-metrics') {
+      setMenuVisible(false)
+      navigateTo('my-metrics')
+      return
+    }
+
+    if (tab === 'pos-consulta') {
+      setMenuVisible(false)
+      navigateTo('post-consultation')
       return
     }
 

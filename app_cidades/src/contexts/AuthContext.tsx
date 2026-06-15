@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { AppScreen, AuthUser, RegistrationData } from '../types/auth'
+import { AppScreen, AuthUser, FunctionalRouteParams, RegistrationData } from '../types/auth'
 import { createMockAuthUser, isValidMockCredentials } from '../config/mockAuth'
 import { playLoginSound } from '../utils/appSounds'
 import { cpfDigits } from '../utils/cpf'
@@ -20,8 +20,14 @@ const BIOMETRIC_ENABLED_KEY = '@telefarmed/biometric-enabled'
 const BIOMETRIC_ASKED_KEY = '@telefarmed/biometric-asked'
 const BIOMETRIC_SESSION_KEY = '@telefarmed/biometric-session'
 
+type HistoryEntry = {
+  screen: AppScreen
+  params: FunctionalRouteParams | null
+}
+
 type AuthContextValue = {
   screen: AppScreen
+  routeParams: FunctionalRouteParams | null
   user: AuthUser | null
   isAuthenticated: boolean
   isBootstrapping: boolean
@@ -29,7 +35,7 @@ type AuthContextValue = {
   canUseBiometricLogin: boolean
   shouldAskBiometric: boolean
   biometricAvailable: boolean
-  navigateTo: (screen: AppScreen) => void
+  navigateTo: (screen: AppScreen, params?: FunctionalRouteParams) => void
   goBack: () => boolean
   canGoBack: () => boolean
   completeRegistration: (data: RegistrationData) => Promise<void>
@@ -45,7 +51,9 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [screen, setScreen] = useState<AppScreen>('home')
-  const screenHistoryRef = useRef<AppScreen[]>([])
+  const [routeParams, setRouteParams] = useState<FunctionalRouteParams | null>(null)
+  const routeParamsRef = useRef<FunctionalRouteParams | null>(null)
+  const screenHistoryRef = useRef<HistoryEntry[]>([])
   const [user, setUser] = useState<AuthUser | null>(null)
   const [isBootstrapping, setIsBootstrapping] = useState(true)
   const [biometricEnabled, setBiometricEnabled] = useState(false)
@@ -79,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (storedSession) {
           setUser(JSON.parse(storedSession) as AuthUser)
           screenHistoryRef.current = []
+          setRouteParams(null)
           setScreen('home')
         }
 
@@ -97,19 +106,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const navigateTo = useCallback((nextScreen: AppScreen) => {
+  useEffect(() => {
+    routeParamsRef.current = routeParams
+  }, [routeParams])
+
+  const navigateTo = useCallback((nextScreen: AppScreen, params?: FunctionalRouteParams) => {
     setScreen((current) => {
-      if (current === nextScreen) return current
+      if (current === nextScreen) {
+        setRouteParams(params ?? null)
+        return current
+      }
 
       const history = screenHistoryRef.current
-      const existingIndex = history.lastIndexOf(nextScreen)
+      const existingIndex = history.findIndex((entry) => entry.screen === nextScreen)
 
       if (existingIndex >= 0) {
         screenHistoryRef.current = history.slice(0, existingIndex)
       } else {
-        screenHistoryRef.current = [...history, current]
+        screenHistoryRef.current = [
+          ...history,
+          { screen: current, params: routeParamsRef.current },
+        ]
       }
 
+      setRouteParams(params ?? null)
       return nextScreen
     })
   }, [])
@@ -120,7 +140,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const previous = history[history.length - 1]
     screenHistoryRef.current = history.slice(0, -1)
-    setScreen(previous)
+    setRouteParams(previous.params)
+    setScreen(previous.screen)
     return true
   }, [])
 
@@ -130,6 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(nextUser))
     setUser(nextUser)
     screenHistoryRef.current = []
+    setRouteParams(null)
     setScreen('home')
     void playLoginSound()
   }, [])
@@ -232,6 +254,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await AsyncStorage.removeItem(SESSION_KEY)
     setUser(null)
     screenHistoryRef.current = []
+    setRouteParams(null)
     setScreen('home')
   }, [])
 
@@ -263,6 +286,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       screen,
+      routeParams,
       user,
       isAuthenticated: user !== null,
       isBootstrapping,
@@ -284,6 +308,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }),
     [
       screen,
+      routeParams,
       user,
       isBootstrapping,
       biometricEnabled,

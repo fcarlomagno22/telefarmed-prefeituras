@@ -18,7 +18,12 @@
         "NSCameraUsageDescription": "Permitir acesso à câmera para atualizar sua foto de perfil.",
         "NSPhotoLibraryUsageDescription": "Permitir acesso à galeria para escolher sua foto de perfil.",
         "NSCalendarsUsageDescription": "Permitir adicionar suas consultas ao calendário do dispositivo.",
-        "NSRemindersUsageDescription": "Permitir adicionar lembretes das suas consultas."
+        "NSRemindersUsageDescription": "Permitir adicionar lembretes das suas consultas.",
+        "LSApplicationQueriesSchemes": [
+          "comgooglemaps",
+          "googlemaps",
+          "waze"
+        ]
       }
     },
     "android": {
@@ -31,7 +36,8 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.CAMERA"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "package": "com.fcarlomagno2.app_cidades"
     },
@@ -55,7 +61,13 @@
           "cameraPermission": "Permitir acesso à câmera para atualizar sua foto de perfil."
         }
       ],
-      "expo-audio"
-    ]
+      "expo-audio",
+      "expo-asset"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b47a10f7-f23a-45d1-864b-ed29453921d8"
+      }
+    }
   }
 }
