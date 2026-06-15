@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "Telefarmed Cidades",
+    "slug": "app_cidades",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a0c"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Permitir login rápido e seguro com biometria no Telefarmed Cidades.",
+        "NSCameraUsageDescription": "Permitir acesso à câmera para atualizar sua foto de perfil.",
+        "NSPhotoLibraryUsageDescription": "Permitir acesso à galeria para escolher sua foto de perfil.",
+        "NSCalendarsUsageDescription": "Permitir adicionar suas consultas ao calendário do dispositivo.",
+        "NSRemindersUsageDescription": "Permitir adicionar lembretes das suas consultas."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a0c",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.CAMERA"
+      ],
+      "package": "com.fcarlomagno2.app_cidades"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permitir acesso à câmera para capturar sua foto de cadastro.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permitir acesso à galeria para escolher sua foto de perfil.",
+          "cameraPermission": "Permitir acesso à câmera para atualizar sua foto de perfil."
+        }
+      ],
+      "expo-audio"
+    ]
+  }
+}
