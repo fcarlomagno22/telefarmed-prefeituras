@@ -44,3 +44,7 @@ export function ubtAtendimentoPath(codigo: string) {
 export function ubtAtendimentoAvaliacaoPath(codigo: string) {
   return portalPath('ubt', `/atendimento/${encodeURIComponent(codigo)}/avaliacao`)
 }
+
+export function ubtAcompanhamentoPath(checkinToken: string) {
+  return portalPath('ubt', `/acompanhamento/${encodeURIComponent(checkinToken)}`)
+}

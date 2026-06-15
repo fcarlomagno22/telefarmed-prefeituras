@@ -483,3 +483,43 @@ export function isPrefeituraRelatoriosApiError(
 ): error is PrefeituraRelatoriosApiError {
   return error instanceof PrefeituraRelatoriosApiError
 }
+
+export async function apiFetchPrefeituraRelatorioAgendamento(accessToken: string) {
+  try {
+    return await apiFetch<{ agendamento: import('../../../types/prefeituraRelatorioAgendamento').PrefeituraRelatorioAgendamento | null }>(
+      '/prefeitura/relatorios/agendamento',
+      { accessToken },
+    )
+  } catch (error) {
+    throw mapError(error)
+  }
+}
+
+export async function apiUpsertPrefeituraRelatorioAgendamento(
+  accessToken: string,
+  body: import('../../../types/prefeituraRelatorioAgendamento').UpsertPrefeituraRelatorioAgendamentoInput,
+) {
+  try {
+    return await apiFetch<{ agendamento: import('../../../types/prefeituraRelatorioAgendamento').PrefeituraRelatorioAgendamento }>(
+      '/prefeitura/relatorios/agendamento',
+      {
+        accessToken,
+        method: 'PUT',
+        json: body,
+      },
+    )
+  } catch (error) {
+    throw mapError(error)
+  }
+}
+
+export async function apiFetchPrefeituraRelatorioDestinatariosCadastrados(accessToken: string) {
+  try {
+    return await apiFetch<{ destinatarios: import('../../../types/prefeituraRelatorioAgendamento').PrefeituraRelatorioDestinatarioCadastrado[] }>(
+      '/prefeitura/relatorios/agendamento/destinatarios',
+      { accessToken },
+    )
+  } catch (error) {
+    throw mapError(error)
+  }
+}

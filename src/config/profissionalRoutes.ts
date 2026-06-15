@@ -41,6 +41,9 @@ export const profissionalRoutes = {
   get perfil() {
     return portalPath('profissional', '/perfil')
   },
+  get historicoDemo() {
+    return portalPath('profissional', '/demo/historico-consultas')
+  },
 } as const
 
 export function profissionalAtendimentoSessaoPath(codigo: string) {

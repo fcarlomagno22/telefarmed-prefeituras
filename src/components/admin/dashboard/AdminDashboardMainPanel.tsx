@@ -24,6 +24,7 @@ import { AdminNocCentralPanel } from './AdminNocCentralPanel'
 import { AdminPlatformPackagePanel } from './AdminPlatformPackagePanel'
 import { AdminRevenuePanel } from './AdminRevenuePanel'
 import { AdminTerminalsPanel } from './AdminTerminalsPanel'
+import { AdminPosConsultaKpiSection } from './AdminPosConsultaKpiSection'
 import { AdminTriageChartsSection } from './AdminTriageChartsSection'
 import { AdminDashboardMainPanelSkeleton } from './skeletons/AdminDashboardMainPanelSkeleton'
 import { adminDashboardTopRowSectionClass } from './adminDashboardUi'
@@ -278,6 +279,18 @@ export function AdminDashboardMainPanel() {
           <AdminTriageChartsSection
             data={dashboard.triageCharts}
             animationKey={dashboard.filterKey}
+            periodLabel={
+              adminDashboardFilterOptions.period.find((option) => option.value === filters.period)
+                ?.label ?? 'Período selecionado'
+            }
+          />
+
+          <AdminPosConsultaKpiSection
+            period={filters.period ?? '30d'}
+            state={filters.state ?? 'all'}
+            city={filters.city ?? 'all'}
+            contract={filters.contract ?? 'all'}
+            filterKey={dashboard.filterKey}
             periodLabel={
               adminDashboardFilterOptions.period.find((option) => option.value === filters.period)
                 ?.label ?? 'Período selecionado'

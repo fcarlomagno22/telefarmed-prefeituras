@@ -2,6 +2,16 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build:vercel",
   "outputDirectory": "dist",
+  "crons": [
+    {
+      "path": "/api/v1/internal/cron/pos-consulta",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/v1/internal/cron/prefeitura-relatorios",
+      "schedule": "*/15 * * * *"
+    }
+  ],
   "functions": {
     "api/index.ts": {
       "includeFiles": "backend/dist/**",

@@ -7,6 +7,7 @@ import { DoctorConsultationEndConfirmModal } from '../components/attendance/doct
 import { DoctorConsultationHeader } from '../components/attendance/doctor/DoctorConsultationHeader'
 import { DoctorConsultationStatusFooter } from '../components/attendance/doctor/DoctorConsultationStatusFooter'
 import { DoctorConsultationVideoStage } from '../components/attendance/doctor/DoctorConsultationVideoStage'
+import { ProfissionalPacienteHistoricoDrawer } from '../components/profissional/historico/ProfissionalPacienteHistoricoDrawer'
 import type { ConsultationVideoStageHandle } from '../components/attendance/consultationVideoStageShared'
 import { buildDoctorRecordPatientProfile } from '../components/attendance/doctor/doctorRecordPatient'
 import { DoctorAtestadoModal } from '../components/attendance/doctor/DoctorAtestadoModal'
@@ -19,6 +20,10 @@ import {
 } from '../components/attendance/doctor/doctorConsultationUi'
 import { useConsultationElapsed } from '../components/attendance/patient/useConsultationElapsed'
 import { Toast } from '../components/ui/Toast'
+import {
+  PROFISSIONAL_HISTORICO_DEMO_ATENDIMENTO_CODIGO,
+  PROFISSIONAL_HISTORICO_DEMO_PACIENTE_ID,
+} from '../config/profissionalHistoricoDemo'
 import { profissionalRoutes } from '../config/profissionalRoutes'
 import { ubtRoutes } from '../config/ubtRoutes'
 import type { ExamCatalogItem } from '../data/doctorExamRequestMock'
@@ -94,6 +99,7 @@ export function AtendimentoMedicoPage() {
   const [navBlockToastVisible, setNavBlockToastVisible] = useState(false)
   const [finishConfirmOpen, setFinishConfirmOpen] = useState(false)
   const [triageDrawerOpen, setTriageDrawerOpen] = useState(false)
+  const [historicoDrawerOpen, setHistoricoDrawerOpen] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const allowLeaveRef = useRef(false)
   const videoStageRef = useRef<ConsultationVideoStageHandle>(null)
@@ -384,6 +390,7 @@ export function AtendimentoMedicoPage() {
               patientVideoPosterUrl={attendanceSession.patientPhotoUrl}
               doctorPhotoUrl={attendanceSession.doctorPhotoUrl}
               onViewClinicalTriage={() => setTriageDrawerOpen(true)}
+              onViewPreviousConsultations={() => setHistoricoDrawerOpen(true)}
             />
 
             <DoctorConsultationChatPanel
@@ -475,6 +482,19 @@ export function AtendimentoMedicoPage() {
         patientAgeGender={patientAgeGender}
         unitName={sessao.unitName}
         triageSummary={sessao.triageSummary}
+      />
+
+      <ProfissionalPacienteHistoricoDrawer
+        open={historicoDrawerOpen}
+        onClose={() => setHistoricoDrawerOpen(false)}
+        accessToken={accessToken}
+        pacienteId={
+          codigo === PROFISSIONAL_HISTORICO_DEMO_ATENDIMENTO_CODIGO
+            ? PROFISSIONAL_HISTORICO_DEMO_PACIENTE_ID
+            : undefined
+        }
+        patientName={attendanceSession.patientName}
+        specialty={attendanceSession.doctorSpecialty}
       />
 
       <DoctorConsultationEndConfirmModal

@@ -1,8 +1,9 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { AlertCircle, Clock3, FileText, Image, MapPin, Stethoscope, X } from 'lucide-react'
+import { AlertCircle, Clock3, FileText, Image, MapPin, Stethoscope, TrendingUp, X } from 'lucide-react'
 import { ConsultationChatAttachmentViewer } from '../../attendance/ConsultationChatAttachmentViewer'
 import type { ConsultationChatAttachment } from '../../attendance/consultationChatTypes'
+import { ClinicalTriageSummaryPanel } from '../../attendance/doctor/ClinicalTriageSummaryPanel'
 import { DoctorConsultationChatPanel } from '../../attendance/doctor/DoctorConsultationChatPanel'
 import { doctorConsultationCardClass } from '../../attendance/doctor/doctorConsultationUi'
 import { buildDoctorRecordPatientProfile } from '../../attendance/doctor/doctorRecordPatient'
@@ -21,6 +22,9 @@ import {
   mapHistoricoToRecordNotes,
   mapProfissionalMensagensToChat,
 } from '../../../lib/services/profissional/atendimentos'
+import { fetchProfissionalPacienteHistoricoEspecialidade } from '../../../lib/services/profissional/posConsultaHistorico'
+import type { ProfissionalConsultaHistoricoCheckin } from '../../../types/posConsultaHistorico'
+import { EvolucaoPosConsultaTimeline } from '../../evolucao/EvolucaoPosConsultaTimeline'
 import type { DoctorRecordNote } from '../../attendance/doctor/doctorRecordTypes'
 import type { ProfissionalAttendanceRecord } from '../../../types/profissionalAtendimentos'
 import {
@@ -73,6 +77,10 @@ export const ProfissionalAtendimentoDetailDrawer = forwardRef<
   )
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState<string | null>(null)
+  const [posConsultaCheckins, setPosConsultaCheckins] = useState<
+    ProfissionalConsultaHistoricoCheckin[]
+  >([])
+  const [posConsultaLoading, setPosConsultaLoading] = useState(false)
 
   const isActive = open || closing
   const panelVisible = isActive && entered && !closing
@@ -88,8 +96,10 @@ export const ProfissionalAtendimentoDetailDrawer = forwardRef<
         setDetailRecord(null)
         setHistoricoProntuario([])
         setChatMessages([])
+        setPosConsultaCheckins([])
         setDetailError(null)
         setDetailLoading(false)
+        setPosConsultaLoading(false)
       })
       return () => {
         if (frameId !== null) cancelAnimationFrame(frameId)
@@ -132,6 +142,40 @@ export const ProfissionalAtendimentoDetailDrawer = forwardRef<
       })
       .finally(() => {
         if (!cancelled) setDetailLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [open, record, getAccessToken])
+
+  useEffect(() => {
+    if (!open || !record) return
+
+    let cancelled = false
+    const token = getAccessToken()
+    if (!token) return
+
+    setPosConsultaLoading(true)
+    setPosConsultaCheckins([])
+
+    void fetchProfissionalPacienteHistoricoEspecialidade(token, {
+      patientName: record.patientName,
+      specialty: record.specialty,
+    })
+      .then((response) => {
+        if (cancelled) return
+        const match =
+          response.consultas.find((item) => item.attendanceId === record.attendanceId) ??
+          response.consultas.find((item) => item.consultaId === record.id) ??
+          null
+        setPosConsultaCheckins(match?.posConsultaCheckins ?? [])
+      })
+      .catch(() => {
+        if (!cancelled) setPosConsultaCheckins([])
+      })
+      .finally(() => {
+        if (!cancelled) setPosConsultaLoading(false)
       })
 
     return () => {
@@ -328,6 +372,16 @@ export const ProfissionalAtendimentoDetailDrawer = forwardRef<
             ) : null}
 
             <div className="flex flex-col gap-4">
+              {displayRecord.triageSummary?.trim() ? (
+                <section className={[doctorConsultationCardClass, 'p-4'].join(' ')}>
+                  <div className="mb-3 flex items-center gap-2">
+                    <Stethoscope className="h-4 w-4 text-[var(--brand-primary)]" strokeWidth={2} />
+                    <h3 className="text-sm font-bold text-gray-900">Triagem clínica</h3>
+                  </div>
+                  <ClinicalTriageSummaryPanel triageSummary={displayRecord.triageSummary} compact />
+                </section>
+              ) : null}
+
               <section
                 data-tour="atendimentos-drawer-chat"
                 className={[doctorConsultationCardClass, 'flex max-h-[28rem] min-h-[16rem] flex-col'].join(
@@ -400,6 +454,19 @@ export const ProfissionalAtendimentoDetailDrawer = forwardRef<
                 documents={displayRecord.issuedDocuments}
                 dataTour="atendimentos-drawer-sent"
               />
+
+              <section className={[doctorConsultationCardClass, 'p-4'].join(' ')}>
+                <div className="mb-4 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-[var(--brand-primary)]" strokeWidth={2} />
+                  <h3 className="text-sm font-bold text-gray-900">Evolução pós-consulta</h3>
+                </div>
+                {posConsultaLoading ? (
+                  <p className="text-sm text-gray-500">Carregando evolução…</p>
+                ) : (
+                  <EvolucaoPosConsultaTimeline checkins={posConsultaCheckins} />
+                )}
+              </section>
+
               <ProfissionalAttendanceReceivedPanel
                 files={displayRecord.patientUploads}
                 onPreview={setPreviewAttachment}

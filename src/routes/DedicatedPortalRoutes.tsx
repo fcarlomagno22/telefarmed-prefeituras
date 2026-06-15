@@ -58,6 +58,7 @@ import { ProfissionalFinalizarCadastroPage } from '../pages/ProfissionalFinaliza
 import { ProfissionalLayout } from '../pages/ProfissionalLayout'
 import { ProfissionalAgendaPage } from '../pages/ProfissionalAgendaPage'
 import { ProfissionalAtendimentosPage } from '../pages/ProfissionalAtendimentosPage'
+import { ProfissionalHistoricoDemoPage } from '../pages/ProfissionalHistoricoDemoPage'
 import { ProfissionalEscalaPage } from '../pages/ProfissionalEscalaPage'
 import { ProfissionalFinanceiroPage } from '../pages/ProfissionalFinanceiroPage'
 import { ProfissionalAvaliacaoPage } from '../pages/ProfissionalAvaliacaoPage'
@@ -79,9 +80,14 @@ import { UbtNotificacoesPage } from '../pages/UbtNotificacoesPage'
 import { SalaDeEsperaPage } from '../pages/SalaDeEsperaPage'
 import { AtendimentoPacientePage } from '../pages/AtendimentoPacientePage'
 import { AtendimentoAvaliacaoPage } from '../pages/AtendimentoAvaliacaoPage'
+import { EvolucaoCheckinPage } from '../pages/EvolucaoCheckinPage'
 import { AtendimentoMedicoPage } from '../pages/AtendimentoMedicoPage'
 import { VerificarDocumentoPage } from '../pages/VerificarDocumentoPage'
 import { PlantaoAceitePublicPage } from '../pages/PlantaoAceitePublicPage'
+import {
+  PROFISSIONAL_HISTORICO_DEMO_ATENDIMENTO_CODIGO_LEGACY,
+  profissionalHistoricoDemoConsultaPath,
+} from '../config/profissionalHistoricoDemo'
 
 const AdminNotificacoesPage = lazy(() =>
   import('../pages/AdminNotificacoesPage').then((module) => ({
@@ -214,12 +220,17 @@ export const profissionalDedicatedRoutes = (
         <Route element={<ProfissionalProtectedRoute />}>
           <Route path="entrando" element={<LoginTransitionPage />} />
           <Route element={<ProfissionalPagePermissionGuard />}>
+            <Route
+              path={`atendimento/${PROFISSIONAL_HISTORICO_DEMO_ATENDIMENTO_CODIGO_LEGACY}`}
+              element={<Navigate to={profissionalHistoricoDemoConsultaPath()} replace />}
+            />
             <Route path="atendimento/:attendanceId" element={<AtendimentoMedicoPage />} />
           </Route>
           <Route element={<ProfissionalLayout />}>
             <Route index element={<ProfissionalHomeRedirect />} />
             <Route path="agenda" element={<ProfissionalAgendaPage />} />
             <Route path="atendimentos" element={<ProfissionalAtendimentosPage />} />
+            <Route path="demo/historico-consultas" element={<ProfissionalHistoricoDemoPage />} />
             <Route path="historico" element={<Navigate to="atendimentos" replace />} />
             <Route path="escala" element={<ProfissionalEscalaPage />} />
             <Route path="financeiro" element={<ProfissionalFinanceiroPage />} />
@@ -242,6 +253,7 @@ export const ubtDedicatedRoutes = (
       <Route path="/ubt/*" element={<PrefixedLegacyRedirect portal="ubt" />} />
       <Route element={<UbtRoutesShell />}>
         <Route path="login" element={<UbtLoginPage />} />
+        <Route path="acompanhamento/:checkinToken" element={<EvolucaoCheckinPage />} />
         <Route element={<UbtProtectedRoute />}>
           <Route path="entrando" element={<LoginTransitionPage />} />
           <Route element={<UbtPagePermissionGuard />}>

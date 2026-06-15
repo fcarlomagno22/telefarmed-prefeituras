@@ -3,19 +3,15 @@ import {
   Download,
   FileText,
   LayoutGrid,
-  Mail,
   Search,
   Users,
 } from 'lucide-react'
-import { Fragment, useCallback, useId, useMemo, useState, type FocusEvent, type MouseEvent } from 'react'
+import { Fragment, useCallback, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { FLOATING_POPOVER_Z_INDEX } from '../../../config/overlayLayers'
 import {
   PREFEITURA_RELATORIOS_DISPONIVEIS,
   prefeituraRelatorioCategoryCards,
-  prefeituraRelatorioRegisteredEmails,
   type PrefeituraRelatorioCategoryCard,
-  type PrefeituraRelatorioRegisteredEmail,
 } from '../../../data/prefeituraRelatoriosHub'
 import { getDefaultPrefeituraConsultasPeriod } from '../../../utils/consultasPeriod'
 import { buildPrefeituraRelatorioGenerateUrl, buildPrefeituraRelatoriosCompiledUrl } from '../../../config/prefeituraRoutes'
@@ -23,7 +19,6 @@ import {
   SUPPORTED_PREFEITURA_RELATORIO_IDS,
   type PrefeituraRelatorioId,
 } from '../../../types/prefeituraRelatorios'
-import { dashboardMainPanelSurfaceClass } from '../../layout/dashboardPageLayout'
 import { CompactDateRangePicker } from '../../ui/CompactDateRangePicker'
 import { CustomSelect } from '../../ui/CustomSelect'
 import {
@@ -32,10 +27,6 @@ import {
   type KpiStatCardItem,
 } from '../../ui/KpiStatCards'
 import { Toast, type ToastVariant } from '../../ui/Toast'
-
-const cardSurface = dashboardMainPanelSurfaceClass
-
-const defaultScheduleEmail = 'gestao@prefeitura.gov.br, controlador@prefeitura.gov.br'
 
 const [skyPreset, orangePreset, violetPreset, emeraldPreset] = kpiStatStylePresets
 
@@ -413,316 +404,18 @@ function RelatoriosCatalogTable({
   )
 }
 
-function ScheduleField({
-  label,
-  children,
-  hint,
-}: {
-  label: string
-  children: React.ReactNode
-  hint?: React.ReactNode
-}) {
-  return (
-    <div className="flex min-w-0 flex-col">
-      <label className="mb-1.5 block text-[11px] font-medium leading-none text-gray-400">{label}</label>
-      <div className="min-h-[42px]">{children}</div>
-      {hint ? <div className="mt-1.5">{hint}</div> : null}
-    </div>
-  )
-}
-
-const scheduleEmailInputClass =
-  'h-[42px] w-full rounded-xl border border-gray-200 bg-white px-3 text-xs text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)]/40 focus:shadow-[0_0_0_3px_rgba(255,107,0,0.12)]'
-
-const scheduleFieldLabelClass = 'text-[11px] font-medium leading-none text-gray-400'
-
-type TooltipPosition = {
-  top: number
-  left: number
-}
-
-function RegisteredEmailsTooltip({
-  tooltipId,
-  emails,
-}: {
-  tooltipId: string
-  emails: PrefeituraRelatorioRegisteredEmail[]
-}) {
-  return (
-    <div
-      id={tooltipId}
-      role="tooltip"
-      className="relative w-[17.5rem] overflow-hidden rounded-xl border border-gray-200/90 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.14)]"
-    >
-      <span
-        className="absolute top-full left-1/2 -translate-x-1/2 border-[7px] border-transparent border-t-white"
-        aria-hidden
-      />
-      <span
-        className="absolute top-full left-1/2 z-10 -translate-x-1/2 translate-y-px border-[8px] border-transparent border-t-gray-200/90"
-        aria-hidden
-      />
-      <div className="h-1 bg-gradient-to-r from-orange-400 via-[var(--brand-primary)] to-amber-500" />
-      <div className="px-3.5 py-3">
-        <p className="text-xs font-bold text-gray-900">E-mails cadastrados</p>
-        <p className="mt-0.5 text-[11px] text-gray-500">Destinatários do envio automatizado</p>
-        <ul className="mt-3 space-y-2">
-          {emails.map((item) => (
-            <li
-              key={item.address}
-              className="rounded-lg border border-gray-100 bg-gray-50/80 px-2.5 py-2"
-            >
-              <span className="flex items-start gap-2">
-                <Mail className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--brand-primary)]" strokeWidth={2} />
-                <span className="min-w-0">
-                  <span className="block truncate text-xs font-semibold text-gray-800">{item.address}</span>
-                  <span className="block text-[10px] text-gray-500">{item.role}</span>
-                </span>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  )
-}
-
-function RegisteredEmailsLink({ emails }: { emails: PrefeituraRelatorioRegisteredEmail[] }) {
-  const tooltipId = useId()
-  const [hoverPosition, setHoverPosition] = useState<TooltipPosition | null>(null)
-
-  const showTooltip = useCallback((target: HTMLElement) => {
-    const rect = target.getBoundingClientRect()
-    setHoverPosition({
-      top: rect.top,
-      left: rect.left + rect.width / 2,
-    })
-  }, [])
-
-  const hideTooltip = useCallback(() => setHoverPosition(null), [])
-
-  const handleMouseEnter = (event: MouseEvent<HTMLButtonElement>) => {
-    showTooltip(event.currentTarget)
-  }
-
-  const handleFocus = (event: FocusEvent<HTMLButtonElement>) => {
-    showTooltip(event.currentTarget)
-  }
-
-  return (
-    <>
-      <button
-        type="button"
-        className="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 underline-offset-2 transition hover:text-sky-700 hover:underline focus:outline-none focus-visible:underline"
-        aria-describedby={hoverPosition ? tooltipId : undefined}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={hideTooltip}
-        onFocus={handleFocus}
-        onBlur={hideTooltip}
-      >
-        Ver e-mails cadastrados
-      </button>
-
-      {hoverPosition
-        ? createPortal(
-            <div
-              className="pointer-events-none fixed"
-              style={{
-                top: hoverPosition.top - 10,
-                left: hoverPosition.left,
-                transform: 'translate(-50%, -100%)',
-                zIndex: FLOATING_POPOVER_Z_INDEX,
-              }}
-            >
-              <RegisteredEmailsTooltip tooltipId={tooltipId} emails={emails} />
-            </div>,
-            document.body,
-          )
-        : null}
-    </>
-  )
-}
-
-function AutomatedSendingRow({ onSave }: { onSave: () => void }) {
-  const [scheduleEmail, setScheduleEmail] = useState(defaultScheduleEmail)
-  const [scheduleFrequency, setScheduleFrequency] = useState('semanal')
-  const [scheduleDay, setScheduleDay] = useState('segunda')
-  const [scheduleTime, setScheduleTime] = useState('08:00')
-
-  const emailField = (
-    <input
-      type="text"
-      value={scheduleEmail}
-      onChange={(event) => setScheduleEmail(event.target.value)}
-      placeholder="Digite o e-mail para envio dos relatórios"
-      className={scheduleEmailInputClass}
-      autoComplete="email"
-    />
-  )
-
-  const emailHint = (
-    <div className="flex items-center justify-between gap-3 text-[11px] leading-none">
-      <RegisteredEmailsLink emails={prefeituraRelatorioRegisteredEmails} />
-      <span className="text-gray-400">Até 5 e-mails</span>
-    </div>
-  )
-
-  return (
-    <section className={[cardSurface, 'p-4 sm:p-5'].join(' ')}>
-      <div className="flex flex-col gap-4 lg:hidden">
-        <div className="flex items-start gap-2.5">
-          <Mail className="mt-0.5 h-[18px] w-[18px] shrink-0 text-slate-800" strokeWidth={2} />
-          <div className="min-w-0">
-            <h3 className="text-[15px] font-bold leading-tight text-slate-900">Envio automatizado</h3>
-            <p className="mt-0.5 text-xs leading-snug text-gray-500">
-              Agende e envie relatórios por e-mail.
-            </p>
-          </div>
-        </div>
-
-        <ScheduleField label="Enviar para" hint={emailHint}>
-          {emailField}
-        </ScheduleField>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <ScheduleField label="Frequência">
-            <CustomSelect
-              value={scheduleFrequency}
-              onChange={setScheduleFrequency}
-              options={[
-                { value: 'semanal', label: 'Semanal' },
-                { value: 'mensal', label: 'Mensal' },
-                { value: 'diario', label: 'Diário' },
-              ]}
-              size="compact"
-              className="h-[42px] rounded-xl py-0"
-            />
-          </ScheduleField>
-          <ScheduleField label="Dia da semana">
-            <CustomSelect
-              value={scheduleDay}
-              onChange={setScheduleDay}
-              options={[
-                { value: 'segunda', label: 'Segunda-feira' },
-                { value: 'terca', label: 'Terça-feira' },
-                { value: 'sexta', label: 'Sexta-feira' },
-              ]}
-              size="compact"
-              className="h-[42px] rounded-xl py-0"
-            />
-          </ScheduleField>
-          <ScheduleField label="Horário">
-            <CustomSelect
-              value={scheduleTime}
-              onChange={setScheduleTime}
-              options={[
-                { value: '08:00', label: '08:00' },
-                { value: '12:00', label: '12:00' },
-                { value: '18:00', label: '18:00' },
-              ]}
-              size="compact"
-              className="h-[42px] rounded-xl py-0"
-            />
-          </ScheduleField>
-        </div>
-
-        <button
-          type="button"
-          onClick={onSave}
-          className="btn-brand-gradient h-[42px] w-full rounded-xl px-5 text-sm font-semibold shadow-sm"
-        >
-          Salvar agendamento
-        </button>
-      </div>
-
-      <div className="hidden w-full lg:grid lg:grid-cols-[minmax(12rem,14rem)_minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.95fr)_auto] lg:grid-rows-[auto_42px_auto] lg:gap-x-4 lg:gap-y-1.5">
-        <div className="row-span-3 flex items-start gap-2.5 self-center">
-          <Mail className="mt-0.5 h-[18px] w-[18px] shrink-0 text-slate-800" strokeWidth={2} />
-          <div className="min-w-0">
-            <h3 className="text-[15px] font-bold leading-tight text-slate-900">Envio automatizado</h3>
-            <p className="mt-0.5 text-xs leading-snug text-gray-500">
-              Agende e envie relatórios por e-mail.
-            </p>
-          </div>
-        </div>
-
-        <label className={`col-start-2 row-start-1 ${scheduleFieldLabelClass}`}>Enviar para</label>
-        <label className={`col-start-3 row-start-1 ${scheduleFieldLabelClass}`}>Frequência</label>
-        <label className={`col-start-4 row-start-1 ${scheduleFieldLabelClass}`}>Dia da semana</label>
-        <label className={`col-start-5 row-start-1 ${scheduleFieldLabelClass}`}>Horário</label>
-
-        <div className="col-start-2 row-start-2 min-w-0">{emailField}</div>
-
-        <div className="col-start-3 row-start-2 min-w-0">
-          <CustomSelect
-            value={scheduleFrequency}
-            onChange={setScheduleFrequency}
-            options={[
-              { value: 'semanal', label: 'Semanal' },
-              { value: 'mensal', label: 'Mensal' },
-              { value: 'diario', label: 'Diário' },
-            ]}
-            size="compact"
-            className="h-[42px] rounded-xl py-0"
-          />
-        </div>
-
-        <div className="col-start-4 row-start-2 min-w-0">
-          <CustomSelect
-            value={scheduleDay}
-            onChange={setScheduleDay}
-            options={[
-              { value: 'segunda', label: 'Segunda-feira' },
-              { value: 'terca', label: 'Terça-feira' },
-              { value: 'sexta', label: 'Sexta-feira' },
-            ]}
-            size="compact"
-            className="h-[42px] rounded-xl py-0"
-          />
-        </div>
-
-        <div className="col-start-5 row-start-2 min-w-0">
-          <CustomSelect
-            value={scheduleTime}
-            onChange={setScheduleTime}
-            options={[
-              { value: '08:00', label: '08:00' },
-              { value: '12:00', label: '12:00' },
-              { value: '18:00', label: '18:00' },
-            ]}
-            size="compact"
-            className="h-[42px] rounded-xl py-0"
-          />
-        </div>
-
-        <button
-          type="button"
-          onClick={onSave}
-          className="btn-brand-gradient col-start-6 row-start-2 h-[42px] rounded-xl px-5 text-sm font-semibold shadow-sm lg:min-w-[11.5rem] lg:whitespace-nowrap"
-        >
-          Salvar agendamento
-        </button>
-
-        <div className="col-start-2 row-start-3">{emailHint}</div>
-      </div>
-    </section>
-  )
-}
-
 export function PrefeituraRelatoriosHubPanel() {
   const [toast, setToast] = useState<{ message: string; variant: ToastVariant } | null>(null)
 
-  function showToast(message: string, variant: ToastVariant) {
+  const showToast = useCallback((message: string, variant: ToastVariant) => {
     setToast(null)
     requestAnimationFrame(() => setToast({ message, variant }))
-  }
+  }, [])
 
   return (
     <>
       <div className="space-y-4">
         <KpiStatCards items={relatoriosKpiCards} className="gap-3 sm:gap-4" />
-
-        <AutomatedSendingRow onSave={() => showToast('Agendamento salvo.', 'success')} />
 
         <RelatoriosCatalogTable
           onExport={() => showToast('Exportação iniciada.', 'success')}

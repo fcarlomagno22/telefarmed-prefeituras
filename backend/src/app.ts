@@ -56,6 +56,13 @@ import { registerAdminDashboardRoutes } from './modules/admin-dashboard/routes.j
 import { registerPrefeituraAuditoriaRoutes } from './modules/prefeitura-auditoria/routes.js'
 import { registerUbtAuditoriaRoutes } from './modules/ubt-auditoria/routes.js'
 import { registerProfissionalAuditoriaRoutes } from './modules/profissional-auditoria/routes.js'
+import {
+  registerAdminPosConsultaDashboardRoutes,
+  registerPrefeituraPosConsultaDashboardRoutes,
+  registerProfissionalPosConsultaRoutes,
+  registerPublicPosConsultaRoutes,
+} from './modules/pos-consulta/routes.js'
+import { registerInternalCronRoutes } from './modules/internal-cron/routes.js'
 
 export async function buildApp() {
   const app = Fastify({
@@ -99,6 +106,13 @@ export async function buildApp() {
   })
 
   app.get('/health', async () => ({ ok: true }))
+
+  await app.register(
+    async (internalCron) => {
+      await registerInternalCronRoutes(internalCron)
+    },
+    { prefix: '/api/v1/internal/cron' },
+  )
 
   await app.register(
     async (adminAuth) => {
@@ -166,6 +180,7 @@ export async function buildApp() {
   await app.register(
     async (prefeituraDashboard) => {
       await registerPrefeituraDashboardRoutes(prefeituraDashboard)
+      await registerPrefeituraPosConsultaDashboardRoutes(prefeituraDashboard)
     },
     { prefix: '/api/v1/prefeitura/dashboard' },
   )
@@ -283,6 +298,13 @@ export async function buildApp() {
   )
 
   await app.register(
+    async (publicPosConsulta) => {
+      await registerPublicPosConsultaRoutes(publicPosConsulta)
+    },
+    { prefix: '/api/v1/public/pos-consulta' },
+  )
+
+  await app.register(
     async (profissionalAuth) => {
       await registerProfissionalAuthRoutes(profissionalAuth)
     },
@@ -315,6 +337,13 @@ export async function buildApp() {
       await registerProfissionalAtendimentosRoutes(profissionalAtendimentos)
     },
     { prefix: '/api/v1/profissional/atendimentos' },
+  )
+
+  await app.register(
+    async (profissionalPosConsulta) => {
+      await registerProfissionalPosConsultaRoutes(profissionalPosConsulta)
+    },
+    { prefix: '/api/v1/profissional/pos-consulta' },
   )
 
   await app.register(
@@ -411,6 +440,7 @@ export async function buildApp() {
   await app.register(
     async (adminDashboard) => {
       await registerAdminDashboardRoutes(adminDashboard)
+      await registerAdminPosConsultaDashboardRoutes(adminDashboard)
     },
     { prefix: '/api/v1/admin/dashboard' },
   )

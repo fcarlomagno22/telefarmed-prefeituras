@@ -44,6 +44,7 @@ import { ProfissionalHomeRedirect, ProfissionalPagePermissionGuard } from './com
 import { ProfissionalProtectedRoute } from './components/auth/ProfissionalProtectedRoute'
 import { ProfissionalAgendaPage } from './pages/ProfissionalAgendaPage'
 import { ProfissionalAtendimentosPage } from './pages/ProfissionalAtendimentosPage'
+import { ProfissionalHistoricoDemoPage } from './pages/ProfissionalHistoricoDemoPage'
 import { ProfissionalEscalaPage } from './pages/ProfissionalEscalaPage'
 import { ProfissionalFinanceiroPage } from './pages/ProfissionalFinanceiroPage'
 import { ProfissionalAvaliacaoPage } from './pages/ProfissionalAvaliacaoPage'
@@ -51,6 +52,10 @@ import { ProfissionalSuportePage } from './pages/ProfissionalSuportePage'
 import { ProfissionalNotificacoesPage } from './pages/ProfissionalNotificacoesPage'
 import { ProfissionalPerfilPage } from './pages/ProfissionalPerfilPage'
 import { profissionalAtendimentoSessaoPath, profissionalRoutes } from './config/profissionalRoutes'
+import {
+  PROFISSIONAL_HISTORICO_DEMO_ATENDIMENTO_CODIGO_LEGACY,
+  profissionalHistoricoDemoConsultaPath,
+} from './config/profissionalHistoricoDemo'
 import { PrefeituraLayout } from './pages/PrefeituraLayout'
 import { PrefeituraDashboardPage } from './pages/PrefeituraDashboardPage'
 import { PrefeituraRedePage } from './pages/PrefeituraRedePage'
@@ -77,6 +82,7 @@ import { UbtNotificacoesProviderLayout } from './pages/UbtNotificacoesProviderLa
 import { SalaDeEsperaPage } from './pages/SalaDeEsperaPage'
 import { AtendimentoPacientePage } from './pages/AtendimentoPacientePage'
 import { AtendimentoAvaliacaoPage } from './pages/AtendimentoAvaliacaoPage'
+import { EvolucaoCheckinPage } from './pages/EvolucaoCheckinPage'
 import { AtendimentoMedicoPage } from './pages/AtendimentoMedicoPage'
 import { VerificarDocumentoPage } from './pages/VerificarDocumentoPage'
 import { PlantaoAceitePublicPage } from './pages/PlantaoAceitePublicPage'
@@ -209,12 +215,17 @@ function App() {
           <Route element={<ProfissionalProtectedRoute />}>
             <Route path="entrando" element={<LoginTransitionPage />} />
             <Route element={<ProfissionalPagePermissionGuard />}>
+              <Route
+                path={`atendimento/${PROFISSIONAL_HISTORICO_DEMO_ATENDIMENTO_CODIGO_LEGACY}`}
+                element={<Navigate to={profissionalHistoricoDemoConsultaPath()} replace />}
+              />
               <Route path="atendimento/:attendanceId" element={<AtendimentoMedicoPage />} />
             </Route>
             <Route element={<ProfissionalLayout />}>
               <Route index element={<ProfissionalHomeRedirect />} />
               <Route path="agenda" element={<ProfissionalAgendaPage />} />
               <Route path="atendimentos" element={<ProfissionalAtendimentosPage />} />
+              <Route path="demo/historico-consultas" element={<ProfissionalHistoricoDemoPage />} />
               <Route path="historico" element={<Navigate to="atendimentos" replace />} />
               <Route path="escala" element={<ProfissionalEscalaPage />} />
               <Route path="financeiro" element={<ProfissionalFinanceiroPage />} />
@@ -267,6 +278,7 @@ function App() {
         <Route path="/auditoria" element={<Navigate to={ubtRoutes.auditoria} replace />} />
         <Route path="/ubt" element={<UbtRoutesShell />}>
           <Route path="login" element={<UbtLoginPage />} />
+          <Route path="acompanhamento/:checkinToken" element={<EvolucaoCheckinPage />} />
           <Route element={<UbtProtectedRoute />}>
             <Route path="entrando" element={<LoginTransitionPage />} />
             <Route element={<UbtPagePermissionGuard />}>

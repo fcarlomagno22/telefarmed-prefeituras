@@ -2,6 +2,7 @@ import type { ConsultationChatMessage } from '../../../components/attendance/con
 import type { ConsultationDocumentItem } from '../../../components/attendance/ConsultationDocumentsPanel'
 import type { DoctorRecordNote } from '../../../components/attendance/doctor/doctorRecordTypes'
 import { brand } from '../../../config/brand'
+import { PROFISSIONAL_HISTORICO_DEMO_ATENDIMENTO_CODIGO } from '../../../config/profissionalHistoricoDemo'
 import { CONSULTATION_CHAT_MOCK } from '../../../data/consultationChatMock'
 import {
   getDoctorRecordNotesForSpecialty,
@@ -114,27 +115,32 @@ function chatMockToApiMessages(): ProfissionalConsultaSessao['mensagens'] {
 
 function buildDefaultSession(codigo: string): ProfissionalConsultaSessao {
   const now = new Date()
-  const historico = getDoctorRecordNotesForSpecialty('Clínica Geral')
+  const historico = getDoctorRecordNotesForSpecialty('Clínica Médica')
+  const isHistoricoDemo = codigo === PROFISSIONAL_HISTORICO_DEMO_ATENDIMENTO_CODIGO
 
   return {
     consultaId: `consulta-${codigo}`,
     codigoAtendimento: codigo,
     status: 'aguardando_medico',
-    patientName: 'Patricia Souza Lima',
+    patientName: isHistoricoDemo ? 'Maria Souza Lima' : 'Patricia Souza Lima',
     patientBirthDateIso: '1991-08-14',
     patientCity: 'São Paulo, SP',
     patientCpfMasked: '901.234.567-**',
-    patientPhotoUrl: 'https://i.pravatar.cc/150?u=patricia-souza',
+    patientPhotoUrl: isHistoricoDemo
+      ? 'https://i.pravatar.cc/150?u=maria-souza-hist'
+      : 'https://i.pravatar.cc/150?u=patricia-souza',
     patientAge: 34,
     patientGender: 'F',
-    specialty: 'Clínica Geral',
+    specialty: 'Clínica Médica',
     unitName: 'Teleatendimento',
     doctorName: brand.profissionalOperatorName,
-    doctorSpecialty: 'Clínica Geral',
+    doctorSpecialty: 'Clínica Médica',
     doctorCrm: '123456/SP',
     doctorPhotoUrl: DEFAULT_DOCTOR_PHOTO,
     startedAtIso: now.toISOString(),
-    triageSummary: 'Consulta de retorno — queixa de dor pélvica.',
+    triageSummary: isHistoricoDemo
+      ? 'Motivo: Retorno — controle de IVAS recente\nInício: Há 1 dia\nIntensidade: Leve (2/10)\nSintomas: Tosse residual leve\nPressão arterial: 120/78 mmHg'
+      : 'Consulta de retorno — queixa de dor pélvica.',
     notasClinicas: '',
     historicoProntuario: historico.map((note) => ({
       id: note.id,

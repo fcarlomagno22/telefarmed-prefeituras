@@ -4,6 +4,7 @@ import { CustomSelect } from '../../ui/CustomSelect'
 import { CompactDateRangePicker } from '../../ui/CompactDateRangePicker'
 import { Skeleton } from '../../ui/Skeleton'
 import { PROFISSIONAL_ATENDIMENTOS_TOUR_DEMO_RECORD_ID } from '../../../config/profissionalAtendimentosTour'
+import { PROFISSIONAL_HISTORICO_DEMO_RECORD_ID } from '../../../config/profissionalHistoricoDemo'
 import { useProfissionalAuth } from '../../../contexts/ProfissionalAuthContext'
 import { resolveProfissionalAtendimentosTourRecords } from '../../../utils/profissional/profissionalTourDemoFallbacks'
 import { shouldShowPortalPageLoadingBlock } from '../../../utils/portal/portalPageLoading'
@@ -31,6 +32,7 @@ type ProfissionalAtendimentosMainPanelProps = {
   onLoadingChange?: (loading: boolean) => void
   tourLockDrawerClose?: boolean
   tourActive?: boolean
+  initialOpenRecordId?: string | null
 }
 
 export type ProfissionalAtendimentosMainPanelHandle = {
@@ -113,7 +115,7 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
   ProfissionalAtendimentosMainPanelHandle,
   ProfissionalAtendimentosMainPanelProps
 >(function ProfissionalAtendimentosMainPanel(
-  { onFilteredRecordsChange, onLoadingChange, tourLockDrawerClose = false, tourActive = false },
+  { onFilteredRecordsChange, onLoadingChange, tourLockDrawerClose = false, tourActive = false, initialOpenRecordId = null },
   ref,
 ) {
   const { isBootstrapping } = useProfissionalAuth()
@@ -125,6 +127,7 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
   const [selectedRecord, setSelectedRecord] = useState<ProfissionalAttendanceRecord | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerClosing, setDrawerClosing] = useState(false)
+  const initialOpenHandledRef = useRef(false)
 
   const pageSize = 10
   const { records: apiRecords, pagination: apiPagination, isLoading, loadError } = useProfissionalAtendimentosPage(
@@ -166,6 +169,17 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
     onLoadingChange?.(isLoading || isBootstrapping)
   }, [isBootstrapping, isLoading, onLoadingChange])
 
+  useEffect(() => {
+    if (!initialOpenRecordId || isLoading || isBootstrapping || tourActive) return
+    if (initialOpenHandledRef.current) return
+    const record = paginatedRecords.find((item) => item.id === initialOpenRecordId)
+    if (!record) return
+    initialOpenHandledRef.current = true
+    setSelectedRecord(record)
+    setDrawerClosing(false)
+    setDrawerOpen(true)
+  }, [initialOpenRecordId, isLoading, isBootstrapping, paginatedRecords, tourActive])
+
   function updateFilter<K extends keyof ProfissionalAtendimentosFilters>(
     key: K,
     value: ProfissionalAtendimentosFilters[K],
@@ -197,9 +211,10 @@ export const ProfissionalAtendimentosMainPanel = forwardRef<
     ref,
     () => ({
       openDemoRecord: () => {
-        const record = paginatedRecords.find(
-          (item) => item.id === PROFISSIONAL_ATENDIMENTOS_TOUR_DEMO_RECORD_ID,
-        ) ?? paginatedRecords[0]
+        const record =
+          paginatedRecords.find((item) => item.id === PROFISSIONAL_ATENDIMENTOS_TOUR_DEMO_RECORD_ID) ??
+          paginatedRecords.find((item) => item.id === PROFISSIONAL_HISTORICO_DEMO_RECORD_ID) ??
+          paginatedRecords[0]
         if (record) openRecord(record)
       },
       closeDrawer: () => {

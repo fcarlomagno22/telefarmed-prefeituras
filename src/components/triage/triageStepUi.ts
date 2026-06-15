@@ -23,3 +23,14 @@ export const triageNotMeasuredButtonClass = (active: boolean) =>
       ? 'border-gray-300 bg-gray-100 text-gray-700'
       : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-gray-700'
   }`
+
+export const triageRangeInputClass = 'triage-range-input'
+
+export function triageRangeProgressStyle(
+  value: number,
+  min = 0,
+  max = 10,
+): { '--range-progress': string } {
+  const percent = max === min ? 0 : ((value - min) / (max - min)) * 100
+  return { '--range-progress': `${percent}%` }
+}

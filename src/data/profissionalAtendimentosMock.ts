@@ -41,6 +41,36 @@ export const profissionalAtendimentosSpecialtyOptions = [
 
 export const profissionalAtendimentosRecords: ProfissionalAttendanceRecord[] = [
   {
+    id: 'pat-hist-demo',
+    attendanceId: 'ATD-20260515-021',
+    dateTimeIso: '2026-05-15T10:20:00',
+    dateTimeLabel: '15/05/2026 · 10:20',
+    patientName: 'Maria Souza Lima',
+    patientPhotoUrl: 'https://i.pravatar.cc/150?u=maria-souza-hist',
+    birthDateIso: '1991-08-14',
+    age: 34,
+    gender: 'F',
+    specialty: 'Clínica Médica',
+    durationMinutes: 24,
+    status: 'concluido',
+    triageSummary:
+      'Motivo: Tosse seca e dor de garganta\nInício: Há 2 dias\nIntensidade: Moderado (6/10)\nSintomas: Tosse, dor de garganta, mal-estar\nPressão arterial: 118/76 mmHg\nTemperatura: 36.8 °C',
+    recordNotes: [
+      {
+        id: 'note-pat-hist-demo',
+        specialty: 'clinica',
+        date: '15/05/2026',
+        doctorName: 'Dra. Ana Paula Ferreira',
+        note: 'IVAS em tratamento. Orientada hidratação, analgesia e retorno se piora respiratória.',
+      },
+    ],
+    issuedDocuments: [
+      doc('hist-demo-d1', 'receita', 'Receita médica', 'receita-maria-1505.pdf', '10:38'),
+      doc('hist-demo-d2', 'orientacao', 'Orientações pós-consulta', 'orientacoes-maria.pdf', '10:39'),
+    ],
+    patientUploads: [],
+  },
+  {
     id: 'pat-001',
     attendanceId: 'ATD-20260528-001',
     dateTimeIso: '2026-05-28T14:32:00',

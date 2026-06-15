@@ -15,6 +15,7 @@ import { PrefeituraAlertsPanel } from './PrefeituraAlertsPanel'
 import { PrefeituraConsultationPackagePanel } from './PrefeituraConsultationPackagePanel'
 import { PrefeituraHourlyChart } from './PrefeituraHourlyChart'
 import { PrefeituraRegionBars } from './PrefeituraRegionBars'
+import { PrefeituraPosConsultaKpiSection } from './PrefeituraPosConsultaKpiSection'
 import { PrefeituraSlaPanel } from './PrefeituraSlaPanel'
 import { PrefeituraSpecialtyBreakdown } from './PrefeituraSpecialtyBreakdown'
 import { PrefeituraDashboardMainPanelSkeleton } from './skeletons/PrefeituraDashboardMainPanelSkeleton'
@@ -286,6 +287,17 @@ export function PrefeituraDashboardMainPanel() {
             sectionLabel="Saúde da população"
             title="Triagem clínica da rede municipal"
             scopeHint="somente pacientes da sua prefeitura"
+          />
+
+          <PrefeituraPosConsultaKpiSection
+            period={period}
+            region={region}
+            ubt={ubt}
+            filterKey={dashboard.filterKey}
+            periodLabel={
+              filterOptions.period.find((option) => option.value === period)?.label ??
+              'Período selecionado'
+            }
           />
 
           <DashCard

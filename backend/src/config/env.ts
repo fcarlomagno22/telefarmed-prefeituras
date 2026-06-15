@@ -38,6 +38,8 @@ const envSchema = z.object({
   SMTP_USER: z.string().min(1, 'SMTP_USER é obrigatório'),
   SMTP_PASS: z.string().min(1, 'SMTP_PASS é obrigatório'),
   SMTP_FROM: z.string().optional(),
+  /** Segredo para rotas `/internal/cron/*` (Vercel Cron envia Bearer token). */
+  CRON_SECRET: z.string().min(16).optional(),
 })
 
 export type Env = z.infer<typeof envSchema> & {
@@ -62,6 +64,7 @@ const parsedEnv = envSchema.parse({
   SMTP_USER: envValue('SMTP_USER'),
   SMTP_PASS: envValue('SMTP_PASS'),
   SMTP_FROM: envValue('SMTP_FROM'),
+  CRON_SECRET: envValue('CRON_SECRET'),
 })
 
 export const env: Env = {

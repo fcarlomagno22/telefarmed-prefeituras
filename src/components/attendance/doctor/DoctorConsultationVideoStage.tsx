@@ -1,4 +1,4 @@
-import { BadgeCheck, Mic, MicOff } from 'lucide-react'
+import { BadgeCheck, History, Mic, MicOff, Stethoscope } from 'lucide-react'
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { useConsultationVideoCall } from '../../../hooks/useConsultationVideoCall'
 import {
@@ -21,6 +21,7 @@ type DoctorConsultationVideoStageProps = {
   patientVideoPosterUrl: string
   doctorPhotoUrl: string
   onViewClinicalTriage?: () => void
+  onViewPreviousConsultations?: () => void
   className?: string
 }
 
@@ -38,6 +39,7 @@ export const DoctorConsultationVideoStage = forwardRef<
     patientVideoPosterUrl,
     doctorPhotoUrl,
     onViewClinicalTriage,
+    onViewPreviousConsultations,
     className,
   },
   ref,
@@ -168,6 +170,39 @@ export const DoctorConsultationVideoStage = forwardRef<
           onToggleCamera={toggleCamera}
         />
 
+        <div className="absolute bottom-4 left-4 z-10 flex max-w-[min(calc(100%-2rem),280px)] flex-col items-start gap-2">
+          <div className="w-full rounded-xl border border-white/10 bg-black/60 px-3.5 py-2.5 text-white shadow-lg backdrop-blur-md">
+            <p className="flex items-center gap-1.5 text-sm font-bold leading-tight">
+              {patientName}
+              <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-400" strokeWidth={2} />
+            </p>
+            <p className="mt-1 text-xs text-white/90">CPF {patientCpfMasked}</p>
+            <p className="mt-0.5 text-xs text-white/75">{patientAgeGender}</p>
+          </div>
+
+          {onViewClinicalTriage ? (
+            <button
+              type="button"
+              onClick={onViewClinicalTriage}
+              className="btn-video-triage-gradient inline-flex w-full items-center gap-2 rounded-xl border px-3.5 py-2 text-left text-xs font-semibold shadow-lg sm:text-sm"
+            >
+              <Stethoscope className="h-4 w-4 shrink-0 text-white" strokeWidth={2} />
+              Ver triagem clínica
+            </button>
+          ) : null}
+
+          {onViewPreviousConsultations ? (
+            <button
+              type="button"
+              onClick={onViewPreviousConsultations}
+              className="btn-video-historico-gradient inline-flex w-full items-center gap-2 rounded-xl border px-3.5 py-2 text-left text-xs font-semibold shadow-lg sm:text-sm"
+            >
+              <History className="h-4 w-4 shrink-0 text-white" strokeWidth={2} />
+              Consultas anteriores
+            </button>
+          ) : null}
+        </div>
+
         <div className="absolute right-4 top-4 h-[88px] w-[120px] overflow-hidden rounded-xl border-2 border-white/90 bg-gray-950 shadow-[0_8px_24px_rgba(0,0,0,0.35)] sm:h-[96px] sm:w-[132px]">
           <video
             ref={doctorVideoRef}
@@ -215,24 +250,6 @@ export const DoctorConsultationVideoStage = forwardRef<
               <MicOff className="h-3 w-3 shrink-0" strokeWidth={2.5} />
               Verifique as permissões do navegador
             </div>
-          ) : null}
-        </div>
-
-        <div className="absolute bottom-4 left-4 z-10 max-w-[min(calc(100%-2rem),280px)] rounded-xl border border-white/10 bg-black/60 px-3.5 py-2.5 text-white shadow-lg backdrop-blur-md">
-          <p className="flex items-center gap-1.5 text-sm font-bold leading-tight">
-            {patientName}
-            <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-400" strokeWidth={2} />
-          </p>
-          <p className="mt-1 text-xs text-white/90">CPF {patientCpfMasked}</p>
-          <p className="mt-0.5 text-xs text-white/75">{patientAgeGender}</p>
-          {onViewClinicalTriage ? (
-            <button
-              type="button"
-              onClick={onViewClinicalTriage}
-              className="mt-2 text-left text-xs font-semibold text-sky-300 underline-offset-2 transition hover:text-sky-200 hover:underline"
-            >
-              Ver triagem clínica
-            </button>
           ) : null}
         </div>
       </div>

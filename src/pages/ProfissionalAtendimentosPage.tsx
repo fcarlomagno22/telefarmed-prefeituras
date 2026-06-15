@@ -25,6 +25,7 @@ import {
   type ProfissionalAtendimentosTourStep,
 } from '../config/profissionalAtendimentosTour'
 import { profissionalTourInviteMeta } from '../config/profissionalTourInvite'
+import { PROFISSIONAL_HISTORICO_DEMO_RECORD_ID } from '../config/profissionalHistoricoDemo'
 import { findProfissionalNavByPathname } from '../config/profissionalSidebarNav'
 import { useProfissionalAtendimentosTour } from '../hooks/useProfissionalAtendimentosTour'
 import type { ProfissionalAttendanceRecord } from '../types/profissionalAtendimentos'
@@ -57,6 +58,9 @@ export function ProfissionalAtendimentosPage() {
   const [searchParams] = useSearchParams()
   const meta = findProfissionalNavByPathname(pathname) ?? fallbackMeta
   const forceTourStart = searchParams.get('tour') === 'atendimentos'
+  const abrirRecordId = searchParams.get('abrir')
+  const initialOpenRecordId =
+    abrirRecordId === PROFISSIONAL_HISTORICO_DEMO_RECORD_ID ? abrirRecordId : null
   const mainPanelRef = useRef<ProfissionalAtendimentosMainPanelHandle>(null)
 
   const [filteredRecords, setFilteredRecords] = useState<ProfissionalAttendanceRecord[]>([])
@@ -176,6 +180,7 @@ export function ProfissionalAtendimentosPage() {
                 onLoadingChange={handleListLoadingChange}
                 tourLockDrawerClose={tourLockDrawerClose}
                 tourActive={tour.active}
+                initialOpenRecordId={initialOpenRecordId}
               />
             </div>
           </div>
