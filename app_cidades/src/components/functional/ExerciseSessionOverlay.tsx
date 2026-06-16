@@ -3,14 +3,8 @@ import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native'
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { getExerciseById } from '../../data/functionalExercises'
 import { useExerciseTimer, type ExerciseTimerConfig } from '../../hooks/useExerciseTimer'
@@ -182,7 +176,7 @@ export function ExerciseSessionOverlay({
   useEffect(() => {
     if (!visible || timer.phase !== 'countdown' || timer.isPaused) return
 
-    const tick = timer.secondsLeft
+    const tick = Math.ceil(Math.max(timer.secondsLeft - 1e-4, 0))
     if (tick <= 0 || tick > 3) return
     if (lastCountdownTickRef.current === tick) return
 
@@ -257,7 +251,7 @@ export function ExerciseSessionOverlay({
   }
 
   return (
-    <Modal visible={visible} animationType="fade" presentationStyle="fullScreen">
+    <AppModal visible={visible} animationType="fade" presentationStyle="fullScreen">
       <View style={styles.root}>
         <LinearGradient
           colors={[`${phaseColor}22`, '#0a0a0c', '#0a0a0c']}
@@ -403,7 +397,7 @@ export function ExerciseSessionOverlay({
           </>
         )}
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

@@ -41,6 +41,7 @@ import type {
   ExerciseFilterDifficulty,
   FunctionalTrainingTab,
 } from '../types/functionalTraining'
+import { getFunctionalRouteParams } from '../types/auth'
 import {
   filterExercises,
   getCategoryCounts,
@@ -53,6 +54,7 @@ const TAB_BAR_ESTIMATED_HEIGHT = 78
 export function FunctionalTrainingScreen() {
   const insets = useSafeAreaInsets()
   const { user, navigateTo, goBack, canGoBack, logout, routeParams } = useAuth()
+  const functionalParams = getFunctionalRouteParams(routeParams)
 
   const [menuVisible, setMenuVisible] = useState(false)
   const [query, setQuery] = useState('')
@@ -89,11 +91,11 @@ export function FunctionalTrainingScreen() {
   }, [loadData])
 
   useEffect(() => {
-    if (routeParams?.startCircuit) {
+    if (functionalParams.startCircuit) {
       startCircuitSession()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [routeParams?.startCircuit])
+  }, [functionalParams.startCircuit])
 
   useAndroidBackHandler(
     useCallback(() => {

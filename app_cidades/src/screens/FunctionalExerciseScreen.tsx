@@ -30,6 +30,7 @@ import {
 } from '../data/functionalTrainingStorage'
 import { colors } from '../theme/colors'
 import type { FunctionalDurationSec } from '../types/functionalTraining'
+import { getFunctionalRouteParams } from '../types/auth'
 import { getNextExerciseId } from '../utils/functionalTraining'
 import { resolveBrandImage } from '../utils/resolveBrandImage'
 
@@ -38,8 +39,9 @@ const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_log
 export function FunctionalExerciseScreen() {
   const insets = useSafeAreaInsets()
   const { routeParams, goBack, canGoBack, navigateTo, user } = useAuth()
+  const functionalParams = getFunctionalRouteParams(routeParams)
 
-  const exerciseId = routeParams?.exerciseId ?? FUNCTIONAL_EXERCISES[0]?.id
+  const exerciseId = functionalParams.exerciseId ?? FUNCTIONAL_EXERCISES[0]?.id
   const exercise = useMemo(() => getExerciseById(exerciseId), [exerciseId])
 
   const [durationSec, setDurationSec] = useState<FunctionalDurationSec>(30)

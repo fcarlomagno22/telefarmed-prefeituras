@@ -3,17 +3,8 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  Animated,
-  Easing,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { Animated, Easing, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   getBodyMeasurementSeries,
@@ -238,7 +229,7 @@ export function BodyMeasurementsDrawer({
   }
 
   return (
-    <Modal visible transparent animationType="none" onRequestClose={handleDismiss}>
+    <AppModal visible transparent animationType="none" onRequestClose={handleDismiss}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
           <Pressable style={StyleSheet.absoluteFillObject} onPress={handleDismiss} />
@@ -308,7 +299,7 @@ export function BodyMeasurementsDrawer({
           </ScrollView>
         </Animated.View>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

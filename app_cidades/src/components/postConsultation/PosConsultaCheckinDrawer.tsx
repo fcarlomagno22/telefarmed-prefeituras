@@ -2,18 +2,8 @@ import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  Animated,
-  Easing,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { Animated, Easing, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
 import { colors } from '../../theme/colors'
@@ -151,7 +141,7 @@ export function PosConsultaCheckinDrawer({
   }
 
   return (
-    <Modal visible transparent animationType="none" onRequestClose={onClose}>
+    <AppModal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
           <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
@@ -249,7 +239,7 @@ export function PosConsultaCheckinDrawer({
           </Animated.View>
         </KeyboardAvoidingView>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

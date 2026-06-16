@@ -2,16 +2,8 @@ import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import {
-  Animated,
-  Easing,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native'
+import { Animated, Easing, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
+import { AppModal } from './AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { appEnv } from '../config/env'
 import { colors } from '../theme/colors'
@@ -116,7 +108,7 @@ export function MenuDrawer({
   if (!isMounted) return null
 
   return (
-    <Modal visible transparent animationType="none" onRequestClose={handleDismiss}>
+    <AppModal visible transparent animationType="none" onRequestClose={handleDismiss}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
           <Pressable style={StyleSheet.absoluteFillObject} onPress={handleDismiss} />
@@ -225,7 +217,7 @@ export function MenuDrawer({
           </View>
         </Animated.View>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

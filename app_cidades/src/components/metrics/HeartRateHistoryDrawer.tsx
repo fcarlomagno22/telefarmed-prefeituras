@@ -3,18 +3,8 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  ActivityIndicator,
-  Animated,
-  Easing,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Animated, Easing, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   formatHeartRateTime,
@@ -178,7 +168,7 @@ export function HeartRateHistoryDrawer({
   if (!isMounted) return null
 
   return (
-    <Modal visible transparent animationType="none" onRequestClose={handleDismiss}>
+    <AppModal visible transparent animationType="none" onRequestClose={handleDismiss}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
           <Pressable style={StyleSheet.absoluteFillObject} onPress={handleDismiss} />
@@ -376,7 +366,7 @@ export function HeartRateHistoryDrawer({
           </ScrollView>
         </Animated.View>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

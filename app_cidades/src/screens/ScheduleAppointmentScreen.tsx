@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
 import { MenuDrawer } from '../components/MenuDrawer'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { ScheduleConfirmStep } from '../components/schedule/ScheduleConfirmStep'
@@ -47,7 +48,8 @@ import { resolveBrandImage } from '../utils/resolveBrandImage'
 import { consumeScheduleUbtPrefill } from '../utils/schedulePrefill'
 
 const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
-const SCHEDULE_FOOTER_HEIGHT = 82
+const TAB_BAR_DOCK_HEIGHT = 74
+const SCHEDULE_FOOTER_HEIGHT = 80
 
 export function ScheduleAppointmentScreen() {
   const insets = useSafeAreaInsets()
@@ -68,6 +70,7 @@ export function ScheduleAppointmentScreen() {
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const [menuVisible, setMenuVisible] = useState(false)
+  const [bottomTab, setBottomTab] = useState<BottomTabId | null>('agendar')
   const [skipUbtStep, setSkipUbtStep] = useState(false)
 
   useEffect(() => {
@@ -80,8 +83,13 @@ export function ScheduleAppointmentScreen() {
     setSkipUbtStep(true)
   }, [])
 
-  const bottomContentPadding =
-    SCHEDULE_FOOTER_HEIGHT + Math.max(insets.bottom, 12) + 16
+  const tabBarOffset = TAB_BAR_DOCK_HEIGHT + Math.max(insets.bottom, 8)
+
+  const showFooter = step === 'success' || step !== 'specialty' || Boolean(specialtyId)
+
+  const bottomContentPadding = showFooter
+    ? SCHEDULE_FOOTER_HEIGHT + tabBarOffset + 16
+    : tabBarOffset + 16
 
   const draft: ScheduleAppointmentDraft = {
     specialtyId,
@@ -298,8 +306,44 @@ export function ScheduleAppointmentScreen() {
     }
   }
 
+  function handleTabPress(tab: BottomTabId) {
+    if (tab === 'home') {
+      closeMenu()
+      navigateTo('home')
+      return
+    }
+
+    if (tab === 'menu') {
+      setMenuVisible(true)
+      setBottomTab('menu')
+      return
+    }
+
+    if (tab === 'agendar') {
+      closeMenu()
+      setBottomTab('agendar')
+      return
+    }
+
+    if (tab === 'my-metrics') {
+      closeMenu()
+      navigateTo('my-metrics')
+      return
+    }
+
+    if (tab === 'pos-consulta') {
+      closeMenu()
+      navigateTo('post-consultation')
+      return
+    }
+
+    closeMenu()
+    setBottomTab(tab)
+  }
+
   function closeMenu() {
     setMenuVisible(false)
+    setBottomTab('agendar')
   }
 
   function handleLogout() {
@@ -386,6 +430,13 @@ export function ScheduleAppointmentScreen() {
             <ScheduleSpecialtyStep
               selectedId={specialtyId}
               onSelect={(id, name) => {
+                if (specialtyId === id) {
+                  setSpecialtyId('')
+                  setSpecialtyName('')
+                  resetUbtSelection()
+                  return
+                }
+
                 setSpecialtyId(id)
                 setSpecialtyName(name)
                 resetUbtSelection()
@@ -479,49 +530,59 @@ export function ScheduleAppointmentScreen() {
           ) : null}
         </ScrollView>
 
-        <View style={styles.footer}>
-          <LinearGradient
-            colors={['#1a1a22', '#111116', colors.background]}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={[
-              styles.footerBackdrop,
-              { paddingBottom: Math.max(insets.bottom, 12) },
-            ]}
-          >
-            {step === 'success' ? (
-              <PrimaryButton
-                label="Ir ao início"
-                onPress={() => navigateTo('home')}
-                style={styles.footerPrimaryButton}
-              />
-            ) : (
-              <View style={styles.footerRow}>
-                <Pressable
-                  onPress={handleBack}
-                  style={({ pressed }) => [
-                    styles.footerBackButton,
-                    pressed && styles.footerBackButtonPressed,
-                  ]}
-                  accessibilityRole="button"
-                  accessibilityLabel="Voltar"
-                >
-                  <Text style={styles.footerBackText}>Voltar</Text>
-                </Pressable>
+        {showFooter ? (
+          <View style={[styles.footer, { bottom: tabBarOffset }]}>
+            <LinearGradient
+              colors={['#1a1a22', '#111116', colors.background]}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.footerBackdrop}
+            >
+              {step === 'success' || step === 'specialty' ? (
+                <PrimaryButton
+                  label={step === 'success' ? 'Ir ao início' : getPrimaryLabel()}
+                  onPress={
+                    step === 'success'
+                      ? () => navigateTo('home')
+                      : () => void handlePrimaryAction()
+                  }
+                  loading={step === 'specialty' ? isSubmitting : false}
+                  disabled={step === 'specialty' ? primaryDisabled : false}
+                  style={styles.footerPrimaryButton}
+                />
+              ) : (
+                <View style={styles.footerRow}>
+                  <Pressable
+                    onPress={handleBack}
+                    style={({ pressed }) => [
+                      styles.footerBackButton,
+                      pressed && styles.footerBackButtonPressed,
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Voltar"
+                  >
+                    <Text style={styles.footerBackText}>Voltar</Text>
+                  </Pressable>
 
-                <View style={styles.footerPrimarySlot}>
-                  <PrimaryButton
-                    label={getPrimaryLabel()}
-                    onPress={() => void handlePrimaryAction()}
-                    loading={isSubmitting}
-                    disabled={primaryDisabled}
-                    style={styles.footerPrimaryButton}
-                  />
+                  <View style={styles.footerPrimarySlot}>
+                    <PrimaryButton
+                      label={getPrimaryLabel()}
+                      onPress={() => void handlePrimaryAction()}
+                      loading={isSubmitting}
+                      disabled={primaryDisabled}
+                      style={styles.footerPrimaryButton}
+                    />
+                  </View>
                 </View>
-              </View>
-            )}
-          </LinearGradient>
-        </View>
+              )}
+            </LinearGradient>
+          </View>
+        ) : null}
+
+        <BottomTabBar
+          activeTab={menuVisible ? 'menu' : bottomTab}
+          onTabPress={handleTabPress}
+        />
       </View>
 
       <MenuDrawer
@@ -606,6 +667,7 @@ const styles = StyleSheet.create({
   footerBackdrop: {
     paddingHorizontal: 16,
     paddingTop: 16,
+    paddingBottom: 12,
     overflow: 'hidden',
   },
   footerRow: {

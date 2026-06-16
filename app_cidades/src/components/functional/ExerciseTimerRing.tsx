@@ -31,14 +31,16 @@ export function ExerciseTimerRing({
   const radius = (size - strokeWidth) / 2
   const circumference = 2 * Math.PI * radius
   const safeTotal = Math.max(totalSeconds, 1)
-  const progress = Math.min(Math.max(secondsLeft / safeTotal, 0), 1)
+  const clampedSeconds = Math.min(Math.max(secondsLeft, 0), safeTotal)
+  const progress = Math.min(Math.max(clampedSeconds / safeTotal, 0), 1)
   const strokeDashoffset = circumference * (1 - progress)
   const color = PHASE_COLORS[phase]
+  const displaySeconds = Math.max(Math.ceil(clampedSeconds - 1e-4), 0)
 
   const display =
     phase === 'countdown'
-      ? secondsLeft.toString()
-      : formatTimerDisplay(secondsLeft)
+      ? displaySeconds.toString()
+      : formatTimerDisplay(displaySeconds)
 
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>

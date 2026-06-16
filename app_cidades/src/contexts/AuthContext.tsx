@@ -10,10 +10,14 @@ import {
   useRef,
   useState,
 } from 'react'
-import { AppScreen, AuthUser, FunctionalRouteParams, RegistrationData } from '../types/auth'
+import { Linking } from 'react-native'
+import { AppRouteParams, AppScreen, AuthUser, RegistrationData } from '../types/auth'
 import { createMockAuthUser, isValidMockCredentials } from '../config/mockAuth'
 import { playLoginSound } from '../utils/appSounds'
 import { cpfDigits } from '../utils/cpf'
+import { loadActiveLiveShareSession } from '../data/runWalkLiveShareService'
+import { parseLiveShareViewerLink } from '../utils/runWalkLiveShareLink'
+import { normalizeLiveShareToken } from '../utils/runWalkLiveShareToken'
 
 const SESSION_KEY = '@telefarmed/session'
 const BIOMETRIC_ENABLED_KEY = '@telefarmed/biometric-enabled'
@@ -22,12 +26,12 @@ const BIOMETRIC_SESSION_KEY = '@telefarmed/biometric-session'
 
 type HistoryEntry = {
   screen: AppScreen
-  params: FunctionalRouteParams | null
+  params: AppRouteParams | null
 }
 
 type AuthContextValue = {
   screen: AppScreen
-  routeParams: FunctionalRouteParams | null
+  routeParams: AppRouteParams | null
   user: AuthUser | null
   isAuthenticated: boolean
   isBootstrapping: boolean
@@ -35,7 +39,7 @@ type AuthContextValue = {
   canUseBiometricLogin: boolean
   shouldAskBiometric: boolean
   biometricAvailable: boolean
-  navigateTo: (screen: AppScreen, params?: FunctionalRouteParams) => void
+  navigateTo: (screen: AppScreen, params?: AppRouteParams) => void
   goBack: () => boolean
   canGoBack: () => boolean
   completeRegistration: (data: RegistrationData) => Promise<void>
@@ -51,8 +55,8 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [screen, setScreen] = useState<AppScreen>('home')
-  const [routeParams, setRouteParams] = useState<FunctionalRouteParams | null>(null)
-  const routeParamsRef = useRef<FunctionalRouteParams | null>(null)
+  const [routeParams, setRouteParams] = useState<AppRouteParams | null>(null)
+  const routeParamsRef = useRef<AppRouteParams | null>(null)
   const screenHistoryRef = useRef<HistoryEntry[]>([])
   const [user, setUser] = useState<AuthUser | null>(null)
   const [isBootstrapping, setIsBootstrapping] = useState(true)
@@ -110,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     routeParamsRef.current = routeParams
   }, [routeParams])
 
-  const navigateTo = useCallback((nextScreen: AppScreen, params?: FunctionalRouteParams) => {
+  const navigateTo = useCallback((nextScreen: AppScreen, params?: AppRouteParams) => {
     setScreen((current) => {
       if (current === nextScreen) {
         setRouteParams(params ?? null)
@@ -133,6 +137,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return nextScreen
     })
   }, [])
+
+  const openLiveShareViewerFromLink = useCallback((shareToken: string) => {
+    screenHistoryRef.current = []
+    setRouteParams({ token: shareToken })
+    setScreen('run-walk-live-viewer')
+  }, [])
+
+  const openRunnerLiveFromPublisherLink = useCallback((activityName?: string) => {
+    screenHistoryRef.current = []
+    setRouteParams(activityName ? { activityName } : null)
+    setScreen('run-walk-live')
+  }, [])
+
+  useEffect(() => {
+    if (isBootstrapping) return
+
+    async function handleIncomingUrl(url: string) {
+      const shareToken = parseLiveShareViewerLink(url)
+      if (!shareToken) return
+
+      const activeSession = await loadActiveLiveShareSession()
+      if (
+        activeSession?.isActive &&
+        normalizeLiveShareToken(activeSession.shareToken) === shareToken
+      ) {
+        openRunnerLiveFromPublisherLink(activeSession.activityName)
+        return
+      }
+
+      openLiveShareViewerFromLink(shareToken)
+    }
+
+    void Linking.getInitialURL().then((url) => {
+      if (url) void handleIncomingUrl(url)
+    })
+
+    const subscription = Linking.addEventListener('url', (event) => {
+      void handleIncomingUrl(event.url)
+    })
+
+    return () => subscription.remove()
+  }, [isBootstrapping, openLiveShareViewerFromLink, openRunnerLiveFromPublisherLink])
 
   const goBack = useCallback(() => {
     const history = screenHistoryRef.current

@@ -51,26 +51,25 @@ function getSnapOffsets(screenHeight: number, bottomInset: number, tabBarHeight:
 function resolveSnap(
   projected: number,
   velocityY: number,
+  dragDy: number,
   offsets: { collapsed: number; mid: number; expanded: number },
   hasSelection: boolean,
 ): NearbySheetSnap {
-  if (velocityY < -0.45) {
-    return hasSelection ? 'expanded' : 'mid'
+  if (velocityY < -0.2 || dragDy < -40) {
+    if (hasSelection) return 'expanded'
+    if (projected <= offsets.expanded + 40) return 'expanded'
+    return 'mid'
   }
 
-  if (velocityY > 0.45) {
+  if (velocityY > 0.2 || dragDy > 40) {
+    if (hasSelection && projected > offsets.mid + 30) return 'mid'
     return 'collapsed'
   }
 
   const thresholdCollapsedMid = (offsets.collapsed + offsets.mid) / 2
   const thresholdMidExpanded = (offsets.mid + offsets.expanded) / 2
 
-  if (hasSelection) {
-    if (projected <= thresholdMidExpanded) return 'expanded'
-    if (projected <= thresholdCollapsedMid) return 'mid'
-    return 'collapsed'
-  }
-
+  if (projected <= thresholdMidExpanded) return 'expanded'
   if (projected <= thresholdCollapsedMid) return 'mid'
   return 'collapsed'
 }
@@ -146,7 +145,8 @@ export function NearbyUnitsBottomSheet({
     () =>
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 2,
+        onMoveShouldSetPanResponder: (_, gesture) =>
+          Math.abs(gesture.dy) > Math.abs(gesture.dx) && Math.abs(gesture.dy) > 4,
         onPanResponderTerminationRequest: () => false,
         onPanResponderGrant: () => {
           isDragging.current = true
@@ -167,6 +167,7 @@ export function NearbyUnitsBottomSheet({
           const snap = resolveSnap(
             projected,
             gesture.vy,
+            gesture.dy,
             offsets,
             Boolean(selectedIdRef.current),
           )
@@ -197,11 +198,25 @@ export function NearbyUnitsBottomSheet({
         },
       ]}
     >
-      <View style={styles.dragZone} {...panResponder.panHandlers}>
-        <View style={styles.handle} />
-        <Text style={styles.dragHint}>
-          {showCollapsed ? 'Arraste para ver as unidades' : 'Arraste para ajustar'}
-        </Text>
+      <View
+        style={[styles.dragSurface, showCollapsed && styles.dragSurfaceCollapsed]}
+        {...panResponder.panHandlers}
+      >
+        <View style={styles.dragZone}>
+          <View style={styles.handle} />
+          <Text style={styles.dragHint}>
+            {showCollapsed ? 'Arraste para ver as unidades' : 'Arraste para ajustar'}
+          </Text>
+        </View>
+
+        {showCollapsed && nearestUbt ? (
+          <NearbyUnitsCollapsedPeek
+            ubt={nearestUbt}
+            totalCount={ubts.length}
+            onPress={() => onSelectUbt(nearestUbt.id)}
+            onExpandList={() => animateToSnap('expanded')}
+          />
+        ) : null}
       </View>
 
       <View style={styles.contentArea}>
@@ -246,15 +261,6 @@ export function NearbyUnitsBottomSheet({
           </ScrollView>
         ) : null}
 
-        {showCollapsed && nearestUbt ? (
-          <NearbyUnitsCollapsedPeek
-            ubt={nearestUbt}
-            totalCount={ubts.length}
-            onPress={() => onSelectUbt(nearestUbt.id)}
-            onExpandList={() => animateToSnap('mid')}
-          />
-        ) : null}
-
         {ubts.length === 0 && !showList ? (
           <View style={styles.empty}>
             <Text style={styles.emptyTitle}>Nenhuma unidade encontrada</Text>
@@ -289,9 +295,15 @@ const styles = StyleSheet.create({
   dragZone: {
     alignItems: 'center',
     paddingTop: 10,
-    paddingBottom: 10,
+    paddingBottom: 6,
     paddingHorizontal: 16,
     gap: 6,
+  },
+  dragSurface: {
+    zIndex: 2,
+  },
+  dragSurfaceCollapsed: {
+    paddingBottom: 4,
   },
   handle: {
     width: 42,

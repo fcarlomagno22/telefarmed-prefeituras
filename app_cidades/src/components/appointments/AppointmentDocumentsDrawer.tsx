@@ -3,17 +3,8 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  ActivityIndicator,
-  Animated,
-  Easing,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
 import { ConsultationDocumentPalette } from '../../theme/consultationDocumentColors'
@@ -178,7 +169,7 @@ export function AppointmentDocumentsDrawer({
   }
 
   return (
-    <Modal visible transparent animationType="none" onRequestClose={onClose}>
+    <AppModal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
           <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
@@ -277,7 +268,7 @@ export function AppointmentDocumentsDrawer({
           </ScrollView>
         </Animated.View>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

@@ -106,6 +106,11 @@ export function HomeScreen() {
 
     if (actionId === 'functional-training') {
       navigateTo('functional-training')
+      return
+    }
+
+    if (actionId === 'run-walk') {
+      navigateTo('run-walk')
     }
   }
 

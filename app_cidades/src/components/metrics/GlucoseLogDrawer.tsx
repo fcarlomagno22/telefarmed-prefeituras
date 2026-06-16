@@ -3,21 +3,8 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import {
-  Animated,
-  Easing,
-  Keyboard,
-  KeyboardAvoidingView,
-  Modal,
-  PanResponder,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native'
+import { Animated, Easing, Keyboard, KeyboardAvoidingView, PanResponder, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, {
   Circle,
@@ -786,7 +773,7 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
   if (!isMounted) return null
 
   return (
-    <Modal visible transparent animationType="none" onRequestClose={handleDismiss}>
+    <AppModal visible transparent animationType="none" onRequestClose={handleDismiss}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
           <Pressable
@@ -959,7 +946,7 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
           </Animated.View>
         </KeyboardAvoidingView>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

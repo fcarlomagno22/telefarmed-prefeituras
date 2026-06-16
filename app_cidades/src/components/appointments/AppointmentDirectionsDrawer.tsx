@@ -4,17 +4,8 @@ import { Image } from 'expo-image'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import {
-  Animated,
-  Easing,
-  ImageSourcePropType,
-  ImageStyle,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { Animated, Easing, ImageSourcePropType, ImageStyle, Pressable, StyleSheet, Text, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
 import { DirectionsDestination, NavigationApp } from '../../utils/appointmentMaps'
@@ -112,7 +103,7 @@ export function AppointmentDirectionsDrawer({
   }
 
   return (
-    <Modal visible transparent animationType="none" onRequestClose={onClose}>
+    <AppModal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
           <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
@@ -198,7 +189,7 @@ export function AppointmentDirectionsDrawer({
           </Text>
         </Animated.View>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

@@ -2,15 +2,8 @@ import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import LottieView from 'lottie-react-native'
 import { useEffect, useRef, useState } from 'react'
-import {
-  Animated,
-  Easing,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
+import { AppModal } from './AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import robotAnimation from '../../assets/robot.json'
 import { getGuestFeatureContent, GuestFeatureKey } from '../config/guestFeatures'
@@ -110,7 +103,7 @@ export function FeatureAuthDrawer({
   if (!isMounted || !content) return null
 
   return (
-    <Modal visible transparent animationType="none" onRequestClose={handleDismiss}>
+    <AppModal visible transparent animationType="none" onRequestClose={handleDismiss}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
           <Pressable style={StyleSheet.absoluteFillObject} onPress={handleDismiss} />
@@ -153,7 +146,7 @@ export function FeatureAuthDrawer({
           </Pressable>
         </Animated.View>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

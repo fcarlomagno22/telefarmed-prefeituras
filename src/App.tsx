@@ -91,7 +91,7 @@ import { vidaPlusRoutes } from './config/vidaPlusRoutes'
 import { getDedicatedPortal } from './config/portalHost'
 import { adminRoutes } from './config/adminRoutes'
 import { prefeituraRoutes } from './config/prefeituraRoutes'
-import { dedicatedPortalRoutes } from './routes/DedicatedPortalRoutes'
+import { dedicatedPortalRoutes, SharedPublicRoutes } from './routes/DedicatedPortalRoutes'
 import { useDedicatedPortalDocumentTitle } from './hooks/useDedicatedPortalDocumentTitle'
 import type { PortalId } from './config/portalHost'
 
@@ -132,6 +132,7 @@ function App() {
     <BrowserRouter>
       {dedicatedPortal ? <DedicatedPortalDocumentTitle portal={dedicatedPortal} /> : null}
       <Routes>
+        {SharedPublicRoutes()}
         {dedicatedPortal ? (
           <>{dedicatedPortalRoutes(dedicatedPortal)}</>
         ) : (
@@ -139,8 +140,6 @@ function App() {
         <Route path="/" element={<RootPage />} />
         <Route path={vidaPlusRoutes.home} element={<VidaPlusPage />} />
         <Route path="/sala-de-espera" element={<Navigate to={ubtRoutes.salaDeEspera} replace />} />
-        <Route path="/verificar/:codigo" element={<VerificarDocumentoPage />} />
-        <Route path="/plantao/aceitar/:token" element={<PlantaoAceitePublicPage />} />
         <Route path="/atendimento/:attendanceId/*" element={<LegacyAtendimentoRedirect />} />
         <Route path="/login" element={<Navigate to="/ubt/login" replace />} />
         <Route path="/ubs/login" element={<Navigate to="/ubt/login" replace />} />

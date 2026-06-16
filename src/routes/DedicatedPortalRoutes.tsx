@@ -84,6 +84,7 @@ import { EvolucaoCheckinPage } from '../pages/EvolucaoCheckinPage'
 import { AtendimentoMedicoPage } from '../pages/AtendimentoMedicoPage'
 import { VerificarDocumentoPage } from '../pages/VerificarDocumentoPage'
 import { PlantaoAceitePublicPage } from '../pages/PlantaoAceitePublicPage'
+import { RunWalkLiveSharePublicPage } from '../pages/RunWalkLiveSharePublicPage'
 import {
   PROFISSIONAL_HISTORICO_DEMO_ATENDIMENTO_CODIGO_LEGACY,
   profissionalHistoricoDemoConsultaPath,
@@ -106,9 +107,12 @@ function SharedPublicRoutes() {
     <>
       <Route path="/verificar/:codigo" element={<VerificarDocumentoPage />} />
       <Route path="/plantao/aceitar/:token" element={<PlantaoAceitePublicPage />} />
+      <Route path="/acompanhar/:token" element={<RunWalkLiveSharePublicPage />} />
     </>
   )
 }
+
+export { SharedPublicRoutes }
 
 export const adminDedicatedRoutes = (
   <>
@@ -167,7 +171,6 @@ export const adminDedicatedRoutes = (
           </Route>
         </Route>
       </Route>
-      {SharedPublicRoutes()}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </>
 )
@@ -203,7 +206,6 @@ export const prefeituraDedicatedRoutes = (
           </Route>
         </Route>
       </Route>
-      {SharedPublicRoutes()}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </>
 )
@@ -242,7 +244,6 @@ export const profissionalDedicatedRoutes = (
           </Route>
         </Route>
       </Route>
-      {SharedPublicRoutes()}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </>
 )
@@ -288,7 +289,6 @@ export const ubtDedicatedRoutes = (
       <Route path="/suporte" element={<Navigate to={ubtRoutes.suporte} replace />} />
       <Route path="/credenciais" element={<Navigate to={ubtRoutes.credenciais} replace />} />
       <Route path="/auditoria" element={<Navigate to={ubtRoutes.auditoria} replace />} />
-      {SharedPublicRoutes()}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </>
 )

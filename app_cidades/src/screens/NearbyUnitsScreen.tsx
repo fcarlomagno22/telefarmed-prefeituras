@@ -89,7 +89,7 @@ export function NearbyUnitsScreen() {
 
   function handleExpandList() {
     setSelectedId(null)
-    setSheetSnap('mid')
+    setSheetSnap('expanded')
   }
 
   function handleShowMap() {

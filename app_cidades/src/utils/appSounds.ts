@@ -7,6 +7,7 @@ const successPasswordSound = require('../../assets/success_password.mp3')
 const functionalAlarmSound = require('../../assets/alarm_funcional.mp3')
 const functionalGymMusic = require('../../assets/gym.mp3')
 const functionalCountdownTick = require('../../assets/countdown.mp3')
+const pingSound = require('../../assets/ping.mp3')
 
 let audioModeReady = false
 let functionalAlarmPlayer: AudioPlayer | null = null
@@ -55,6 +56,10 @@ export function playSuccessPasswordSound() {
 
 export function playSuccessSound() {
   return playSound(successSound)
+}
+
+export function playPingSound() {
+  return playSound(pingSound)
 }
 
 export function playFunctionalCountdownTick() {

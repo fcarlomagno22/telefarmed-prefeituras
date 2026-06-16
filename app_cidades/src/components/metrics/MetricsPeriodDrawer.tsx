@@ -2,16 +2,8 @@ import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  Animated,
-  Easing,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
 import { PeriodPreset, PeriodSelection } from '../../types/metrics'
@@ -205,7 +197,7 @@ export function MetricsPeriodDrawer({
   if (!isMounted) return null
 
   return (
-    <Modal visible transparent animationType="none" onRequestClose={handleDismiss}>
+    <AppModal visible transparent animationType="none" onRequestClose={handleDismiss}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
           <Pressable style={StyleSheet.absoluteFillObject} onPress={handleDismiss} />
@@ -360,7 +352,7 @@ export function MetricsPeriodDrawer({
           <PrimaryButton label="Aplicar período" onPress={handleApply} />
         </Animated.View>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

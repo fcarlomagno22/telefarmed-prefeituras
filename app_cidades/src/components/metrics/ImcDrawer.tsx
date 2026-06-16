@@ -4,16 +4,8 @@ import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import LottieView from 'lottie-react-native'
 import { useEffect, useRef, useState } from 'react'
-import {
-  Animated,
-  Easing,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import weightAnimation from '../../../assets/weight.json'
 import { colors } from '../../theme/colors'
@@ -120,7 +112,7 @@ export function ImcDrawer({
   if (!isMounted) return null
 
   return (
-    <Modal visible transparent animationType="none" onRequestClose={handleDismiss}>
+    <AppModal visible transparent animationType="none" onRequestClose={handleDismiss}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
           <Pressable style={StyleSheet.absoluteFillObject} onPress={handleDismiss} />
@@ -274,7 +266,7 @@ export function ImcDrawer({
           </Animated.View>
         </View>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

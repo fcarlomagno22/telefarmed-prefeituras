@@ -3,17 +3,8 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  ActivityIndicator,
-  Animated,
-  Easing,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { POS_CONSULTA_PLAN_TOTAL_DAYS } from '../../config/posConsulta'
 import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
@@ -151,7 +142,7 @@ export function AppointmentPostConsultationDrawer({
   }
 
   return (
-    <Modal visible transparent animationType="none" onRequestClose={onClose}>
+    <AppModal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
           <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
@@ -280,7 +271,7 @@ export function AppointmentPostConsultationDrawer({
           </ScrollView>
         </Animated.View>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

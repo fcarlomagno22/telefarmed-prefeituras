@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
-import { Image, Modal, Pressable, StyleSheet, View } from 'react-native'
+import { Image, Pressable, StyleSheet, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
 
@@ -17,7 +18,7 @@ export function ProfilePhotoViewerModal({
   const insets = useSafeAreaInsets()
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <AppModal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <Pressable
           onPress={onClose}
@@ -32,7 +33,7 @@ export function ProfilePhotoViewerModal({
           <Image source={{ uri: selfieUri }} style={styles.image} resizeMode="contain" />
         </View>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

@@ -2,10 +2,16 @@
   "expo": {
     "name": "Telefarmed Cidades",
     "slug": "app_cidades",
+    "scheme": "telefarmedcidades",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
+    "androidNavigationBar": {
+      "backgroundColor": "#0a0a0c",
+      "barStyle": "light-content",
+      "enforceContrast": false
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -22,9 +28,21 @@
         "LSApplicationQueriesSchemes": [
           "comgooglemaps",
           "googlemaps",
-          "waze"
-        ]
-      }
+          "waze",
+          "spotify",
+          "music",
+          "musics",
+          "youtubemusic",
+          "vnd.youtube",
+          "deezer",
+          "deezer-standalone",
+          "amazonmusic",
+          "amznmp3"
+        ],
+        "NSLocationWhenInUseUsageDescription": "Permitir acesso à localização para monitorar sua atividade, clima e segurança durante caminhadas e corridas.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Permitir compartilhamento de localização ao vivo com seu contato de confiança durante a atividade."
+      },
+      "bundleIdentifier": "com.fcarlomagno2.app-cidades"
     },
     "android": {
       "adaptiveIcon": {
@@ -37,9 +55,24 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
-        "android.permission.MODIFY_AUDIO_SETTINGS"
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ],
-      "package": "com.fcarlomagno2.app_cidades"
+      "package": "com.fcarlomagno2.app_cidades",
+      "queries": [
+        { "scheme": "spotify" },
+        { "scheme": "youtubemusic" },
+        { "scheme": "vnd.youtube" },
+        { "scheme": "deezer" },
+        { "scheme": "deezer-standalone" },
+        { "scheme": "amazonmusic" },
+        { "scheme": "amznmp3" },
+        { "package": "com.spotify.music" },
+        { "package": "com.google.android.apps.youtube.music" },
+        { "package": "deezer.android.app" },
+        { "package": "com.amazon.mp3" }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -62,7 +95,21 @@
         }
       ],
       "expo-audio",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-navigation-bar",
+        {
+          "enforceContrast": false,
+          "barStyle": "light"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Permitir acesso à localização para monitorar sua atividade, clima e segurança durante caminhadas e corridas.",
+          "locationAlwaysAndWhenInUsePermission": "Permitir compartilhamento de localização ao vivo com seu contato de confiança durante a atividade."
+        }
+      ]
     ],
     "extra": {
       "eas": {

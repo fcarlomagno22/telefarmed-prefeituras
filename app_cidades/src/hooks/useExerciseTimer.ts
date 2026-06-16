@@ -17,6 +17,10 @@ export type ExerciseTimerConfig = {
 
 const COUNTDOWN_START = 3
 
+function getWorkSec(config: ExerciseTimerConfig) {
+  return config.mode === 'circuit' ? CIRCUIT_WORK_SEC : config.workSec
+}
+
 export function useExerciseTimer(config: ExerciseTimerConfig | null) {
   const [phase, setPhase] = useState<TimerPhase>('idle')
   const [secondsLeft, setSecondsLeft] = useState(0)
@@ -26,6 +30,10 @@ export function useExerciseTimer(config: ExerciseTimerConfig | null) {
 
   const configRef = useRef(config)
   const indexRef = useRef(currentExerciseIndex)
+  const phaseEndAtRef = useRef(0)
+  const phaseDurationRef = useRef(0)
+  const pausedRemainingMsRef = useRef(0)
+  const timerGenerationRef = useRef(0)
 
   useEffect(() => {
     configRef.current = config
@@ -35,9 +43,22 @@ export function useExerciseTimer(config: ExerciseTimerConfig | null) {
     indexRef.current = currentExerciseIndex
   }, [currentExerciseIndex])
 
+  const schedulePhase = useCallback((nextPhase: TimerPhase, durationSec: number) => {
+    timerGenerationRef.current += 1
+    phaseDurationRef.current = durationSec
+    phaseEndAtRef.current = Date.now() + durationSec * 1000
+    pausedRemainingMsRef.current = 0
+    setPhase(nextPhase)
+    setSecondsLeft(durationSec)
+  }, [])
+
   const reset = useCallback(() => {
+    timerGenerationRef.current += 1
     setPhase('idle')
     setSecondsLeft(0)
+    phaseDurationRef.current = 0
+    phaseEndAtRef.current = 0
+    pausedRemainingMsRef.current = 0
     setCurrentExerciseIndex(config?.startIndex ?? 0)
     indexRef.current = config?.startIndex ?? 0
     setIsPaused(false)
@@ -56,58 +77,59 @@ export function useExerciseTimer(config: ExerciseTimerConfig | null) {
     setTotalActiveSec(0)
     setCurrentExerciseIndex(startIndex)
     indexRef.current = startIndex
-    setPhase('countdown')
-    setSecondsLeft(COUNTDOWN_START)
+    schedulePhase('countdown', COUNTDOWN_START)
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-  }, [])
+  }, [schedulePhase])
 
-  const pause = useCallback(() => setIsPaused(true), [])
-  const resume = useCallback(() => setIsPaused(false), [])
+  const pause = useCallback(() => {
+    if (phase === 'idle' || phase === 'completed' || isPaused) return
+
+    const remainingMs = Math.max(phaseEndAtRef.current - Date.now(), 0)
+    pausedRemainingMsRef.current = remainingMs
+    timerGenerationRef.current += 1
+    setIsPaused(true)
+  }, [isPaused, phase])
+
+  const resume = useCallback(() => {
+    if (!isPaused) return
+
+    const remainingMs = pausedRemainingMsRef.current
+    phaseEndAtRef.current = Date.now() + remainingMs
+    phaseDurationRef.current = remainingMs / 1000
+    timerGenerationRef.current += 1
+    setIsPaused(false)
+  }, [isPaused])
 
   const addTime = useCallback((extraSec: number) => {
+    phaseEndAtRef.current += extraSec * 1000
+    phaseDurationRef.current += extraSec
     setSecondsLeft((prev) => prev + extraSec)
   }, [])
 
-  useEffect(() => {
-    if (phase === 'idle' || phase === 'completed' || isPaused) return
-
-    const interval = setInterval(() => {
-      setSecondsLeft((prev) => Math.max(prev - 1, 0))
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [phase, isPaused])
-
-  useEffect(() => {
-    if (isPaused || secondsLeft > 0) return
-    if (phase === 'idle' || phase === 'completed') return
-
+  const advancePhase = useCallback(() => {
     const currentConfig = configRef.current
     if (!currentConfig) return
 
     if (phase === 'countdown') {
-      const workSec =
-        currentConfig.mode === 'circuit' ? CIRCUIT_WORK_SEC : currentConfig.workSec
-      setPhase('work')
-      setSecondsLeft(workSec)
+      schedulePhase('work', getWorkSec(currentConfig))
       return
     }
 
     if (phase === 'work') {
-      const workSec =
-        currentConfig.mode === 'circuit' ? CIRCUIT_WORK_SEC : currentConfig.workSec
+      const workSec = getWorkSec(currentConfig)
       setTotalActiveSec((prev) => prev + workSec)
 
       const isLast = indexRef.current >= currentConfig.exerciseIds.length - 1
 
       if (currentConfig.mode === 'single' || isLast) {
+        timerGenerationRef.current += 1
         setPhase('completed')
+        setSecondsLeft(0)
         triggerCompletionHaptic()
         return
       }
 
-      setPhase('rest')
-      setSecondsLeft(currentConfig.restSec ?? CIRCUIT_REST_SEC)
+      schedulePhase('rest', currentConfig.restSec ?? CIRCUIT_REST_SEC)
       return
     }
 
@@ -115,18 +137,46 @@ export function useExerciseTimer(config: ExerciseTimerConfig | null) {
       const nextIndex = indexRef.current + 1
       indexRef.current = nextIndex
       setCurrentExerciseIndex(nextIndex)
-      setPhase('work')
-      setSecondsLeft(CIRCUIT_WORK_SEC)
+      schedulePhase('work', CIRCUIT_WORK_SEC)
     }
-  }, [secondsLeft, phase, isPaused, triggerCompletionHaptic])
+  }, [phase, schedulePhase, triggerCompletionHaptic])
 
   useEffect(() => {
-    if (phase !== 'work' && phase !== 'rest' && phase !== 'countdown') return
-    if (isPaused) return
-    if (secondsLeft > 3 || secondsLeft <= 0) return
+    if (phase === 'idle' || phase === 'completed' || isPaused) return
 
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-  }, [secondsLeft, phase, isPaused])
+    const generation = timerGenerationRef.current
+    let rafId = 0
+    let lastHapticSecond = Number.POSITIVE_INFINITY
+
+    const tick = () => {
+      if (generation !== timerGenerationRef.current) return
+
+      const remainingMs = Math.max(phaseEndAtRef.current - Date.now(), 0)
+      const remainingSec = remainingMs / 1000
+      setSecondsLeft(remainingSec)
+
+      const displaySecond = Math.ceil(remainingSec)
+      if (
+        displaySecond <= 3 &&
+        displaySecond > 0 &&
+        displaySecond < lastHapticSecond &&
+        (phase === 'work' || phase === 'rest' || phase === 'countdown')
+      ) {
+        lastHapticSecond = displaySecond
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+      }
+
+      if (remainingMs <= 0) {
+        advancePhase()
+        return
+      }
+
+      rafId = requestAnimationFrame(tick)
+    }
+
+    rafId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafId)
+  }, [advancePhase, isPaused, phase])
 
   return {
     phase,

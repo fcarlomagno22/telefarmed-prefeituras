@@ -3,15 +3,8 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import LottieView from 'lottie-react-native'
 import { useEffect, useRef, useState } from 'react'
-import {
-  Animated,
-  Easing,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import pictureAnimation from '../../../assets/picture.json'
 import { colors } from '../../theme/colors'
@@ -131,7 +124,7 @@ export function ProfilePhotoReplaceModal({
   if (!isMounted && !visible) return null
 
   return (
-    <Modal
+    <AppModal
       visible={isMounted}
       transparent
       animationType="none"
@@ -195,7 +188,7 @@ export function ProfilePhotoReplaceModal({
           </Pressable>
         </Animated.View>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

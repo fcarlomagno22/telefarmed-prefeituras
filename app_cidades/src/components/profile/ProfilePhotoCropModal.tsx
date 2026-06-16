@@ -1,15 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  ActivityIndicator,
-  Image,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import {
   Gesture,
   GestureDetector,
@@ -238,7 +231,7 @@ export function ProfilePhotoCropModal({
   if (!visible) return null
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <AppModal visible={visible} animationType="slide" onRequestClose={onClose}>
       <GestureHandlerRootView style={styles.flex}>
         <View style={[styles.container, { paddingTop: Math.max(insets.top, 12) }]}>
           <View style={styles.header}>
@@ -301,7 +294,7 @@ export function ProfilePhotoCropModal({
           </View>
         </View>
       </GestureHandlerRootView>
-    </Modal>
+    </AppModal>
   )
 }
 

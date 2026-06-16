@@ -3,16 +3,8 @@ import { BlurView } from 'expo-blur'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import {
-  Animated,
-  Easing,
-  Image,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { Animated, Easing, Image, Pressable, StyleSheet, Text, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
 
@@ -140,7 +132,7 @@ export function ProfilePhotoMenuModal({
   if (!isMounted && !visible) return null
 
   return (
-    <Modal
+    <AppModal
       visible={isMounted}
       transparent
       animationType="none"
@@ -227,7 +219,7 @@ export function ProfilePhotoMenuModal({
           </Pressable>
         </Animated.View>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

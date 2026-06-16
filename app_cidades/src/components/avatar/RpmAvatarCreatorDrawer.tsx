@@ -1,15 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useMemo } from 'react'
-import {
-  ActivityIndicator,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { WebView } from 'react-native-webview'
 import { buildRpmCreatorUrl } from '../../config/readyPlayerMe'
@@ -48,7 +41,7 @@ export function RpmAvatarCreatorDrawer({
   }
 
   return (
-    <Modal
+    <AppModal
       visible={visible}
       animationType="slide"
       presentationStyle="fullScreen"
@@ -87,7 +80,7 @@ export function RpmAvatarCreatorDrawer({
           originWhitelist={['https://*']}
         />
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 
