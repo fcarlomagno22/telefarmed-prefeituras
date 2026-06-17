@@ -1,3 +1,4 @@
+import { compressSelfieDataUrl } from '../../../utils/image/compressSelfieDataUrl'
 import { API_BASE_URL } from '../config'
 import { ApiError, apiFetch } from '../http'
 import type { MedicoCadastroDocumentUploads, MedicoCadastroFormValues } from '../../../types/medicoCadastro'
@@ -161,6 +162,13 @@ export async function apiSubmitProfissionalCadastro(
 
 function mapCadastroApiError(error: unknown, fallbackMessage: string): ProfissionalCadastroApiError {
   if (error instanceof ApiError) {
+    if (error.status === 413) {
+      return new ProfissionalCadastroApiError(
+        'A foto de identificação é grande demais. Tire a selfie novamente e tente outra vez.',
+        error.status,
+        error.code,
+      )
+    }
     return new ProfissionalCadastroApiError(error.message, error.status, error.code)
   }
   return new ProfissionalCadastroApiError(fallbackMessage, 0)
@@ -199,10 +207,14 @@ export async function apiFinalizeProfissionalCadastro(input: {
   empresa: ProfissionalFinalizarCadastroEmpresaData
 }): Promise<{ profissionalId: string }> {
   try {
+    const selfiePhotoDataUrl = await compressSelfieDataUrl(input.values.selfiePhotoDataUrl)
     return await apiFetch<{ profissionalId: string }>('/profissional/cadastro/finalizar-cadastro', {
       method: 'PATCH',
       json: {
-        values: input.values,
+        values: {
+          ...input.values,
+          selfiePhotoDataUrl,
+        },
         empresa: {
           ...input.empresa,
           municipio: input.empresa.cidade,

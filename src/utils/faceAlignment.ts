@@ -47,6 +47,9 @@ export function isFaceAlignedInOval(face: FaceBox, guide: OvalGuide): boolean {
   return centerInside && sizeOk
 }
 
+const SELFIE_CAPTURE_MAX_PX = 512
+const SELFIE_CAPTURE_JPEG_QUALITY = 0.82
+
 /** Recorte quadrado (sem máscara oval) para evitar faixas pretas na pré-visualização. */
 export function captureMirroredOvalFrame(
   video: HTMLVideoElement,
@@ -63,10 +66,11 @@ export function captureMirroredOvalFrame(
       height * 0.92,
     ),
   )
+  const outputSize = Math.min(cropSize, SELFIE_CAPTURE_MAX_PX)
 
   const canvas = document.createElement('canvas')
-  canvas.width = cropSize
-  canvas.height = cropSize
+  canvas.width = outputSize
+  canvas.height = outputSize
 
   const ctx = canvas.getContext('2d')
   if (!ctx) return ''
@@ -86,9 +90,9 @@ export function captureMirroredOvalFrame(
     cropSize,
     0,
     0,
-    cropSize,
-    cropSize,
+    outputSize,
+    outputSize,
   )
 
-  return canvas.toDataURL('image/jpeg', 0.9)
+  return canvas.toDataURL('image/jpeg', SELFIE_CAPTURE_JPEG_QUALITY)
 }

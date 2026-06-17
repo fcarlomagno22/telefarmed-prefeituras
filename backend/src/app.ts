@@ -69,6 +69,8 @@ export async function buildApp() {
   const app = Fastify({
     logger: !isProduction,
     trustProxy: true,
+    // Selfie em base64 no JSON de finalizar cadastro; padrão Fastify (1 MB) é insuficiente.
+    bodyLimit: 6 * 1024 * 1024,
   })
 
   // refresh/logout usam cookie sem body JSON
