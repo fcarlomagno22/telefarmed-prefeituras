@@ -146,6 +146,27 @@ export type CandidaturaDto = {
   finalizedAtLabel?: string
 }
 
+export type AdminDoctorAttendanceDto = {
+  id: string
+  dateTimeLabel: string
+  contractCity: string
+  patientName: string
+  durationMinutes: number
+  documents: {
+    id: string
+    label: string
+    fileName: string
+  }[]
+}
+
+export type AdminDoctorReviewDto = {
+  id: string
+  rating: number
+  author: string
+  comment: string
+  createdAtLabel: string
+}
+
 export type AdminDoctorDto = {
   id: string
   name: string
@@ -181,8 +202,11 @@ export type AdminDoctorDto = {
   lastLoginAt: string
   lastLogoutAt: string | null
   documents: []
-  attendances: []
-  reviews: []
+  attendances: AdminDoctorAttendanceDto[]
+  reviews: AdminDoctorReviewDto[]
+  totalConsultations?: number
+  completedConsultations?: number
+  completionRate?: number
 }
 
 export function formatCandidaturaDocumento(
@@ -284,6 +308,13 @@ export function formatProfissionalAtivo(
   row: ProfissionalAtivoRow,
   avatarUrl?: string,
   specialties: EspecialidadeRegistrada[] = [],
+  detail?: {
+    attendances: AdminDoctorAttendanceDto[]
+    reviews: AdminDoctorReviewDto[]
+    totalConsultations: number
+    completedConsultations: number
+    completionRate: number
+  },
 ): AdminDoctorDto {
   const resolvedSpecialties =
     specialties.length > 0
@@ -332,8 +363,15 @@ export function formatProfissionalAtivo(
     lastLoginAt: formatLastAccessLabel(row.ultimo_login_em),
     lastLogoutAt: null,
     documents: [],
-    attendances: [],
-    reviews: [],
+    attendances: detail?.attendances ?? [],
+    reviews: detail?.reviews ?? [],
+    ...(detail
+      ? {
+          totalConsultations: detail.totalConsultations,
+          completedConsultations: detail.completedConsultations,
+          completionRate: detail.completionRate,
+        }
+      : {}),
   }
 }
 

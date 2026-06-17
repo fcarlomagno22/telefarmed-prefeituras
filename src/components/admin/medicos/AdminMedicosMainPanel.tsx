@@ -107,6 +107,7 @@ export function AdminMedicosMainPanel({
   const [drawerMode, setDrawerMode] = useState<AdminMedicoDrawerMode>('view')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerClosing, setDrawerClosing] = useState(false)
+  const [drawerDetailLoading, setDrawerDetailLoading] = useState(false)
   const [createDrawerOpen, setCreateDrawerOpen] = useState(false)
   const [createDrawerClosing, setCreateDrawerClosing] = useState(false)
   const [toast, setToast] = useState<{ message: string } | null>(null)
@@ -176,14 +177,17 @@ export function AdminMedicosMainPanel({
       setDrawerClosing(false)
       setDrawerOpen(true)
 
-      if (!onLoadDoctorDetail) return
+      if (!onLoadDoctorDetail || mode === 'edit') return
 
+      setDrawerDetailLoading(true)
       void (async () => {
         try {
           const detail = await onLoadDoctorDetail(doctor.id)
           if (detail) setDrawerDoctor(detail)
         } catch {
           // Mantém dados da listagem se o detalhe falhar.
+        } finally {
+          setDrawerDetailLoading(false)
         }
       })()
     },
@@ -569,6 +573,7 @@ export function AdminMedicosMainPanel({
         mode={drawerMode}
         open={drawerOpen}
         closing={drawerClosing}
+        detailLoading={drawerDetailLoading}
         onClose={closeDrawer}
         onTransitionEnd={handleDrawerTransitionEnd}
         onSave={handleSaveDoctor}

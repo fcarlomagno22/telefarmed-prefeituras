@@ -13,6 +13,7 @@ import {
 } from './especialidades.service.js'
 import { ProfissionaisError } from './errors.js'
 import { escapeIlikeTerm, formacaoFromProfession, formatProfissionalAtivo } from './formatters.js'
+import { loadAdminProfissionalDetailExtras } from './ativos-detail.service.js'
 import type { CreateAtivoBody, ListAtivosQuery, UpdateAtivoBody } from './schemas.js'
 import type { FormacaoCandidatura, ProfissionalAtivoRow } from './types.js'
 
@@ -77,9 +78,10 @@ async function loadProfissionalAtivo(id: string): Promise<ProfissionalAtivoRow> 
 async function formatProfissionalRow(
   row: ProfissionalAtivoRow,
   especialidadesMap?: Map<string, EspecialidadeRegistrada[]>,
+  detail?: Awaited<ReturnType<typeof loadAdminProfissionalDetailExtras>>,
 ) {
   const avatarUrl = await createProfissionalFotoSignedUrl(row.foto_storage_path)
-  return formatProfissionalAtivo(row, avatarUrl, especialidadesMap?.get(row.id) ?? [])
+  return formatProfissionalAtivo(row, avatarUrl, especialidadesMap?.get(row.id) ?? [], detail)
 }
 
 export async function listProfissionaisAtivos(params: ListAtivosQuery) {
@@ -115,8 +117,11 @@ export async function listProfissionaisAtivos(params: ListAtivosQuery) {
 
 export async function getProfissionalAtivoDetail(id: string) {
   const row = await loadProfissionalAtivo(id)
-  const especialidadesMap = await loadProfissionalEspecialidadesMap([id])
-  return formatProfissionalRow(row, especialidadesMap)
+  const [especialidadesMap, detailExtras] = await Promise.all([
+    loadProfissionalEspecialidadesMap([id]),
+    loadAdminProfissionalDetailExtras(id),
+  ])
+  return formatProfissionalRow(row, especialidadesMap, detailExtras)
 }
 
 export async function createProfissionalAtivo(payload: CreateAtivoBody) {

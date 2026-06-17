@@ -1,4 +1,4 @@
-import { Building2, FileText, MapPin, Phone, Shield, Star, User2, X } from 'lucide-react'
+import { Building2, FileText, Loader2, MapPin, Phone, Shield, Star, User2, X } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
 import type { AdminDoctor } from '../../../types/adminMedicos'
@@ -16,6 +16,7 @@ type AdminMedicoDetailDrawerProps = {
   mode: AdminMedicoDrawerMode
   open: boolean
   closing: boolean
+  detailLoading?: boolean
   onClose: () => void
   onTransitionEnd: () => void
   onSave?: (doctor: AdminDoctor) => void
@@ -37,6 +38,7 @@ export function AdminMedicoDetailDrawer({
   mode,
   open,
   closing,
+  detailLoading = false,
   onClose,
   onTransitionEnd,
   onSave,
@@ -514,6 +516,13 @@ export function AdminMedicoDetailDrawer({
 
           {!isEditMode && activeTab === 'atendimentos' ? (
             <>
+              {detailLoading ? (
+                <div className="flex min-h-[240px] flex-col items-center justify-center gap-2 text-sm text-gray-500">
+                  <Loader2 className="h-6 w-6 animate-spin text-[var(--brand-primary)]" aria-hidden />
+                  Carregando atendimentos…
+                </div>
+              ) : (
+                <>
               <section className="grid grid-cols-2 gap-3 rounded-2xl border border-gray-200 bg-gradient-to-b from-slate-50 to-white p-4 sm:grid-cols-4">
                 <div className="rounded-xl border border-gray-200/80 bg-white px-3 py-3 text-center shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
@@ -564,36 +573,46 @@ export function AdminMedicoDetailDrawer({
                         <th className="px-2 py-2.5 text-center">Documentos</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {doctor.attendances.map((attendance) => (
-                        <tr key={attendance.id} className="border-b border-gray-200 text-sm text-gray-700">
-                          <td className="px-2 py-3 font-medium text-gray-900">{attendance.dateTimeLabel}</td>
-                          <td className="px-2 py-3 text-center">{attendance.contractCity}</td>
-                          <td className="px-2 py-3 text-center">{attendance.patientName}</td>
-                          <td className="px-2 py-3 text-center">{attendance.durationMinutes} min</td>
-                          <td className="px-2 py-3 text-center">
-                            <div className="relative inline-block">
-                              <button
-                                type="button"
-                                data-attendance-doc-trigger
-                                onClick={() =>
-                                  setOpenAttendanceDocsId((current) =>
-                                    current === attendance.id ? null : attendance.id,
-                                  )
-                                }
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-[var(--brand-primary)] transition hover:bg-[var(--brand-primary-light)]"
-                                aria-label="Ver documentos do atendimento"
+                <tbody>
+                  {doctor.attendances.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-2 py-8 text-center text-sm text-gray-500">
+                        Nenhum atendimento registrado para este profissional.
+                      </td>
+                    </tr>
+                  ) : (
+                    doctor.attendances.map((attendance) => (
+                      <tr key={attendance.id} className="border-b border-gray-200 text-sm text-gray-700">
+                        <td className="px-2 py-3 font-medium text-gray-900">{attendance.dateTimeLabel}</td>
+                        <td className="px-2 py-3 text-center">{attendance.contractCity}</td>
+                        <td className="px-2 py-3 text-center">{attendance.patientName}</td>
+                        <td className="px-2 py-3 text-center">{attendance.durationMinutes} min</td>
+                        <td className="px-2 py-3 text-center">
+                          <div className="relative inline-block">
+                            <button
+                              type="button"
+                              data-attendance-doc-trigger
+                              onClick={() =>
+                                setOpenAttendanceDocsId((current) =>
+                                  current === attendance.id ? null : attendance.id,
+                                )
+                              }
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-[var(--brand-primary)] transition hover:bg-[var(--brand-primary-light)]"
+                              aria-label="Ver documentos do atendimento"
+                            >
+                              <FileText className="h-4 w-4" />
+                            </button>
+                            {openAttendanceDocsId === attendance.id ? (
+                              <div
+                                data-attendance-doc-popover
+                                className="absolute right-0 top-9 z-10 w-60 rounded-lg border border-gray-200 bg-white p-2 text-left shadow-lg"
                               >
-                                <FileText className="h-4 w-4" />
-                              </button>
-                              {openAttendanceDocsId === attendance.id ? (
-                                <div
-                                  data-attendance-doc-popover
-                                  className="absolute right-0 top-9 z-10 w-60 rounded-lg border border-gray-200 bg-white p-2 text-left shadow-lg"
-                                >
-                                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                                    Documentos (PDF)
-                                  </p>
+                                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                                  Documentos (PDF)
+                                </p>
+                                {attendance.documents.length === 0 ? (
+                                  <p className="px-2 py-1 text-xs text-gray-500">Sem documentos emitidos.</p>
+                                ) : (
                                   <ul className="space-y-1.5">
                                     {attendance.documents.map((doc) => (
                                       <li key={doc.id} className="text-xs text-gray-700">
@@ -606,21 +625,32 @@ export function AdminMedicoDetailDrawer({
                                       </li>
                                     ))}
                                   </ul>
-                                </div>
-                              ) : null}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
+                                )}
+                              </div>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
                   </table>
                 </div>
               </section>
+                </>
+              )}
             </>
           ) : null}
 
           {!isEditMode && activeTab === 'avaliacoes' && showReviewsTab ? (
             <>
+              {detailLoading ? (
+                <div className="flex min-h-[240px] flex-col items-center justify-center gap-2 text-sm text-gray-500">
+                  <Loader2 className="h-6 w-6 animate-spin text-[var(--brand-primary)]" aria-hidden />
+                  Carregando avaliações…
+                </div>
+              ) : (
+                <>
               <section className="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
                   Nota média
@@ -644,7 +674,11 @@ export function AdminMedicoDetailDrawer({
                   <p className="text-lg font-bold text-gray-900">{averageReview.toFixed(1)} / 5</p>
                 </div>
                 <p className="mt-1 text-xs text-gray-500">
-                  {doctor.reviews.length} comentário(s) recente(s)
+                  {doctor.reviews.length > 0
+                    ? `${doctor.reviews.length} comentário(s) recente(s)`
+                    : doctor.totalReviews > 0
+                      ? `${doctor.totalReviews} avaliação(ões) no total`
+                      : 'Nenhuma avaliação registrada'}
                 </p>
               </section>
 
@@ -652,33 +686,41 @@ export function AdminMedicoDetailDrawer({
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Comentários dos pacientes
                 </h3>
-                <ul className="space-y-2.5">
-                  {doctor.reviews.map((review) => (
-                    <li
-                      key={review.id}
-                      className="rounded-lg border border-gray-200 bg-gray-50/70 px-3 py-2.5"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-xs font-semibold text-gray-600">{review.author}</p>
-                        <p className="text-[11px] text-gray-400">{review.createdAtLabel}</p>
-                      </div>
-                      <div className="mt-1.5 flex items-center gap-1">
-                        {Array.from({ length: 5 }).map((_, idx) => (
-                          <Star
-                            key={idx}
-                            className={`h-4 w-4 ${
-                              idx < review.rating
-                                ? 'fill-amber-400 text-amber-500 drop-shadow-[0_1px_2px_rgba(245,158,11,0.45)]'
-                                : 'fill-gray-100 text-gray-300'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <p className="mt-2 text-sm text-gray-700">{review.comment}</p>
-                    </li>
-                  ))}
-                </ul>
+                {doctor.reviews.length === 0 ? (
+                  <p className="text-sm text-gray-500">
+                    Nenhum comentário detalhado disponível no momento.
+                  </p>
+                ) : (
+                  <ul className="space-y-2.5">
+                    {doctor.reviews.map((review) => (
+                      <li
+                        key={review.id}
+                        className="rounded-lg border border-gray-200 bg-gray-50/70 px-3 py-2.5"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-xs font-semibold text-gray-600">{review.author}</p>
+                          <p className="text-[11px] text-gray-400">{review.createdAtLabel}</p>
+                        </div>
+                        <div className="mt-1.5 flex items-center gap-1">
+                          {Array.from({ length: 5 }).map((_, idx) => (
+                            <Star
+                              key={idx}
+                              className={`h-4 w-4 ${
+                                idx < review.rating
+                                  ? 'fill-amber-400 text-amber-500 drop-shadow-[0_1px_2px_rgba(245,158,11,0.45)]'
+                                  : 'fill-gray-100 text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <p className="mt-2 text-sm text-gray-700">{review.comment}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </section>
+                </>
+              )}
             </>
           ) : null}
         </div>
