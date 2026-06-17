@@ -35,26 +35,42 @@ const DEFAULT_PERMISSOES_PAGINAS = {
 }
 
 const DATA_URL_REGEX = /^data:(image\/(?:png|jpeg|webp));base64,(.+)$/i
+const SELFIE_MIME_REGEX = /^image\/(?:png|jpeg|webp)$/i
+const SELFIE_MAX_BYTES = 5 * 1024 * 1024
 
-function parseSelfieDataUrl(dataUrl: string): { buffer: Buffer; mime: string; extension: string } {
-  const match = DATA_URL_REGEX.exec(dataUrl.trim())
-  if (!match) {
+type ParsedSelfie = { buffer: Buffer; mime: string; extension: string }
+
+function extensionForSelfieMime(mime: string): string {
+  if (mime === 'image/png') return 'png'
+  if (mime === 'image/webp') return 'webp'
+  return 'jpg'
+}
+
+function parseSelfieBuffer(buffer: Buffer, mimeType: string): ParsedSelfie {
+  const mime = mimeType.toLowerCase().split(';')[0]?.trim() ?? ''
+
+  if (!SELFIE_MIME_REGEX.test(mime)) {
     throw new ProfissionalCadastroError('Formato de foto inválido.', 'INVALID_DATA', 400)
   }
-
-  const mime = match[1].toLowerCase()
-  const buffer = Buffer.from(match[2], 'base64')
 
   if (buffer.length === 0) {
     throw new ProfissionalCadastroError('Arquivo de foto vazio.', 'INVALID_DATA', 400)
   }
 
-  if (buffer.length > 5 * 1024 * 1024) {
+  if (buffer.length > SELFIE_MAX_BYTES) {
     throw new ProfissionalCadastroError('Foto excede o limite de 5 MB.', 'INVALID_DATA', 400)
   }
 
-  const extension = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg'
-  return { buffer, mime, extension }
+  return { buffer, mime, extension: extensionForSelfieMime(mime) }
+}
+
+function parseSelfieDataUrl(dataUrl: string): ParsedSelfie {
+  const match = DATA_URL_REGEX.exec(dataUrl.trim())
+  if (!match) {
+    throw new ProfissionalCadastroError('Formato de foto inválido.', 'INVALID_DATA', 400)
+  }
+
+  return parseSelfieBuffer(Buffer.from(match[2], 'base64'), match[1])
 }
 
 function normalizeRazaoSocial(value: string): string {
@@ -74,18 +90,21 @@ export async function validateProfissionalAccessCode(accessCode: string) {
   }
 }
 
-export type FinalizarCadastroInput = {
+export type FinalizarCadastroValuesInput = {
   accessCode: string
   cnpj: string
   empresaConfirmed: boolean
   pixKeyType: 'cnpj' | 'email' | 'telefone' | 'aleatoria'
   pixKey: string
-  selfiePhotoDataUrl: string
   contractOpened?: boolean
   contractScrolledToEnd?: boolean
   contractAccepted: boolean
   password: string
   confirmPassword: string
+}
+
+export type FinalizarCadastroInput = FinalizarCadastroValuesInput & {
+  selfiePhotoDataUrl: string
 }
 
 export type FinalizarCadastroEmpresaInput = {
@@ -130,8 +149,9 @@ async function assertProfissionalDisponivel(cpf: string, email: string): Promise
 }
 
 export async function finalizeProfissionalCadastro(
-  values: FinalizarCadastroInput,
+  values: FinalizarCadastroValuesInput,
   empresa: FinalizarCadastroEmpresaInput,
+  selfieInput: { buffer: Buffer; mimeType: string } | { selfiePhotoDataUrl: string },
 ): Promise<{ profissionalId: string }> {
   const code = normalizeAccessCode(values.accessCode)
   if (code.length !== 6) {
@@ -189,7 +209,10 @@ export async function finalizeProfissionalCadastro(
   await assertProfissionalDisponivel(candidatura.cpf, candidatura.email)
 
   const senhaHash = await hashPassword(values.password)
-  const selfie = parseSelfieDataUrl(values.selfiePhotoDataUrl)
+  const selfie =
+    'buffer' in selfieInput
+      ? parseSelfieBuffer(selfieInput.buffer, selfieInput.mimeType)
+      : parseSelfieDataUrl(selfieInput.selfiePhotoDataUrl)
   const profissionalId = randomUUID()
   const fotoStoragePath = `${profissionalId}/selfie.${selfie.extension}`
   const now = new Date().toISOString()

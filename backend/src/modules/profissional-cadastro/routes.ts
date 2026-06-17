@@ -12,6 +12,7 @@ import {
   accessCodeParamSchema,
   consultarCnpjParamSchema,
   finalizarCadastroBodySchema,
+  finalizarCadastroMultipartDadosSchema,
   validarCodigoBodySchema,
 } from './finalizar.schemas.js'
 import {
@@ -386,6 +387,68 @@ export async function registerProfissionalCadastroRoutes(app: FastifyInstance): 
   )
 
   app.patch('/finalizar-cadastro', finalizarRateLimit, async (request, reply) => {
+    const contentType = request.headers['content-type'] ?? ''
+
+    if (contentType.includes('multipart/form-data')) {
+      try {
+        let dadosRaw: string | null = null
+        let selfieBuffer: Buffer | null = null
+        let selfieMime: string | null = null
+
+        for await (const part of request.parts()) {
+          if (part.type === 'field') {
+            if (part.fieldname === 'dados') {
+              dadosRaw = String(part.value)
+            }
+            continue
+          }
+
+          if (part.fieldname === 'selfie') {
+            selfieBuffer = await part.toBuffer()
+            selfieMime = part.mimetype
+          }
+        }
+
+        if (!dadosRaw) {
+          throw new ProfissionalCadastroError('Dados do formulário ausentes.', 'INVALID_DATA', 400)
+        }
+
+        if (!selfieBuffer || !selfieMime) {
+          throw new ProfissionalCadastroError(
+            'Envie a foto de identificação.',
+            'INVALID_DATA',
+            400,
+          )
+        }
+
+        let parsedJson: unknown
+        try {
+          parsedJson = JSON.parse(dadosRaw)
+        } catch {
+          throw new ProfissionalCadastroError('Formato de dados inválido.', 'INVALID_DATA', 400)
+        }
+
+        const parsed = finalizarCadastroMultipartDadosSchema.safeParse(parsedJson)
+        if (!parsed.success) {
+          const issue = parsed.error.issues[0]
+          return reply.status(400).send({
+            error: issue?.message ?? 'Dados inválidos.',
+            code: 'INVALID_DATA',
+          })
+        }
+
+        const result = await finalizeProfissionalCadastro(
+          parsed.data.values,
+          parsed.data.empresa,
+          { buffer: selfieBuffer, mimeType: selfieMime },
+        )
+        return reply.send(result)
+      } catch (error) {
+        const mapped = mapProfissionalCadastroError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    }
+
     const parsed = finalizarCadastroBodySchema.safeParse(request.body)
     if (!parsed.success) {
       const issue = parsed.error.issues[0]
@@ -396,7 +459,12 @@ export async function registerProfissionalCadastroRoutes(app: FastifyInstance): 
     }
 
     try {
-      const result = await finalizeProfissionalCadastro(parsed.data.values, parsed.data.empresa)
+      const { selfiePhotoDataUrl, ...values } = parsed.data.values
+      const result = await finalizeProfissionalCadastro(
+        values,
+        parsed.data.empresa,
+        { selfiePhotoDataUrl },
+      )
       return reply.send(result)
     } catch (error) {
       const mapped = mapProfissionalCadastroError(error)

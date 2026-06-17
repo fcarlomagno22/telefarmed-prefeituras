@@ -40,3 +40,23 @@ export async function compressSelfieDataUrl(dataUrl: string): Promise<string> {
 
   return result
 }
+
+export function dataUrlToBlob(dataUrl: string): Blob {
+  const trimmed = dataUrl.trim()
+  const comma = trimmed.indexOf(',')
+  if (comma < 0) {
+    throw new Error('Formato de imagem inválido.')
+  }
+
+  const header = trimmed.slice(0, comma)
+  const base64 = trimmed.slice(comma + 1)
+  const mime = /data:(.*?);base64/i.exec(header)?.[1] ?? 'image/jpeg'
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index)
+  }
+
+  return new Blob([bytes], { type: mime })
+}

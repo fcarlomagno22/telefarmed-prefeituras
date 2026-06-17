@@ -47,36 +47,58 @@ const empresaInputSchema = z
     path: ['municipio'],
   })
 
-export const finalizarCadastroBodySchema = z.object({
-  values: z
-    .object({
-      accessCode: z.string().trim().min(1, 'Informe o código de acesso.'),
-      cnpj: z.string().trim().min(1, 'Informe o CNPJ.'),
-      empresaConfirmed: z.boolean(),
-      pixKeyType: z.enum(['cnpj', 'email', 'telefone', 'aleatoria']),
-      pixKey: z.string().trim().min(1, 'Informe a chave PIX.'),
-      selfiePhotoDataUrl: z.string().trim().min(1, 'Envie a foto de identificação.'),
-      contractOpened: z.boolean().optional(),
-      contractScrolledToEnd: z.boolean().optional(),
-      contractAccepted: z.boolean(),
-      password: z.string().trim().min(8, 'A senha deve ter pelo menos 8 caracteres.'),
-      confirmPassword: z.string().trim().min(8, 'Confirme a senha.'),
+const finalizarCadastroValuesFieldsSchema = z.object({
+  accessCode: z.string().trim().min(1, 'Informe o código de acesso.'),
+  cnpj: z.string().trim().min(1, 'Informe o CNPJ.'),
+  empresaConfirmed: z.boolean(),
+  pixKeyType: z.enum(['cnpj', 'email', 'telefone', 'aleatoria']),
+  pixKey: z.string().trim().min(1, 'Informe a chave PIX.'),
+  contractOpened: z.boolean().optional(),
+  contractScrolledToEnd: z.boolean().optional(),
+  contractAccepted: z.boolean(),
+  password: z.string().trim().min(8, 'A senha deve ter pelo menos 8 caracteres.'),
+  confirmPassword: z.string().trim().min(8, 'Confirme a senha.'),
+})
+
+function refineFinalizarCadastroValues(
+  values: {
+    contractOpened?: boolean
+    contractScrolledToEnd?: boolean
+  },
+  ctx: z.RefinementCtx,
+) {
+  if (!values.contractOpened) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Abra e leia o contrato antes de aceitar.',
+      path: ['contractOpened'],
     })
-    .superRefine((values, ctx) => {
-      if (!values.contractOpened) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Abra e leia o contrato antes de aceitar.',
-          path: ['contractOpened'],
-        })
-      }
-      if (!values.contractScrolledToEnd) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Role o contrato até o final antes de aceitar.',
-          path: ['contractScrolledToEnd'],
-        })
-      }
-    }),
+  }
+  if (!values.contractScrolledToEnd) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Role o contrato até o final antes de aceitar.',
+      path: ['contractScrolledToEnd'],
+    })
+  }
+}
+
+const finalizarCadastroValuesSchema = finalizarCadastroValuesFieldsSchema.superRefine(
+  refineFinalizarCadastroValues,
+)
+
+/** Payload JSON dentro do multipart (selfie enviada como arquivo binário). */
+export const finalizarCadastroMultipartDadosSchema = z.object({
+  values: finalizarCadastroValuesSchema,
+  empresa: empresaInputSchema,
+})
+
+/** Fallback JSON legado — selfie embutida em base64. */
+export const finalizarCadastroBodySchema = z.object({
+  values: finalizarCadastroValuesFieldsSchema
+    .extend({
+      selfiePhotoDataUrl: z.string().trim().min(1, 'Envie a foto de identificação.'),
+    })
+    .superRefine(refineFinalizarCadastroValues),
   empresa: empresaInputSchema,
 })

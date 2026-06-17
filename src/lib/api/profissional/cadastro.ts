@@ -1,4 +1,4 @@
-import { compressSelfieDataUrl } from '../../../utils/image/compressSelfieDataUrl'
+import { compressSelfieDataUrl, dataUrlToBlob } from '../../../utils/image/compressSelfieDataUrl'
 import { API_BASE_URL } from '../config'
 import { ApiError, apiFetch } from '../http'
 import type { MedicoCadastroDocumentUploads, MedicoCadastroFormValues } from '../../../types/medicoCadastro'
@@ -208,19 +208,62 @@ export async function apiFinalizeProfissionalCadastro(input: {
 }): Promise<{ profissionalId: string }> {
   try {
     const selfiePhotoDataUrl = await compressSelfieDataUrl(input.values.selfiePhotoDataUrl)
-    return await apiFetch<{ profissionalId: string }>('/profissional/cadastro/finalizar-cadastro', {
-      method: 'PATCH',
-      json: {
-        values: {
-          ...input.values,
-          selfiePhotoDataUrl,
-        },
+    const { selfiePhotoDataUrl: _selfie, ...valuesWithoutSelfie } = input.values
+
+    const formData = new FormData()
+    formData.append(
+      'dados',
+      JSON.stringify({
+        values: valuesWithoutSelfie,
         empresa: {
           ...input.empresa,
           municipio: input.empresa.cidade,
         },
-      },
+      }),
+    )
+    formData.append('selfie', dataUrlToBlob(selfiePhotoDataUrl), 'selfie.jpg')
+
+    const response = await fetch(`${API_BASE_URL}/profissional/cadastro/finalizar-cadastro`, {
+      method: 'PATCH',
+      body: formData,
+      credentials: 'include',
     })
+
+    const text = await response.text()
+    let payload: { error?: string; code?: string; profissionalId?: string } | null = null
+
+    if (text) {
+      try {
+        payload = JSON.parse(text) as {
+          error?: string
+          code?: string
+          profissionalId?: string
+        }
+      } catch {
+        payload = null
+      }
+    }
+
+    if (!response.ok) {
+      throw new ProfissionalCadastroApiError(
+        payload?.error ??
+          (response.status === 413
+            ? 'A foto de identificação é grande demais. Tire a selfie novamente e tente outra vez.'
+            : 'Não foi possível finalizar o cadastro. Tente novamente.'),
+        response.status,
+        payload?.code,
+      )
+    }
+
+    if (!payload?.profissionalId) {
+      throw new ProfissionalCadastroApiError(
+        'Resposta inválida do servidor.',
+        response.status,
+        'INVALID_RESPONSE',
+      )
+    }
+
+    return { profissionalId: payload.profissionalId }
   } catch (error) {
     throw mapCadastroApiError(error, 'Não foi possível finalizar o cadastro. Tente novamente.')
   }
