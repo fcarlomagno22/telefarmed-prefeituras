@@ -156,12 +156,13 @@ async function validatePendingSelfie(
   storagePath: string,
   candidaturaId: string,
 ): Promise<ParsedSelfie> {
+  const normalizedPath = storagePath.trim().replace(/^\/+/, '')
   const prefix = pendingSelfiePrefix(candidaturaId)
-  if (!storagePath.startsWith(prefix) || storagePath.includes('..')) {
+  if (!normalizedPath.startsWith(prefix) || normalizedPath.includes('..')) {
     throw new ProfissionalCadastroError('Caminho da selfie inválido.', 'INVALID_DATA', 400)
   }
 
-  const { data, error } = await supabaseAdmin.storage.from(FOTOS_BUCKET).download(storagePath)
+  const { data, error } = await supabaseAdmin.storage.from(FOTOS_BUCKET).download(normalizedPath)
   if (error || !data) {
     throw new ProfissionalCadastroError(
       'Selfie não encontrada. Envie a foto novamente antes de concluir.',
@@ -193,7 +194,7 @@ export async function createFinalizarSelfieUploadUrl(accessCode: string): Promis
 
   const { data, error } = await supabaseAdmin.storage
     .from(FOTOS_BUCKET)
-    .createSignedUploadUrl(storagePath)
+    .createSignedUploadUrl(storagePath, { upsert: true })
 
   if (error || !data?.signedUrl) {
     throw new ProfissionalCadastroError(
@@ -205,7 +206,7 @@ export async function createFinalizarSelfieUploadUrl(accessCode: string): Promis
 
   return {
     signedUrl: data.signedUrl,
-    storagePath: data.path ?? storagePath,
+    storagePath,
     token: data.token,
   }
 }
@@ -281,7 +282,7 @@ export async function finalizeProfissionalCadastro(
 
   if ('storagePath' in selfieInput) {
     selfie = await validatePendingSelfie(selfieInput.storagePath, candidatura.id)
-    pendingSelfiePath = selfieInput.storagePath
+    pendingSelfiePath = selfieInput.storagePath.trim().replace(/^\/+/, '')
   } else if ('buffer' in selfieInput) {
     selfie = parseSelfieBuffer(selfieInput.buffer, selfieInput.mimeType)
   } else {

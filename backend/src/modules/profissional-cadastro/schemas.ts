@@ -60,7 +60,29 @@ export function parseBirthDateBr(value: string): string {
   return `${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
 }
 
-export const candidaturaDadosSchema = z
+function preprocessCandidaturaDados(value: unknown): unknown {
+  if (typeof value !== 'object' || value === null) return value
+
+  const record = { ...(value as Record<string, unknown>) }
+  const formation = record.formation
+
+  if (formation !== 'medicina') {
+    record.medicalSpecialties = []
+    return record
+  }
+
+  if (Array.isArray(record.medicalSpecialties)) {
+    record.medicalSpecialties = record.medicalSpecialties.filter((item) => {
+      if (typeof item !== 'object' || item === null) return false
+      const specialty = (item as { specialty?: unknown }).specialty
+      return typeof specialty === 'string' && specialty.trim().length > 0
+    })
+  }
+
+  return record
+}
+
+const candidaturaDadosFieldsSchema = z
   .object({
     fullName: z.string().trim().min(3, 'Informe seu nome completo.'),
     cpf: z
@@ -134,7 +156,11 @@ export const candidaturaDadosSchema = z
       seen.add(key)
     }
   })
-  .transform((data) => ({
+
+export const candidaturaDadosSchema = z.preprocess(
+  preprocessCandidaturaDados,
+  candidaturaDadosFieldsSchema,
+).transform((data) => ({
     nomeCompleto: data.fullName.trim(),
     cpf: data.cpf.replace(/\D/g, ''),
     dataNascimento: parseBirthDateBr(data.birthDate),
@@ -183,7 +209,30 @@ export const candidaturaDocumentosUploadUrlBodySchema = z.object({
     .max(4, 'Envie no máximo 4 documentos por vez.'),
 })
 
+const REQUIRED_CANDIDATURA_DOCUMENT_FIELD_IDS = [
+  'doc-conselho',
+  'doc-identidade',
+  'doc-profissional',
+  'doc-endereco',
+] as const
+
 export const candidaturaSubmitStorageBodySchema = z.object({
   submissionId: z.string().uuid('Identificador de envio inválido.'),
-  documentos: z.array(candidaturaDocumentoReferenciaSchema).min(1),
+  dados: candidaturaDadosSchema,
+  documentos: z
+    .array(candidaturaDocumentoReferenciaSchema)
+    .min(4, 'Envie todos os documentos obrigatórios.')
+    .max(4, 'Envie todos os documentos obrigatórios.')
+    .superRefine((documentos, ctx) => {
+      for (const fieldId of REQUIRED_CANDIDATURA_DOCUMENT_FIELD_IDS) {
+        if (!documentos.some((documento) => documento.fieldId === fieldId)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Envie todos os documentos obrigatórios.',
+            path: ['documentos'],
+          })
+          return
+        }
+      }
+    }),
 })

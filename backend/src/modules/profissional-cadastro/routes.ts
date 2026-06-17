@@ -118,37 +118,19 @@ async function handleCandidaturaSubmit(request: FastifyRequest, reply: FastifyRe
 }
 
 async function handleCandidaturaSubmitStorage(request: FastifyRequest, reply: FastifyReply) {
-  const body = request.body as {
-    submissionId?: string
-    dados?: unknown
-    documentos?: unknown
-  }
-
-  const metaParsed = candidaturaSubmitStorageBodySchema.safeParse({
-    submissionId: body.submissionId,
-    documentos: body.documentos,
-  })
-
-  if (!metaParsed.success) {
+  const parsed = candidaturaSubmitStorageBodySchema.safeParse(request.body)
+  if (!parsed.success) {
     return reply.status(400).send({
-      error: formatCadastroValidationError(metaParsed.error),
-      code: 'INVALID_DATA',
-    })
-  }
-
-  const dadosParsed = candidaturaDadosSchema.safeParse(body.dados)
-  if (!dadosParsed.success) {
-    return reply.status(400).send({
-      error: formatCadastroValidationError(dadosParsed.error),
+      error: formatCadastroValidationError(parsed.error),
       code: 'INVALID_DATA',
     })
   }
 
   try {
     const result = await submitCandidaturaProfissionalFromStorage(
-      dadosParsed.data,
-      metaParsed.data.submissionId,
-      metaParsed.data.documentos,
+      parsed.data.dados,
+      parsed.data.submissionId,
+      parsed.data.documentos,
     )
     return reply.status(201).send(result)
   } catch (error) {

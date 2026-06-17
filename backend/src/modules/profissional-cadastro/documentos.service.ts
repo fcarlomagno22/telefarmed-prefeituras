@@ -191,6 +191,10 @@ export type PendingDocumentReference = {
   mimeType: string
 }
 
+function normalizeStoragePath(path: string): string {
+  return path.trim().replace(/^\/+/, '')
+}
+
 function pendingCandidaturaDocumentPrefix(submissionId: string, fieldId: string): string {
   return `pending-candidatura/${submissionId}/${fieldId}/`
 }
@@ -225,7 +229,7 @@ export async function createPendingCandidaturaDocumentUploadUrls(
 
     const { data, error } = await supabaseAdmin.storage
       .from(DOCUMENTS_BUCKET)
-      .createSignedUploadUrl(storagePath)
+      .createSignedUploadUrl(storagePath, { upsert: true })
 
     if (error || !data?.signedUrl) {
       throw new ProfissionalCadastroError(
@@ -238,7 +242,7 @@ export async function createPendingCandidaturaDocumentUploadUrls(
     uploads.push({
       fieldId: document.fieldId,
       signedUrl: data.signedUrl,
-      storagePath: data.path ?? storagePath,
+      storagePath,
       token: data.token,
     })
   }
@@ -250,18 +254,19 @@ export async function buildDocumentUploadFromPending(
   submissionId: string,
   reference: PendingDocumentReference,
 ): Promise<{ documento: CandidaturaDocumentoUpload; pendingStoragePath: string }> {
+  const storagePath = normalizeStoragePath(reference.storagePath)
   const prefix = pendingCandidaturaDocumentPrefix(submissionId, reference.fieldId)
-  if (!reference.storagePath.startsWith(prefix) || reference.storagePath.includes('..')) {
+  if (!storagePath.startsWith(prefix) || storagePath.includes('..')) {
     throw new ProfissionalCadastroError('Documento inválido.', 'DOCUMENT_INVALID', 400)
   }
 
   const { data, error } = await supabaseAdmin.storage
     .from(DOCUMENTS_BUCKET)
-    .download(reference.storagePath)
+    .download(storagePath)
 
   if (error || !data) {
     throw new ProfissionalCadastroError(
-      'Documento não encontrado. Envie os arquivos novamente.',
+      'Documento não encontrado no storage. Envie os arquivos novamente.',
       'DOCUMENT_REQUIRED',
       400,
     )
@@ -275,7 +280,7 @@ export async function buildDocumentUploadFromPending(
     reference.fileName,
   )
 
-  return { documento, pendingStoragePath: reference.storagePath }
+  return { documento, pendingStoragePath: storagePath }
 }
 
 export async function uploadCandidaturaDocumento(

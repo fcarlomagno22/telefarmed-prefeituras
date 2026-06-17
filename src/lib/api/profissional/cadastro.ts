@@ -1,4 +1,5 @@
 import { compressSelfieDataUrl, dataUrlToBlob } from '../../../utils/image/compressSelfieDataUrl'
+import { isMedicoCadastroMedicinaFormation } from '../../../config/medicoCadastroForm'
 import { ApiError, apiFetch } from '../http'
 import type { MedicoCadastroDocumentUploads, MedicoCadastroFormValues } from '../../../types/medicoCadastro'
 import type {
@@ -46,21 +47,21 @@ export function getSubmitProgressMessage(percent: number): string {
   return match?.message ?? SUBMIT_PROGRESS_MESSAGES[SUBMIT_PROGRESS_MESSAGES.length - 1]!.message
 }
 
-function buildSubmitFormData(input: {
-  values: MedicoCadastroFormValues
-  documents: MedicoCadastroDocumentUploads
-}): FormData {
-  const formData = new FormData()
-  formData.append('dados', JSON.stringify(input.values))
-
-  for (const [fieldId, file] of Object.entries(input.documents)) {
-    if (file) {
-      formData.append(fieldId, file, file.name)
-    }
+function sanitizeCandidaturaDados(values: MedicoCadastroFormValues): MedicoCadastroFormValues {
+  return {
+    ...values,
+    medicalSpecialties: isMedicoCadastroMedicinaFormation(values.formation)
+      ? values.medicalSpecialties.filter((item) => item.specialty.trim().length > 0)
+      : [],
   }
-
-  return formData
 }
+
+const REQUIRED_CANDIDATURA_DOCUMENT_IDS = [
+  'doc-conselho',
+  'doc-identidade',
+  'doc-profissional',
+  'doc-endereco',
+] as const
 
 function resolveDocumentMimeType(file: File): string {
   if (file.type) return file.type
@@ -78,11 +79,12 @@ export async function apiSubmitProfissionalCadastro(
   },
   onProgress?: (progress: SubmitProfissionalCadastroProgress) => void,
 ): Promise<{ candidaturaId: string }> {
-  const documentEntries = Object.entries(input.documents).filter(
-    (entry): entry is [string, File] => entry[1] instanceof File,
-  )
+  const documentEntries = REQUIRED_CANDIDATURA_DOCUMENT_IDS.flatMap((fieldId) => {
+    const file = input.documents[fieldId]
+    return file instanceof File ? ([[fieldId, file]] as const) : []
+  })
 
-  if (documentEntries.length === 0) {
+  if (documentEntries.length !== REQUIRED_CANDIDATURA_DOCUMENT_IDS.length) {
     throw new ProfissionalCadastroApiError(
       'Envie todos os documentos obrigatórios.',
       400,
@@ -91,6 +93,7 @@ export async function apiSubmitProfissionalCadastro(
   }
 
   const submissionId = crypto.randomUUID()
+  const candidaturaDados = sanitizeCandidaturaDados(input.values)
 
   onProgress?.({
     percent: 4,
@@ -130,9 +133,7 @@ export async function apiSubmitProfissionalCadastro(
       const uploadResponse = await fetch(target.signedUrl, {
         method: 'PUT',
         body: file,
-        headers: {
-          'Content-Type': mimeType,
-        },
+        ...(mimeType ? { headers: { 'Content-Type': mimeType } } : {}),
       })
 
       if (!uploadResponse.ok) {
@@ -162,7 +163,7 @@ export async function apiSubmitProfissionalCadastro(
       method: 'POST',
       json: {
         submissionId: uploadPrep.submissionId,
-        dados: input.values,
+        dados: candidaturaDados,
         documentos: documentEntries.map(([fieldId, file]) => {
           const target = uploadsByField.get(fieldId)
           if (!target) {
