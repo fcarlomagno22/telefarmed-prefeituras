@@ -398,7 +398,6 @@ export const adminProfissionaisStatusFilterOptions = [
   { value: 'all', label: 'Todos os status' },
   { value: 'pendente', label: 'Pendente' },
   { value: 'incompleto', label: 'Incompleto' },
-  { value: 'aprovado', label: 'Aprovado' },
   { value: 'reprovado', label: 'Reprovado' },
   { value: 'em_analise', label: 'Em análise' },
 ] as const

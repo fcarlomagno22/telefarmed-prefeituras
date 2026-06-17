@@ -16,7 +16,7 @@ export async function getCandidaturasSummary(): Promise<CandidaturasSummaryDto> 
 
   const rows = (data ?? []) as SummaryRow[]
   const counts = {
-    total: rows.length,
+    total: 0,
     pendente: 0,
     incompleto: 0,
     aprovado: 0,
@@ -27,12 +27,17 @@ export async function getCandidaturasSummary(): Promise<CandidaturasSummaryDto> 
 
   for (const row of rows) {
     const uiStatus = uiStatusFromDb(row.status)
+    if (uiStatus === 'aprovado') {
+      counts.aprovado += 1
+      if (row.empresa_status === 'aguardando_finalizacao') counts.aguardandoFinalizacao += 1
+      continue
+    }
+
+    counts.total += 1
     if (uiStatus === 'pendente') counts.pendente += 1
     if (uiStatus === 'incompleto') counts.incompleto += 1
-    if (uiStatus === 'aprovado') counts.aprovado += 1
     if (uiStatus === 'reprovado') counts.reprovado += 1
     if (uiStatus === 'em_analise') counts.em_analise += 1
-    if (row.empresa_status === 'aguardando_finalizacao') counts.aguardandoFinalizacao += 1
   }
 
   return counts

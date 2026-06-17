@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle2, Clock, PauseCircle, XCircle } from 'lucide-react'
+import { AlertCircle, Clock, PauseCircle, XCircle } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { CandidaturasSummaryResponse } from '../../../lib/mockServices/admin/profissionais'
 import {
@@ -24,7 +24,6 @@ type SummaryCard = {
 function buildCards(summary: CandidaturasSummaryResponse | null): SummaryCard[] {
   const pendente = summary?.pendente ?? 0
   const incompleto = summary?.incompleto ?? 0
-  const aprovado = summary?.aprovado ?? 0
   const reprovado = summary?.reprovado ?? 0
   const emAnalise = summary?.em_analise ?? 0
 
@@ -48,16 +47,6 @@ function buildCards(summary: CandidaturasSummaryResponse | null): SummaryCard[] 
       iconRing: 'ring-orange-100/80',
       topBar: 'from-orange-400 to-amber-500',
       trendClass: 'text-orange-600',
-    },
-    {
-      label: 'Aprovado',
-      hint: 'Candidatura aprovada',
-      value: aprovado,
-      icon: CheckCircle2,
-      iconGradient: 'from-emerald-500 via-green-500 to-teal-600',
-      iconRing: 'ring-emerald-100/80',
-      topBar: 'from-emerald-400 to-green-500',
-      trendClass: 'text-emerald-600',
     },
     {
       label: 'Reprovado',

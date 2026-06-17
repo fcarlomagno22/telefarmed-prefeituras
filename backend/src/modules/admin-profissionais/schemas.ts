@@ -15,7 +15,7 @@ export const documentoParamSchema = z.object({
 export const listCandidaturasQuerySchema = z.object({
   search: z.string().trim().optional(),
   status: z
-    .enum(['all', 'pendente', 'em_analise', 'incompleto', 'aprovado', 'reprovado'])
+    .enum(['all', 'pendente', 'em_analise', 'incompleto', 'reprovado'])
     .optional()
     .default('all'),
 })

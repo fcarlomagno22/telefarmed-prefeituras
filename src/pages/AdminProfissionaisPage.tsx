@@ -100,7 +100,7 @@ export function AdminProfissionaisPage() {
         <AdminPageHeader
           sectionLabel="Pessoas"
           title="Profissionais"
-          description="Analise candidaturas do portal e gerencie profissionais ativos na plataforma."
+          description="Analise candidaturas do portal e gerencie profissionais aprovados na plataforma."
           actions={
             activeTab === 'ativos' && pageAccess.canInsert ? (
               <button

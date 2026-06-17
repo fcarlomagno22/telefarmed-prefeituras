@@ -80,15 +80,16 @@ function ensure(candidaturaId: string) {
 }
 
 function computeSummary(): CandidaturasSummaryResponse {
+  const inQueue = candidaturasState.filter((item) => item.status !== 'aprovado')
   return {
-    total: candidaturasState.length,
-    pendente: candidaturasState.filter((item) => item.status === 'pendente').length,
-    incompleto: candidaturasState.filter((item) => item.status === 'incompleto').length,
+    total: inQueue.length,
+    pendente: inQueue.filter((item) => item.status === 'pendente').length,
+    incompleto: inQueue.filter((item) => item.status === 'incompleto').length,
     aprovado: candidaturasState.filter((item) => item.status === 'aprovado').length,
-    reprovado: candidaturasState.filter((item) => item.status === 'reprovado').length,
-    em_analise: candidaturasState.filter((item) => item.status === 'em_analise').length,
+    reprovado: inQueue.filter((item) => item.status === 'reprovado').length,
+    em_analise: inQueue.filter((item) => item.status === 'em_analise').length,
     aguardandoFinalizacao: candidaturasState.filter(
-      (item) => item.empresa.status === 'aguardando_finalizacao',
+      (item) => item.status === 'aprovado' && item.empresa.status === 'aguardando_finalizacao',
     ).length,
   }
 }
@@ -108,6 +109,7 @@ export async function fetchCandidaturasRows(
   return mockDelay(
     clone(
       candidaturasState.filter((item) => {
+        if (item.status === 'aprovado') return false
         if (params?.status && params.status !== 'all' && item.status !== params.status) return false
         if (search && ![item.fullName, item.email, item.specialty].some((v) => v.toLowerCase().includes(search))) {
           return false

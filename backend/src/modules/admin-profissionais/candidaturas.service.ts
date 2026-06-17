@@ -146,6 +146,8 @@ export async function listCandidaturas(params: ListCandidaturasQuery) {
   if (params.status && params.status !== 'all') {
     const dbStatus = dbStatusFromUiFilter(params.status)
     if (dbStatus) query = query.eq('status', dbStatus)
+  } else {
+    query = query.neq('status', 'aprovada')
   }
 
   if (params.search) {

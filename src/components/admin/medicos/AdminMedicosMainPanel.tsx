@@ -129,7 +129,7 @@ export function AdminMedicosMainPanel({
       {
         label: 'Base de profissionais',
         value: formatNumber(ativosSummary?.ativos ?? 0),
-        suffix: 'profissionais ativos',
+        suffix: embedded ? 'profissionais aprovados' : 'profissionais ativos',
         icon: Users,
         iconGradient: 'from-sky-500 via-blue-500 to-indigo-600',
         iconShadow: 'shadow-[0_8px_20px_rgba(59,130,246,0.35)]',

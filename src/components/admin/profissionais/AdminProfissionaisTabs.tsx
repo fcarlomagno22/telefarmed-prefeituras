@@ -2,7 +2,7 @@ import type { AdminProfissionaisTab } from '../../../types/adminProfissionais'
 
 const tabs: { id: AdminProfissionaisTab; label: string }[] = [
   { id: 'candidaturas', label: 'Candidaturas' },
-  { id: 'ativos', label: 'Profissionais ativos' },
+  { id: 'ativos', label: 'Profissionais aprovados' },
 ]
 
 type AdminProfissionaisTabsProps = {

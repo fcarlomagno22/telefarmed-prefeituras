@@ -66,7 +66,7 @@ export const adminNavItems: AdminSidebarNavItem[] = [
     to: adminRoutes.profissionais,
     label: 'Profissionais',
     description:
-      'Fila de candidaturas do portal e profissionais ativos após aprovação e finalização.',
+      'Fila de candidaturas do portal e profissionais aprovados após finalização do cadastro.',
     icon: Stethoscope,
     end: true,
   },

@@ -108,10 +108,12 @@ export function useAdminProfissionaisPage() {
       const token = getAccessToken()
       if (!token) throw new Error('Sessão expirada.')
       const result = await approveCandidatura(token, candidaturaId)
-      upsertRow(result.candidatura)
+      setRows((current) => current.filter((item) => item.id !== candidaturaId))
+      const summaryData = await fetchCandidaturasSummary(token)
+      setSummary(summaryData)
       return result
     },
-    [getAccessToken, upsertRow],
+    [getAccessToken],
   )
 
   const reject = useCallback(

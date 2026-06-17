@@ -24,7 +24,7 @@ function formatNumber(value: number, digits = 0) {
 }
 
 function buildStatusSlices(rows: AdminProfissionalCandidatura[]): BarSlice[] {
-  const order = ['pendente', 'em_analise', 'incompleto', 'aprovado', 'reprovado'] as const
+  const order = ['pendente', 'em_analise', 'incompleto', 'reprovado'] as const
   const map = new Map<string, number>()
   rows.forEach((row) => map.set(row.status, (map.get(row.status) ?? 0) + 1))
   return order
@@ -118,35 +118,37 @@ export function AdminProfissionaisCandidaturasAboutPanel({
   const activeDoctorsCount = ativosSummary?.ativos ?? 0
   const activeDoctorsOnline = ativosSummary?.online ?? 0
   const avgPendingDocs = useMemo(() => {
-    if (total === 0) return 0
-    const sum = candidaturas.reduce(
-      (acc, row) => acc + countPendingDocuments(row.documents),
-      0,
-    )
-    return sum / total
-  }, [candidaturas, total])
+    const rows = candidaturas.filter((row) => row.status !== 'aprovado')
+    if (rows.length === 0) return 0
+    const sum = rows.reduce((acc, row) => acc + countPendingDocuments(row.documents), 0)
+    return sum / rows.length
+  }, [candidaturas])
 
-  const statusSlices = useMemo(() => buildStatusSlices(candidaturas), [candidaturas])
-  const formationSlices = useMemo(
-    () => buildCountSlices(candidaturas, (row) => row.formationLabel, 6),
+  const candidaturasVisiveis = useMemo(
+    () => candidaturas.filter((row) => row.status !== 'aprovado'),
     [candidaturas],
+  )
+
+  const statusSlices = useMemo(() => buildStatusSlices(candidaturasVisiveis), [candidaturasVisiveis])
+  const formationSlices = useMemo(
+    () => buildCountSlices(candidaturasVisiveis, (row) => row.formationLabel, 6),
+    [candidaturasVisiveis],
   )
   const ufSlices = useMemo(
-    () => buildCountSlices(candidaturas, (row) => row.councilUf, 6),
-    [candidaturas],
+    () => buildCountSlices(candidaturasVisiveis, (row) => row.councilUf, 6),
+    [candidaturasVisiveis],
   )
-  const monthData = useMemo(() => buildMonthSlices(candidaturas), [candidaturas])
+  const monthData = useMemo(() => buildMonthSlices(candidaturasVisiveis), [candidaturasVisiveis])
   const monthMax = Math.max(...monthData.map((item) => item.count), 1)
 
   const funnelSlices = useMemo(
     () =>
       [
-        { label: 'Candidaturas', count: total },
+        { label: 'Candidaturas em análise', count: total },
         { label: 'Aguardando análise', count: pendingReview },
-        { label: 'Aprovadas', count: approvedCandidaturas },
-        { label: 'Ativos na plataforma', count: activeDoctorsCount },
+        { label: 'Profissionais aprovados', count: activeDoctorsCount },
       ].filter((item) => item.count > 0),
-    [total, pendingReview, approvedCandidaturas, activeDoctorsCount],
+    [total, pendingReview, activeDoctorsCount],
   )
 
   const illustrationUrl = `${import.meta.env.BASE_URL}doctors.png`
@@ -174,7 +176,7 @@ export function AdminProfissionaisCandidaturasAboutPanel({
           </div>
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-              Profissionais ativos
+              Profissionais aprovados
             </p>
             <p className="mt-1 text-xl font-bold text-emerald-600">
               {formatNumber(activeDoctorsCount)}
@@ -199,7 +201,9 @@ export function AdminProfissionaisCandidaturasAboutPanel({
             documento(s) pendente(s) por candidatura
           </p>
           <p className="mt-0.5 text-[11px] text-gray-500">
-            {approvedCandidaturas} aprovada(s) aguardando ou concluindo finalização
+            {approvedCandidaturas > 0
+              ? `${approvedCandidaturas} aprovada(s) aguardando finalização — veja em Profissionais aprovados`
+              : 'Aprovados e finalizados aparecem na aba Profissionais aprovados'}
           </p>
         </div>
 
