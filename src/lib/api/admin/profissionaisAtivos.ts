@@ -97,6 +97,23 @@ export async function fetchProfissionalAtivoDetail(
   }
 }
 
+export async function fetchProfissionalAtendimentoDocumentDownloadUrl(
+  accessToken: string,
+  profissionalId: string,
+  consultaId: string,
+  documentId: string,
+): Promise<string> {
+  try {
+    const data = await apiFetch<{ url: string }>(
+      `/admin/profissionais/ativos/${profissionalId}/atendimentos/${consultaId}/documentos/${encodeURIComponent(documentId)}/download`,
+      { accessToken },
+    )
+    return data.url
+  } catch (error) {
+    throw mapError(error)
+  }
+}
+
 export async function updateProfissionalAtivo(
   accessToken: string,
   id: string,

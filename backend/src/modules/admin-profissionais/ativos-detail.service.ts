@@ -194,6 +194,7 @@ export async function loadAdminProfissionalDetailExtras(
         id: document.id,
         label: document.title,
         fileName: document.fileName,
+        ...(document.downloadUrl ? { downloadUrl: document.downloadUrl } : {}),
       })),
     }
   })

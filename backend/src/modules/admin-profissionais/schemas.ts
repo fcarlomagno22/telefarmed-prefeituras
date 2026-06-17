@@ -12,6 +12,12 @@ export const documentoParamSchema = z.object({
   docId: z.string().uuid('ID do documento inválido.'),
 })
 
+export const atendimentoDocumentoParamSchema = z.object({
+  id: z.string().uuid('ID inválido.'),
+  consultaId: z.string().uuid('ID do atendimento inválido.'),
+  documentId: z.string().trim().min(1, 'ID do documento inválido.'),
+})
+
 export const listCandidaturasQuerySchema = z.object({
   search: z.string().trim().optional(),
   status: z

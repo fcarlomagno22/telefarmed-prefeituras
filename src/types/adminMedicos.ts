@@ -27,6 +27,7 @@ export type AdminDoctorAttendance = {
     id: string
     label: string
     fileName: string
+    downloadUrl?: string
   }[]
 }
 

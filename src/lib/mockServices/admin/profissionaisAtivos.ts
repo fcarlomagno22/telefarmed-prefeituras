@@ -118,6 +118,18 @@ export async function fetchProfissionalAtivoDetail(
   return mockDelay(clone(ensure(id)), 50)
 }
 
+const MOCK_PDF_PREVIEW_URL =
+  'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
+
+export async function fetchProfissionalAtendimentoDocumentDownloadUrl(
+  _accessToken: string,
+  _profissionalId: string,
+  _consultaId: string,
+  _documentId: string,
+): Promise<string> {
+  return mockDelay(MOCK_PDF_PREVIEW_URL, 40)
+}
+
 export async function updateProfissionalAtivo(
   _accessToken: string,
   id: string,

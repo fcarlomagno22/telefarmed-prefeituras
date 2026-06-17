@@ -17,6 +17,9 @@ export const fetchProfissionaisAtivosRows = useApi
 export const fetchProfissionalAtivoDetail = useApi
   ? api.fetchProfissionalAtivoDetail
   : mock.fetchProfissionalAtivoDetail
+export const fetchProfissionalAtendimentoDocumentDownloadUrl = useApi
+  ? api.fetchProfissionalAtendimentoDocumentDownloadUrl
+  : mock.fetchProfissionalAtendimentoDocumentDownloadUrl
 export const updateProfissionalAtivo = useApi ? api.updateProfissionalAtivo : mock.updateProfissionalAtivo
 export const inactivateProfissionalAtivo = useApi
   ? api.inactivateProfissionalAtivo

@@ -18,8 +18,10 @@ import {
   updateProfissionalAtivo,
 } from './ativos.service.js'
 import { getAtivosSummary } from './ativos-summary.service.js'
+import { resolveAdminProfissionalAtendimentoDocumentDownloadUrl } from './atendimento-documento.service.js'
 import { formatProfissionaisValidationError, mapProfissionaisError } from './errors.js'
 import {
+  atendimentoDocumentoParamSchema,
   createAtivoBodySchema,
   documentoParamSchema,
   idParamSchema,
@@ -217,6 +219,30 @@ export async function registerAdminProfissionaisRoutes(app: FastifyInstance): Pr
       return reply.status(mapped.statusCode).send(mapped.body)
     }
   })
+
+  app.get(
+    '/ativos/:id/atendimentos/:consultaId/documentos/:documentId/download',
+    { preHandler: canView },
+    async (request, reply) => {
+      const parsed = atendimentoDocumentoParamSchema.safeParse(request.params)
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Identificador inválido.' })
+      }
+
+      try {
+        const url = await resolveAdminProfissionalAtendimentoDocumentDownloadUrl(
+          parsed.data.id,
+          parsed.data.consultaId,
+          parsed.data.documentId,
+        )
+        reply.header('Cache-Control', 'private, no-store')
+        return reply.send({ url })
+      } catch (error) {
+        const mapped = mapProfissionaisError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  )
 
   app.post('/ativos', { preHandler: canInsert }, async (request, reply) => {
     const parsed = createAtivoBodySchema.safeParse(request.body)

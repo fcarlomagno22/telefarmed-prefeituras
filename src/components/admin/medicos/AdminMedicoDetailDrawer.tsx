@@ -1,7 +1,12 @@
 import { Building2, FileText, Loader2, MapPin, Phone, Shield, Star, User2, X } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
-import type { AdminDoctor } from '../../../types/adminMedicos'
+import { useAdminAuth } from '../../../contexts/AdminAuthContext'
+import {
+  fetchProfissionalAtendimentoDocumentDownloadUrl,
+  isAdminProfissionaisAtivosApiError,
+} from '../../../lib/services/admin/profissionaisAtivos'
+import type { AdminDoctor, AdminDoctorAttendance } from '../../../types/adminMedicos'
 import { maskCpfForDisplay } from '../../../utils/lgpdDisplay'
 import { ExportFormatMenu, type ExportFormat } from '../../ui/ExportFormatMenu'
 import { Toast } from '../../ui/Toast'
@@ -44,8 +49,10 @@ export function AdminMedicoDetailDrawer({
   onSave,
 }: AdminMedicoDetailDrawerProps) {
   const isEditMode = mode === 'edit'
+  const { getAccessToken } = useAdminAuth()
   const [activeTab, setActiveTab] = useState<DrawerTab>('cadastro')
   const [openAttendanceDocsId, setOpenAttendanceDocsId] = useState<string | null>(null)
+  const [downloadingDocKey, setDownloadingDocKey] = useState<string | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [phone, setPhone] = useState('')
   const [specialty, setSpecialty] = useState('')
@@ -122,6 +129,44 @@ export function AdminMedicoDetailDrawer({
         ? `Relatório completo de ${doctor.name} exportado em PDF.`
         : `Relatório completo de ${doctor.name} exportado em Excel.`,
     )
+  }
+
+  async function handleDownloadAttendanceDocument(
+    attendanceId: string,
+    doc: AdminDoctorAttendance['documents'][number],
+  ) {
+    const docKey = `${attendanceId}:${doc.id}`
+    if (downloadingDocKey === docKey) return
+
+    setDownloadingDocKey(docKey)
+    try {
+      const token = getAccessToken()
+      if (!token) {
+        setToastMessage('Sessão expirada. Faça login novamente.')
+        return
+      }
+
+      const url = await fetchProfissionalAtendimentoDocumentDownloadUrl(
+        token,
+        doctor.id,
+        attendanceId,
+        doc.id,
+      )
+
+      if (!url) {
+        setToastMessage('Arquivo indisponível para download.')
+        return
+      }
+
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch (error) {
+      const message = isAdminProfissionaisAtivosApiError(error)
+        ? error.message
+        : 'Não foi possível baixar o documento.'
+      setToastMessage(message)
+    } finally {
+      setDownloadingDocKey(null)
+    }
   }
 
   return createPortal(
@@ -614,16 +659,32 @@ export function AdminMedicoDetailDrawer({
                                   <p className="px-2 py-1 text-xs text-gray-500">Sem documentos emitidos.</p>
                                 ) : (
                                   <ul className="space-y-1.5">
-                                    {attendance.documents.map((doc) => (
-                                      <li key={doc.id} className="text-xs text-gray-700">
-                                        <button
-                                          type="button"
-                                          className="w-full truncate rounded-md px-2 py-1 text-left transition hover:bg-gray-100 hover:text-[var(--brand-primary)]"
-                                        >
-                                          {doc.label}
-                                        </button>
-                                      </li>
-                                    ))}
+                                    {attendance.documents.map((doc) => {
+                                      const docKey = `${attendance.id}:${doc.id}`
+                                      const isDownloading = downloadingDocKey === docKey
+                                      return (
+                                        <li key={doc.id} className="text-xs text-gray-700">
+                                          <button
+                                            type="button"
+                                            disabled={isDownloading}
+                                            onClick={() =>
+                                              void handleDownloadAttendanceDocument(
+                                                attendance.id,
+                                                doc,
+                                              )
+                                            }
+                                            className="flex w-full items-center gap-1.5 truncate rounded-md px-2 py-1 text-left transition hover:bg-gray-100 hover:text-[var(--brand-primary)] disabled:cursor-wait disabled:opacity-60"
+                                          >
+                                            {isDownloading ? (
+                                              <Loader2 className="h-3 w-3 shrink-0 animate-spin" aria-hidden />
+                                            ) : (
+                                              <FileText className="h-3 w-3 shrink-0" aria-hidden />
+                                            )}
+                                            <span className="truncate">{doc.label}</span>
+                                          </button>
+                                        </li>
+                                      )
+                                    })}
                                   </ul>
                                 )}
                               </div>

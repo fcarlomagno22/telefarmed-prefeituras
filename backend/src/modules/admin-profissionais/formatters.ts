@@ -156,6 +156,7 @@ export type AdminDoctorAttendanceDto = {
     id: string
     label: string
     fileName: string
+    downloadUrl?: string
   }[]
 }
 
