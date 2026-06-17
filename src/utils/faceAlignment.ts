@@ -47,8 +47,8 @@ export function isFaceAlignedInOval(face: FaceBox, guide: OvalGuide): boolean {
   return centerInside && sizeOk
 }
 
-const SELFIE_CAPTURE_MAX_PX = 512
-const SELFIE_CAPTURE_JPEG_QUALITY = 0.82
+const SELFIE_CAPTURE_MAX_PX = 384
+const SELFIE_CAPTURE_JPEG_QUALITY = 0.78
 
 /** Recorte quadrado (sem máscara oval) para evitar faixas pretas na pré-visualização. */
 export function captureMirroredOvalFrame(

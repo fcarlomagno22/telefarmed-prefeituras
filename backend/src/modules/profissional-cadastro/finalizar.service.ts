@@ -148,10 +148,77 @@ async function assertProfissionalDisponivel(cpf: string, email: string): Promise
   }
 }
 
+function pendingSelfiePrefix(candidaturaId: string): string {
+  return `pending-finalizar/${candidaturaId}/`
+}
+
+async function validatePendingSelfie(
+  storagePath: string,
+  candidaturaId: string,
+): Promise<ParsedSelfie> {
+  const prefix = pendingSelfiePrefix(candidaturaId)
+  if (!storagePath.startsWith(prefix) || storagePath.includes('..')) {
+    throw new ProfissionalCadastroError('Caminho da selfie inválido.', 'INVALID_DATA', 400)
+  }
+
+  const { data, error } = await supabaseAdmin.storage.from(FOTOS_BUCKET).download(storagePath)
+  if (error || !data) {
+    throw new ProfissionalCadastroError(
+      'Selfie não encontrada. Envie a foto novamente antes de concluir.',
+      'INVALID_DATA',
+      400,
+    )
+  }
+
+  const buffer = Buffer.from(await data.arrayBuffer())
+  return parseSelfieBuffer(buffer, data.type || 'image/jpeg')
+}
+
+export async function createFinalizarSelfieUploadUrl(accessCode: string): Promise<{
+  signedUrl: string
+  storagePath: string
+  token: string
+}> {
+  const code = normalizeAccessCode(accessCode)
+  if (code.length !== 6) {
+    throw new ProfissionalCadastroError(
+      'Código de acesso inválido ou expirado.',
+      'INVALID_DATA',
+      404,
+    )
+  }
+
+  const candidatura = await loadCandidaturaByAccessCode(code)
+  const storagePath = `${pendingSelfiePrefix(candidatura.id)}${randomUUID()}.jpg`
+
+  const { data, error } = await supabaseAdmin.storage
+    .from(FOTOS_BUCKET)
+    .createSignedUploadUrl(storagePath)
+
+  if (error || !data?.signedUrl) {
+    throw new ProfissionalCadastroError(
+      'Não foi possível preparar o envio da selfie.',
+      'INVALID_DATA',
+      500,
+    )
+  }
+
+  return {
+    signedUrl: data.signedUrl,
+    storagePath: data.path ?? storagePath,
+    token: data.token,
+  }
+}
+
+export type FinalizarSelfieInput =
+  | { buffer: Buffer; mimeType: string }
+  | { selfiePhotoDataUrl: string }
+  | { storagePath: string }
+
 export async function finalizeProfissionalCadastro(
   values: FinalizarCadastroValuesInput,
   empresa: FinalizarCadastroEmpresaInput,
-  selfieInput: { buffer: Buffer; mimeType: string } | { selfiePhotoDataUrl: string },
+  selfieInput: FinalizarSelfieInput,
 ): Promise<{ profissionalId: string }> {
   const code = normalizeAccessCode(values.accessCode)
   if (code.length !== 6) {
@@ -209,10 +276,18 @@ export async function finalizeProfissionalCadastro(
   await assertProfissionalDisponivel(candidatura.cpf, candidatura.email)
 
   const senhaHash = await hashPassword(values.password)
-  const selfie =
-    'buffer' in selfieInput
-      ? parseSelfieBuffer(selfieInput.buffer, selfieInput.mimeType)
-      : parseSelfieDataUrl(selfieInput.selfiePhotoDataUrl)
+  let pendingSelfiePath: string | null = null
+  let selfie: ParsedSelfie
+
+  if ('storagePath' in selfieInput) {
+    selfie = await validatePendingSelfie(selfieInput.storagePath, candidatura.id)
+    pendingSelfiePath = selfieInput.storagePath
+  } else if ('buffer' in selfieInput) {
+    selfie = parseSelfieBuffer(selfieInput.buffer, selfieInput.mimeType)
+  } else {
+    selfie = parseSelfieDataUrl(selfieInput.selfiePhotoDataUrl)
+  }
+
   const profissionalId = randomUUID()
   const fotoStoragePath = `${profissionalId}/selfie.${selfie.extension}`
   const now = new Date().toISOString()
@@ -242,14 +317,22 @@ export async function finalizeProfissionalCadastro(
     contractAccepted: true,
   }
 
-  const { error: uploadError } = await supabaseAdmin.storage
-    .from(FOTOS_BUCKET)
-    .upload(fotoStoragePath, selfie.buffer, {
-      contentType: selfie.mime,
-      upsert: false,
-    })
+  if (pendingSelfiePath) {
+    const { error: moveError } = await supabaseAdmin.storage
+      .from(FOTOS_BUCKET)
+      .move(pendingSelfiePath, fotoStoragePath)
 
-  if (uploadError) throw uploadError
+    if (moveError) throw moveError
+  } else {
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from(FOTOS_BUCKET)
+      .upload(fotoStoragePath, selfie.buffer, {
+        contentType: selfie.mime,
+        upsert: false,
+      })
+
+    if (uploadError) throw uploadError
+  }
 
   try {
     const { error: insertError } = await supabaseAdmin.from('usuarios_profissionais').insert({

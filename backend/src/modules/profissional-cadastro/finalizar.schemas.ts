@@ -87,6 +87,13 @@ const finalizarCadastroValuesSchema = finalizarCadastroValuesFieldsSchema.superR
   refineFinalizarCadastroValues,
 )
 
+/** Payload JSON com selfie já enviada ao Storage (upload direto do browser). */
+export const finalizarCadastroStoragePathBodySchema = z.object({
+  values: finalizarCadastroValuesSchema,
+  empresa: empresaInputSchema,
+  selfieStoragePath: z.string().trim().min(1, 'Selfie não enviada.'),
+})
+
 /** Payload JSON dentro do multipart (selfie enviada como arquivo binário). */
 export const finalizarCadastroMultipartDadosSchema = z.object({
   values: finalizarCadastroValuesSchema,

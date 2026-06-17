@@ -7,12 +7,13 @@ import {
   ProfissionalCadastroError,
 } from './errors.js'
 import { consultarCnpjEmpresa } from './cnpj.service.js'
-import { finalizeProfissionalCadastro, validateProfissionalAccessCode } from './finalizar.service.js'
+import { finalizeProfissionalCadastro, createFinalizarSelfieUploadUrl, validateProfissionalAccessCode } from './finalizar.service.js'
 import {
   accessCodeParamSchema,
   consultarCnpjParamSchema,
   finalizarCadastroBodySchema,
   finalizarCadastroMultipartDadosSchema,
+  finalizarCadastroStoragePathBodySchema,
   validarCodigoBodySchema,
 } from './finalizar.schemas.js'
 import {
@@ -385,6 +386,48 @@ export async function registerProfissionalCadastroRoutes(app: FastifyInstance): 
       }
     },
   )
+
+  app.post('/finalizar-cadastro/selfie-upload-url', finalizarRateLimit, async (request, reply) => {
+    const parsed = validarCodigoBodySchema.safeParse(request.body)
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0]
+      return reply.status(400).send({
+        error: issue?.message ?? 'Código inválido.',
+        code: 'INVALID_ACCESS_CODE',
+      })
+    }
+
+    try {
+      const upload = await createFinalizarSelfieUploadUrl(parsed.data.accessCode)
+      return reply.send(upload)
+    } catch (error) {
+      const mapped = mapProfissionalCadastroError(error)
+      return reply.status(mapped.statusCode).send(mapped.body)
+    }
+  })
+
+  app.post('/finalizar-cadastro', finalizarRateLimit, async (request, reply) => {
+    const parsed = finalizarCadastroStoragePathBodySchema.safeParse(request.body)
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0]
+      return reply.status(400).send({
+        error: issue?.message ?? 'Dados inválidos.',
+        code: 'INVALID_DATA',
+      })
+    }
+
+    try {
+      const result = await finalizeProfissionalCadastro(
+        parsed.data.values,
+        parsed.data.empresa,
+        { storagePath: parsed.data.selfieStoragePath },
+      )
+      return reply.send(result)
+    } catch (error) {
+      const mapped = mapProfissionalCadastroError(error)
+      return reply.status(mapped.statusCode).send(mapped.body)
+    }
+  })
 
   app.patch('/finalizar-cadastro', finalizarRateLimit, async (request, reply) => {
     const contentType = request.headers['content-type'] ?? ''

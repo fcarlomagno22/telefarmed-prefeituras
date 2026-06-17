@@ -1,9 +1,9 @@
 import { loadImageFromDataUrl } from './cropSquareImage'
 
-export const SELFIE_MAX_SIDE_PX = 512
-export const SELFIE_JPEG_QUALITY = 0.82
+export const SELFIE_MAX_SIDE_PX = 384
+export const SELFIE_JPEG_QUALITY = 0.78
 /** Limite conservador para caber no body JSON (base64 ~33% maior que o binário). */
-const SELFIE_MAX_ENCODED_BYTES = 900 * 1024
+const SELFIE_MAX_ENCODED_BYTES = 400 * 1024
 
 function estimateDataUrlBytes(dataUrl: string): number {
   const comma = dataUrl.indexOf(',')

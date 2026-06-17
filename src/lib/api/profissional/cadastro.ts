@@ -208,62 +208,45 @@ export async function apiFinalizeProfissionalCadastro(input: {
 }): Promise<{ profissionalId: string }> {
   try {
     const selfiePhotoDataUrl = await compressSelfieDataUrl(input.values.selfiePhotoDataUrl)
+    const selfieBlob = dataUrlToBlob(selfiePhotoDataUrl)
+
+    const uploadPrep = await apiFetch<{
+      signedUrl: string
+      storagePath: string
+    }>('/profissional/cadastro/finalizar-cadastro/selfie-upload-url', {
+      method: 'POST',
+      json: { accessCode: input.values.accessCode },
+    })
+
+    const uploadResponse = await fetch(uploadPrep.signedUrl, {
+      method: 'PUT',
+      body: selfieBlob,
+      headers: {
+        'Content-Type': 'image/jpeg',
+      },
+    })
+
+    if (!uploadResponse.ok) {
+      throw new ProfissionalCadastroApiError(
+        'Não foi possível enviar a selfie. Tire a foto novamente e tente outra vez.',
+        uploadResponse.status,
+        'SELFIE_UPLOAD_FAILED',
+      )
+    }
+
     const { selfiePhotoDataUrl: _selfie, ...valuesWithoutSelfie } = input.values
 
-    const formData = new FormData()
-    formData.append(
-      'dados',
-      JSON.stringify({
+    return await apiFetch<{ profissionalId: string }>('/profissional/cadastro/finalizar-cadastro', {
+      method: 'POST',
+      json: {
         values: valuesWithoutSelfie,
         empresa: {
           ...input.empresa,
           municipio: input.empresa.cidade,
         },
-      }),
-    )
-    formData.append('selfie', dataUrlToBlob(selfiePhotoDataUrl), 'selfie.jpg')
-
-    const response = await fetch(`${API_BASE_URL}/profissional/cadastro/finalizar-cadastro`, {
-      method: 'PATCH',
-      body: formData,
-      credentials: 'include',
+        selfieStoragePath: uploadPrep.storagePath,
+      },
     })
-
-    const text = await response.text()
-    let payload: { error?: string; code?: string; profissionalId?: string } | null = null
-
-    if (text) {
-      try {
-        payload = JSON.parse(text) as {
-          error?: string
-          code?: string
-          profissionalId?: string
-        }
-      } catch {
-        payload = null
-      }
-    }
-
-    if (!response.ok) {
-      throw new ProfissionalCadastroApiError(
-        payload?.error ??
-          (response.status === 413
-            ? 'A foto de identificação é grande demais. Tire a selfie novamente e tente outra vez.'
-            : 'Não foi possível finalizar o cadastro. Tente novamente.'),
-        response.status,
-        payload?.code,
-      )
-    }
-
-    if (!payload?.profissionalId) {
-      throw new ProfissionalCadastroApiError(
-        'Resposta inválida do servidor.',
-        response.status,
-        'INVALID_RESPONSE',
-      )
-    }
-
-    return { profissionalId: payload.profissionalId }
   } catch (error) {
     throw mapCadastroApiError(error, 'Não foi possível finalizar o cadastro. Tente novamente.')
   }
