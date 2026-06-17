@@ -161,3 +161,29 @@ export const candidaturaDadosSchema = z
       uf: data.state,
     }),
   }))
+
+export const candidaturaDocumentoReferenciaSchema = z.object({
+  fieldId: z.string().trim().min(1, 'Documento inválido.'),
+  storagePath: z.string().trim().min(1, 'Documento inválido.'),
+  fileName: z.string().trim().min(1, 'Documento inválido.'),
+  mimeType: z.string().trim().min(1, 'Documento inválido.'),
+})
+
+export const candidaturaDocumentosUploadUrlBodySchema = z.object({
+  submissionId: z.string().uuid('Identificador de envio inválido.').optional(),
+  documentos: z
+    .array(
+      z.object({
+        fieldId: z.string().trim().min(1, 'Documento inválido.'),
+        fileName: z.string().trim().min(1, 'Documento inválido.'),
+        mimeType: z.string().trim().min(1, 'Documento inválido.'),
+      }),
+    )
+    .min(1, 'Informe ao menos um documento.')
+    .max(4, 'Envie no máximo 4 documentos por vez.'),
+})
+
+export const candidaturaSubmitStorageBodySchema = z.object({
+  submissionId: z.string().uuid('Identificador de envio inválido.'),
+  documentos: z.array(candidaturaDocumentoReferenciaSchema).min(1),
+})

@@ -1,5 +1,4 @@
 import { compressSelfieDataUrl, dataUrlToBlob } from '../../../utils/image/compressSelfieDataUrl'
-import { API_BASE_URL } from '../config'
 import { ApiError, apiFetch } from '../http'
 import type { MedicoCadastroDocumentUploads, MedicoCadastroFormValues } from '../../../types/medicoCadastro'
 import type {
@@ -63,6 +62,15 @@ function buildSubmitFormData(input: {
   return formData
 }
 
+function resolveDocumentMimeType(file: File): string {
+  if (file.type) return file.type
+  const extension = file.name.split('.').pop()?.toLowerCase()
+  if (extension === 'pdf') return 'application/pdf'
+  if (extension === 'png') return 'image/png'
+  if (extension === 'webp') return 'image/webp'
+  return 'image/jpeg'
+}
+
 export async function apiSubmitProfissionalCadastro(
   input: {
     values: MedicoCadastroFormValues
@@ -70,101 +78,145 @@ export async function apiSubmitProfissionalCadastro(
   },
   onProgress?: (progress: SubmitProfissionalCadastroProgress) => void,
 ): Promise<{ candidaturaId: string }> {
-  const formData = buildSubmitFormData(input)
+  const documentEntries = Object.entries(input.documents).filter(
+    (entry): entry is [string, File] => entry[1] instanceof File,
+  )
 
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open('POST', `${API_BASE_URL}/profissional/cadastro`)
-    xhr.withCredentials = true
-    xhr.responseType = 'text'
+  if (documentEntries.length === 0) {
+    throw new ProfissionalCadastroApiError(
+      'Envie todos os documentos obrigatórios.',
+      400,
+      'DOCUMENT_REQUIRED',
+    )
+  }
 
-    xhr.upload.onprogress = (event) => {
-      if (!onProgress || !event.lengthComputable) return
-      const uploadPercent = Math.round((event.loaded / event.total) * 88)
-      onProgress({
+  const submissionId = crypto.randomUUID()
+
+  onProgress?.({
+    percent: 4,
+    message: getSubmitProgressMessage(4),
+  })
+
+  try {
+    const uploadPrep = await apiFetch<{
+      submissionId: string
+      uploads: Array<{ fieldId: string; signedUrl: string; storagePath: string }>
+    }>('/profissional/cadastro/documentos-upload-url', {
+      method: 'POST',
+      json: {
+        submissionId,
+        documentos: documentEntries.map(([fieldId, file]) => ({
+          fieldId,
+          fileName: file.name,
+          mimeType: resolveDocumentMimeType(file),
+        })),
+      },
+    })
+
+    const uploadsByField = new Map(uploadPrep.uploads.map((upload) => [upload.fieldId, upload]))
+    let uploadedCount = 0
+
+    for (const [fieldId, file] of documentEntries) {
+      const target = uploadsByField.get(fieldId)
+      if (!target) {
+        throw new ProfissionalCadastroApiError(
+          'Não foi possível preparar o envio de um documento. Tente novamente.',
+          400,
+          'DOCUMENT_INVALID',
+        )
+      }
+
+      const mimeType = resolveDocumentMimeType(file)
+      const uploadResponse = await fetch(target.signedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': mimeType,
+        },
+      })
+
+      if (!uploadResponse.ok) {
+        throw new ProfissionalCadastroApiError(
+          uploadResponse.status === 413
+            ? 'Um documento é grande demais. Use arquivos de até 8 MB.'
+            : 'Não foi possível enviar um documento. Verifique os arquivos e tente novamente.',
+          uploadResponse.status,
+          'DOCUMENT_UPLOAD_FAILED',
+        )
+      }
+
+      uploadedCount += 1
+      const uploadPercent = 8 + Math.round((uploadedCount / documentEntries.length) * 72)
+      onProgress?.({
         percent: uploadPercent,
         message: getSubmitProgressMessage(uploadPercent),
       })
     }
 
-    xhr.onload = () => {
-      const text = xhr.responseText
-      let payload: { error?: string; code?: string; candidaturaId?: string } | null = null
+    onProgress?.({
+      percent: 88,
+      message: getSubmitProgressMessage(88),
+    })
 
-      if (text) {
-        try {
-          payload = JSON.parse(text) as {
-            error?: string
-            code?: string
-            candidaturaId?: string
-          }
-        } catch {
-          payload = null
-        }
-      }
-
-      if (xhr.status >= 200 && xhr.status < 300) {
-        onProgress?.({
-          percent: 100,
-          message: getSubmitProgressMessage(100),
-        })
-
-        if (!payload?.candidaturaId) {
-          reject(
-            new ProfissionalCadastroApiError(
-              'Resposta inválida do servidor.',
-              xhr.status,
+    const result = await apiFetch<{ candidaturaId: string }>('/profissional/cadastro', {
+      method: 'POST',
+      json: {
+        submissionId: uploadPrep.submissionId,
+        dados: input.values,
+        documentos: documentEntries.map(([fieldId, file]) => {
+          const target = uploadsByField.get(fieldId)
+          if (!target) {
+            throw new ProfissionalCadastroApiError(
+              'Resposta inválida ao preparar documentos.',
+              500,
               'INVALID_RESPONSE',
-            ),
-          )
-          return
-        }
+            )
+          }
 
-        resolve({ candidaturaId: payload.candidaturaId })
-        return
-      }
+          return {
+            fieldId,
+            storagePath: target.storagePath,
+            fileName: file.name,
+            mimeType: resolveDocumentMimeType(file),
+          }
+        }),
+      },
+    })
 
-      reject(
-        new ProfissionalCadastroApiError(
-          payload?.error ?? 'Não foi possível enviar sua candidatura. Tente novamente.',
-          xhr.status || 500,
-          payload?.code,
-        ),
+    onProgress?.({
+      percent: 100,
+      message: getSubmitProgressMessage(100),
+    })
+
+    if (!result.candidaturaId) {
+      throw new ProfissionalCadastroApiError(
+        'Resposta inválida do servidor.',
+        500,
+        'INVALID_RESPONSE',
       )
     }
 
-    xhr.onerror = () => {
-      reject(
-        new ProfissionalCadastroApiError(
-          'Falha de conexão. Verifique sua internet e tente novamente.',
-          0,
-          'NETWORK_ERROR',
-        ),
+    return result
+  } catch (error) {
+    if (error instanceof ProfissionalCadastroApiError) {
+      throw error
+    }
+    if (error instanceof ApiError && error.status === 413) {
+      throw new ProfissionalCadastroApiError(
+        'Os arquivos são grandes demais para envio. Use documentos de até 8 MB.',
+        error.status,
+        error.code,
       )
     }
-
-    xhr.onabort = () => {
-      reject(
-        new ProfissionalCadastroApiError('Envio cancelado.', 0, 'ABORTED'),
-      )
-    }
-
-    xhr.onloadstart = () => {
-      onProgress?.({
-        percent: 2,
-        message: getSubmitProgressMessage(2),
-      })
-    }
-
-    xhr.send(formData)
-  })
+    throw mapCadastroApiError(error, 'Não foi possível enviar sua candidatura. Tente novamente.')
+  }
 }
 
 function mapCadastroApiError(error: unknown, fallbackMessage: string): ProfissionalCadastroApiError {
   if (error instanceof ApiError) {
     if (error.status === 413) {
       return new ProfissionalCadastroApiError(
-        'A foto de identificação é grande demais. Tire a selfie novamente e tente outra vez.',
+        'Arquivo grande demais para envio. Reduza o tamanho e tente novamente.',
         error.status,
         error.code,
       )

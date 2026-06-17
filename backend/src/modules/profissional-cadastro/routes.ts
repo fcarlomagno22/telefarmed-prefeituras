@@ -1,6 +1,11 @@
+import { randomUUID } from 'node:crypto'
 import multipart from '@fastify/multipart'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
-import { submitCandidaturaProfissional } from './cadastro.service.js'
+import {
+  createPendingCandidaturaDocumentUploadUrls,
+  submitCandidaturaProfissional,
+  submitCandidaturaProfissionalFromStorage,
+} from './cadastro.service.js'
 import {
   formatCadastroValidationError,
   mapProfissionalCadastroError,
@@ -27,7 +32,7 @@ import {
   corrigirDadosMinhaCandidaturaBodySchema,
   documentoParamSchema,
 } from './minha-candidatura.schemas.js'
-import { candidaturaDadosSchema } from './schemas.js'
+import { candidaturaDadosSchema, candidaturaDocumentosUploadUrlBodySchema, candidaturaSubmitStorageBodySchema } from './schemas.js'
 
 const MAX_DOCUMENT_BYTES = 8 * 1024 * 1024
 
@@ -112,6 +117,46 @@ async function handleCandidaturaSubmit(request: FastifyRequest, reply: FastifyRe
   }
 }
 
+async function handleCandidaturaSubmitStorage(request: FastifyRequest, reply: FastifyReply) {
+  const body = request.body as {
+    submissionId?: string
+    dados?: unknown
+    documentos?: unknown
+  }
+
+  const metaParsed = candidaturaSubmitStorageBodySchema.safeParse({
+    submissionId: body.submissionId,
+    documentos: body.documentos,
+  })
+
+  if (!metaParsed.success) {
+    return reply.status(400).send({
+      error: formatCadastroValidationError(metaParsed.error),
+      code: 'INVALID_DATA',
+    })
+  }
+
+  const dadosParsed = candidaturaDadosSchema.safeParse(body.dados)
+  if (!dadosParsed.success) {
+    return reply.status(400).send({
+      error: formatCadastroValidationError(dadosParsed.error),
+      code: 'INVALID_DATA',
+    })
+  }
+
+  try {
+    const result = await submitCandidaturaProfissionalFromStorage(
+      dadosParsed.data,
+      metaParsed.data.submissionId,
+      metaParsed.data.documentos,
+    )
+    return reply.status(201).send(result)
+  } catch (error) {
+    const mapped = mapProfissionalCadastroError(error)
+    return reply.status(mapped.statusCode).send(mapped.body)
+  }
+}
+
 export async function registerProfissionalCadastroRoutes(app: FastifyInstance): Promise<void> {
   await app.register(multipart, {
     limits: {
@@ -123,8 +168,42 @@ export async function registerProfissionalCadastroRoutes(app: FastifyInstance): 
     },
   })
 
-  app.post('/', candidaturaRateLimit, handleCandidaturaSubmit)
-  app.post('/candidatura', candidaturaRateLimit, handleCandidaturaSubmit)
+  app.post('/documentos-upload-url', candidaturaRateLimit, async (request, reply) => {
+    const parsed = candidaturaDocumentosUploadUrlBodySchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({
+        error: formatCadastroValidationError(parsed.error),
+        code: 'INVALID_DATA',
+      })
+    }
+
+    try {
+      const submissionId = parsed.data.submissionId ?? randomUUID()
+      const uploads = await createPendingCandidaturaDocumentUploadUrls(
+        submissionId,
+        parsed.data.documentos,
+      )
+      return reply.send({ submissionId, uploads })
+    } catch (error) {
+      const mapped = mapProfissionalCadastroError(error)
+      return reply.status(mapped.statusCode).send(mapped.body)
+    }
+  })
+
+  app.post('/', candidaturaRateLimit, async (request, reply) => {
+    const contentType = request.headers['content-type'] ?? ''
+    if (contentType.includes('application/json')) {
+      return handleCandidaturaSubmitStorage(request, reply)
+    }
+    return handleCandidaturaSubmit(request, reply)
+  })
+  app.post('/candidatura', candidaturaRateLimit, async (request, reply) => {
+    const contentType = request.headers['content-type'] ?? ''
+    if (contentType.includes('application/json')) {
+      return handleCandidaturaSubmitStorage(request, reply)
+    }
+    return handleCandidaturaSubmit(request, reply)
+  })
 
   async function handleValidateAccessCode(code: string, reply: FastifyReply) {
     try {

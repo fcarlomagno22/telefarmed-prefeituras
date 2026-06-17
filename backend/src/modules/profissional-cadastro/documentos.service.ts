@@ -145,6 +145,139 @@ export function buildDocumentUpload(
   }
 }
 
+export async function registerCandidaturaDocumentoFromPending(
+  candidaturaId: string,
+  documento: CandidaturaDocumentoUpload,
+  pendingStoragePath: string,
+): Promise<string> {
+  const extension = extensionForMime(documento.mimeType)
+  const storagePath = `${candidaturaId}/${documento.tipo}/${randomUUID()}.${extension}`
+
+  const { error: moveError } = await supabaseAdmin.storage
+    .from(DOCUMENTS_BUCKET)
+    .move(pendingStoragePath, storagePath)
+
+  if (moveError) throw moveError
+
+  const { error: insertError } = await supabaseAdmin.from('candidatura_documentos').insert({
+    candidatura_id: candidaturaId,
+    tipo: documento.tipo,
+    rotulo: documento.rotulo,
+    nome_arquivo: documento.nomeArquivo,
+    mime_type: documento.mimeType,
+    tamanho_bytes: documento.tamanhoBytes,
+    storage_path: storagePath,
+    status: 'pendente',
+  })
+
+  if (insertError) {
+    await supabaseAdmin.storage.from(DOCUMENTS_BUCKET).remove([storagePath])
+    throw insertError
+  }
+
+  return storagePath
+}
+
+export type PendingDocumentUploadRequest = {
+  fieldId: string
+  fileName: string
+  mimeType: string
+}
+
+export type PendingDocumentReference = {
+  fieldId: string
+  storagePath: string
+  fileName: string
+  mimeType: string
+}
+
+function pendingCandidaturaDocumentPrefix(submissionId: string, fieldId: string): string {
+  return `pending-candidatura/${submissionId}/${fieldId}/`
+}
+
+export async function createPendingCandidaturaDocumentUploadUrls(
+  submissionId: string,
+  documents: PendingDocumentUploadRequest[],
+): Promise<Array<{ fieldId: string; signedUrl: string; storagePath: string; token: string }>> {
+  if (!/^[0-9a-f-]{36}$/i.test(submissionId)) {
+    throw new ProfissionalCadastroError('Identificador de envio inválido.', 'INVALID_DATA', 400)
+  }
+
+  const uploads: Array<{ fieldId: string; signedUrl: string; storagePath: string; token: string }> =
+    []
+
+  for (const document of documents) {
+    if (!DOCUMENT_FIELD_MAP[document.fieldId]) {
+      throw new ProfissionalCadastroError('Documento inválido.', 'DOCUMENT_INVALID', 400)
+    }
+
+    const mimeType = document.mimeType.toLowerCase().split(';')[0]?.trim() ?? ''
+    if (!ALLOWED_MIME_TYPES.has(mimeType)) {
+      throw new ProfissionalCadastroError(
+        'Formato de arquivo não permitido. Use PDF, JPG ou PNG.',
+        'DOCUMENT_INVALID',
+        400,
+      )
+    }
+
+    const extension = extensionForMime(mimeType)
+    const storagePath = `${pendingCandidaturaDocumentPrefix(submissionId, document.fieldId)}${randomUUID()}.${extension}`
+
+    const { data, error } = await supabaseAdmin.storage
+      .from(DOCUMENTS_BUCKET)
+      .createSignedUploadUrl(storagePath)
+
+    if (error || !data?.signedUrl) {
+      throw new ProfissionalCadastroError(
+        'Não foi possível preparar o envio dos documentos.',
+        'INVALID_DATA',
+        500,
+      )
+    }
+
+    uploads.push({
+      fieldId: document.fieldId,
+      signedUrl: data.signedUrl,
+      storagePath: data.path ?? storagePath,
+      token: data.token,
+    })
+  }
+
+  return uploads
+}
+
+export async function buildDocumentUploadFromPending(
+  submissionId: string,
+  reference: PendingDocumentReference,
+): Promise<{ documento: CandidaturaDocumentoUpload; pendingStoragePath: string }> {
+  const prefix = pendingCandidaturaDocumentPrefix(submissionId, reference.fieldId)
+  if (!reference.storagePath.startsWith(prefix) || reference.storagePath.includes('..')) {
+    throw new ProfissionalCadastroError('Documento inválido.', 'DOCUMENT_INVALID', 400)
+  }
+
+  const { data, error } = await supabaseAdmin.storage
+    .from(DOCUMENTS_BUCKET)
+    .download(reference.storagePath)
+
+  if (error || !data) {
+    throw new ProfissionalCadastroError(
+      'Documento não encontrado. Envie os arquivos novamente.',
+      'DOCUMENT_REQUIRED',
+      400,
+    )
+  }
+
+  const buffer = Buffer.from(await data.arrayBuffer())
+  const documento = buildDocumentUpload(
+    reference.fieldId,
+    buffer,
+    reference.mimeType || data.type,
+    reference.fileName,
+  )
+
+  return { documento, pendingStoragePath: reference.storagePath }
+}
+
 export async function uploadCandidaturaDocumento(
   candidaturaId: string,
   documento: CandidaturaDocumentoUpload,
