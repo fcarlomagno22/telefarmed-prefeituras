@@ -29,6 +29,7 @@
           "comgooglemaps",
           "googlemaps",
           "waze",
+          "whatsapp",
           "spotify",
           "music",
           "musics",
@@ -40,7 +41,8 @@
           "amznmp3"
         ],
         "NSLocationWhenInUseUsageDescription": "Permitir acesso à localização para monitorar sua atividade, clima e segurança durante caminhadas e corridas.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Permitir compartilhamento de localização ao vivo com seu contato de confiança durante a atividade."
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Permitir compartilhamento de localização ao vivo com seu contato de confiança durante a atividade.",
+        "UIBackgroundModes": ["audio"]
       },
       "bundleIdentifier": "com.fcarlomagno2.app-cidades"
     },
@@ -57,10 +59,14 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "android.permission.POST_NOTIFICATIONS"
       ],
       "package": "com.fcarlomagno2.app_cidades",
       "queries": [
+        { "scheme": "whatsapp" },
         { "scheme": "spotify" },
         { "scheme": "youtubemusic" },
         { "scheme": "vnd.youtube" },
@@ -71,7 +77,8 @@
         { "package": "com.spotify.music" },
         { "package": "com.google.android.apps.youtube.music" },
         { "package": "deezer.android.app" },
-        { "package": "com.amazon.mp3" }
+        { "package": "com.amazon.mp3" },
+        { "package": "com.whatsapp" }
       ]
     },
     "web": {
@@ -94,7 +101,14 @@
           "cameraPermission": "Permitir acesso à câmera para atualizar sua foto de perfil."
         }
       ],
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true,
+          "enableBackgroundRecording": false,
+          "recordAudioAndroid": false
+        }
+      ],
       "expo-asset",
       [
         "expo-navigation-bar",

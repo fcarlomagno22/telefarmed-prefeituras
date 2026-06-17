@@ -8,6 +8,7 @@ import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import pictureAnimation from '../../../assets/picture.json'
 import { colors } from '../../theme/colors'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 export type ProfilePhotoReplaceSource = 'camera' | 'library'
 
@@ -142,7 +143,7 @@ export function ProfilePhotoReplaceModal({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16) + 10,
+              paddingBottom: getModalFooterPadding(insets.bottom, 10),
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}

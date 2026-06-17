@@ -10,6 +10,7 @@ export function applyAndroidNavigationBar() {
   if (Platform.OS !== 'android') return
 
   void SystemUI.setBackgroundColorAsync(NAV_BAR_COLOR)
+  void NavigationBar.setBackgroundColorAsync(NAV_BAR_COLOR)
   void NavigationBar.setStyle('light')
 }
 

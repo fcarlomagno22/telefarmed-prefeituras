@@ -10,6 +10,7 @@ import { getGuestFeatureContent, GuestFeatureKey } from '../config/guestFeatures
 import { colors } from '../theme/colors'
 import { PrimaryButton } from './PrimaryButton'
 import { WaveTitle } from './WaveTitle'
+import { getModalFooterPadding } from '../utils/modalSafeArea'
 
 type FeatureAuthDrawerProps = {
   visible: boolean
@@ -113,7 +114,7 @@ export function FeatureAuthDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16),
+              paddingBottom: getModalFooterPadding(insets.bottom),
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}

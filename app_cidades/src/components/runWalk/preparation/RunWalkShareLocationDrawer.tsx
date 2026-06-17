@@ -6,11 +6,16 @@ import {
   createLiveShareSession,
   loadActiveLiveShareSession,
 } from '../../../data/runWalkLiveShareService'
+import {
+  loadActiveTrustedContact,
+  loadSelectedTrustedContacts,
+} from '../../../data/runWalkSafetyStorage'
 import { colors } from '../../../theme/colors'
 import { playPingSound } from '../../../utils/appSounds'
 import { shareLiveLocationLink, waitForShareSheet } from '../../../utils/runWalkLocationShare'
 import { PrimaryButton } from '../../PrimaryButton'
 import { RunWalkSheetDrawer } from '../RunWalkSheetDrawer'
+import { RUN_WALK_FLOW_DRAWER_MIN_HEIGHT } from '../runWalkFlowDrawerLayout'
 
 const areaMapAnimation = require('../../../../assets/area_map.json')
 
@@ -66,9 +71,16 @@ export function RunWalkShareLocationDrawer({
       onClose()
       await waitForShareSheet()
 
+      const selectedContacts = await loadSelectedTrustedContacts()
+      const shareContact =
+        selectedContacts.find((contact) => contact.liveShareEnabled) ??
+        selectedContacts[0] ??
+        (await loadActiveTrustedContact())
+
       await shareLiveLocationLink({
-        activityName,
         shareToken: activeSession.shareToken,
+        recipientName: shareContact?.name,
+        recipientPhone: shareContact?.phone,
       })
 
       if (shouldProceed) {
@@ -84,22 +96,31 @@ export function RunWalkShareLocationDrawer({
     onContinueWithoutShare?.()
   }
 
-  const primaryLabel = showStartActions ? 'Compartilhar localização e continuar' : 'Compartilhar link'
+  const primaryLabel =
+    showStartActions && onConfirmShare
+      ? 'Compartilhar localização e continuar'
+      : 'Compartilhar link'
 
   return (
     <RunWalkSheetDrawer
       visible={visible}
       title="Compartilhar localização"
+      subtitle={
+        showStartActions
+          ? 'Envie um link para acompanhar sua rota ou continue sem compartilhar.'
+          : undefined
+      }
       onClose={onClose}
+      minHeight={showStartActions ? RUN_WALK_FLOW_DRAWER_MIN_HEIGHT : undefined}
       footer={
-        <View style={styles.footer}>
-          <PrimaryButton
-            label={primaryLabel}
-            onPress={() => void handleSharePress()}
-            loading={isSaving}
-          />
+        showStartActions ? (
+          <View style={styles.footer}>
+            <PrimaryButton
+              label={primaryLabel}
+              onPress={() => void handleSharePress()}
+              loading={isSaving}
+            />
 
-          {showStartActions ? (
             <Pressable
               onPress={handleSkipPress}
               style={({ pressed }) => [styles.skipBtn, pressed && styles.skipBtnPressed]}
@@ -108,8 +129,16 @@ export function RunWalkShareLocationDrawer({
             >
               <Text style={styles.skipLabel}>Continuar sem compartilhar</Text>
             </Pressable>
-          ) : null}
-        </View>
+          </View>
+        ) : (
+          <View style={styles.footer}>
+            <PrimaryButton
+              label={primaryLabel}
+              onPress={() => void handleSharePress()}
+              loading={isSaving}
+            />
+          </View>
+        )
       }
     >
       <View style={styles.content}>
@@ -128,9 +157,12 @@ export function RunWalkShareLocationDrawer({
 
 const styles = StyleSheet.create({
   content: {
+    flex: 1,
     gap: 16,
     paddingBottom: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 220,
   },
   lottieWrap: {
     width: '100%',

@@ -14,6 +14,7 @@ import { getBloodPressureZone } from '../../utils/bloodPressure'
 import { playSuccessSound } from '../../utils/appSounds'
 import { PrimaryButton } from '../PrimaryButton'
 import { MetricLogSuccessContent } from './MetricLogSuccessContent'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SUCCESS_DISMISS_MS = 2600
 const SHEET_OFFSET = 510
@@ -312,7 +313,7 @@ export function BloodPressureLogDrawer({
             style={[
               styles.sheet,
               {
-                paddingBottom: Math.max(insets.bottom, 16) + 16,
+                paddingBottom: getModalFooterPadding(insets.bottom, 16),
                 transform: [{ translateY: sheetTranslateY }],
               },
             ]}

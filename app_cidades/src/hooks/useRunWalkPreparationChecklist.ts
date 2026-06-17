@@ -4,7 +4,6 @@ import type { GpsQuality } from './useRunWalkLocation'
 export type PreparationChecklistItemId =
   | 'gps'
   | 'battery'
-  | 'audio'
   | 'device'
   | 'live-location'
 
@@ -21,7 +20,6 @@ type UseRunWalkPreparationChecklistOptions = {
   gpsLocated: boolean
   batteryOk: boolean
   batteryDetail: string
-  audioConfigured: boolean
   liveShareConfigured: boolean
 }
 
@@ -30,7 +28,6 @@ export function useRunWalkPreparationChecklist({
   gpsLocated,
   batteryOk,
   batteryDetail,
-  audioConfigured,
   liveShareConfigured,
 }: UseRunWalkPreparationChecklistOptions) {
   const items = useMemo<PreparationChecklistItem[]>(() => {
@@ -46,12 +43,6 @@ export function useRunWalkPreparationChecklist({
         label: 'Bateria suficiente',
         ok: batteryOk,
         detail: batteryDetail,
-      },
-      {
-        id: 'audio',
-        label: 'Áudio configurado',
-        ok: audioConfigured,
-        detail: audioConfigured ? 'Pronto para reproduzir' : 'Selecione um app de música',
       },
       {
         id: 'device',
@@ -71,7 +62,6 @@ export function useRunWalkPreparationChecklist({
       },
     ]
   }, [
-    audioConfigured,
     batteryDetail,
     batteryOk,
     gpsLocated,
@@ -79,9 +69,7 @@ export function useRunWalkPreparationChecklist({
     liveShareConfigured,
   ])
 
-  const requiredItemsOk = items
-    .filter((item) => !item.optional)
-    .every((item) => item.ok || item.id === 'audio')
+  const requiredItemsOk = items.filter((item) => !item.optional).every((item) => item.ok)
 
   const canStart = gpsLocated && batteryOk
 

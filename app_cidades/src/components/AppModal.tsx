@@ -1,24 +1,34 @@
 import * as NavigationBar from 'expo-navigation-bar'
+import * as SystemUI from 'expo-system-ui'
 import { useEffect } from 'react'
 import { Modal, ModalProps, Platform, StyleSheet, View } from 'react-native'
-import { drawerChrome } from '../theme/drawerChrome'
+import { colors } from '../theme/colors'
 import { AndroidNavBarUnderlay } from './AndroidNavBarUnderlay'
 
 type AppModalProps = ModalProps & {
+  /** Omitir ou 'transparent' para deixar o conteúdo do modal aparecer atrás da nav bar. */
   navBarUnderlayColor?: string
 }
 
 export function AppModal({
   children,
   visible,
-  navBarUnderlayColor = drawerChrome.navBarUnderlay,
+  navBarUnderlayColor = 'transparent',
   statusBarTranslucent,
   navigationBarTranslucent,
   ...rest
 }: AppModalProps) {
   useEffect(() => {
-    if (Platform.OS !== 'android' || !visible) return
+    if (Platform.OS !== 'android') return
 
+    if (visible) {
+      void NavigationBar.setStyle('light')
+      void NavigationBar.setBackgroundColorAsync('#00000000')
+      return
+    }
+
+    void SystemUI.setBackgroundColorAsync(colors.background)
+    void NavigationBar.setBackgroundColorAsync(colors.background)
     void NavigationBar.setStyle('light')
   }, [visible])
 
@@ -34,7 +44,9 @@ export function AppModal({
       {...rest}
     >
       <View style={styles.host}>
-        {visible ? <AndroidNavBarUnderlay color={navBarUnderlayColor} /> : null}
+        {visible && navBarUnderlayColor !== 'transparent' ? (
+          <AndroidNavBarUnderlay color={navBarUnderlayColor} />
+        ) : null}
         <View style={styles.content}>{children}</View>
       </View>
     </Modal>
@@ -44,8 +56,10 @@ export function AppModal({
 const styles = StyleSheet.create({
   host: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   content: {
     ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'transparent',
   },
 })

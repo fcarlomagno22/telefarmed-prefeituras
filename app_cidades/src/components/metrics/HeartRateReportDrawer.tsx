@@ -29,6 +29,7 @@ import {
 import { shareHeartRateReportPdf } from '../../utils/heartRateReportPdf'
 import { PrimaryButton } from '../PrimaryButton'
 import { GlucoseTrendLineChart } from './GlucoseTrendLineChart'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const HR_GRADIENT = ['#fca5a5', '#ef4444', '#dc2626'] as const
 
@@ -219,7 +220,7 @@ export function HeartRateReportDrawer({
             styles.sheet,
             {
               paddingTop: insets.top,
-              paddingBottom: Math.max(insets.bottom, 16),
+              paddingBottom: getModalFooterPadding(insets.bottom),
               transform: [{ translateX: sheetTranslateX }],
             },
           ]}

@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { getExerciseById } from '../../data/functionalExercises'
 import { useExerciseTimer, type ExerciseTimerConfig } from '../../hooks/useExerciseTimer'
 import { colors } from '../../theme/colors'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 import {
   decreaseFunctionalGymMusicVolume,
   getFunctionalGymMusicVolume,
@@ -359,7 +360,7 @@ export function ExerciseSessionOverlay({
               ) : null}
             </View>
 
-            <View style={[styles.dock, { paddingBottom: insets.bottom + 10 }]}>
+            <View style={[styles.dock, { paddingBottom: getModalFooterPadding(insets.bottom, 10) }]}>
               {isWork ? (
                 <FunctionalGymMusicControls
                   volume={gymVolume}
@@ -423,7 +424,12 @@ function CompletedPanel({
   bottomInset: number
 }) {
   return (
-    <View style={[styles.completedRoot, { paddingTop: topInset + 24, paddingBottom: bottomInset + 24 }]}>
+    <View
+      style={[
+        styles.completedRoot,
+        { paddingTop: topInset + 24, paddingBottom: getModalFooterPadding(bottomInset, 24) },
+      ]}
+    >
       <LinearGradient
         colors={['rgba(34, 197, 94, 0.18)', 'transparent']}
         style={styles.completedGlow}

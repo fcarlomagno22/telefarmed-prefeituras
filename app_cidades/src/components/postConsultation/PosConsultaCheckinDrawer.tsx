@@ -15,6 +15,7 @@ import {
 } from '../../utils/appointmentPostConsultation'
 import { PosConsultaCheckinAlreadyAnswered } from '../postConsultation/PosConsultaCheckinAlreadyAnswered'
 import { PosConsultaCheckinWizard } from '../postConsultation/PosConsultaCheckinWizard'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SHEET_OFFSET = 720
 
@@ -156,7 +157,7 @@ export function PosConsultaCheckinDrawer({
             style={[
               styles.sheet,
               {
-                paddingBottom: Math.max(insets.bottom, 16),
+                paddingBottom: getModalFooterPadding(insets.bottom),
                 transform: [{ translateY: sheetTranslateY }],
               },
             ]}

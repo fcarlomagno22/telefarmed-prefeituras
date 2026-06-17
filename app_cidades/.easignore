@@ -1,0 +1,20 @@
+# Monorepo: não enviar o restante do repositório para o EAS Build
+../backend
+../dist
+../src
+../node_modules
+../playwright-report
+../test-results
+../.git
+
+# Dependências e artefatos locais (reinstalados na nuvem)
+node_modules/
+.expo/
+dist/
+web-build/
+android/
+ios/
+*.log
+
+# Temporários
+../backend/supabase/.temp

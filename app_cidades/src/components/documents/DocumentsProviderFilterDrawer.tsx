@@ -10,6 +10,7 @@ import { colors } from '../../theme/colors'
 import type { PatientProviderFilter, PatientProviderOption } from '../../types/myDocuments'
 import { filterProviderOptionsByQuery } from '../../utils/myDocuments'
 import { WaveTitle } from '../WaveTitle'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SHEET_OFFSET = 620
 
@@ -111,7 +112,7 @@ export function DocumentsProviderFilterDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16),
+              paddingBottom: getModalFooterPadding(insets.bottom),
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}

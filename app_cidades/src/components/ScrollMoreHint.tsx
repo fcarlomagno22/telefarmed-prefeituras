@@ -5,9 +5,10 @@ import { colors } from '../theme/colors'
 
 type ScrollMoreHintProps = {
   active: boolean
+  compact?: boolean
 }
 
-export function ScrollMoreHint({ active }: ScrollMoreHintProps) {
+export function ScrollMoreHint({ active, compact = false }: ScrollMoreHintProps) {
   const shift = useRef(new Animated.Value(0)).current
   const textOpacity = useRef(new Animated.Value(0.6)).current
   const loopRef = useRef<Animated.CompositeAnimation | null>(null)
@@ -83,7 +84,7 @@ export function ScrollMoreHint({ active }: ScrollMoreHintProps) {
   })
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, compact && styles.containerCompact]}>
       <Animated.Text style={[styles.label, { opacity: active ? textOpacity : 0.45 }]}>
         Deslize para mais
       </Animated.Text>
@@ -123,6 +124,12 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginBottom: 12,
     paddingHorizontal: 16,
+  },
+  containerCompact: {
+    marginTop: 0,
+    marginBottom: 0,
+    paddingHorizontal: 0,
+    justifyContent: 'flex-end',
   },
   label: {
     color: colors.textMuted,

@@ -5,7 +5,6 @@ import { Animated, Easing, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ExerciseTimerBar } from '../components/functional/ExerciseTimerBar'
 import { useAuth } from '../contexts/AuthContext'
-import { ACTIVITY_MODALITY_LABELS } from '../data/runWalkModalityConfig'
 import { clearPreparationDraft } from '../data/runWalkPreparationDraftStorage'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
@@ -19,10 +18,6 @@ export function RunWalkStartCountdownScreen() {
   const insets = useSafeAreaInsets()
   const { routeParams, navigateTo } = useAuth()
   const params = getRunWalkRouteParams(routeParams)
-
-  const modality = params.modality ?? 'walk'
-  const activityName = params.activityName ?? 'Atividade'
-  const modalityLabel = ACTIVITY_MODALITY_LABELS[modality]
 
   const [secondsLeft, setSecondsLeft] = useState(COUNTDOWN_SECONDS)
   const completedRef = useRef(false)
@@ -119,17 +114,6 @@ export function RunWalkStartCountdownScreen() {
       />
 
       <View style={[styles.content, { paddingTop: Math.max(insets.top, 16) + 24 }]}>
-        <View style={styles.header}>
-          <View style={styles.phaseBadge}>
-            <View style={styles.phaseDot} />
-            <Text style={styles.phaseBadgeText}>Preparar</Text>
-          </View>
-          <Text style={styles.title}>{activityName}</Text>
-          <Text style={styles.subtitle}>
-            {modalityLabel} · {params.intensity} · {params.durationMinutes} min
-          </Text>
-        </View>
-
         <View style={styles.timerBlock}>
           <Animated.Text
             style={[styles.countdownNumber, { transform: [{ scale: numberScale }] }]}
@@ -161,48 +145,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
-    gap: 48,
-  },
-  header: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  phaseBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(251, 191, 36, 0.28)',
-    backgroundColor: 'rgba(251, 191, 36, 0.08)',
-  },
-  phaseDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#fbbf24',
-  },
-  phaseBadgeText: {
-    color: '#fbbf24',
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.2,
-    textTransform: 'uppercase',
-  },
-  title: {
-    color: colors.text,
-    fontSize: 28,
-    fontWeight: '900',
-    letterSpacing: -0.6,
-    textAlign: 'center',
-  },
-  subtitle: {
-    color: colors.textMuted,
-    fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center',
   },
   timerBlock: {
     width: '100%',

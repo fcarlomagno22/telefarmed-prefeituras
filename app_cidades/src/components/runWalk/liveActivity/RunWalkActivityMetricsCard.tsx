@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import {
   formatActivityDistanceKmParts,
-  formatElapsedActivityTime,
+  formatElapsedActivityTimeParts,
   formatSpeedKmhParts,
   type ActivityMetricParts,
 } from '../../../utils/runWalkActivityStats'
@@ -14,6 +14,7 @@ type RunWalkActivityMetricsCardProps = {
   distanceKm: number
   speedKmh: number | null
   isFinished: boolean
+  isPaused?: boolean
   onFinishPress: () => void
 }
 
@@ -49,6 +50,7 @@ export function RunWalkActivityMetricsCard({
   distanceKm,
   speedKmh,
   isFinished,
+  isPaused = false,
   onFinishPress,
 }: RunWalkActivityMetricsCardProps) {
   function handleFinishPress() {
@@ -59,6 +61,12 @@ export function RunWalkActivityMetricsCard({
 
   return (
     <View style={styles.root}>
+      {isPaused && !isFinished ? (
+        <View style={styles.pausedBadge}>
+          <Text style={styles.pausedBadgeText}>Treino pausado</Text>
+        </View>
+      ) : null}
+
       {isFinished ? (
         <View style={styles.finishedBadge}>
           <Text style={styles.finishedBadgeText}>Treino encerrado</Text>
@@ -68,7 +76,7 @@ export function RunWalkActivityMetricsCard({
       <View style={styles.metricsRow}>
         <MetricColumn label="Velocidade" metricParts={formatSpeedKmhParts(speedKmh)} />
         <View style={styles.divider} />
-        <MetricColumn label="Tempo" value={formatElapsedActivityTime(elapsedSeconds)} />
+        <MetricColumn label="Tempo" metricParts={formatElapsedActivityTimeParts(elapsedSeconds)} />
         <View style={styles.divider} />
         <MetricColumn label="Distância" metricParts={formatActivityDistanceKmParts(distanceKm)} />
       </View>
@@ -109,6 +117,22 @@ const styles = StyleSheet.create({
   },
   finishedBadgeText: {
     color: '#86efac',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  pausedBadge: {
+    alignSelf: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: 'rgba(251, 191, 36, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.28)',
+  },
+  pausedBadgeText: {
+    color: '#fde68a',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.3,

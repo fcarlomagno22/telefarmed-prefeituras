@@ -19,18 +19,17 @@ import { NeonSectionDivider } from '../components/NeonSectionDivider'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
-import { ACTIVITY_MODALITY_LABELS } from '../data/runWalkModalityConfig'
 import { loadActiveLiveShareSession } from '../data/runWalkLiveShareService'
-import { loadPreparationDraft } from '../data/runWalkPreparationDraftStorage'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { formatBatteryLevel, useDeviceBattery } from '../hooks/useDeviceBattery'
 import {
   useRunWalkPreparationChecklist,
   type PreparationChecklistItem,
 } from '../hooks/useRunWalkPreparationChecklist'
-import { gpsQualityLabel, useRunWalkLocation } from '../hooks/useRunWalkLocation'
+import { useRunWalkLocation } from '../hooks/useRunWalkLocation'
 import { colors } from '../theme/colors'
 import { getRunWalkRouteParams } from '../types/auth'
+import { playCheckSound } from '../utils/appSounds'
 import { resolveBrandImage } from '../utils/resolveBrandImage'
 
 const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
@@ -49,9 +48,30 @@ function ChecklistRow({
   const opacity = useRef(new Animated.Value(0)).current
   const scale = useRef(new Animated.Value(0.92)).current
   const glow = useRef(new Animated.Value(0)).current
+  const isShownRef = useRef(false)
+  const prevOkRef = useRef(false)
+
+  function triggerOkFeedback() {
+    void playCheckSound()
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    Animated.sequence([
+      Animated.timing(glow, {
+        toValue: 1,
+        duration: 220,
+        useNativeDriver: true,
+      }),
+      Animated.timing(glow, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start()
+  }
 
   useEffect(() => {
     if (!visible) {
+      isShownRef.current = false
+      prevOkRef.current = false
       translateY.setValue(18)
       opacity.setValue(0)
       scale.setValue(0.92)
@@ -61,6 +81,7 @@ function ChecklistRow({
 
     const delay = index * REVEAL_STAGGER_MS
     const timer = setTimeout(() => {
+      isShownRef.current = true
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
       Animated.parallel([
         Animated.spring(translateY, {
@@ -83,27 +104,27 @@ function ChecklistRow({
         }),
       ]).start()
 
-      if (item.ok) {
+      if (item.ok && !prevOkRef.current) {
+        prevOkRef.current = true
         setTimeout(() => {
-          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-          Animated.sequence([
-            Animated.timing(glow, {
-              toValue: 1,
-              duration: 220,
-              useNativeDriver: true,
-            }),
-            Animated.timing(glow, {
-              toValue: 0,
-              duration: 400,
-              useNativeDriver: true,
-            }),
-          ]).start()
+          triggerOkFeedback()
         }, 180)
       }
     }, delay)
 
     return () => clearTimeout(timer)
   }, [glow, index, item.ok, opacity, scale, translateY, visible])
+
+  useEffect(() => {
+    if (!visible || !isShownRef.current) return
+    if (item.ok && !prevOkRef.current) {
+      prevOkRef.current = true
+      triggerOkFeedback()
+    }
+    if (!item.ok) {
+      prevOkRef.current = false
+    }
+  }, [item.ok, visible])
 
   const borderColor = item.ok ? 'rgba(34, 197, 94, 0.35)' : 'rgba(255, 255, 255, 0.08)'
   const glowOpacity = glow.interpolate({
@@ -150,12 +171,7 @@ export function RunWalkPreparationChecklistScreen() {
   const { routeParams, navigateTo, goBack, user } = useAuth()
   const params = getRunWalkRouteParams(routeParams)
 
-  const modality = params.modality ?? 'walk'
-  const activityName = params.activityName ?? 'Atividade'
-  const durationMinutes = params.durationMinutes ?? 30
-
   const [liveShareConfigured, setLiveShareConfigured] = useState(false)
-  const [audioConfigured, setAudioConfigured] = useState(false)
   const [revealStarted, setRevealStarted] = useState(false)
   const [showAction, setShowAction] = useState(false)
   const pulse = useRef(new Animated.Value(0)).current
@@ -174,7 +190,6 @@ export function RunWalkPreparationChecklistScreen() {
     gpsLocated: Boolean(location.coordinates),
     batteryOk,
     batteryDetail,
-    audioConfigured,
     liveShareConfigured,
   })
 
@@ -188,9 +203,6 @@ export function RunWalkPreparationChecklistScreen() {
 
   useEffect(() => {
     void loadLiveShareState()
-    void loadPreparationDraft().then((draft) => {
-      if (draft) setAudioConfigured(draft.audioConfigured)
-    })
   }, [loadLiveShareState])
 
   useEffect(() => {
@@ -270,7 +282,7 @@ export function RunWalkPreparationChecklistScreen() {
 
       <ScreenStackHeader
         title="Checklist automático"
-        subtitle={`${durationMinutes} min · ${ACTIVITY_MODALITY_LABELS[modality]}`}
+        subtitle="Verificando requisitos"
         paddingTop={Math.max(insets.top, 12) + 8}
         onBack={goBack}
       />

@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { appEnv } from '../config/env'
 import { colors } from '../theme/colors'
 import { resolveBrandImage } from '../utils/resolveBrandImage'
+import { getModalFooterPadding } from '../utils/modalSafeArea'
 
 const logoSource = resolveBrandImage(appEnv.logoUrl, 'logo.png')
 
@@ -196,7 +197,7 @@ export function MenuDrawer({
           <View
             style={[
               styles.footer,
-              { paddingBottom: Math.max(insets.bottom, 16) + 8 },
+              { paddingBottom: getModalFooterPadding(insets.bottom, 8) },
             ]}
           >
             <View style={styles.footerDivider} />

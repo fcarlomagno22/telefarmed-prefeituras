@@ -1,5 +1,8 @@
 export type PortalId = 'ubt' | 'prefeitura' | 'admin' | 'profissional'
 
+/** Subdomínio público só para links de acompanhamento ao vivo (sem login). */
+export const LIVE_SHARE_HOST = 'seguranca.telefarmed.com.br'
+
 const PORTAL_HOSTS: Record<string, PortalId> = {
   'admin.telefarmed.com.br': 'admin',
   'prefeitura.telefarmed.com.br': 'prefeitura',
@@ -22,9 +25,15 @@ function normalizeHostname(hostname: string): string {
   return hostname.toLowerCase().split(':')[0] ?? hostname
 }
 
+export function isLiveShareDedicatedHost(hostname: string): boolean {
+  return normalizeHostname(hostname) === LIVE_SHARE_HOST
+}
+
 /** Portal servido por subdomínio dedicado (produção). Em localhost retorna null. */
 export function getPortalFromHost(hostname: string): PortalId | null {
-  return PORTAL_HOSTS[normalizeHostname(hostname)] ?? null
+  const normalized = normalizeHostname(hostname)
+  if (normalized === LIVE_SHARE_HOST) return null
+  return PORTAL_HOSTS[normalized] ?? null
 }
 
 export function getDedicatedPortal(): PortalId | null {

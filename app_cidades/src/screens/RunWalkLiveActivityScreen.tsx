@@ -1,25 +1,41 @@
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
 import { useCallback, useEffect, useState } from 'react'
+import { saveRunWalkActivitySummary } from '../data/runWalkActivitySummaryStorage'
+import { ACTIVITY_MODALITY_LABELS, MODALITY_DEFAULTS } from '../data/runWalkModalityConfig'
+import {
+  calculateAveragePaceMinPerKm,
+  calculateAverageSpeedKmh,
+  estimateCaloriesBurned,
+} from '../utils/runWalkActivityStats'
+import { resolveActivityPlace } from '../utils/runWalkActivityLocation'
 import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { RunWalkActivityFinishDrawer } from '../components/runWalk/liveActivity/RunWalkActivityFinishDrawer'
+import { RunWalkActivityLockButton } from '../components/runWalk/liveActivity/RunWalkActivityLockButton'
 import { RunWalkActivityLockOverlay } from '../components/runWalk/liveActivity/RunWalkActivityLockOverlay'
 import { RunWalkActivityMetricsCard } from '../components/runWalk/liveActivity/RunWalkActivityMetricsCard'
+import { RunWalkActivityMusicButton } from '../components/runWalk/liveActivity/RunWalkActivityMusicButton'
+import { RunWalkActivityOnlineBadge } from '../components/runWalk/liveActivity/RunWalkActivityOnlineBadge'
+import { RunWalkActivityPauseButton } from '../components/runWalk/liveActivity/RunWalkActivityPauseButton'
+import { RunWalkActivityShareLocationButton } from '../components/runWalk/liveActivity/RunWalkActivityShareLocationButton'
 import { RunWalkActivitySosButton } from '../components/runWalk/liveActivity/RunWalkActivitySosButton'
 import { RunWalkActivitySosDrawer } from '../components/runWalk/liveActivity/RunWalkActivitySosDrawer'
-import { RunWalkActivityStatusBar } from '../components/runWalk/liveActivity/RunWalkActivityStatusBar'
 import { RunWalkActivityTrailMap } from '../components/runWalk/liveActivity/RunWalkActivityTrailMap'
+import { RunWalkShareLocationDrawer } from '../components/runWalk/preparation/RunWalkShareLocationDrawer'
+import { RunWalkMusicAppsDrawer } from '../components/runWalk/preparation/RunWalkMusicAppsDrawer'
 import { useAuth } from '../contexts/AuthContext'
-import { ACTIVITY_MODALITY_LABELS, MODALITY_DEFAULTS } from '../data/runWalkModalityConfig'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useRunWalkActivitySession } from '../hooks/useRunWalkActivitySession'
 import { useRunWalkLiveSharePublisher } from '../hooks/useRunWalkLiveSharePublisher'
 import { colors } from '../theme/colors'
 import { getRunWalkRouteParams } from '../types/auth'
 
+const METRICS_CARD_ESTIMATED_HEIGHT = 152
+const SIDE_ACTIONS_GAP_ABOVE_METRICS = 10
+
 export function RunWalkLiveActivityScreen() {
   const insets = useSafeAreaInsets()
-  const { routeParams, user } = useAuth()
+  const { routeParams, user, navigateTo } = useAuth()
   const params = getRunWalkRouteParams(routeParams)
 
   const modality = params.modality ?? 'walk'
@@ -28,6 +44,8 @@ export function RunWalkLiveActivityScreen() {
 
   const [isLocked, setIsLocked] = useState(false)
   const [sosDrawerVisible, setSosDrawerVisible] = useState(false)
+  const [shareLocationDrawerVisible, setShareLocationDrawerVisible] = useState(false)
+  const [musicDrawerVisible, setMusicDrawerVisible] = useState(false)
   const [finishDrawerVisible, setFinishDrawerVisible] = useState(false)
 
   const { location } = useRunWalkLiveSharePublisher({
@@ -55,8 +73,16 @@ export function RunWalkLiveActivityScreen() {
         setSosDrawerVisible(false)
         return true
       }
+      if (shareLocationDrawerVisible) {
+        setShareLocationDrawerVisible(false)
+        return true
+      }
+      if (musicDrawerVisible) {
+        setMusicDrawerVisible(false)
+        return true
+      }
       return true
-    }, [finishDrawerVisible, isLocked, sosDrawerVisible]),
+    }, [finishDrawerVisible, isLocked, musicDrawerVisible, shareLocationDrawerVisible, sosDrawerVisible]),
   )
 
   useEffect(() => {
@@ -71,41 +97,112 @@ export function RunWalkLiveActivityScreen() {
     setFinishDrawerVisible(true)
   }
 
-  function handleConfirmFinish() {
+  async function handleConfirmFinish() {
+    const elapsedSeconds = session.elapsedSeconds
+    const distanceKm = session.distanceKm
+    const trail = [...session.trail]
+    const stepCount = session.stepCount
+    const heartRateBpm = session.heartRateBpm
+
     session.finishActivity()
+
+    const summaryId = `run-walk-${Date.now()}`
+    const activeMinutes = Math.max(1, Math.round(elapsedSeconds / 60))
+    const trailStart = trail[0]
+    let locationCity = location.cityLabel ?? user?.address?.city ?? null
+    let locationState = user?.address?.state ?? null
+
+    if (trailStart) {
+      const place = await resolveActivityPlace(trailStart.latitude, trailStart.longitude)
+      locationCity = place.city ?? locationCity
+      locationState = place.state ?? locationState
+    } else if (location.coordinates) {
+      const place = await resolveActivityPlace(
+        location.coordinates.latitude,
+        location.coordinates.longitude,
+      )
+      locationCity = place.city ?? locationCity
+      locationState = place.state ?? locationState
+    }
+
+    await saveRunWalkActivitySummary({
+      id: summaryId,
+      patientCpf: user?.cpf ?? 'guest',
+      modality,
+      activityName: params.activityName ?? modalityLabel,
+      elapsedSeconds,
+      distanceKm,
+      averageSpeedKmh: calculateAverageSpeedKmh(distanceKm, elapsedSeconds),
+      paceMinPerKm: calculateAveragePaceMinPerKm(distanceKm, elapsedSeconds),
+      stepCount,
+      heartRateBpm,
+      estimatedCalories: estimateCaloriesBurned(modality, elapsedSeconds),
+      activeMinutes,
+      completedAt: new Date().toISOString(),
+      trail,
+      locationCity,
+      locationState,
+    })
+
+    navigateTo('run-walk-checkin', { summaryId })
   }
+
+  const bottomInset = Math.max(insets.bottom, 14) + 8
+  const sideActionsBottom =
+    bottomInset + METRICS_CARD_ESTIMATED_HEIGHT + SIDE_ACTIONS_GAP_ABOVE_METRICS
 
   return (
     <View style={styles.root}>
-      <RunWalkActivityTrailMap trail={session.trail} fullscreen />
+      <RunWalkActivityTrailMap
+        trail={session.trail}
+        fullscreen
+        liveTracking
+        profilePhotoUri={user?.selfieUri}
+        deviceHeadingDegrees={location.headingDegrees}
+      />
 
       <View
-        pointerEvents="box-none"
-        style={[styles.topOverlay, { paddingTop: Math.max(insets.top, 10) + 6 }]}
+        pointerEvents="none"
+        style={[styles.onlineBadgeOverlay, { top: Math.max(insets.top, 10) + 8 }]}
       >
-        <RunWalkActivityStatusBar
+        <RunWalkActivityOnlineBadge
           gpsQuality={location.gpsQuality}
           isLocating={location.isLocating}
-          onLockPress={() => setIsLocked(true)}
         />
       </View>
 
       <View
         pointerEvents="box-none"
-        style={[styles.sosOverlay, { top: Math.max(insets.top, 10) + 72 }]}
+        style={[styles.sideActionsOverlay, { bottom: sideActionsBottom }]}
       >
-        <RunWalkActivitySosButton onPress={() => setSosDrawerVisible(true)} />
+        <RunWalkActivityLockButton onPress={() => setIsLocked(true)} />
+        <RunWalkActivityShareLocationButton
+          onPress={() => setShareLocationDrawerVisible(true)}
+        />
+        <RunWalkActivityMusicButton onPress={() => setMusicDrawerVisible(true)} />
+        {!session.isFinished ? (
+          <View style={styles.emergencyRow}>
+            <RunWalkActivitySosButton onPress={() => setSosDrawerVisible(true)} />
+            <RunWalkActivityPauseButton
+              isPaused={session.isPaused}
+              onPress={session.togglePauseActivity}
+            />
+          </View>
+        ) : (
+          <RunWalkActivitySosButton onPress={() => setSosDrawerVisible(true)} />
+        )}
       </View>
 
       <View
         pointerEvents="box-none"
-        style={[styles.bottomOverlay, { paddingBottom: Math.max(insets.bottom, 14) + 8 }]}
+        style={[styles.bottomOverlay, { paddingBottom: bottomInset }]}
       >
         <RunWalkActivityMetricsCard
           elapsedSeconds={session.elapsedSeconds}
           distanceKm={session.distanceKm}
           speedKmh={session.currentSpeedKmh}
           isFinished={session.isFinished}
+          isPaused={session.isPaused}
           onFinishPress={handleFinishPress}
         />
       </View>
@@ -115,6 +212,23 @@ export function RunWalkLiveActivityScreen() {
       <RunWalkActivitySosDrawer
         visible={sosDrawerVisible}
         onClose={() => setSosDrawerVisible(false)}
+      />
+
+      <RunWalkShareLocationDrawer
+        visible={shareLocationDrawerVisible}
+        participantName={user?.name ?? 'Participante'}
+        activityName={modalityLabel}
+        latitude={location.coordinates?.latitude ?? null}
+        longitude={location.coordinates?.longitude ?? null}
+        onClose={() => setShareLocationDrawerVisible(false)}
+        showStartActions
+        onContinueWithoutShare={() => setShareLocationDrawerVisible(false)}
+      />
+
+      <RunWalkMusicAppsDrawer
+        visible={musicDrawerVisible}
+        onClose={() => setMusicDrawerVisible(false)}
+        onAppOpened={() => setMusicDrawerVisible(false)}
       />
 
       <RunWalkActivityFinishDrawer
@@ -134,17 +248,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  topOverlay: {
+  onlineBadgeOverlay: {
     position: 'absolute',
-    top: 0,
     left: 16,
-    right: 16,
     zIndex: 10,
   },
-  sosOverlay: {
+  sideActionsOverlay: {
     position: 'absolute',
     right: 16,
     zIndex: 10,
+    alignItems: 'flex-end',
+    gap: 10,
+  },
+  emergencyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 10,
   },
   bottomOverlay: {
     position: 'absolute',

@@ -11,13 +11,7 @@ import {
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { AppointmentActionButton } from '../components/appointments/AppointmentActionButton'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
-import {
-  RunWalkChangeActivityDrawer,
-  type ChangeActivityAction,
-} from '../components/runWalk/preparation/RunWalkChangeActivityDrawer'
-import { RunWalkMusicAppsDrawer } from '../components/runWalk/preparation/RunWalkMusicAppsDrawer'
 import { RunWalkPreparationInfoGrid } from '../components/runWalk/preparation/RunWalkPreparationInfoGrid'
 import { RunWalkShareLocationDrawer } from '../components/runWalk/preparation/RunWalkShareLocationDrawer'
 import { appEnv } from '../config/env'
@@ -34,7 +28,6 @@ import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { formatBatteryLevel, useDeviceBattery } from '../hooks/useDeviceBattery'
 import { gpsQualityLabel, useRunWalkLocation } from '../hooks/useRunWalkLocation'
 import { useRunWalkWeather } from '../hooks/useRunWalkWeather'
-import { ACTION_ICON_PALETTES } from '../theme/actionIconColors'
 import { colors } from '../theme/colors'
 import { getRunWalkRouteParams, type ActivityModality } from '../types/auth'
 import { formatTemperature, formatWeatherLine } from '../utils/runWalkWeather'
@@ -60,10 +53,8 @@ export function RunWalkPreparationScreen() {
   )
 
   const [audioConfigured, setAudioConfigured] = useState(false)
-  const [musicDrawerVisible, setMusicDrawerVisible] = useState(false)
   const [shareLocationDrawerVisible, setShareLocationDrawerVisible] = useState(false)
-  const [shareLocationFromStart, setShareLocationFromStart] = useState(false)
-  const [changeDrawerVisible, setChangeDrawerVisible] = useState(false)
+  const [startFlowActive, setStartFlowActive] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
   const [draftReady, setDraftReady] = useState(false)
 
@@ -216,61 +207,16 @@ export function RunWalkPreparationScreen() {
 
   useAndroidBackHandler(() => {
     if (shareLocationDrawerVisible) {
-      setShareLocationDrawerVisible(false)
-      setShareLocationFromStart(false)
-      return true
-    }
-    if (musicDrawerVisible) {
-      setMusicDrawerVisible(false)
-      return true
-    }
-    if (changeDrawerVisible) {
-      setChangeDrawerVisible(false)
+      closeShareLocationDrawer()
       return true
     }
     handleBack()
     return true
   })
 
-  function handleChangeActivity(action: ChangeActivityAction) {
-    switch (action) {
-      case 'swap-run-to-walk':
-        setModality('walk')
-        setActivityName(MODALITY_DEFAULTS.walk.activityName)
-        setIntensity(MODALITY_DEFAULTS.walk.intensity)
-        setNotice('Modalidade alterada para caminhada.')
-        break
-      case 'swap-walk-to-run-walk':
-        setModality('run-walk')
-        setActivityName(MODALITY_DEFAULTS['run-walk'].activityName)
-        setIntensity(MODALITY_DEFAULTS['run-walk'].intensity)
-        setNotice('Modalidade alterada para corrida e caminhada.')
-        break
-      case 'reduce-duration':
-        setDurationMinutes((prev) => Math.max(10, prev - 5))
-        setNotice('Duração reduzida em 5 minutos.')
-        break
-      case 'increase-duration':
-        setDurationMinutes((prev) => Math.min(120, prev + 5))
-        setNotice('Duração aumentada em 5 minutos.')
-        break
-      case 'choose-other-workout':
-        navigateTo('run-walk', { openModalityDrawer: true })
-        break
-      case 'start-free-activity':
-        setModality('free')
-        setActivityName(MODALITY_DEFAULTS.free.activityName)
-        setIntensity(MODALITY_DEFAULTS.free.intensity)
-        setNotice('Atividade livre selecionada.')
-        break
-      case 'use-saved-route':
-        navigateTo('nearby-running-routes')
-        break
-    }
-  }
-
   function proceedToChecklist() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+    setStartFlowActive(false)
     navigateTo('run-walk-checklist', {
       modality,
       activityName,
@@ -279,31 +225,24 @@ export function RunWalkPreparationScreen() {
     })
   }
 
-  function openShareLocationDrawer(fromStart = false) {
-    setShareLocationFromStart(fromStart)
+  function openShareLocationDrawer() {
     setShareLocationDrawerVisible(true)
   }
 
-  function closeShareLocationDrawer() {
+  function closeShareLocationDrawer(cancelFlow = true) {
     setShareLocationDrawerVisible(false)
-    setShareLocationFromStart(false)
+    if (cancelFlow) {
+      setStartFlowActive(false)
+    }
   }
 
   function handleStartPress() {
-    openShareLocationDrawer(true)
+    setStartFlowActive(true)
+    openShareLocationDrawer()
   }
 
-  function handleShareLocationSkip() {
-    closeShareLocationDrawer()
-    proceedToChecklist()
-  }
-
-  function handleShareLocation() {
-    openShareLocationDrawer(false)
-  }
-
-  function handleShareLocationConfirm() {
-    closeShareLocationDrawer()
+  function handleShareLocationComplete() {
+    closeShareLocationDrawer(false)
     proceedToChecklist()
   }
 
@@ -357,30 +296,6 @@ export function RunWalkPreparationScreen() {
           </View>
 
           <RunWalkPreparationInfoGrid rowPairs={infoRowPairs} />
-
-          <View style={styles.actionsBlock}>
-            <AppointmentActionButton
-              label="Selecionar música"
-              icon="music"
-              palette={ACTION_ICON_PALETTES.myGoals}
-              onPress={() => setMusicDrawerVisible(true)}
-            />
-            <AppointmentActionButton
-              label="Compartilhar localização"
-              icon="share-variant"
-              palette={ACTION_ICON_PALETTES.myAppointments}
-              onPress={handleShareLocation}
-            />
-          </View>
-
-          <Pressable
-            onPress={() => setChangeDrawerVisible(true)}
-            style={({ pressed }) => [styles.changeBtn, pressed && styles.changeBtnPressed]}
-            accessibilityRole="button"
-            accessibilityLabel="Alterar atividade"
-          >
-            <Text style={styles.changeBtnText}>Alterar atividade</Text>
-          </Pressable>
         </ScrollView>
 
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) + 8 }]}>
@@ -402,19 +317,6 @@ export function RunWalkPreparationScreen() {
         </View>
       </View>
 
-      <RunWalkMusicAppsDrawer
-        visible={musicDrawerVisible}
-        onClose={() => setMusicDrawerVisible(false)}
-        onAppOpened={() => setAudioConfigured(true)}
-      />
-
-      <RunWalkChangeActivityDrawer
-        visible={changeDrawerVisible}
-        onClose={() => setChangeDrawerVisible(false)}
-        onAction={handleChangeActivity}
-        currentModality={modality}
-      />
-
       <RunWalkShareLocationDrawer
         visible={shareLocationDrawerVisible}
         participantName={user?.name ?? 'Participante'}
@@ -422,9 +324,9 @@ export function RunWalkPreparationScreen() {
         latitude={location.coordinates?.latitude ?? null}
         longitude={location.coordinates?.longitude ?? null}
         onClose={closeShareLocationDrawer}
-        showStartActions={shareLocationFromStart}
-        onConfirmShare={handleShareLocationConfirm}
-        onContinueWithoutShare={handleShareLocationSkip}
+        showStartActions
+        onConfirmShare={handleShareLocationComplete}
+        onContinueWithoutShare={handleShareLocationComplete}
       />
 
     </>
@@ -494,26 +396,6 @@ const styles = StyleSheet.create({
   runnerLottie: {
     width: 140,
     height: 140,
-  },
-  actionsBlock: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  changeBtn: {
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-  },
-  changeBtnPressed: {
-    opacity: 0.88,
-  },
-  changeBtnText: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '700',
   },
   footer: {
     position: 'absolute',

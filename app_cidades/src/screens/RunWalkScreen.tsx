@@ -1,11 +1,16 @@
+import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  FlatList,
   ImageBackground,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -20,11 +25,13 @@ import { RunWalkModalityDrawer } from '../components/runWalk/RunWalkModalityDraw
 import { RunWalkDispositionCard } from '../components/runWalk/RunWalkDispositionCard'
 import { RunWalkDispositionCheckinDrawer } from '../components/runWalk/RunWalkDispositionCheckinDrawer'
 import { RunWalkDispositionExplainDrawer } from '../components/runWalk/RunWalkDispositionExplainDrawer'
+import { RunWalkHistoryTab } from '../components/runWalk/history/RunWalkHistoryTab'
 import { RunWalkQuickShortcuts } from '../components/runWalk/RunWalkQuickShortcuts'
 import { RunWalkSegmentTabs } from '../components/runWalk/RunWalkSegmentTabs'
 import { RunWalkTodayActivityCard } from '../components/runWalk/RunWalkTodayActivityCard'
 import { RunWalkWeeklyCalendarDrawer } from '../components/runWalk/RunWalkWeeklyCalendarDrawer'
 import { RunWalkWeeklyGoalCard } from '../components/runWalk/RunWalkWeeklyGoalCard'
+import type { RunWalkWeeklyBarCelebrateDay } from '../components/runWalk/RunWalkWeeklyBarChart'
 import { RunWalkWeeklyGoalDrawer } from '../components/runWalk/RunWalkWeeklyGoalDrawer'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { appEnv } from '../config/env'
@@ -35,6 +42,7 @@ import {
   getTodayActivityPreset,
 } from '../data/mockRunWalk'
 import { MODALITY_DEFAULTS } from '../data/runWalkModalityConfig'
+import { clearPreparationDraft } from '../data/runWalkPreparationDraftStorage'
 import {
   clearTodayActivitySelection,
   loadRunWalkDailyRecord,
@@ -45,6 +53,11 @@ import {
   loadWeeklyGoalTargets,
   saveWeeklyGoalTargets,
 } from '../data/runWalkWeeklyGoalStorage'
+import {
+  loadWeeklyProgress,
+  mergeWeeklyProgressIntoState,
+} from '../data/runWalkWeeklyProgressStorage'
+import { consumePendingWeeklyGoalCelebration } from '../data/runWalkWeeklyCelebration'
 import { useAuth } from '../contexts/AuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
@@ -64,9 +77,11 @@ import { resolveBrandImage } from '../utils/resolveBrandImage'
 
 const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
+const SEGMENT_PAGES: RunWalkTab[] = ['today', 'progress']
 
 export function RunWalkScreen() {
   const insets = useSafeAreaInsets()
+  const { width: screenWidth } = useWindowDimensions()
   const { user, navigateTo, goBack, canGoBack, logout, routeParams } = useAuth()
 
   const [segmentTab, setSegmentTab] = useState<RunWalkTab>('today')
@@ -92,9 +107,81 @@ export function RunWalkScreen() {
   const [modalityDrawerVisible, setModalityDrawerVisible] = useState(false)
   const [weeklyGoalTargets, setWeeklyGoalTargets] = useState<WeeklyGoalTargets | null>(null)
   const [planNotice, setPlanNotice] = useState<string | null>(null)
+  const [celebrateDay, setCelebrateDay] = useState<RunWalkWeeklyBarCelebrateDay | null>(null)
+  const [segmentPagerScrollEnabled, setSegmentPagerScrollEnabled] = useState(true)
+
+  const scrollRef = useRef<ScrollView>(null)
+  const segmentPagerRef = useRef<FlatList<RunWalkTab>>(null)
+  const segmentPagerIndexRef = useRef(0)
+  const weeklyGoalSectionY = useRef(0)
+  const celebrationTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
 
   const bottomContentPadding =
     TAB_BAR_ESTIMATED_HEIGHT + Math.max(insets.bottom, 8) + 16
+
+  const scrollSegmentPagerTo = useCallback(
+    (tab: RunWalkTab, animated = true) => {
+      const index = SEGMENT_PAGES.indexOf(tab)
+      if (index < 0) return
+
+      segmentPagerIndexRef.current = index
+      segmentPagerRef.current?.scrollToOffset({
+        offset: index * screenWidth,
+        animated,
+      })
+    },
+    [screenWidth],
+  )
+
+  const handleSegmentTabChange = useCallback(
+    (tab: RunWalkTab) => {
+      setSegmentTab(tab)
+      scrollSegmentPagerTo(tab)
+    },
+    [scrollSegmentPagerTo],
+  )
+
+  const handleSegmentPagerIndexChange = useCallback(
+    (nextIndex: number, options?: { haptic?: boolean }) => {
+      const clampedIndex = Math.min(Math.max(nextIndex, 0), SEGMENT_PAGES.length - 1)
+      const nextTab = SEGMENT_PAGES[clampedIndex] ?? 'today'
+
+      if (clampedIndex !== segmentPagerIndexRef.current) {
+        segmentPagerIndexRef.current = clampedIndex
+      }
+
+      if (nextTab !== segmentTab) {
+        if (options?.haptic) {
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+        }
+        setSegmentTab(nextTab)
+      }
+    },
+    [segmentTab],
+  )
+
+  const handleSegmentPagerScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const nextIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth)
+      handleSegmentPagerIndexChange(nextIndex)
+    },
+    [handleSegmentPagerIndexChange, screenWidth],
+  )
+
+  const handleSegmentPagerScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const nextIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth)
+      handleSegmentPagerIndexChange(nextIndex, { haptic: true })
+    },
+    [handleSegmentPagerIndexChange, screenWidth],
+  )
+
+  useEffect(() => {
+    const index = segmentTab === 'today' ? 0 : 1
+    if (segmentPagerIndexRef.current !== index) {
+      scrollSegmentPagerTo(segmentTab)
+    }
+  }, [scrollSegmentPagerTo, segmentTab])
 
   const disposition = useMemo(
     () => ({
@@ -125,6 +212,11 @@ export function RunWalkScreen() {
   const loadDailyState = useCallback(async () => {
     const savedGoal = await loadWeeklyGoalTargets(patientCpf)
     setWeeklyGoalTargets(savedGoal)
+
+    const weeklyProgress = await loadWeeklyProgress(patientCpf)
+    const mergedState = mergeWeeklyProgressIntoState(getMockRunWalkTodayState(), weeklyProgress)
+    setTodayState(mergedState)
+    setDispositionMessage(mergedState.disposition.message)
 
     if (!user) {
       setIsDailyStateReady(true)
@@ -159,12 +251,56 @@ export function RunWalkScreen() {
     }
   }, [routeParams])
 
-  const refreshData = useCallback(() => {
-    const next = getMockRunWalkTodayState()
+  useEffect(() => {
+    const pending = consumePendingWeeklyGoalCelebration()
+    if (!pending) return
+
+    celebrationTimersRef.current.forEach(clearTimeout)
+    celebrationTimersRef.current = []
+
+    let active = true
+
+    void (async () => {
+      await loadDailyState()
+      if (!active) return
+
+      setSegmentTab('today')
+      setCelebrateDay({
+        dateIso: pending.dateIso,
+        fromMinutes: pending.fromMinutes,
+        toMinutes: pending.toMinutes,
+      })
+
+      celebrationTimersRef.current.push(
+        setTimeout(() => {
+          scrollRef.current?.scrollTo({
+            y: Math.max(weeklyGoalSectionY.current - 24, 0),
+            animated: true,
+          })
+        }, 320),
+      )
+
+      celebrationTimersRef.current.push(
+        setTimeout(() => {
+          setCelebrateDay(null)
+        }, 1600),
+      )
+    })()
+
+    return () => {
+      active = false
+      celebrationTimersRef.current.forEach(clearTimeout)
+      celebrationTimersRef.current = []
+    }
+  }, [loadDailyState])
+
+  const refreshData = useCallback(async () => {
+    const weeklyProgress = await loadWeeklyProgress(patientCpf)
+    const next = mergeWeeklyProgressIntoState(getMockRunWalkTodayState(), weeklyProgress)
     setTodayState(next)
     setDispositionMessage(next.disposition.message)
     setPlanNotice(null)
-  }, [])
+  }, [patientCpf])
 
   function handleBack() {
     if (canGoBack()) goBack()
@@ -250,7 +386,7 @@ export function RunWalkScreen() {
   async function handleRefresh() {
     setIsRefreshing(true)
     await new Promise((resolve) => setTimeout(resolve, 500))
-    refreshData()
+    await refreshData()
     setIsRefreshing(false)
   }
 
@@ -307,18 +443,35 @@ export function RunWalkScreen() {
     setModalityDrawerVisible(true)
   }
 
-  function handleModalitySelect(modality: ActivityModality) {
-    const defaults = MODALITY_DEFAULTS[modality]
+  function navigateToPreparation(modality?: ActivityModality) {
+    void clearPreparationDraft()
+
+    if (activity && !modality) {
+      navigateTo('run-walk-preparation', {
+        modality: activity.type,
+        activityName: activity.title,
+        intensity: activity.intensityLabel,
+        durationMinutes: activity.durationMinutes,
+      })
+      return
+    }
+
+    const selectedModality = modality ?? 'walk'
+    const defaults = MODALITY_DEFAULTS[selectedModality]
     navigateTo('run-walk-preparation', {
-      modality,
+      modality: selectedModality,
       activityName: defaults.activityName,
       intensity: defaults.intensity,
       durationMinutes: defaults.durationMinutes,
     })
   }
 
+  function handleModalitySelect(modality: ActivityModality) {
+    navigateToPreparation(modality)
+  }
+
   function handleStartActivity() {
-    openModalityDrawer()
+    navigateToPreparation()
   }
 
   function handleActivityMenuAction(action: ActivityMenuAction) {
@@ -380,7 +533,7 @@ export function RunWalkScreen() {
     }
 
     if (id === 'start-activity') {
-      openModalityDrawer()
+      navigateToPreparation()
       return
     }
   }
@@ -404,71 +557,115 @@ export function RunWalkScreen() {
 
         <ScreenStackHeader
           title="Corrida e Caminhada"
-          subtitle="Hoje · Progresso"
+          subtitle="Hoje · Histórico"
           paddingTop={Math.max(insets.top, 12) + 8}
           onBack={handleBack}
         />
 
-        <ScrollView
-          style={styles.body}
-          contentContainerStyle={[
-            styles.bodyContent,
-            { paddingBottom: bottomContentPadding },
-          ]}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={() => void handleRefresh()}
-              tintColor={colors.primaryLight}
-            />
-          }
-        >
-          <RunWalkSegmentTabs activeTab={segmentTab} onChange={setSegmentTab} />
+        <RunWalkSegmentTabs activeTab={segmentTab} onChange={handleSegmentTabChange} />
 
-          {segmentTab === 'today' ? (
-            <>
-              {planNotice ? (
-                <View style={styles.notice}>
-                  <Text style={styles.noticeText}>{planNotice}</Text>
-                </View>
-              ) : null}
+        <FlatList
+          ref={segmentPagerRef}
+          data={SEGMENT_PAGES}
+          keyExtractor={(item) => item}
+          horizontal
+          pagingEnabled
+          scrollEnabled={segmentPagerScrollEnabled}
+          nestedScrollEnabled
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          decelerationRate="fast"
+          scrollEventThrottle={16}
+          onScroll={handleSegmentPagerScroll}
+          onMomentumScrollEnd={handleSegmentPagerScrollEnd}
+          getItemLayout={(_, index) => ({
+            length: screenWidth,
+            offset: screenWidth * index,
+            index,
+          })}
+          style={styles.segmentPager}
+          renderItem={({ item }) => (
+            <View style={[styles.segmentPage, { width: screenWidth, height: '100%' }]}>
+              {item === 'today' ? (
+                <ScrollView
+                  ref={scrollRef}
+                  style={styles.body}
+                  contentContainerStyle={[
+                    styles.bodyContent,
+                    { paddingBottom: bottomContentPadding, flexGrow: 1 },
+                  ]}
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={isRefreshing}
+                      onRefresh={() => void handleRefresh()}
+                      tintColor={colors.primaryLight}
+                    />
+                  }
+                >
+                  {planNotice ? (
+                    <View style={styles.notice}>
+                      <Text style={styles.noticeText}>{planNotice}</Text>
+                    </View>
+                  ) : null}
 
-              <RunWalkQuickShortcuts onShortcutPress={handleShortcutPress} />
+                  <View style={styles.shortcutsSection}>
+                    <View style={styles.shortcutsInner}>
+                      <RunWalkQuickShortcuts
+                        onShortcutPress={handleShortcutPress}
+                        onChallengesPress={() => navigateTo('run-walk-challenges')}
+                        onAchievementsPress={() => navigateTo('run-walk-achievements')}
+                      />
+                    </View>
+                    <NeonSectionDivider embedded />
+                  </View>
 
-              <NeonSectionDivider />
+                  <View
+                    onLayout={(event) => {
+                      weeklyGoalSectionY.current = event.nativeEvent.layout.y
+                    }}
+                  >
+                    <RunWalkWeeklyGoalCard
+                      stats={weeklyGoalStats}
+                      days={todayState.weeklyCalendar}
+                      onViewWeekPress={() => setWeekCalendarVisible(true)}
+                      onGoalActionPress={() => setGoalDrawerVisible(true)}
+                      celebrateDay={celebrateDay}
+                      animateRings={segmentTab === 'today' && isDailyStateReady}
+                    />
+                  </View>
 
-              <RunWalkWeeklyGoalCard
-                stats={weeklyGoalStats}
-                days={todayState.weeklyCalendar}
-                onViewWeekPress={() => setWeekCalendarVisible(true)}
-                onGoalActionPress={() => setGoalDrawerVisible(true)}
-              />
+                  <RunWalkDispositionCard
+                    disposition={disposition}
+                    onExplainPress={() => setExplainVisible(true)}
+                    onCheckinPress={handleOpenManualCheckin}
+                  />
 
-              <RunWalkDispositionCard
-                disposition={disposition}
-                onExplainPress={() => setExplainVisible(true)}
-                onCheckinPress={handleOpenManualCheckin}
-              />
-
-              {hasTodayActivity && activity ? (
-                <RunWalkTodayActivityCard
-                  activity={activity}
-                  onStartPress={handleStartActivity}
-                  onDetailsPress={() => setDetailVisible(true)}
-                  onMenuPress={() => setActivityMenuVisible(true)}
+                  {hasTodayActivity && activity ? (
+                    <RunWalkTodayActivityCard
+                      activity={activity}
+                      onStartPress={handleStartActivity}
+                      onDetailsPress={() => setDetailVisible(true)}
+                      onMenuPress={() => setActivityMenuVisible(true)}
+                    />
+                  ) : null}
+                </ScrollView>
+              ) : (
+                <RunWalkHistoryTab
+                  patientCpf={patientCpf}
+                  patientName={user?.name}
+                  profilePhotoUri={user?.selfieUri}
+                  weeklyGoalStats={weeklyGoalStats}
+                  bottomPadding={bottomContentPadding}
+                  isActive={segmentTab === 'progress'}
+                  onStartActivity={handleStartActivity}
+                  onSegmentPagerLockChange={(active) => setSegmentPagerScrollEnabled(!active)}
                 />
-              ) : null}
-            </>
-          ) : (
-            <View style={styles.comingSoon}>
-              <Text style={styles.comingSoonTitle}>Em breve</Text>
-              <Text style={styles.comingSoonText}>
-                Esta seção será desenvolvida na próxima etapa.
-              </Text>
+              )}
             </View>
           )}
-        </ScrollView>
+        />
 
         <BottomTabBar activeTab={null} onTabPress={handleTabPress} />
       </View>
@@ -566,9 +763,24 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
   },
+  segmentPager: {
+    flex: 1,
+  },
+  segmentPage: {
+    flex: 1,
+  },
   bodyContent: {
+    flexGrow: 1,
     gap: 14,
-    paddingTop: 4,
+  },
+  shortcutsSection: {
+    flexGrow: 1,
+    minHeight: 118,
+  },
+  shortcutsInner: {
+    flex: 1,
+    justifyContent: 'center',
+    marginBottom: 7,
   },
   notice: {
     marginHorizontal: 16,
@@ -584,28 +796,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     lineHeight: 17,
-  },
-  comingSoon: {
-    marginHorizontal: 16,
-    marginTop: 24,
-    padding: 24,
-    borderRadius: 18,
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  comingSoonTitle: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  comingSoonText: {
-    color: colors.textMuted,
-    fontSize: 13,
-    fontWeight: '500',
-    textAlign: 'center',
-    lineHeight: 18,
   },
 })

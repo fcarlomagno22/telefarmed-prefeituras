@@ -27,17 +27,32 @@ const FALLBACK_PACE_MIN_PER_KM: Record<string, number> = {
   free: 10,
 }
 
-export function formatElapsedActivityTime(totalSeconds: number): string {
+export function formatElapsedActivityTimeParts(totalSeconds: number): ActivityMetricParts {
   const safe = Math.max(0, Math.floor(totalSeconds))
   const hours = Math.floor(safe / 3600)
   const minutes = Math.floor((safe % 3600) / 60)
   const seconds = safe % 60
 
   if (hours > 0) {
-    return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+    return {
+      value: `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`,
+    }
   }
 
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  if (seconds === 0) {
+    return { value: String(minutes), unit: 'min' }
+  }
+
+  return {
+    value: `${minutes}:${String(seconds).padStart(2, '0')}`,
+    unit: 'min',
+  }
+}
+
+export function formatElapsedActivityTime(totalSeconds: number): string {
+  const parts = formatElapsedActivityTimeParts(totalSeconds)
+  if (!parts.unit) return parts.value
+  return `${parts.value} ${parts.unit}`
 }
 
 export function formatClockTime(date = new Date()): string {
@@ -48,15 +63,25 @@ export function formatClockTime(date = new Date()): string {
   })
 }
 
-export function formatPaceMinPerKm(minPerKm: number | null): string {
+export function formatPaceMinPerKmParts(minPerKm: number | null): ActivityMetricParts {
   if (minPerKm == null || !Number.isFinite(minPerKm) || minPerKm <= 0) {
-    return '—'
+    return { value: '—' }
   }
 
   const totalSeconds = Math.round(minPerKm * 60)
   const minutes = Math.floor(totalSeconds / 60)
   const seconds = totalSeconds % 60
-  return `${minutes}:${String(seconds).padStart(2, '0')}`
+  return {
+    value: String(minutes),
+    unit: `m${String(seconds).padStart(2, '0')}s/km`,
+    tightUnit: true,
+  }
+}
+
+export function formatPaceMinPerKm(minPerKm: number | null): string {
+  const parts = formatPaceMinPerKmParts(minPerKm)
+  if (!parts.unit) return parts.value
+  return `${parts.value}${parts.unit}`
 }
 
 export function formatSpeedKmh(speedKmh: number | null): string {
@@ -68,6 +93,7 @@ export function formatSpeedKmh(speedKmh: number | null): string {
 export type ActivityMetricParts = {
   value: string
   unit?: string
+  tightUnit?: boolean
 }
 
 export function formatSpeedKmhParts(speedKmh: number | null): ActivityMetricParts {
@@ -240,6 +266,47 @@ export function calculateRollingPaceAndSpeed(
   const paceMinPerKm = speedKmhToPaceMinPerKm(speedKmh)
 
   return { paceMinPerKm, speedKmh }
+}
+
+export function calculateAverageSpeedKmh(
+  distanceKm: number,
+  elapsedSeconds: number,
+): number | null {
+  if (elapsedSeconds <= 0 || distanceKm <= 0) return null
+  return distanceKm / (elapsedSeconds / 3600)
+}
+
+export function calculateAveragePaceMinPerKm(
+  distanceKm: number,
+  elapsedSeconds: number,
+): number | null {
+  const speed = calculateAverageSpeedKmh(distanceKm, elapsedSeconds)
+  return speed != null ? speedKmhToPaceMinPerKm(speed) : null
+}
+
+const CALORIES_MET_BY_MODALITY: Record<string, number> = {
+  walk: 3.5,
+  'active-walk': 4.5,
+  run: 9,
+  'run-walk': 6.5,
+  treadmill: 7,
+  free: 4,
+}
+
+export function estimateCaloriesBurned(
+  modality: ActivityModality,
+  elapsedSeconds: number,
+  weightKg = 70,
+): number {
+  if (elapsedSeconds <= 0) return 0
+
+  const met = CALORIES_MET_BY_MODALITY[modality] ?? CALORIES_MET_BY_MODALITY.free
+  const hours = elapsedSeconds / 3600
+  return Math.max(1, Math.round(met * weightKg * hours))
+}
+
+export function formatCaloriesBurned(calories: number): string {
+  return `${calories.toLocaleString('pt-BR')} kcal`
 }
 
 export function calculateTotalDistanceKm(trail: ActivityTrailPoint[]): number {

@@ -24,6 +24,7 @@ import {
 import { colors } from '../../theme/colors'
 import { ManualWalkEntry, StepsDayRecord, StepsPeriod } from '../../types/steps'
 import { PrimaryButton } from '../PrimaryButton'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SHEET_OFFSET = 620
 const STEPS_GRADIENT = ['#6ee7b7', '#10b981', '#059669'] as const
@@ -256,7 +257,7 @@ export function StepsHistoryDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16) + 12,
+              paddingBottom: getModalFooterPadding(insets.bottom, 12),
               maxHeight: '92%',
               transform: [{ translateY: sheetTranslateY }],
             },

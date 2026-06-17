@@ -276,6 +276,7 @@ export function RunWalkWeeklyGoalDrawer({
                 stroke={4}
                 gradientId={ring.gradientId}
                 gradientColors={ring.gradientColors}
+                animate={false}
               />
             </View>
           ))}

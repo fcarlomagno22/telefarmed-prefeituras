@@ -26,6 +26,7 @@ import {
 import { shareBloodPressureReportPdf } from '../../utils/bloodPressureReportPdf'
 import { PrimaryButton } from '../PrimaryButton'
 import { BloodPressureTrendLineChart } from './BloodPressureTrendLineChart'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const BP_GRADIENT = ['#fbbf24', '#f59e0b', '#d97706'] as const
 
@@ -252,7 +253,7 @@ export function BloodPressureReportDrawer({
             styles.sheet,
             {
               paddingTop: insets.top,
-              paddingBottom: Math.max(insets.bottom, 16),
+              paddingBottom: getModalFooterPadding(insets.bottom),
               transform: [{ translateX: sheetTranslateX }],
             },
           ]}

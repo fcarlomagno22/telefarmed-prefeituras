@@ -17,6 +17,7 @@ import {
 import { downloadConsultationDocumentPdf } from '../../utils/consultationDocumentPdf'
 import { getAppointmentDateTime } from '../../utils/myAppointments'
 import { formatScheduleDayLabel } from '../../utils/scheduleDate'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SHEET_OFFSET = 640
 
@@ -180,7 +181,7 @@ export function AppointmentDocumentsDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16),
+              paddingBottom: getModalFooterPadding(insets.bottom),
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}

@@ -18,6 +18,7 @@ import {
 } from '../../utils/myAppointments'
 import { formatScheduleDayLabel } from '../../utils/scheduleDate'
 import { AppointmentQuickAction } from './AppointmentQuickAction'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SHEET_OFFSET = 520
 
@@ -110,7 +111,7 @@ export function AppointmentDetailDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16),
+              paddingBottom: getModalFooterPadding(insets.bottom),
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}

@@ -1,6 +1,6 @@
 import Constants from 'expo-constants'
 
-const PROD_LIVE_SHARE_WEB_BASE_URL = 'https://prefeitura.telefarmed.com.br'
+const PROD_LIVE_SHARE_WEB_BASE_URL = 'https://seguranca.telefarmed.com.br'
 const DEFAULT_DEV_WEB_PORT = '5173'
 
 function readEnv(key: string): string {

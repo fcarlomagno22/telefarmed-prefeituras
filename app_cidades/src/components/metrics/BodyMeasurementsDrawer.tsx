@@ -23,6 +23,7 @@ import {
   getMeasurementDeltaSummary,
   isStorableBodyMeasurementId,
 } from '../../utils/bodyMeasurements'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SHEET_OFFSET = 620
 const ACCENT_GRADIENT = ['#f0abfc', '#d946ef', '#a21caf'] as const
@@ -239,7 +240,7 @@ export function BodyMeasurementsDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16) + 8,
+              paddingBottom: getModalFooterPadding(insets.bottom, 8),
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}

@@ -18,6 +18,16 @@ export type AppScreen =
   | 'run-walk-countdown'
   | 'run-walk-live'
   | 'run-walk-live-viewer'
+  | 'run-walk-checkin'
+  | 'run-walk-challenges'
+  | 'run-walk-challenge-rules'
+  | 'run-walk-achievements'
+  | 'run-walk-achievement-detail'
+  | 'run-walk-summary'
+  | 'eat-well'
+  | 'eat-well-menu'
+  | 'sleep-time'
+  | 'sleep-stories'
 
 export type LiveShareViewerRouteParams = {
   token?: string
@@ -29,11 +39,22 @@ export type RunWalkRouteParams = {
   intensity?: string
   durationMinutes?: number
   openModalityDrawer?: boolean
+  summaryId?: string
+  challengeId?: string
+  achievementId?: string
+  celebrateWeeklyGoal?: boolean
+  celebrateDateIso?: string
+  celebrateFromMinutes?: number
+  celebrateToMinutes?: number
 }
 
 export type FunctionalRouteParams = {
   exerciseId?: string
   startCircuit?: boolean
+}
+
+export type EatWellRouteParams = {
+  menuId?: string
 }
 
 export type ActivityModality =
@@ -48,6 +69,7 @@ export type AppRouteParams =
   | FunctionalRouteParams
   | RunWalkRouteParams
   | LiveShareViewerRouteParams
+  | EatWellRouteParams
 
 export function getRunWalkRouteParams(params: AppRouteParams | null): RunWalkRouteParams {
   if (!params) return {}
@@ -55,7 +77,14 @@ export function getRunWalkRouteParams(params: AppRouteParams | null): RunWalkRou
     'modality' in params ||
     'activityName' in params ||
     'durationMinutes' in params ||
-    'openModalityDrawer' in params
+    'openModalityDrawer' in params ||
+    'summaryId' in params ||
+    'challengeId' in params ||
+    'achievementId' in params ||
+    'celebrateWeeklyGoal' in params ||
+    'celebrateDateIso' in params ||
+    'celebrateFromMinutes' in params ||
+    'celebrateToMinutes' in params
   ) {
     return params as RunWalkRouteParams
   }
@@ -66,6 +95,14 @@ export function getFunctionalRouteParams(params: AppRouteParams | null): Functio
   if (!params) return {}
   if ('exerciseId' in params || 'startCircuit' in params) {
     return params as FunctionalRouteParams
+  }
+  return {}
+}
+
+export function getEatWellRouteParams(params: AppRouteParams | null): EatWellRouteParams {
+  if (!params) return {}
+  if ('menuId' in params) {
+    return params as EatWellRouteParams
   }
   return {}
 }

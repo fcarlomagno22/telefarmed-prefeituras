@@ -24,7 +24,7 @@ export function useRunWalkLiveSharePublisher({
   participantName,
   activityName,
 }: UseRunWalkLiveSharePublisherOptions) {
-  const location = useRunWalkLocation({ address, enabled })
+  const location = useRunWalkLocation({ address, enabled, trackHeading: enabled })
   const [session, setSession] = useState<LiveShareSessionSnapshot | null>(null)
   const [shouldPublish, setShouldPublish] = useState(false)
   const lastPublishedAtRef = useRef<number>(0)

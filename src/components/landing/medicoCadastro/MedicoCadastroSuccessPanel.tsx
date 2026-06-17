@@ -2,6 +2,7 @@ import { CheckCircle2, ClipboardList, Mail } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { profissionalRoutes } from '../../../config/profissionalRoutes'
 import { MedicoCadastroSuccessLottie } from './MedicoCadastroSuccessLottie'
+import { ProfissionalSuporteWhatsAppCallout } from './ProfissionalSuporteWhatsAppCallout'
 
 export function MedicoCadastroSuccessPanel() {
   return (
@@ -39,10 +40,12 @@ export function MedicoCadastroSuccessPanel() {
         </div>
       </div>
 
+      <ProfissionalSuporteWhatsAppCallout className="mt-4 w-full max-w-sm" />
+
       <Link
         to={profissionalRoutes.login}
         state={{ openMinhaCandidatura: true }}
-        className="mt-5 inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-800 shadow-sm transition hover:border-[var(--brand-primary)]/30 hover:text-[var(--brand-primary)]"
+        className="mt-5 inline-flex w-full max-w-sm items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-4 py-3 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
       >
         <ClipboardList className="h-4 w-4" aria-hidden />
         Acompanhar minha candidatura

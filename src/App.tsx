@@ -88,12 +88,11 @@ import { VerificarDocumentoPage } from './pages/VerificarDocumentoPage'
 import { PlantaoAceitePublicPage } from './pages/PlantaoAceitePublicPage'
 import { VidaPlusPage } from './pages/VidaPlusPage'
 import { vidaPlusRoutes } from './config/vidaPlusRoutes'
-import { getDedicatedPortal } from './config/portalHost'
 import { adminRoutes } from './config/adminRoutes'
 import { prefeituraRoutes } from './config/prefeituraRoutes'
-import { dedicatedPortalRoutes, SharedPublicRoutes } from './routes/DedicatedPortalRoutes'
+import { dedicatedPortalRoutes, LiveShareDedicatedRoutes, SharedPublicRoutes } from './routes/DedicatedPortalRoutes'
 import { useDedicatedPortalDocumentTitle } from './hooks/useDedicatedPortalDocumentTitle'
-import type { PortalId } from './config/portalHost'
+import { getDedicatedPortal, isLiveShareDedicatedHost, type PortalId } from './config/portalHost'
 
 const AdminNotificacoesPage = lazy(() =>
   import('./pages/AdminNotificacoesPage').then((module) => ({
@@ -127,13 +126,17 @@ function DedicatedPortalDocumentTitle({ portal }: { portal: PortalId }) {
 
 function App() {
   const dedicatedPortal = getDedicatedPortal()
+  const liveShareHost =
+    typeof window !== 'undefined' && isLiveShareDedicatedHost(window.location.hostname)
 
   return (
     <BrowserRouter>
       {dedicatedPortal ? <DedicatedPortalDocumentTitle portal={dedicatedPortal} /> : null}
       <Routes>
-        {SharedPublicRoutes()}
-        {dedicatedPortal ? (
+        {!liveShareHost ? SharedPublicRoutes() : null}
+        {liveShareHost ? (
+          <>{LiveShareDedicatedRoutes()}</>
+        ) : dedicatedPortal ? (
           <>{dedicatedPortalRoutes(dedicatedPortal)}</>
         ) : (
           <>

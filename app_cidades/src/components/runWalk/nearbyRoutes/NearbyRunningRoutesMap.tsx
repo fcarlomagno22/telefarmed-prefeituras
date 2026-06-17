@@ -1,12 +1,14 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { WebView, WebViewMessageEvent } from 'react-native-webview'
 import type { RunningRouteSpot, RunningRoutesOrigin } from '../../../types/nearbyRunningRoutes'
+import { profilePhotoToDataUri } from '../../../utils/profilePhotoImage'
 
 type NearbyRunningRoutesMapProps = {
   origin: RunningRoutesOrigin
   spots: RunningRouteSpot[]
   selectedId: string | null
+  profilePhotoUri?: string | null
   onSelectSpot: (id: string) => void
 }
 
@@ -14,10 +16,12 @@ function buildNearbyRunningRoutesMapHtml({
   origin,
   spots,
   selectedId,
+  profilePhotoDataUri,
 }: {
   origin: RunningRoutesOrigin
   spots: RunningRouteSpot[]
   selectedId: string | null
+  profilePhotoDataUri: string | null
 }) {
   const markers = JSON.stringify(
     spots.map((spot) => ({
@@ -34,6 +38,12 @@ function buildNearbyRunningRoutesMapHtml({
   const flyLng = selected?.longitude ?? origin.longitude
   const flyZoom = selected ? 14 : 13
   const originLabel = origin.label.replace(/'/g, "\\'")
+  const photoSrc = profilePhotoDataUri ? JSON.stringify(profilePhotoDataUri) : null
+  const userPinHtml = photoSrc
+    ? `<div class="user-pin user-pin-photo"><img src=${photoSrc} alt="" /></div>`
+    : '<div class="user-pin"><div class="user-pulse"></div></div>'
+  const userPinSize = photoSrc ? 36 : 18
+  const userPinAnchor = userPinSize / 2
 
   return `<!DOCTYPE html>
 <html>
@@ -41,6 +51,7 @@ function buildNearbyRunningRoutesMapHtml({
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1, width=device-width, height=device-height, viewport-fit=cover" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
     <style>
       html, body, #map { width: 100%; height: 100%; margin: 0; background: #0b0f14; }
       .leaflet-control-attribution { display: none !important; }
@@ -55,6 +66,14 @@ function buildNearbyRunningRoutesMapHtml({
         background: #38bdf8; border: 3px solid #fff;
         box-shadow: 0 0 0 6px rgba(56,189,248,0.25), 0 4px 14px rgba(0,0,0,0.45);
         position: relative;
+      }
+      .user-pin-photo {
+        width: 36px; height: 36px; overflow: hidden;
+        background: #38bdf8;
+        box-shadow: 0 0 0 5px rgba(56,189,248,0.25), 0 4px 14px rgba(0,0,0,0.45);
+      }
+      .user-pin-photo img {
+        width: 100%; height: 100%; object-fit: cover; display: block;
       }
       .user-pulse {
         position: absolute; inset: -14px; border-radius: 50%;
@@ -72,7 +91,11 @@ function buildNearbyRunningRoutesMapHtml({
         background: linear-gradient(135deg, #ffb366, #ff6b00, #e55f00);
         border: 2px solid rgba(255,255,255,0.85);
         box-shadow: 0 6px 18px rgba(255,107,0,0.45);
-        color: #fff; font-size: 15px; font-weight: 800;
+        color: #fff;
+      }
+      .spot-pin .mdi {
+        font-size: 20px;
+        line-height: 1;
       }
       .spot-pin.selected {
         transform: scale(1.12);
@@ -100,9 +123,9 @@ function buildNearbyRunningRoutesMapHtml({
 
       const userIcon = L.divIcon({
         className: 'user-pin-wrap',
-        html: '<div class="user-pin"><div class="user-pulse"></div></div>',
-        iconSize: [18, 18],
-        iconAnchor: [9, 9],
+        html: ${JSON.stringify(userPinHtml)},
+        iconSize: [${userPinSize}, ${userPinSize}],
+        iconAnchor: [${userPinAnchor}, ${userPinAnchor}],
       });
 
       const userMarker = L.marker([${origin.latitude}, ${origin.longitude}], { icon: userIcon, zIndexOffset: 1000 })
@@ -115,7 +138,7 @@ function buildNearbyRunningRoutesMapHtml({
       markers.forEach((markerData) => {
         const icon = L.divIcon({
           className: 'spot-pin-wrap',
-          html: '<div class="spot-pin ' + (markerData.selected ? 'selected' : '') + '">🏃</div>',
+          html: '<div class="spot-pin ' + (markerData.selected ? 'selected' : '') + '"><i class="mdi mdi-run-fast"></i></div>',
           iconSize: [38, 38],
           iconAnchor: [19, 19],
         });
@@ -140,13 +163,43 @@ export function NearbyRunningRoutesMap({
   origin,
   spots,
   selectedId,
+  profilePhotoUri,
   onSelectSpot,
 }: NearbyRunningRoutesMapProps) {
   const webRef = useRef<WebView>(null)
+  const [profilePhotoDataUri, setProfilePhotoDataUri] = useState<string | null>(null)
+
+  useEffect(() => {
+    const trimmed = profilePhotoUri?.trim()
+    if (!trimmed) {
+      setProfilePhotoDataUri(null)
+      return
+    }
+
+    let active = true
+
+    async function loadPhoto() {
+      const dataUri = await profilePhotoToDataUri(trimmed!)
+      if (active) {
+        setProfilePhotoDataUri(dataUri)
+      }
+    }
+
+    void loadPhoto()
+    return () => {
+      active = false
+    }
+  }, [profilePhotoUri])
 
   const html = useMemo(
-    () => buildNearbyRunningRoutesMapHtml({ origin, spots, selectedId }),
-    [origin.latitude, origin.longitude, origin.label, spots, selectedId],
+    () =>
+      buildNearbyRunningRoutesMapHtml({
+        origin,
+        spots,
+        selectedId,
+        profilePhotoDataUri,
+      }),
+    [origin.latitude, origin.longitude, origin.label, profilePhotoDataUri, spots, selectedId],
   )
 
   function handleMessage(event: WebViewMessageEvent) {

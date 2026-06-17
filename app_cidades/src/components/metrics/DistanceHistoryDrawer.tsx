@@ -28,6 +28,7 @@ import {
 import { colors } from '../../theme/colors'
 import { ManualWalkEntry, StepsDayRecord, StepsPeriod } from '../../types/steps'
 import { PrimaryButton } from '../PrimaryButton'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SHEET_OFFSET = 620
 const DISTANCE_GRADIENT = ['#93c5fd', '#2563eb', '#1d4ed8'] as const
@@ -314,7 +315,7 @@ export function DistanceHistoryDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16) + 8,
+              paddingBottom: getModalFooterPadding(insets.bottom, 8),
               maxHeight: '92%',
               transform: [{ translateY: sheetTranslateY }],
             },

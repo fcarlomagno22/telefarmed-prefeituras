@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import { ReactNode, RefObject, useEffect, useRef, useState } from 'react'
 import {
   Animated,
   Easing,
@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { drawerChrome } from '../../theme/drawerChrome'
 import { colors } from '../../theme/colors'
+import { getSheetBottomPadding } from '../../utils/modalSafeArea'
 import { AppModal } from '../AppModal'
 
 const SHEET_OFFSET = 720
@@ -34,6 +35,10 @@ type RunWalkSheetDrawerProps = {
   keyboardAware?: boolean
   minHeight?: number | `${number}%`
   extraBottomInset?: number
+  dense?: boolean
+  hideCloseButton?: boolean
+  scrollViewRef?: RefObject<ScrollView | null>
+  sheetBackground?: ReactNode
 }
 
 export function RunWalkSheetDrawer({
@@ -48,11 +53,16 @@ export function RunWalkSheetDrawer({
   keyboardAware = true,
   minHeight,
   extraBottomInset = 0,
+  dense = false,
+  hideCloseButton = false,
+  scrollViewRef,
+  sheetBackground,
 }: RunWalkSheetDrawerProps) {
   const insets = useSafeAreaInsets()
   const [isMounted, setIsMounted] = useState(false)
   const [keyboardInset, setKeyboardInset] = useState(0)
-  const scrollRef = useRef<ScrollView>(null)
+  const internalScrollRef = useRef<ScrollView>(null)
+  const scrollRef = scrollViewRef ?? internalScrollRef
   const sheetTranslateY = useRef(new Animated.Value(SHEET_OFFSET)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
 
@@ -123,20 +133,16 @@ export function RunWalkSheetDrawer({
     }
   }, [keyboardAware, visible])
 
-  useEffect(() => {
-    if (!keyboardInset || !scrollable) return
-
-    const timer = setTimeout(() => {
-      scrollRef.current?.scrollToEnd({ animated: true })
-    }, 80)
-
-    return () => clearTimeout(timer)
-  }, [keyboardInset, scrollable])
-
   if (!isMounted) return null
 
-  const scrollBottomPadding = 8 + (keyboardInset > 0 ? keyboardInset - Math.max(insets.bottom, 16) : 0)
-  const bottomInset = Math.max(insets.bottom, 20) + extraBottomInset
+  const footerBottomPadding = getSheetBottomPadding(insets.bottom, extraBottomInset)
+  const bottomInset = footerBottomPadding
+  const footerPaddingBottom =
+    keyboardInset > 0
+      ? Platform.OS === 'android'
+        ? Math.max(10, keyboardInset - Math.max(insets.bottom, 0) + 8)
+        : 10
+      : footerBottomPadding
 
   const body = scrollable ? (
     <ScrollView
@@ -146,16 +152,17 @@ export function RunWalkSheetDrawer({
       contentContainerStyle={[
         styles.scrollContent,
         fullScreen && styles.scrollContentFullScreen,
-        keyboardInset > 0 && { paddingBottom: Math.max(scrollBottomPadding, 24) },
+        footer ? styles.scrollContentWithFooter : null,
       ]}
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets={keyboardAware}
+      keyboardDismissMode="interactive"
       bounces={keyboardInset === 0}
     >
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.staticContent, fullScreen && styles.staticContentFullScreen]}>
+    <View style={[styles.staticContent, fullScreen && styles.staticContentFullScreen, dense && styles.staticContentDense]}>
       {children}
     </View>
   )
@@ -173,8 +180,8 @@ export function RunWalkSheetDrawer({
         ) : null}
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardWrap}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={[styles.keyboardWrap, fullScreen && styles.keyboardWrapFullScreen]}
           enabled={keyboardAware}
         >
           <Animated.View
@@ -195,30 +202,51 @@ export function RunWalkSheetDrawer({
               style={StyleSheet.absoluteFillObject}
             />
 
+            {sheetBackground ? (
+              <View style={styles.sheetBackground} pointerEvents="none">
+                {sheetBackground}
+              </View>
+            ) : null}
+
             {!fullScreen ? (
-              <View style={styles.handleRow}>
+              <View style={[styles.handleRow, dense && styles.handleRowDense]}>
                 <View style={styles.handle} />
               </View>
             ) : null}
 
-            <View style={styles.header}>
+            <View style={[styles.header, dense && styles.headerDense, styles.sheetForeground]}>
               <View style={styles.headerText}>
                 <Text style={styles.title}>{title}</Text>
                 {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
               </View>
-              <Pressable
-                onPress={onClose}
-                style={({ pressed }) => [styles.closeBtn, pressed && styles.closeBtnPressed]}
-                accessibilityRole="button"
-                accessibilityLabel="Fechar"
-              >
-                <Ionicons name="close" size={20} color={colors.textMuted} />
-              </Pressable>
+              {!hideCloseButton ? (
+                <Pressable
+                  onPress={onClose}
+                  style={({ pressed }) => [styles.closeBtn, pressed && styles.closeBtnPressed]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Fechar"
+                >
+                  <Ionicons name="close" size={20} color={colors.textMuted} />
+                </Pressable>
+              ) : null}
             </View>
 
-            {body}
+            {fullScreen ? (
+              <View style={[styles.bodyFill, styles.sheetForeground]}>{body}</View>
+            ) : (
+              body
+            )}
             {footer ? (
-              <View style={[styles.footer, { paddingBottom: bottomInset }]}>{footer}</View>
+              <View
+                style={[
+                  styles.footer,
+                  dense && styles.footerDense,
+                  keyboardInset > 0 && styles.footerWithKeyboard,
+                  { paddingBottom: footerPaddingBottom },
+                ]}
+              >
+                {footer}
+              </View>
             ) : null}
           </Animated.View>
         </KeyboardAvoidingView>
@@ -233,10 +261,15 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   hostFullScreen: {
+    flex: 1,
     justifyContent: 'flex-start',
   },
   keyboardWrap: {
     justifyContent: 'flex-end',
+  },
+  keyboardWrapFullScreen: {
+    flex: 1,
+    justifyContent: 'flex-start',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
@@ -252,10 +285,21 @@ const styles = StyleSheet.create({
   },
   sheetFullScreen: {
     flex: 1,
+    width: '100%',
     maxHeight: undefined,
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     borderWidth: 0,
+  },
+  sheetBackground: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  sheetForeground: {
+    zIndex: 1,
+  },
+  bodyFill: {
+    flex: 1,
+    minHeight: 0,
   },
   sheetWithKeyboard: {
     maxHeight: '100%',
@@ -264,6 +308,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 10,
     paddingBottom: 4,
+  },
+  handleRowDense: {
+    paddingTop: 8,
+    paddingBottom: 2,
   },
   handle: {
     width: 40,
@@ -277,6 +325,9 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 20,
     paddingBottom: 12,
+  },
+  headerDense: {
+    paddingBottom: 8,
   },
   headerText: {
     flex: 1,
@@ -313,12 +364,18 @@ const styles = StyleSheet.create({
   scrollContentFullScreen: {
     paddingBottom: 24,
   },
+  scrollContentWithFooter: {
+    paddingBottom: 12,
+  },
   scrollFill: {
     flex: 1,
   },
   staticContent: {
     paddingHorizontal: 20,
     gap: 12,
+  },
+  staticContentDense: {
+    gap: 8,
   },
   staticContentFullScreen: {
     flex: 1,
@@ -327,5 +384,11 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: 20,
     paddingTop: 8,
+  },
+  footerDense: {
+    paddingTop: 4,
+  },
+  footerWithKeyboard: {
+    paddingTop: 6,
   },
 })

@@ -15,6 +15,7 @@ import {
 } from '../../utils/bodyMeasurements'
 import { PrimaryButton } from '../PrimaryButton'
 import { MetricLogSuccessContent } from './MetricLogSuccessContent'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SUCCESS_DISMISS_MS = 2600
 const SHEET_OFFSET = 440
@@ -232,7 +233,7 @@ export function BodyMeasurementLogDrawer({
             style={[
               styles.sheet,
               {
-                paddingBottom: Math.max(insets.bottom, 16) + 8,
+                paddingBottom: getModalFooterPadding(insets.bottom, 8),
                 transform: [{ translateY: sheetTranslateY }],
               },
             ]}

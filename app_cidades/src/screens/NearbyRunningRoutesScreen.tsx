@@ -88,6 +88,7 @@ export function NearbyRunningRoutesScreen() {
           origin={origin}
           spots={spots}
           selectedId={selectedId}
+          profilePhotoUri={user?.selfieUri}
           onSelectSpot={handleSelectSpot}
         />
       ) : null}

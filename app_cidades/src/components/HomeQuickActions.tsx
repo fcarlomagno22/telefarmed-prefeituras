@@ -178,8 +178,12 @@ export function HomeQuickActions({ onActionPress, skeleton = false }: HomeQuickA
   if (skeleton) {
     return (
       <View style={styles.wrapper}>
+        <View style={styles.headerRow}>
+          <Text style={styles.sectionTitle}>Atendimento e Gestão</Text>
+        </View>
         <View
           style={[
+            styles.buttonsWrap,
             styles.scrollContent,
             styles.skeletonRow,
             { paddingHorizontal: HORIZONTAL_PADDING, gap: ITEM_GAP },
@@ -198,40 +202,63 @@ export function HomeQuickActions({ onActionPress, skeleton = false }: HomeQuickA
 
   return (
     <View style={styles.wrapper}>
-      {canScrollMore ? <ScrollMoreHint active={!isAtEnd} /> : null}
+      <View style={styles.headerRow}>
+        <Text style={styles.sectionTitle}>Atendimento e Gestão</Text>
+        {canScrollMore ? <ScrollMoreHint active={!isAtEnd} compact /> : null}
+      </View>
 
-      <ScrollView
-        horizontal
-        nestedScrollEnabled
-        directionalLockEnabled
-        showsHorizontalScrollIndicator={false}
-        decelerationRate="fast"
-        scrollEventThrottle={16}
-        onScroll={updateScrollMetrics}
-        onContentSizeChange={(width) => setContentWidth(width)}
-        onLayout={(event) => setLayoutWidth(event.nativeEvent.layout.width)}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingHorizontal: HORIZONTAL_PADDING, gap: ITEM_GAP },
-        ]}
-      >
-        {QUICK_ACTIONS.map((action) => (
-          <QuickActionButton
-            key={action.id}
-            action={action}
-            width={itemWidth}
-            onPress={() => handlePress(action.id)}
-          />
-        ))}
-      </ScrollView>
+      <View style={styles.buttonsWrap}>
+        <ScrollView
+          horizontal
+          nestedScrollEnabled
+          directionalLockEnabled
+          showsHorizontalScrollIndicator={false}
+          decelerationRate="fast"
+          scrollEventThrottle={16}
+          onScroll={updateScrollMetrics}
+          onContentSizeChange={(width) => setContentWidth(width)}
+          onLayout={(event) => setLayoutWidth(event.nativeEvent.layout.width)}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingHorizontal: HORIZONTAL_PADDING, gap: ITEM_GAP },
+          ]}
+        >
+          {QUICK_ACTIONS.map((action) => (
+            <QuickActionButton
+              key={action.id}
+              action={action}
+              width={itemWidth}
+              onPress={() => handlePress(action.id)}
+            />
+          ))}
+        </ScrollView>
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   wrapper: {
-    paddingTop: 8,
     paddingBottom: 4,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingHorizontal: 20,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  buttonsWrap: {
+    paddingTop: 12,
+  },
+  sectionTitle: {
+    color: colors.textMuted,
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.2,
+    flexShrink: 1,
   },
   scrollContent: {
     alignItems: 'flex-start',

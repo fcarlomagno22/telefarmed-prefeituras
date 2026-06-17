@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ActivityModality } from '../types/auth'
 import type { RunWalkActivityStep } from '../types/runWalk'
 import type { GeoCoordinates } from '../utils/geo'
@@ -41,11 +41,13 @@ export function useRunWalkActivitySession({
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [trail, setTrail] = useState<ActivityTrailPoint[]>([])
   const [isFinished, setIsFinished] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
   const [frozenSnapshot, setFrozenSnapshot] = useState<ActivitySessionSnapshot | null>(null)
   const elapsedSecondsRef = useRef(0)
   const trailRef = useRef<ActivityTrailPoint[]>([])
+  const pausedElapsedRef = useRef(0)
 
-  const isTracking = enabled && !isFinished
+  const isTracking = enabled && !isFinished && !isPaused
 
   const activitySteps = useMemo(
     () => structure ?? getDefaultActivitySteps(modality, durationMinutes),
@@ -61,7 +63,9 @@ export function useRunWalkActivitySession({
     setElapsedSeconds(0)
     setTrail([])
     setIsFinished(false)
+    setIsPaused(false)
     setFrozenSnapshot(null)
+    pausedElapsedRef.current = 0
   }, [enabled, modality, durationMinutes])
 
   useEffect(() => {
@@ -128,7 +132,27 @@ export function useRunWalkActivitySession({
 
     setFrozenSnapshot(snapshot)
     setIsFinished(true)
+    setIsPaused(false)
   }
+
+  const pauseActivity = useCallback(() => {
+    if (isFinished || isPaused) return
+
+    pausedElapsedRef.current = elapsedSecondsRef.current
+    setIsPaused(true)
+  }, [isFinished, isPaused])
+
+  const resumeActivity = useCallback(() => {
+    if (isFinished || !isPaused) return
+
+    startedAtRef.current = Date.now() - pausedElapsedRef.current * 1000
+    setIsPaused(false)
+  }, [isFinished, isPaused])
+
+  const togglePauseActivity = useCallback(() => {
+    if (isPaused) resumeActivity()
+    else pauseActivity()
+  }, [isPaused, pauseActivity, resumeActivity])
 
   const activeElapsedSeconds = frozenSnapshot?.elapsedSeconds ?? elapsedSeconds
   const activeDistanceKm = frozenSnapshot?.distanceKm ?? liveDistanceKm
@@ -153,6 +177,10 @@ export function useRunWalkActivitySession({
     currentStep,
     activitySteps,
     isFinished,
+    isPaused,
     finishActivity,
+    pauseActivity,
+    resumeActivity,
+    togglePauseActivity,
   }
 }

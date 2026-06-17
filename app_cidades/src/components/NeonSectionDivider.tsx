@@ -1,9 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient'
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, View, type ViewStyle } from 'react-native'
 
-export function NeonSectionDivider() {
+type NeonSectionDividerProps = {
+  embedded?: boolean
+  style?: ViewStyle
+}
+
+export function NeonSectionDivider({ embedded = false, style }: NeonSectionDividerProps) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, embedded && styles.containerEmbedded, style]}>
       <View style={styles.glowShell} pointerEvents="none">
         <LinearGradient
           colors={[
@@ -62,6 +67,9 @@ const styles = StyleSheet.create({
     height: 14,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  containerEmbedded: {
+    marginTop: 0,
   },
   glowShell: {
     width: '100%',

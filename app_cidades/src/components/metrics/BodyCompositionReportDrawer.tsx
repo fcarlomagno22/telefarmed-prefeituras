@@ -22,6 +22,7 @@ import { shareBodyCompositionReportPdf } from '../../utils/bodyCompositionReport
 import { colors } from '../../theme/colors'
 import { PrimaryButton } from '../PrimaryButton'
 import { GlucoseTrendLineChart } from './GlucoseTrendLineChart'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const COMPOSITION_GRADIENT = ['#67e8f9', '#0891b2', '#0e7490'] as const
 
@@ -279,7 +280,7 @@ export function BodyCompositionReportDrawer({
             styles.sheet,
             {
               paddingTop: insets.top,
-              paddingBottom: Math.max(insets.bottom, 16),
+              paddingBottom: getModalFooterPadding(insets.bottom),
               transform: [{ translateX: sheetTranslateX }],
             },
           ]}

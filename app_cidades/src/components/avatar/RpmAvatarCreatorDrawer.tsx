@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { WebView } from 'react-native-webview'
 import { buildRpmCreatorUrl } from '../../config/readyPlayerMe'
 import { colors } from '../../theme/colors'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 import {
   isRpmAvatarExportedEvent,
   parseRpmWebViewMessage,
@@ -47,7 +48,7 @@ export function RpmAvatarCreatorDrawer({
       presentationStyle="fullScreen"
       onRequestClose={handleClose}
     >
-      <View style={[styles.root, { paddingTop: insets.top }]}>
+      <View style={[styles.root, { paddingTop: insets.top, paddingBottom: getModalFooterPadding(insets.bottom) }]}>
         <View style={styles.toolbar}>
           <Pressable
             onPress={handleClose}

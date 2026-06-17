@@ -16,12 +16,22 @@ import { NearbyUnitsScreen } from './src/screens/NearbyUnitsScreen'
 import { NearbyRunningRoutesScreen } from './src/screens/NearbyRunningRoutesScreen'
 import { FunctionalTrainingScreen } from './src/screens/FunctionalTrainingScreen'
 import { FunctionalExerciseScreen } from './src/screens/FunctionalExerciseScreen'
+import { EatWellScreen } from './src/screens/EatWellScreen'
+import { SleepStoriesScreen } from './src/screens/SleepStoriesScreen'
+import { SleepTimeScreen } from './src/screens/SleepTimeScreen'
+import { EatWellMenuDetailScreen } from './src/screens/EatWellMenuDetailScreen'
 import { RunWalkScreen } from './src/screens/RunWalkScreen'
 import { RunWalkPreparationChecklistScreen } from './src/screens/RunWalkPreparationChecklistScreen'
 import { RunWalkPreparationScreen } from './src/screens/RunWalkPreparationScreen'
 import { RunWalkStartCountdownScreen } from './src/screens/RunWalkStartCountdownScreen'
 import { RunWalkLiveLocationViewerScreen } from './src/screens/RunWalkLiveLocationViewerScreen'
 import { RunWalkLiveActivityScreen } from './src/screens/RunWalkLiveActivityScreen'
+import { RunWalkAchievementDetailScreen } from './src/screens/RunWalkAchievementDetailScreen'
+import { RunWalkAchievementsScreen } from './src/screens/RunWalkAchievementsScreen'
+import { RunWalkChallengeRulesScreen } from './src/screens/RunWalkChallengeRulesScreen'
+import { RunWalkChallengesScreen } from './src/screens/RunWalkChallengesScreen'
+import { RunWalkActivityCheckInScreen } from './src/screens/RunWalkActivityCheckInScreen'
+import { RunWalkActivitySummaryScreen } from './src/screens/RunWalkActivitySummaryScreen'
 import { ScheduleAppointmentScreen } from './src/screens/ScheduleAppointmentScreen'
 import { LoginScreen } from './src/screens/LoginScreen'
 import { RegisterScreen } from './src/screens/RegisterScreen'
@@ -54,6 +64,16 @@ function AppRouter() {
   if (screen === 'run-walk-countdown') return <RunWalkStartCountdownScreen />
   if (screen === 'run-walk-live') return <RunWalkLiveActivityScreen />
   if (screen === 'run-walk-live-viewer') return <RunWalkLiveLocationViewerScreen />
+  if (screen === 'run-walk-checkin') return <RunWalkActivityCheckInScreen />
+  if (screen === 'run-walk-challenges') return <RunWalkChallengesScreen />
+  if (screen === 'run-walk-challenge-rules') return <RunWalkChallengeRulesScreen />
+  if (screen === 'run-walk-achievements') return <RunWalkAchievementsScreen />
+  if (screen === 'run-walk-achievement-detail') return <RunWalkAchievementDetailScreen />
+  if (screen === 'run-walk-summary') return <RunWalkActivitySummaryScreen />
+  if (screen === 'eat-well') return <EatWellScreen />
+  if (screen === 'eat-well-menu') return <EatWellMenuDetailScreen />
+  if (screen === 'sleep-time') return <SleepTimeScreen />
+  if (screen === 'sleep-stories') return <SleepStoriesScreen />
   if (screen === 'schedule-appointment') return <ScheduleAppointmentScreen />
   if (screen === 'home') return <HomeScreen />
   return <LoginScreen />

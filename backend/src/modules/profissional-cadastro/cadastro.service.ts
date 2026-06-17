@@ -1,6 +1,12 @@
 import { normalizeCpf } from '../../lib/cpf.js'
+import {
+  FORMACAO_CONSELHO_SIGLA,
+  resolveEspecialidadeIdByName,
+  resolveFormacaoEspecialidadeId,
+} from '../../lib/config-clinico/formacao-especialidade.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { ProfissionalCadastroError } from './errors.js'
+import { logProfissionalCadastro } from './debug-log.js'
 import {
   buildDocumentUpload,
   buildDocumentUploadFromPending,
@@ -15,26 +21,12 @@ import {
 import type {
   CandidaturaDocumentoUpload,
   CandidaturaEspecialidadeMedicaInput,
-  FormacaoCandidatura,
   SubmitCandidaturaInput,
   SubmitCandidaturaResult,
 } from './types.js'
 
 export type { PendingDocumentUploadRequest }
 export { createPendingCandidaturaDocumentUploadUrls }
-
-const FORMACAO_ESPECIALIDADE_PADRAO: Record<Exclude<FormacaoCandidatura, 'medicina'>, string> = {
-  psicologia: '33',
-  nutricao: '34',
-  fonoaudiologia: '331',
-}
-
-const FORMACAO_CONSELHO_SIGLA: Record<FormacaoCandidatura, string> = {
-  medicina: 'CRM',
-  psicologia: 'CRP',
-  nutricao: 'CRN',
-  fonoaudiologia: 'CRFa',
-}
 
 type IncomingDocument = {
   fieldId: string
@@ -46,26 +38,6 @@ type IncomingDocument = {
 type ResolvedEspecialidadeMedica = {
   especialidadeId: string
   rqe: string
-}
-
-async function resolveEspecialidadeIdByName(name: string): Promise<string> {
-  const { data, error } = await supabaseAdmin
-    .from('config_especialidades')
-    .select('id')
-    .ilike('nome', name.trim())
-    .eq('ativo', true)
-    .maybeSingle()
-
-  if (error) throw error
-  if (!data?.id) {
-    throw new ProfissionalCadastroError(
-      `Especialidade não encontrada: ${name}.`,
-      'SPECIALTY_NOT_FOUND',
-      400,
-    )
-  }
-
-  return String(data.id)
 }
 
 async function resolveEspecialidadesMedicas(
@@ -110,7 +82,7 @@ async function resolvePrimaryEspecialidadeId(input: SubmitCandidaturaInput): Pro
   }
 
   return {
-    especialidadeId: FORMACAO_ESPECIALIDADE_PADRAO[input.formacao],
+    especialidadeId: await resolveFormacaoEspecialidadeId(input.formacao),
     rqe: null,
     especialidadesMedicas: [],
   }
@@ -198,12 +170,29 @@ export async function submitCandidaturaProfissionalFromStorage(
   submissionId: string,
   documents: PendingDocumentReference[],
 ): Promise<SubmitCandidaturaResult> {
+  logProfissionalCadastro('info', 'submitCandidaturaFromStorage iniciado', {
+    submissionId,
+    formacao: input.formacao,
+    cpf: input.cpf,
+    documentoCount: documents.length,
+    fieldIds: documents.map((documento) => documento.fieldId),
+  })
+
   const cpf = normalizeCpf(input.cpf)
   await assertCpfDisponivel(cpf)
 
   const { especialidadeId, rqe, especialidadesMedicas } =
     await resolvePrimaryEspecialidadeId(input)
+  logProfissionalCadastro('info', 'submitCandidaturaFromStorage especialidade resolvida', {
+    submissionId,
+    formacao: input.formacao,
+    especialidadeId,
+  })
   const documentos = await collectPendingDocumentUploads(submissionId, documents)
+  logProfissionalCadastro('info', 'submitCandidaturaFromStorage documentos validados', {
+    submissionId,
+    documentoCount: documentos.length,
+  })
 
   const { data: candidatura, error: insertError } = await supabaseAdmin
     .from('candidaturas_profissionais')

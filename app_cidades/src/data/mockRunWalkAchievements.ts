@@ -1,0 +1,123 @@
+import type { RunWalkAchievement } from '../types/runWalkAchievements'
+
+export const MOCK_RUN_WALK_ACHIEVEMENTS: RunWalkAchievement[] = [
+  {
+    id: 'first-walk',
+    title: 'Primeira caminhada',
+    categories: ['first-steps', 'walk', 'health'],
+    icon: 'walk',
+    unlocked: true,
+    unlockedAt: '2026-03-02T08:14:00.000Z',
+    relatedActivity: 'Caminhada · 18 min',
+    meaning: 'Você deu o primeiro passo registrado no app. Cada jornada começa assim.',
+    nextAchievementId: 'first-walk-30',
+    accentColor: '#6ee7b7',
+  },
+  {
+    id: 'first-walk-30',
+    title: 'Primeira caminhada de 30 minutos',
+    categories: ['walk', 'active-time', 'health'],
+    icon: 'timer-outline',
+    unlocked: true,
+    unlockedAt: '2026-03-08T07:42:00.000Z',
+    relatedActivity: 'Caminhada · 32 min',
+    meaning: 'Meia hora de movimento contínuo — um marco importante para o corpo e a mente.',
+    nextAchievementId: 'seven-active-days',
+    accentColor: '#34d399',
+  },
+  {
+    id: 'first-run',
+    title: 'Primeira corrida',
+    categories: ['first-steps', 'run'],
+    icon: 'run-fast',
+    unlocked: true,
+    unlockedAt: '2026-03-12T06:55:00.000Z',
+    relatedActivity: 'Corrida · 22 min',
+    meaning: 'Sua primeira corrida registrada. Ritmo seu, progresso seu.',
+    nextAchievementId: 'first-km-running',
+    accentColor: '#fca5a5',
+  },
+  {
+    id: 'first-km-running',
+    title: 'Primeiro quilômetro correndo',
+    categories: ['run', 'distance'],
+    icon: 'run-fast',
+    unlocked: true,
+    unlockedAt: '2026-03-12T06:58:00.000Z',
+    relatedActivity: 'Corrida · 1,1 km',
+    meaning: 'Um quilômetro inteiro correndo. Base sólida para ir além.',
+    nextAchievementId: 'first-3km',
+    accentColor: '#f87171',
+  },
+  {
+    id: 'seven-active-days',
+    title: 'Sete dias ativos',
+    categories: ['consistency', 'health'],
+    icon: 'heart-pulse',
+    unlocked: true,
+    unlockedAt: '2026-03-15T21:10:00.000Z',
+    relatedActivity: '7 dias com atividade',
+    meaning: 'Uma semana inteira em movimento. Consistência vale mais que intensidade.',
+    nextAchievementId: 'three-weeks-streak',
+    accentColor: '#fcd34d',
+  },
+  {
+    id: 'ten-activities',
+    title: 'Dez atividades',
+    categories: ['consistency', 'active-time'],
+    icon: 'timer-outline',
+    unlocked: false,
+    unlockedAt: null,
+    relatedActivity: null,
+    meaning: 'Complete dez atividades registradas para desbloquear esta medalha.',
+    nextAchievementId: 'three-weeks-streak',
+    accentColor: '#93c5fd',
+  },
+  {
+    id: 'three-weeks-streak',
+    title: 'Três semanas consecutivas',
+    categories: ['consistency'],
+    icon: 'flag-checkered',
+    unlocked: false,
+    unlockedAt: null,
+    relatedActivity: null,
+    meaning: 'Mantenha atividade por três semanas seguidas.',
+    nextAchievementId: null,
+    accentColor: '#c4b5fd',
+  },
+  {
+    id: 'first-3km',
+    title: 'Primeiro 3 km',
+    categories: ['distance', 'run'],
+    icon: 'run-fast',
+    unlocked: false,
+    unlockedAt: null,
+    relatedActivity: null,
+    meaning: 'Complete uma corrida com pelo menos 3 km contínuos.',
+    nextAchievementId: 'first-5km',
+    accentColor: '#fb923c',
+  },
+  {
+    id: 'first-5km',
+    title: 'Primeiro 5 km',
+    categories: ['distance', 'run'],
+    icon: 'run-fast',
+    unlocked: false,
+    unlockedAt: null,
+    relatedActivity: null,
+    meaning: 'A distância clássica dos corredores. Um objetivo que marca evolução real.',
+    nextAchievementId: null,
+    accentColor: '#f97316',
+  },
+]
+
+export function getRunWalkAchievementById(achievementId: string): RunWalkAchievement | null {
+  return MOCK_RUN_WALK_ACHIEVEMENTS.find((item) => item.id === achievementId) ?? null
+}
+
+export function getNextRunWalkAchievement(
+  achievement: RunWalkAchievement,
+): RunWalkAchievement | null {
+  if (!achievement.nextAchievementId) return null
+  return getRunWalkAchievementById(achievement.nextAchievementId)
+}

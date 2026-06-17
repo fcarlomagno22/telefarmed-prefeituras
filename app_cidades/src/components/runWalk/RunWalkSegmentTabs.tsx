@@ -3,18 +3,29 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../theme/colors'
 import type { RunWalkTab } from '../../types/runWalk'
 
-type RunWalkSegmentTabsProps = {
-  activeTab: RunWalkTab
-  onChange: (tab: RunWalkTab) => void
+export type RunWalkSegmentTabItem<T extends string = string> = {
+  id: T
+  label: string
+  available?: boolean
 }
 
-const TABS: { id: RunWalkTab; label: string; available: boolean }[] = [
+type RunWalkSegmentTabsProps<T extends string = RunWalkTab> = {
+  activeTab: T
+  onChange: (tab: T) => void
+  tabs?: RunWalkSegmentTabItem<T>[]
+}
+
+const DEFAULT_TABS: RunWalkSegmentTabItem<RunWalkTab>[] = [
   { id: 'today', label: 'Hoje', available: true },
-  { id: 'progress', label: 'Progresso', available: false },
+  { id: 'progress', label: 'Histórico', available: true },
 ]
 
-export function RunWalkSegmentTabs({ activeTab, onChange }: RunWalkSegmentTabsProps) {
-  function handlePress(tab: RunWalkTab, available: boolean) {
+export function RunWalkSegmentTabs<T extends string = RunWalkTab>({
+  activeTab,
+  onChange,
+  tabs = DEFAULT_TABS as RunWalkSegmentTabItem<T>[],
+}: RunWalkSegmentTabsProps<T>) {
+  function handlePress(tab: T, available: boolean) {
     if (!available) return
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     onChange(tab)
@@ -22,37 +33,33 @@ export function RunWalkSegmentTabs({ activeTab, onChange }: RunWalkSegmentTabsPr
 
   return (
     <View style={styles.wrap}>
-      {TABS.map((tab) => {
+      {tabs.map((tab) => {
         const active = activeTab === tab.id
+        const available = tab.available ?? true
 
         return (
           <Pressable
             key={tab.id}
-            onPress={() => handlePress(tab.id, tab.available)}
+            onPress={() => handlePress(tab.id, available)}
             style={({ pressed }) => [
               styles.tabPressable,
-              pressed && tab.available && styles.tabPressed,
+              active && styles.tabPressableActive,
+              pressed && available && styles.tabPressed,
             ]}
             accessibilityRole="button"
-            accessibilityState={{ selected: active, disabled: !tab.available }}
+            accessibilityState={{ selected: active, disabled: !available }}
           >
-            <View
-              style={[
-                styles.tab,
-                active && styles.tabActive,
-                !tab.available && styles.tabDisabled,
-              ]}
-            >
+            <View style={[styles.tab, !available && styles.tabDisabled]}>
               <Text
                 style={[
                   styles.tabLabel,
                   active && styles.tabLabelActive,
-                  !tab.available && styles.tabLabelDisabled,
+                  !available && styles.tabLabelDisabled,
                 ]}
               >
                 {tab.label}
               </Text>
-              {!tab.available ? <Text style={styles.soonBadge}>Em breve</Text> : null}
+              {!available ? <Text style={styles.soonBadge}>Em breve</Text> : null}
             </View>
           </Pressable>
         )
@@ -65,14 +72,21 @@ const styles = StyleSheet.create({
   wrap: {
     flexDirection: 'row',
     marginHorizontal: 16,
+    marginBottom: 12,
     padding: 3,
     borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.04)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.06)',
+    overflow: 'hidden',
   },
   tabPressable: {
     flex: 1,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  tabPressableActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
   },
   tabPressed: {
     opacity: 0.88,
@@ -83,10 +97,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 5,
     paddingVertical: 9,
-    borderRadius: 9,
-  },
-  tabActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.07)',
   },
   tabDisabled: {
     opacity: 0.55,

@@ -11,9 +11,11 @@ export const publicRoutes = {
   get plantaoAceitarDemoEsgotado() {
     return `/plantao/aceitar/${PLANTAO_ACEITE_DEMO_ESGOTADO_TOKEN}`
   },
-  liveShareAcompanhar: (token: string) =>
-    `/acompanhar/${encodeURIComponent(token)}`,
-  get liveShareAcompanharDemo() {
-    return `/acompanhar/${LIVE_SHARE_DEMO_TOKEN}`
+  liveShare: (token: string) => `/${encodeURIComponent(token)}`,
+  get liveShareDemo() {
+    return `/${LIVE_SHARE_DEMO_TOKEN}`
   },
+  /** @deprecated Links antigos em prefeitura.telefarmed.com.br/acompanhar/… */
+  liveShareLegacyAcompanhar: (token: string) =>
+    `/acompanhar/${encodeURIComponent(token)}`,
 } as const

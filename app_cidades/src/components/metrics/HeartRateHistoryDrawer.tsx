@@ -15,6 +15,7 @@ import {
 import { colors } from '../../theme/colors'
 import { HeartRateReading } from '../../types/heartRate'
 import { PrimaryButton } from '../PrimaryButton'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SHEET_OFFSET = 560
 const HR_GRADIENT = ['#fca5a5', '#ef4444', '#dc2626'] as const
@@ -178,7 +179,7 @@ export function HeartRateHistoryDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16) + 12,
+              paddingBottom: getModalFooterPadding(insets.bottom, 12),
               maxHeight: '88%',
               transform: [{ translateY: sheetTranslateY }],
             },

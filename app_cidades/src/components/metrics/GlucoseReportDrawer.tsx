@@ -20,6 +20,7 @@ import { buildGlucoseReport, getTrendDirectionLabel } from '../../utils/glucoseR
 import { shareGlucoseReportPdf } from '../../utils/glucoseReportPdf'
 import { PrimaryButton } from '../PrimaryButton'
 import { GlucoseTrendLineChart } from './GlucoseTrendLineChart'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const BLOOD_GRADIENT = ['#fca5a5', '#ef4444', '#991b1b'] as const
 
@@ -236,7 +237,7 @@ export function GlucoseReportDrawer({
             styles.sheet,
             {
               paddingTop: insets.top,
-              paddingBottom: Math.max(insets.bottom, 16),
+              paddingBottom: getModalFooterPadding(insets.bottom),
               transform: [{ translateX: sheetTranslateX }],
             },
           ]}

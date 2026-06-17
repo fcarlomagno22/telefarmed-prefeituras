@@ -5,11 +5,12 @@ import {
   formatActivityDistanceKm,
   formatElapsedActivityTime,
   formatHeartRate,
-  formatPaceMinPerKm,
+  formatPaceMinPerKmParts,
   formatSpeedKmh,
   formatStepCount,
 } from '../../../utils/runWalkActivityStats'
 import { colors } from '../../../theme/colors'
+import { ActivityMetricValue } from './ActivityMetricValue'
 import { RunWalkActivityTrailMap } from './RunWalkActivityTrailMap'
 
 type RunWalkActivityMainPageProps = {
@@ -68,10 +69,7 @@ export function RunWalkActivityMainPage({
   bottomInset,
 }: RunWalkActivityMainPageProps) {
   const isPace = primaryMetric === 'pace'
-  const heroValue = isPace
-    ? formatPaceMinPerKm(currentPaceMinPerKm)
-    : formatSpeedKmh(currentSpeedKmh)
-  const heroUnit = isPace ? 'min/km' : ''
+  const paceParts = formatPaceMinPerKmParts(currentPaceMinPerKm)
 
   function handleToggleMetric() {
     void Haptics.selectionAsync()
@@ -91,8 +89,15 @@ export function RunWalkActivityMainPage({
         style={({ pressed }) => [styles.hero, pressed && styles.heroPressed]}
       >
         <Text style={styles.heroLabel}>{isPace ? 'Ritmo atual' : 'Velocidade atual'}</Text>
-        <Text style={styles.heroValue}>{heroValue}</Text>
-        {heroUnit ? <Text style={styles.heroUnit}>{heroUnit}</Text> : null}
+        {isPace ? (
+          <ActivityMetricValue
+            parts={paceParts}
+            valueStyle={styles.heroValue}
+            unitStyle={styles.heroUnit}
+          />
+        ) : (
+          <Text style={styles.heroValue}>{formatSpeedKmh(currentSpeedKmh)}</Text>
+        )}
         <Text style={styles.heroHint}>Toque para {isPace ? 'velocidade' : 'ritmo'}</Text>
       </Pressable>
 

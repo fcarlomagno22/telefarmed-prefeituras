@@ -18,6 +18,7 @@ import {
   IntegrationConnectionState,
 } from '../../types/healthIntegrations'
 import { PrimaryButton } from '../PrimaryButton'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SHEET_OFFSET = 640
 const MOCK_LOADING_MS = 1600
@@ -605,7 +606,7 @@ export function HealthIntegrationConnectDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16) + 8,
+              paddingBottom: getModalFooterPadding(insets.bottom, 8),
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}

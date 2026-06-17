@@ -1,4 +1,9 @@
 import { normalizeCpf } from '../../lib/cpf.js'
+import {
+  resolveEspecialidadeIdByName,
+  resolveFormacaoEspecialidadeId,
+} from '../../lib/config-clinico/formacao-especialidade.js'
+import { ProfissionalCadastroError } from '../profissional-cadastro/errors.js'
 import { hashPassword } from '../../lib/password.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { createProfissionalFotoSignedUrl } from './documentos.service.js'
@@ -18,12 +23,6 @@ const FORMACAO_CONSELHO_SIGLA: Record<FormacaoCandidatura, string> = {
   fonoaudiologia: 'CRFa',
 }
 
-const FORMACAO_ESPECIALIDADE_PADRAO: Record<Exclude<FormacaoCandidatura, 'medicina'>, string> = {
-  psicologia: '33',
-  nutricao: '34',
-  fonoaudiologia: '331',
-}
-
 const DEFAULT_PERMISSOES_PAGINAS = {
   agenda: ['visualizar', 'inserir', 'editar', 'excluir'],
   atendimentos: ['visualizar', 'inserir', 'editar', 'excluir'],
@@ -35,34 +34,29 @@ const DEFAULT_PERMISSOES_PAGINAS = {
   perfil: ['visualizar', 'inserir', 'editar', 'excluir'],
 }
 
-async function resolveEspecialidadeIdByName(name: string): Promise<string> {
-  const { data, error } = await supabaseAdmin
-    .from('config_especialidades')
-    .select('id')
-    .ilike('nome', name.trim())
-    .eq('ativo', true)
-    .maybeSingle()
-
-  if (error) throw error
-  if (!data?.id) {
-    throw new ProfissionaisError(
-      `Especialidade não encontrada: ${name}.`,
-      'SPECIALTY_NOT_FOUND',
-      400,
-    )
-  }
-
-  return String(data.id)
-}
-
 async function resolveEspecialidadeId(
   formacao: FormacaoCandidatura,
   specialtyName: string,
 ): Promise<string> {
   if (formacao === 'medicina') {
-    return resolveEspecialidadeIdByName(specialtyName)
+    try {
+      return await resolveEspecialidadeIdByName(specialtyName)
+    } catch (error) {
+      if (error instanceof ProfissionalCadastroError) {
+        throw new ProfissionaisError(error.message, 'SPECIALTY_NOT_FOUND', 400)
+      }
+      throw error
+    }
   }
-  return FORMACAO_ESPECIALIDADE_PADRAO[formacao]
+
+  try {
+    return await resolveFormacaoEspecialidadeId(formacao)
+  } catch (error) {
+    if (error instanceof ProfissionalCadastroError) {
+      throw new ProfissionaisError(error.message, 'SPECIALTY_NOT_FOUND', 400)
+    }
+    throw error
+  }
 }
 
 async function loadProfissionalAtivo(id: string): Promise<ProfissionalAtivoRow> {

@@ -111,6 +111,16 @@ export function HomeScreen() {
 
     if (actionId === 'run-walk') {
       navigateTo('run-walk')
+      return
+    }
+
+    if (actionId === 'eat-well') {
+      navigateTo('eat-well')
+      return
+    }
+
+    if (actionId === 'sleep-time') {
+      navigateTo('sleep-time')
     }
   }
 
@@ -227,7 +237,7 @@ export function HomeScreen() {
             }
             skeleton={showSkeleton}
           />
-          <Text style={styles.sectionTitle}>Vida Saudável</Text>
+          <Text style={styles.sectionTitle}>Saúde, Bem-estar e Qualidade de Vida</Text>
           <VidaSaudavelActions onActionPress={handleVidaAction} skeleton={showSkeleton} />
         </ScrollView>
 

@@ -19,6 +19,7 @@ import { shareBodyMeasurementsReportPdf } from '../../utils/bodyMeasurementsRepo
 import { colors } from '../../theme/colors'
 import { PrimaryButton } from '../PrimaryButton'
 import { GlucoseTrendLineChart } from './GlucoseTrendLineChart'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const MEASURES_GRADIENT = ['#f0abfc', '#d946ef', '#a21caf'] as const
 
@@ -212,7 +213,7 @@ export function BodyMeasurementsReportDrawer({
             styles.sheet,
             {
               paddingTop: insets.top,
-              paddingBottom: Math.max(insets.bottom, 16),
+              paddingBottom: getModalFooterPadding(insets.bottom),
               transform: [{ translateX: sheetTranslateX }],
             },
           ]}

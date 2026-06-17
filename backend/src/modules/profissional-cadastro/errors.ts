@@ -1,4 +1,5 @@
 import type { ZodError } from 'zod'
+import { formatZodIssuesForLog, logProfissionalCadastro, logProfissionalCadastroError } from './debug-log.js'
 
 export function formatCadastroValidationError(error: ZodError): string {
   const issue = error.issues[0]
@@ -29,6 +30,11 @@ export function mapProfissionalCadastroError(error: unknown): {
   body: { error: string; code?: string }
 } {
   if (error instanceof ProfissionalCadastroError) {
+    logProfissionalCadastro('warn', 'cadastro error mapeado', {
+      code: error.code,
+      statusCode: error.statusCode,
+      message: error.message,
+    })
     return {
       statusCode: error.statusCode,
       body: { error: error.message, code: error.code },
@@ -86,6 +92,14 @@ export function mapProfissionalCadastroError(error: unknown): {
       ? (error as { code: string }).code
       : null
 
+  const rawMessage =
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof (error as { message: unknown }).message === 'string'
+      ? (error as { message: string }).message
+      : ''
+
   if (pgCode === '23505') {
     return {
       statusCode: 409,
@@ -98,19 +112,12 @@ export function mapProfissionalCadastroError(error: unknown): {
   }
 
   if (pgCode === '23503') {
+    logProfissionalCadastro('warn', 'cadastro FK inválida', { pgCode, rawMessage })
     return {
       statusCode: 400,
       body: { error: 'Especialidade ou formação inválida.', code: 'INVALID_DATA' },
     }
   }
-
-  const rawMessage =
-    typeof error === 'object' &&
-    error !== null &&
-    'message' in error &&
-    typeof (error as { message: unknown }).message === 'string'
-      ? (error as { message: string }).message
-      : ''
 
   if (pgCode === 'PGRST205' || rawMessage.includes('schema cache')) {
     const missingSpecialtiesTable = rawMessage.includes('candidatura_especialidades')
@@ -126,8 +133,24 @@ export function mapProfissionalCadastroError(error: unknown): {
     }
   }
 
+  logProfissionalCadastroError('cadastro erro interno não mapeado', error, {
+    pgCode,
+    rawMessage,
+  })
+
   return {
     statusCode: 500,
     body: { error: 'Erro interno. Tente novamente em instantes.' },
   }
+}
+
+export function logCadastroValidationFailure(
+  step: string,
+  error: ZodError,
+  meta?: Record<string, unknown>,
+): void {
+  logProfissionalCadastro('warn', step, {
+    ...meta,
+    validationIssues: formatZodIssuesForLog(error),
+  })
 }

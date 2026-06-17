@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Navigate, Route } from 'react-router-dom'
+import { Navigate, Route, useParams } from 'react-router-dom'
 import { PrefixedLegacyRedirect } from '../components/routing/PrefixedLegacyRedirect'
 import { AdminHomeRedirect } from '../components/auth/AdminPagePermissionGuard'
 import { AdminProtectedRoute } from '../components/auth/AdminProtectedRoute'
@@ -101,6 +101,34 @@ const AdminFinanceiroPage = lazy(() =>
     default: module.AdminFinanceiroPage,
   })),
 )
+
+function LiveShareLegacyRedirect() {
+  const { token = '' } = useParams<{ token: string }>()
+  return <Navigate to={`/${encodeURIComponent(token)}`} replace />
+}
+
+function LiveShareHomePage() {
+  return (
+    <div className="flex min-h-[100dvh] items-center justify-center bg-[#0a0a0c] px-6 text-center text-white">
+      <div className="max-w-md space-y-2">
+        <h1 className="text-lg font-bold">Acompanhamento ao vivo</h1>
+        <p className="text-sm text-white/70">
+          Abra o link completo que você recebeu para acompanhar a localização em tempo real.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+export function LiveShareDedicatedRoutes() {
+  return (
+    <>
+      <Route path="/acompanhar/:token" element={<LiveShareLegacyRedirect />} />
+      <Route path="/:token" element={<RunWalkLiveSharePublicPage />} />
+      <Route path="/" element={<LiveShareHomePage />} />
+    </>
+  )
+}
 
 function SharedPublicRoutes() {
   return (

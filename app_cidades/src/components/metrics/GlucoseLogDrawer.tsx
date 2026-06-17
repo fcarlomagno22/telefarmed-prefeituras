@@ -24,6 +24,7 @@ import { getGlucoseZone } from '../../utils/glucose'
 import { playSuccessSound } from '../../utils/appSounds'
 import { PrimaryButton } from '../PrimaryButton'
 import { MetricLogSuccessContent } from './MetricLogSuccessContent'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 export type { GlucoseReading, GlucoseReadingContext }
 
@@ -791,7 +792,7 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
             style={[
               styles.sheet,
               {
-                paddingBottom: Math.max(insets.bottom, 16) + 8,
+                paddingBottom: getModalFooterPadding(insets.bottom, 8),
                 transform: [{ translateY: sheetTranslateY }],
               },
             ]}

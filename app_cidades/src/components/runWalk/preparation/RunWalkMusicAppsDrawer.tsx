@@ -10,11 +10,14 @@ import {
 } from '../../../utils/runWalkMusicApps'
 import { colors } from '../../../theme/colors'
 import { RunWalkSheetDrawer } from '../RunWalkSheetDrawer'
+import { RUN_WALK_FLOW_DRAWER_MIN_HEIGHT, RUN_WALK_MUSIC_DRAWER_MIN_HEIGHT } from '../runWalkFlowDrawerLayout'
 
 type RunWalkMusicAppsDrawerProps = {
   visible: boolean
   onClose: () => void
   onAppOpened: () => void
+  showStartActions?: boolean
+  onContinueWithoutMusic?: () => void
 }
 
 function MusicAppIcon({ app }: { app: MusicAppOption }) {
@@ -32,6 +35,8 @@ export function RunWalkMusicAppsDrawer({
   visible,
   onClose,
   onAppOpened,
+  showStartActions = false,
+  onContinueWithoutMusic,
 }: RunWalkMusicAppsDrawerProps) {
   const [apps, setApps] = useState<MusicAppOption[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -75,20 +80,48 @@ export function RunWalkMusicAppsDrawer({
     try {
       await openMusicApp(app)
       onAppOpened()
-      onClose()
+      if (!showStartActions) {
+        onClose()
+      }
     } catch {
       setLoadError(`Não foi possível abrir o ${app.name}.`)
     }
   }
 
+  function handleSkipPress() {
+    void Haptics.selectionAsync()
+    onContinueWithoutMusic?.()
+  }
+
   return (
     <RunWalkSheetDrawer
       visible={visible}
-      title="Selecionar música"
-      subtitle="Mostramos apenas apps de música instalados no celular. Você pode retornar sem selecionar nada."
+      title="Ouvir música"
+      subtitle={
+        showStartActions
+          ? 'Escolha um app instalado no celular ou continue sem música.'
+          : 'Escolha um app de música instalado no celular.'
+      }
       onClose={onClose}
+      minHeight={
+        showStartActions ? RUN_WALK_FLOW_DRAWER_MIN_HEIGHT : RUN_WALK_MUSIC_DRAWER_MIN_HEIGHT
+      }
+      footer={
+        showStartActions ? (
+          <View style={styles.footer}>
+            <Pressable
+              onPress={handleSkipPress}
+              style={({ pressed }) => [styles.skipBtn, pressed && styles.skipBtnPressed]}
+              accessibilityRole="button"
+              accessibilityLabel="Continuar sem música"
+            >
+              <Text style={styles.skipLabel}>Continuar sem música</Text>
+            </Pressable>
+          </View>
+        ) : null
+      }
     >
-      <View style={styles.list}>
+      <View style={[styles.list, showStartActions && styles.listStartFlow]}>
         {isLoading ? (
           <View style={styles.stateWrap}>
             <ActivityIndicator color={colors.primaryLight} />
@@ -144,6 +177,12 @@ const styles = StyleSheet.create({
   list: {
     gap: 8,
     paddingBottom: 8,
+    minHeight: 180,
+  },
+  listStartFlow: {
+    flexGrow: 1,
+    minHeight: 220,
+    justifyContent: 'center',
   },
   stateWrap: {
     alignItems: 'center',
@@ -197,5 +236,20 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 14,
     fontWeight: '700',
+  },
+  footer: {
+    gap: 10,
+  },
+  skipBtn: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  skipBtnPressed: {
+    opacity: 0.75,
+  },
+  skipLabel: {
+    color: colors.textMuted,
+    fontSize: 13,
+    fontWeight: '600',
   },
 })

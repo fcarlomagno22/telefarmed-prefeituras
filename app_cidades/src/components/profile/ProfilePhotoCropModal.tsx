@@ -18,6 +18,7 @@ import {
   type CropTransform,
 } from '../../utils/imageCrop'
 import { saveProfilePhotoCrop } from '../../utils/profilePhotoImage'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const CROP_SIZE = 280
 
@@ -285,7 +286,7 @@ export function ProfilePhotoCropModal({
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-          <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+          <View style={[styles.footer, { paddingBottom: getModalFooterPadding(insets.bottom) }]}>
             <PrimaryButton
               label={isSaving ? 'Salvando...' : 'Usar esta foto'}
               onPress={() => void handleConfirm()}

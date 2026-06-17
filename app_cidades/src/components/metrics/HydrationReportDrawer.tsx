@@ -20,6 +20,7 @@ import { shareHydrationReportPdf } from '../../utils/hydrationReportPdf'
 import { colors } from '../../theme/colors'
 import { PrimaryButton } from '../PrimaryButton'
 import { GlucoseTrendLineChart } from './GlucoseTrendLineChart'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const HYDRATION_GRADIENT = ['#7dd3fc', '#0ea5e9', '#0369a1'] as const
 
@@ -175,7 +176,7 @@ export function HydrationReportDrawer({
             styles.sheet,
             {
               paddingTop: insets.top,
-              paddingBottom: Math.max(insets.bottom, 16),
+              paddingBottom: getModalFooterPadding(insets.bottom),
               transform: [{ translateX: sheetTranslateX }],
             },
           ]}

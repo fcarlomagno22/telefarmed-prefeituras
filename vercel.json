@@ -31,6 +31,12 @@
   ],
   "redirects": [
     {
+      "source": "/acompanhar/:token",
+      "has": [{ "type": "host", "value": "prefeitura.telefarmed.com.br" }],
+      "destination": "https://seguranca.telefarmed.com.br/:token",
+      "permanent": true
+    },
+    {
       "source": "/",
       "has": [{ "type": "host", "value": "admin.telefarmed.com.br" }],
       "destination": "/login",

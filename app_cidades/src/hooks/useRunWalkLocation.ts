@@ -10,6 +10,7 @@ export type GpsQuality = 'excellent' | 'good' | 'fair' | 'poor' | 'unavailable'
 export type RunWalkLocationState = {
   coordinates: GeoCoordinates | null
   accuracyMeters: number | null
+  headingDegrees: number | null
   gpsQuality: GpsQuality
   cityLabel: string | null
   isLocating: boolean
@@ -57,12 +58,18 @@ async function resolveCityLabel(latitude: number, longitude: number): Promise<st
 type UseRunWalkLocationOptions = {
   address?: RegistrationAddress
   enabled?: boolean
+  trackHeading?: boolean
 }
 
-export function useRunWalkLocation({ address, enabled = true }: UseRunWalkLocationOptions) {
+export function useRunWalkLocation({
+  address,
+  enabled = true,
+  trackHeading = false,
+}: UseRunWalkLocationOptions) {
   const [state, setState] = useState<RunWalkLocationState>({
     coordinates: null,
     accuracyMeters: null,
+    headingDegrees: null,
     gpsQuality: 'unavailable',
     cityLabel: null,
     isLocating: false,
@@ -73,22 +80,33 @@ export function useRunWalkLocation({ address, enabled = true }: UseRunWalkLocati
   })
 
   const watchRef = useRef<Location.LocationSubscription | null>(null)
+  const headingWatchRef = useRef<Location.LocationSubscription | null>(null)
 
   const stopWatch = useCallback(() => {
     watchRef.current?.remove()
     watchRef.current = null
   }, [])
 
-  const applyPosition = useCallback((latitude: number, longitude: number, accuracy: number | null) => {
-    setState((prev) => ({
-      ...prev,
-      coordinates: { latitude, longitude },
-      accuracyMeters: accuracy,
-      gpsQuality: accuracyToQuality(accuracy),
-      isLocating: false,
-      isResolvingCity: true,
-      error: null,
-    }))
+  const stopHeadingWatch = useCallback(() => {
+    headingWatchRef.current?.remove()
+    headingWatchRef.current = null
+  }, [])
+
+  const applyPosition = useCallback(
+    (latitude: number, longitude: number, accuracy: number | null, heading: number | null) => {
+      setState((prev) => ({
+        ...prev,
+        coordinates: { latitude, longitude },
+        accuracyMeters: accuracy,
+        headingDegrees:
+          heading != null && Number.isFinite(heading) && heading >= 0
+            ? heading % 360
+            : prev.headingDegrees,
+        gpsQuality: accuracyToQuality(accuracy),
+        isLocating: false,
+        isResolvingCity: true,
+        error: null,
+      }))
 
     void resolveCityLabel(latitude, longitude).then((cityLabel) => {
       setState((prev) => ({
@@ -97,6 +115,15 @@ export function useRunWalkLocation({ address, enabled = true }: UseRunWalkLocati
         isResolvingCity: false,
       }))
     })
+  }, [])
+
+  const applyHeading = useCallback((heading: number) => {
+    if (!Number.isFinite(heading) || heading < 0) return
+
+    setState((prev) => ({
+      ...prev,
+      headingDegrees: heading % 360,
+    }))
   }, [])
 
   const requestLocation = useCallback(async () => {
@@ -130,6 +157,7 @@ export function useRunWalkLocation({ address, enabled = true }: UseRunWalkLocati
         position.coords.latitude,
         position.coords.longitude,
         position.coords.accuracy ?? null,
+        position.coords.heading ?? null,
       )
 
       stopWatch()
@@ -144,6 +172,7 @@ export function useRunWalkLocation({ address, enabled = true }: UseRunWalkLocati
             update.coords.latitude,
             update.coords.longitude,
             update.coords.accuracy ?? null,
+            update.coords.heading ?? null,
           )
         },
       )
@@ -151,7 +180,7 @@ export function useRunWalkLocation({ address, enabled = true }: UseRunWalkLocati
       const fallback = address ? getHomeCoordinatesFromAddress(address) : null
       if (fallback) {
         const mock = getMockGpsCoordinates(fallback)
-        applyPosition(mock.latitude, mock.longitude, 18)
+        applyPosition(mock.latitude, mock.longitude, 18, null)
         setState((prev) => ({
           ...prev,
           permissionGranted: true,
@@ -174,6 +203,37 @@ export function useRunWalkLocation({ address, enabled = true }: UseRunWalkLocati
     }
     return () => stopWatch()
   }, [enabled, requestLocation, stopWatch])
+
+  useEffect(() => {
+    if (!enabled || !trackHeading) {
+      stopHeadingWatch()
+      return
+    }
+
+    let active = true
+
+    void Location.watchHeadingAsync((update) => {
+      if (!active) return
+
+      const heading =
+        update.trueHeading >= 0 ? update.trueHeading : update.magHeading
+      applyHeading(heading)
+    })
+      .then((subscription) => {
+        if (!active) {
+          subscription.remove()
+          return
+        }
+
+        headingWatchRef.current = subscription
+      })
+      .catch(() => undefined)
+
+    return () => {
+      active = false
+      stopHeadingWatch()
+    }
+  }, [applyHeading, enabled, stopHeadingWatch, trackHeading])
 
   return {
     ...state,

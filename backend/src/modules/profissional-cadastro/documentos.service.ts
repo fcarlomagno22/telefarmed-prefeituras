@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { ProfissionalCadastroError } from './errors.js'
+import { logProfissionalCadastro } from './debug-log.js'
 import type { CandidaturaDocumentoUpload, TipoDocumentoCandidatura } from './types.js'
 
 const DOCUMENTS_BUCKET = 'candidaturas-documentos'
@@ -257,6 +258,12 @@ export async function buildDocumentUploadFromPending(
   const storagePath = normalizeStoragePath(reference.storagePath)
   const prefix = pendingCandidaturaDocumentPrefix(submissionId, reference.fieldId)
   if (!storagePath.startsWith(prefix) || storagePath.includes('..')) {
+    logProfissionalCadastro('warn', 'documento pending path inválido', {
+      submissionId,
+      fieldId: reference.fieldId,
+      storagePath,
+      expectedPrefix: prefix,
+    })
     throw new ProfissionalCadastroError('Documento inválido.', 'DOCUMENT_INVALID', 400)
   }
 
@@ -265,6 +272,12 @@ export async function buildDocumentUploadFromPending(
     .download(storagePath)
 
   if (error || !data) {
+    logProfissionalCadastro('warn', 'documento pending não encontrado no storage', {
+      submissionId,
+      fieldId: reference.fieldId,
+      storagePath,
+      storageError: error?.message ?? 'download vazio',
+    })
     throw new ProfissionalCadastroError(
       'Documento não encontrado no storage. Envie os arquivos novamente.',
       'DOCUMENT_REQUIRED',
@@ -273,6 +286,13 @@ export async function buildDocumentUploadFromPending(
   }
 
   const buffer = Buffer.from(await data.arrayBuffer())
+  logProfissionalCadastro('info', 'documento pending carregado', {
+    submissionId,
+    fieldId: reference.fieldId,
+    storagePath,
+    bytes: buffer.length,
+    mimeType: reference.mimeType || data.type,
+  })
   const documento = buildDocumentUpload(
     reference.fieldId,
     buffer,

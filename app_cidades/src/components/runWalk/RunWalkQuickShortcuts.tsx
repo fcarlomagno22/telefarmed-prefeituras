@@ -8,47 +8,95 @@ import type { RunWalkQuickShortcutId } from '../../types/runWalk'
 
 type RunWalkQuickShortcutsProps = {
   onShortcutPress: (id: RunWalkQuickShortcutId) => void
+  onChallengesPress: () => void
+  onAchievementsPress: () => void
 }
 
-type ShortcutConfig = {
-  id: RunWalkQuickShortcutId
+type ShortcutPalette = {
+  iconGradient: readonly [string, string, ...string[]]
+  shadowColor: string
+}
+
+type ShortcutButtonConfig = {
+  id: string
   label: string
   icon: keyof typeof MaterialCommunityIcons.glyphMap
-  palette: (typeof ACTION_ICON_PALETTES)[keyof typeof ACTION_ICON_PALETTES]
+  palette: ShortcutPalette
+  onPress: () => void
 }
 
-const SHORTCUTS: ShortcutConfig[] = [
-  {
-    id: 'start-activity',
-    label: 'Iniciar atividade',
-    icon: 'play',
-    palette: ACTION_ICON_PALETTES.myAppointments,
-  },
-  {
-    id: 'nearby-routes',
-    label: 'Onde correr',
-    icon: 'map-marker-radius',
-    palette: ACTION_ICON_PALETTES.myGoals,
-  },
-]
+const CHALLENGES_PALETTE: ShortcutPalette = {
+  iconGradient: ['#fbcfe8', '#ec4899', '#db2777'],
+  shadowColor: 'rgba(236, 72, 153, 0.45)',
+}
+
+const ACHIEVEMENTS_PALETTE: ShortcutPalette = {
+  iconGradient: ['#fde68a', '#f59e0b', '#d97706'],
+  shadowColor: 'rgba(245, 158, 11, 0.45)',
+}
 
 const HORIZONTAL_PADDING = 16
 const GAP = 10
 const COLUMNS = 2
 
-export function RunWalkQuickShortcuts({ onShortcutPress }: RunWalkQuickShortcutsProps) {
+export function RunWalkQuickShortcuts({
+  onShortcutPress,
+  onChallengesPress,
+  onAchievementsPress,
+}: RunWalkQuickShortcutsProps) {
   const { width: screenWidth } = useWindowDimensions()
   const itemWidth =
     (screenWidth - HORIZONTAL_PADDING * 2 - GAP * (COLUMNS - 1)) / COLUMNS
-
-  const rows = Array.from({ length: Math.ceil(SHORTCUTS.length / COLUMNS) }, (_, rowIndex) =>
-    SHORTCUTS.slice(rowIndex * COLUMNS, rowIndex * COLUMNS + COLUMNS),
-  )
 
   function handlePress(id: RunWalkQuickShortcutId) {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     onShortcutPress(id)
   }
+
+  function handleChallengesPress() {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    onChallengesPress()
+  }
+
+  function handleAchievementsPress() {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    onAchievementsPress()
+  }
+
+  const rows: ShortcutButtonConfig[][] = [
+    [
+      {
+        id: 'start-activity',
+        label: 'Iniciar atividade',
+        icon: 'play',
+        palette: ACTION_ICON_PALETTES.myAppointments,
+        onPress: () => handlePress('start-activity'),
+      },
+      {
+        id: 'nearby-routes',
+        label: 'Onde correr',
+        icon: 'map-marker-radius',
+        palette: ACTION_ICON_PALETTES.myGoals,
+        onPress: () => handlePress('nearby-routes'),
+      },
+    ],
+    [
+      {
+        id: 'challenges',
+        label: 'Desafios',
+        icon: 'bullseye-arrow',
+        palette: CHALLENGES_PALETTE,
+        onPress: handleChallengesPress,
+      },
+      {
+        id: 'achievements',
+        label: 'Conquistas',
+        icon: 'medal-outline',
+        palette: ACHIEVEMENTS_PALETTE,
+        onPress: handleAchievementsPress,
+      },
+    ],
+  ]
 
   return (
     <View style={styles.wrap}>
@@ -57,7 +105,7 @@ export function RunWalkQuickShortcuts({ onShortcutPress }: RunWalkQuickShortcuts
           {row.map((shortcut) => (
             <Pressable
               key={shortcut.id}
-              onPress={() => handlePress(shortcut.id)}
+              onPress={shortcut.onPress}
               style={({ pressed }) => [
                 styles.item,
                 { width: itemWidth },
@@ -102,7 +150,6 @@ export function RunWalkQuickShortcuts({ onShortcutPress }: RunWalkQuickShortcuts
 const styles = StyleSheet.create({
   wrap: {
     paddingHorizontal: HORIZONTAL_PADDING,
-    paddingBottom: 4,
     gap: GAP,
   },
   row: {
@@ -126,10 +173,10 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    minHeight: 52,
+    minHeight: 72,
     borderRadius: 14,
     overflow: 'hidden',
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.18)',
@@ -139,16 +186,16 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'center',
+    gap: 6,
   },
   label: {
-    flex: 1,
     color: '#fff',
     fontSize: 12,
     fontWeight: '700',
-    textAlign: 'left',
+    textAlign: 'center',
     lineHeight: 15,
     letterSpacing: -0.1,
   },

@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics'
-import { useEffect, useMemo, useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../theme/colors'
 import type { WeeklyCalendarDay } from '../../types/runWalk'
 import {
@@ -16,6 +16,12 @@ import Svg, {
   Text as SvgText,
 } from 'react-native-svg'
 
+export type RunWalkWeeklyBarCelebrateDay = {
+  dateIso: string
+  fromMinutes: number
+  toMinutes: number
+}
+
 type RunWalkWeeklyBarChartProps = {
   days: WeeklyCalendarDay[]
   width: number
@@ -23,6 +29,13 @@ type RunWalkWeeklyBarChartProps = {
   targetMinutesPerDay?: number
   selectedDateIso?: string | null
   onSelectDay?: (dateIso: string) => void
+  celebrateDay?: RunWalkWeeklyBarCelebrateDay | null
+  layoutMode?: 'calendar-week' | 'chronological'
+  scrollable?: boolean
+  visibleBars?: number
+  showLegend?: boolean
+  animate?: boolean
+  preserveFinal?: boolean
 }
 
 const PADDING_TOP = 12
@@ -31,14 +44,21 @@ const PADDING_LEFT = 4
 const PADDING_RIGHT = 4
 const HIT_PADDING_X = 4
 const TOOLTIP_ESTIMATED_WIDTH = 132
+const BAR_ENTRANCE_DURATION = 380
+const BAR_ENTRANCE_GAP = 70
+const BAR_ENTRANCE_INITIAL_DELAY = 60
 
 type BarGeometry = {
   day: WeeklyCalendarDay
+  displayMinutes: number
   index: number
   x: number
   y: number
   barWidth: number
   barHeight: number
+  baseHeight: number
+  overflowHeight: number
+  hasOverflow: boolean
 }
 
 export function RunWalkWeeklyBarChart({
@@ -48,43 +68,230 @@ export function RunWalkWeeklyBarChart({
   targetMinutesPerDay = 30,
   selectedDateIso = null,
   onSelectDay,
+  celebrateDay = null,
+  layoutMode = 'calendar-week',
+  scrollable = false,
+  visibleBars = 7,
+  showLegend = false,
+  animate = false,
+  preserveFinal = true,
 }: RunWalkWeeklyBarChartProps) {
+  const scrollRef = useRef<ScrollView>(null)
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
-  const [tooltipMeasuredWidth, setTooltipMeasuredWidth] = useState(TOOLTIP_ESTIMATED_WIDTH)
+  const [animatedMinutes, setAnimatedMinutes] = useState<number | null>(null)
+  const chartDays = useMemo(
+    () => (layoutMode === 'chronological' ? days : buildWeeklyChartDays(days)),
+    [days, layoutMode],
+  )
+  const shouldAnimateEntrance = Boolean(animate) && !celebrateDay
+  const animateVisibleWindowOnly = scrollable && chartDays.length > visibleBars
+  const visibleWindowStartIndex = animateVisibleWindowOnly
+    ? chartDays.length - visibleBars
+    : 0
 
-  const chartDays = useMemo(() => buildWeeklyChartDays(days), [days])
+  function shouldAnimateBarIndex(index: number) {
+    if (!shouldAnimateEntrance) return false
+    return index >= visibleWindowStartIndex
+  }
+
+  const [barEntranceRatios, setBarEntranceRatios] = useState<number[]>(() =>
+    Array.from({ length: chartDays.length }, (_, index) => {
+      if (shouldAnimateBarIndex(index)) return 0
+      if (shouldAnimateEntrance) return 1
+      return preserveFinal ? 1 : 0
+    }),
+  )
+  const celebrateProgress = useRef(new Animated.Value(celebrateDay ? 0 : 1)).current
+  const barEntranceValues = useRef(
+    Array.from({ length: Math.max(chartDays.length, 7) }, () => new Animated.Value(shouldAnimateEntrance ? 0 : 1)),
+  ).current
+
+  useEffect(() => {
+    if (!scrollable || chartDays.length <= visibleBars) return
+
+    const timer = setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: false })
+    }, 0)
+
+    return () => clearTimeout(timer)
+  }, [chartDays, scrollable, visibleBars, width])
+
+  useEffect(() => {
+    if (celebrateDay) {
+      barEntranceValues.forEach((value) => value.stopAnimation())
+      setBarEntranceRatios(Array.from({ length: chartDays.length }, () => 1))
+      return
+    }
+
+    if (!shouldAnimateEntrance) {
+      const ratio = preserveFinal || celebrateDay ? 1 : 0
+      setBarEntranceRatios(Array.from({ length: chartDays.length }, () => ratio))
+      barEntranceValues.forEach((value) => value.setValue(ratio))
+      return
+    }
+
+    const nextRatios = Array.from({ length: chartDays.length }, (_, index) =>
+      shouldAnimateBarIndex(index) ? 0 : 1,
+    )
+    setBarEntranceRatios(nextRatios)
+
+    chartDays.forEach((_, index) => {
+      barEntranceValues[index]?.setValue(shouldAnimateBarIndex(index) ? 0 : 1)
+    })
+
+    const listeners = chartDays.map((_, index) => {
+      if (!shouldAnimateBarIndex(index)) return null
+
+      return barEntranceValues[index]?.addListener(({ value: ratio }) => {
+        setBarEntranceRatios((current) => {
+          if (current[index] === ratio) return current
+          const next = [...current]
+          next[index] = ratio
+          return next
+        })
+      })
+    })
+
+    const animations = chartDays.flatMap((_, index) => {
+      if (!shouldAnimateBarIndex(index)) return []
+
+      const visibleIndex = index - visibleWindowStartIndex
+
+      return [
+        Animated.timing(barEntranceValues[index]!, {
+          toValue: 1,
+          duration: BAR_ENTRANCE_DURATION,
+          delay:
+            BAR_ENTRANCE_INITIAL_DELAY +
+            visibleIndex * (BAR_ENTRANCE_DURATION + BAR_ENTRANCE_GAP),
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
+      ]
+    })
+
+    if (animations.length > 0) {
+      Animated.parallel(animations).start()
+    }
+
+    return () => {
+      listeners.forEach((listenerId, index) => {
+        if (listenerId != null) {
+          barEntranceValues[index]?.removeListener(listenerId)
+        }
+      })
+      animations.forEach((animation) => animation.stop())
+    }
+  }, [
+    animate,
+    barEntranceValues,
+    celebrateDay,
+    chartDays,
+    preserveFinal,
+    shouldAnimateEntrance,
+    visibleWindowStartIndex,
+  ])
+
+  useEffect(() => {
+    if (!celebrateDay) {
+      celebrateProgress.setValue(1)
+      setAnimatedMinutes(null)
+      return
+    }
+
+    celebrateProgress.setValue(0)
+    setAnimatedMinutes(celebrateDay.fromMinutes)
+
+    const listenerId = celebrateProgress.addListener(({ value }) => {
+      const nextMinutes =
+        celebrateDay.fromMinutes +
+        (celebrateDay.toMinutes - celebrateDay.fromMinutes) * value
+      setAnimatedMinutes(nextMinutes)
+    })
+
+    const animation = Animated.timing(celebrateProgress, {
+      toValue: 1,
+      duration: 1500,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    })
+
+    animation.start()
+
+    return () => {
+      celebrateProgress.removeListener(listenerId)
+      animation.stop()
+    }
+  }, [celebrateDay, celebrateProgress])
 
   const geometry = useMemo(() => {
-    const plotWidth = width - PADDING_LEFT - PADDING_RIGHT
+    const viewportPlotWidth = width - PADDING_LEFT - PADDING_RIGHT
     const plotHeight = height - PADDING_TOP - PADDING_BOTTOM
+    const barGap = 8
+    const barCount = Math.max(chartDays.length, 1)
+    const barsPerViewport = Math.min(visibleBars, barCount)
+    const slotWidth =
+      (viewportPlotWidth - barGap * (barsPerViewport - 1)) / Math.max(barsPerViewport, 1)
+    const useScrollLayout = scrollable && barCount > visibleBars
+    const plotWidth = useScrollLayout
+      ? barCount * slotWidth + barGap * (barCount - 1)
+      : viewportPlotWidth
+    const barWidth = useScrollLayout
+      ? slotWidth
+      : (plotWidth - barGap * (barCount - 1)) / barCount
+    const chartRenderWidth = plotWidth + PADDING_LEFT + PADDING_RIGHT
+
+    const minutesByDay = chartDays.map((day) => {
+      if (celebrateDay?.dateIso === day.dateIso && animatedMinutes != null) {
+        return animatedMinutes
+      }
+      return day.activeMinutes
+    })
+
     const maxValue = Math.max(
       targetMinutesPerDay,
-      ...chartDays.map((day) => day.activeMinutes),
+      celebrateDay?.toMinutes ?? 0,
+      ...minutesByDay,
       1,
     )
-    const barGap = 8
-    const barWidth = (plotWidth - barGap * (chartDays.length - 1)) / chartDays.length
 
     const bars: BarGeometry[] = chartDays.map((day, index) => {
-      const hasMinutes = day.activeMinutes > 0
-      const ratio = day.activeMinutes / maxValue
-      const barHeight = Math.max(hasMinutes ? 6 : 3, ratio * plotHeight)
+      const displayMinutes = minutesByDay[index] ?? 0
+      const hasMinutes = displayMinutes > 0
+      const totalRatio = displayMinutes / maxValue
+      const targetRatio = targetMinutesPerDay / maxValue
+      const barEntrance = celebrateDay ? 1 : (barEntranceRatios[index] ?? 0)
+      const barHeight = Math.max(
+        hasMinutes ? 6 * barEntrance : 3 * barEntrance,
+        totalRatio * plotHeight * barEntrance,
+      )
+      const baseHeight = Math.min(barHeight, targetRatio * plotHeight * barEntrance)
+      const overflowHeight = Math.max(0, barHeight - baseHeight)
       const x = PADDING_LEFT + index * (barWidth + barGap)
       const y = PADDING_TOP + (plotHeight - barHeight)
 
       return {
-        day,
+        day: {
+          ...day,
+          activeMinutes: Math.round(displayMinutes),
+        },
+        displayMinutes,
         index,
         x,
         y,
         barWidth,
         barHeight,
+        baseHeight,
+        overflowHeight,
+        hasOverflow: overflowHeight > 1,
       }
     })
 
     const gridLines = [0.25, 0.5, 0.75, 1].map((tick) => ({
       y: PADDING_TOP + plotHeight * (1 - tick),
     }))
+
+    const targetLineY = PADDING_TOP + plotHeight * (1 - targetMinutesPerDay / maxValue)
 
     return {
       bars,
@@ -93,8 +300,21 @@ export function RunWalkWeeklyBarChart({
       plotWidth,
       plotBottom: PADDING_TOP + plotHeight,
       plotHeight,
+      targetLineY,
+      showTargetLine: maxValue > targetMinutesPerDay * 1.02,
+      chartRenderWidth,
     }
-  }, [chartDays, height, targetMinutesPerDay, width])
+  }, [
+    animatedMinutes,
+    barEntranceRatios,
+    celebrateDay,
+    chartDays,
+    height,
+    scrollable,
+    targetMinutesPerDay,
+    visibleBars,
+    width,
+  ])
 
   useEffect(() => {
     if (!selectedDateIso) {
@@ -121,7 +341,7 @@ export function RunWalkWeeklyBarChart({
     if (bar.day.isToday) {
       return isSelected ? 'url(#runWalkBarTodaySelected)' : 'url(#runWalkBarToday)'
     }
-    if (bar.day.activeMinutes <= 0) {
+    if (bar.displayMinutes <= 0) {
       return 'url(#runWalkBarEmpty)'
     }
     return isSelected ? 'url(#runWalkBarActiveSelected)' : 'url(#runWalkBarActive)'
@@ -144,10 +364,10 @@ export function RunWalkWeeklyBarChart({
   const tooltipLeft = selectedBar
     ? Math.min(
         Math.max(
-          selectedBar.x + selectedBar.barWidth / 2 - tooltipMeasuredWidth / 2,
+          selectedBar.x + selectedBar.barWidth / 2 - TOOLTIP_ESTIMATED_WIDTH / 2,
           6,
         ),
-        width - tooltipMeasuredWidth - 6,
+        geometry.chartRenderWidth - TOOLTIP_ESTIMATED_WIDTH - 6,
       )
     : 0
 
@@ -155,9 +375,9 @@ export function RunWalkWeeklyBarChart({
     ? Math.max(6, selectedBar.y - 54)
     : 0
 
-  return (
-    <View style={[styles.root, { width, height }]} collapsable={false}>
-      <Svg width={width} height={height}>
+  const chartBody = (
+    <View style={[styles.root, { width: geometry.chartRenderWidth, height }]} collapsable={false}>
+      <Svg width={geometry.chartRenderWidth} height={height}>
         <Defs>
           <LinearGradient id="runWalkBarActive" x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0%" stopColor="#93c5fd" stopOpacity={0.95} />
@@ -175,10 +395,43 @@ export function RunWalkWeeklyBarChart({
             <Stop offset="0%" stopColor="#a7f3d0" stopOpacity={1} />
             <Stop offset="100%" stopColor="#059669" stopOpacity={0.95} />
           </LinearGradient>
+          <LinearGradient id="runWalkBarOverflow" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0%" stopColor="#fde68a" stopOpacity={1} />
+            <Stop offset="100%" stopColor="#f59e0b" stopOpacity={0.95} />
+          </LinearGradient>
           <LinearGradient id="runWalkBarEmpty" x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0%" stopColor="rgba(255,255,255,0.14)" stopOpacity={1} />
             <Stop offset="100%" stopColor="rgba(255,255,255,0.04)" stopOpacity={1} />
           </LinearGradient>
+          {geometry.bars
+            .filter((bar) => bar.hasOverflow)
+            .map((bar) => {
+              const gradientId = `runWalkBarStack-${bar.day.dateIso.replace(/[^a-zA-Z0-9]/g, '')}`
+              const overflowRatio =
+                bar.barHeight > 0
+                  ? Math.max(0, Math.min(1, bar.overflowHeight / bar.barHeight))
+                  : 0
+              const baseColors = bar.day.isToday
+                ? ['#a7f3d0', '#059669']
+                : ['#bfdbfe', '#3b82f6']
+
+              return (
+                <LinearGradient key={gradientId} id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0%" stopColor="#fde68a" stopOpacity={1} />
+                  <Stop
+                    offset={`${overflowRatio * 100}%`}
+                    stopColor="#f59e0b"
+                    stopOpacity={0.98}
+                  />
+                  <Stop
+                    offset={`${overflowRatio * 100}%`}
+                    stopColor={baseColors[0]}
+                    stopOpacity={1}
+                  />
+                  <Stop offset="100%" stopColor={baseColors[1]} stopOpacity={0.95} />
+                </LinearGradient>
+              )
+            })}
         </Defs>
 
         {geometry.gridLines.map((line, index) => (
@@ -193,8 +446,38 @@ export function RunWalkWeeklyBarChart({
           />
         ))}
 
+        {geometry.showTargetLine ? (
+          <Line
+            x1={geometry.plotLeft}
+            y1={geometry.targetLineY}
+            x2={geometry.plotLeft + geometry.plotWidth}
+            y2={geometry.targetLineY}
+            stroke="rgba(251, 191, 36, 0.35)"
+            strokeWidth={1}
+            strokeDasharray="4 4"
+          />
+        ) : null}
+
         {geometry.bars.map((bar) => {
           const isSelected = isBarSelected(bar)
+          const gradientId = `runWalkBarStack-${bar.day.dateIso.replace(/[^a-zA-Z0-9]/g, '')}`
+
+          if (bar.hasOverflow) {
+            return (
+              <Rect
+                key={bar.day.dateIso}
+                x={bar.x}
+                y={bar.y}
+                width={bar.barWidth}
+                height={bar.barHeight}
+                rx={6}
+                fill={`url(#${gradientId})`}
+                stroke={isSelected ? 'rgba(255, 255, 255, 0.55)' : 'rgba(251, 191, 36, 0.35)'}
+                strokeWidth={isSelected ? 1.5 : 1}
+              />
+            )
+          }
+
           return (
             <Rect
               key={bar.day.dateIso}
@@ -276,18 +559,12 @@ export function RunWalkWeeklyBarChart({
       {selectedBar ? (
         <View
           pointerEvents="none"
-          onLayout={(event) => {
-            const nextWidth = Math.ceil(event.nativeEvent.layout.width)
-            if (nextWidth > 0 && nextWidth !== tooltipMeasuredWidth) {
-              setTooltipMeasuredWidth(nextWidth)
-            }
-          }}
           style={[
             styles.tooltip,
             {
               left: tooltipLeft,
               top: tooltipTop,
-              maxWidth: width - 12,
+              width: TOOLTIP_ESTIMATED_WIDTH,
               borderColor: selectedBar.day.isToday
                 ? 'rgba(16, 185, 129, 0.45)'
                 : 'rgba(59, 130, 246, 0.45)',
@@ -308,16 +585,80 @@ export function RunWalkWeeklyBarChart({
           </Text>
           {selectedBar.day.activeMinutes > 0 ? (
             <Text style={styles.tooltipMeta}>
-              {selectedBar.day.activities[0]?.label ?? 'Atividade registrada'}
+              {selectedBar.day.activities.filter((activity) => activity.type !== 'rest').length}{' '}
+              treino
+              {selectedBar.day.activities.filter((activity) => activity.type !== 'rest').length ===
+              1
+                ? ''
+                : 's'}
+              {selectedBar.hasOverflow ? ' · Meta superada' : ''}
             </Text>
           ) : null}
         </View>
       ) : null}
     </View>
   )
+
+  return (
+    <View style={styles.container}>
+      {scrollable && chartDays.length > visibleBars ? (
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          nestedScrollEnabled
+          showsHorizontalScrollIndicator={false}
+          decelerationRate="fast"
+          contentContainerStyle={styles.scrollContent}
+        >
+          {chartBody}
+        </ScrollView>
+      ) : (
+        chartBody
+      )}
+
+      {showLegend ? (
+        <View style={styles.legend}>
+          <LegendItem color="#10b981" label="Hoje" />
+          <LegendItem color="#2563eb" label="Minutos ativos" />
+          <LegendItem color="#f59e0b" label="Acima da meta" />
+          <LegendItem color="rgba(255,255,255,0.12)" label="Sem atividade" isMuted />
+        </View>
+      ) : null}
+
+      {showLegend && geometry.showTargetLine ? (
+        <View style={styles.legendMeta}>
+          <View style={styles.legendTargetLine} />
+          <Text style={styles.legendMetaText}>Linha tracejada = meta diária ({targetMinutesPerDay} min)</Text>
+        </View>
+      ) : null}
+    </View>
+  )
+}
+
+function LegendItem({
+  color,
+  label,
+  isMuted = false,
+}: {
+  color: string
+  label: string
+  isMuted?: boolean
+}) {
+  return (
+    <View style={styles.legendItem}>
+      <View style={[styles.legendSwatch, { backgroundColor: color }, isMuted && styles.legendSwatchMuted]} />
+      <Text style={styles.legendLabel}>{label}</Text>
+    </View>
+  )
 }
 
 const styles = StyleSheet.create({
+  container: {
+    gap: 10,
+  },
+  scrollContent: {
+    flexGrow: 0,
+  },
   root: {
     overflow: 'visible',
   },
@@ -354,6 +695,49 @@ const styles = StyleSheet.create({
     color: '#6ee7b7',
   },
   tooltipMeta: {
+    color: colors.textSubtle,
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  legend: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    paddingTop: 2,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  legendSwatch: {
+    width: 10,
+    height: 10,
+    borderRadius: 3,
+  },
+  legendSwatchMuted: {
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  legendLabel: {
+    color: colors.textSubtle,
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  legendMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  legendTargetLine: {
+    width: 18,
+    height: 1,
+    borderTopWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.55)',
+    borderStyle: 'dashed',
+  },
+  legendMetaText: {
+    flex: 1,
     color: colors.textSubtle,
     fontSize: 10,
     fontWeight: '500',

@@ -21,6 +21,7 @@ import {
 import { getAppointmentDateTime } from '../../utils/myAppointments'
 import { formatScheduleDayLabel } from '../../utils/scheduleDate'
 import { PosConsultaTimeline } from '../postConsultation/PosConsultaTimeline'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SHEET_OFFSET = 680
 
@@ -153,7 +154,7 @@ export function AppointmentPostConsultationDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16),
+              paddingBottom: getModalFooterPadding(insets.bottom),
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}

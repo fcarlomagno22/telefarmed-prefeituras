@@ -16,7 +16,12 @@ export function ActivityMetricValue({
   return (
     <Text style={[styles.value, valueStyle]} numberOfLines={1}>
       {parts.value}
-      {parts.unit ? <Text style={[styles.unit, unitStyle]}> {parts.unit}</Text> : null}
+      {parts.unit ? (
+        <Text style={[styles.unit, unitStyle]}>
+          {parts.tightUnit ? '' : ' '}
+          {parts.unit}
+        </Text>
+      ) : null}
     </Text>
   )
 }

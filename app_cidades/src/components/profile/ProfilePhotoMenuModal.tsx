@@ -7,6 +7,7 @@ import { Animated, Easing, Image, Pressable, StyleSheet, Text, View } from 'reac
 import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 export type ProfilePhotoMenuAction = 'view' | 'replace' | 'delete'
 
@@ -150,7 +151,7 @@ export function ProfilePhotoMenuModal({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16),
+              paddingBottom: getModalFooterPadding(insets.bottom),
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}
@@ -173,7 +174,7 @@ export function ProfilePhotoMenuModal({
               <Text style={styles.previewTitle}>Foto de perfil</Text>
               <Text style={styles.previewSubtitle}>
                 {hasPhoto
-                  ? 'Gerencie sua foto de cadastro'
+                  ? 'Gerencie sua foto de perfil'
                   : 'Adicione uma foto para personalizar seu perfil'}
               </Text>
             </View>

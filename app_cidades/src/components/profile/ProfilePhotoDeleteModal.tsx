@@ -7,6 +7,7 @@ import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import trashAnimation from '../../../assets/trash.json'
 import { colors } from '../../theme/colors'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 type ProfilePhotoDeleteModalProps = {
   visible: boolean
@@ -107,7 +108,7 @@ export function ProfilePhotoDeleteModal({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16) + 10,
+              paddingBottom: getModalFooterPadding(insets.bottom, 10),
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}

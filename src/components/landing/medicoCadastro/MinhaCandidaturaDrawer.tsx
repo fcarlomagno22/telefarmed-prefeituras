@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { brand } from '../../../config/brand'
 import { MinhaCandidaturaDrawerContent } from './MinhaCandidaturaDrawerContent'
+import { ProfissionalSuporteWhatsAppCallout } from './ProfissionalSuporteWhatsAppCallout'
 
 const drawerShellClass =
   'absolute inset-y-0 right-0 z-10 flex h-full w-full max-w-lg flex-col overflow-hidden border-l border-gray-200/90 bg-white shadow-[-12px_0_40px_rgba(15,23,42,0.12)] transition-transform duration-300 ease-out motion-reduce:transition-none'
@@ -99,6 +100,7 @@ export function MinhaCandidaturaDrawer({
         {isActive ? <MinhaCandidaturaDrawerContent key={sessionKey} /> : null}
 
         <footer className="shrink-0 border-t border-gray-100 bg-white px-5 py-4">
+          <ProfissionalSuporteWhatsAppCallout className="mb-4" />
           <div className="flex justify-center">
             <img
               src={brand.logoUrl}

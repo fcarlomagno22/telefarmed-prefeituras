@@ -1,0 +1,406 @@
+import type { SleepStory, SleepStoryCategory, SleepStoryCategoryId } from '../types/sleepStories'
+
+export const SLEEP_STORY_CATEGORIES: SleepStoryCategory[] = [
+  {
+    id: 'sleep-rest-routine',
+    label: 'Sono, descanso e rotina',
+    icon: 'moon-waning-crescent',
+    gradient: ['#c7d2fe', '#6366f1', '#4338ca'],
+  },
+  {
+    id: 'fears-courage',
+    label: 'Medos, coragem e segurança emocional',
+    icon: 'shield-outline',
+    gradient: ['#bae6fd', '#38bdf8', '#0284c7'],
+  },
+  {
+    id: 'friendship-affection',
+    label: 'Amizade, carinho e acolhimento',
+    icon: 'heart-outline',
+    gradient: ['#fbcfe8', '#f472b6', '#db2777'],
+  },
+  {
+    id: 'kindness-cooperation',
+    label: 'Gentileza, cooperação e boa convivência',
+    icon: 'hand-heart',
+    gradient: ['#bbf7d0', '#22c55e', '#15803d'],
+  },
+  {
+    id: 'self-confidence',
+    label: 'Autoconfiança, diferenças e talentos especiais',
+    icon: 'star-outline',
+    gradient: ['#fde68a', '#f59e0b', '#d97706'],
+  },
+  {
+    id: 'nature-freedom',
+    label: 'Natureza, liberdade e contemplação',
+    icon: 'leaf',
+    gradient: ['#99f6e4', '#14b8a6', '#0f766e'],
+  },
+  {
+    id: 'imagination-magic',
+    label: 'Imaginação, magia e sonhos',
+    icon: 'auto-fix',
+    gradient: ['#ddd6fe', '#a78bfa', '#7c3aed'],
+  },
+  {
+    id: 'adventures-curiosity',
+    label: 'Aventuras, curiosidade e descobertas',
+    icon: 'compass-outline',
+    gradient: ['#fdba74', '#f97316', '#c2410c'],
+  },
+]
+
+function story(
+  number: number,
+  title: string,
+  summary: string,
+  categoryId: SleepStoryCategoryId,
+  isNew = false,
+): SleepStory {
+  return {
+    id: `story-${number}`,
+    number,
+    title,
+    summary,
+    categoryId,
+    isNew,
+  }
+}
+
+export const SLEEP_STORIES: SleepStory[] = [
+  story(
+    1,
+    'A Lua que Esqueceu de Dormir',
+    'A Lua decide permanecer acordada para continuar iluminando o mundo, mesmo já estando muito cansada. Com a ajuda de uma pequena estrela, ela aprende que descansar também é uma maneira de cuidar de todos e recuperar a própria luz.',
+    'sleep-rest-routine',
+  ),
+  story(
+    2,
+    'O Trem dos Sonhos Bonitos',
+    'Todas as noites, um trem mágico percorre o mundo recolhendo crianças sonolentas. Cada vagão leva a um sonho diferente, com animais gentis, paisagens encantadas e aventuras tranquilas que sempre terminam em uma cama macia.',
+    'sleep-rest-routine',
+  ),
+  story(
+    3,
+    'A Cidade dos Bocejos',
+    'Em uma cidade onde ninguém consegue dormir, uma menina solta um enorme bocejo. O bocejo passa de pessoa para pessoa, atravessa casas e praças e, pouco a pouco, ajuda toda a cidade a adormecer em paz.',
+    'sleep-rest-routine',
+  ),
+  story(
+    4,
+    'A Floresta dos Pijamas',
+    'Os animais da floresta recebem pijamas feitos especialmente para cada um deles. Depois de uma festa tranquila, com histórias, leite morno e abraços, todos se acomodam sob as árvores para dormir juntos.',
+    'sleep-rest-routine',
+  ),
+  story(
+    5,
+    'A Menina e o Relógio Preguiçoso',
+    'Um relógio resolve andar cada vez mais devagar para prolongar a hora das brincadeiras. Uma menina paciente mostra a ele que todos os momentos são importantes, inclusive a hora de guardar os brinquedos e descansar.',
+    'sleep-rest-routine',
+  ),
+  story(
+    6,
+    'A Última Estrela da Noite',
+    'Uma pequena estrela é sempre a última a apagar antes do amanhecer. Antes de dormir, ela percorre o céu desejando boa noite às crianças, aos animais e às flores que começam a despertar.',
+    'sleep-rest-routine',
+  ),
+  story(
+    7,
+    'A Abelha que Precisava de uma Folga',
+    'Uma abelhinha acredita que precisa trabalhar sem parar para ser importante. Quando suas asas ficam cansadas, as outras abelhas mostram que descansar não é abandonar as responsabilidades, mas recuperar as forças para continuar.',
+    'sleep-rest-routine',
+    true,
+  ),
+  story(
+    8,
+    'O Sonho que Chegou Atrasado',
+    'Um pequeno sonho se perde no caminho e chega quando a criança já está quase acordando. Para ajudá-lo, a Lua ensina um atalho pelo céu e mostra que os sonhos sempre encontram quem fecha os olhos com calma.',
+    'sleep-rest-routine',
+    true,
+  ),
+  story(
+    9,
+    'O Ursinho e o Barulho da Chuva',
+    'Um ursinho fica assustado ao ouvir a chuva batendo no telhado. Sua mãe o ajuda a perceber que cada pingo, trovão distante e sopro de vento faz parte de uma música tranquila criada pela natureza.',
+    'fears-courage',
+  ),
+  story(
+    10,
+    'A Coruja que Tinha Medo do Escuro',
+    'Mesmo sendo uma coruja, Lola sente medo quando a noite chega. Seus amigos mostram que o escuro também guarda estrelas brilhantes, sons suaves e muitos cantinhos seguros para descansar.',
+    'fears-courage',
+  ),
+  story(
+    11,
+    'A Formiguinha que Queria Ver o Mar',
+    'Uma pequena formiga sonha em conhecer o oceano, mas teme que a viagem seja grande demais. Com coragem, paciência e ajuda dos amigos, ela descobre que sonhos enormes também cabem dentro de seres bem pequenos.',
+    'fears-courage',
+  ),
+  story(
+    12,
+    'O Vagalume que Não Sabia Brilhar',
+    'Um jovem vagalume fica preocupado porque sua luz ainda não apareceu. Quando encontra um amigo perdido na floresta, sua vontade de ajudar faz sua luz acender pela primeira vez.',
+    'fears-courage',
+  ),
+  story(
+    13,
+    'O Patinho e a Ponte de Folhas',
+    'Um patinho precisa atravessar um riacho por uma pequena ponte feita de folhas. Mesmo com medo, ele avança passo a passo e percebe que coragem não significa não sentir medo, mas continuar com cuidado.',
+    'fears-courage',
+    true,
+  ),
+  story(
+    14,
+    'O Peixinho e o Silêncio do Fundo do Mar',
+    'Um peixinho evita nadar até o fundo do mar porque acredita que o silêncio esconde perigos. Ao conhecer uma tartaruga tranquila, descobre que o silêncio pode ser um lugar de paz, descanso e belas descobertas.',
+    'fears-courage',
+    true,
+  ),
+  story(
+    15,
+    'A Ponte que Tinha Medo de Altura',
+    'Uma pequena ponte fica nervosa sempre que alguém passa sobre ela. Com a ajuda de uma cabra muito paciente, percebe que é forte, útil e capaz de ajudar os viajantes a chegarem em segurança ao outro lado.',
+    'fears-courage',
+    true,
+  ),
+  story(
+    16,
+    'A Nuvem que Queria um Abraço',
+    'Uma nuvem solitária viaja pelo céu procurando alguém que possa abraçá-la. Durante a jornada, descobre que sua chuva suave é uma forma carinhosa de abraçar florestas, montanhas, campos e jardins.',
+    'friendship-affection',
+  ),
+  story(
+    17,
+    'A Baleia e a Estrela Cadente',
+    'Uma baleia encontra uma estrela que caiu perto do mar e decide ajudá-la a voltar ao céu. Durante a viagem, as duas constroem uma amizade tão bonita que continua brilhando todas as noites.',
+    'friendship-affection',
+  ),
+  story(
+    18,
+    'A Estrela que Caiu no Quintal',
+    'Uma criança encontra uma pequena estrela escondida entre as flores do quintal. Juntas, percorrem a noite procurando o lugar certo para devolvê-la ao céu antes que o Sol apareça.',
+    'friendship-affection',
+  ),
+  story(
+    19,
+    'O Pinguim que Queria um Cobertor',
+    'Mesmo vivendo no gelo, um pinguim sonha em ter um cobertor macio. Seus amigos juntam penas, folhas e muito carinho para criar um presente que o aquece por dentro e por fora.',
+    'friendship-affection',
+  ),
+  story(
+    20,
+    'O Cachorrinho que Dividia Sonhos',
+    'Um cachorrinho percebe que alguns amigos estão tendo noites inquietas. Ele começa a dividir seus sonhos felizes com eles, mostrando que alegria, esperança e carinho ficam maiores quando são compartilhados.',
+    'friendship-affection',
+    true,
+  ),
+  story(
+    21,
+    'A Almofada que Sabia Ouvir',
+    'Uma almofada mágica escuta todas as preocupações que as crianças contam antes de dormir. Sem julgar nem interromper, ela guarda cada pensamento pesado e devolve palavras de conforto em forma de sonhos tranquilos.',
+    'friendship-affection',
+    true,
+  ),
+  story(
+    22,
+    'A Girafa que Tinha Cócegas nas Nuvens',
+    'Por ser muito alta, uma girafa vive esbarrando nas nuvens e caindo na risada. Certo dia, encontra uma nuvem triste e usa seu jeito divertido para ajudá-la a sorrir novamente.',
+    'kindness-cooperation',
+  ),
+  story(
+    23,
+    'A Casa Pequena no Alto da Árvore',
+    'Uma pequena casa construída no alto de uma árvore recebe visitantes todas as noites. Pássaros, esquilos e vagalumes dividem alimentos, contam histórias e aprendem a respeitar o espaço e a vez de cada amigo.',
+    'kindness-cooperation',
+  ),
+  story(
+    24,
+    'A Vila dos Pequenos Gestos',
+    'Em uma vila muito apressada, ninguém percebe as pessoas ao redor. Uma criança começa a praticar pequenos gestos de gentileza, e logo toda a vila descobre que ajudar, agradecer e escutar pode transformar um dia inteiro.',
+    'kindness-cooperation',
+    true,
+  ),
+  story(
+    25,
+    'O Jacaré que Não Gostava de Brigar',
+    'Um jacaré prefere conversar quando os outros animais começam uma discussão. Com paciência e respeito, ele ajuda cada um a explicar o que sente e mostra que muitos conflitos podem ser resolvidos sem gritos.',
+    'kindness-cooperation',
+    true,
+  ),
+  story(
+    26,
+    'O Passarinho que Aprendeu a Escutar',
+    'Um passarinho fala tanto que nunca consegue ouvir as histórias dos amigos. Quando decide ficar em silêncio por alguns instantes, descobre vozes, sentimentos e ideias que antes passavam despercebidos.',
+    'kindness-cooperation',
+    true,
+  ),
+  story(
+    27,
+    'O Dragão que Só Soltava Bolhas',
+    'Um jovem dragão sente vergonha porque, em vez de fogo, solta bolhas coloridas. Quando a floresta fica triste, ele percebe que seu talento diferente pode levar alegria a todos.',
+    'self-confidence',
+  ),
+  story(
+    28,
+    'O Leão que Falava Baixinho',
+    'Um leãozinho não consegue rugir como os outros e acredita que nunca será especial. Um dia, descobre que sua voz calma é perfeita para contar histórias e tranquilizar os animais antes de dormir.',
+    'self-confidence',
+  ),
+  story(
+    29,
+    'A Princesa das Meias Diferentes',
+    'Uma princesa adora usar meias de cores e desenhos diferentes. Quando o reino perde todas as cores, sua criatividade inspira os moradores a mostrarem seus próprios estilos e recuperarem a alegria.',
+    'self-confidence',
+  ),
+  story(
+    30,
+    'O Robô que Aprendeu a Sonhar',
+    'Um pequeno robô sabe calcular, organizar e consertar muitas coisas, mas não entende a imaginação. Com a ajuda de uma menina, ele aprende que criar, brincar e sonhar também são formas importantes de aprender.',
+    'self-confidence',
+  ),
+  story(
+    31,
+    'O Sapo que Queria Cantar para a Lua',
+    'Um sapinho ensaia todas as noites porque acha que sua voz não é bonita o bastante. Quando finalmente canta para a Lua, percebe que sua voz simples já tinha beleza desde o começo.',
+    'self-confidence',
+  ),
+  story(
+    32,
+    'A Menina que Pintava Cheiros',
+    'Uma menina afirma que consegue pintar o cheiro da chuva, das flores e do pão quentinho. Mesmo quando ninguém entende suas pinturas, ela continua criando e mostra que cada pessoa pode enxergar o mundo de um jeito especial.',
+    'self-confidence',
+    true,
+  ),
+  story(
+    33,
+    'O Lobo que Plantava Flores',
+    'Um lobo gosta de cultivar flores, embora os outros animais esperem que ele seja bravo e assustador. Ao transformar um campo vazio em um jardim, ele mostra que ninguém precisa viver preso às expectativas dos outros.',
+    'self-confidence',
+    true,
+  ),
+  story(
+    34,
+    'O Jardim que Só Acordava à Noite',
+    'Quando todos estão dormindo, flores especiais se abrem em um jardim secreto. Um menino curioso conhece borboletas luminosas e aprende a observar os mistérios da natureza sem tentar controlá-los.',
+    'nature-freedom',
+  ),
+  story(
+    35,
+    'O Elefantinho e a Pena Voadora',
+    'Um elefantinho tenta capturar uma pena levada pelo vento. Durante o passeio, percebe que algumas coisas são bonitas justamente porque são livres e não precisam ser agarradas.',
+    'nature-freedom',
+  ),
+  story(
+    36,
+    'A Capivara e o Travesseiro Viajante',
+    'Uma capivara encontra um travesseiro que flutua pelos rios. Os dois atravessam paisagens tranquilas até descobrirem que o lugar mais confortável para descansar é aquele onde nos sentimos seguros.',
+    'nature-freedom',
+  ),
+  story(
+    37,
+    'A Tartaruga e o Vento Apressado',
+    'O vento vive dizendo que a tartaruga deveria andar mais depressa. Sem se aborrecer, ela continua em seu ritmo e mostra ao vento todas as flores, pedras e paisagens que ele nunca percebe por passar rápido demais.',
+    'nature-freedom',
+    true,
+  ),
+  story(
+    38,
+    'O Panda e a Canção das Folhas',
+    'Um panda escuta as folhas de bambu balançando ao vento e acredita que elas estão cantando. Ao prestar atenção, descobre uma canção suave que ajuda toda a floresta a relaxar.',
+    'nature-freedom',
+    true,
+  ),
+  story(
+    39,
+    'A Estrelinha Sem Pressa',
+    'Uma estrelinha demora mais do que as outras para atravessar o céu. Durante o caminho, ela percebe detalhes que ninguém havia notado e aprende que seguir no próprio ritmo também pode iluminar o mundo.',
+    'nature-freedom',
+    true,
+  ),
+  story(
+    40,
+    'O Coelhinho que Contava Estrelas',
+    'Todas as noites, um coelhinho tenta contar todas as estrelas do céu, mas sempre adormece antes de terminar. Ele percebe que não precisa conhecer todas as respostas para ter sonhos felizes.',
+    'imagination-magic',
+  ),
+  story(
+    41,
+    'A Mochila que Guardava Aventuras',
+    'Uma mochila antiga começa a contar histórias sobre todos os lugares que já visitou. Antes de dormir, ela leva seu novo dono a uma viagem imaginária por montanhas, florestas e cidades distantes.',
+    'imagination-magic',
+  ),
+  story(
+    42,
+    'O Gato que Dormia nas Palavras',
+    'Um gato mágico consegue entrar nos livros e se deitar sobre as palavras. Cada história em que ele adormece se transforma em um sonho cheio de personagens, lugares e surpresas.',
+    'imagination-magic',
+  ),
+  story(
+    43,
+    'O Menino que Guardava Sons em Potes',
+    'Um menino coleciona o som da chuva, do vento, do mar e dos passarinhos dentro de potes mágicos. Quando alguém não consegue dormir, ele escolhe o som perfeito para criar uma noite tranquila.',
+    'imagination-magic',
+  ),
+  story(
+    44,
+    'A Janela que Conversava com a Lua',
+    'Todas as noites, uma velha janela troca histórias com a Lua. Uma criança escuta escondida e descobre que cada marca no vidro guarda lembranças de noites, sonhos e pessoas que já passaram por ali.',
+    'imagination-magic',
+    true,
+  ),
+  story(
+    45,
+    'O Castelo das Luzes Baixinhas',
+    'Existe um castelo onde nenhuma luz é forte demais. Pequenos lampiões iluminam corredores tranquilos, enquanto os moradores falam baixinho e ajudam as crianças a encontrarem o caminho até os sonhos.',
+    'imagination-magic',
+    true,
+  ),
+  story(
+    46,
+    'O Barquinho de Papel e a Grande Poça',
+    'Um barquinho de papel acredita estar navegando pelo maior oceano do mundo. Durante sua viagem pela poça, conhece folhas viajantes, pedrinhas brilhantes e um sapinho muito educado.',
+    'adventures-curiosity',
+  ),
+  story(
+    47,
+    'A Raposa que Perdeu a Cauda de Vista',
+    'Uma raposa acorda acreditando que sua cauda desapareceu, sem perceber que ela está enrolada ao redor de seu próprio corpo. Durante a procura, vive uma aventura engraçada e aprende a observar com mais calma.',
+    'adventures-curiosity',
+  ),
+  story(
+    48,
+    'O Caracol Mais Rápido do Mundo',
+    'Um caracol acredita ser o animal mais veloz da floresta porque nunca olha para trás. Ao participar de uma corrida, percebe que chegar com tranquilidade, aproveitar o caminho e não desistir também são formas de vencer.',
+    'adventures-curiosity',
+  ),
+  story(
+    49,
+    'O Esquilo que Guardava o Amanhã',
+    'Um esquilo passa os dias guardando sementes, brinquedos e planos para usar somente no futuro. Depois de conversar com um velho castor, aprende que se preparar é importante, mas aproveitar o presente também é necessário.',
+    'adventures-curiosity',
+    true,
+  ),
+  story(
+    50,
+    'A Fada dos Sapatos Perdidos',
+    'Uma pequena fada percorre as casas durante a noite procurando os pares de sapatos que se separaram. Em cada quarto, ela encontra pistas, conhece novos amigos e descobre que até objetos perdidos guardam histórias.',
+    'adventures-curiosity',
+    true,
+  ),
+  story(
+    51,
+    'O Guarda-Chuva que Queria Ver o Sol',
+    'Um guarda-chuva passa a vida esperando a chuva e sonha em conhecer um dia ensolarado. Levado por uma menina durante um passeio, ele finalmente vê o Sol e aprende que podemos descobrir novas possibilidades sem deixar de valorizar aquilo que sabemos fazer.',
+    'adventures-curiosity',
+    true,
+  ),
+]
+
+export function getSleepStoryCategoryById(id: SleepStoryCategoryId) {
+  return SLEEP_STORY_CATEGORIES.find((category) => category.id === id)
+}
+
+export function getSleepStoryById(id: SleepStory['id']) {
+  return SLEEP_STORIES.find((storyItem) => storyItem.id === id)
+}

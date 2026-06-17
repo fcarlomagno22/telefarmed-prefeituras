@@ -14,6 +14,7 @@ import {
 } from '../../utils/metricsPeriod'
 import { PrimaryButton } from '../PrimaryButton'
 import { WaveTitle } from '../WaveTitle'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 type MetricsPeriodDrawerProps = {
   visible: boolean
@@ -207,7 +208,7 @@ export function MetricsPeriodDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16) + 8,
+              paddingBottom: getModalFooterPadding(insets.bottom, 8),
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}

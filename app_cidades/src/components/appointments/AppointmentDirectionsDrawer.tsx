@@ -9,6 +9,7 @@ import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
 import { DirectionsDestination, NavigationApp } from '../../utils/appointmentMaps'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SHEET_OFFSET = 420
 
@@ -114,7 +115,7 @@ export function AppointmentDirectionsDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: Math.max(insets.bottom, 16) + 4,
+              paddingBottom: getModalFooterPadding(insets.bottom, 4),
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}

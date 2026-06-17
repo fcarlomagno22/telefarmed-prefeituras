@@ -1,0 +1,1 @@
+export const PROFISSIONAL_SUPORTE_WHATSAPP_URL = 'https://wa.me/5562992396737'
