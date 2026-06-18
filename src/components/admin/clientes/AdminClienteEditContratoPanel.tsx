@@ -182,6 +182,7 @@ export function AdminClienteEditContratoPanel({
       <AdminClienteContratoPacientesTerritorioField
         checked={form.aceitaPacientesOutrosMunicipios}
         onChange={(checked) => updateForm({ aceitaPacientesOutrosMunicipios: checked })}
+        entidadeTipo={cliente.tipoEntidade}
       />
 
       <section className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">

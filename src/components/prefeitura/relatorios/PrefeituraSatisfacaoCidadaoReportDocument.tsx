@@ -1,5 +1,14 @@
 import type { SatisfacaoCidadaoReportApi } from '../../../types/prefeituraRelatorios'
-type Props = { report: SatisfacaoCidadaoReportApi; brandName: string; logoUrl: string; generatedAtLabel: string }
+import { EntidadeReportChartCaption } from './EntidadeReportChartCaption'
+
+type Props = {
+  report: SatisfacaoCidadaoReportApi
+  brandName: string
+  logoUrl: string
+  generatedAtLabel: string
+  reportTitle?: string
+  satisfacaoNpsLabel?: string
+}
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
 }
@@ -120,16 +129,24 @@ function EvolutionChart({ points, mode, title, valueSuffix = '', barStyle }: { p
           )
         })}
       </div>
-      <p className="mt-3 text-xs text-gray-500">Evolução {mode === 'monthly' ? 'mensal' : 'diária'} de {title.toLowerCase()} na rede municipal.</p>
+      <EntidadeReportChartCaption mode={mode} subject={`de ${title.toLowerCase()}`} />
     </div>
   )
 }
-export function PrefeituraSatisfacaoCidadaoReportDocument({ report, brandName, logoUrl, generatedAtLabel }: Props) {
+export function PrefeituraSatisfacaoCidadaoReportDocument({
+  report,
+  brandName,
+  logoUrl,
+  generatedAtLabel,
+  reportTitle,
+  satisfacaoNpsLabel = 'NPS da rede',
+}: Props) {
+  const displayReport = reportTitle ? { ...report, title: reportTitle } : report
   return (
     <div className="p-6 sm:p-8">
-      <ReportHeader report={report} brandName={brandName} logoUrl={logoUrl} />
+      <ReportHeader report={displayReport} brandName={brandName} logoUrl={logoUrl} />
       <section className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-xl border border-gray-200 bg-slate-50/70 p-4 text-center"><p className="text-xs font-medium text-gray-500">NPS da rede</p><p className="mt-1 text-2xl font-bold tabular-nums text-gray-900">{formatPercent(report.summary.nps, 1)}</p><p className="mt-1 text-xs font-medium text-emerald-600">{signedPp(report.summary.npsDeltaPp)} vs período anterior</p></article>
+        <article className="rounded-xl border border-gray-200 bg-slate-50/70 p-4 text-center"><p className="text-xs font-medium text-gray-500">{satisfacaoNpsLabel}</p><p className="mt-1 text-2xl font-bold tabular-nums text-gray-900">{formatPercent(report.summary.nps, 1)}</p><p className="mt-1 text-xs font-medium text-emerald-600">{signedPp(report.summary.npsDeltaPp)} vs período anterior</p></article>
         <article className="rounded-xl border border-gray-200 bg-slate-50/70 p-4 text-center"><p className="text-xs font-medium text-gray-500">Promotores</p><p className="mt-1 text-2xl font-bold tabular-nums text-gray-900">{formatPercent(report.summary.promotersPercent)}%</p><p className="mt-1 text-xs text-gray-500">Notas 5 estrelas</p></article>
         <article className="rounded-xl border border-gray-200 bg-slate-50/70 p-4 text-center"><p className="text-xs font-medium text-gray-500">Detratores</p><p className="mt-1 text-2xl font-bold tabular-nums text-gray-900">{formatPercent(report.summary.detractorsPercent)}%</p><p className="mt-1 text-xs text-gray-500">Notas 1 a 3 estrelas</p></article>
         <article className="rounded-xl border border-gray-200 bg-slate-50/70 p-4 text-center"><p className="text-xs font-medium text-gray-500">Nota média</p><p className="mt-1 text-2xl font-bold tabular-nums text-gray-900">{formatPercent(report.summary.avgRating, 1)}</p><p className="mt-1 text-xs font-medium text-emerald-600">{signedPp(report.summary.avgRatingDeltaPp)} vs período anterior</p></article>

@@ -33,6 +33,7 @@ export type UbtPatientTerritoryPolicyDto = {
   municipio: string
   uf: string
   aceitaPacientesOutrosMunicipios: boolean
+  tipoEntidade?: 'prefeitura' | 'santa_casa' | 'generico'
 }
 
 export type UbtPacientesListResponse = {

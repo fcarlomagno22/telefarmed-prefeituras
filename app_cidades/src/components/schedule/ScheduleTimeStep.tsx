@@ -7,6 +7,7 @@ import { ScheduleTimeSlot } from '../../types/scheduleAppointment'
 import { formatScheduleDayLabel } from '../../utils/scheduleDate'
 import { colors } from '../../theme/colors'
 import { ScheduleTimeGridSkeleton } from './ScheduleStepSkeletons'
+import { ScheduleStepTitle } from './ScheduleStepTitle'
 
 type ScheduleTimeStepProps = {
   selectedDate: Date
@@ -14,6 +15,7 @@ type ScheduleTimeStepProps = {
   selectedDoctorName: string
   selectedTime: string
   onSelectTime: (time: string) => void
+  onBack?: () => void
 }
 
 export function ScheduleTimeStep({
@@ -22,6 +24,7 @@ export function ScheduleTimeStep({
   selectedDoctorName,
   selectedTime,
   onSelectTime,
+  onBack,
 }: ScheduleTimeStepProps) {
   const [slots, setSlots] = useState<ScheduleTimeSlot[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -46,7 +49,7 @@ export function ScheduleTimeStep({
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>Escolha o horário</Text>
+      <ScheduleStepTitle title="Escolha o horário" onBack={onBack} />
       <Text style={styles.description}>
         Horários de <Text style={styles.descriptionStrong}>{selectedDoctorName}</Text> em{' '}
         {formatScheduleDayLabel(selectedDate)}.
@@ -114,12 +117,6 @@ export function ScheduleTimeStep({
 const styles = StyleSheet.create({
   wrap: {
     gap: 12,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
   },
   description: {
     color: colors.textMuted,

@@ -1,9 +1,13 @@
 import { supabaseAdmin } from '../../db/supabase.js'
 import { normalizeCpf } from '../../lib/cpf.js'
+import { parseTipoEntidade } from '../../lib/entidadeBranding/terminology.js'
+import { isPrefeituraEntidadeTipo } from '../../lib/entidadeBranding/tipo.js'
 import {
   addressMatchesEntityTerritory,
   buildTerritoryMismatchMessage,
 } from '../../lib/municipalityTerritory.js'
+import { checkTenantSlugAvailability } from '../../lib/tenant/slugAvailability.js'
+import { slugLockedAtNow } from '../../lib/tenant/slugLock.js'
 import {
   buildAddressPayload,
   formatDailyCapacityLabel,
@@ -22,7 +26,7 @@ import type { CreateUnitBody, UpdateUnitBody } from './schemas.js'
 import type { RedeUnitDetailApi, UnidadeUbtRow } from './types.js'
 
 const UNIT_SELECT =
-  'id, entidade_contratante_id, nome, ra_chave, ra_rotulo, cnes, tipo_unidade, endereco, telefone, capacidade_diaria, especialidades, notas, terminais_total, terminais_manutencao, estado_operacional, status'
+  'id, entidade_contratante_id, nome, slug, slug_locked_at, ra_chave, ra_rotulo, cnes, tipo_unidade, endereco, telefone, capacidade_diaria, especialidades, notas, terminais_total, terminais_manutencao, estado_operacional, status'
 
 const RESPONSIBLE_ROLE = 'Responsável pela UBT'
 
@@ -188,10 +192,12 @@ async function assertUnitBelongsToEntity(entidadeId: string, unitId: string): Pr
   return data as UnidadeUbtRow
 }
 
-async function loadEntityTerritory(entidadeId: string): Promise<{ municipio: string; uf: string }> {
+async function loadEntityTerritory(
+  entidadeId: string,
+): Promise<{ municipio: string; uf: string; tipoEntidade: ReturnType<typeof parseTipoEntidade> }> {
   const { data, error } = await supabaseAdmin
     .from('entidades_contratantes')
-    .select('municipio, uf')
+    .select('municipio, uf, tipo_entidade')
     .eq('id', entidadeId)
     .maybeSingle()
 
@@ -203,13 +209,15 @@ async function loadEntityTerritory(entidadeId: string): Promise<{ municipio: str
   return {
     municipio: String(data.municipio),
     uf: String(data.uf),
+    tipoEntidade: parseTipoEntidade(data.tipo_entidade),
   }
 }
 
 function assertAddressInEntityTerritory(
-  territory: { municipio: string; uf: string },
+  territory: { municipio: string; uf: string; tipoEntidade: ReturnType<typeof parseTipoEntidade> },
   address?: CreateUnitBody['address'],
 ): void {
+  if (!isPrefeituraEntidadeTipo(territory.tipoEntidade)) return
   if (!address?.city?.trim() || !address?.state?.trim()) return
 
   if (
@@ -229,6 +237,21 @@ function assertAddressInEntityTerritory(
       ),
       'INVALID_DATA',
       400,
+    )
+  }
+}
+
+async function assertUbtSlugAvailable(slug: string, excludeUbtId?: string): Promise<void> {
+  const availability = await checkTenantSlugAvailability({
+    value: slug,
+    excludeUbtId,
+  })
+
+  if (!availability.available) {
+    throw new PrefeituraRedeError(
+      availability.reason ?? 'Endereço público indisponível.',
+      'DUPLICATE_SLUG',
+      409,
     )
   }
 }
@@ -297,7 +320,20 @@ export async function getRedeUnitDetail(entidadeId: string, unitId: string): Pro
 export async function createRedeUnit(entidadeId: string, body: CreateUnitBody): Promise<RedeUnitDetailApi> {
   const territory = await loadEntityTerritory(entidadeId)
   assertAddressInEntityTerritory(territory, body.address)
+  await assertUbtSlugAvailable(body.slug)
 
+  if (isPrefeituraEntidadeTipo(territory.tipoEntidade)) {
+    if (!body.regionKey?.trim() || !body.regionLabel?.trim()) {
+      throw new PrefeituraRedeError(
+        'Região administrativa (RA) é obrigatória para entidades prefeitura.',
+        'INVALID_DATA',
+        400,
+      )
+    }
+  }
+
+  const regionKey = body.regionKey?.trim() || 'geral'
+  const regionLabel = body.regionLabel?.trim() || 'Geral'
   const maintenanceIndexes = maintenanceIndexesForStatus(body.status, body.stationsTotal)
   const estadoOperacional = resolveOperationalStatus(body.status, body.stationsTotal, maintenanceIndexes)
 
@@ -306,8 +342,10 @@ export async function createRedeUnit(entidadeId: string, body: CreateUnitBody): 
     .insert({
       entidade_contratante_id: entidadeId,
       nome: body.name,
-      ra_chave: body.regionKey,
-      ra_rotulo: body.regionLabel,
+      slug: body.slug,
+      slug_locked_at: slugLockedAtNow(),
+      ra_chave: regionKey,
+      ra_rotulo: regionLabel,
       cnes: body.cnes ?? '',
       tipo_unidade: body.unitType,
       endereco: buildAddressPayload(body.address),
@@ -334,6 +372,17 @@ export async function updateRedeUnit(
   body: UpdateUnitBody,
 ): Promise<RedeUnitDetailApi> {
   const current = await assertUnitBelongsToEntity(entidadeId, unitId)
+
+  if (body.slug && body.slug !== current.slug) {
+    if (current.slug_locked_at) {
+      throw new PrefeituraRedeError(
+        'O endereço público da UBT não pode ser alterado após a publicação.',
+        'INVALID_DATA',
+        400,
+      )
+    }
+    await assertUbtSlugAvailable(body.slug, unitId)
+  }
 
   if (body.address?.city || body.address?.state) {
     const territory = await loadEntityTerritory(entidadeId)
@@ -362,6 +411,7 @@ export async function updateRedeUnit(
   }
 
   if (body.name) patch.nome = body.name
+  if (body.slug) patch.slug = body.slug
   if (body.cnes !== undefined) patch.cnes = body.cnes
   if (body.unitType) patch.tipo_unidade = body.unitType
   if (body.regionKey) patch.ra_chave = body.regionKey

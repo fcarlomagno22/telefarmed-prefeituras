@@ -3,6 +3,8 @@ export type RedeUnitStatus = 'ativa' | 'manutencao' | 'inativa'
 export type RedeUnitApi = {
   id: string
   name: string
+  slug: string
+  publicUrl: string
   address: string
   cnes: string
   region: string
@@ -105,6 +107,8 @@ export type UnidadeUbtRow = {
   id: string
   entidade_contratante_id: string
   nome: string
+  slug: string | null
+  slug_locked_at?: string | null
   ra_chave: string
   ra_rotulo: string
   cnes: string

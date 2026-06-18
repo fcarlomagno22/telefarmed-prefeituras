@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { brand } from '../config/brand'
 import { ubtAtendimentoPath, ubtRoutes } from '../config/ubtRoutes'
-import { useBrandTheme } from '../hooks/useBrandTheme'
+import { useEntidadeBrandTheme } from '../hooks/useEntidadeBrandTheme'
+import { useEntidadeBranding } from '../contexts/EntidadeBrandingContext'
 import {
   clearWaitingRoomSession,
   readWaitingRoomSession,
@@ -56,7 +56,8 @@ const STATIC_WELCOME = [
 ] as const
 
 export function SalaDeEsperaPage() {
-  useBrandTheme()
+  useEntidadeBrandTheme()
+  const { logoUrl, displayName } = useEntidadeBranding()
   const navigate = useNavigate()
   const { getAccessToken } = useUbtAuth()
 
@@ -158,8 +159,8 @@ export function SalaDeEsperaPage() {
         <div className="mx-auto flex max-w-[1320px] items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-4">
             <img
-              src={brand.logoUrl}
-              alt={brand.appName}
+              src={logoUrl}
+              alt={displayName}
               className="h-10 w-auto max-w-[200px] shrink-0 object-contain"
             />
             <div className="min-w-0 pl-1">

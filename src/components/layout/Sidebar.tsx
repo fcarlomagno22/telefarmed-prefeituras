@@ -1,6 +1,6 @@
 import { LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { brand } from '../../config/brand'
+import { useEntidadeBranding } from '../../contexts/EntidadeBrandingContext'
 import { ubtRoutes } from '../../config/ubtRoutes'
 import { defaultSidebarItems } from '../../config/sidebarNav'
 import { SidebarNavItem, type SidebarNavSection } from './SidebarNavItem'
@@ -16,7 +16,10 @@ type SidebarProps = {
   onLogout?: () => void | Promise<void>
   /** Chave de localStorage para seções recolhidas (padrão: prefeitura). */
   collapsedSectionsStorageKey?: string
+  logoClassName?: string
 }
+
+const defaultSidebarLogoClassName = 'h-7 w-auto max-w-[120px] object-contain'
 
 function SidebarNavList({ items }: { items: typeof defaultSidebarItems }) {
   return (
@@ -34,8 +37,10 @@ export function Sidebar({
   logoutPath = ubtRoutes.login,
   onLogout,
   collapsedSectionsStorageKey = PREFEITURA_SIDEBAR_COLLAPSED_STORAGE_KEY,
+  logoClassName = defaultSidebarLogoClassName,
 }: SidebarProps) {
   const navigate = useNavigate()
+  const { logoUrl, displayName } = useEntidadeBranding()
   const flatItems = items ?? defaultSidebarItems
 
   async function handleLogout() {
@@ -50,9 +55,9 @@ export function Sidebar({
     <aside className="flex h-full w-60 shrink-0 flex-col rounded-2xl border border-gray-200 bg-white px-4 py-6 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)] lg:w-64">
       <div className="mb-8 flex justify-center px-1">
         <img
-          src={brand.logoUrl}
-          alt={brand.appName}
-          className="h-7 w-auto max-w-[120px] object-contain"
+          src={logoUrl}
+          alt={displayName}
+          className={logoClassName}
         />
       </div>
 

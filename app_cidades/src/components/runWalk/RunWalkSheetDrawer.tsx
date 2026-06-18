@@ -19,9 +19,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { drawerChrome } from '../../theme/drawerChrome'
 import { colors } from '../../theme/colors'
 import { getSheetBottomPadding } from '../../utils/modalSafeArea'
+import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
 import { AppModal } from '../AppModal'
 
 const SHEET_OFFSET = 720
+const KEYBOARD_EXTRA_SCROLL_PADDING = 24
+const KEYBOARD_FOOTER_CLEARANCE = 12
 
 type RunWalkSheetDrawerProps = {
   visible: boolean
@@ -139,12 +142,19 @@ export function RunWalkSheetDrawer({
   const bottomInset = footerBottomPadding
   const footerPaddingBottom =
     keyboardInset > 0
-      ? Platform.OS === 'android'
-        ? Math.max(10, keyboardInset - Math.max(insets.bottom, 0) + 8)
-        : 10
+      ? Math.max(KEYBOARD_FOOTER_CLEARANCE, keyboardInset - Math.max(insets.bottom, 0) + KEYBOARD_FOOTER_CLEARANCE)
       : footerBottomPadding
 
-  const body = scrollable ? (
+  const scrollBottomPadding =
+    keyboardInset > 0
+      ? keyboardInset + KEYBOARD_EXTRA_SCROLL_PADDING + (footer ? 72 : 0)
+      : footer
+        ? 12
+        : Math.max(8, bottomInset)
+
+  const useScrollBody = scrollable || keyboardAware
+
+  const body = useScrollBody ? (
     <ScrollView
       ref={scrollRef}
       style={fullScreen ? styles.scrollFill : undefined}
@@ -153,10 +163,12 @@ export function RunWalkSheetDrawer({
         styles.scrollContent,
         fullScreen && styles.scrollContentFullScreen,
         footer ? styles.scrollContentWithFooter : null,
+        { paddingBottom: scrollBottomPadding },
       ]}
       keyboardShouldPersistTaps="handled"
-      automaticallyAdjustKeyboardInsets={keyboardAware}
+      automaticallyAdjustKeyboardInsets={Platform.OS === 'ios' && keyboardAware}
       keyboardDismissMode="interactive"
+      nestedScrollEnabled
       bounces={keyboardInset === 0}
     >
       {children}
@@ -168,7 +180,13 @@ export function RunWalkSheetDrawer({
   )
 
   return (
-    <AppModal visible transparent animationType="none" onRequestClose={onClose}>
+    <AppModal
+      visible
+      transparent
+      animationType="none"
+      onRequestClose={onClose}
+      navBarUnderlayColor={drawerChrome.surfaceBottom}
+    >
       <View style={[styles.host, fullScreen && styles.hostFullScreen]}>
         {!fullScreen ? (
           <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
@@ -180,7 +198,7 @@ export function RunWalkSheetDrawer({
         ) : null}
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={keyboardAvoidingBehavior}
           style={[styles.keyboardWrap, fullScreen && styles.keyboardWrapFullScreen]}
           enabled={keyboardAware}
         >
@@ -263,9 +281,11 @@ const styles = StyleSheet.create({
   hostFullScreen: {
     flex: 1,
     justifyContent: 'flex-start',
+    backgroundColor: drawerChrome.surfaceBottom,
   },
   keyboardWrap: {
     justifyContent: 'flex-end',
+    flex: 1,
   },
   keyboardWrapFullScreen: {
     flex: 1,
@@ -358,11 +378,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 8,
     gap: 12,
   },
   scrollContentFullScreen: {
-    paddingBottom: 24,
+    flexGrow: 1,
   },
   scrollContentWithFooter: {
     paddingBottom: 12,
@@ -384,6 +403,7 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: 20,
     paddingTop: 8,
+    backgroundColor: drawerChrome.surfaceBottom,
   },
   footerDense: {
     paddingTop: 4,

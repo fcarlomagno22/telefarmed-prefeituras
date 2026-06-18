@@ -1,10 +1,8 @@
-import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useState } from 'react'
 import {
   ImageBackground,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
 import { MenuDrawer } from '../components/MenuDrawer'
 import { PrimaryButton } from '../components/PrimaryButton'
+import { ScheduleCareModeStep } from '../components/schedule/ScheduleCareModeStep'
 import { ScheduleConfirmStep } from '../components/schedule/ScheduleConfirmStep'
 import { ScheduleDateStep } from '../components/schedule/ScheduleDateStep'
 import { ScheduleDoctorStep } from '../components/schedule/ScheduleDoctorStep'
@@ -36,6 +35,7 @@ import { colors } from '../theme/colors'
 import {
   ScheduleAppointmentDraft,
   ScheduleAppointmentStep,
+  ScheduleCareMode,
   ScheduleViewMode,
 } from '../types/scheduleAppointment'
 import { playSuccessSound } from '../utils/appSounds'
@@ -55,7 +55,8 @@ export function ScheduleAppointmentScreen() {
   const insets = useSafeAreaInsets()
   const { user, navigateTo, logout } = useAuth()
 
-  const [step, setStep] = useState<ScheduleAppointmentStep>('specialty')
+  const [step, setStep] = useState<ScheduleAppointmentStep>('care_mode')
+  const [careMode, setCareMode] = useState<ScheduleCareMode | ''>('')
   const [scheduleMode, setScheduleMode] = useState<ScheduleViewMode>('by_day')
   const [specialtyId, setSpecialtyId] = useState('')
   const [specialtyName, setSpecialtyName] = useState('')
@@ -85,7 +86,7 @@ export function ScheduleAppointmentScreen() {
 
   const tabBarOffset = TAB_BAR_DOCK_HEIGHT + Math.max(insets.bottom, 8)
 
-  const showFooter = step === 'success' || step !== 'specialty' || Boolean(specialtyId)
+  const showFooter = step === 'confirm' || step === 'success'
 
   const bottomContentPadding = showFooter
     ? SCHEDULE_FOOTER_HEIGHT + tabBarOffset + 16
@@ -154,6 +155,11 @@ export function ScheduleAppointmentScreen() {
     }
 
     if (step === 'specialty') {
+      setStep('care_mode')
+      return
+    }
+
+    if (step === 'care_mode') {
       navigateTo('home')
     }
   }
@@ -199,14 +205,23 @@ export function ScheduleAppointmentScreen() {
       return true
     }
 
+    if (step === 'specialty') {
+      setStep('care_mode')
+      return true
+    }
+
+    if (step === 'care_mode') {
+      navigateTo('home')
+      return true
+    }
+
     return false
   })
 
-  async function prepareDateAfterDoctorSelection() {
-    if (!selectedDoctorId) return
+  async function prepareDateAfterDoctorSelection(doctorId: string) {
     const scheduleStart = getScheduleStartDate()
     const overview = await fetchDoctorScheduleOverview(
-      selectedDoctorId,
+      doctorId,
       scheduleStart,
       SCHEDULE_DAY_COUNT,
     )
@@ -214,52 +229,86 @@ export function ScheduleAppointmentScreen() {
     if (nextDay) setSelectedDate(nextDay)
   }
 
-  async function handlePrimaryAction() {
+  function handleCareModeSelect(mode: ScheduleCareMode) {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-
-    if (step === 'specialty' && specialtyId) {
-      resetSchedulingState()
-      if (skipUbtStep && selectedUbtId) {
-        setStep('schedule_mode')
-        return
-      }
-      resetUbtSelection()
-      setStep('ubt')
-      return
+    setCareMode(mode)
+    if (mode === 'in_person') {
+      setStep('specialty')
     }
+  }
 
-    if (step === 'ubt' && selectedUbtId) {
-      resetSchedulingState()
+  function handleSpecialtySelect(id: string, name: string) {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    setSpecialtyId(id)
+    setSpecialtyName(name)
+    resetSchedulingState()
+
+    if (skipUbtStep && selectedUbtId) {
       setStep('schedule_mode')
       return
     }
 
-    if (step === 'schedule_mode') {
-      setStep(scheduleMode === 'by_day' ? 'schedule_date' : 'schedule_doctor')
+    resetUbtSelection()
+    setStep('ubt')
+  }
+
+  function handleUbtSelect(id: string, name: string) {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    setSelectedUbtId(id)
+    setSelectedUbtName(name)
+    const ubt = scheduleUbts.find((item) => item.id === id)
+    if (ubt) {
+      setSelectedUbtAddress(`${ubt.address} · ${ubt.neighborhood}`)
+    }
+    resetSchedulingState()
+    setStep('schedule_mode')
+  }
+
+  function handleScheduleModeSelect(mode: ScheduleViewMode) {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    setScheduleMode(mode)
+    setSelectedDoctorId('')
+    setSelectedDoctorName('')
+    setSelectedTime('')
+    setSelectedDate(getScheduleStartDate())
+    setStep(mode === 'by_day' ? 'schedule_date' : 'schedule_doctor')
+  }
+
+  function handleDateSelect(date: Date) {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    setSelectedDate(date)
+    if (scheduleMode === 'by_day') {
+      setSelectedDoctorId('')
+      setSelectedDoctorName('')
+    }
+    setSelectedTime('')
+    setStep(scheduleMode === 'by_day' ? 'schedule_doctor' : 'schedule_time')
+  }
+
+  async function handleDoctorSelect(id: string, name: string) {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    setSelectedDoctorId(id)
+    setSelectedDoctorName(name)
+    setSelectedTime('')
+
+    if (scheduleMode === 'by_doctor') {
+      await prepareDateAfterDoctorSelection(id)
+      setStep('schedule_date')
       return
     }
 
-    if (step === 'schedule_date') {
-      setStep(scheduleMode === 'by_day' ? 'schedule_doctor' : 'schedule_time')
-      return
-    }
+    setStep('schedule_time')
+  }
 
-    if (step === 'schedule_doctor' && selectedDoctorId) {
-      if (scheduleMode === 'by_doctor') {
-        await prepareDateAfterDoctorSelection()
-        setSelectedTime('')
-        setStep('schedule_date')
-      } else {
-        setStep('schedule_time')
-      }
-      return
-    }
+  function handleTimeSelect(time: string) {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    setSelectedTime(time)
+    setSubmitError(null)
+    setStep('confirm')
+  }
 
-    if (step === 'schedule_time' && selectedTime) {
-      setSubmitError(null)
-      setStep('confirm')
-      return
-    }
+  async function handlePrimaryAction() {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
 
     if (step === 'confirm') {
       void confirmSchedule()
@@ -352,29 +401,12 @@ export function ScheduleAppointmentScreen() {
   }
 
   function getPrimaryLabel(): string {
-    if (step === 'specialty') return 'Continuar'
-    if (step === 'ubt') return 'Continuar'
-    if (step === 'schedule_mode') return 'Continuar'
-    if (step === 'schedule_date') return 'Continuar'
-    if (step === 'schedule_doctor') return 'Continuar'
-    if (step === 'schedule_time') return 'Revisar agendamento'
     if (step === 'confirm') return isSubmitting ? 'Agendando…' : 'Confirmar consulta'
     if (step === 'success') return 'Ir ao início'
     return 'Continuar'
   }
 
-  const primaryDisabled =
-    step === 'specialty'
-      ? !specialtyId
-      : step === 'ubt'
-        ? !selectedUbtId
-        : step === 'schedule_doctor'
-        ? !selectedDoctorId
-        : step === 'schedule_time'
-          ? !selectedTime
-          : step === 'confirm'
-            ? isSubmitting
-            : false
+  const primaryDisabled = step === 'confirm' ? isSubmitting : false
 
   return (
     <>
@@ -394,23 +426,10 @@ export function ScheduleAppointmentScreen() {
         />
 
         <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
-          {step !== 'success' ? (
-            <Pressable
-              onPress={handleBack}
-              style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-              accessibilityRole="button"
-              accessibilityLabel="Voltar"
-            >
-              <Ionicons name="chevron-back" size={22} color={colors.text} />
-            </Pressable>
-          ) : (
-            <View style={styles.backButtonPlaceholder} />
-          )}
-
           <View style={styles.headerTextCol}>
             <Text style={styles.headerTitle}>Agendar consulta</Text>
             <Text style={styles.headerSubtitle}>
-              Especialidade · UBT · Agendamento · Confirmação
+              Modalidade · Especialidade · Unidade · Agendamento · Confirmação
             </Text>
           </View>
         </View>
@@ -426,21 +445,19 @@ export function ScheduleAppointmentScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+          {step === 'care_mode' ? (
+            <ScheduleCareModeStep
+              selectedMode={careMode}
+              onSelectMode={handleCareModeSelect}
+              onBack={handleBack}
+            />
+          ) : null}
+
           {step === 'specialty' ? (
             <ScheduleSpecialtyStep
               selectedId={specialtyId}
-              onSelect={(id, name) => {
-                if (specialtyId === id) {
-                  setSpecialtyId('')
-                  setSpecialtyName('')
-                  resetUbtSelection()
-                  return
-                }
-
-                setSpecialtyId(id)
-                setSpecialtyName(name)
-                resetUbtSelection()
-              }}
+              onSelect={handleSpecialtySelect}
+              onBack={handleBack}
             />
           ) : null}
 
@@ -449,14 +466,8 @@ export function ScheduleAppointmentScreen() {
               specialtyName={specialtyName}
               userAddress={user.address}
               selectedId={selectedUbtId}
-              onSelect={(id, name) => {
-                setSelectedUbtId(id)
-                setSelectedUbtName(name)
-                const ubt = scheduleUbts.find((item) => item.id === id)
-                if (ubt) {
-                  setSelectedUbtAddress(`${ubt.address} · ${ubt.neighborhood}`)
-                }
-              }}
+              onSelect={handleUbtSelect}
+              onBack={handleBack}
             />
           ) : null}
 
@@ -464,13 +475,8 @@ export function ScheduleAppointmentScreen() {
             <ScheduleModeStep
               specialtyName={specialtyName}
               selectedMode={scheduleMode}
-              onSelectMode={(mode) => {
-                setScheduleMode(mode)
-                setSelectedDoctorId('')
-                setSelectedDoctorName('')
-                setSelectedTime('')
-                setSelectedDate(getScheduleStartDate())
-              }}
+              onSelectMode={handleScheduleModeSelect}
+              onBack={handleBack}
             />
           ) : null}
 
@@ -482,14 +488,8 @@ export function ScheduleAppointmentScreen() {
               selectedDoctorId={scheduleMode === 'by_doctor' ? selectedDoctorId : undefined}
               selectedDoctorName={scheduleMode === 'by_doctor' ? selectedDoctorName : undefined}
               selectedDate={selectedDate}
-              onSelectDate={(date) => {
-                setSelectedDate(date)
-                if (scheduleMode === 'by_day') {
-                  setSelectedDoctorId('')
-                  setSelectedDoctorName('')
-                }
-                setSelectedTime('')
-              }}
+              onSelectDate={handleDateSelect}
+              onBack={handleBack}
             />
           ) : null}
 
@@ -500,11 +500,8 @@ export function ScheduleAppointmentScreen() {
               mode={scheduleMode}
               selectedDate={scheduleMode === 'by_day' ? selectedDate : undefined}
               selectedDoctorId={selectedDoctorId}
-              onSelectDoctor={(id, name) => {
-                setSelectedDoctorId(id)
-                setSelectedDoctorName(name)
-                setSelectedTime('')
-              }}
+              onSelectDoctor={(id, name) => void handleDoctorSelect(id, name)}
+              onBack={handleBack}
             />
           ) : null}
 
@@ -514,13 +511,14 @@ export function ScheduleAppointmentScreen() {
               selectedDoctorId={selectedDoctorId}
               selectedDoctorName={selectedDoctorName}
               selectedTime={selectedTime}
-              onSelectTime={setSelectedTime}
+              onSelectTime={handleTimeSelect}
+              onBack={handleBack}
             />
           ) : null}
 
           {step === 'confirm' && user ? (
             <>
-              <ScheduleConfirmStep user={user} draft={draft} />
+              <ScheduleConfirmStep user={user} draft={draft} onBack={handleBack} />
               {submitError ? <Text style={styles.errorText}>{submitError}</Text> : null}
             </>
           ) : null}
@@ -538,43 +536,13 @@ export function ScheduleAppointmentScreen() {
               end={{ x: 0.5, y: 1 }}
               style={styles.footerBackdrop}
             >
-              {step === 'success' || step === 'specialty' ? (
-                <PrimaryButton
-                  label={step === 'success' ? 'Ir ao início' : getPrimaryLabel()}
-                  onPress={
-                    step === 'success'
-                      ? () => navigateTo('home')
-                      : () => void handlePrimaryAction()
-                  }
-                  loading={step === 'specialty' ? isSubmitting : false}
-                  disabled={step === 'specialty' ? primaryDisabled : false}
-                  style={styles.footerPrimaryButton}
-                />
-              ) : (
-                <View style={styles.footerRow}>
-                  <Pressable
-                    onPress={handleBack}
-                    style={({ pressed }) => [
-                      styles.footerBackButton,
-                      pressed && styles.footerBackButtonPressed,
-                    ]}
-                    accessibilityRole="button"
-                    accessibilityLabel="Voltar"
-                  >
-                    <Text style={styles.footerBackText}>Voltar</Text>
-                  </Pressable>
-
-                  <View style={styles.footerPrimarySlot}>
-                    <PrimaryButton
-                      label={getPrimaryLabel()}
-                      onPress={() => void handlePrimaryAction()}
-                      loading={isSubmitting}
-                      disabled={primaryDisabled}
-                      style={styles.footerPrimaryButton}
-                    />
-                  </View>
-                </View>
-              )}
+              <PrimaryButton
+                label={getPrimaryLabel()}
+                onPress={() => void handlePrimaryAction()}
+                loading={isSubmitting}
+                disabled={primaryDisabled}
+                style={styles.footerPrimaryButton}
+              />
             </LinearGradient>
           </View>
         ) : null}
@@ -613,31 +581,10 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
     paddingHorizontal: 16,
     paddingBottom: 8,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  backButtonPressed: {
-    opacity: 0.82,
-  },
-  backButtonPlaceholder: {
-    width: 40,
-    height: 40,
-  },
   headerTextCol: {
-    flex: 1,
     gap: 2,
   },
   headerTitle: {
@@ -669,34 +616,6 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 12,
     overflow: 'hidden',
-  },
-  footerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  footerBackButton: {
-    flex: 1,
-    minHeight: 52,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
-    backgroundColor: colors.backgroundElevated,
-  },
-  footerBackButtonPressed: {
-    opacity: 0.88,
-    transform: [{ scale: 0.99 }],
-  },
-  footerBackText: {
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  footerPrimarySlot: {
-    flex: 3,
   },
   footerPrimaryButton: {
     marginTop: 0,

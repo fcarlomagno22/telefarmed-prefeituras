@@ -1,4 +1,5 @@
 import type { PrefeituraRedeUnitStatus } from '../../../../data/prefeituraRedeMock'
+import { validateCompositeUbtSlug } from '../../../../utils/tenantSlug'
 
 export const newUbtFlowSteps = [
   { id: 'unit', label: 'Unidade' },
@@ -22,6 +23,7 @@ export function getNewUbtUnitTypeLabel(value: NewUbtUnitType) {
 
 export type NewUbtFormState = {
   name: string
+  slug: string
   cnes: string
   unitType: NewUbtUnitType
   status: PrefeituraRedeUnitStatus
@@ -53,6 +55,7 @@ export function createEmptyNewUbtForm(
 ): NewUbtFormState {
   return {
     name: '',
+    slug: '',
     cnes: '',
     unitType: 'fixa',
     status: 'ativa',
@@ -88,6 +91,11 @@ export function isValidEmail(value: string) {
 
 export function isValidCpf(value: string) {
   return value.replace(/\D/g, '').length === 11
+}
+
+
+export function validateNewUbtSlugStep(form: NewUbtFormState, entitySlug?: string | null) {
+  return validateCompositeUbtSlug(form.slug, entitySlug)
 }
 
 export function formatNewUbtAddress(form: NewUbtFormState) {

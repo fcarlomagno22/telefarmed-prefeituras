@@ -153,7 +153,7 @@ export function useAdminPrefeituraCredentialDrawer(
             password: secrets.password,
           })
           onRowsChange([...rows, saved])
-          setToast({ message: 'Gestor municipal cadastrado.', variant: 'success' })
+          setToast({ message: 'Gestor da entidade cadastrado.', variant: 'success' })
         } else {
           const saved = await updatePrefeituraCredential(token, user.id, {
             name: payload.name,
@@ -168,7 +168,7 @@ export function useAdminPrefeituraCredentialDrawer(
             authorizationPin: secrets?.authorizationPin,
           })
           onRowsChange(rows.map((row) => (row.id === user.id ? saved : row)))
-          setToast({ message: 'Gestor municipal atualizado com sucesso.', variant: 'success' })
+          setToast({ message: 'Gestor da entidade atualizado com sucesso.', variant: 'success' })
         }
 
         setClosing(true)
@@ -176,7 +176,7 @@ export function useAdminPrefeituraCredentialDrawer(
       } catch (error) {
         const message = isCredenciaisApiError(error)
           ? error.message
-          : 'Não foi possível salvar o gestor municipal.'
+          : 'Não foi possível salvar o gestor.'
         setToast({ message, variant: 'error' })
       } finally {
         setIsSaving(false)
@@ -223,7 +223,7 @@ export function useAdminPrefeituraCredentialDrawer(
           setEditingUser(saved)
         }
         setToast({
-          message: 'Acesso desbloqueado. O gestor já pode entrar no portal municipal.',
+          message: 'Acesso desbloqueado. O gestor já pode entrar no portal.',
           variant: 'success',
         })
         await onDataChanged?.()
@@ -249,7 +249,7 @@ export function useAdminPrefeituraCredentialDrawer(
         await deletePrefeituraCredential(token, userId)
         onRowsChange(rows.filter((row) => row.id !== userId))
         if (editingUser?.id === userId) setClosing(true)
-        setToast({ message: 'Gestor municipal removido.', variant: 'success' })
+        setToast({ message: 'Gestor da entidade removido.', variant: 'success' })
         await onDataChanged?.()
       } catch (error) {
         const message = isCredenciaisApiError(error)

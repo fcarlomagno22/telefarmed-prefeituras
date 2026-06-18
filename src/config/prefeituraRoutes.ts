@@ -1,5 +1,6 @@
 import { portalPath } from './portalHost'
 
+/** Rotas do portal de gestão (host dedicado: `/login`; local: `/prefeitura/login`). */
 export const prefeituraRoutes = {
   get login() {
     return portalPath('prefeitura', '/login')
@@ -24,6 +25,9 @@ export const prefeituraRoutes = {
   },
   get usuarios() {
     return portalPath('prefeitura', '/usuarios')
+  },
+  get faturamento() {
+    return portalPath('prefeitura', '/faturamento')
   },
   get contrato() {
     return portalPath('prefeitura', '/contrato')

@@ -1,4 +1,11 @@
 import { brand } from '../../config/brand'
+import {applyEntidadeCopyToExportText,
+  buildEntidadeExportBaseStyles,
+  resolveEntidadeExportBranding,
+  type EntidadeExportBranding,
+  resolveExportAssetUrl,
+  escapeExportHtml
+} from '../entidadeExportHtml'
 import type { MedicosPlantaoReportApi } from '../../types/prefeituraRelatorios'
 import { downloadWindowAsPdf, pdfFilenameFromLabel } from '../htmlDocumentToPdf'
 
@@ -49,12 +56,12 @@ const HIGHLIGHT_TONE_STYLE = {
   blue: 'border:1px solid #bae6fd;background:#f0f9ff;color:#0c4a6e;',
 } as const
 
-function buildReportStyles() {
+function buildReportStyles(branding: EntidadeExportBranding = resolveEntidadeExportBranding()) {
   return `
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #111827; background: #fff; line-height: 1.45; }
     main { max-width: 1100px; margin: 0 auto; padding: 28px 32px 36px; border: 1px solid #e5e7eb; border-radius: 16px; background: #fff; }
-    .brand-bar { height: 4px; background: #ff6b00; border-radius: 999px; margin-bottom: 20px; }
+    .brand-bar { height: 4px; background: ${branding.corPrimaria}; border-radius: 999px; margin-bottom: 20px; }
     .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
     .header img { height: 36px; width: auto; }
     .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #9ca3af; }
@@ -63,7 +70,7 @@ function buildReportStyles() {
     .meta { margin-top: 12px; font-size: 12px; color: #6b7280; }
     .meta p + p { margin-top: 4px; }
     section { margin-top: 28px; }
-    h2 { font-size: 14px; font-weight: 700; color: #111827; border-bottom: 2px solid #ff6b00; padding-bottom: 8px; margin-bottom: 14px; }
+    h2 { font-size: 14px; font-weight: 700; color: #111827; border-bottom: 2px solid ${branding.corPrimaria}; padding-bottom: 8px; margin-bottom: 14px; }
     .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
     .card { border: 1px solid #e5e7eb; border-radius: 12px; background: #f8fafc; padding: 16px; text-align: center; }
     .card-label { font-size: 12px; color: #6b7280; font-weight: 500; }
@@ -127,7 +134,7 @@ function buildEvolutionChart(
 }
 
 export function buildMedicosPlantaoReportHtml({ report, generatedAtLabel }: ExportContext) {
-  const logoUrl = resolveAssetUrl(brand.logoUrl)
+  const logoUrl = resolveExportAssetUrl(branding.logoUrl)
   const topProfessional = report.professionals[0]
   const adherenceDeltaClass =
     report.summary.adherenceDeltaPp >= 0 ? 'card-footer-positive' : 'card-footer-negative'
@@ -194,13 +201,13 @@ export function buildMedicosPlantaoReportHtml({ report, generatedAtLabel }: Expo
     )
     .join('')
 
-  return `<!DOCTYPE html>
+  return applyEntidadeCopyToExportText(`<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${escapeHtml(report.title)}</title>
-  <style>${buildReportStyles()}</style>
+  <style>${buildReportStyles(branding)}</style>
 </head>
 <body>
   <main>
@@ -211,11 +218,11 @@ export function buildMedicosPlantaoReportHtml({ report, generatedAtLabel }: Expo
         <h1>${escapeHtml(report.title)}</h1>
         <p class="subtitle">${escapeHtml(report.description)}</p>
         <div class="meta">
-          <p><strong>${escapeHtml(report.entidadeRazaoSocial)}</strong> · ${escapeHtml(brand.appName)}</p>
+          <p><strong>${escapeHtml(report.entidadeRazaoSocial)}</strong> · ${escapeExportHtml(branding.brandName)}</p>
           <p>Período: <strong>${escapeHtml(report.periodLabel)}</strong></p>
         </div>
       </div>
-      <img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brand.appName)}" />
+      <img src="${escapeHtml(logoUrl)}" alt="${escapeExportHtml(branding.brandName)}" />
     </header>
     <section>
       <div class="summary-grid">
@@ -292,7 +299,7 @@ export function buildMedicosPlantaoReportHtml({ report, generatedAtLabel }: Expo
     </footer>
   </main>
 </body>
-</html>`
+</html>`)
 }
 
 function createExportFrame(html: string) {

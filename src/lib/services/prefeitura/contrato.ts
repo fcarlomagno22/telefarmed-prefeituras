@@ -101,3 +101,23 @@ export async function fetchPrefeituraContratoMonthDetail(
   }
   return mockFetchPrefeituraContratoMonthDetail(accessToken, contratoId, year, month, contractMeta)
 }
+
+export async function fetchPrefeituraActiveContratoEspecialidadeIds(
+  accessToken: string,
+): Promise<string[]> {
+  const contratos = await fetchPrefeituraContratos(accessToken)
+  const active = contratos.filter((contrato) => contrato.status === 'active')
+  if (active.length === 0) return []
+
+  const ids = new Set<string>()
+  await Promise.all(
+    active.map(async (contrato) => {
+      const detail = await fetchPrefeituraContratoById(accessToken, contrato.id)
+      for (const especialidade of detail.especialidades) {
+        ids.add(especialidade.id)
+      }
+    }),
+  )
+
+  return [...ids]
+}

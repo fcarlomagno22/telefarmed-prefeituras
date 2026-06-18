@@ -16,6 +16,7 @@ import {
 import { adminConfiguracoesInitial } from '../../../data/adminConfiguracoesInitial'
 import type { AdminClienteContratoAction } from '../../../components/admin/clientes/adminClienteContratoActions'
 import type { AdminClienteUbtsResponse } from '../../../types/adminClienteUbts'
+import type { TipoEntidade } from '../../../types/entidadeBranding'
 import { mockDelay } from '../delay'
 
 export class AdminClientesApiError extends Error {
@@ -98,6 +99,7 @@ export type CreateEntidadePayload = {
   municipio: string
   uf: string
   status: AdminClienteStatus
+  tipoEntidade?: TipoEntidade
   logoHue?: number
   logoDataUrl?: string
   gestor: AdminClienteContact
@@ -122,6 +124,7 @@ export type UpdateEntidadePayload = {
   cnpj: string
   municipio: string
   uf: string
+  tipoEntidade?: TipoEntidade
   logoHue?: number
   logoDataUrl?: string
 }
@@ -359,6 +362,7 @@ export async function createClienteEntidade(
   const row: AdminClienteRow = {
     id: `cli-${Date.now()}`,
     prefeitura: payload.nome,
+    tipoEntidade: payload.tipoEntidade ?? 'prefeitura',
     subtitle: payload.subtitulo,
     razaoSocial: payload.razaoSocial,
     cnpj: payload.cnpj,
@@ -416,6 +420,7 @@ export async function updateClienteEntidade(
 
   row.prefeitura = payload.nome.trim()
   row.subtitle = payload.subtitulo.trim()
+  if (payload.tipoEntidade) row.tipoEntidade = payload.tipoEntidade
   row.razaoSocial = payload.razaoSocial.trim()
   row.cnpj = normalizedCnpj
   row.municipio = payload.municipio.trim()

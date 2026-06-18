@@ -25,6 +25,7 @@ import { playSuccessSound } from '../../utils/appSounds'
 import { PrimaryButton } from '../PrimaryButton'
 import { MetricLogSuccessContent } from './MetricLogSuccessContent'
 import { getModalFooterPadding } from '../../utils/modalSafeArea'
+import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
 
 export type { GlucoseReading, GlucoseReadingContext }
 
@@ -785,7 +786,7 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
         </Animated.View>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={keyboardAvoidingBehavior}
           style={styles.keyboardWrap}
         >
           <Animated.View

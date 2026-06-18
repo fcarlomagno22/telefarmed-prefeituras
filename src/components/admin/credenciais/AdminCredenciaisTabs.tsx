@@ -8,8 +8,8 @@ const tabs: { id: AdminCredenciaisTab; label: string; hint: string }[] = [
   },
   {
     id: 'prefeitura',
-    label: 'Prefeitura',
-    hint: 'Gestores municipais · /prefeitura',
+    label: 'Entidade',
+    hint: 'Gestores da entidade · portal de gestão',
   },
   {
     id: 'ubt',

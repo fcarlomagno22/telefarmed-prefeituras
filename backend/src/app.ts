@@ -64,6 +64,8 @@ import {
   registerPublicPosConsultaRoutes,
 } from './modules/pos-consulta/routes.js'
 import { registerInternalCronRoutes } from './modules/internal-cron/routes.js'
+import { registerPublicTenantRoutes } from './modules/public-tenant/routes.js'
+import { resolveCorsOrigin } from './lib/corsOrigins.js'
 
 export async function buildApp() {
   const app = Fastify({
@@ -92,7 +94,7 @@ export async function buildApp() {
   })
 
   await app.register(cors, {
-    origin: env.CORS_ORIGIN.split(',').map((value) => value.trim()),
+    origin: resolveCorsOrigin,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   })
@@ -277,6 +279,13 @@ export async function buildApp() {
       await registerAdminFinanceiroRoutes(adminFinanceiro)
     },
     { prefix: '/api/v1/admin/financeiro' },
+  )
+
+  await app.register(
+    async (publicTenant) => {
+      await registerPublicTenantRoutes(publicTenant)
+    },
+    { prefix: '/api/v1/public' },
   )
 
   await app.register(

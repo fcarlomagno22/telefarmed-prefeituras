@@ -1,16 +1,20 @@
 import { BadgeCheck, UserRound } from 'lucide-react'
 import { brand } from '../../config/brand'
+import { PoweredByTelefarmed } from '../brand/PoweredByTelefarmed'
 
 export type OperatorFooterProps = {
   label?: string
   name?: string
   role?: string
+  /** Gestão/UBT whitelabel: "powered by" + logo Telefarmed. Demais portais: sessão ativa. */
+  trailing?: 'active-session' | 'powered-by'
 }
 
 export function OperatorFooter({
   label = brand.operatorFooterLabel,
   name = brand.operatorName,
   role = brand.operatorRole,
+  trailing = 'active-session',
 }: OperatorFooterProps = {}) {
   return (
     <footer
@@ -30,10 +34,14 @@ export function OperatorFooter({
           <span className="hidden text-gray-500 sm:inline">{role}</span>
         </p>
 
-        <span className="inline-flex shrink-0 items-center gap-1.5 text-[11px] font-semibold text-emerald-700">
-          <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2} />
-          <span className="hidden sm:inline">Sessão ativa</span>
-        </span>
+        {trailing === 'powered-by' ? (
+          <PoweredByTelefarmed className="shrink-0" />
+        ) : (
+          <span className="inline-flex shrink-0 items-center gap-1.5 text-[11px] font-semibold text-emerald-700">
+            <BadgeCheck className="h-3.5 w-3.5" strokeWidth={2} />
+            <span className="hidden sm:inline">Sessão ativa</span>
+          </span>
+        )}
       </div>
     </footer>
   )

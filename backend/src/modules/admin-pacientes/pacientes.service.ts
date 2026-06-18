@@ -1,4 +1,8 @@
 import { normalizeCpf } from '../../lib/cpf.js'
+import { parseTipoEntidade } from '../../lib/entidadeBranding/terminology.js'
+import {
+  resolveAceitaPacientesOutrosMunicipios,
+} from '../../lib/entidadeBranding/tipo.js'
 import {
   addressMatchesEntityTerritory,
   buildTerritoryMismatchMessage,
@@ -209,7 +213,7 @@ export async function findPacienteByCpf(
 export async function listContractingEntities(): Promise<AdminPatientContractingEntityDto[]> {
   const { data: entidades, error: entidadesError } = await supabaseAdmin
     .from('entidades_contratantes')
-    .select('id, razao_social, municipio, uf')
+    .select('id, razao_social, municipio, uf, tipo_entidade')
     .order('municipio', { ascending: true })
 
   if (entidadesError) throw entidadesError
@@ -232,6 +236,8 @@ export async function listContractingEntities(): Promise<AdminPatientContracting
   return (entidades ?? []).map((row) => {
     const entityId = String(row.id)
     const hasActiveContract = activeContractByEntity.has(entityId)
+    const tipoEntidade = parseTipoEntidade(row.tipo_entidade)
+    const aceitaContrato = activeContractByEntity.get(entityId) ?? false
 
     return {
       id: entityId,
@@ -239,7 +245,11 @@ export async function listContractingEntities(): Promise<AdminPatientContracting
       municipality: String(row.municipio),
       uf: String(row.uf),
       contractStatus: hasActiveContract ? 'ativo' : 'encerrado',
-      aceitaPacientesOutrosMunicipios: activeContractByEntity.get(entityId) ?? false,
+      tipoEntidade,
+      aceitaPacientesOutrosMunicipios: resolveAceitaPacientesOutrosMunicipios(
+        tipoEntidade,
+        aceitaContrato,
+      ),
     }
   })
 }
@@ -247,7 +257,7 @@ export async function listContractingEntities(): Promise<AdminPatientContracting
 export async function getEntityPatientTerritoryPolicy(entidadeContratanteId: string) {
   const { data: entity, error: entityError } = await supabaseAdmin
     .from('entidades_contratantes')
-    .select('municipio, uf')
+    .select('municipio, uf, tipo_entidade')
     .eq('id', entidadeContratanteId)
     .maybeSingle()
 
@@ -267,10 +277,17 @@ export async function getEntityPatientTerritoryPolicy(entidadeContratanteId: str
 
   if (contratoError) throw contratoError
 
+  const tipoEntidade = parseTipoEntidade(entity.tipo_entidade)
+  const aceitaContrato = Boolean(contrato?.aceita_pacientes_outros_municipios ?? false)
+
   return {
     municipio: String(entity.municipio),
     uf: String(entity.uf),
-    aceitaPacientesOutrosMunicipios: Boolean(contrato?.aceita_pacientes_outros_municipios ?? false),
+    tipoEntidade,
+    aceitaPacientesOutrosMunicipios: resolveAceitaPacientesOutrosMunicipios(
+      tipoEntidade,
+      aceitaContrato,
+    ),
   }
 }
 

@@ -11,6 +11,7 @@ import {
   deleteClienteContrato,
   deleteClienteEntidade,
   getClienteEntidade,
+  getClienteSlugAvailability,
   listClientesEntidades,
   updateClienteContrato,
   updateClienteContratoStatus,
@@ -27,6 +28,7 @@ import {
   idParamSchema,
   listClinicoQuerySchema,
   listEntidadesQuerySchema,
+  slugAvailabilityQuerySchema,
   updateContratoBodySchema,
   updateContratoStatusBodySchema,
   updateEntidadeBodySchema,
@@ -70,6 +72,21 @@ export async function registerAdminClientesRoutes(app: FastifyInstance): Promise
     try {
       const summary = await getClientesSummary()
       return reply.send(summary)
+    } catch (error) {
+      const mapped = mapClientesError(error)
+      return reply.status(mapped.statusCode).send(mapped.body)
+    }
+  })
+
+  app.get('/slugs/availability', { preHandler: canView }, async (request, reply) => {
+    const parsed = slugAvailabilityQuerySchema.safeParse(request.query)
+    if (!parsed.success) {
+      return reply.status(400).send({ error: 'Parâmetros inválidos.' })
+    }
+
+    try {
+      const result = await getClienteSlugAvailability(parsed.data)
+      return reply.send(result)
     } catch (error) {
       const mapped = mapClientesError(error)
       return reply.status(mapped.statusCode).send(mapped.body)

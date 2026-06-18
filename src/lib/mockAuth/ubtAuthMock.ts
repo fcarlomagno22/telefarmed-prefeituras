@@ -9,6 +9,8 @@ import {
   isValidMockAuthorizationPin,
 } from './mockAuthCredentials'
 import { createMockAccessToken } from './mockAuthStorage'
+import type { EntidadeBrandingFields } from '../../types/entidadeBranding'
+import { buildDefaultEntidadeBranding } from '../../types/entidadeBranding'
 
 export type UbtSystemPermissions = Record<SystemPageId, PermissionAction[]>
 
@@ -28,7 +30,7 @@ export type UbtAuthUser = {
   uf: string
   lastLoginAt: string | null
   systemPermissions: UbtSystemPermissions
-}
+} & Partial<EntidadeBrandingFields>
 
 export class UbtAuthApiError extends Error {
   status: number
@@ -74,6 +76,9 @@ function buildDemoUbtUser(): UbtAuthUser {
     uf: 'SP',
     lastLoginAt: new Date().toISOString(),
     systemPermissions: demoCredential.pagePermissions as UbtSystemPermissions,
+    ...buildDefaultEntidadeBranding({
+      nomeExibicao: 'Prefeitura Municipal de São José dos Campos',
+    }),
   }
 }
 

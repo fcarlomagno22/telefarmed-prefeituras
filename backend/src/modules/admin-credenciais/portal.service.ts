@@ -67,7 +67,7 @@ export async function createPortalCredential(input: {
 }): Promise<AdminPortalUserDto> {
   if (input.scope === 'Prefeitura') {
     if (!input.cpf?.trim()) {
-      throw new CredenciaisError('Informe o CPF do gestor municipal.', 'INVALID_DATA', 400)
+      throw new CredenciaisError('Informe o CPF do gestor.', 'INVALID_DATA', 400)
     }
     return createPrefeituraCredential({
       name: input.name,

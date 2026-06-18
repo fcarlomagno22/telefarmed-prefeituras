@@ -2,10 +2,12 @@ import type {
   PrefeituraNotification,
   PrefeituraNotificacoesOriginSlice,
 } from '../../data/prefeituraNotificacoesMock'
+import { brand } from '../../config/brand'
 import { isPrefeituraNotificationUnread } from '../../components/prefeitura/notificacoes/prefeituraNotificacoesUi'
 
 export function computeUbtNotificacoesOriginSlices(
   notifications: PrefeituraNotification[],
+  platformOperatorLabel: string = brand.appName,
 ): PrefeituraNotificacoesOriginSlice[] {
   const telefarmed = notifications.filter(
     (n) => n.direction === 'inbox' && n.origin === 'telefarmed',
@@ -18,7 +20,7 @@ export function computeUbtNotificacoesOriginSlices(
   return [
     {
       key: 'telefarmed',
-      label: 'Telefarmed',
+      label: platformOperatorLabel,
       count: telefarmed.length,
       unread: telefarmed.filter(isPrefeituraNotificationUnread).length,
     },

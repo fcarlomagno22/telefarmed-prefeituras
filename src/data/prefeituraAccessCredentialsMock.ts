@@ -36,6 +36,7 @@ export type PrefeituraCredentialUbtOption = {
   value: string
   label: string
   ubtName: string
+  slug?: string
   raKey: string
   raLabel: string
   contractingEntityId?: string
@@ -74,6 +75,13 @@ export const prefeituraCredentialsUbtOptions: PrefeituraCredentialUbtOption[] =
         value: unit.id,
         label: unit.name,
         ubtName: unit.name,
+        slug: unit.name
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 50),
         raKey,
         raLabel: raLabelFromKey(raKey),
       }

@@ -1,6 +1,7 @@
 import { Ban, Eye, EyeOff, Pencil, Trash2, UserCheck, X } from 'lucide-react'
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { buildUbtUrl } from '../../config/tenantHost'
 import {
   accessLevels,
   buildPresetPagePermissions,
@@ -19,6 +20,7 @@ import { cpfDigits, isValidCpf } from '../../utils/cpf'
 import { maskCpf } from '../../utils/masks'
 import { CustomSelect } from '../ui/CustomSelect'
 import { PinInput } from '../ui/PinInput'
+import { CredentialPortalAccessLink } from './CredentialPortalAccessLink'
 
 export type AccessCredentialDrawerMode = 'create' | 'edit' | 'edit_permissions' | 'view'
 
@@ -36,6 +38,8 @@ type AccessCredentialUserDrawerProps = {
     ubtOptionsByContractingEntityId?: Record<string, PrefeituraCredentialUbtOption[]>
     skipPasswordOnCreate?: boolean
     requireCpfOnCreate?: boolean
+    /** Slug do portal UBT quando há uma única unidade (ex.: portal da própria UBT). */
+    defaultPortalSlug?: string | null
     viewActions?: {
       onEditPermissions: () => void
       onDeactivate: () => void
@@ -227,6 +231,19 @@ export function AccessCredentialUserDrawer({
       label: `${option.label} · ${option.raLabel}`,
     })) ?? []),
   ]
+
+  const portalLoginUrl = useMemo(() => {
+    if (!isCreateMode || !isMunicipal) return null
+    const selectedOption = filteredUbtOptions.find((option) => option.value === selectedUbtId)
+    const slug = selectedOption?.slug?.trim() || municipalConfig?.defaultPortalSlug?.trim()
+    return slug ? buildUbtUrl(slug) : null
+  }, [
+    filteredUbtOptions,
+    isCreateMode,
+    isMunicipal,
+    municipalConfig?.defaultPortalSlug,
+    selectedUbtId,
+  ])
 
   const resetForm = useCallback(() => {
     setPassword('')
@@ -644,6 +661,11 @@ export function AccessCredentialUserDrawer({
                         placeholder="Selecione a UBT"
                       />
                     )}
+                  </div>
+                ) : null}
+                {isCreateMode && isMunicipal ? (
+                  <div className="sm:col-span-2">
+                    <CredentialPortalAccessLink loginUrl={portalLoginUrl} />
                   </div>
                 ) : null}
                 <div className="sm:col-span-2">

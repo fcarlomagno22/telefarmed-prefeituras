@@ -8,7 +8,6 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
-import { brand } from '../../../config/brand'
 import {
   UBT_PASSWORD_RECOVERY_CODE_LENGTH,
   type UbtPasswordRecoveryStepId,
@@ -23,6 +22,7 @@ import { isValidCpf } from '../../../utils/cpf'
 import { maskCpf } from '../../../utils/masks'
 import { isPortalPasswordValid, validatePortalPassword } from '../../../utils/passwordPolicy'
 import { PinInput } from '../../ui/PinInput'
+import { useEntidadeBranding } from '../../../contexts/EntidadeBrandingContext'
 import { PasswordStrengthChecklist } from './PasswordStrengthChecklist'
 import { UbtPasswordRecoveryEmailSentPanel } from './UbtPasswordRecoveryEmailSentPanel'
 import { UbtPasswordRecoveryEtapa3Lottie } from './UbtPasswordRecoveryEtapa3Lottie'
@@ -34,7 +34,7 @@ import { UbtPasswordRecoveryStepper } from './UbtPasswordRecoveryStepper'
 
 const lottieInnerClass = 'h-full w-full shrink-0 [&_svg]:h-full [&_svg]:w-full'
 const primaryButtonClass =
-  'w-full rounded-xl bg-[var(--brand-primary)] py-3 text-sm font-semibold text-white transition hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50'
+  'w-full rounded-xl btn-brand-gradient py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50'
 const inputClass =
   'w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/10'
 const drawerShellClass =
@@ -129,6 +129,7 @@ type UbtPasswordRecoveryDrawerContentProps = {
 }
 
 function UbtPasswordRecoveryDrawerContent({ onClose }: UbtPasswordRecoveryDrawerContentProps) {
+  const { displayName, logoUrl } = useEntidadeBranding()
   const [step, setStep] = useState<UbtPasswordRecoveryStepId>('cpf')
   const [cpf, setCpf] = useState('')
   const [sentToEmail, setSentToEmail] = useState('')
@@ -500,8 +501,8 @@ function UbtPasswordRecoveryDrawerContent({ onClose }: UbtPasswordRecoveryDrawer
       <footer className="mt-auto shrink-0 border-t border-gray-100 px-6 py-4">
         <div className="flex justify-center">
           <img
-            src={brand.logoUrl}
-            alt={brand.appName}
+            src={logoUrl}
+            alt={displayName}
             className="h-8 w-auto max-w-[180px] object-contain opacity-90"
           />
         </div>

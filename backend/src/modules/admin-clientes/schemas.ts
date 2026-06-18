@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { tenantSlugZodSchema } from '../../lib/tenant/slugSchema.js'
 
 const pinSchema = z.string().regex(/^\d{6}$/, 'Senha de autorização inválida.')
 
@@ -9,6 +10,34 @@ const contactSchema = z.object({
   phoneType: z.enum(['fixo', 'celular']).optional(),
 })
 
+function hasCompleteContact(contact: z.infer<typeof contactSchema> | undefined): boolean {
+  if (!contact) return false
+  return Boolean(contact.name.trim() && contact.email.trim())
+}
+
+function assertAtLeastOneOperacionalContact(
+  data: {
+    gestor?: z.infer<typeof contactSchema>
+    contatoContrato?: z.infer<typeof contactSchema>
+    contatoSaude?: z.infer<typeof contactSchema>
+  },
+  ctx: z.RefinementCtx,
+) {
+  const hasRequiredContact =
+    hasCompleteContact(data.gestor) ||
+    hasCompleteContact(data.contatoSaude) ||
+    hasCompleteContact(data.contatoContrato)
+
+  if (hasRequiredContact) return
+
+  ctx.addIssue({
+    code: z.ZodIssueCode.custom,
+    message:
+      'Informe ao menos um contato operacional completo entre Gestor da entidade, Saúde ou Gestor do contrato. O contato de TI sozinho não é suficiente.',
+    path: ['gestor'],
+  })
+}
+
 const statusEntidadeSchema = z.enum([
   'ativa',
   'implantacao',
@@ -18,6 +47,23 @@ const statusEntidadeSchema = z.enum([
 ])
 
 const contratoTipoSchema = z.string().trim().min(1).max(64)
+
+const tipoEntidadeSchema = z.enum(['prefeitura', 'santa_casa', 'generico'])
+
+const corPrimariaSchema = z
+  .string()
+  .trim()
+  .regex(/^#[0-9A-Fa-f]{6}$/, 'Cor primária inválida. Use o formato #RRGGBB.')
+
+const terminologiaSchema = z.record(z.string().trim().min(1), z.string().trim().min(1))
+
+export const tenantSlugSchema = tenantSlugZodSchema
+
+export const slugAvailabilityQuerySchema = z.object({
+  value: z.string().trim().min(1),
+  excludeEntidadeId: z.string().uuid().optional(),
+  excludeUbtId: z.string().uuid().optional(),
+})
 
 const precoProfissaoSchema = z.object({
   professionId: z.string().trim().min(1),
@@ -50,22 +96,31 @@ export const listClinicoQuerySchema = z.object({
     .transform((value) => value !== 'false'),
 })
 
-export const createEntidadeBodySchema = z.object({
-  pin: pinSchema,
-  nome: z.string().trim().min(1),
-  subtitulo: z.string().trim().min(1),
-  razaoSocial: z.string().trim().min(1),
-  cnpj: z.string().trim().min(14),
-  municipio: z.string().trim().min(1),
-  uf: z.string().trim().length(2),
-  status: statusEntidadeSchema,
-  logoHue: z.number().int().min(0).max(359).optional(),
-  logoDataUrl: z.string().trim().optional(),
-  gestor: contactSchema,
-  contatoContrato: contactSchema.optional(),
-  contatoTi: contactSchema,
-  contatoSaude: contactSchema,
-})
+export const createEntidadeBodySchema = z
+  .object({
+    pin: pinSchema,
+    nome: z.string().trim().min(1),
+    subtitulo: z.string().trim().min(1),
+    razaoSocial: z.string().trim().min(1),
+    cnpj: z.string().trim().min(14),
+    municipio: z.string().trim().min(1),
+    uf: z.string().trim().length(2),
+    status: statusEntidadeSchema,
+    slug: tenantSlugSchema,
+    logoHue: z.number().int().min(0).max(359).optional(),
+    logoDataUrl: z.string().trim().optional(),
+    loginBackgroundDataUrl: z.string().trim().optional(),
+    faviconDataUrl: z.string().trim().optional(),
+    tipoEntidade: tipoEntidadeSchema.optional(),
+    corPrimaria: corPrimariaSchema.optional(),
+    nomeMarca: z.string().trim().min(1).optional(),
+    terminologia: terminologiaSchema.optional(),
+    gestor: contactSchema.optional(),
+    contatoContrato: contactSchema.optional(),
+    contatoTi: contactSchema.optional(),
+    contatoSaude: contactSchema.optional(),
+  })
+  .superRefine(assertAtLeastOneOperacionalContact)
 
 export const updateEntidadeStatusBodySchema = z.object({
   pin: pinSchema,
@@ -88,8 +143,15 @@ export const updateEntidadeBodySchema = z.object({
   cnpj: z.string().trim().min(14),
   municipio: z.string().trim().min(1),
   uf: z.string().trim().length(2),
+  slug: tenantSlugSchema.optional(),
   logoHue: z.number().int().min(0).max(359).optional(),
   logoDataUrl: z.string().trim().optional(),
+  loginBackgroundDataUrl: z.string().trim().optional(),
+  faviconDataUrl: z.string().trim().optional(),
+  tipoEntidade: tipoEntidadeSchema.optional(),
+  corPrimaria: corPrimariaSchema.optional(),
+  nomeMarca: z.string().trim().min(1).optional(),
+  terminologia: terminologiaSchema.optional(),
 })
 
 export const deleteWithPinBodySchema = z.object({
@@ -127,6 +189,8 @@ export const entidadeUbtParamsSchema = z.object({
 
 export type CreateEntidadeBody = z.infer<typeof createEntidadeBodySchema>
 export type UpdateEntidadeBody = z.infer<typeof updateEntidadeBodySchema>
+export type UpdateEntidadeContactsBody = z.infer<typeof updateEntidadeContactsBodySchema>
 export type CreateContratoBody = z.infer<typeof createContratoBodySchema>
 export type UpdateContratoBody = z.infer<typeof updateContratoBodySchema>
 export type ListEntidadesQuery = z.infer<typeof listEntidadesQuerySchema>
+export type SlugAvailabilityQuery = z.infer<typeof slugAvailabilityQuerySchema>

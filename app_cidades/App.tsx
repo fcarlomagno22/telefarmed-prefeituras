@@ -19,6 +19,7 @@ import { FunctionalExerciseScreen } from './src/screens/FunctionalExerciseScreen
 import { EatWellScreen } from './src/screens/EatWellScreen'
 import { SleepStoriesScreen } from './src/screens/SleepStoriesScreen'
 import { SleepTimeScreen } from './src/screens/SleepTimeScreen'
+import { MentalHealthScreen } from './src/screens/MentalHealthScreen'
 import { EatWellMenuDetailScreen } from './src/screens/EatWellMenuDetailScreen'
 import { RunWalkScreen } from './src/screens/RunWalkScreen'
 import { RunWalkPreparationChecklistScreen } from './src/screens/RunWalkPreparationChecklistScreen'
@@ -74,6 +75,7 @@ function AppRouter() {
   if (screen === 'eat-well-menu') return <EatWellMenuDetailScreen />
   if (screen === 'sleep-time') return <SleepTimeScreen />
   if (screen === 'sleep-stories') return <SleepStoriesScreen />
+  if (screen === 'mental-health') return <MentalHealthScreen />
   if (screen === 'schedule-appointment') return <ScheduleAppointmentScreen />
   if (screen === 'home') return <HomeScreen />
   return <LoginScreen />

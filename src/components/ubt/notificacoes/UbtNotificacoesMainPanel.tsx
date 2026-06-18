@@ -6,6 +6,7 @@ import {
   type UbtNotificationListFilters,
 } from '../../../contexts/UbtNotificacoesContext'
 import { useUbtPageAccess } from '../../../hooks/useUbtPageAccess'
+import { usePlatformOperatorLabel } from '../../../hooks/useEntidadeCopy'
 import { dashboardMainPanelSurfaceClass } from '../../layout/dashboardPageLayout'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
@@ -36,11 +37,13 @@ const readOptions = [
   { value: 'read', label: 'Lidas' },
 ]
 
-const originOptions = [
-  { value: 'all', label: 'Origem: Todas' },
-  { value: 'telefarmed', label: 'Telefarmed' },
-  { value: 'contract_manager', label: 'Gestão municipal' },
-]
+function buildOriginOptions(platformOperatorLabel: string) {
+  return [
+    { value: 'all', label: 'Origem: Todas' },
+    { value: 'telefarmed', label: platformOperatorLabel },
+    { value: 'contract_manager', label: 'Gestão municipal' },
+  ]
+}
 
 const TABLE_COLUMN_COUNT = 8
 
@@ -58,6 +61,11 @@ export function UbtNotificacoesMainPanel({
   onNotificationsChange,
 }: UbtNotificacoesMainPanelProps) {
   const notificacoesContext = useUbtNotificacoesOptional()
+  const platformOperatorLabel = usePlatformOperatorLabel()
+  const originOptions = useMemo(
+    () => buildOriginOptions(platformOperatorLabel),
+    [platformOperatorLabel],
+  )
   const { pageAccess } = useUbtPageAccess('notificacoes')
   const [search, setSearch] = useState(notificacoesContext?.listFilters.search ?? '')
   const [directionFilter, setDirectionFilter] = useState<DirectionFilter>(
@@ -223,7 +231,7 @@ export function UbtNotificacoesMainPanel({
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar por título ou remetente..."
-                className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-sm text-gray-800 outline-none transition focus:border-[var(--brand-primary)]/40 focus:shadow-[0_0_0_3px_rgba(255,107,0,0.12)]"
+                className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-sm text-gray-800 outline-none transition focus:border-[var(--brand-primary)]/40 focus:shadow-[var(--brand-primary-focus-ring)]"
               />
             </div>
             <div className="grid shrink-0 grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-2 lg:w-[min(100%,36rem)]">
@@ -300,7 +308,7 @@ export function UbtNotificacoesMainPanel({
                     >
                       <td className={tdClass}>
                         {unread ? (
-                          <span className="inline-flex items-center justify-center gap-1 rounded-full bg-orange-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                          <span className="inline-flex items-center justify-center gap-1 rounded-full bg-[var(--brand-primary)] px-1.5 py-0.5 text-[9px] font-bold text-white">
                             Nova
                           </span>
                         ) : (

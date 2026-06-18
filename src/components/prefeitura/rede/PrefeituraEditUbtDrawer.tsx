@@ -32,7 +32,7 @@ import {
 
 const labelClass = 'mb-1 block text-xs font-semibold text-gray-800'
 const inputClass =
-  'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 outline-none transition focus:border-[var(--brand-primary)]/40 focus:shadow-[0_0_0_3px_rgba(255,107,0,0.12)]'
+  'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 outline-none transition focus:border-[var(--brand-primary)]/40 focus:shadow-[var(--brand-primary-focus-ring)]'
 
 type PrefeituraEditUbtDrawerProps = {
   unit: PrefeituraRedeUnit | null

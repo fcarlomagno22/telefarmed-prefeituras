@@ -3,12 +3,12 @@ import { prefeituraPortalPages } from './prefeituraCredenciaisConfig'
 import type { PermissionAction } from './accessCredentials'
 import type { PrefeituraAuthUser } from '../lib/mockAuth/prefeituraAuthMock'
 import { prefeituraRoutes } from './prefeituraRoutes'
-import { getDedicatedPortal } from './portalHost'
+import { isDedicatedPortal } from './portalHost'
 
 const PREFEITURA_LEGACY_PREFIX = '/prefeitura'
 
 function normalizePrefeituraPathname(pathname: string): string {
-  if (getDedicatedPortal() === 'prefeitura') return pathname
+  if (isDedicatedPortal('prefeitura')) return pathname
   if (pathname.startsWith(PREFEITURA_LEGACY_PREFIX)) {
     return pathname.slice(PREFEITURA_LEGACY_PREFIX.length) || '/'
   }
@@ -30,6 +30,7 @@ export function resolvePrefeituraPageIdFromPath(pathname: string): PrefeituraPor
     agendas: 'agendas',
     agenda: 'agendas',
     usuarios: 'usuarios',
+    faturamento: 'faturamento',
     contrato: 'contrato',
     relatorios: 'relatorios',
     notificacoes: 'notificacoes',

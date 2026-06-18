@@ -1,3 +1,4 @@
+import type { EntidadeBrandingPublic } from '../../lib/entidadeBranding/types.js'
 import {
   resolvePrefeituraPagePermissions,
   type PermissionAction,
@@ -24,7 +25,7 @@ export type UsuarioPrefeituraRow = {
   ultimo_login_em: Date | null
 }
 
-export type PrefeituraUserPublic = {
+export type PrefeituraUserBase = {
   id: string
   cpf: string
   nome: string
@@ -40,10 +41,12 @@ export type PrefeituraUserPublic = {
   pagePermissions: PrefeituraPagePermissions
 }
 
+export type PrefeituraUserPublic = PrefeituraUserBase & EntidadeBrandingPublic
+
 export function toPrefeituraUserPublic(
   row: UsuarioPrefeituraRow,
   permissoesPaginas?: unknown,
-): PrefeituraUserPublic {
+): PrefeituraUserBase {
   return {
     id: row.id,
     cpf: row.cpf,

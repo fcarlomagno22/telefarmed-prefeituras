@@ -25,14 +25,15 @@ type FeaturePanelVariant = 'ubt' | 'profissional'
 
 type FeaturePanelProps = {
   variant?: FeaturePanelVariant
+  backgroundImageUrl?: string
 }
 
-export function FeaturePanel({ variant = 'ubt' }: FeaturePanelProps) {
+export function FeaturePanel({ variant = 'ubt', backgroundImageUrl }: FeaturePanelProps) {
   const isProfissional = variant === 'profissional'
   const items = isProfissional ? profissionalFeatures : features
-  const backgroundImageUrl = isProfissional
-    ? brand.profissionalBackgroundImageUrl
-    : brand.backgroundImageUrl
+  const resolvedBackgroundImageUrl =
+    backgroundImageUrl ??
+    (isProfissional ? brand.profissionalBackgroundImageUrl : brand.backgroundImageUrl)
 
   return (
     <section
@@ -40,7 +41,7 @@ export function FeaturePanel({ variant = 'ubt' }: FeaturePanelProps) {
       aria-label="Destaques do sistema"
     >
       <img
-        src={backgroundImageUrl}
+        src={resolvedBackgroundImageUrl}
         alt=""
         className="absolute inset-0 h-full w-full object-cover"
       />

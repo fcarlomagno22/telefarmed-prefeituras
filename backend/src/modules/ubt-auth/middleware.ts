@@ -7,6 +7,11 @@ import {
   type PermissionAction,
   type UbtPageId,
 } from '../../lib/ubtPermissions.js'
+import {
+  assertUbtSessionMatchesHost,
+  resolveTenantHostHeader,
+  TenantHostMismatchError,
+} from '../../lib/tenant/loginHost.js'
 import { UbtAuthError } from './service.js'
 import type { UbtSystemPermissions } from './types.js'
 
@@ -82,6 +87,16 @@ export async function requireUbtAuth(
 
     if (user.unidadeUbtId !== claims.unidadeUbtId) {
       return reply.status(401).send({ error: 'Sessão inválida ou expirada.' })
+    }
+
+    const tenantHost = resolveTenantHostHeader(request.headers)
+    try {
+      await assertUbtSessionMatchesHost(user.unidadeUbtId, tenantHost)
+    } catch (error) {
+      if (error instanceof TenantHostMismatchError) {
+        return reply.status(403).send({ error: error.message, code: 'TENANT_HOST_MISMATCH' })
+      }
+      throw error
     }
 
     request.ubtUser = user

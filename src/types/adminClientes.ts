@@ -1,3 +1,5 @@
+import type { TipoEntidade } from './entidadeBranding'
+
 export type AdminClienteStatus =
   | 'ativa'
   | 'implantacao'
@@ -59,11 +61,16 @@ export type AdminClienteContrato = {
 export type AdminClienteRow = {
   id: string
   prefeitura: string
+  /** Tipo da entidade contratante — default `prefeitura` quando ausente (legado). */
+  tipoEntidade?: TipoEntidade
   subtitle: string
   razaoSocial: string
   cnpj: string
   municipio: string
   uf: string
+  slug?: string
+  publicUrl?: string
+  slugLocked?: boolean
   gestor: AdminClienteContact
   contatoContrato?: AdminClienteContact
   contatoTi: AdminClienteContact
@@ -71,6 +78,9 @@ export type AdminClienteRow = {
   status: AdminClienteStatus
   logoHue: number
   logoUrl?: string
+  loginBackgroundUrl?: string
+  faviconUrl?: string
+  corPrimaria?: string
   contratos: AdminClienteContrato[]
 }
 

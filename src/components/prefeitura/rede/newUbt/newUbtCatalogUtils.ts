@@ -5,6 +5,26 @@ export function sortCatalogByName<T extends { name: string }>(items: T[]): T[] {
   return [...items].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
 }
 
+export function filterCatalogByContratoEspecialidades(
+  professions: ConfigProfession[],
+  specialties: ConfigSpecialty[],
+  contratoEspecialidadeIds: Iterable<string>,
+): { professions: ConfigProfession[]; specialties: ConfigSpecialty[] } {
+  const contractedIds = new Set(contratoEspecialidadeIds)
+  const filteredSpecialties = specialties.filter(
+    (item) => item.active && contractedIds.has(item.id),
+  )
+  const professionIds = new Set(filteredSpecialties.flatMap((item) => item.professionIds))
+  const filteredProfessions = professions.filter(
+    (item) => item.active && professionIds.has(item.id),
+  )
+
+  return {
+    professions: sortCatalogByName(filteredProfessions),
+    specialties: sortCatalogByName(filteredSpecialties),
+  }
+}
+
 export function getSpecialtiesForProfession(
   specialties: ConfigSpecialty[],
   professionId: string,

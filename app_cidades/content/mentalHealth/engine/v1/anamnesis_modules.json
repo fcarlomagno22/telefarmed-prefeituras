@@ -1,0 +1,4574 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "flow": {
+    "entry_module_id": "core_mood_anxiety",
+    "completion_min_modules": 8
+  },
+  "modules": [
+    {
+      "id": "core_mood_anxiety",
+      "title_internal": "Humor, ansiedade e sinais prioritários",
+      "title_user": "Como você tem se sentido",
+      "description_user": "Algumas perguntas para entender mudanças recentes nas emoções, pensamentos e energia.",
+      "order": 1,
+      "estimated_minutes": 5,
+      "required": true,
+      "clinical_sensitivity": "crisis",
+      "default_next_module_id": "functioning_impairment",
+      "enabled": true
+    },
+    {
+      "id": "functioning_impairment",
+      "title_internal": "Prejuízo funcional",
+      "title_user": "Impacto no seu dia a dia",
+      "description_user": "Queremos entender se o que você sente tem atrapalhado atividades importantes.",
+      "order": 2,
+      "estimated_minutes": 2,
+      "required": true,
+      "clinical_sensitivity": "normal",
+      "default_next_module_id": "sleep_appetite",
+      "enabled": true
+    },
+    {
+      "id": "sleep_appetite",
+      "title_internal": "Sono, apetite e energia",
+      "title_user": "Sono, alimentação e disposição",
+      "description_user": "Conte como seu corpo e sua rotina têm respondido nos últimos dias.",
+      "order": 3,
+      "estimated_minutes": 3,
+      "required": true,
+      "clinical_sensitivity": "normal",
+      "default_next_module_id": "trauma_exposure",
+      "enabled": true
+    },
+    {
+      "id": "trauma_exposure",
+      "title_internal": "Exposição a trauma e segurança atual",
+      "title_user": "Experiências difíceis e sensação de segurança",
+      "description_user": "Você pode responder no seu ritmo e escolher não detalhar experiências desconfortáveis.",
+      "order": 4,
+      "estimated_minutes": 3,
+      "required": true,
+      "clinical_sensitivity": "sensitive",
+      "default_next_module_id": "substance_use",
+      "enabled": true
+    },
+    {
+      "id": "substance_use",
+      "title_internal": "Uso de álcool, medicamentos e outras substâncias",
+      "title_user": "Hábitos de consumo",
+      "description_user": "Estas respostas ajudam a entender hábitos que podem influenciar sono, emoções e escolhas.",
+      "order": 5,
+      "estimated_minutes": 3,
+      "required": true,
+      "clinical_sensitivity": "sensitive",
+      "default_next_module_id": "medical_medications",
+      "enabled": true
+    },
+    {
+      "id": "medical_medications",
+      "title_internal": "Condições clínicas e medicamentos",
+      "title_user": "Saúde física e medicamentos",
+      "description_user": "Algumas condições e medicamentos podem mudar o sono, a energia ou as emoções.",
+      "order": 6,
+      "estimated_minutes": 2,
+      "required": true,
+      "clinical_sensitivity": "normal",
+      "default_next_module_id": "family_history",
+      "enabled": true
+    },
+    {
+      "id": "family_history",
+      "title_internal": "Histórico familiar",
+      "title_user": "Histórico na família",
+      "description_user": "Informações gerais sobre familiares podem ajudar a compreender padrões ao longo do tempo.",
+      "order": 7,
+      "estimated_minutes": 2,
+      "required": false,
+      "clinical_sensitivity": "sensitive",
+      "default_next_module_id": "protective_factors",
+      "enabled": true
+    },
+    {
+      "id": "protective_factors",
+      "title_internal": "Fatores de proteção e recursos",
+      "title_user": "Apoios e recursos que ajudam",
+      "description_user": "Vamos reconhecer pessoas, atividades e recursos que podem apoiar você.",
+      "order": 8,
+      "estimated_minutes": 2,
+      "required": true,
+      "clinical_sensitivity": "normal",
+      "default_next_module_id": "previous_treatment",
+      "enabled": true
+    },
+    {
+      "id": "previous_treatment",
+      "title_internal": "Tratamentos e estratégias anteriores",
+      "title_user": "O que você já tentou",
+      "description_user": "Saber o que ajudou ou não ajudou permite tornar o plano mais adequado à sua experiência.",
+      "order": 9,
+      "estimated_minutes": 2,
+      "required": true,
+      "clinical_sensitivity": "normal",
+      "default_next_module_id": null,
+      "enabled": true
+    }
+  ],
+  "questions": [
+    {
+      "id": "q_core_01",
+      "module_id": "core_mood_anxiety",
+      "order": 1,
+      "type": "single",
+      "text_user": "Nas últimas duas semanas, quanto suas emoções ou pensamentos têm incomodado você?",
+      "help_text_user": "Considere tristeza, preocupação, tensão, irritação ou sensação de estar sobrecarregado(a).",
+      "required": true,
+      "options": [
+        {
+          "value": "none",
+          "label_user": "Não têm incomodado",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "mild",
+          "label_user": "Um pouco",
+          "maps_to": [
+            "emotional_distress"
+          ],
+          "score_contribution": {
+            "symptom": "emotional_distress",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "moderate",
+          "label_user": "Bastante",
+          "maps_to": [
+            "emotional_distress"
+          ],
+          "score_contribution": {
+            "symptom": "emotional_distress",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "severe",
+          "label_user": "Muito",
+          "maps_to": [
+            "emotional_distress"
+          ],
+          "score_contribution": {
+            "symptom": "emotional_distress",
+            "points": 3,
+            "direction": "+"
+          }
+        }
+      ],
+      "maps_to": [
+        "emotional_distress"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "trauma_related_disorders",
+        "personality_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_core_02",
+      "module_id": "core_mood_anxiety",
+      "order": 2,
+      "type": "yes_no",
+      "text_user": "Nos últimos dias, você desejou não acordar ou sentiu que não queria continuar vivendo?",
+      "help_text_user": "Responder com sinceridade ajuda o aplicativo a priorizar sua segurança.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "suicidal_ideation",
+            "suicidal_ideation_passive"
+          ],
+          "score_contribution": {
+            "symptom": "suicidal_ideation_passive",
+            "points": 10,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "suicidal_ideation",
+        "suicidal_ideation_passive"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "trauma_related_disorders",
+        "personality_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [
+        {
+          "when": {
+            "question_id": "q_core_02",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "trigger_red_flag",
+          "red_flag_id": "suicidal_ideation_passive"
+        }
+      ],
+      "clinical_sensitivity": "crisis",
+      "enabled": true
+    },
+    {
+      "id": "q_core_03",
+      "module_id": "core_mood_anxiety",
+      "order": 3,
+      "type": "yes_no",
+      "text_user": "Nos últimos dias, você pensou em tirar a própria vida?",
+      "help_text_user": "Esta pergunta é direta porque sua segurança vem primeiro.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "suicidal_ideation",
+            "suicidal_ideation_active"
+          ],
+          "score_contribution": {
+            "symptom": "suicidal_ideation_active",
+            "points": 15,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "suicidal_ideation",
+        "suicidal_ideation_active"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "trauma_related_disorders",
+        "personality_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [
+        {
+          "when": {
+            "question_id": "q_core_03",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "show_question",
+          "target_question_id": "q_core_04"
+        },
+        {
+          "when": {
+            "question_id": "q_core_03",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "trigger_red_flag",
+          "red_flag_id": "suicidal_ideation_active"
+        }
+      ],
+      "clinical_sensitivity": "crisis",
+      "enabled": true
+    },
+    {
+      "id": "q_core_04",
+      "module_id": "core_mood_anxiety",
+      "order": 4,
+      "type": "yes_no",
+      "text_user": "Neste momento, existe um plano definido ou intenção de agir sobre esses pensamentos?",
+      "help_text_user": "Não é necessário explicar detalhes.",
+      "required": false,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "suicidal_plan",
+            "suicidal_intent"
+          ],
+          "score_contribution": {
+            "symptom": "suicidal_plan",
+            "points": 20,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "suicidal_plan",
+        "suicidal_intent"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "trauma_related_disorders",
+        "personality_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [
+        {
+          "when": {
+            "question_id": "q_core_04",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "trigger_red_flag",
+          "red_flag_id": "suicidal_plan_or_intent"
+        },
+        {
+          "when": {
+            "question_id": "q_core_04",
+            "answer_in": [
+              "yes",
+              "no"
+            ]
+          },
+          "action": "goto_module",
+          "target_module_id": "protective_factors"
+        }
+      ],
+      "clinical_sensitivity": "crisis",
+      "enabled": true
+    },
+    {
+      "id": "q_core_05",
+      "module_id": "core_mood_anxiety",
+      "order": 5,
+      "type": "yes_no",
+      "text_user": "Você se machucou de propósito recentemente?",
+      "help_text_user": "Não é necessário contar como aconteceu.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "self_harm_recent"
+          ],
+          "score_contribution": {
+            "symptom": "self_harm_recent",
+            "points": 15,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "self_harm_recent"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "trauma_related_disorders",
+        "personality_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [
+        {
+          "when": {
+            "question_id": "q_core_05",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "trigger_red_flag",
+          "red_flag_id": "self_harm_recent"
+        },
+        {
+          "when": {
+            "question_id": "q_core_05",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "goto_module",
+          "target_module_id": "protective_factors"
+        }
+      ],
+      "clinical_sensitivity": "crisis",
+      "enabled": true
+    },
+    {
+      "id": "q_core_06",
+      "module_id": "core_mood_anxiety",
+      "order": 6,
+      "type": "multi",
+      "text_user": "Recentemente, alguma destas experiências aconteceu com você?",
+      "help_text_user": "Marque apenas o que realmente aconteceu. Você pode escolher não responder.",
+      "required": true,
+      "options": [
+        {
+          "value": "unshared_perceptions",
+          "label_user": "Ouvi ou vi algo que outras pessoas ao redor não perceberam",
+          "maps_to": [
+            "hallucinations",
+            "psychotic_symptoms"
+          ],
+          "score_contribution": {
+            "symptom": "hallucinations",
+            "points": 8,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "unusual_fixed_beliefs",
+          "label_user": "Tive certeza de que algo incomum estava acontecendo, mesmo quando outras pessoas discordavam",
+          "maps_to": [
+            "delusional_beliefs",
+            "psychotic_symptoms"
+          ],
+          "score_contribution": {
+            "symptom": "delusional_beliefs",
+            "points": 8,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "thought_interference",
+          "label_user": "Senti que meus pensamentos estavam sendo controlados, colocados ou retirados por algo externo",
+          "maps_to": [
+            "impaired_reality_testing",
+            "psychotic_symptoms"
+          ],
+          "score_contribution": {
+            "symptom": "impaired_reality_testing",
+            "points": 8,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "none",
+          "label_user": "Nada disso aconteceu",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "prefer_not",
+          "label_user": "Prefiro não responder",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "hallucinations",
+        "delusional_beliefs",
+        "impaired_reality_testing",
+        "psychotic_symptoms"
+      ],
+      "affects_tracks": [
+        "psychotic_disorders",
+        "bipolar_disorders",
+        "substance_use_disorders",
+        "sleep_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [
+        {
+          "when": {
+            "question_id": "q_core_06",
+            "answer_in": [
+              "unshared_perceptions",
+              "unusual_fixed_beliefs",
+              "thought_interference"
+            ]
+          },
+          "action": "trigger_red_flag",
+          "red_flag_id": "psychotic_symptoms_present"
+        }
+      ],
+      "clinical_sensitivity": "crisis",
+      "enabled": true,
+      "max_selections": 3
+    },
+    {
+      "id": "q_core_07",
+      "module_id": "core_mood_anxiety",
+      "order": 7,
+      "type": "yes_no",
+      "text_user": "Houve um período de alguns dias em que você dormiu muito menos, ficou com energia muito acima do seu normal e agiu de forma mais impulsiva?",
+      "help_text_user": "Considere uma mudança clara em relação ao seu jeito habitual, percebida também por outras pessoas.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "decreased_need_for_sleep",
+            "increased_energy",
+            "impulsivity",
+            "episodic_mood_change",
+            "manic_episode_signals"
+          ],
+          "score_contribution": {
+            "symptom": "manic_episode_signals",
+            "points": 10,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "decreased_need_for_sleep",
+        "increased_energy",
+        "impulsivity",
+        "episodic_mood_change",
+        "manic_episode_signals"
+      ],
+      "affects_tracks": [
+        "bipolar_disorders",
+        "substance_use_disorders",
+        "sleep_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [
+        {
+          "when": {
+            "question_id": "q_core_07",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "trigger_red_flag",
+          "red_flag_id": "manic_episode_signals"
+        }
+      ],
+      "clinical_sensitivity": "crisis",
+      "enabled": true
+    },
+    {
+      "id": "q_core_08",
+      "module_id": "core_mood_anxiety",
+      "order": 8,
+      "type": "single",
+      "text_user": "Comparando com o seu padrão habitual, você percebe alguma mudança recente no seu jeito de sentir ou reagir?",
+      "help_text_user": "Pense em humor, preocupação, irritação, energia e interesse pelas coisas.",
+      "required": true,
+      "options": [
+        {
+          "value": "no_change",
+          "label_user": "Não percebo mudança",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "small_change",
+          "label_user": "Percebo uma mudança pequena",
+          "maps_to": [
+            "change_from_baseline"
+          ],
+          "score_contribution": {
+            "symptom": "change_from_baseline",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "clear_change",
+          "label_user": "Percebo uma mudança clara",
+          "maps_to": [
+            "change_from_baseline"
+          ],
+          "score_contribution": {
+            "symptom": "change_from_baseline",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "major_change",
+          "label_user": "Parece uma mudança muito grande",
+          "maps_to": [
+            "change_from_baseline"
+          ],
+          "score_contribution": {
+            "symptom": "change_from_baseline",
+            "points": 3,
+            "direction": "+"
+          }
+        }
+      ],
+      "maps_to": [
+        "change_from_baseline"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "trauma_related_disorders",
+        "personality_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [
+        {
+          "when": {
+            "question_id": "q_core_08",
+            "answer_in": [
+              "no_change"
+            ]
+          },
+          "action": "goto_module",
+          "target_module_id": "functioning_impairment"
+        }
+      ],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_core_09",
+      "module_id": "core_mood_anxiety",
+      "order": 9,
+      "type": "scale",
+      "text_user": "Nas últimas duas semanas, com que frequência você se sentiu desanimado(a), para baixo ou sem esperança?",
+      "help_text_user": "Considere como você se sentiu na maior parte do dia.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "low_mood"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "trauma_related_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "low_mood",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "low_mood",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "low_mood",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "low_mood",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_core_10",
+      "module_id": "core_mood_anxiety",
+      "order": 10,
+      "type": "scale",
+      "text_user": "Com que frequência ficou difícil sentir interesse ou prazer nas coisas que normalmente importam para você?",
+      "help_text_user": "Inclua atividades simples, convivência e hobbies.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "anhedonia"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "trauma_related_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "anhedonia",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "anhedonia",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "anhedonia",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "anhedonia",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_core_11",
+      "module_id": "core_mood_anxiety",
+      "order": 11,
+      "type": "scale",
+      "text_user": "Com que frequência preocupações ficaram difíceis de controlar?",
+      "help_text_user": "Pense em preocupações que continuaram mesmo quando você tentou se distrair ou resolver o problema.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "excessive_worry"
+      ],
+      "affects_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "excessive_worry",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "excessive_worry",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "excessive_worry",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "excessive_worry",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_core_12",
+      "module_id": "core_mood_anxiety",
+      "order": 12,
+      "type": "scale",
+      "text_user": "Com que frequência você teve ondas repentinas de medo intenso, acompanhadas de sensações físicas fortes?",
+      "help_text_user": "Por exemplo, coração acelerado, falta de ar, tremor ou sensação de perder o controle.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "panic_attacks"
+      ],
+      "affects_tracks": [
+        "anxiety_disorders",
+        "somatic_symptom_disorders",
+        "trauma_related_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "panic_attacks",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "panic_attacks",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "panic_attacks",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "panic_attacks",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_core_13",
+      "module_id": "core_mood_anxiety",
+      "order": 13,
+      "type": "scale",
+      "text_user": "Com que frequência pensamentos indesejados voltaram repetidamente e foram difíceis de afastar?",
+      "help_text_user": "Considere pensamentos que causaram incômodo e não combinavam com o que você queria pensar.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "intrusive_thoughts"
+      ],
+      "affects_tracks": [
+        "obsessive_compulsive_disorder",
+        "anxiety_disorders",
+        "trauma_related_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "intrusive_thoughts",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "intrusive_thoughts",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "intrusive_thoughts",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "intrusive_thoughts",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_core_14",
+      "module_id": "core_mood_anxiety",
+      "order": 14,
+      "type": "scale",
+      "text_user": "Com que frequência você ficou mais irritado(a) ou reagiu com mais intensidade do que gostaria?",
+      "help_text_user": "Considere discussões, impaciência ou dificuldade de se acalmar.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "irritability"
+      ],
+      "affects_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "trauma_related_disorders",
+        "disruptive_impulse_control_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "irritability",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "irritability",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "irritability",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "irritability",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_core_15",
+      "module_id": "core_mood_anxiety",
+      "order": 15,
+      "type": "duration",
+      "text_user": "Há aproximadamente quantos dias essa mudança vem acontecendo?",
+      "help_text_user": "Informe uma estimativa em dias. Se começou há meses, converta de forma aproximada.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "symptom_duration_prolonged"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "trauma_related_disorders",
+        "obsessive_compulsive_disorder"
+      ],
+      "scoring": {
+        "method": "duration_thresholds",
+        "rules": [
+          {
+            "when_duration_days_gte": 180,
+            "add_symptom_score": {
+              "symptom": "symptom_duration_prolonged",
+              "points": 4
+            }
+          },
+          {
+            "when_duration_days_gte": 30,
+            "add_symptom_score": {
+              "symptom": "symptom_duration_prolonged",
+              "points": 3
+            }
+          },
+          {
+            "when_duration_days_gte": 14,
+            "add_symptom_score": {
+              "symptom": "symptom_duration_prolonged",
+              "points": 2
+            }
+          },
+          {
+            "when_duration_days_gte": 1,
+            "add_symptom_score": {
+              "symptom": "symptom_duration_prolonged",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "duration_unit": "days"
+    },
+    {
+      "id": "q_func_01",
+      "module_id": "functioning_impairment",
+      "order": 1,
+      "type": "scale",
+      "text_user": "Quanto o que você tem sentido atrapalhou seu trabalho, seus estudos ou suas tarefas principais?",
+      "help_text_user": "Considere rendimento, presença, concentração e conclusão de atividades.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "functional_impairment"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "neurodevelopmental_disorders",
+        "bipolar_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "functional_impairment",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "functional_impairment",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "functional_impairment",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "functional_impairment",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nada",
+        "Pouco",
+        "Moderadamente",
+        "Muito",
+        "Impediu atividades importantes"
+      ]
+    },
+    {
+      "id": "q_func_02",
+      "module_id": "functioning_impairment",
+      "order": 2,
+      "type": "scale",
+      "text_user": "Quanto isso afetou sua convivência com família, amigos ou outras pessoas?",
+      "help_text_user": "Considere afastamento, conflitos ou dificuldade de conversar.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "interpersonal_impairment"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "interpersonal_impairment",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "interpersonal_impairment",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "interpersonal_impairment",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "interpersonal_impairment",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nada",
+        "Pouco",
+        "Moderadamente",
+        "Muito",
+        "Afetou de forma intensa"
+      ]
+    },
+    {
+      "id": "q_func_03",
+      "module_id": "functioning_impairment",
+      "order": 3,
+      "type": "scale",
+      "text_user": "Quanto ficou mais difícil cuidar de você e das necessidades básicas do dia?",
+      "help_text_user": "Pense em higiene, alimentação, organização pessoal e cuidados de saúde.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "self_care_impairment"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "psychotic_disorders",
+        "bipolar_disorders",
+        "eating_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "self_care_impairment",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "self_care_impairment",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "self_care_impairment",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "self_care_impairment",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nada",
+        "Pouco",
+        "Moderadamente",
+        "Muito",
+        "Não consegui realizar parte dos cuidados"
+      ]
+    },
+    {
+      "id": "q_func_04",
+      "module_id": "functioning_impairment",
+      "order": 4,
+      "type": "scale",
+      "text_user": "Quanto você deixou de participar de lazer, hobbies ou momentos que costumavam fazer bem?",
+      "help_text_user": "Considere tanto falta de interesse quanto medo, cansaço ou dificuldade de sair.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "leisure_impairment"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "trauma_related_disorders",
+        "personality_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "leisure_impairment",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "leisure_impairment",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "leisure_impairment",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "leisure_impairment",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nada",
+        "Pouco",
+        "Moderadamente",
+        "Muito",
+        "Parei quase completamente"
+      ]
+    },
+    {
+      "id": "q_func_05",
+      "module_id": "functioning_impairment",
+      "order": 5,
+      "type": "scale",
+      "text_user": "Quanto ficou difícil organizar horários, compromissos ou responsabilidades comuns?",
+      "help_text_user": "Considere atrasos, esquecimentos, desorganização e tarefas acumuladas.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "executive_dysfunction"
+      ],
+      "affects_tracks": [
+        "neurodevelopmental_disorders",
+        "depressive_disorders",
+        "bipolar_disorders",
+        "sleep_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "executive_dysfunction",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "executive_dysfunction",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "executive_dysfunction",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "executive_dysfunction",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nada",
+        "Pouco",
+        "Moderadamente",
+        "Muito",
+        "Quase não consegui me organizar"
+      ]
+    },
+    {
+      "id": "q_func_06",
+      "module_id": "functioning_impairment",
+      "order": 6,
+      "type": "single",
+      "text_user": "De forma geral, quanto essas dificuldades interferem na sua vida hoje?",
+      "help_text_user": "Escolha a opção que melhor representa o impacto atual.",
+      "required": true,
+      "options": [
+        {
+          "value": "none",
+          "label_user": "Não interferem",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "mild",
+          "label_user": "Interferem um pouco",
+          "maps_to": [
+            "functional_impairment"
+          ],
+          "score_contribution": {
+            "symptom": "functional_impairment",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "moderate",
+          "label_user": "Interferem de forma importante",
+          "maps_to": [
+            "functional_impairment"
+          ],
+          "score_contribution": {
+            "symptom": "functional_impairment",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "severe",
+          "label_user": "Interferem muito ou impedem atividades",
+          "maps_to": [
+            "functional_impairment"
+          ],
+          "score_contribution": {
+            "symptom": "functional_impairment",
+            "points": 4,
+            "direction": "+"
+          }
+        }
+      ],
+      "maps_to": [
+        "functional_impairment"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "trauma_related_disorders",
+        "sleep_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_func_07",
+      "module_id": "functioning_impairment",
+      "order": 7,
+      "type": "text_optional",
+      "text_user": "Há alguma área da sua rotina que foi afetada e não apareceu nas perguntas anteriores?",
+      "help_text_user": "Este campo é opcional e não entra no cálculo automático.",
+      "required": false,
+      "options": [],
+      "maps_to": [
+        "free_text_note"
+      ],
+      "affects_tracks": [],
+      "scoring": {
+        "method": "none"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_sleep_01",
+      "module_id": "sleep_appetite",
+      "order": 1,
+      "type": "scale",
+      "text_user": "Com que frequência você demorou mais do que gostaria para pegar no sono?",
+      "help_text_user": "Considere noites em que ficou acordado(a) tentando dormir.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "insomnia"
+      ],
+      "affects_tracks": [
+        "sleep_disorders",
+        "anxiety_disorders",
+        "depressive_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "insomnia",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "insomnia",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "insomnia",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "insomnia",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_sleep_02",
+      "module_id": "sleep_appetite",
+      "order": 2,
+      "type": "scale",
+      "text_user": "Com que frequência você acordou durante a noite e teve dificuldade para dormir novamente?",
+      "help_text_user": "Desconsidere despertares muito rápidos que não atrapalharam seu descanso.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "sleep_disturbance"
+      ],
+      "affects_tracks": [
+        "sleep_disorders",
+        "depressive_disorders",
+        "anxiety_disorders",
+        "trauma_related_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "sleep_disturbance",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "sleep_disturbance",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "sleep_disturbance",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "sleep_disturbance",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_sleep_03",
+      "module_id": "sleep_appetite",
+      "order": 3,
+      "type": "scale",
+      "text_user": "Com que frequência você acordou sem se sentir descansado(a), mesmo tendo tempo para dormir?",
+      "help_text_user": "Pense na sensação ao começar o dia.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "nonrestorative_sleep"
+      ],
+      "affects_tracks": [
+        "sleep_disorders",
+        "depressive_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "nonrestorative_sleep",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "nonrestorative_sleep",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "nonrestorative_sleep",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "nonrestorative_sleep",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_sleep_04",
+      "module_id": "sleep_appetite",
+      "order": 4,
+      "type": "scale",
+      "text_user": "Com que frequência o sono ou o cansaço atrapalharam você durante o dia?",
+      "help_text_user": "Considere cochilos involuntários, dificuldade de permanecer desperto(a) ou lentidão.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "daytime_sleepiness"
+      ],
+      "affects_tracks": [
+        "sleep_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "daytime_sleepiness",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "daytime_sleepiness",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "daytime_sleepiness",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "daytime_sleepiness",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_sleep_05",
+      "module_id": "sleep_appetite",
+      "order": 5,
+      "type": "single",
+      "text_user": "Comparando com o seu normal, como ficou a quantidade de sono nas últimas duas semanas?",
+      "help_text_user": "Considere tanto dormir menos quanto dormir mais.",
+      "required": true,
+      "options": [
+        {
+          "value": "much_less_tired",
+          "label_user": "Durmo muito menos e fico cansado(a)",
+          "maps_to": [
+            "sleep_disturbance"
+          ],
+          "score_contribution": {
+            "symptom": "sleep_disturbance",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "much_less_energized",
+          "label_user": "Durmo muito menos e continuo com energia incomum",
+          "maps_to": [
+            "decreased_need_for_sleep"
+          ],
+          "score_contribution": {
+            "symptom": "decreased_need_for_sleep",
+            "points": 5,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "about_same",
+          "label_user": "Permaneceu parecida",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "more",
+          "label_user": "Estou dormindo mais do que o habitual",
+          "maps_to": [
+            "hypersomnia"
+          ],
+          "score_contribution": {
+            "symptom": "hypersomnia",
+            "points": 2,
+            "direction": "+"
+          }
+        }
+      ],
+      "maps_to": [
+        "sleep_disturbance",
+        "decreased_need_for_sleep",
+        "hypersomnia"
+      ],
+      "affects_tracks": [
+        "sleep_disorders",
+        "depressive_disorders",
+        "bipolar_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_sleep_06",
+      "module_id": "sleep_appetite",
+      "order": 6,
+      "type": "single",
+      "text_user": "Como têm sido seus horários de dormir e acordar?",
+      "help_text_user": "Pense na regularidade dos horários ao longo da semana.",
+      "required": true,
+      "options": [
+        {
+          "value": "regular",
+          "label_user": "Regulares e adequados para minha rotina",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "late",
+          "label_user": "Muito mais tarde do que eu gostaria",
+          "maps_to": [
+            "circadian_misalignment"
+          ],
+          "score_contribution": {
+            "symptom": "circadian_misalignment",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "early",
+          "label_user": "Muito mais cedo do que eu gostaria",
+          "maps_to": [
+            "circadian_misalignment"
+          ],
+          "score_contribution": {
+            "symptom": "circadian_misalignment",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "irregular",
+          "label_user": "Mudam bastante de um dia para outro",
+          "maps_to": [
+            "circadian_misalignment"
+          ],
+          "score_contribution": {
+            "symptom": "circadian_misalignment",
+            "points": 3,
+            "direction": "+"
+          }
+        }
+      ],
+      "maps_to": [
+        "circadian_misalignment"
+      ],
+      "affects_tracks": [
+        "sleep_disorders",
+        "bipolar_disorders",
+        "neurodevelopmental_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_sleep_07",
+      "module_id": "sleep_appetite",
+      "order": 7,
+      "type": "multi",
+      "text_user": "Alguém já percebeu ou você notou algum destes sinais durante o sono?",
+      "help_text_user": "Marque o que ocorreu recentemente ou acontece com frequência.",
+      "required": true,
+      "options": [
+        {
+          "value": "breathing",
+          "label_user": "Ronco muito forte, pausas na respiração ou acordar sufocado(a)",
+          "maps_to": [
+            "sleep_related_breathing_symptoms"
+          ],
+          "score_contribution": {
+            "symptom": "sleep_related_breathing_symptoms",
+            "points": 4,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "legs",
+          "label_user": "Necessidade difícil de controlar de mexer as pernas ao repousar",
+          "maps_to": [
+            "restless_legs_symptoms"
+          ],
+          "score_contribution": {
+            "symptom": "restless_legs_symptoms",
+            "points": 3,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "unusual_behaviors",
+          "label_user": "Movimentos, falas ou comportamentos incomuns enquanto dorme",
+          "maps_to": [
+            "parasomnias"
+          ],
+          "score_contribution": {
+            "symptom": "parasomnias",
+            "points": 3,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "none",
+          "label_user": "Nenhum desses sinais",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "unsure",
+          "label_user": "Não sei",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "sleep_related_breathing_symptoms",
+        "restless_legs_symptoms",
+        "parasomnias"
+      ],
+      "affects_tracks": [
+        "sleep_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "max_selections": 3
+    },
+    {
+      "id": "q_sleep_08",
+      "module_id": "sleep_appetite",
+      "order": 8,
+      "type": "single",
+      "text_user": "Comparando com o seu normal, como ficou seu apetite?",
+      "help_text_user": "Considere mudanças persistentes, não apenas um dia diferente.",
+      "required": true,
+      "options": [
+        {
+          "value": "lower",
+          "label_user": "Diminuiu",
+          "maps_to": [
+            "appetite_change"
+          ],
+          "score_contribution": {
+            "symptom": "appetite_change",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "same",
+          "label_user": "Permaneceu parecido",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "higher",
+          "label_user": "Aumentou",
+          "maps_to": [
+            "appetite_change"
+          ],
+          "score_contribution": {
+            "symptom": "appetite_change",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "variable",
+          "label_user": "Oscila bastante",
+          "maps_to": [
+            "appetite_change"
+          ],
+          "score_contribution": {
+            "symptom": "appetite_change",
+            "points": 2,
+            "direction": "+"
+          }
+        }
+      ],
+      "maps_to": [
+        "appetite_change"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "eating_disorders",
+        "bipolar_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_sleep_09",
+      "module_id": "sleep_appetite",
+      "order": 9,
+      "type": "multi",
+      "text_user": "Nas últimas semanas, alguma destas situações aconteceu em relação à alimentação?",
+      "help_text_user": "Você pode marcar mais de uma opção ou escolher não responder.",
+      "required": true,
+      "options": [
+        {
+          "value": "restriction",
+          "label_user": "Evitei ou reduzi muito a alimentação, mesmo com fome ou necessidade de comer",
+          "maps_to": [
+            "restrictive_eating"
+          ],
+          "score_contribution": {
+            "symptom": "restrictive_eating",
+            "points": 4,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "loss_control",
+          "label_user": "Comi uma grande quantidade sentindo que não conseguia parar",
+          "maps_to": [
+            "binge_eating",
+            "loss_of_control_eating"
+          ],
+          "score_contribution": {
+            "symptom": "loss_of_control_eating",
+            "points": 4,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "compensation",
+          "label_user": "Tentei compensar o que comi de uma forma que pode fazer mal à saúde",
+          "maps_to": [
+            "compensatory_behaviors"
+          ],
+          "score_contribution": {
+            "symptom": "compensatory_behaviors",
+            "points": 5,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "body_concern",
+          "label_user": "Preocupações com peso ou aparência influenciaram muito minhas escolhas alimentares",
+          "maps_to": [
+            "body_image_disturbance",
+            "weight_shape_overvaluation"
+          ],
+          "score_contribution": {
+            "symptom": "body_image_disturbance",
+            "points": 3,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "none",
+          "label_user": "Nada disso aconteceu",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "prefer_not",
+          "label_user": "Prefiro não responder",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "restrictive_eating",
+        "binge_eating",
+        "loss_of_control_eating",
+        "compensatory_behaviors",
+        "body_image_disturbance",
+        "weight_shape_overvaluation"
+      ],
+      "affects_tracks": [
+        "eating_disorders",
+        "depressive_disorders",
+        "anxiety_disorders",
+        "obsessive_compulsive_disorder"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true,
+      "max_selections": 4
+    },
+    {
+      "id": "q_sleep_10",
+      "module_id": "sleep_appetite",
+      "order": 10,
+      "type": "scale",
+      "text_user": "Com que frequência faltou energia para realizar atividades comuns?",
+      "help_text_user": "Considere cansaço físico e sensação de pouca disposição.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "fatigue"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "fatigue",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "fatigue",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "fatigue",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "fatigue",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_trauma_01",
+      "module_id": "trauma_exposure",
+      "order": 1,
+      "type": "single",
+      "text_user": "Você viveu ou presenciou alguma experiência muito assustadora, ameaçadora ou difícil de esquecer?",
+      "help_text_user": "Não é necessário contar o que aconteceu.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "trauma_exposure"
+          ],
+          "score_contribution": {
+            "symptom": "trauma_exposure",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "prefer_not",
+          "label_user": "Prefiro não responder",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "trauma_exposure"
+      ],
+      "affects_tracks": [
+        "trauma_related_disorders",
+        "dissociative_disorders",
+        "anxiety_disorders",
+        "depressive_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [
+        {
+          "when": {
+            "question_id": "q_trauma_01",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "show_question",
+          "target_question_id": "q_trauma_03"
+        },
+        {
+          "when": {
+            "question_id": "q_trauma_01",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "show_question",
+          "target_question_id": "q_trauma_04"
+        },
+        {
+          "when": {
+            "question_id": "q_trauma_01",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "show_question",
+          "target_question_id": "q_trauma_05"
+        },
+        {
+          "when": {
+            "question_id": "q_trauma_01",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "show_question",
+          "target_question_id": "q_trauma_06"
+        },
+        {
+          "when": {
+            "question_id": "q_trauma_01",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "show_question",
+          "target_question_id": "q_trauma_07"
+        },
+        {
+          "when": {
+            "question_id": "q_trauma_01",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "show_question",
+          "target_question_id": "q_trauma_08"
+        }
+      ],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true
+    },
+    {
+      "id": "q_trauma_02",
+      "module_id": "trauma_exposure",
+      "order": 2,
+      "type": "single",
+      "text_user": "Existe hoje alguma situação de abuso, ameaça ou violência que faça você se sentir em risco?",
+      "help_text_user": "Você pode escolher não responder. Sua segurança é a prioridade.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "ongoing_abuse_or_violence"
+          ],
+          "score_contribution": {
+            "symptom": "ongoing_abuse_or_violence",
+            "points": 10,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "prefer_not",
+          "label_user": "Prefiro não responder",
+          "maps_to": [
+            "safety_status_unknown"
+          ],
+          "score_contribution": {
+            "symptom": "safety_status_unknown",
+            "points": 1,
+            "direction": "+"
+          }
+        }
+      ],
+      "maps_to": [
+        "ongoing_abuse_or_violence",
+        "safety_status_unknown"
+      ],
+      "affects_tracks": [
+        "trauma_related_disorders",
+        "depressive_disorders",
+        "anxiety_disorders",
+        "dissociative_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [
+        {
+          "when": {
+            "question_id": "q_trauma_02",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "trigger_red_flag",
+          "red_flag_id": "ongoing_abuse_or_violence"
+        },
+        {
+          "when": {
+            "question_id": "q_trauma_02",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "goto_module",
+          "target_module_id": "protective_factors"
+        }
+      ],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true
+    },
+    {
+      "id": "q_trauma_03",
+      "module_id": "trauma_exposure",
+      "order": 3,
+      "type": "scale",
+      "text_user": "Com que frequência lembranças da experiência apareceram sem você querer e trouxeram sofrimento?",
+      "help_text_user": "Não é necessário descrever as lembranças.",
+      "required": false,
+      "options": [],
+      "maps_to": [
+        "trauma_reexperiencing"
+      ],
+      "affects_tracks": [
+        "trauma_related_disorders",
+        "dissociative_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "trauma_reexperiencing",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "trauma_reexperiencing",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "trauma_reexperiencing",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "trauma_reexperiencing",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_trauma_04",
+      "module_id": "trauma_exposure",
+      "order": 4,
+      "type": "scale",
+      "text_user": "Com que frequência sonhos ligados à experiência atrapalharam seu sono ou fizeram você acordar assustado(a)?",
+      "help_text_user": "Considere apenas sonhos relacionados à experiência difícil.",
+      "required": false,
+      "options": [],
+      "maps_to": [
+        "trauma_related_nightmares"
+      ],
+      "affects_tracks": [
+        "trauma_related_disorders",
+        "sleep_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "trauma_related_nightmares",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "trauma_related_nightmares",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "trauma_related_nightmares",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "trauma_related_nightmares",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_trauma_05",
+      "module_id": "trauma_exposure",
+      "order": 5,
+      "type": "scale",
+      "text_user": "Quanto você evitou lugares, conversas, pessoas ou situações que lembravam a experiência?",
+      "help_text_user": "A evitação pode acontecer mesmo quando você sabe que o local atual é seguro.",
+      "required": false,
+      "options": [],
+      "maps_to": [
+        "trauma_avoidance"
+      ],
+      "affects_tracks": [
+        "trauma_related_disorders",
+        "anxiety_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "trauma_avoidance",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "trauma_avoidance",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "trauma_avoidance",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "trauma_avoidance",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nada",
+        "Pouco",
+        "Moderadamente",
+        "Muito",
+        "Evitei quase tudo relacionado"
+      ]
+    },
+    {
+      "id": "q_trauma_06",
+      "module_id": "trauma_exposure",
+      "order": 6,
+      "type": "scale",
+      "text_user": "Com que frequência você ficou em alerta, observando perigos ou se assustando com facilidade?",
+      "help_text_user": "Considere reações mais intensas do que o seu habitual.",
+      "required": false,
+      "options": [],
+      "maps_to": [
+        "hypervigilance",
+        "exaggerated_startle"
+      ],
+      "affects_tracks": [
+        "trauma_related_disorders",
+        "anxiety_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "hypervigilance",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "hypervigilance",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "hypervigilance",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "hypervigilance",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_trauma_07",
+      "module_id": "trauma_exposure",
+      "order": 7,
+      "type": "scale",
+      "text_user": "Com que frequência você se sentiu distante de si, do ambiente ou como se tudo não fosse totalmente real?",
+      "help_text_user": "Essa sensação pode parecer um desligamento ou estranhamento momentâneo.",
+      "required": false,
+      "options": [],
+      "maps_to": [
+        "dissociation",
+        "depersonalization",
+        "derealization"
+      ],
+      "affects_tracks": [
+        "dissociative_disorders",
+        "trauma_related_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "dissociation",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "dissociation",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "dissociation",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "dissociation",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_trauma_08",
+      "module_id": "trauma_exposure",
+      "order": 8,
+      "type": "scale",
+      "text_user": "Com que frequência ficou difícil sentir proximidade, confiança ou emoções positivas depois da experiência?",
+      "help_text_user": "Considere mudanças que começaram ou pioraram depois do que aconteceu.",
+      "required": false,
+      "options": [],
+      "maps_to": [
+        "emotional_numbing",
+        "negative_beliefs"
+      ],
+      "affects_tracks": [
+        "trauma_related_disorders",
+        "depressive_disorders",
+        "personality_disorders"
+      ],
+      "scoring": {
+        "method": "direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "emotional_numbing",
+              "points": 4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "emotional_numbing",
+              "points": 3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "emotional_numbing",
+              "points": 2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "emotional_numbing",
+              "points": 1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nunca",
+        "Raramente",
+        "Alguns dias",
+        "Muitos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": "q_substance_01",
+      "module_id": "substance_use",
+      "order": 1,
+      "type": "single",
+      "text_user": "Com que frequência você consumiu bebida alcoólica nos últimos 30 dias?",
+      "help_text_user": "Responda de acordo com a sua realidade, sem julgamento.",
+      "required": true,
+      "options": [
+        {
+          "value": "never",
+          "label_user": "Não consumi",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "once_or_twice",
+          "label_user": "Uma ou duas vezes",
+          "maps_to": [
+            "substance_use_frequency"
+          ],
+          "score_contribution": {
+            "symptom": "substance_use_frequency",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "weekly",
+          "label_user": "Em alguns dias de cada semana",
+          "maps_to": [
+            "substance_use_frequency"
+          ],
+          "score_contribution": {
+            "symptom": "substance_use_frequency",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "most_days",
+          "label_user": "Na maioria dos dias",
+          "maps_to": [
+            "substance_use_frequency"
+          ],
+          "score_contribution": {
+            "symptom": "substance_use_frequency",
+            "points": 4,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "prefer_not",
+          "label_user": "Prefiro não responder",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "substance_use_frequency"
+      ],
+      "affects_tracks": [
+        "substance_use_disorders",
+        "depressive_disorders",
+        "anxiety_disorders",
+        "sleep_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true
+    },
+    {
+      "id": "q_substance_02",
+      "module_id": "substance_use",
+      "order": 2,
+      "type": "single",
+      "text_user": "Nos últimos 30 dias, você usou algum medicamento de forma diferente da orientação recebida?",
+      "help_text_user": "Inclua quantidade, frequência ou motivo diferente do combinado com um profissional.",
+      "required": true,
+      "options": [
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "medication_misuse"
+          ],
+          "score_contribution": {
+            "symptom": "medication_misuse",
+            "points": 4,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "unsure",
+          "label_user": "Não tenho certeza",
+          "maps_to": [
+            "medication_misuse_uncertain"
+          ],
+          "score_contribution": {
+            "symptom": "medication_misuse_uncertain",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "prefer_not",
+          "label_user": "Prefiro não responder",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "medication_misuse",
+        "medication_misuse_uncertain"
+      ],
+      "affects_tracks": [
+        "substance_use_disorders",
+        "sleep_disorders",
+        "anxiety_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true
+    },
+    {
+      "id": "q_substance_03",
+      "module_id": "substance_use",
+      "order": 3,
+      "type": "single",
+      "text_user": "Nos últimos 30 dias, você usou alguma outra substância para mudar como se sentia, relaxar, ter energia ou se desligar?",
+      "help_text_user": "Não é necessário informar qual substância.",
+      "required": true,
+      "options": [
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "other_substance_use"
+          ],
+          "score_contribution": {
+            "symptom": "other_substance_use",
+            "points": 3,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "prefer_not",
+          "label_user": "Prefiro não responder",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "other_substance_use"
+      ],
+      "affects_tracks": [
+        "substance_use_disorders",
+        "depressive_disorders",
+        "anxiety_disorders",
+        "psychotic_disorders",
+        "bipolar_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true
+    },
+    {
+      "id": "q_substance_04",
+      "module_id": "substance_use",
+      "order": 4,
+      "type": "yes_no",
+      "text_user": "Alguma vez você começou a consumir e percebeu que foi difícil parar ou controlar a quantidade?",
+      "help_text_user": "Considere álcool, medicamentos ou outras substâncias.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "loss_of_control_use"
+          ],
+          "score_contribution": {
+            "symptom": "loss_of_control_use",
+            "points": 4,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "loss_of_control_use"
+      ],
+      "affects_tracks": [
+        "substance_use_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [
+        {
+          "when": {
+            "question_id": "q_substance_04",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "show_question",
+          "target_question_id": "q_substance_06"
+        },
+        {
+          "when": {
+            "question_id": "q_substance_04",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "show_question",
+          "target_question_id": "q_substance_07"
+        }
+      ],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true
+    },
+    {
+      "id": "q_substance_05",
+      "module_id": "substance_use",
+      "order": 5,
+      "type": "yes_no",
+      "text_user": "O consumo continuou mesmo depois de causar problemas em sua saúde, rotina, estudos, trabalho ou relações?",
+      "help_text_user": "Pense em consequências que você percebeu, mesmo que tenham ocorrido poucas vezes.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "continued_use_despite_harm",
+            "role_impairment"
+          ],
+          "score_contribution": {
+            "symptom": "continued_use_despite_harm",
+            "points": 4,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "continued_use_despite_harm",
+        "role_impairment"
+      ],
+      "affects_tracks": [
+        "substance_use_disorders",
+        "depressive_disorders",
+        "anxiety_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [
+        {
+          "when": {
+            "question_id": "q_substance_05",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "show_question",
+          "target_question_id": "q_substance_06"
+        },
+        {
+          "when": {
+            "question_id": "q_substance_05",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "show_question",
+          "target_question_id": "q_substance_07"
+        }
+      ],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true
+    },
+    {
+      "id": "q_substance_06",
+      "module_id": "substance_use",
+      "order": 6,
+      "type": "yes_no",
+      "text_user": "Ao reduzir ou parar, você já teve reações físicas ou emocionais fortes que fizeram querer consumir novamente?",
+      "help_text_user": "Não tente mudar o consumo por conta própria quando houver reações intensas; este item apenas registra o que já aconteceu.",
+      "required": false,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "withdrawal_symptoms",
+            "craving"
+          ],
+          "score_contribution": {
+            "symptom": "withdrawal_symptoms",
+            "points": 5,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "withdrawal_symptoms",
+        "craving"
+      ],
+      "affects_tracks": [
+        "substance_use_disorders",
+        "anxiety_disorders",
+        "sleep_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true
+    },
+    {
+      "id": "q_substance_07",
+      "module_id": "substance_use",
+      "order": 7,
+      "type": "yes_no",
+      "text_user": "O consumo já colocou você ou outra pessoa em uma situação de risco imediato?",
+      "help_text_user": "Não é necessário contar detalhes.",
+      "required": false,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "hazardous_use"
+          ],
+          "score_contribution": {
+            "symptom": "hazardous_use",
+            "points": 8,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "hazardous_use"
+      ],
+      "affects_tracks": [
+        "substance_use_disorders",
+        "disruptive_impulse_control_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [
+        {
+          "when": {
+            "question_id": "q_substance_07",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "trigger_red_flag",
+          "red_flag_id": "substance_related_immediate_risk"
+        }
+      ],
+      "clinical_sensitivity": "crisis",
+      "enabled": true
+    },
+    {
+      "id": "q_medical_01",
+      "module_id": "medical_medications",
+      "order": 1,
+      "type": "multi",
+      "text_user": "Você convive atualmente com alguma condição física que afeta sua rotina?",
+      "help_text_user": "Marque apenas categorias gerais; não é necessário informar o nome exato da condição.",
+      "required": true,
+      "options": [
+        {
+          "value": "persistent_pain",
+          "label_user": "Dor persistente",
+          "maps_to": [
+            "persistent_physical_symptoms",
+            "pain_preoccupation"
+          ],
+          "score_contribution": {
+            "symptom": "persistent_physical_symptoms",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "hormonal_metabolic",
+          "label_user": "Alteração hormonal ou metabólica",
+          "maps_to": [
+            "medical_condition_present"
+          ],
+          "score_contribution": {
+            "symptom": "medical_condition_present",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "neurological",
+          "label_user": "Condição neurológica",
+          "maps_to": [
+            "medical_condition_present"
+          ],
+          "score_contribution": {
+            "symptom": "medical_condition_present",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "cardiorespiratory",
+          "label_user": "Condição cardíaca ou respiratória",
+          "maps_to": [
+            "medical_condition_present"
+          ],
+          "score_contribution": {
+            "symptom": "medical_condition_present",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "other",
+          "label_user": "Outra condição física importante",
+          "maps_to": [
+            "medical_condition_present"
+          ],
+          "score_contribution": {
+            "symptom": "medical_condition_present",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "none",
+          "label_user": "Nenhuma condição conhecida",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "prefer_not",
+          "label_user": "Prefiro não responder",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "persistent_physical_symptoms",
+        "pain_preoccupation",
+        "medical_condition_present"
+      ],
+      "affects_tracks": [
+        "somatic_symptom_disorders",
+        "depressive_disorders",
+        "anxiety_disorders",
+        "sleep_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "max_selections": 5
+    },
+    {
+      "id": "q_medical_02",
+      "module_id": "medical_medications",
+      "order": 2,
+      "type": "single",
+      "text_user": "Como as mudanças emocionais se relacionam com seus sintomas físicos?",
+      "help_text_user": "Escolha a opção que mais se aproxima da sua experiência.",
+      "required": true,
+      "options": [
+        {
+          "value": "physical_first",
+          "label_user": "Os sintomas físicos começaram ou pioraram antes",
+          "maps_to": [
+            "physical_symptoms_preceded_mood_change"
+          ],
+          "score_contribution": {
+            "symptom": "physical_symptoms_preceded_mood_change",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "emotional_first",
+          "label_user": "As mudanças emocionais começaram ou pioraram antes",
+          "maps_to": [
+            "emotional_symptoms_preceded_physical_change"
+          ],
+          "score_contribution": {
+            "symptom": "emotional_symptoms_preceded_physical_change",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "together",
+          "label_user": "Começaram ou pioraram juntos",
+          "maps_to": [
+            "physical_emotional_temporal_link"
+          ],
+          "score_contribution": {
+            "symptom": "physical_emotional_temporal_link",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "unrelated",
+          "label_user": "Não parecem relacionados",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "unsure",
+          "label_user": "Não sei",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "physical_symptoms_preceded_mood_change",
+        "emotional_symptoms_preceded_physical_change",
+        "physical_emotional_temporal_link"
+      ],
+      "affects_tracks": [
+        "somatic_symptom_disorders",
+        "depressive_disorders",
+        "anxiety_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_medical_03",
+      "module_id": "medical_medications",
+      "order": 3,
+      "type": "yes_no",
+      "text_user": "Você usa atualmente algum medicamento de forma contínua ou frequente?",
+      "help_text_user": "Inclua medicamentos prescritos e os usados regularmente por conta própria.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "current_medication_use"
+          ],
+          "score_contribution": {
+            "symptom": "current_medication_use",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "current_medication_use"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [
+        {
+          "when": {
+            "question_id": "q_medical_03",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "show_question",
+          "target_question_id": "q_medical_04"
+        },
+        {
+          "when": {
+            "question_id": "q_medical_03",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "show_question",
+          "target_question_id": "q_medical_06"
+        }
+      ],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_medical_04",
+      "module_id": "medical_medications",
+      "order": 4,
+      "type": "multi",
+      "text_user": "Você percebeu alguma mudança depois de iniciar, interromper ou ajustar um medicamento?",
+      "help_text_user": "Considere mudanças de sono, energia, apetite, pensamentos ou emoções.",
+      "required": false,
+      "options": [
+        {
+          "value": "mood",
+          "label_user": "Mudança importante no humor ou irritação",
+          "maps_to": [
+            "medication_related_mood_change"
+          ],
+          "score_contribution": {
+            "symptom": "medication_related_mood_change",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "energy",
+          "label_user": "Mudança importante na energia ou agitação",
+          "maps_to": [
+            "medication_related_energy_change"
+          ],
+          "score_contribution": {
+            "symptom": "medication_related_energy_change",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "sleep",
+          "label_user": "Mudança importante no sono",
+          "maps_to": [
+            "medication_related_sleep_change"
+          ],
+          "score_contribution": {
+            "symptom": "medication_related_sleep_change",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "perception",
+          "label_user": "Mudança incomum na percepção ou organização dos pensamentos",
+          "maps_to": [
+            "medication_related_perceptual_change"
+          ],
+          "score_contribution": {
+            "symptom": "medication_related_perceptual_change",
+            "points": 4,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "none",
+          "label_user": "Não percebi mudanças",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "unsure",
+          "label_user": "Não sei",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "medication_related_mood_change",
+        "medication_related_energy_change",
+        "medication_related_sleep_change",
+        "medication_related_perceptual_change"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "anxiety_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "max_selections": 4
+    },
+    {
+      "id": "q_medical_05",
+      "module_id": "medical_medications",
+      "order": 5,
+      "type": "yes_no",
+      "text_user": "Houve recentemente uma mudança física importante, doença aguda, cirurgia ou alteração hormonal próxima ao início desses sintomas?",
+      "help_text_user": "Essa informação ajuda a evitar que fatores físicos sejam ignorados.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "recent_medical_change"
+          ],
+          "score_contribution": {
+            "symptom": "recent_medical_change",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "recent_medical_change"
+      ],
+      "affects_tracks": [
+        "somatic_symptom_disorders",
+        "depressive_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "sleep_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_medical_06",
+      "module_id": "medical_medications",
+      "order": 6,
+      "type": "text_optional",
+      "text_user": "Se quiser, escreva os nomes dos medicamentos ou informações físicas que considera importantes.",
+      "help_text_user": "Este campo é opcional, protegido e não entra no cálculo automático.",
+      "required": false,
+      "options": [],
+      "maps_to": [
+        "free_text_note"
+      ],
+      "affects_tracks": [],
+      "scoring": {
+        "method": "none"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_family_01",
+      "module_id": "family_history",
+      "order": 1,
+      "type": "single",
+      "text_user": "Até onde você sabe, alguém da sua família próxima já teve dificuldades emocionais ou comportamentais importantes?",
+      "help_text_user": "Considere pais, irmãos, filhos e avós. Você pode escolher não responder.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "family_history_mental_health"
+          ],
+          "score_contribution": {
+            "symptom": "family_history_mental_health",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "unsure",
+          "label_user": "Não sei",
+          "maps_to": [],
+          "score_contribution": null
+        },
+        {
+          "value": "prefer_not",
+          "label_user": "Prefiro não responder",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "family_history_mental_health"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders",
+        "neurodevelopmental_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true
+    },
+    {
+      "id": "q_family_02",
+      "module_id": "family_history",
+      "order": 2,
+      "type": "multi",
+      "text_user": "Quais tipos de dificuldade apareceram na família, até onde você sabe?",
+      "help_text_user": "Marque categorias gerais. Não é necessário informar nomes de pessoas.",
+      "required": true,
+      "options": [
+        {
+          "value": "mood",
+          "label_user": "Períodos prolongados de tristeza, desânimo ou pouca energia",
+          "maps_to": [
+            "family_history_depression"
+          ],
+          "score_contribution": {
+            "symptom": "family_history_depression",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "anxiety",
+          "label_user": "Preocupação intensa, medo ou crises repentinas",
+          "maps_to": [
+            "family_history_anxiety"
+          ],
+          "score_contribution": {
+            "symptom": "family_history_anxiety",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "activation",
+          "label_user": "Períodos de energia muito alta, pouco sono e atitudes fora do habitual",
+          "maps_to": [
+            "family_history_bipolar_signals"
+          ],
+          "score_contribution": {
+            "symptom": "family_history_bipolar_signals",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "reality",
+          "label_user": "Experiências incomuns de percepção ou compreensão da realidade",
+          "maps_to": [
+            "family_history_psychotic_signals"
+          ],
+          "score_contribution": {
+            "symptom": "family_history_psychotic_signals",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "substance",
+          "label_user": "Dificuldade para controlar álcool, medicamentos ou outras substâncias",
+          "maps_to": [
+            "family_history_substance_use"
+          ],
+          "score_contribution": {
+            "symptom": "family_history_substance_use",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "development",
+          "label_user": "Dificuldades persistentes de atenção, comunicação, aprendizagem ou desenvolvimento",
+          "maps_to": [
+            "family_history_neurodevelopmental"
+          ],
+          "score_contribution": {
+            "symptom": "family_history_neurodevelopmental",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "eating",
+          "label_user": "Dificuldades importantes com alimentação ou imagem corporal",
+          "maps_to": [
+            "family_history_eating_problems"
+          ],
+          "score_contribution": {
+            "symptom": "family_history_eating_problems",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "unsure",
+          "label_user": "Não sei",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "family_history_depression",
+        "family_history_anxiety",
+        "family_history_bipolar_signals",
+        "family_history_psychotic_signals",
+        "family_history_substance_use",
+        "family_history_neurodevelopmental",
+        "family_history_eating_problems"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders",
+        "neurodevelopmental_disorders",
+        "eating_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true,
+      "max_selections": 7
+    },
+    {
+      "id": "q_family_03",
+      "module_id": "family_history",
+      "order": 3,
+      "type": "yes_no",
+      "text_user": "Algum familiar próximo já precisou de acompanhamento intensivo ou internação por causa dessas dificuldades?",
+      "help_text_user": "Não é necessário informar quem ou o motivo exato.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "family_history_severe_impairment"
+          ],
+          "score_contribution": {
+            "symptom": "family_history_severe_impairment",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "family_history_severe_impairment"
+      ],
+      "affects_tracks": [
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "depressive_disorders",
+        "substance_use_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true
+    },
+    {
+      "id": "q_family_04",
+      "module_id": "family_history",
+      "order": 4,
+      "type": "yes_no",
+      "text_user": "O uso de álcool, medicamentos ou outras substâncias já trouxe problemas importantes para alguém da família próxima?",
+      "help_text_user": "Considere prejuízos na saúde, convivência ou responsabilidades.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "family_history_substance_use"
+          ],
+          "score_contribution": {
+            "symptom": "family_history_substance_use",
+            "points": 1,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "family_history_substance_use"
+      ],
+      "affects_tracks": [
+        "substance_use_disorders",
+        "depressive_disorders",
+        "anxiety_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true
+    },
+    {
+      "id": "q_family_05",
+      "module_id": "family_history",
+      "order": 5,
+      "type": "text_optional",
+      "text_user": "Há alguma informação familiar que você considera importante acrescentar?",
+      "help_text_user": "Este campo é opcional e não entra no cálculo automático.",
+      "required": false,
+      "options": [],
+      "maps_to": [
+        "free_text_note"
+      ],
+      "affects_tracks": [],
+      "scoring": {
+        "method": "none"
+      },
+      "branching": [],
+      "clinical_sensitivity": "sensitive",
+      "enabled": true
+    },
+    {
+      "id": "q_protect_01",
+      "module_id": "protective_factors",
+      "order": 1,
+      "type": "scale",
+      "text_user": "Quanto você sente que pode contar com pessoas que escutam e apoiam você?",
+      "help_text_user": "Considere família, amigos, comunidade, escola, trabalho ou profissionais.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "strong_support_network"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "trauma_related_disorders",
+        "personality_disorders",
+        "substance_use_disorders"
+      ],
+      "scoring": {
+        "method": "protective_direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "strong_support_network",
+              "points": -4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "strong_support_network",
+              "points": -3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "strong_support_network",
+              "points": -2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "strong_support_network",
+              "points": -1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Não tenho apoio",
+        "Tenho pouco apoio",
+        "Tenho algum apoio",
+        "Tenho bom apoio",
+        "Tenho apoio forte e disponível"
+      ]
+    },
+    {
+      "id": "q_protect_02",
+      "module_id": "protective_factors",
+      "order": 2,
+      "type": "yes_no",
+      "text_user": "Existe pelo menos uma pessoa com quem você se sentiria seguro(a) para conversar hoje?",
+      "help_text_user": "Pode ser alguém próximo ou um profissional.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "trusted_support_person"
+          ],
+          "score_contribution": {
+            "symptom": "trusted_support_person",
+            "points": 3,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "trusted_support_person"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "trauma_related_disorders",
+        "personality_disorders",
+        "substance_use_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_protect_03",
+      "module_id": "protective_factors",
+      "order": 3,
+      "type": "multi",
+      "text_user": "O que costuma ajudar você a atravessar momentos difíceis?",
+      "help_text_user": "Marque os recursos que realmente funcionam para você.",
+      "required": true,
+      "options": [
+        {
+          "value": "people",
+          "label_user": "Conversar com alguém de confiança",
+          "maps_to": [
+            "coping_support"
+          ],
+          "score_contribution": {
+            "symptom": "coping_support",
+            "points": 1,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "routine",
+          "label_user": "Manter uma rotina simples",
+          "maps_to": [
+            "coping_routine"
+          ],
+          "score_contribution": {
+            "symptom": "coping_routine",
+            "points": 1,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "movement",
+          "label_user": "Caminhar, praticar exercício ou movimentar o corpo",
+          "maps_to": [
+            "coping_movement"
+          ],
+          "score_contribution": {
+            "symptom": "coping_movement",
+            "points": 1,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "relaxation",
+          "label_user": "Respirar, relaxar ou fazer uma pausa consciente",
+          "maps_to": [
+            "coping_relaxation"
+          ],
+          "score_contribution": {
+            "symptom": "coping_relaxation",
+            "points": 1,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "meaning",
+          "label_user": "Espiritualidade, valores ou práticas que dão sentido",
+          "maps_to": [
+            "coping_meaning"
+          ],
+          "score_contribution": {
+            "symptom": "coping_meaning",
+            "points": 1,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "professional",
+          "label_user": "Conversar com um profissional",
+          "maps_to": [
+            "professional_support_access"
+          ],
+          "score_contribution": {
+            "symptom": "professional_support_access",
+            "points": 2,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "none",
+          "label_user": "Ainda não encontrei algo que ajude",
+          "maps_to": [
+            "limited_coping_resources"
+          ],
+          "score_contribution": {
+            "symptom": "limited_coping_resources",
+            "points": 2,
+            "direction": "+"
+          }
+        }
+      ],
+      "maps_to": [
+        "coping_support",
+        "coping_routine",
+        "coping_movement",
+        "coping_relaxation",
+        "coping_meaning",
+        "professional_support_access",
+        "limited_coping_resources"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "trauma_related_disorders",
+        "substance_use_disorders",
+        "sleep_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "max_selections": 6
+    },
+    {
+      "id": "q_protect_04",
+      "module_id": "protective_factors",
+      "order": 4,
+      "type": "scale",
+      "text_user": "Quanto pessoas, projetos, valores ou responsabilidades ajudam você a seguir em frente?",
+      "help_text_user": "Pense no que dá sentido, vínculo ou direção para o próximo dia.",
+      "required": true,
+      "options": [],
+      "maps_to": [
+        "protective_commitments"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "trauma_related_disorders",
+        "personality_disorders"
+      ],
+      "scoring": {
+        "method": "protective_direct_map",
+        "rules": [
+          {
+            "when_value_gte": 4,
+            "add_symptom_score": {
+              "symptom": "protective_commitments",
+              "points": -4
+            }
+          },
+          {
+            "when_value_eq": 3,
+            "add_symptom_score": {
+              "symptom": "protective_commitments",
+              "points": -3
+            }
+          },
+          {
+            "when_value_eq": 2,
+            "add_symptom_score": {
+              "symptom": "protective_commitments",
+              "points": -2
+            }
+          },
+          {
+            "when_value_eq": 1,
+            "add_symptom_score": {
+              "symptom": "protective_commitments",
+              "points": -1
+            }
+          }
+        ]
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "scale_min": 0,
+      "scale_max": 4,
+      "scale_labels": [
+        "Nada neste momento",
+        "Muito pouco",
+        "Um pouco",
+        "Bastante",
+        "Fortemente"
+      ]
+    },
+    {
+      "id": "q_protect_05",
+      "module_id": "protective_factors",
+      "order": 5,
+      "type": "single",
+      "text_user": "Se você precisasse de ajuda adicional, qual opção combina mais com você hoje?",
+      "help_text_user": "Esta resposta ajuda a escolher próximos passos mais viáveis.",
+      "required": true,
+      "options": [
+        {
+          "value": "ready",
+          "label_user": "Estou pronto(a) para procurar ajuda",
+          "maps_to": [
+            "help_seeking_readiness"
+          ],
+          "score_contribution": {
+            "symptom": "help_seeking_readiness",
+            "points": 2,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "maybe",
+          "label_user": "Talvez, mas preciso de orientação",
+          "maps_to": [
+            "help_seeking_ambivalence"
+          ],
+          "score_contribution": {
+            "symptom": "help_seeking_ambivalence",
+            "points": 0,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "not_ready",
+          "label_user": "Ainda não me sinto pronto(a)",
+          "maps_to": [
+            "help_seeking_barrier"
+          ],
+          "score_contribution": {
+            "symptom": "help_seeking_barrier",
+            "points": 2,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "already_supported",
+          "label_user": "Já tenho acompanhamento ou apoio disponível",
+          "maps_to": [
+            "professional_support_access"
+          ],
+          "score_contribution": {
+            "symptom": "professional_support_access",
+            "points": 2,
+            "direction": "-"
+          }
+        }
+      ],
+      "maps_to": [
+        "help_seeking_readiness",
+        "help_seeking_ambivalence",
+        "help_seeking_barrier",
+        "professional_support_access"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "trauma_related_disorders",
+        "substance_use_disorders",
+        "personality_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_treatment_01",
+      "module_id": "previous_treatment",
+      "order": 1,
+      "type": "yes_no",
+      "text_user": "Você já conversou com um profissional sobre emoções, pensamentos ou dificuldades parecidas?",
+      "help_text_user": "Pode ter sido atendimento presencial ou a distância.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "previous_therapy"
+          ],
+          "score_contribution": {
+            "symptom": "previous_therapy",
+            "points": 0,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "previous_therapy"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "trauma_related_disorders",
+        "personality_disorders",
+        "neurodevelopmental_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [
+        {
+          "when": {
+            "question_id": "q_treatment_01",
+            "answer_in": [
+              "yes"
+            ]
+          },
+          "action": "show_question",
+          "target_question_id": "q_treatment_02"
+        }
+      ],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_treatment_02",
+      "module_id": "previous_treatment",
+      "order": 2,
+      "type": "single",
+      "text_user": "De forma geral, quanto esse acompanhamento ajudou?",
+      "help_text_user": "Considere melhora, compreensão e capacidade de lidar com as dificuldades.",
+      "required": false,
+      "options": [
+        {
+          "value": "helped_a_lot",
+          "label_user": "Ajudou bastante",
+          "maps_to": [
+            "previous_therapy_helpful"
+          ],
+          "score_contribution": {
+            "symptom": "previous_therapy_helpful",
+            "points": 2,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "helped_some",
+          "label_user": "Ajudou um pouco",
+          "maps_to": [
+            "previous_therapy_partly_helpful"
+          ],
+          "score_contribution": {
+            "symptom": "previous_therapy_partly_helpful",
+            "points": 1,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "neutral",
+          "label_user": "Não fez diferença clara",
+          "maps_to": [
+            "previous_therapy_neutral"
+          ],
+          "score_contribution": {
+            "symptom": "previous_therapy_neutral",
+            "points": 0,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "worsened",
+          "label_user": "Não ajudou ou tornou a experiência mais difícil",
+          "maps_to": [
+            "previous_therapy_unhelpful"
+          ],
+          "score_contribution": {
+            "symptom": "previous_therapy_unhelpful",
+            "points": 1,
+            "direction": "+"
+          }
+        }
+      ],
+      "maps_to": [
+        "previous_therapy_helpful",
+        "previous_therapy_partly_helpful",
+        "previous_therapy_neutral",
+        "previous_therapy_unhelpful"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "trauma_related_disorders",
+        "personality_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_treatment_03",
+      "module_id": "previous_treatment",
+      "order": 3,
+      "type": "yes_no",
+      "text_user": "Você já usou algum medicamento para ajudar com emoções, sono, atenção ou comportamento?",
+      "help_text_user": "Inclua apenas medicamentos usados com essa finalidade.",
+      "required": true,
+      "options": [
+        {
+          "value": "yes",
+          "label_user": "Sim",
+          "maps_to": [
+            "previous_mental_health_medication"
+          ],
+          "score_contribution": {
+            "symptom": "previous_mental_health_medication",
+            "points": 0,
+            "direction": "+"
+          }
+        },
+        {
+          "value": "no",
+          "label_user": "Não",
+          "maps_to": [],
+          "score_contribution": null
+        }
+      ],
+      "maps_to": [
+        "previous_mental_health_medication"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "neurodevelopmental_disorders",
+        "sleep_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    },
+    {
+      "id": "q_treatment_04",
+      "module_id": "previous_treatment",
+      "order": 4,
+      "type": "multi",
+      "text_user": "Quais estratégias já ajudaram você em algum momento?",
+      "help_text_user": "Marque todas as opções que trouxeram algum benefício real.",
+      "required": true,
+      "options": [
+        {
+          "value": "therapy",
+          "label_user": "Conversas estruturadas com um profissional",
+          "maps_to": [
+            "previous_therapy_helpful"
+          ],
+          "score_contribution": {
+            "symptom": "previous_therapy_helpful",
+            "points": 1,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "medication",
+          "label_user": "Medicamentos acompanhados por profissional",
+          "maps_to": [
+            "previous_medication_helpful"
+          ],
+          "score_contribution": {
+            "symptom": "previous_medication_helpful",
+            "points": 1,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "routine",
+          "label_user": "Mudanças de rotina e organização",
+          "maps_to": [
+            "previous_routine_helpful"
+          ],
+          "score_contribution": {
+            "symptom": "previous_routine_helpful",
+            "points": 1,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "movement",
+          "label_user": "Atividade física ou movimento",
+          "maps_to": [
+            "previous_movement_helpful"
+          ],
+          "score_contribution": {
+            "symptom": "previous_movement_helpful",
+            "points": 1,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "support",
+          "label_user": "Apoio de pessoas, grupos ou comunidade",
+          "maps_to": [
+            "previous_support_helpful"
+          ],
+          "score_contribution": {
+            "symptom": "previous_support_helpful",
+            "points": 1,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "meaning",
+          "label_user": "Práticas de espiritualidade, valores ou sentido",
+          "maps_to": [
+            "previous_meaning_helpful"
+          ],
+          "score_contribution": {
+            "symptom": "previous_meaning_helpful",
+            "points": 1,
+            "direction": "-"
+          }
+        },
+        {
+          "value": "none",
+          "label_user": "Ainda não encontrei algo que ajudasse",
+          "maps_to": [
+            "no_previous_helpful_strategy"
+          ],
+          "score_contribution": {
+            "symptom": "no_previous_helpful_strategy",
+            "points": 1,
+            "direction": "+"
+          }
+        }
+      ],
+      "maps_to": [
+        "previous_therapy_helpful",
+        "previous_medication_helpful",
+        "previous_routine_helpful",
+        "previous_movement_helpful",
+        "previous_support_helpful",
+        "previous_meaning_helpful",
+        "no_previous_helpful_strategy"
+      ],
+      "affects_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "trauma_related_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "scoring": {
+        "method": "from_options"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "max_selections": 6
+    },
+    {
+      "id": "q_treatment_05",
+      "module_id": "previous_treatment",
+      "order": 5,
+      "type": "text_optional",
+      "text_user": "Há algo que você não gostaria de repetir ou alguma preferência para o seu plano?",
+      "help_text_user": "Este campo é opcional e será usado apenas como contexto para revisão humana.",
+      "required": false,
+      "options": [],
+      "maps_to": [
+        "free_text_note"
+      ],
+      "affects_tracks": [],
+      "scoring": {
+        "method": "none"
+      },
+      "branching": [],
+      "clinical_sensitivity": "normal",
+      "enabled": true
+    }
+  ]
+}

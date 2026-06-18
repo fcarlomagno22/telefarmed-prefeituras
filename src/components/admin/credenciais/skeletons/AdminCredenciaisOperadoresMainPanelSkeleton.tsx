@@ -10,10 +10,10 @@ import {
 } from './adminCredenciaisSkeletonUi'
 
 type AdminCredenciaisOperadoresMainPanelSkeletonProps = {
-  /** Sem filtro de escopo — abas Prefeitura e UBT. */
+  /** Sem filtro de escopo — abas Entidade e UBT. */
   fixedScope?: 'Prefeitura' | 'UBT'
   panelTitle: string
-  panelDescription: string
+  panelDescription?: string
 }
 
 function OperadoresTableBodySkeleton() {
@@ -62,7 +62,9 @@ export function AdminCredenciaisOperadoresMainPanelSkeleton({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <h2 className="text-lg font-bold text-gray-900">{panelTitle}</h2>
-            <p className="mt-1 text-sm text-gray-500">{panelDescription}</p>
+            {panelDescription ? (
+              <p className="mt-1 text-sm text-gray-500">{panelDescription}</p>
+            ) : null}
           </div>
           <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:max-w-4xl lg:justify-end">
             {!fixedScope ? (

@@ -14,18 +14,32 @@ import {
   getPrefeituraAdministrativeRegions,
 } from '../../../data/prefeituraAdministrativeRegions'
 import { usePrefeituraAuth } from '../../../contexts/PrefeituraAuthContext'
-import { usePrefeituraClinicoCatalog } from '../../../hooks/usePrefeituraClinicoCatalog'
+import { useEntidadeBranding } from '../../../contexts/EntidadeBrandingContext'
+import { useOptionalTenantHost } from '../../../contexts/TenantHostContext'
+import { usePrefeituraUbtContratoCatalog } from '../../../hooks/usePrefeituraUbtContratoCatalog'
 import {
   createPrefeituraRedeUnit,
   isPrefeituraRedeApiError,
 } from '../../../lib/services/prefeitura/rede'
+import { fetchPrefeituraEntitySummary } from '../../../lib/services/prefeitura/credenciais'
 import { fetchAddressByCep } from '../../../utils/viacep'
 import {
   addressMatchesEntityTerritory,
   buildTerritoryMismatchMessage,
 } from '../../../utils/municipalityTerritory'
+import {
+  buildUbtUnitCepGuidance,
+  shouldEnforceUbtUnitMunicipalityTerritory,
+} from '../../../utils/entidadeTerritoryPolicy'
+import { isPrefeituraEntidadeTipo } from '../../../config/adminEntidadeTipo'
 import { maskCep, maskCpf, maskLandline, maskPhone } from '../../../utils/masks'
 import { CustomSelect } from '../../ui/CustomSelect'
+import { TenantSlugField } from '../../tenant/TenantSlugField'
+import {
+  buildCompositeUbtSlug,
+  extractUbtSlugUnitSuffix,
+  suggestCompositeUbtSlugFromUnitName,
+} from '../../../utils/tenantSlug'
 import { PrefeituraAdministrativeRegionManager } from './newUbt/PrefeituraAdministrativeRegionManager'
 import { PrefeituraNewUbtFlowStepper } from './newUbt/PrefeituraNewUbtFlowStepper'
 import { PrefeituraNewUbtProfessionsSpecialtiesPanel } from './newUbt/PrefeituraNewUbtProfessionsSpecialtiesPanel'
@@ -46,6 +60,7 @@ import {
   newUbtFlowSteps,
   resolveNewUbtStepIndex,
   newUbtUnitTypeOptions,
+  validateNewUbtSlugStep,
   type NewUbtFormState,
   type NewUbtFormStep,
 } from './newUbt/newUbtFormTypes'
@@ -55,7 +70,7 @@ const drawerPanelShell =
 
 const labelClass = 'mb-1 block text-xs font-semibold text-gray-800'
 const inputClass =
-  'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 outline-none transition focus:border-[var(--brand-primary)]/40 focus:shadow-[0_0_0_3px_rgba(255,107,0,0.12)]'
+  'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 outline-none transition focus:border-[var(--brand-primary)]/40 focus:shadow-[var(--brand-primary-focus-ring)]'
 
 type PrefeituraNewUbtDrawerProps = {
   open: boolean
@@ -73,12 +88,16 @@ export function PrefeituraNewUbtDrawer({
   onRegistered,
 }: PrefeituraNewUbtDrawerProps) {
   const { getAccessToken, user } = usePrefeituraAuth()
+  const tenantHost = useOptionalTenantHost()
+  const { branding, copy } = useEntidadeBranding()
+  const entidadeTipo = branding?.entidadeTipo ?? 'prefeitura'
+  const isPrefeituraTipo = isPrefeituraEntidadeTipo(entidadeTipo)
   const {
     professions: catalogProfessions,
     specialties: catalogSpecialties,
     isLoading: catalogLoading,
     error: catalogError,
-  } = usePrefeituraClinicoCatalog()
+  } = usePrefeituraUbtContratoCatalog(open)
   const [entered, setEntered] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [step, setStep] = useState<NewUbtFormStep>('unit')
@@ -89,6 +108,8 @@ export function PrefeituraNewUbtDrawer({
   const [cepLoading, setCepLoading] = useState(false)
   const [cepError, setCepError] = useState<string | null>(null)
   const [regionsVersion, setRegionsVersion] = useState(0)
+  const [entitySlug, setEntitySlug] = useState(tenantHost?.slug ?? '')
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
   const lastFetchedCepRef = useRef('')
 
   const operationNames = useMemo(
@@ -144,6 +165,72 @@ export function PrefeituraNewUbtDrawer({
   }, [form.regionId, regionsVersion])
 
   useEffect(() => {
+    if (tenantHost?.slug) {
+      setEntitySlug(tenantHost.slug)
+      return
+    }
+
+    if (!open) return
+
+    const token = getAccessToken()
+    if (!token) return
+
+    let cancelled = false
+    void fetchPrefeituraEntitySummary(token)
+      .then((entity) => {
+        if (cancelled) return
+        setEntitySlug(entity.slug?.trim() ?? '')
+      })
+      .catch(() => {
+        if (!cancelled) setEntitySlug('')
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [getAccessToken, open, tenantHost?.slug])
+
+  useEffect(() => {
+    if (!open || slugManuallyEdited || !entitySlug) return
+
+    setForm((prev) => {
+      if (!prev.name.trim()) return prev
+      const suggested = suggestCompositeUbtSlugFromUnitName(entitySlug, prev.name)
+      if (!suggested || suggested === prev.slug) return prev
+      return { ...prev, slug: suggested }
+    })
+  }, [entitySlug, open, slugManuallyEdited])
+
+  useEffect(() => {
+    if (catalogLoading || !open) return
+
+    const allowedProfessionIds = new Set(catalogProfessions.map((item) => item.id))
+    const allowedSpecialtyIds = new Set(catalogSpecialties.map((item) => item.id))
+
+    setForm((prev) => {
+      const nextProfessionIds = new Set(
+        [...prev.professionIds].filter((id) => allowedProfessionIds.has(id)),
+      )
+      const nextSpecialtyIds = new Set(
+        [...prev.specialtyIds].filter((id) => allowedSpecialtyIds.has(id)),
+      )
+
+      if (
+        nextProfessionIds.size === prev.professionIds.size &&
+        nextSpecialtyIds.size === prev.specialtyIds.size
+      ) {
+        return prev
+      }
+
+      return {
+        ...prev,
+        professionIds: nextProfessionIds,
+        specialtyIds: nextSpecialtyIds,
+      }
+    })
+  }, [catalogLoading, catalogProfessions, catalogSpecialties, open])
+
+  useEffect(() => {
     if (!open) {
       setEntered(false)
       return
@@ -154,6 +241,7 @@ export function PrefeituraNewUbtDrawer({
     setStep('unit')
     setStepError(null)
     setCepError(null)
+    setSlugManuallyEdited(false)
     setForm(createEmptyNewUbtForm(regions[0]?.id ?? '', user?.municipio ?? '', user?.uf ?? ''))
 
     const frame = requestAnimationFrame(() => {
@@ -209,6 +297,7 @@ export function PrefeituraNewUbtDrawer({
 
       if (
         user &&
+        isPrefeituraTipo &&
         !addressMatchesEntityTerritory(address.city, address.state, user.municipio, user.uf)
       ) {
         setCepError(
@@ -240,7 +329,7 @@ export function PrefeituraNewUbtDrawer({
     return () => {
       cancelled = true
     }
-  }, [cepDigits, form.cep, step, user])
+  }, [cepDigits, form.cep, isPrefeituraTipo, step, user])
 
   function patchForm(patch: Partial<NewUbtFormState>) {
     setForm((prev) => ({ ...prev, ...patch }))
@@ -251,12 +340,14 @@ export function PrefeituraNewUbtDrawer({
       case 'unit':
         if (!form.name.trim()) return 'Informe o nome da UBT.'
         if (form.cnes.replace(/\D/g, '').length !== 7) return 'CNES deve ter 7 dígitos.'
-        return null
+        return validateNewUbtSlugStep(form, entitySlug)
       case 'location':
         if (form.cep.replace(/\D/g, '').length !== 8) return 'Informe um CEP válido.'
         if (!user) return 'Sessão expirada. Faça login novamente.'
         if (cepError) return cepError
         if (
+          isPrefeituraTipo &&
+          user &&
           !addressMatchesEntityTerritory(form.city, form.state, user.municipio, user.uf)
         ) {
           return buildTerritoryMismatchMessage(
@@ -269,7 +360,9 @@ export function PrefeituraNewUbtDrawer({
         if (!form.street.trim()) return 'Informe o logradouro.'
         if (!form.neighborhood.trim()) return 'Informe o bairro.'
         if (!form.city.trim() || !form.state.trim()) return 'Cidade e UF são obrigatórios.'
-        if (!form.regionId) return 'Selecione a região administrativa (RA).'
+        if (isPrefeituraTipo && !form.regionId) {
+          return 'Selecione a região administrativa (RA).'
+        }
         if (!form.responsibleName.trim()) return 'Informe o nome do responsável.'
         if (!isValidEmail(form.responsibleEmail)) return 'Informe um e-mail válido.'
         if (!isValidCpf(form.responsibleCpf)) return 'Informe um CPF válido.'
@@ -279,8 +372,11 @@ export function PrefeituraNewUbtDrawer({
         return null
       case 'operation':
         if ((parseInt(form.stationsTotal, 10) || 0) < 1) return 'Informe ao menos 1 terminal.'
-        if (catalogLoading) return 'Aguarde o carregamento do catálogo clínico.'
+        if (catalogLoading) return 'Aguarde o carregamento das profissões e especialidades contratadas.'
         if (catalogError) return catalogError
+        if (catalogProfessions.length === 0) {
+          return 'Não há profissões contratadas disponíveis para habilitar nesta UBT.'
+        }
         {
           const catalogValidation = validateUbtProfessionsAndSpecialties(
             form,
@@ -329,8 +425,8 @@ export function PrefeituraNewUbtDrawer({
   }
 
   async function handleSubmit() {
-    const region = findPrefeituraAdministrativeRegion(form.regionId)
-    if (!region) {
+    const region = form.regionId ? findPrefeituraAdministrativeRegion(form.regionId) : null
+    if (isPrefeituraTipo && !region) {
       setStepError('Selecione uma região administrativa válida.')
       setStep('location')
       return
@@ -351,11 +447,12 @@ export function PrefeituraNewUbtDrawer({
     try {
       const detail = await createPrefeituraRedeUnit(token, {
         name: form.name.trim(),
+        slug: form.slug.trim().toLowerCase(),
         cnes: form.cnes.replace(/\D/g, ''),
         unitType: form.unitType,
         status: form.status,
-        regionKey: region.key,
-        regionLabel: region.label,
+        regionKey: region?.key ?? '',
+        regionLabel: region?.label ?? '',
         phone: form.unitLandlinePhone.trim() || form.responsiblePhone.trim(),
         dailyCapacity: form.enableDailyCapacityLimit
           ? Number.parseInt(form.dailyCapacityPerUnit, 10) || 0
@@ -425,7 +522,7 @@ export function PrefeituraNewUbtDrawer({
                   Nova UBT
                 </h2>
                 <p className="text-xs text-gray-500 sm:text-sm">
-                  Cadastre uma unidade básica de teleatendimento na rede municipal.
+                  Cadastre uma unidade básica de teleatendimento {copy.naRede}.
                 </p>
               </div>
             </div>
@@ -458,11 +555,33 @@ export function PrefeituraNewUbtDrawer({
                     <input
                       type="text"
                       value={form.name}
-                      onChange={(e) => patchForm({ name: e.target.value })}
+                      onChange={(e) => {
+                        const name = e.target.value
+                        patchForm({
+                          name,
+                          slug: slugManuallyEdited
+                            ? form.slug
+                            : suggestCompositeUbtSlugFromUnitName(entitySlug, name),
+                        })
+                      }}
                       placeholder="Ex.: UBT Centro Administrativo"
                       className={inputClass}
                     />
                   </label>
+                  <div className="block sm:col-span-2 lg:col-span-3 xl:col-span-6">
+                    <TenantSlugField
+                      value={extractUbtSlugUnitSuffix(entitySlug, form.slug)}
+                      onChange={(unitSuffix) => {
+                        setSlugManuallyEdited(true)
+                        patchForm({ slug: buildCompositeUbtSlug(entitySlug, unitSuffix) })
+                      }}
+                      compositeEntitySlug={entitySlug || undefined}
+                      urlKind="ubt"
+                      availabilityMode="format-only"
+                      label="Identificador da unidade"
+                      hint="O endereço público usa o slug da entidade + identificador curto da UBT (ex.: fernandopolis-centro)."
+                    />
+                  </div>
                   <label className="block">
                     <span className={labelClass}>CNES</span>
                     <input
@@ -525,7 +644,11 @@ export function PrefeituraNewUbtDrawer({
                   </p>
                   {user ? (
                     <p className="text-xs text-gray-500">
-                      O CEP deve pertencer a {user.municipio}/{user.uf}, área do município contratante.
+                      {buildUbtUnitCepGuidance({
+                        municipio: user.municipio,
+                        uf: user.uf,
+                        tipoEntidade: entidadeTipo,
+                      })}
                     </p>
                   ) : null}
                   <label className="relative block max-w-xs sm:max-w-sm">
@@ -629,12 +752,19 @@ export function PrefeituraNewUbtDrawer({
                       />
                     </label>
                     <label className="block">
-                      <span className={labelClass}>Região administrativa (RA) da unidade</span>
+                      <span className={labelClass}>
+                        Região administrativa (RA){isPrefeituraTipo ? '' : ' (opcional)'}
+                      </span>
                       <CustomSelect
                         size="compact"
                         value={form.regionId}
                         onChange={(value) => patchForm({ regionId: value })}
-                        options={regionOptions}
+                        options={[
+                          ...(isPrefeituraTipo
+                            ? []
+                            : [{ value: '', label: 'Não informar RA' }]),
+                          ...regionOptions,
+                        ]}
                       />
                     </label>
                   </div>
@@ -692,11 +822,13 @@ export function PrefeituraNewUbtDrawer({
                   </div>
                 </section>
 
-                <PrefeituraAdministrativeRegionManager
-                  selectedRegionId={form.regionId}
-                  onSelectRegion={(regionId) => patchForm({ regionId })}
-                  onRegionsChange={() => setRegionsVersion((v) => v + 1)}
-                />
+                {isPrefeituraTipo ? (
+                  <PrefeituraAdministrativeRegionManager
+                    selectedRegionId={form.regionId}
+                    onSelectRegion={(regionId) => patchForm({ regionId })}
+                    onRegionsChange={() => setRegionsVersion((v) => v + 1)}
+                  />
+                ) : null}
               </div>
             ) : null}
 
@@ -785,10 +917,19 @@ export function PrefeituraNewUbtDrawer({
               <section className={`${drawerPanelShell} min-h-0 flex-1 overflow-hidden p-4 sm:p-5`}>
                 <PrefeituraNewUbtReviewStep
                   form={form}
-                  regionLabel={selectedRegion?.label ?? '—'}
+                  regionLabel={
+                    isPrefeituraTipo
+                      ? (selectedRegion?.label ?? '—')
+                      : (selectedRegion?.label ?? 'Não informada')
+                  }
                   professionNames={selectedProfessionNames}
                   specialtyGroups={reviewSpecialtyGroups}
                   operationNames={operationNames}
+                  naRedeLabel={copy.naRede}
+                  isPrefeituraTipo={isPrefeituraTipo}
+                  entidadeDisplayName={branding?.displayName}
+                  entidadeLogoUrl={branding?.logoUrl}
+                  entidadeCorPrimaria={branding?.corPrimaria}
                 />
               </section>
             ) : null}

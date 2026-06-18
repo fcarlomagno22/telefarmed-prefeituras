@@ -1,4 +1,11 @@
 import { brand } from '../../config/brand'
+import {applyEntidadeCopyToExportText,
+  buildEntidadeExportBaseStyles,
+  resolveEntidadeExportBranding,
+  type EntidadeExportBranding,
+  resolveExportAssetUrl,
+  escapeExportHtml
+} from '../entidadeExportHtml'
 import { prefeituraRedeStatusBadgeConfig } from '../../components/prefeitura/rede/prefeituraRedeStatusBadge'
 import {
   prefeituraRedeRegionFilterOptions,
@@ -109,7 +116,7 @@ function unitToRow(unit: PrefeituraRedeUnit): (string | number)[] {
   ]
 }
 
-function buildReportStyles() {
+function buildReportStyles(branding: EntidadeExportBranding = resolveEntidadeExportBranding()) {
   return `
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -119,7 +126,7 @@ function buildReportStyles() {
       line-height: 1.4;
     }
     main { max-width: 1100px; margin: 0 auto; padding: 28px 32px 36px; }
-    .brand-bar { height: 5px; background: #ff6b00; border-radius: 999px; margin-bottom: 20px; }
+    .brand-bar { height: 5px; background: ${branding.corPrimaria}; border-radius: 999px; margin-bottom: 20px; }
     .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
     .header img { height: 36px; width: auto; }
     h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
@@ -129,7 +136,7 @@ function buildReportStyles() {
     .filters { margin-top: 10px; padding: 10px 12px; background: #f9fafb; border-radius: 8px; font-size: 12px; color: #374151; }
     .filters li { margin-top: 2px; }
     section { margin-top: 20px; }
-    h2 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #111827; border-bottom: 2px solid #ff6b00; padding-bottom: 6px; }
+    h2 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #111827; border-bottom: 2px solid ${branding.corPrimaria}; padding-bottom: 6px; }
     table { width: 100%; border-collapse: collapse; font-size: 11px; }
     th, td { border: 1px solid #e5e7eb; padding: 7px 8px; text-align: left; vertical-align: top; }
     th { background: #f9fafb; font-weight: 600; color: #374151; white-space: nowrap; }
@@ -227,7 +234,7 @@ function buildRedeUnitsReportHtml(context: PrefeituraRedeUnitsExportContext) {
   const filterLines = buildFilterSummaryLines(context)
   const operatorName = getLoggedOperatorName()
   const generatedAt = formatGeneratedAt(new Date())
-  const logoUrl = resolveAssetUrl(brand.logoUrl)
+  const logoUrl = resolveExportAssetUrl(branding.logoUrl)
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -235,7 +242,7 @@ function buildRedeUnitsReportHtml(context: PrefeituraRedeUnitsExportContext) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Rede de UBTs — exportação</title>
-  <style>${buildReportStyles()}</style>
+  <style>${buildReportStyles(branding)}</style>
 </head>
 <body>
   <main>
@@ -245,12 +252,12 @@ function buildRedeUnitsReportHtml(context: PrefeituraRedeUnitsExportContext) {
         <h1>Rede de unidades</h1>
         <p class="subtitle">Unidades Básicas de Teleatendimento</p>
         <div class="meta">
-          <p><strong>${escapeHtml(brand.appName)}</strong> · Painel municipal</p>
+          <p><strong>${escapeExportHtml(branding.brandName)}</strong> · Painel municipal</p>
           <p>Operador: ${escapeHtml(operatorName)} · Gerado em ${escapeHtml(generatedAt)}</p>
         </div>
         ${buildFilterBlock(filterLines)}
       </div>
-      <img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brand.appName)}" />
+      <img src="${escapeHtml(logoUrl)}" alt="${escapeExportHtml(branding.brandName)}" />
     </div>
 
     ${buildListTableHtml(context.units)}

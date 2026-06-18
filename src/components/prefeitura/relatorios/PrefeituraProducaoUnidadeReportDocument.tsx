@@ -1,4 +1,5 @@
 import type { PrefeituraSlaStatus } from '../../../types/prefeituraDashboard'
+import { EntidadeReportChartCaption } from './EntidadeReportChartCaption'
 import type { ProducaoUnidadeReportApi } from '../../../types/prefeituraRelatorios'
 import type { SituationStatusBadgeStyle } from '../../ui/SituationStatusBadge'
 import { prefeituraSlaBadgeConfig } from '../prefeituraDashboardUi'
@@ -68,7 +69,7 @@ function EvolutionChart({
         })}
       </div>
       <p className="mt-3 text-xs text-gray-500">
-        Evolução {mode === 'monthly' ? 'mensal' : 'diária'} do volume de consultas na rede municipal.
+        Evolução {mode === 'monthly' ? 'mensal' : 'diária'} do volume de consultas naRedePlaceholder.
       </p>
     </div>
   )

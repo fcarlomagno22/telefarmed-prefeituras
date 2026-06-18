@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { appEnv } from '../config/env'
 import { colors } from '../theme/colors'
 import { resolveBrandImage } from '../utils/resolveBrandImage'
+import { keyboardAvoidingBehavior } from '../utils/keyboardLayout'
 
 const backgroundSource = resolveBrandImage(
   appEnv.backgroundImageUrl,
@@ -37,11 +38,13 @@ export function AppShell({ children, footer, contentStyle }: AppShellProps) {
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
           style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={keyboardAvoidingBehavior}
         >
           <ScrollView
             contentContainerStyle={[styles.scrollContent, contentStyle]}
             keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+            keyboardDismissMode="interactive"
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.card}>{children}</View>
@@ -202,6 +205,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
     paddingVertical: 28,
+    paddingBottom: 40,
   },
   card: {
     borderRadius: 32,

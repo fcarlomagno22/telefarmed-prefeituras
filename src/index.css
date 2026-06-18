@@ -8,6 +8,21 @@
   --brand-primary: #ff6b00;
   --brand-primary-hover: #e55f00;
   --brand-primary-light: #fff4eb;
+  --brand-primary-muted: #fff4eb;
+  --brand-primary-muted-strong: #ffe8d6;
+  --brand-primary-border: #ffd9bf;
+  --brand-primary-gradient-start: #ff6b00;
+  --brand-primary-gradient-mid: #ff8533;
+  --brand-primary-gradient-end: #ffa347;
+  --brand-primary-gradient-hover-start: #e55f00;
+  --brand-primary-gradient-hover-mid: #ff7520;
+  --brand-primary-gradient-hover-end: #ff9638;
+  --brand-primary-gradient: linear-gradient(135deg, #ff6b00 0%, #ff8533 50%, #ffa347 100%);
+  --brand-primary-gradient-hover: linear-gradient(135deg, #e55f00 0%, #ff7520 50%, #ff9638 100%);
+  --brand-primary-shadow-sm: 0 4px 14px rgba(255, 107, 0, 0.35);
+  --brand-primary-shadow-md: 0 8px 24px rgba(255, 107, 0, 0.35);
+  --brand-primary-shadow-lg: 0 12px 32px rgba(255, 107, 0, 0.38);
+  --brand-primary-focus-ring: 0 0 0 3px rgba(255, 107, 0, 0.12);
   /* Painéis brancos: use border-gray-200 (ver src/config/surfaces.ts) — gray-100 some em TVs. */
   --app-panel-border: #e5e7eb;
 }
@@ -68,10 +83,9 @@ body {
   background-image: linear-gradient(
     90deg,
     var(--brand-primary) 0%,
-    #ff7f26 25%,
-    #ff9333 50%,
-    #ffa64d 75%,
-    #ffba66 100%
+    var(--brand-primary-gradient-mid) 35%,
+    var(--brand-primary-gradient-end) 65%,
+    var(--brand-primary-gradient-end) 100%
   );
   background-size: 500% 100%;
   transition: transform 0.12s linear;
@@ -84,9 +98,9 @@ body {
 }
 
 .btn-brand-gradient {
-  background: linear-gradient(135deg, #ff6b00 0%, #ff8533 50%, #ffa347 100%);
+  background: var(--brand-primary-gradient);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(255, 107, 0, 0.35);
+  box-shadow: var(--brand-primary-shadow-sm);
   transition:
     background 0.2s ease,
     box-shadow 0.2s ease,
@@ -94,8 +108,8 @@ body {
 }
 
 .btn-brand-gradient:hover:not(:disabled) {
-  background: linear-gradient(135deg, #e55f00 0%, #ff7520 50%, #ff9638 100%);
-  box-shadow: 0 6px 18px rgba(255, 107, 0, 0.4);
+  background: var(--brand-primary-gradient-hover);
+  box-shadow: var(--brand-primary-shadow-md);
 }
 
 .btn-brand-gradient:active:not(:disabled) {
@@ -106,6 +120,14 @@ body {
   cursor: not-allowed;
   opacity: 0.55;
   box-shadow: none;
+}
+
+.bg-brand-gradient {
+  background: var(--brand-primary-gradient);
+}
+
+.shadow-brand-sm {
+  box-shadow: var(--brand-primary-shadow-sm);
 }
 
 .btn-danger-gradient {
@@ -573,9 +595,9 @@ body {
     linear-gradient(
         90deg,
         var(--brand-primary) 0%,
-        #ff7f26 35%,
-        #ff9333 65%,
-        #ffba66 100%
+        var(--brand-primary-gradient-mid) 35%,
+        var(--brand-primary-gradient-end) 65%,
+        var(--brand-primary-gradient-end) 100%
       )
       0 / var(--range-progress, 0%) 100% no-repeat,
     #e5e7eb;
@@ -588,7 +610,11 @@ body {
   height: 20px;
   margin-top: -6px;
   border-radius: 9999px;
-  background: linear-gradient(135deg, var(--brand-primary) 0%, #ff9333 100%);
+  background: linear-gradient(
+    135deg,
+    var(--brand-primary) 0%,
+    var(--brand-primary-gradient-end) 100%
+  );
   border: 2px solid #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
@@ -605,9 +631,9 @@ body {
   background: linear-gradient(
     90deg,
     var(--brand-primary) 0%,
-    #ff7f26 35%,
-    #ff9333 65%,
-    #ffba66 100%
+    var(--brand-primary-gradient-mid) 35%,
+    var(--brand-primary-gradient-end) 65%,
+    var(--brand-primary-gradient-end) 100%
   );
 }
 
@@ -616,7 +642,11 @@ body {
   height: 20px;
   border: 2px solid #ffffff;
   border-radius: 9999px;
-  background: linear-gradient(135deg, var(--brand-primary) 0%, #ff9333 100%);
+  background: linear-gradient(
+    135deg,
+    var(--brand-primary) 0%,
+    var(--brand-primary-gradient-end) 100%
+  );
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 

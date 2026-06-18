@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useEntidadeCopy } from '../hooks/useEntidadeCopy'
 import { usePrefeituraAuth } from '../contexts/PrefeituraAuthContext'
 import { usePrefeituraContratoMonthDrawer } from '../hooks/usePrefeituraContratoMonthDrawer'
 import { usePrefeituraContratoPage } from '../hooks/usePrefeituraContratoPage'
@@ -31,6 +32,7 @@ const contratoColumnScrollClass = [
 ].join(' ')
 
 export function PrefeituraContratoPage() {
+  const copy = useEntidadeCopy()
   const { getAccessToken } = usePrefeituraAuth()
   const {
     contractOptions,
@@ -87,8 +89,7 @@ export function PrefeituraContratoPage() {
                   Contrato
                 </h1>
                 <p className="mt-1 text-sm text-gray-500">
-                  Acompanhe o pacote mensal de consultas, consumo histórico e vigência do contrato
-                  municipal.
+                  Acompanhe o pacote mensal de consultas, consumo histórico e vigência do {copy.contrato}.
                 </p>
               </div>
             </div>

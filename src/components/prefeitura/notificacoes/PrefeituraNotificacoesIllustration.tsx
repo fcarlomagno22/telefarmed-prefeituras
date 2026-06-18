@@ -15,7 +15,7 @@ export function PrefeituraNotificacoesIllustration({
         .join(' ')}
     >
       <div
-        className="absolute inset-0 bg-gradient-to-br from-[var(--brand-primary-light)]/50 via-white to-orange-50/60"
+        className="absolute inset-0 bg-gradient-to-br from-[var(--brand-primary-light)]/50 via-white to-[var(--brand-primary-muted)]/60"
         aria-hidden
       />
       <div className="relative flex h-full w-full items-center justify-center p-5">

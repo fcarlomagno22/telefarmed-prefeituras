@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, ClipboardCheck, FileText, Stethoscope, Users
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { AdminClienteRow, AdminClienteContratoTipo } from '../../../types/adminClientes'
+import { isPrefeituraEntidadeTipo } from '../../../config/adminEntidadeTipo'
 import type { ClienteSpecialtyOption } from '../../../hooks/useAdminClientesClinicoCatalog'
 import {
   getClienteContratoTipoOption,
@@ -615,6 +616,7 @@ export function AdminClienteAddContratoDrawer({
                   onChange={(checked) =>
                     updateForm({ aceitaPacientesOutrosMunicipios: checked })
                   }
+                  entidadeTipo={cliente.tipoEntidade}
                 />
 
                 <section className="rounded-xl border border-gray-200 bg-slate-50/60 p-3">
@@ -971,10 +973,16 @@ export function AdminClienteAddContratoDrawer({
                     <ContactCard label="Inicio" value={form.vigenciaInicio} />
                     <ContactCard label="Fim" value={form.vigenciaFim} />
                     {pacoteOuMensal ? <ContactCard label="Consultas contratadas" value={form.consultasContratadas} /> : null}
-                    <ContactCard
-                      label="Pacientes de outros municípios"
-                      value={form.aceitaPacientesOutrosMunicipios ? 'Aceitos' : 'Apenas do município contratante'}
-                    />
+                    {isPrefeituraEntidadeTipo(cliente.tipoEntidade) ? (
+                      <ContactCard
+                        label="Pacientes de outros municípios"
+                        value={
+                          form.aceitaPacientesOutrosMunicipios
+                            ? 'Aceitos'
+                            : 'Apenas do município contratante'
+                        }
+                      />
+                    ) : null}
                   </div>
                 </section>
                 <section>

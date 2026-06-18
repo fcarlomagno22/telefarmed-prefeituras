@@ -1,0 +1,4399 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "categories": [
+    {
+      "id": "core_symptoms",
+      "label_internal": "Sintomas nucleares",
+      "description_internal": "Sinais centrais de apresentação clínica e comportamental."
+    },
+    {
+      "id": "functional_impairment",
+      "label_internal": "Prejuízo funcional",
+      "description_internal": "Impactos em tarefas, relações, autocuidado e participação cotidiana."
+    },
+    {
+      "id": "temporal_attributes",
+      "label_internal": "Atributos temporais",
+      "description_internal": "Duração, frequência, intensidade, curso e mudança em relação ao padrão habitual."
+    },
+    {
+      "id": "contextual_factors",
+      "label_internal": "Fatores contextuais",
+      "description_internal": "Eventos e circunstâncias que podem influenciar o estado atual."
+    },
+    {
+      "id": "medical_physical",
+      "label_internal": "Aspectos médicos e físicos",
+      "description_internal": "Condições físicas, sintomas corporais e relações temporais com o estado emocional."
+    },
+    {
+      "id": "substance_medication",
+      "label_internal": "Substâncias e medicamentos",
+      "description_internal": "Uso de substâncias, medicamentos, possíveis efeitos e perda de controle."
+    },
+    {
+      "id": "psychosocial_history",
+      "label_internal": "Histórico psicossocial",
+      "description_internal": "Histórico familiar, experiências prévias de cuidado e fatores sociais relevantes."
+    },
+    {
+      "id": "protective_factors",
+      "label_internal": "Fatores de proteção",
+      "description_internal": "Recursos pessoais, relacionais e profissionais que podem reduzir vulnerabilidade."
+    },
+    {
+      "id": "red_flags",
+      "label_internal": "Sinais de alerta",
+      "description_internal": "Sinais que exigem avaliação prioritária ou ativação de protocolo de segurança."
+    },
+    {
+      "id": "check_in_signals",
+      "label_internal": "Sinais do check-in",
+      "description_internal": "Indicadores extraídos dos registros emocionais diários."
+    }
+  ],
+  "symptoms": [
+    {
+      "id": "anhedonia",
+      "category": "core_symptoms",
+      "label_internal": "Redução de interesse ou prazer",
+      "description_internal": "Indicador interno relacionado a redução de interesse ou prazer.",
+      "aliases_from_anamnesis": [
+        "q_core_10"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "obsessive_compulsive_disorder",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "appetite_change",
+      "category": "core_symptoms",
+      "label_internal": "Alteração de apetite",
+      "description_internal": "Indicador interno relacionado a alteração de apetite.",
+      "aliases_from_anamnesis": [
+        "q_sleep_08"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "obsessive_compulsive_disorder",
+        "somatic_symptom_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "attention_difficulty",
+      "category": "core_symptoms",
+      "label_internal": "Dificuldade de atenção",
+      "description_internal": "Indicador interno relacionado a dificuldade de atenção.",
+      "aliases_from_anamnesis": [
+        "q_func_05",
+        "q_sleep_10"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "sleep_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "avoidance_behavior",
+      "category": "core_symptoms",
+      "label_internal": "Comportamento de evitação",
+      "description_internal": "Indicador interno relacionado a comportamento de evitação.",
+      "aliases_from_anamnesis": [
+        "q_core_13",
+        "q_trauma_05"
+      ],
+      "aliases_from_check_in": [
+        "reaction:Evitei algo importante"
+      ],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "binge_eating",
+      "category": "core_symptoms",
+      "label_internal": "Episódios de comer em excesso",
+      "description_internal": "Indicador interno relacionado a episódios de comer em excesso.",
+      "aliases_from_anamnesis": [
+        "q_sleep_09"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "obsessive_compulsive_disorder"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "body_image_disturbance",
+      "category": "core_symptoms",
+      "label_internal": "Alteração da percepção corporal",
+      "description_internal": "Indicador interno relacionado a alteração da percepção corporal.",
+      "aliases_from_anamnesis": [
+        "q_sleep_09"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "obsessive_compulsive_disorder"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      },
+      "aliases_internal": [
+        "body_image_distortion"
+      ]
+    },
+    {
+      "id": "caffeine_excess",
+      "category": "substance_medication",
+      "label_internal": "Consumo excessivo de cafeína",
+      "description_internal": "Indicador relacionado a substâncias ou medicamentos: consumo excessivo de cafeína.",
+      "aliases_from_anamnesis": [],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "check_in_avoidance_reaction",
+      "category": "check_in_signals",
+      "label_internal": "Evitação registrada no check-in",
+      "description_internal": "Sinal calculado a partir do check-in diário: evitação registrada no check-in.",
+      "aliases_from_anamnesis": [],
+      "aliases_from_check_in": [
+        "reaction:Evitei algo importante",
+        "reaction:Isolei-me"
+      ],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "obsessive_compulsive_disorder",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "check_in"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "check_in_emotional_overload",
+      "category": "check_in_signals",
+      "label_internal": "Sobrecarga emocional no check-in",
+      "description_internal": "Sinal calculado a partir do check-in diário: sobrecarga emocional no check-in.",
+      "aliases_from_anamnesis": [],
+      "aliases_from_check_in": [
+        "emotion:Sobrecarregado",
+        "intensity_gte:4"
+      ],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "personality_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "check_in"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "check_in_high_anxiety_today",
+      "category": "check_in_signals",
+      "label_internal": "Ansiedade elevada no dia",
+      "description_internal": "Sinal calculado a partir do check-in diário: ansiedade elevada no dia.",
+      "aliases_from_anamnesis": [],
+      "aliases_from_check_in": [
+        "emotion:Ansioso",
+        "emotion:Preocupado",
+        "intensity_gte:4"
+      ],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "check_in"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "check_in_low_energy_today",
+      "category": "check_in_signals",
+      "label_internal": "Baixa energia no check-in",
+      "description_internal": "Sinal calculado a partir do check-in diário: baixa energia no check-in.",
+      "aliases_from_anamnesis": [],
+      "aliases_from_check_in": [
+        "emotion:Cansado",
+        "emotion:Sem energia"
+      ],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "depressive_disorders",
+        "sleep_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "check_in"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "check_in_low_mood_today",
+      "category": "check_in_signals",
+      "label_internal": "Humor baixo no dia",
+      "description_internal": "Sinal calculado a partir do check-in diário: humor baixo no dia.",
+      "aliases_from_anamnesis": [],
+      "aliases_from_check_in": [
+        "mood:mal",
+        "mood:muito_mal"
+      ],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "bipolar_disorders",
+        "depressive_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "check_in"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "check_in_negative_influence_day",
+      "category": "check_in_signals",
+      "label_internal": "Influência negativa no dia",
+      "description_internal": "Sinal calculado a partir do check-in diário: influência negativa no dia.",
+      "aliases_from_anamnesis": [],
+      "aliases_from_check_in": [
+        "influence:Trabalho ou estudos",
+        "influence:Conflitos",
+        "influence:Dinheiro",
+        "influence:Perda ou saudade"
+      ],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "check_in"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "check_in_sleep_related_stress",
+      "category": "check_in_signals",
+      "label_internal": "Estresse relacionado ao sono",
+      "description_internal": "Sinal calculado a partir do check-in diário: estresse relacionado ao sono.",
+      "aliases_from_anamnesis": [],
+      "aliases_from_check_in": [
+        "influence:Sono ruim",
+        "emotion:Cansado"
+      ],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "check_in"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "check_in_social_withdrawal_today",
+      "category": "check_in_signals",
+      "label_internal": "Retraimento social no check-in",
+      "description_internal": "Sinal calculado a partir do check-in diário: retraimento social no check-in.",
+      "aliases_from_anamnesis": [],
+      "aliases_from_check_in": [
+        "reaction:Isolei-me",
+        "reaction:Evitei contato"
+      ],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "psychotic_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "check_in"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "circadian_misalignment",
+      "category": "core_symptoms",
+      "label_internal": "Desalinhamento do ritmo de sono",
+      "description_internal": "Indicador interno relacionado a desalinhamento do ritmo de sono.",
+      "aliases_from_anamnesis": [
+        "q_sleep_06"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "sleep_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "compensatory_behaviors",
+      "category": "core_symptoms",
+      "label_internal": "Comportamentos compensatórios",
+      "description_internal": "Indicador interno relacionado a comportamentos compensatórios.",
+      "aliases_from_anamnesis": [
+        "q_sleep_09"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "obsessive_compulsive_disorder"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "compulsive_rituals",
+      "category": "core_symptoms",
+      "label_internal": "Rituais repetitivos ou mentais",
+      "description_internal": "Indicador interno relacionado a rituais repetitivos ou mentais.",
+      "aliases_from_anamnesis": [],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "obsessive_compulsive_disorder"
+      ],
+      "aggregation": "max",
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "continued_use_despite_harm",
+      "category": "substance_medication",
+      "label_internal": "Uso mantido apesar de prejuízos",
+      "description_internal": "Indicador relacionado a substâncias ou medicamentos: uso mantido apesar de prejuízos.",
+      "aliases_from_anamnesis": [
+        "q_substance_05"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "coping_meaning",
+      "category": "protective_factors",
+      "label_internal": "Recurso de sentido ou espiritualidade",
+      "description_internal": "Recurso ou fator protetivo relacionado a recurso de sentido ou espiritualidade.",
+      "aliases_from_anamnesis": [
+        "q_protect_03"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "coping_movement",
+      "category": "protective_factors",
+      "label_internal": "Movimento como estratégia de enfrentamento",
+      "description_internal": "Recurso ou fator protetivo relacionado a movimento como estratégia de enfrentamento.",
+      "aliases_from_anamnesis": [
+        "q_protect_03"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "coping_relaxation",
+      "category": "protective_factors",
+      "label_internal": "Relaxamento como estratégia de enfrentamento",
+      "description_internal": "Recurso ou fator protetivo relacionado a relaxamento como estratégia de enfrentamento.",
+      "aliases_from_anamnesis": [
+        "q_protect_03"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "coping_routine",
+      "category": "protective_factors",
+      "label_internal": "Rotina como estratégia de enfrentamento",
+      "description_internal": "Recurso ou fator protetivo relacionado a rotina como estratégia de enfrentamento.",
+      "aliases_from_anamnesis": [
+        "q_protect_03"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "coping_support",
+      "category": "protective_factors",
+      "label_internal": "Apoio como estratégia de enfrentamento",
+      "description_internal": "Recurso ou fator protetivo relacionado a apoio como estratégia de enfrentamento.",
+      "aliases_from_anamnesis": [
+        "q_protect_03"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "craving",
+      "category": "substance_medication",
+      "label_internal": "Desejo intenso de consumir",
+      "description_internal": "Indicador relacionado a substâncias ou medicamentos: desejo intenso de consumir.",
+      "aliases_from_anamnesis": [
+        "q_substance_06"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      },
+      "aliases_internal": [
+        "craving_substance"
+      ]
+    },
+    {
+      "id": "current_medication_use",
+      "category": "substance_medication",
+      "label_internal": "Uso atual de medicamentos",
+      "description_internal": "Indicador relacionado a substâncias ou medicamentos: uso atual de medicamentos.",
+      "aliases_from_anamnesis": [
+        "q_medical_03"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "enum",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "aggregation": "latest",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "daytime_sleepiness",
+      "category": "core_symptoms",
+      "label_internal": "Sonolência durante o dia",
+      "description_internal": "Indicador interno relacionado a sonolência durante o dia.",
+      "aliases_from_anamnesis": [
+        "q_sleep_04"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "decreased_need_for_sleep",
+      "category": "core_symptoms",
+      "label_internal": "Menor necessidade de sono",
+      "description_internal": "Indicador interno relacionado a menor necessidade de sono.",
+      "aliases_from_anamnesis": [
+        "q_core_07",
+        "q_sleep_05"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "sleep_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      },
+      "aliases_internal": [
+        "decreased_sleep_need"
+      ]
+    },
+    {
+      "id": "delusional_beliefs",
+      "category": "red_flags",
+      "label_internal": "Crenças rígidas desconectadas de evidências",
+      "description_internal": "Sinal de alerta que exige avaliação prioritária: crenças rígidas desconectadas de evidências.",
+      "aliases_from_anamnesis": [
+        "q_core_06"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "risk",
+      "related_tracks": [
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "depersonalization",
+      "category": "core_symptoms",
+      "label_internal": "Sensação de distanciamento de si",
+      "description_internal": "Indicador interno relacionado a sensação de distanciamento de si.",
+      "aliases_from_anamnesis": [
+        "q_trauma_07"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "dissociative_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "derealization",
+      "category": "core_symptoms",
+      "label_internal": "Sensação de irrealidade do ambiente",
+      "description_internal": "Indicador interno relacionado a sensação de irrealidade do ambiente.",
+      "aliases_from_anamnesis": [
+        "q_trauma_07"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "dissociative_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "disorganized_thinking",
+      "category": "core_symptoms",
+      "label_internal": "Pensamento desorganizado",
+      "description_internal": "Indicador interno relacionado a pensamento desorganizado.",
+      "aliases_from_anamnesis": [
+        "q_core_06"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      },
+      "aliases_internal": [
+        "severe_disorganization"
+      ]
+    },
+    {
+      "id": "dissociation",
+      "category": "core_symptoms",
+      "label_internal": "Experiências de desconexão",
+      "description_internal": "Indicador interno relacionado a experiências de desconexão.",
+      "aliases_from_anamnesis": [
+        "q_trauma_07"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "dissociative_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "early_awakening",
+      "category": "core_symptoms",
+      "label_internal": "Despertar mais cedo que o desejado",
+      "description_internal": "Indicador interno relacionado a despertar mais cedo que o desejado.",
+      "aliases_from_anamnesis": [
+        "q_sleep_02"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "depressive_disorders",
+        "sleep_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "elevated_mood",
+      "category": "core_symptoms",
+      "label_internal": "Humor anormalmente elevado",
+      "description_internal": "Indicador interno relacionado a humor anormalmente elevado.",
+      "aliases_from_anamnesis": [
+        "q_core_07"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "bipolar_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "emotional_distress",
+      "category": "contextual_factors",
+      "label_internal": "Sofrimento emocional",
+      "description_internal": "Fator contextual relacionado a sofrimento emocional.",
+      "aliases_from_anamnesis": [
+        "q_core_01"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "personality_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "emotional_numbing",
+      "category": "core_symptoms",
+      "label_internal": "Entorpecimento emocional",
+      "description_internal": "Indicador interno relacionado a entorpecimento emocional.",
+      "aliases_from_anamnesis": [
+        "q_trauma_08"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "dissociative_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "exaggerated_startle",
+      "category": "core_symptoms",
+      "label_internal": "Resposta de susto aumentada",
+      "description_internal": "Indicador interno relacionado a resposta de susto aumentada.",
+      "aliases_from_anamnesis": [
+        "q_trauma_06"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "dissociative_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "excessive_worry",
+      "category": "core_symptoms",
+      "label_internal": "Preocupação excessiva",
+      "description_internal": "Indicador interno relacionado a preocupação excessiva.",
+      "aliases_from_anamnesis": [
+        "q_core_11"
+      ],
+      "aliases_from_check_in": [
+        "emotion:Ansioso",
+        "emotion:Preocupado"
+      ],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "obsessive_compulsive_disorder",
+        "sleep_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "executive_dysfunction",
+      "category": "functional_impairment",
+      "label_internal": "Dificuldade de organização e execução",
+      "description_internal": "Indicador de impacto funcional relacionado a dificuldade de organização e execução.",
+      "aliases_from_anamnesis": [
+        "q_func_05"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "family_history_anxiety",
+      "category": "psychosocial_history",
+      "label_internal": "Histórico familiar de ansiedade",
+      "description_internal": "Informação de histórico psicossocial relacionada a histórico familiar de ansiedade.",
+      "aliases_from_anamnesis": [
+        "q_family_02"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "family_history_bipolar_signals",
+      "category": "psychosocial_history",
+      "label_internal": "Histórico familiar de oscilações marcantes",
+      "description_internal": "Informação de histórico psicossocial relacionada a histórico familiar de oscilações marcantes.",
+      "aliases_from_anamnesis": [
+        "q_family_02"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "aliases_internal": [
+        "family_history_bipolar"
+      ]
+    },
+    {
+      "id": "family_history_depression",
+      "category": "psychosocial_history",
+      "label_internal": "Histórico familiar de humor deprimido",
+      "description_internal": "Informação de histórico psicossocial relacionada a histórico familiar de humor deprimido.",
+      "aliases_from_anamnesis": [
+        "q_family_02"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "family_history_eating_problems",
+      "category": "psychosocial_history",
+      "label_internal": "Histórico familiar de dificuldades alimentares",
+      "description_internal": "Informação de histórico psicossocial relacionada a histórico familiar de dificuldades alimentares.",
+      "aliases_from_anamnesis": [
+        "q_family_02"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "family_history_neurodevelopmental",
+      "category": "psychosocial_history",
+      "label_internal": "Histórico familiar de diferenças do desenvolvimento",
+      "description_internal": "Informação de histórico psicossocial relacionada a histórico familiar de diferenças do desenvolvimento.",
+      "aliases_from_anamnesis": [
+        "q_family_02"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "family_history_psychotic_signals",
+      "category": "psychosocial_history",
+      "label_internal": "Histórico familiar de alterações perceptivas importantes",
+      "description_internal": "Informação de histórico psicossocial relacionada a histórico familiar de alterações perceptivas importantes.",
+      "aliases_from_anamnesis": [
+        "q_family_02"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "aliases_internal": [
+        "family_history_psychosis"
+      ]
+    },
+    {
+      "id": "family_history_severe_impairment",
+      "category": "psychosocial_history",
+      "label_internal": "Histórico familiar de prejuízo mental grave",
+      "description_internal": "Informação de histórico psicossocial relacionada a histórico familiar de prejuízo mental grave.",
+      "aliases_from_anamnesis": [
+        "q_family_03"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "bipolar_disorders",
+        "depressive_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "family_history_substance_use",
+      "category": "psychosocial_history",
+      "label_internal": "Histórico familiar de uso problemático de substâncias",
+      "description_internal": "Informação de histórico psicossocial relacionada a histórico familiar de uso problemático de substâncias.",
+      "aliases_from_anamnesis": [
+        "q_family_02",
+        "q_family_04"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "fatigue",
+      "category": "core_symptoms",
+      "label_internal": "Fadiga ou baixa energia",
+      "description_internal": "Indicador interno relacionado a fadiga ou baixa energia.",
+      "aliases_from_anamnesis": [
+        "q_sleep_10"
+      ],
+      "aliases_from_check_in": [
+        "emotion:Cansado",
+        "emotion:Sem energia"
+      ],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "financial_stress",
+      "category": "contextual_factors",
+      "label_internal": "Estresse financeiro",
+      "description_internal": "Fator contextual relacionado a estresse financeiro.",
+      "aliases_from_anamnesis": [],
+      "aliases_from_check_in": [
+        "influence:Dinheiro"
+      ],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "grandiose_ideas",
+      "category": "core_symptoms",
+      "label_internal": "Ideias de capacidade ou importância excessiva",
+      "description_internal": "Indicador interno relacionado a ideias de capacidade ou importância excessiva.",
+      "aliases_from_anamnesis": [
+        "q_core_07"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "bipolar_disorders",
+        "psychotic_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "hallucinations",
+      "category": "red_flags",
+      "label_internal": "Percepções sem estímulo externo identificável",
+      "description_internal": "Sinal de alerta que exige avaliação prioritária: percepções sem estímulo externo identificável.",
+      "aliases_from_anamnesis": [
+        "q_core_06"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "risk",
+      "related_tracks": [
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "aliases_internal": [
+        "perceptual_abnormalities"
+      ]
+    },
+    {
+      "id": "hazardous_use",
+      "category": "substance_medication",
+      "label_internal": "Uso em situações de risco",
+      "description_internal": "Indicador relacionado a substâncias ou medicamentos: uso em situações de risco.",
+      "aliases_from_anamnesis": [
+        "q_substance_07"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "health_anxiety",
+      "category": "medical_physical",
+      "label_internal": "Preocupação intensa com a saúde",
+      "description_internal": "Indicador médico ou físico relacionado a preocupação intensa com a saúde.",
+      "aliases_from_anamnesis": [
+        "q_medical_01"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "help_seeking_barrier",
+      "category": "psychosocial_history",
+      "label_internal": "Barreira para buscar ajuda",
+      "description_internal": "Informação de histórico psicossocial relacionada a barreira para buscar ajuda.",
+      "aliases_from_anamnesis": [
+        "q_protect_05"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "help_seeking_readiness",
+      "category": "protective_factors",
+      "label_internal": "Disponibilidade para buscar ajuda",
+      "description_internal": "Recurso ou fator protetivo relacionado a disponibilidade para buscar ajuda.",
+      "aliases_from_anamnesis": [
+        "q_protect_05"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "hopelessness",
+      "category": "core_symptoms",
+      "label_internal": "Desesperança",
+      "description_internal": "Indicador interno relacionado a desesperança.",
+      "aliases_from_anamnesis": [
+        "q_core_09"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "bipolar_disorders",
+        "depressive_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "hyperactivity",
+      "category": "core_symptoms",
+      "label_internal": "Agitação ou atividade excessiva",
+      "description_internal": "Indicador interno relacionado a agitação ou atividade excessiva.",
+      "aliases_from_anamnesis": [
+        "q_core_07"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "bipolar_disorders",
+        "disruptive_impulse_control_disorders",
+        "neurodevelopmental_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "hypersomnia",
+      "category": "core_symptoms",
+      "label_internal": "Sono excessivo",
+      "description_internal": "Indicador interno relacionado a sono excessivo.",
+      "aliases_from_anamnesis": [
+        "q_sleep_05"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "sleep_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "hypervigilance",
+      "category": "core_symptoms",
+      "label_internal": "Estado persistente de alerta",
+      "description_internal": "Indicador interno relacionado a estado persistente de alerta.",
+      "aliases_from_anamnesis": [
+        "q_trauma_06"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "dissociative_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "impaired_reality_testing",
+      "category": "red_flags",
+      "label_internal": "Dificuldade de avaliar a realidade",
+      "description_internal": "Sinal de alerta que exige avaliação prioritária: dificuldade de avaliar a realidade.",
+      "aliases_from_anamnesis": [
+        "q_core_06"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "risk",
+      "related_tracks": [
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "impulse_control_difficulty",
+      "category": "core_symptoms",
+      "label_internal": "Dificuldade de controlar impulsos",
+      "description_internal": "Indicador interno relacionado a dificuldade de controlar impulsos.",
+      "aliases_from_anamnesis": [
+        "q_core_07",
+        "q_core_14",
+        "q_substance_04"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "bipolar_disorders",
+        "disruptive_impulse_control_disorders",
+        "personality_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "impulsivity",
+      "category": "core_symptoms",
+      "label_internal": "Impulsividade",
+      "description_internal": "Indicador interno relacionado a impulsividade.",
+      "aliases_from_anamnesis": [
+        "q_core_07"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "bipolar_disorders",
+        "disruptive_impulse_control_disorders",
+        "neurodevelopmental_disorders",
+        "personality_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "increased_energy",
+      "category": "core_symptoms",
+      "label_internal": "Aumento incomum de energia",
+      "description_internal": "Indicador interno relacionado a aumento incomum de energia.",
+      "aliases_from_anamnesis": [
+        "q_core_07"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "bipolar_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "insomnia",
+      "category": "core_symptoms",
+      "label_internal": "Dificuldade persistente com o sono",
+      "description_internal": "Indicador interno relacionado a dificuldade persistente com o sono.",
+      "aliases_from_anamnesis": [
+        "q_sleep_01"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "intrusive_thoughts",
+      "category": "core_symptoms",
+      "label_internal": "Pensamentos intrusivos",
+      "description_internal": "Indicador interno relacionado a pensamentos intrusivos.",
+      "aliases_from_anamnesis": [
+        "q_core_13"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "obsessive_compulsive_disorder",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "irritability",
+      "category": "core_symptoms",
+      "label_internal": "Irritabilidade",
+      "description_internal": "Indicador interno relacionado a irritabilidade.",
+      "aliases_from_anamnesis": [
+        "q_core_14"
+      ],
+      "aliases_from_check_in": [
+        "emotion:Irritado"
+      ],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "personality_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "loss_of_control_eating",
+      "category": "core_symptoms",
+      "label_internal": "Perda de controle ao comer",
+      "description_internal": "Indicador interno relacionado a perda de controle ao comer.",
+      "aliases_from_anamnesis": [
+        "q_sleep_09"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "obsessive_compulsive_disorder"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "loss_of_control_use",
+      "category": "substance_medication",
+      "label_internal": "Perda de controle sobre o uso",
+      "description_internal": "Indicador relacionado a substâncias ou medicamentos: perda de controle sobre o uso.",
+      "aliases_from_anamnesis": [
+        "q_substance_04"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "personality_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "low_mood",
+      "category": "core_symptoms",
+      "label_internal": "Humor baixo",
+      "description_internal": "Indicador interno relacionado a humor baixo.",
+      "aliases_from_anamnesis": [
+        "q_core_09"
+      ],
+      "aliases_from_check_in": [
+        "mood:mal",
+        "mood:muito_mal",
+        "emotion:Triste",
+        "emotion:Desanimado"
+      ],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "bipolar_disorders",
+        "depressive_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "medical_condition_present",
+      "category": "medical_physical",
+      "label_internal": "Condição física presente",
+      "description_internal": "Indicador médico ou físico relacionado a condição física presente.",
+      "aliases_from_anamnesis": [
+        "q_medical_01"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "aliases_internal": [
+        "chronic_medical_condition"
+      ]
+    },
+    {
+      "id": "medication_misuse",
+      "category": "substance_medication",
+      "label_internal": "Uso de medicamento diferente do orientado",
+      "description_internal": "Indicador relacionado a substâncias ou medicamentos: uso de medicamento diferente do orientado.",
+      "aliases_from_anamnesis": [
+        "q_substance_02"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "aliases_internal": [
+        "prescription_misuse"
+      ]
+    },
+    {
+      "id": "negative_beliefs",
+      "category": "core_symptoms",
+      "label_internal": "Crenças negativas persistentes",
+      "description_internal": "Indicador interno relacionado a crenças negativas persistentes.",
+      "aliases_from_anamnesis": [
+        "q_trauma_08"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "dissociative_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "neglect_self_care_severe",
+      "category": "red_flags",
+      "label_internal": "Comprometimento grave do autocuidado",
+      "description_internal": "Sinal de alerta que exige avaliação prioritária: comprometimento grave do autocuidado.",
+      "aliases_from_anamnesis": [
+        "q_func_03"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "risk",
+      "related_tracks": [
+        "bipolar_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "psychotic_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "nonrestorative_sleep",
+      "category": "core_symptoms",
+      "label_internal": "Sono não reparador",
+      "description_internal": "Indicador interno relacionado a sono não reparador.",
+      "aliases_from_anamnesis": [
+        "q_sleep_03"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "dissociative_disorders",
+        "neurodevelopmental_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "ongoing_abuse_or_violence",
+      "category": "red_flags",
+      "label_internal": "Abuso ou violência em curso",
+      "description_internal": "Sinal de alerta que exige avaliação prioritária: abuso ou violência em curso.",
+      "aliases_from_anamnesis": [
+        "q_trauma_02"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "risk",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "dissociative_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "aliases_internal": [
+        "abuse_current"
+      ]
+    },
+    {
+      "id": "other_substance_use",
+      "category": "substance_medication",
+      "label_internal": "Uso de outras substâncias",
+      "description_internal": "Indicador relacionado a substâncias ou medicamentos: uso de outras substâncias.",
+      "aliases_from_anamnesis": [
+        "q_substance_03"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "aliases_internal": [
+        "drug_use_risk"
+      ]
+    },
+    {
+      "id": "pain_preoccupation",
+      "category": "medical_physical",
+      "label_internal": "Preocupação persistente com dor",
+      "description_internal": "Indicador médico ou físico relacionado a preocupação persistente com dor.",
+      "aliases_from_anamnesis": [
+        "q_medical_01"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "panic_attacks",
+      "category": "core_symptoms",
+      "label_internal": "Episódios súbitos de medo intenso",
+      "description_internal": "Indicador interno relacionado a episódios súbitos de medo intenso.",
+      "aliases_from_anamnesis": [
+        "q_core_12"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "panic_sensations",
+      "category": "core_symptoms",
+      "label_internal": "Sensações físicas de pânico",
+      "description_internal": "Indicador interno relacionado a sensações físicas de pânico.",
+      "aliases_from_anamnesis": [
+        "q_core_12"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "somatic_symptom_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "parasomnias",
+      "category": "core_symptoms",
+      "label_internal": "Comportamentos incomuns durante o sono",
+      "description_internal": "Indicador interno relacionado a comportamentos incomuns durante o sono.",
+      "aliases_from_anamnesis": [
+        "q_sleep_07"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "sleep_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "persistent_physical_symptoms",
+      "category": "medical_physical",
+      "label_internal": "Sintomas físicos persistentes",
+      "description_internal": "Indicador médico ou físico relacionado a sintomas físicos persistentes.",
+      "aliases_from_anamnesis": [
+        "q_medical_01"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      },
+      "aliases_internal": [
+        "unexplained_somatic_pain",
+        "physical_pain_chronic"
+      ]
+    },
+    {
+      "id": "previous_meaning_helpful",
+      "category": "protective_factors",
+      "label_internal": "Sentido ou espiritualidade ajudou anteriormente",
+      "description_internal": "Recurso ou fator protetivo relacionado a sentido ou espiritualidade ajudou anteriormente.",
+      "aliases_from_anamnesis": [
+        "q_treatment_04"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "previous_medication_helpful",
+      "category": "protective_factors",
+      "label_internal": "Medicamento ajudou anteriormente",
+      "description_internal": "Recurso ou fator protetivo relacionado a medicamento ajudou anteriormente.",
+      "aliases_from_anamnesis": [
+        "q_treatment_04"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "previous_mental_health_medication",
+      "category": "psychosocial_history",
+      "label_internal": "Uso anterior de medicamento para saúde mental",
+      "description_internal": "Informação de histórico psicossocial relacionada a uso anterior de medicamento para saúde mental.",
+      "aliases_from_anamnesis": [
+        "q_treatment_03"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "psychotic_disorders",
+        "sleep_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "previous_movement_helpful",
+      "category": "protective_factors",
+      "label_internal": "Movimento ajudou anteriormente",
+      "description_internal": "Recurso ou fator protetivo relacionado a movimento ajudou anteriormente.",
+      "aliases_from_anamnesis": [
+        "q_treatment_04"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "previous_routine_helpful",
+      "category": "protective_factors",
+      "label_internal": "Rotina ajudou anteriormente",
+      "description_internal": "Recurso ou fator protetivo relacionado a rotina ajudou anteriormente.",
+      "aliases_from_anamnesis": [
+        "q_treatment_04"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "previous_support_helpful",
+      "category": "protective_factors",
+      "label_internal": "Apoio ajudou anteriormente",
+      "description_internal": "Recurso ou fator protetivo relacionado a apoio ajudou anteriormente.",
+      "aliases_from_anamnesis": [
+        "q_treatment_04"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "previous_therapy",
+      "category": "psychosocial_history",
+      "label_internal": "Experiência anterior de acompanhamento psicológico",
+      "description_internal": "Informação de histórico psicossocial relacionada a experiência anterior de acompanhamento psicológico.",
+      "aliases_from_anamnesis": [
+        "q_treatment_01"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "previous_therapy_helpful",
+      "category": "protective_factors",
+      "label_internal": "Acompanhamento anterior foi útil",
+      "description_internal": "Recurso ou fator protetivo relacionado a acompanhamento anterior foi útil.",
+      "aliases_from_anamnesis": [
+        "q_treatment_02",
+        "q_treatment_04"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "sleep_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "previous_therapy_unhelpful",
+      "category": "psychosocial_history",
+      "label_internal": "Acompanhamento anterior não ajudou",
+      "description_internal": "Informação de histórico psicossocial relacionada a acompanhamento anterior não ajudou.",
+      "aliases_from_anamnesis": [
+        "q_treatment_02"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "professional_support_access",
+      "category": "protective_factors",
+      "label_internal": "Acesso a apoio profissional",
+      "description_internal": "Recurso ou fator protetivo relacionado a acesso a apoio profissional.",
+      "aliases_from_anamnesis": [
+        "q_protect_03",
+        "q_protect_05"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "protective_commitments",
+      "category": "protective_factors",
+      "label_internal": "Compromissos e vínculos protetivos",
+      "description_internal": "Recurso ou fator protetivo relacionado a compromissos e vínculos protetivos.",
+      "aliases_from_anamnesis": [
+        "q_protect_04"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "racing_thoughts",
+      "category": "core_symptoms",
+      "label_internal": "Pensamentos acelerados",
+      "description_internal": "Indicador interno relacionado a pensamentos acelerados.",
+      "aliases_from_anamnesis": [
+        "q_core_07"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "recent_loss",
+      "category": "psychosocial_history",
+      "label_internal": "Perda recente",
+      "description_internal": "Informação de histórico psicossocial relacionada a perda recente.",
+      "aliases_from_anamnesis": [],
+      "aliases_from_check_in": [
+        "influence:Perda ou saudade"
+      ],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "depressive_disorders",
+        "sleep_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "recent_medical_change",
+      "category": "medical_physical",
+      "label_internal": "Mudança física ou médica recente",
+      "description_internal": "Indicador médico ou físico relacionado a mudança física ou médica recente.",
+      "aliases_from_anamnesis": [
+        "q_medical_05"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "recent_stressful_event",
+      "category": "contextual_factors",
+      "label_internal": "Evento estressante recente",
+      "description_internal": "Fator contextual relacionado a evento estressante recente.",
+      "aliases_from_anamnesis": [
+        "q_trauma_01"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "restless_legs_symptoms",
+      "category": "medical_physical",
+      "label_internal": "Desconforto e necessidade de mover as pernas",
+      "description_internal": "Indicador médico ou físico relacionado a desconforto e necessidade de mover as pernas.",
+      "aliases_from_anamnesis": [
+        "q_sleep_07"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "sleep_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "restrictive_eating",
+      "category": "core_symptoms",
+      "label_internal": "Restrição alimentar",
+      "description_internal": "Indicador interno relacionado a restrição alimentar.",
+      "aliases_from_anamnesis": [
+        "q_sleep_09"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "obsessive_compulsive_disorder"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "self_harm_recent",
+      "category": "red_flags",
+      "label_internal": "Autolesão recente",
+      "description_internal": "Sinal de alerta que exige avaliação prioritária: autolesão recente.",
+      "aliases_from_anamnesis": [
+        "q_core_05"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "risk",
+      "related_tracks": [
+        "bipolar_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "aliases_internal": [
+        "recent_self_harm"
+      ]
+    },
+    {
+      "id": "sleep_disturbance",
+      "category": "core_symptoms",
+      "label_internal": "Alteração do sono",
+      "description_internal": "Indicador interno relacionado a alteração do sono.",
+      "aliases_from_anamnesis": [
+        "q_sleep_02",
+        "q_sleep_05"
+      ],
+      "aliases_from_check_in": [
+        "influence:Sono ruim",
+        "influence:Cansaço"
+      ],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "sleep_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "sleep_onset_difficulty",
+      "category": "core_symptoms",
+      "label_internal": "Dificuldade para iniciar o sono",
+      "description_internal": "Indicador interno relacionado a dificuldade para iniciar o sono.",
+      "aliases_from_anamnesis": [
+        "q_sleep_01"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "sleep_related_breathing_symptoms",
+      "category": "medical_physical",
+      "label_internal": "Sinais respiratórios durante o sono",
+      "description_internal": "Indicador médico ou físico relacionado a sinais respiratórios durante o sono.",
+      "aliases_from_anamnesis": [
+        "q_sleep_07"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "sleep_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "social_communication_difficulty",
+      "category": "functional_impairment",
+      "label_internal": "Dificuldade de comunicação social",
+      "description_internal": "Indicador de impacto funcional relacionado a dificuldade de comunicação social.",
+      "aliases_from_anamnesis": [
+        "q_func_02"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "neurodevelopmental_disorders",
+        "personality_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "social_isolation",
+      "category": "psychosocial_history",
+      "label_internal": "Isolamento social",
+      "description_internal": "Informação de histórico psicossocial relacionada a isolamento social.",
+      "aliases_from_anamnesis": [
+        "q_func_02",
+        "q_func_04"
+      ],
+      "aliases_from_check_in": [
+        "reaction:Isolei-me",
+        "reaction:Evitei contato"
+      ],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "psychotic_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "strong_support_network",
+      "category": "protective_factors",
+      "label_internal": "Rede de apoio consistente",
+      "description_internal": "Recurso ou fator protetivo relacionado a rede de apoio consistente.",
+      "aliases_from_anamnesis": [
+        "q_protect_01"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "suicidal_ideation",
+      "category": "red_flags",
+      "label_internal": "Pensamentos relacionados à própria morte",
+      "description_internal": "Sinal de alerta que exige avaliação prioritária: pensamentos relacionados à própria morte.",
+      "aliases_from_anamnesis": [
+        "q_core_02",
+        "q_core_03"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "risk",
+      "related_tracks": [
+        "bipolar_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "psychotic_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "suicidal_ideation_active",
+      "category": "red_flags",
+      "label_internal": "Ideação suicida ativa",
+      "description_internal": "Sinal de alerta que exige avaliação prioritária: ideação suicida ativa.",
+      "aliases_from_anamnesis": [
+        "q_core_03"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "risk",
+      "related_tracks": [
+        "bipolar_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "psychotic_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "suicidal_ideation_passive",
+      "category": "red_flags",
+      "label_internal": "Ideação suicida passiva",
+      "description_internal": "Sinal de alerta que exige avaliação prioritária: ideação suicida passiva.",
+      "aliases_from_anamnesis": [
+        "q_core_02"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "risk",
+      "related_tracks": [
+        "bipolar_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "suicidal_intent",
+      "category": "red_flags",
+      "label_internal": "Intenção suicida",
+      "description_internal": "Sinal de alerta que exige avaliação prioritária: intenção suicida.",
+      "aliases_from_anamnesis": [
+        "q_core_04"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "risk",
+      "related_tracks": [
+        "bipolar_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "psychotic_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "suicidal_plan",
+      "category": "red_flags",
+      "label_internal": "Plano suicida",
+      "description_internal": "Sinal de alerta que exige avaliação prioritária: plano suicida.",
+      "aliases_from_anamnesis": [
+        "q_core_04"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "risk",
+      "related_tracks": [
+        "bipolar_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "psychotic_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "trauma_avoidance",
+      "category": "core_symptoms",
+      "label_internal": "Evitação relacionada a experiência difícil",
+      "description_internal": "Indicador interno relacionado a evitação relacionada a experiência difícil.",
+      "aliases_from_anamnesis": [
+        "q_trauma_05"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "dissociative_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "trauma_exposure",
+      "category": "contextual_factors",
+      "label_internal": "Exposição a experiência potencialmente traumática",
+      "description_internal": "Fator contextual relacionado a exposição a experiência potencialmente traumática.",
+      "aliases_from_anamnesis": [
+        "q_trauma_01"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "dissociative_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "trauma_reexperiencing",
+      "category": "core_symptoms",
+      "label_internal": "Revivescência de experiência difícil",
+      "description_internal": "Indicador interno relacionado a revivescência de experiência difícil.",
+      "aliases_from_anamnesis": [
+        "q_trauma_03"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "dissociative_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      },
+      "aliases_internal": [
+        "trauma_intrusions"
+      ]
+    },
+    {
+      "id": "trauma_related_nightmares",
+      "category": "core_symptoms",
+      "label_internal": "Pesadelos relacionados a experiência difícil",
+      "description_internal": "Indicador interno relacionado a pesadelos relacionados a experiência difícil.",
+      "aliases_from_anamnesis": [
+        "q_trauma_04"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "dissociative_disorders",
+        "sleep_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "trusted_support_person",
+      "category": "protective_factors",
+      "label_internal": "Pessoa de confiança disponível",
+      "description_internal": "Recurso ou fator protetivo relacionado a pessoa de confiança disponível.",
+      "aliases_from_anamnesis": [
+        "q_protect_02"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "positive",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "violence_risk",
+      "category": "red_flags",
+      "label_internal": "Risco de violência contra terceiros",
+      "description_internal": "Sinal de alerta que exige avaliação prioritária: risco de violência contra terceiros.",
+      "aliases_from_anamnesis": [],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "risk",
+      "related_tracks": [
+        "bipolar_disorders",
+        "disruptive_impulse_control_disorders",
+        "personality_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "weight_shape_overvaluation",
+      "category": "core_symptoms",
+      "label_internal": "Valorização excessiva de peso ou forma corporal",
+      "description_internal": "Indicador interno relacionado a valorização excessiva de peso ou forma corporal.",
+      "aliases_from_anamnesis": [
+        "q_sleep_09"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "score",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "obsessive_compulsive_disorder"
+      ],
+      "aggregation": "max",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "withdrawal_symptoms",
+      "category": "substance_medication",
+      "label_internal": "Sintomas ao reduzir ou interromper uso",
+      "description_internal": "Indicador relacionado a substâncias ou medicamentos: sintomas ao reduzir ou interromper uso.",
+      "aliases_from_anamnesis": [
+        "q_substance_06"
+      ],
+      "aliases_from_check_in": [],
+      "value_type": "boolean",
+      "polarity": "negative",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis",
+        "instrument"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "work_stress",
+      "category": "contextual_factors",
+      "label_internal": "Estresse relacionado ao trabalho ou estudos",
+      "description_internal": "Fator contextual relacionado a estresse relacionado ao trabalho ou estudos.",
+      "aliases_from_anamnesis": [
+        "q_func_01"
+      ],
+      "aliases_from_check_in": [
+        "influence:Trabalho ou estudos"
+      ],
+      "value_type": "boolean",
+      "polarity": "neutral",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders"
+      ],
+      "aggregation": "any_true",
+      "source": [
+        "anamnesis"
+      ],
+      "enabled": true
+    }
+  ],
+  "derived_metrics": [
+    {
+      "id": "change_from_baseline",
+      "category": "temporal_attributes",
+      "label_internal": "Mudança em relação ao padrão habitual",
+      "description_internal": "Métrica derivada para mudança em relação ao padrão habitual.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_core_08"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "personality_disorders",
+        "sleep_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "emotional_symptoms_preceded_physical_change",
+      "category": "medical_physical",
+      "label_internal": "Sintomas emocionais anteriores à mudança física",
+      "description_internal": "Métrica derivada para sintomas emocionais anteriores à mudança física.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_medical_02"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "episodic_mood_change",
+      "category": "temporal_attributes",
+      "label_internal": "Mudança episódica de humor",
+      "description_internal": "Métrica derivada para mudança episódica de humor.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_core_07"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "bipolar_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "family_history_mental_health",
+      "category": "psychosocial_history",
+      "label_internal": "Indicador global de histórico familiar",
+      "description_internal": "Métrica derivada para indicador global de histórico familiar.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_family_01"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "free_text_note",
+      "category": "contextual_factors",
+      "label_internal": "Observação livre não pontuável",
+      "description_internal": "Métrica derivada para observação livre não pontuável.",
+      "value_type": "enum",
+      "computed_from": [
+        "q_family_05",
+        "q_func_07",
+        "q_medical_06",
+        "q_treatment_05"
+      ],
+      "aggregation": "latest",
+      "related_tracks": [],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "functional_impairment",
+      "category": "functional_impairment",
+      "label_internal": "Prejuízo funcional global informado",
+      "description_internal": "Métrica derivada para prejuízo funcional global informado.",
+      "value_type": "score",
+      "computed_from": [
+        "q_func_01",
+        "q_func_06"
+      ],
+      "aggregation": "max",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 4
+      }
+    },
+    {
+      "id": "functional_impairment_global",
+      "category": "functional_impairment",
+      "label_internal": "Índice global de prejuízo funcional",
+      "description_internal": "Métrica derivada para índice global de prejuízo funcional.",
+      "value_type": "score",
+      "computed_from": [
+        "q_func_06"
+      ],
+      "aggregation": "max",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 4
+      }
+    },
+    {
+      "id": "functional_impairment_leisure",
+      "category": "functional_impairment",
+      "label_internal": "Prejuízo em lazer",
+      "description_internal": "Métrica derivada para prejuízo em lazer.",
+      "value_type": "score",
+      "computed_from": [
+        "q_func_04"
+      ],
+      "aggregation": "max",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 4
+      }
+    },
+    {
+      "id": "functional_impairment_relationships",
+      "category": "functional_impairment",
+      "label_internal": "Prejuízo em relacionamentos",
+      "description_internal": "Métrica derivada para prejuízo em relacionamentos.",
+      "value_type": "score",
+      "computed_from": [
+        "q_func_02"
+      ],
+      "aggregation": "max",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 4
+      }
+    },
+    {
+      "id": "functional_impairment_self_care",
+      "category": "functional_impairment",
+      "label_internal": "Prejuízo em autocuidado",
+      "description_internal": "Métrica derivada para prejuízo em autocuidado.",
+      "value_type": "score",
+      "computed_from": [
+        "q_func_03"
+      ],
+      "aggregation": "max",
+      "related_tracks": [
+        "bipolar_disorders",
+        "depressive_disorders",
+        "eating_disorders",
+        "psychotic_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 4
+      }
+    },
+    {
+      "id": "functional_impairment_social",
+      "category": "functional_impairment",
+      "label_internal": "Prejuízo em participação social",
+      "description_internal": "Métrica derivada para prejuízo em participação social.",
+      "value_type": "score",
+      "computed_from": [
+        "q_func_02",
+        "q_func_04"
+      ],
+      "aggregation": "max",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "psychotic_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 4
+      }
+    },
+    {
+      "id": "functional_impairment_study",
+      "category": "functional_impairment",
+      "label_internal": "Prejuízo nos estudos",
+      "description_internal": "Métrica derivada para prejuízo nos estudos.",
+      "value_type": "score",
+      "computed_from": [
+        "q_func_01"
+      ],
+      "aggregation": "max",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 4
+      }
+    },
+    {
+      "id": "functional_impairment_work",
+      "category": "functional_impairment",
+      "label_internal": "Prejuízo no trabalho",
+      "description_internal": "Métrica derivada para prejuízo no trabalho.",
+      "value_type": "score",
+      "computed_from": [
+        "q_func_01"
+      ],
+      "aggregation": "max",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 4
+      }
+    },
+    {
+      "id": "help_seeking_ambivalence",
+      "category": "protective_factors",
+      "label_internal": "Ambivalência para buscar ajuda",
+      "description_internal": "Métrica derivada para ambivalência para buscar ajuda.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_protect_05"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "interpersonal_impairment",
+      "category": "functional_impairment",
+      "label_internal": "Prejuízo interpessoal informado",
+      "description_internal": "Métrica derivada para prejuízo interpessoal informado.",
+      "value_type": "score",
+      "computed_from": [
+        "q_func_02"
+      ],
+      "aggregation": "max",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 4
+      }
+    },
+    {
+      "id": "leisure_impairment",
+      "category": "functional_impairment",
+      "label_internal": "Prejuízo em lazer informado",
+      "description_internal": "Métrica derivada para prejuízo em lazer informado.",
+      "value_type": "score",
+      "computed_from": [
+        "q_func_04"
+      ],
+      "aggregation": "max",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 4
+      }
+    },
+    {
+      "id": "limited_coping_resources",
+      "category": "protective_factors",
+      "label_internal": "Índice de recursos de enfrentamento limitados",
+      "description_internal": "Métrica derivada para índice de recursos de enfrentamento limitados.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_protect_03"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "manic_episode_signals",
+      "category": "red_flags",
+      "label_internal": "Combinação de sinais de ativação incomum",
+      "description_internal": "Métrica derivada para combinação de sinais de ativação incomum.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_core_07"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "bipolar_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "medication_misuse_uncertain",
+      "category": "substance_medication",
+      "label_internal": "Incerteza sobre uso inadequado de medicamento",
+      "description_internal": "Métrica derivada para incerteza sobre uso inadequado de medicamento.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_substance_02"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "medication_related_energy_change",
+      "category": "substance_medication",
+      "label_internal": "Mudança de energia associada a medicamento",
+      "description_internal": "Métrica derivada para mudança de energia associada a medicamento.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_medical_04"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "psychotic_disorders",
+        "sleep_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "medication_related_mood_change",
+      "category": "substance_medication",
+      "label_internal": "Mudança de humor associada a medicamento",
+      "description_internal": "Métrica derivada para mudança de humor associada a medicamento.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_medical_04"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "psychotic_disorders",
+        "sleep_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "medication_related_perceptual_change",
+      "category": "substance_medication",
+      "label_internal": "Mudança perceptiva associada a medicamento",
+      "description_internal": "Métrica derivada para mudança perceptiva associada a medicamento.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_medical_04"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "psychotic_disorders",
+        "sleep_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "medication_related_sleep_change",
+      "category": "substance_medication",
+      "label_internal": "Mudança de sono associada a medicamento",
+      "description_internal": "Métrica derivada para mudança de sono associada a medicamento.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_medical_04"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "psychotic_disorders",
+        "sleep_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "no_previous_helpful_strategy",
+      "category": "protective_factors",
+      "label_internal": "Ausência de estratégia útil anterior",
+      "description_internal": "Métrica derivada para ausência de estratégia útil anterior.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_treatment_04"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "physical_emotional_temporal_link",
+      "category": "medical_physical",
+      "label_internal": "Relação temporal entre sinais físicos e emocionais",
+      "description_internal": "Métrica derivada para relação temporal entre sinais físicos e emocionais.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_medical_02"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "physical_symptoms_preceded_mood_change",
+      "category": "medical_physical",
+      "label_internal": "Sintomas físicos anteriores à mudança de humor",
+      "description_internal": "Métrica derivada para sintomas físicos anteriores à mudança de humor.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_medical_02"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "previous_therapy_neutral",
+      "category": "psychosocial_history",
+      "label_internal": "Efeito neutro de acompanhamento anterior",
+      "description_internal": "Métrica derivada para efeito neutro de acompanhamento anterior.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_treatment_02"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "previous_therapy_partly_helpful",
+      "category": "psychosocial_history",
+      "label_internal": "Benefício parcial de acompanhamento anterior",
+      "description_internal": "Métrica derivada para benefício parcial de acompanhamento anterior.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_treatment_02"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "psychotic_symptoms",
+      "category": "red_flags",
+      "label_internal": "Indicador composto de alteração perceptiva ou de realidade",
+      "description_internal": "Métrica derivada para indicador composto de alteração perceptiva ou de realidade.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_core_06"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "response_consistency_index",
+      "category": "temporal_attributes",
+      "label_internal": "Índice de consistência das respostas",
+      "description_internal": "Métrica derivada para índice de consistência das respostas.",
+      "value_type": "score",
+      "computed_from": [
+        "q_core_01",
+        "q_core_08",
+        "q_func_06",
+        "check_in_history_7d"
+      ],
+      "aggregation": "max",
+      "related_tracks": [],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0.0,
+        "max": 1.0
+      }
+    },
+    {
+      "id": "role_impairment",
+      "category": "functional_impairment",
+      "label_internal": "Prejuízo no desempenho de responsabilidades",
+      "description_internal": "Métrica derivada para prejuízo no desempenho de responsabilidades.",
+      "value_type": "score",
+      "computed_from": [
+        "q_substance_05"
+      ],
+      "aggregation": "max",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 4
+      }
+    },
+    {
+      "id": "safety_status_unknown",
+      "category": "red_flags",
+      "label_internal": "Situação de segurança não esclarecida",
+      "description_internal": "Métrica derivada para situação de segurança não esclarecida.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_trauma_02"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "dissociative_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "self_care_impairment",
+      "category": "functional_impairment",
+      "label_internal": "Prejuízo de autocuidado informado",
+      "description_internal": "Métrica derivada para prejuízo de autocuidado informado.",
+      "value_type": "score",
+      "computed_from": [
+        "q_func_03"
+      ],
+      "aggregation": "max",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 4
+      }
+    },
+    {
+      "id": "substance_use_frequency",
+      "category": "substance_medication",
+      "label_internal": "Frequência de uso de substâncias",
+      "description_internal": "Métrica derivada para frequência de uso de substâncias.",
+      "value_type": "score",
+      "computed_from": [
+        "q_substance_01"
+      ],
+      "aggregation": "max",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "substance_use_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "symptom_duration_days",
+      "category": "temporal_attributes",
+      "label_internal": "Duração dos sinais em dias",
+      "description_internal": "Métrica derivada para duração dos sinais em dias.",
+      "value_type": "duration_days",
+      "computed_from": [
+        "q_core_15"
+      ],
+      "aggregation": "max",
+      "related_tracks": [],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "symptom_duration_prolonged",
+      "category": "temporal_attributes",
+      "label_internal": "Indicador de duração prolongada",
+      "description_internal": "Métrica derivada para indicador de duração prolongada.",
+      "value_type": "boolean",
+      "computed_from": [
+        "q_core_15"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "obsessive_compulsive_disorder",
+        "sleep_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "symptom_frequency_level",
+      "category": "temporal_attributes",
+      "label_internal": "Nível de frequência dos sinais",
+      "description_internal": "Métrica derivada para nível de frequência dos sinais.",
+      "value_type": "score",
+      "computed_from": [
+        "anamnesis_scale_items",
+        "check_in_history_7d"
+      ],
+      "aggregation": "max",
+      "related_tracks": [],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "symptom_improving_7d",
+      "category": "temporal_attributes",
+      "label_internal": "Indicador de melhora em sete dias",
+      "description_internal": "Métrica derivada para indicador de melhora em sete dias.",
+      "value_type": "boolean",
+      "computed_from": [
+        "check_in_history_7d"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "symptom_intensity_level",
+      "category": "temporal_attributes",
+      "label_internal": "Nível de intensidade dos sinais",
+      "description_internal": "Métrica derivada para nível de intensidade dos sinais.",
+      "value_type": "score",
+      "computed_from": [
+        "check_in:intensity",
+        "anamnesis_scale_items"
+      ],
+      "aggregation": "max",
+      "related_tracks": [],
+      "source": [
+        "derived"
+      ],
+      "enabled": true,
+      "score_range": {
+        "min": 0,
+        "max": 5
+      }
+    },
+    {
+      "id": "symptom_worsening_7d",
+      "category": "temporal_attributes",
+      "label_internal": "Indicador de piora em sete dias",
+      "description_internal": "Métrica derivada para indicador de piora em sete dias.",
+      "value_type": "boolean",
+      "computed_from": [
+        "check_in_history_7d"
+      ],
+      "aggregation": "any_true",
+      "related_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "source": [
+        "derived"
+      ],
+      "enabled": true
+    }
+  ]
+}

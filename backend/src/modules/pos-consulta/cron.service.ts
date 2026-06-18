@@ -31,6 +31,7 @@ type DueCheckinRow = {
     id: string
     status: string
     consultas: {
+      unidade_ubt_id?: string
       pacientes: { nome: string; email: string | null } | Array<{ nome: string; email: string | null }>
       config_especialidades: { nome: string } | Array<{ nome: string }>
       usuarios_profissionais: { nome: string } | Array<{ nome: string }> | null
@@ -58,6 +59,7 @@ async function loadDueCheckins(): Promise<DueCheckinRow[]> {
         id,
         status,
         consultas!inner (
+          unidade_ubt_id,
           pacientes!inner ( nome, email ),
           config_especialidades!inner ( nome ),
           usuarios_profissionais ( nome )
@@ -86,6 +88,7 @@ async function loadExpiredCheckins(): Promise<Array<{ id: string; reenvios: numb
         id,
         status,
         consultas!inner (
+          unidade_ubt_id,
           pacientes!inner ( nome, email ),
           config_especialidades!inner ( nome ),
           usuarios_profissionais ( nome )
@@ -126,6 +129,7 @@ async function sendCheckinEmailFromRow(row: DueCheckinRow): Promise<boolean> {
     checkinToken: row.token,
     checkinNumber: row.numero_checkin,
     planDayNumber: posConsultaCheckinDayNumber(row.numero_checkin),
+    unidadeUbtId: consulta.unidade_ubt_id ? String(consulta.unidade_ubt_id) : undefined,
   })
 
   return true

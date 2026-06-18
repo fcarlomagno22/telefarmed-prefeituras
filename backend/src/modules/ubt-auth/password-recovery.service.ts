@@ -6,6 +6,7 @@ import {
   buildUbtPasswordRecoveryEmailText,
 } from '../../lib/email/ubtPasswordRecoveryTemplate.js'
 import { sendMail } from '../../lib/email/smtp.js'
+import { resolveUbtUrlForUnidade } from '../../lib/tenant/transactionalUrls.js'
 import {
   createOpaqueToken,
   hashOpaqueToken,
@@ -77,10 +78,11 @@ async function findUbtUserByCpf(cpf: string): Promise<{
   id: string
   email: string | null
   status: string
+  unidadeUbtId: string
 } | null> {
   const { data, error } = await supabaseAdmin
     .from('usuarios_ubt')
-    .select('id, email, status')
+    .select('id, email, status, unidade_ubt_id')
     .eq('cpf', cpf)
     .maybeSingle()
 
@@ -91,6 +93,7 @@ async function findUbtUserByCpf(cpf: string): Promise<{
     id: String(data.id),
     email: data.email == null ? null : String(data.email).trim().toLowerCase(),
     status: String(data.status),
+    unidadeUbtId: String(data.unidade_ubt_id),
   }
 }
 
@@ -135,12 +138,12 @@ async function purgeExpiredRecoveries(): Promise<void> {
   if (error) throw error
 }
 
-async function sendRecoveryCodeEmail(to: string, code: string): Promise<void> {
+async function sendRecoveryCodeEmail(to: string, code: string, portalUrl: string): Promise<void> {
   await sendMail({
     to,
     subject: 'Seu código de verificação — Telefarmed',
-    html: buildUbtPasswordRecoveryEmailHtml(code),
-    text: buildUbtPasswordRecoveryEmailText(code),
+    html: buildUbtPasswordRecoveryEmailHtml(code, portalUrl),
+    text: buildUbtPasswordRecoveryEmailText(code, portalUrl),
   })
 }
 
@@ -201,8 +204,10 @@ export async function requestUbtPasswordRecovery(cpfInput: string): Promise<{
 
   if (error) throw error
 
+  const portalUrl = await resolveUbtUrlForUnidade(user.unidadeUbtId, '/login')
+
   try {
-    await sendRecoveryCodeEmail(user.email, code)
+    await sendRecoveryCodeEmail(user.email, code, portalUrl)
   } catch (mailError) {
     await supabaseAdmin
       .from('ubt_recuperacao_senha')

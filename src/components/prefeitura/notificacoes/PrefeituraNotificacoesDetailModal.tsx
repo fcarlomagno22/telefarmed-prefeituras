@@ -1,3 +1,4 @@
+import { useEntidadeCopy } from '../../../hooks/useEntidadeCopy'
 import { X } from 'lucide-react'
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
@@ -22,6 +23,7 @@ export function PrefeituraNotificacoesDetailModal({
   notification,
   onClose,
 }: PrefeituraNotificacoesDetailModalProps) {
+  const copy = useEntidadeCopy()
   useEffect(() => {
     if (!open) return
 
@@ -103,7 +105,7 @@ export function PrefeituraNotificacoesDetailModal({
             <div className="rounded-xl border border-gray-100 bg-slate-50/70 px-3 py-2">
               <dt className="text-[10px] font-bold uppercase tracking-wide text-gray-500">Origem</dt>
               <dd className="mt-0.5 text-sm font-medium text-gray-800">
-                {getPrefeituraNotificationOriginLabel(notification.origin)}
+                {getPrefeituraNotificationOriginLabel(notification.origin, copy)}
               </dd>
             </div>
             <div className="rounded-xl border border-gray-100 bg-slate-50/70 px-3 py-2">

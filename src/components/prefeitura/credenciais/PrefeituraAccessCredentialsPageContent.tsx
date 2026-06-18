@@ -26,6 +26,7 @@ import {
 import { fetchPrefeituraCredenciaisAccessLogs } from '../../../lib/services/prefeitura/credenciais'
 import { mapAuditLogEntriesToAccessLogs } from '../../../utils/mapCredenciaisAccessLogs'
 import { useCallback, useMemo, useState } from 'react'
+import { useTenantHost } from '../../../contexts/TenantHostContext'
 
 export function PrefeituraAccessCredentialsPageContent() {
   const { pageAccess } = usePrefeituraPageAccess('credenciais')
@@ -41,7 +42,10 @@ export function PrefeituraAccessCredentialsPageContent() {
     loadError,
     afterMutation,
     getAccessToken,
+    gestorPortalLoginUrl,
   } = usePrefeituraAccessCredentialsPage()
+
+  const { slug: tenantSlug } = useTenantHost()
 
   const ubtUserDrawer = useAdminOperatorUserDrawer(operatorRows, setOperatorRows, ubtOptions, {
     defaultScope: 'UBT',
@@ -52,12 +56,14 @@ export function PrefeituraAccessCredentialsPageContent() {
     contractingEntityOptionsFromApi: contractingEntityOptions,
     pinAudience: 'admin',
     credenciaisApiSource: 'prefeitura',
+    defaultPortalSlug: tenantSlug,
   })
 
   const gestorDrawer = usePrefeituraGestorCredentialDrawer(gestorRows, setGestorRows, {
     getAccessToken,
     onDataChanged: afterMutation,
     contractingEntityOptions,
+    portalLoginUrl: gestorPortalLoginUrl,
   })
 
   const accessLogUsers = useMemo(() => {

@@ -11,6 +11,7 @@ import { isValidEmail } from '../../prefeitura/rede/newUbt/newUbtFormTypes'
 import { parseBirthDateInput } from '../../../utils/calendar'
 import { maskIntegerPtBr, maskCurrencyBrl } from '../../../utils/masks'
 import type { AdminEntidadeCadastroFormState } from './cadastro/adminEntidadeCadastroTypes'
+import { resolveAceitaPacientesOutrosMunicipios } from '../../../config/adminEntidadeTipo'
 import {
   hasPositiveCurrency,
   parseCurrencyBrl,
@@ -139,6 +140,56 @@ export function buildOptionalAdminClienteContact(input: {
     phone,
     phoneType: input.phoneType,
   }
+}
+
+export function contactHasAnyField(name: string, email: string, phone: string): boolean {
+  return Boolean(name.trim() || email.trim() || phone.trim())
+}
+
+export function isAdminClienteContactComplete(
+  name: string,
+  email: string,
+  phone: string,
+): boolean {
+  return (
+    buildOptionalAdminClienteContact({
+      name,
+      email,
+      phone,
+      phoneType: 'celular',
+    }) !== undefined
+  )
+}
+
+export function validateOptionalAdminClienteContact(
+  name: string,
+  email: string,
+  phone: string,
+  label: string,
+): string | null {
+  if (!contactHasAnyField(name, email, phone)) return null
+
+  if (!name.trim()) return `Informe o nome do contato de ${label}.`
+  if (!email.trim()) return `Informe o e-mail do contato de ${label}.`
+  if (!isValidEmail(email)) return `E-mail inválido para o contato de ${label}.`
+  if (phone.replace(/\D/g, '').length < 10) {
+    return `Informe o telefone do contato de ${label} com DDD.`
+  }
+
+  return null
+}
+
+export function validateCadastroOperacionalContactsRequirement(
+  form: AdminEntidadeCadastroFormState,
+): string | null {
+  const hasRequiredContact =
+    isAdminClienteContactComplete(form.gestorNome, form.gestorEmail, form.gestorTelefone) ||
+    isAdminClienteContactComplete(form.saudeNome, form.saudeEmail, form.saudeTelefone) ||
+    isAdminClienteContactComplete(form.contratoNome, form.contratoEmail, form.contratoTelefone)
+
+  if (hasRequiredContact) return null
+
+  return 'Informe ao menos um contato operacional completo entre Gestor da entidade, Saúde ou Gestor do contrato. O contato de TI sozinho não é suficiente.'
 }
 
 function buildContratoPricingPayload(
@@ -292,19 +343,21 @@ function validateEditContratoFieldsStep(
 export function validateEditContratoStep(
   step: AddContratoStep,
   form: AddContratoFormState,
-  options: { pacoteOuMensal: boolean },
+  options: { pacoteOuMensal: boolean; specialties?: ClienteSpecialtyOption[] },
 ): string | null {
+  const specialties = options.specialties ?? []
+
   switch (step) {
     case 'contrato':
       return validateEditContratoFieldsStep(form, options)
     case 'especialidades':
-      return validateEspecialidadesStep(form)
+      return validateEspecialidadesStep(form, specialties)
     case 'excedente':
       return validateExcedenteStep(form, options.pacoteOuMensal)
     case 'confirmacao':
       return (
         validateEditContratoFieldsStep(form, options) ??
-        validateEspecialidadesStep(form) ??
+        validateEspecialidadesStep(form, specialties) ??
         validateExcedenteStep(form, options.pacoteOuMensal)
       )
     default:
@@ -312,19 +365,41 @@ export function validateEditContratoStep(
   }
 }
 
-function validateEspecialidadesStep(form: AddContratoFormState): string | null {
+function validateEspecialidadesStep(
+  form: AddContratoFormState,
+  specialties: ClienteSpecialtyOption[] = [],
+): string | null {
   if (form.professionIds.size === 0) {
     return 'Selecione ao menos uma profissão autorizada no contrato.'
   }
 
-  for (const professionId of form.professionIds) {
-    if (!hasPositiveCurrency(form.precosProfissao[professionId] ?? '')) {
-      return 'Informe o valor por consulta maior que zero para cada profissão selecionada.'
-    }
-  }
-
   if (form.specialtyIds.size === 0) {
     return 'Marque ao menos uma especialidade do contrato.'
+  }
+
+  if (specialties.length === 0) {
+    for (const professionId of form.professionIds) {
+      if (!hasPositiveCurrency(form.precosProfissao[professionId] ?? '')) {
+        return 'Informe o valor por consulta maior que zero para cada profissão selecionada.'
+      }
+    }
+    return null
+  }
+
+  const specialtyById = new Map(specialties.map((item) => [item.id, item]))
+
+  for (const specialtyId of form.specialtyIds) {
+    const specialty = specialtyById.get(specialtyId)
+    if (!specialty) {
+      if (!hasPositiveCurrency(form.precosEspecialidade[specialtyId] ?? '')) {
+        return 'Informe o valor por consulta para cada especialidade selecionada.'
+      }
+      continue
+    }
+
+    if (resolveEffectiveConsultaPreco(form, specialty) <= 0) {
+      return `Informe um valor para ${specialty.name} ou defina o valor padrão da profissão correspondente.`
+    }
   }
 
   return null
@@ -348,19 +423,21 @@ function validateExcedenteStep(
 export function validateAddContratoStep(
   step: AddContratoStep,
   form: AddContratoFormState,
-  options: { pacoteOuMensal: boolean; hasExistingGestorContrato: boolean },
+  options: { pacoteOuMensal: boolean; hasExistingGestorContrato: boolean; specialties?: ClienteSpecialtyOption[] },
 ): string | null {
+  const specialties = options.specialties ?? []
+
   switch (step) {
     case 'contrato':
       return validateContratoStep(form, options)
     case 'especialidades':
-      return validateEspecialidadesStep(form)
+      return validateEspecialidadesStep(form, specialties)
     case 'excedente':
       return validateExcedenteStep(form, options.pacoteOuMensal)
     case 'confirmacao':
       return (
         validateContratoStep(form, options) ??
-        validateEspecialidadesStep(form) ??
+        validateEspecialidadesStep(form, specialties) ??
         validateExcedenteStep(form, options.pacoteOuMensal)
       )
     default:
@@ -401,7 +478,10 @@ export function buildCreateContratoPayloadFromForm(
       ? Number.parseInt(form.consultasContratadas.replace(/\D/g, '') || '0', 10)
       : null,
     permiteUltrapassar: pacoteOuMensal && form.permiteUltrapassar,
-    aceitaPacientesOutrosMunicipios: form.aceitaPacientesOutrosMunicipios,
+    aceitaPacientesOutrosMunicipios: resolveAceitaPacientesOutrosMunicipios(
+      cliente.tipoEntidade,
+      form.aceitaPacientesOutrosMunicipios,
+    ),
     precosPorProfissao: pricing.precosPorProfissao,
     precosPorEspecialidade: pricing.precosPorEspecialidade,
     excedentePrecosPorProfissao: pricing.excedentePrecosPorProfissao,
@@ -458,19 +538,39 @@ export function validateCadastroContratoStep(form: AdminEntidadeCadastroFormStat
 
 export function validateCadastroEspecialidadesStep(
   form: AdminEntidadeCadastroFormState,
+  specialties: ClienteSpecialtyOption[] = [],
 ): string | null {
   if (form.professionIds.size === 0) {
     return 'Selecione ao menos uma profissão autorizada no contrato.'
   }
 
-  for (const professionId of form.professionIds) {
-    if (!hasPositiveCurrency(form.precosProfissao[professionId] ?? '')) {
-      return 'Informe o valor por consulta maior que zero para cada profissão selecionada.'
-    }
-  }
-
   if (form.specialtyIds.size === 0) {
     return 'Marque ao menos uma especialidade do contrato.'
+  }
+
+  if (specialties.length === 0) {
+    for (const professionId of form.professionIds) {
+      if (!hasPositiveCurrency(form.precosProfissao[professionId] ?? '')) {
+        return 'Informe o valor por consulta maior que zero para cada profissão selecionada.'
+      }
+    }
+    return null
+  }
+
+  const specialtyById = new Map(specialties.map((item) => [item.id, item]))
+
+  for (const specialtyId of form.specialtyIds) {
+    const specialty = specialtyById.get(specialtyId)
+    if (!specialty) {
+      if (!hasPositiveCurrency(form.precosEspecialidade[specialtyId] ?? '')) {
+        return 'Informe o valor por consulta para cada especialidade selecionada.'
+      }
+      continue
+    }
+
+    if (resolveEffectiveConsultaPreco(form, specialty) <= 0) {
+      return `Informe um valor para ${specialty.name} ou defina o valor padrão da profissão correspondente.`
+    }
   }
 
   return null
@@ -493,21 +593,12 @@ export function validateCadastroExcedenteStep(form: AdminEntidadeCadastroFormSta
 export function validateCadastroContratoContactStep(
   form: AdminEntidadeCadastroFormState,
 ): string | null {
-  const name = form.contratoNome.trim()
-  const email = form.contratoEmail.trim()
-  const phone = form.contratoTelefone.trim()
-  const hasAny = Boolean(name || email || phone)
-
-  if (!hasAny) return null
-
-  if (!name) return 'Informe o nome do gestor operacional do contrato.'
-  if (!email) return 'Informe o e-mail do gestor operacional do contrato.'
-  if (!isValidEmail(email)) return 'Informe um e-mail válido para o gestor operacional do contrato.'
-  if (phone.replace(/\D/g, '').length < 10) {
-    return 'Informe o telefone do gestor operacional do contrato com DDD.'
-  }
-
-  return null
+  return validateOptionalAdminClienteContact(
+    form.contratoNome,
+    form.contratoEmail,
+    form.contratoTelefone,
+    'gestor do contrato',
+  )
 }
 
 export function buildCreateContratoPayloadFromCadastroForm(
@@ -539,7 +630,10 @@ export function buildCreateContratoPayloadFromCadastroForm(
       ? Number.parseInt(form.consultasContratadas.replace(/\D/g, '') || '0', 10)
       : null,
     permiteUltrapassar,
-    aceitaPacientesOutrosMunicipios: form.aceitaPacientesOutrosMunicipios,
+    aceitaPacientesOutrosMunicipios: resolveAceitaPacientesOutrosMunicipios(
+      form.tipoEntidade,
+      form.aceitaPacientesOutrosMunicipios,
+    ),
     precosPorProfissao: pricing.precosPorProfissao,
     precosPorEspecialidade: pricing.precosPorEspecialidade,
     excedentePrecosPorProfissao: permiteUltrapassar

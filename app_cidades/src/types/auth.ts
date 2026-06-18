@@ -28,6 +28,7 @@ export type AppScreen =
   | 'eat-well-menu'
   | 'sleep-time'
   | 'sleep-stories'
+  | 'mental-health'
 
 export type LiveShareViewerRouteParams = {
   token?: string

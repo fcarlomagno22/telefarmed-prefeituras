@@ -69,6 +69,7 @@ export type UbtOptionDto = {
   value: string
   label: string
   ubtName: string
+  slug: string
   raKey: string
   raLabel: string
   contractingEntityId: string

@@ -128,6 +128,7 @@ export async function fetchPrefeituraEntitySummary(_accessToken: string) {
   return mockDelay({
     id: entity.id,
     razaoSocial: entity.razaoSocial,
+    slug: 'brasilia-df',
     municipality: entity.municipality,
     uf: entity.uf,
     label: `${entity.municipality} · ${entity.uf}`,

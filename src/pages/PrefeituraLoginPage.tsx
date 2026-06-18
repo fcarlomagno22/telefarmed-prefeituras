@@ -3,14 +3,17 @@ import { useState } from 'react'
 import { PrefeituraPasswordRecoveryDrawer } from '../components/prefeitura/login/PrefeituraPasswordRecoveryDrawer'
 import { LoginBackdrop } from '../components/login/LoginBackdrop'
 import { LoginForm } from '../components/login/LoginForm'
+import { LoginPoweredByFooter } from '../components/login/LoginPoweredByFooter'
 import { resolveDefaultPrefeituraHomePath } from '../config/prefeituraPageAccess'
 import { usePrefeituraAuth } from '../contexts/PrefeituraAuthContext'
-import { useBrandTheme } from '../hooks/useBrandTheme'
+import { useOptionalTenantHost } from '../contexts/TenantHostContext'
+import { useTenantLoginBranding } from '../hooks/useTenantLoginBranding'
 import { PrefeituraAuthApiError } from '../lib/services/prefeitura/auth'
 import { cpfDigits } from '../utils/cpf'
 
 export function PrefeituraLoginPage() {
-  useBrandTheme()
+  const tenantBranding = useTenantLoginBranding('prefeitura')
+  const tenantHost = useOptionalTenantHost()
   const { login, isAuthenticated, isBootstrapping, user } = usePrefeituraAuth()
   const [recoveryOpen, setRecoveryOpen] = useState(false)
   const [recoveryClosing, setRecoveryClosing] = useState(false)
@@ -36,7 +39,7 @@ export function PrefeituraLoginPage() {
   }
 
   return (
-    <LoginBackdrop tone="prefeitura">
+    <LoginBackdrop tone="prefeitura" backgroundImageUrl={tenantBranding.loginBackgroundUrl}>
       <main className="relative z-10 flex w-full max-w-lg flex-col items-center px-5 py-10 sm:px-8">
         <LoginForm
           portal="prefeitura"
@@ -59,6 +62,10 @@ export function PrefeituraLoginPage() {
           }}
         />
       </main>
+
+      {tenantBranding.hasTenantBranding || tenantHost?.slug ? (
+        <LoginPoweredByFooter />
+      ) : null}
 
       <PrefeituraPasswordRecoveryDrawer
         open={recoveryOpen && !recoveryClosing}

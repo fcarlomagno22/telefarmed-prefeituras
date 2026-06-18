@@ -1,4 +1,11 @@
 import { brand } from '../../config/brand'
+import {
+  applyEntidadeCopyToExportText,
+  buildEntidadeDocumentExportStyles,
+  escapeExportHtml,
+  resolveEntidadeExportBranding,
+  resolveExportAssetUrl,
+} from '../entidadeExportHtml'
 import type { AuditLogEntry, AuditLogSeverity } from '../../types/auditLogs'
 import { resolveAuditLogPlatformLabel } from '../../components/auditoria/auditLogPlatformConfig'
 import {
@@ -48,19 +55,12 @@ function formatGeneratedAt(date: Date) {
 }
 
 function buildReportStyles() {
-  return `
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      color: #111827;
-      background: #fff;
-      line-height: 1.4;
-    }
+  const branding = resolveEntidadeExportBranding()
+  return `${buildEntidadeDocumentExportStyles(branding)}
     main { max-width: 1100px; margin: 0 auto; padding: 28px 32px 36px; }
-    .brand-bar { height: 5px; background: #ff6b00; border-radius: 999px; margin-bottom: 20px; }
+    .brand-bar { height: 5px; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-    .header-logo { height: 32px; width: auto; max-width: 140px; object-fit: contain; }
-    .header-fallback { font-size: 18px; font-weight: 700; color: #ff6b00; }
+    .header-logo { height: 32px; max-width: 140px; object-fit: contain; }
     .doc-title { font-size: 20px; font-weight: 700; color: #111827; }
     .doc-meta { font-size: 12px; color: #6b7280; margin-top: 4px; }
     .summary { margin-top: 16px; font-size: 13px; color: #374151; }
@@ -79,8 +79,9 @@ function buildReportStyles() {
 }
 
 function buildAuditLogsReportHtml(context: AuditLogsExportContext) {
+  const branding = resolveEntidadeExportBranding()
   const generatedAt = formatGeneratedAt(new Date())
-  const logoUrl = resolveAssetUrl(brand.logoUrl)
+  const logoUrl = resolveExportAssetUrl(branding.logoUrl)
   const filtersBlock =
     context.filterSummaryLines.length > 0
       ? `<div class="filters"><strong>Filtros aplicados</strong><ul>${context.filterSummaryLines
@@ -122,7 +123,7 @@ function buildAuditLogsReportHtml(context: AuditLogsExportContext) {
     })
     .join('')
 
-  return `<!DOCTYPE html>
+  return applyEntidadeCopyToExportText(`<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -133,8 +134,8 @@ function buildAuditLogsReportHtml(context: AuditLogsExportContext) {
     <div class="brand-bar"></div>
     <header class="header">
       <div>
-        <img class="header-logo" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brand.appName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
-        <div class="header-fallback" style="display:none">${escapeHtml(brand.appName)}</div>
+        <img class="header-logo" src="${escapeHtml(logoUrl)}" alt="${escapeExportHtml(branding.brandName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+        <div class="header-fallback" style="display:none">${escapeExportHtml(branding.brandName)}</div>
       </div>
       <div style="text-align:right">
         <h1 class="doc-title">Logs de auditoria</h1>
@@ -176,11 +177,11 @@ function buildAuditLogsReportHtml(context: AuditLogsExportContext) {
 
     <footer class="footer">
       <span>${escapeHtml(brand.copyright)}</span>
-      <span>${escapeHtml(brand.appName)} · Documento gerado automaticamente</span>
+      <span>${escapeExportHtml(branding.brandName)} · Documento gerado automaticamente</span>
     </footer>
   </main>
 </body>
-</html>`
+</html>`)
 }
 
 function openExportWindow(html: string, title: string): Window {

@@ -28,7 +28,7 @@ export function PrefeituraPagePermissionGuard() {
     <div className="flex min-h-[50vh] flex-col items-center justify-center px-6 text-center">
       <h1 className="text-lg font-semibold text-gray-900">Acesso não permitido</h1>
       <p className="mt-2 max-w-md text-sm text-gray-600">
-        Sua conta não possui permissão para acessar esta área do portal municipal. Solicite ao
+        Sua conta não possui permissão para acessar esta área do portal. Solicite ao
         administrador a liberação da página correspondente.
       </p>
     </div>

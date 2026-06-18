@@ -352,6 +352,7 @@ export function ScheduleAppointmentDrawer({
               onBack={() => setStep('contacts')}
               requiredTerritory={territoryPolicy.requiredTerritory}
               contractAllowsOtherMunicipalities={territoryPolicy.allowsOtherMunicipalities}
+              entidadeTipo={territoryPolicy.policy?.tipoEntidade}
               territoryScope="patient_registration"
               policyLoadWarning={territoryPolicy.loadError}
               isPolicyLoading={territoryPolicy.isLoading}

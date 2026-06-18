@@ -218,6 +218,18 @@ export async function fetchPrefeituraContratoById(_accessToken: string, contrato
   return mockDelay(ensureContrato(contratoId), 70)
 }
 
+export async function fetchPrefeituraActiveContratoEspecialidadeIds(_accessToken: string) {
+  void _accessToken
+  const ids = new Set<string>()
+  for (const option of CONTRACT_OPTIONS) {
+    if (option.status !== 'active') continue
+    for (const esp of ensureContrato(option.id).especialidades) {
+      ids.add(esp.id)
+    }
+  }
+  return mockDelay([...ids], 60)
+}
+
 export async function fetchPrefeituraContratoEspecialidades(
   _accessToken: string,
   contratoId: string,

@@ -27,7 +27,7 @@ export const attendanceCellStyles: Record<
     ring: 'ring-2 ring-amber-400/50',
   },
   high: {
-    bg: 'bg-orange-50 border-orange-100/80',
+    bg: 'bg-orange-50 border-[var(--brand-primary-border)]/80',
     text: 'text-orange-900',
     subtext: 'text-orange-700/90',
     ring: 'ring-2 ring-orange-400/50',

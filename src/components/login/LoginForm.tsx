@@ -1,8 +1,9 @@
 import { Eye, EyeOff, IdCard, Lock } from 'lucide-react'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { brand } from '../../config/brand'
+import { brand, buildEntityCopyright } from '../../config/brand'
 import { portals, type PortalId } from '../../config/portals'
+import { useTenantLoginBranding } from '../../hooks/useTenantLoginBranding'
 import { isValidCpf } from '../../utils/cpf'
 import { maskCpf } from '../../utils/masks'
 
@@ -41,6 +42,20 @@ export function LoginForm({
 }: LoginFormProps) {
   const navigate = useNavigate()
   const portalConfig = portals[portal]
+  const tenantBranding = useTenantLoginBranding(portal)
+
+  const logoUrl = tenantBranding.logoUrl
+  const logoAlt = tenantBranding.displayName
+  const welcomeTitle = tenantBranding.welcomeTitle
+  const welcomeSubtitle = tenantBranding.welcomeSubtitle
+  const showPortalUrl = Boolean(
+    tenantBranding.portalPublicUrl &&
+      tenantBranding.welcomeSubtitle === tenantBranding.portalPublicUrl,
+  )
+  const copyrightText =
+    portal === 'prefeitura' && showCopyrightInCard
+      ? buildEntityCopyright(tenantBranding.displayName)
+      : brand.copyright
   const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -96,17 +111,26 @@ export function LoginForm({
     >
       <div className="mb-6 flex justify-center">
         <img
-          src={brand.logoUrl}
-          alt={brand.appName}
+          src={logoUrl}
+          alt={logoAlt}
           className="h-14 w-auto max-w-[240px] object-contain"
         />
       </div>
 
       <header className="mb-7 text-center">
         <h2 className="text-sm font-semibold text-gray-800 sm:text-[15px]">
-          {portalConfig.welcomeTitle}
+          {welcomeTitle}
         </h2>
-        <p className="mt-1.5 text-xs text-gray-500">{portalConfig.welcomeSubtitle}</p>
+        <p
+          className={[
+            'mt-1.5 text-xs',
+            showPortalUrl
+              ? 'break-all font-medium text-gray-600'
+              : 'text-gray-500',
+          ].join(' ')}
+        >
+          {welcomeSubtitle}
+        </p>
       </header>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -188,7 +212,7 @@ export function LoginForm({
         <button
           type="submit"
           disabled={isLoading || !isValidCpf(cpf)}
-          className="mt-2 w-full rounded-xl bg-[var(--brand-primary)] py-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)] hover:shadow-[0_6px_20px_rgba(255,107,0,0.4)] disabled:cursor-not-allowed disabled:opacity-70"
+          className="btn-brand-gradient mt-2 w-full rounded-xl py-3.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
         >
           {isLoading ? 'Entrando...' : 'Entrar'}
         </button>
@@ -225,7 +249,7 @@ export function LoginForm({
 
       {showCopyrightInCard ? (
         <p className="mt-6 border-t border-gray-200/80 pt-5 text-center text-[11px] font-medium text-gray-400 sm:text-xs">
-          {brand.copyright}
+          {copyrightText}
         </p>
       ) : null}
     </div>

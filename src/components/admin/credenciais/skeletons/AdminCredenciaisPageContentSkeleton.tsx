@@ -7,18 +7,14 @@ import { AdminCredenciaisTabsSkeleton } from './adminCredenciaisSkeletonUi'
 
 const OPERADORES_PANEL_COPY: Record<
   Exclude<AdminCredenciaisTab, 'admin'>,
-  { title: string; description: string; fixedScope: 'Prefeitura' | 'UBT' }
+  { title: string; fixedScope: 'Prefeitura' | 'UBT' }
 > = {
   prefeitura: {
-    title: 'Gestores da prefeitura',
-    description:
-      'Usuários com acesso ao portal municipal (/prefeitura): dashboards, rede, contratos e gestão local.',
+    title: 'Gestores da entidade',
     fixedScope: 'Prefeitura',
   },
   ubt: {
     title: 'Operadores de UBT',
-    description:
-      'Usuários das unidades com acesso ao terminal UBT.',
     fixedScope: 'UBT',
   },
 }
@@ -39,7 +35,6 @@ export function AdminCredenciaisMainPanelSkeleton({
     <AdminCredenciaisOperadoresMainPanelSkeleton
       fixedScope={copy.fixedScope}
       panelTitle={copy.title}
-      panelDescription={copy.description}
     />
   )
 }

@@ -1,3 +1,4 @@
+import type { EntidadeCopy } from '../../../lib/entidadeBranding/copy'
 import type { SituationStatusBadgeStyle } from '../../ui/SituationStatusBadge'
 import type {
   PrefeituraNotification,
@@ -22,7 +23,12 @@ const audienceLabels: Record<PrefeituraNotificationAudience, string> = {
   medico_especialidade: 'Por especialidade',
 }
 
-export function getPrefeituraNotificationOriginLabel(origin: PrefeituraNotificationOrigin) {
+export function getPrefeituraNotificationOriginLabel(
+  origin: PrefeituraNotificationOrigin,
+  copy?: Pick<EntidadeCopy, 'gestaoLabel'> & { platformOperatorLabel?: string },
+) {
+  if (origin === 'contract_manager' && copy) return copy.gestaoLabel
+  if (origin === 'telefarmed' && copy?.platformOperatorLabel) return copy.platformOperatorLabel
   return originLabels[origin]
 }
 
@@ -76,7 +82,7 @@ export function buildPrefeituraNotificationOriginBadge(
     return {
       label: 'Telefarmed',
       text: 'text-orange-700',
-      accent: 'bg-orange-500',
+      accent: 'bg-[var(--brand-primary)]',
       lineGlow: 'shadow-[0_0_8px_rgba(249,115,22,0.45)]',
     }
   }

@@ -1,5 +1,12 @@
 import { prefeituraSlaBadgeConfig } from '../../components/prefeitura/prefeituraDashboardUi'
 import { brand } from '../../config/brand'
+import {applyEntidadeCopyToExportText,
+  buildEntidadeExportBaseStyles,
+  resolveEntidadeExportBranding,
+  type EntidadeExportBranding,
+  resolveExportAssetUrl,
+  escapeExportHtml
+} from '../entidadeExportHtml'
 import type { PrefeituraConsultasUnitDetail } from '../../data/prefeituraConsultasUnitDetail'
 import { downloadWindowAsPdf, pdfFilenameFromLabel } from '../htmlDocumentToPdf'
 import { getLoggedOperatorName } from '../sessionUser'
@@ -46,7 +53,7 @@ function csvCell(value: string | number) {
 function buildReportHtml(detail: PrefeituraConsultasUnitDetail) {
   const { unit } = detail
   const statusLabel = prefeituraSlaBadgeConfig[unit.status].label
-  const logoUrl = resolveAssetUrl(brand.logoUrl)
+  const logoUrl = resolveExportAssetUrl(branding.logoUrl)
   const generatedAt = formatGeneratedAt(new Date())
   const operatorName = getLoggedOperatorName()
 
@@ -80,11 +87,11 @@ function buildReportHtml(detail: PrefeituraConsultasUnitDetail) {
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #111827; }
     main { max-width: 900px; margin: 0 auto; padding: 28px 32px; }
-    .bar { height: 5px; background: #ff6b00; border-radius: 999px; margin-bottom: 20px; }
+    .bar { height: 5px; background: ${branding.corPrimaria}; border-radius: 999px; margin-bottom: 20px; }
     h1 { font-size: 22px; margin-bottom: 4px; }
     .sub { color: #6b7280; font-size: 13px; }
     .meta { font-size: 12px; color: #6b7280; margin-top: 12px; }
-    h2 { font-size: 14px; margin: 20px 0 8px; border-bottom: 2px solid #ff6b00; padding-bottom: 4px; }
+    h2 { font-size: 14px; margin: 20px 0 8px; border-bottom: 2px solid ${branding.corPrimaria}; padding-bottom: 4px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 12px; }
     th, td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
     th { background: #f9fafb; }
@@ -97,7 +104,7 @@ function buildReportHtml(detail: PrefeituraConsultasUnitDetail) {
     <p class="sub">${escapeHtml(unit.address)} · ${escapeHtml(unit.region)} · ${escapeHtml(statusLabel)}</p>
     <p class="sub">Período: ${escapeHtml(detail.periodLabel)}</p>
     <div class="meta">
-      <p><strong>${escapeHtml(brand.appName)}</strong> · ${escapeHtml(operatorName)} · ${escapeHtml(generatedAt)}</p>
+      <p><strong>${escapeExportHtml(branding.brandName)}</strong> · ${escapeHtml(operatorName)} · ${escapeHtml(generatedAt)}</p>
     </div>
     <h2>Resumo do período</h2>
     <table>

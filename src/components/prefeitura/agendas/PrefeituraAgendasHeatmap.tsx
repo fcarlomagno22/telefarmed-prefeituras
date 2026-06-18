@@ -96,7 +96,7 @@ export function PrefeituraAgendasHeatmap({
             <button
               type="button"
               onClick={onGoToToday}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[var(--brand-primary)]/40 hover:bg-orange-50 hover:text-[var(--brand-primary)]"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[var(--brand-primary)]/40 hover:bg-[var(--brand-primary-muted)] hover:text-[var(--brand-primary)]"
             >
               Hoje
             </button>

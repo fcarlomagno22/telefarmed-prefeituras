@@ -6,12 +6,12 @@ import { UbtPasswordRecoveryDrawer } from '../components/ubt/login/UbtPasswordRe
 import { brand } from '../config/brand'
 import { resolveDefaultUbtHomePath } from '../config/ubtPageAccess'
 import { useUbtAuth } from '../contexts/UbtAuthContext'
-import { useBrandTheme } from '../hooks/useBrandTheme'
+import { useTenantLoginBranding } from '../hooks/useTenantLoginBranding'
 import { UbtAuthApiError } from '../lib/services/ubt/auth'
 import { cpfDigits } from '../utils/cpf'
 
 export function UbtLoginPage() {
-  useBrandTheme()
+  const tenantBranding = useTenantLoginBranding('ubt')
   const { login, isAuthenticated, isBootstrapping, user } = useUbtAuth()
   const [recoveryOpen, setRecoveryOpen] = useState(false)
   const [recoveryClosing, setRecoveryClosing] = useState(false)
@@ -38,20 +38,34 @@ export function UbtLoginPage() {
 
   return (
     <div className="flex min-h-screen bg-[#f5f6f8] lg:flex-row">
-      <FeaturePanel />
+      <FeaturePanel backgroundImageUrl={tenantBranding.loginBackgroundUrl} />
 
       <main className="relative flex min-h-screen flex-1 flex-col overflow-hidden">
         <div className="relative z-10 flex flex-1 flex-col px-6 py-8 sm:px-12 lg:px-14 lg:py-12 xl:px-20">
-          <header className="mx-auto w-full max-w-lg pt-2 text-center lg:pt-4">
-            <h1 className="text-base font-bold leading-snug text-[var(--brand-primary)] sm:text-[17px] lg:text-lg">
-              {brand.headline}
-            </h1>
-            <p className="mx-auto mt-1.5 max-w-md text-[11px] leading-relaxed text-gray-500 sm:text-xs">
-              {brand.subheadline}
-            </p>
-          </header>
+          {!tenantBranding.whitelabelUbtTenant ? (
+            <header className="mx-auto w-full max-w-lg pt-2 text-center lg:pt-4">
+              <h1 className="text-base font-bold leading-snug text-[var(--brand-primary)] sm:text-[17px] lg:text-lg">
+                {tenantBranding.headline}
+              </h1>
+              <p
+                className={[
+                  'mx-auto mt-1.5 max-w-md text-[11px] leading-relaxed sm:text-xs',
+                  tenantBranding.portalPublicUrl
+                    ? 'break-all font-medium text-gray-600'
+                    : 'text-gray-500',
+                ].join(' ')}
+              >
+                {tenantBranding.subheadline}
+              </p>
+            </header>
+          ) : null}
 
-          <div className="flex flex-1 flex-col items-center justify-center py-6">
+          <div
+            className={[
+              'flex flex-1 flex-col items-center justify-center py-6',
+              tenantBranding.whitelabelUbtTenant ? 'lg:pt-4' : '',
+            ].join(' ')}
+          >
             <LoginForm
               portal="ubt"
               onForgotPasswordClick={openRecoveryDrawer}

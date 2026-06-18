@@ -81,9 +81,9 @@ export function AdminPrefeituraCredentialMainPanel({
   const kpiCards = useMemo(
     () => [
       {
-        label: 'Gestores municipais',
+        label: 'Gestores da entidade',
         value: formatNumber(rows.length),
-        suffix: 'acessos prefeitura',
+        suffix: 'acessos ao portal',
         icon: Users,
         iconGradient: 'from-sky-500 via-blue-500 to-indigo-600',
         iconShadow: 'shadow-[0_8px_20px_rgba(59,130,246,0.35)]',
@@ -152,11 +152,7 @@ export function AdminPrefeituraCredentialMainPanel({
         <div className="shrink-0 border-b border-gray-200 px-5 py-5 sm:px-6 sm:py-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Gestores da prefeitura</h2>
-              <p className="mt-1 text-sm text-gray-500">
-                Usuários com acesso ao portal municipal (/prefeitura): dashboards, rede, contratos e
-                gestão local.
-              </p>
+              <h2 className="text-lg font-bold text-gray-900">Gestores da entidade</h2>
             </div>
             <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:max-w-3xl lg:justify-end">
               {!hideEntityFilter ? (
@@ -176,7 +172,7 @@ export function AdminPrefeituraCredentialMainPanel({
                   type="search"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Buscar por nome, e-mail, CPF ou município..."
+                  placeholder="Buscar por nome, e-mail, CPF ou localidade..."
                   className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-800 outline-none transition focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/15"
                 />
               </label>
@@ -199,7 +195,7 @@ export function AdminPrefeituraCredentialMainPanel({
             <thead className="sticky top-0 z-10 bg-gray-50">
               <tr className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
                 <th className="px-5 py-3.5 sm:px-6">Gestor</th>
-                <th className="px-3 py-3.5 text-center">Município</th>
+                <th className="px-3 py-3.5 text-center">Localidade</th>
                 <th className="px-3 py-3.5 text-center">Função</th>
                 <th className="px-3 py-3.5 text-center">Nível</th>
                 <th className="px-3 py-3.5 text-center">Status</th>
@@ -211,7 +207,7 @@ export function AdminPrefeituraCredentialMainPanel({
               {filteredRows.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-5 py-12 text-center text-sm text-gray-500 sm:px-6">
-                    Nenhum gestor municipal encontrado.
+                    Nenhum gestor encontrado.
                   </td>
                 </tr>
               ) : null}

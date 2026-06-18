@@ -12,6 +12,8 @@ import {
   isValidMockAuthorizationPin,
 } from './mockAuthCredentials'
 import { createMockAccessToken } from './mockAuthStorage'
+import type { EntidadeBrandingFields } from '../../types/entidadeBranding'
+import { buildDefaultEntidadeBranding } from '../../types/entidadeBranding'
 
 export type PrefeituraPagePermissions = Record<PrefeituraPortalPageId, PermissionAction[]>
 
@@ -29,7 +31,7 @@ export type PrefeituraAuthUser = {
   uf: string
   lastLoginAt: string | null
   pagePermissions: PrefeituraPagePermissions
-}
+} & Partial<EntidadeBrandingFields>
 
 export class PrefeituraAuthApiError extends Error {
   status: number
@@ -73,6 +75,9 @@ function buildDemoPrefeituraUser(): PrefeituraAuthUser {
     uf: demoOperator.contractingEntity.uf,
     lastLoginAt: new Date().toISOString(),
     pagePermissions: buildPrefeituraPagePermissions(accessLevel),
+    ...buildDefaultEntidadeBranding({
+      nomeExibicao: demoOperator.contractingEntity.razaoSocial,
+    }),
   }
 }
 

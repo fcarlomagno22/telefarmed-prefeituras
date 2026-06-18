@@ -8,7 +8,6 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
-import { brand } from '../../../config/brand'
 import {
   PREFEITURA_PASSWORD_RECOVERY_CODE_LENGTH,
   type PrefeituraPasswordRecoveryStepId,
@@ -28,13 +27,15 @@ import { UbtPasswordRecoveryLottie } from '../../ubt/login/UbtPasswordRecoveryLo
 import { UbtPasswordRecoveryLottieHero } from '../../ubt/login/UbtPasswordRecoveryLottieHero'
 import { UbtPasswordRecoveryPinValidationLottie } from '../../ubt/login/UbtPasswordRecoveryPinValidationLottie'
 import { UbtPasswordRecoverySuccessPanel } from '../../ubt/login/UbtPasswordRecoverySuccessPanel'
+import { useEntidadeCopy } from '../../../hooks/useEntidadeCopy'
+import { useEntidadeBranding } from '../../../contexts/EntidadeBrandingContext'
 import { PasswordStrengthChecklist } from '../../ubt/login/PasswordStrengthChecklist'
 import { PinInput } from '../../ui/PinInput'
 import { PrefeituraPasswordRecoveryStepper } from './PrefeituraPasswordRecoveryStepper'
 
 const lottieInnerClass = 'h-full w-full shrink-0 [&_svg]:h-full [&_svg]:w-full'
 const primaryButtonClass =
-  'w-full rounded-xl bg-[var(--brand-primary)] py-3 text-sm font-semibold text-white transition hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50'
+  'w-full rounded-xl btn-brand-gradient py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50'
 const inputClass =
   'w-full rounded-xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary)]/10'
 const drawerShellClass =
@@ -129,6 +130,8 @@ type PrefeituraPasswordRecoveryDrawerContentProps = {
 }
 
 function PrefeituraPasswordRecoveryDrawerContent({ onClose }: PrefeituraPasswordRecoveryDrawerContentProps) {
+  const copy = useEntidadeCopy()
+  const { displayName, logoUrl } = useEntidadeBranding()
   const [step, setStep] = useState<PrefeituraPasswordRecoveryStepId>('cpf')
   const [cpf, setCpf] = useState('')
   const [sentToEmail, setSentToEmail] = useState('')
@@ -295,10 +298,10 @@ function PrefeituraPasswordRecoveryDrawerContent({ onClose }: PrefeituraPassword
 
   const stepSubtitle =
     step === 'cpf'
-      ? 'Informe o CPF do gestor municipal cadastrado.'
+      ? `Informe o CPF do ${copy.gestorPortal} cadastrado.`
       : step === 'code'
         ? `Digite o código de ${PREFEITURA_PASSWORD_RECOVERY_CODE_LENGTH} dígitos enviado para ${sentToEmail}.`
-        : 'Defina uma nova senha para acessar o portal da prefeitura.'
+        : `Defina uma nova senha para acessar o ${copy.portal}.`
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -500,8 +503,8 @@ function PrefeituraPasswordRecoveryDrawerContent({ onClose }: PrefeituraPassword
       <footer className="mt-auto shrink-0 border-t border-gray-100 px-6 py-4">
         <div className="flex justify-center">
           <img
-            src={brand.logoUrl}
-            alt={brand.appName}
+            src={logoUrl}
+            alt={displayName}
             className="h-8 w-auto max-w-[180px] object-contain opacity-90"
           />
         </div>

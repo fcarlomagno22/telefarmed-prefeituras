@@ -20,6 +20,7 @@ import { mapOperatorRowToAccessCredentialUser, type RecentAccessEntry } from '..
 import { fetchUbtCredenciaisAccessLogs } from '../lib/services/ubt/credenciais'
 import { mapAuditLogEntriesToAccessLogs } from '../utils/mapCredenciaisAccessLogs'
 import { useCallback, useMemo } from 'react'
+import { useTenantHost } from '../contexts/TenantHostContext'
 
 function buildRecentAccessEntries(rows: AdminOperatorRow[]): RecentAccessEntry[] {
   return rows
@@ -57,6 +58,8 @@ export function AccessCredentialsPage() {
     getAccessToken,
   } = useUbtAccessCredentialsPage()
 
+  const { slug: tenantSlug } = useTenantHost()
+
   const accessLogUsers = useMemo(
     () =>
       operatorRows.map((row) => ({
@@ -92,6 +95,7 @@ export function AccessCredentialsPage() {
     contractingEntityOptionsFromApi: contractingEntityOptions,
     pinAudience: 'portal',
     credenciaisApiSource: 'ubt',
+    defaultPortalSlug: tenantSlug,
   })
 
   const credentialUsers = useMemo(

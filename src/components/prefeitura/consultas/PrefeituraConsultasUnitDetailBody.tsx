@@ -129,7 +129,7 @@ export function PrefeituraConsultasUnitDetailBody({ detail }: PrefeituraConsulta
         ))}
       </section>
 
-      <section className="rounded-2xl border border-gray-200/90 bg-gradient-to-br from-slate-50 via-white to-orange-50/40 p-4 shadow-sm">
+      <section className="rounded-2xl border border-gray-200/90 bg-gradient-to-br from-slate-50 via-white to-[var(--brand-primary-muted)]/40 p-4 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-gray-500">

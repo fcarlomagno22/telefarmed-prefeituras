@@ -1,5 +1,12 @@
 import { brand } from '../config/brand'
 import type { PatientProntuarioData } from '../types/patientProntuario'
+import {
+  applyEntidadeCopyToExportText,
+  buildEntidadeDocumentExportStyles,
+  escapeExportHtml,
+  resolveEntidadeExportBranding,
+  resolveExportAssetUrl,
+} from './entidadeExportHtml'
 import { downloadWindowAsPdf, pdfFilenameFromLabel } from './htmlDocumentToPdf'
 
 type ExportContext = {
@@ -21,19 +28,9 @@ function resolveAssetUrl(path: string) {
 }
 
 function buildStyles() {
-  return `
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #111827; background: #fff; line-height: 1.5; }
+  const branding = resolveEntidadeExportBranding()
+  return `${buildEntidadeDocumentExportStyles(branding)}
     main { max-width: 900px; margin: 0 auto; padding: 28px 32px 36px; border: 1px solid #e5e7eb; border-radius: 16px; background: #fff; }
-    .brand-bar { height: 4px; background: #ff6b00; border-radius: 999px; margin-bottom: 20px; }
-    .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
-    .header img { height: 36px; width: auto; }
-    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #9ca3af; }
-    h1 { font-size: 22px; font-weight: 700; color: #111827; margin-top: 4px; }
-    .subtitle { margin-top: 4px; font-size: 13px; color: #6b7280; }
-    .meta { margin-top: 12px; font-size: 12px; color: #6b7280; } .meta p + p { margin-top: 4px; }
-    section { margin-top: 24px; }
-    h2 { font-size: 14px; font-weight: 700; color: #111827; border-bottom: 2px solid #ff6b00; padding-bottom: 8px; margin-bottom: 14px; }
     h3 { font-size: 13px; font-weight: 700; color: #111827; margin-bottom: 8px; }
     .patient-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; font-size: 12px; }
     .patient-grid dt { font-weight: 600; color: #6b7280; }
@@ -67,7 +64,8 @@ function statusLabel(status: 'concluido' | 'interrompido') {
 }
 
 export function buildPatientProntuarioReportHtml({ prontuario, generatedAtLabel }: ExportContext) {
-  const logoUrl = resolveAssetUrl(brand.logoUrl)
+  const branding = resolveEntidadeExportBranding()
+  const logoUrl = resolveExportAssetUrl(branding.logoUrl)
   const { patient, entries } = prontuario
 
   const patientFields = [
@@ -161,7 +159,7 @@ export function buildPatientProntuarioReportHtml({ prontuario, generatedAtLabel 
     })
     .join('')
 
-  return `<!DOCTYPE html>
+  return applyEntidadeCopyToExportText(`<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -175,13 +173,13 @@ export function buildPatientProntuarioReportHtml({ prontuario, generatedAtLabel 
       <div>
         <p class="eyebrow">Prontuário médico</p>
         <h1>${escapeHtml(patient.name)}</h1>
-        <p class="subtitle">Histórico clínico completo de teleconsultas na rede Telefarmed.</p>
+        <p class="subtitle">Histórico clínico completo de teleconsultas ${branding.copy.naRede}.</p>
         <div class="meta">
           <p>Gerado em ${escapeHtml(generatedAtLabel)}</p>
           <p>Identificação: ${escapeHtml(patient.municipalRecordId)}</p>
         </div>
       </div>
-      <img src="${logoUrl}" alt="${escapeHtml(brand.appName)}" />
+      <img src="${logoUrl}" alt="${escapeExportHtml(branding.brandName)}" />
     </header>
 
     <section>
@@ -195,12 +193,12 @@ export function buildPatientProntuarioReportHtml({ prontuario, generatedAtLabel 
     </section>
 
     <footer class="footer">
-      <p>${escapeHtml(brand.appName)} — documento gerado para fins operacionais e de auditoria.</p>
+      <p>${escapeExportHtml(branding.brandName)} — documento gerado para fins operacionais e de auditoria.</p>
       <p>Uso restrito conforme LGPD e políticas internas de acesso a dados clínicos.</p>
     </footer>
   </main>
 </body>
-</html>`
+</html>`)
 }
 
 function buildExportContext(prontuario: PatientProntuarioData): ExportContext {

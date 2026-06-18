@@ -3,12 +3,12 @@ import { systemPages } from './accessCredentials'
 import type { PermissionAction } from './accessCredentials'
 import type { UbtAuthUser } from '../lib/mockAuth/ubtAuthMock'
 import { ubtRoutes } from './ubtRoutes'
-import { getDedicatedPortal } from './portalHost'
+import { isDedicatedPortal } from './portalHost'
 
 const UBT_LEGACY_PREFIX = '/ubt'
 
 function normalizeUbtPathname(pathname: string): string {
-  if (getDedicatedPortal() === 'ubt') return pathname
+  if (isDedicatedPortal('ubt')) return pathname
   if (pathname.startsWith(UBT_LEGACY_PREFIX)) {
     return pathname.slice(UBT_LEGACY_PREFIX.length) || '/'
   }

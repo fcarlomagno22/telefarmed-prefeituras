@@ -14,7 +14,7 @@ export function AdminCredenciaisOperadoresAboutPanelSkeleton() {
         <header className="shrink-0 text-center">
           <h2 className="text-lg font-bold text-gray-900">Indicadores de operadores</h2>
           <p className="mt-1 text-xs text-gray-500">
-            Visão consolidada de acessos, unidades e perfis na rede municipal
+            Visão consolidada de acessos, unidades e perfis na rede das entidades
           </p>
         </header>
 

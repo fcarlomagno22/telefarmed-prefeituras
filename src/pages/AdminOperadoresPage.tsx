@@ -72,7 +72,6 @@ export function AdminOperadoresPage() {
                 <AdminCredenciaisOperadoresMainPanelSkeleton
                   fixedScope="UBT"
                   panelTitle="Operadores"
-                  panelDescription="Usuários das unidades com acesso ao terminal UBT."
                 />
               </div>
             </div>
@@ -130,7 +129,6 @@ export function AdminOperadoresPage() {
                 userDrawer={operatorDrawer}
                 fixedScope="UBT"
                 panelTitle="Operadores"
-                panelDescription="Usuários das unidades com acesso ao terminal UBT."
                 searchQuery={searchQuery}
                 onSearchQueryChange={setSearchQuery}
                 profileFilter={profileFilter}

@@ -1,3 +1,7 @@
+import type { TipoEntidade } from '../../lib/entidadeBranding/types.js'
+import { parseTipoEntidade, resolveEntidadeTerminologia } from '../../lib/entidadeBranding/terminology.js'
+import { resolveCorPrimaria } from '../../lib/entidadeBranding/color.js'
+import { gestaoPublicUrl } from '../../lib/tenant/publicUrls.js'
 import { ClientesError } from './errors.js'
 import type {
   AdminClienteContactDto,
@@ -19,9 +23,17 @@ export type EntidadeRow = {
   cnpj: string
   municipio: string
   uf: string
+  slug: string
+  slug_locked_at?: string | null
   status_cliente: AdminClienteStatus
   logo_hue: number
   logo_storage_path: string | null
+  login_background_storage_path: string | null
+  favicon_storage_path: string | null
+  tipo_entidade?: TipoEntidade
+  cor_primaria?: string | null
+  nome_marca?: string | null
+  terminologia?: unknown
   gestor: unknown
   contato_contrato: unknown
   contato_ti: unknown
@@ -134,6 +146,13 @@ export function serializeContact(contact: AdminClienteContactDto): Record<string
   }
 }
 
+export function serializeOptionalContact(
+  contact: AdminClienteContactDto | undefined,
+): Record<string, unknown> {
+  if (!contact) return {}
+  return serializeContact(contact)
+}
+
 function mapPrecosProfissao(rows: PrecoProfissaoRow[], tipo: 'contratado' | 'excedente') {
   return rows
     .filter((row) => row.tipo === tipo)
@@ -210,11 +229,19 @@ export function mapContratoRow(
   }
 }
 
+export type EntidadeBrandingAssetUrls = {
+  logoUrl?: string
+  loginBackgroundUrl?: string
+  faviconUrl?: string
+}
+
 export function mapEntidadeRow(
   row: EntidadeRow,
   contratos: AdminClienteContratoDto[],
-  logoUrl?: string,
+  assetUrls?: EntidadeBrandingAssetUrls | string,
 ): AdminClienteRowDto {
+  const urls: EntidadeBrandingAssetUrls =
+    typeof assetUrls === 'string' ? { logoUrl: assetUrls } : (assetUrls ?? {})
   const contatoContrato = row.contato_contrato ? mapContact(row.contato_contrato) : undefined
 
   return {
@@ -225,13 +252,28 @@ export function mapEntidadeRow(
     cnpj: row.cnpj,
     municipio: row.municipio,
     uf: row.uf,
+    slug: row.slug,
+    publicUrl: gestaoPublicUrl(row.slug),
+    slugLocked: Boolean(row.slug_locked_at),
     gestor: mapContact(row.gestor),
     ...(contatoContrato && contatoContrato.name ? { contatoContrato } : {}),
     contatoTi: mapContact(row.contato_ti),
     contatoSaude: mapContact(row.contato_saude),
     status: row.status_cliente,
     logoHue: row.logo_hue,
-    ...(logoUrl ? { logoUrl } : {}),
+    ...(urls.logoUrl ? { logoUrl: urls.logoUrl } : {}),
+    ...(urls.loginBackgroundUrl ? { loginBackgroundUrl: urls.loginBackgroundUrl } : {}),
+    ...(urls.faviconUrl ? { faviconUrl: urls.faviconUrl } : {}),
+    tipoEntidade: parseTipoEntidade(row.tipo_entidade),
+    corPrimaria: resolveCorPrimaria({
+      corPrimaria: row.cor_primaria ?? null,
+      logoHue: row.logo_hue,
+    }),
+    ...(row.nome_marca != null ? { nomeMarca: row.nome_marca } : {}),
+    terminologia: resolveEntidadeTerminologia(
+      parseTipoEntidade(row.tipo_entidade),
+      row.terminologia,
+    ),
     contratos,
   }
 }

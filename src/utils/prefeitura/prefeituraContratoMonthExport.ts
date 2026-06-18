@@ -1,4 +1,11 @@
 import { brand } from '../../config/brand'
+import {applyEntidadeCopyToExportText,
+  buildEntidadeExportBaseStyles,
+  resolveEntidadeExportBranding,
+  type EntidadeExportBranding,
+  resolveExportAssetUrl,
+  escapeExportHtml
+} from '../entidadeExportHtml'
 import type {
   PrefeituraContratoMonthConsultation,
   PrefeituraContratoMonthDetail,
@@ -95,7 +102,7 @@ function buildKpiRows(detail: PrefeituraContratoMonthDetail): (string | number)[
   ]
 }
 
-function buildReportStyles() {
+function buildReportStyles(branding: EntidadeExportBranding = resolveEntidadeExportBranding()) {
   return `
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -105,7 +112,7 @@ function buildReportStyles() {
       line-height: 1.4;
     }
     main { max-width: 1100px; margin: 0 auto; padding: 28px 32px 36px; }
-    .brand-bar { height: 5px; background: #ff6b00; border-radius: 999px; margin-bottom: 20px; }
+    .brand-bar { height: 5px; background: ${branding.corPrimaria}; border-radius: 999px; margin-bottom: 20px; }
     .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
     .header img { height: 36px; width: auto; }
     h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
@@ -126,7 +133,7 @@ function buildReportStyles() {
     .kpi-card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; background: #f9fafb; }
     .kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #6b7280; }
     .kpi-value { font-size: 18px; font-weight: 800; margin-top: 4px; color: #111827; }
-    h2 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #111827; border-bottom: 2px solid #ff6b00; padding-bottom: 6px; }
+    h2 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #111827; border-bottom: 2px solid ${branding.corPrimaria}; padding-bottom: 6px; }
     table { width: 100%; border-collapse: collapse; font-size: 11px; }
     th, td { border: 1px solid #e5e7eb; padding: 6px 8px; text-align: center; }
     th { background: #f3f4f6; font-weight: 700; text-transform: uppercase; font-size: 10px; }
@@ -183,14 +190,14 @@ function buildContratoMonthReportHtml(
     ? `<p class="lgpd-note">PDF exibe as primeiras ${formatNumber(consultationsForReport.length)} de ${formatNumber(totalConsultations)} consultas. Use Excel para a lista completa.</p>`
     : ''
 
-  const logoUrl = resolveAssetUrl(brand.logoUrl)
+  const logoUrl = resolveExportAssetUrl(branding.logoUrl)
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <title>Consultas do mês — ${escapeHtml(detail.month.label)}</title>
-  <style>${buildReportStyles()}</style>
+  <style>${buildReportStyles(branding)}</style>
 </head>
 <body>
   <main>
@@ -213,7 +220,7 @@ function buildContratoMonthReportHtml(
           </div>
         </div>
       </div>
-      <img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brand.appName)}" crossorigin="anonymous" onerror="this.style.display='none'" />
+      <img src="${escapeHtml(logoUrl)}" alt="${escapeExportHtml(branding.brandName)}" crossorigin="anonymous" onerror="this.style.display='none'" />
     </div>
 
     <section>
@@ -240,7 +247,7 @@ function buildContratoMonthReportHtml(
       ${truncationNote}
     </section>
 
-    <p class="footer">Relatório gerado pelo painel municipal ${escapeHtml(brand.appName)}.</p>
+    <p class="footer">Relatório gerado pelo painel municipal ${escapeExportHtml(branding.brandName)}.</p>
   </main>
 </body>
 </html>`

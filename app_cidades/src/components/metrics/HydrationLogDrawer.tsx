@@ -21,6 +21,7 @@ import { playSuccessSound } from '../../utils/appSounds'
 import { PrimaryButton } from '../PrimaryButton'
 import { MetricLogSuccessContent } from './MetricLogSuccessContent'
 import { getModalFooterPadding } from '../../utils/modalSafeArea'
+import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
 
 const SUCCESS_DISMISS_MS = 2600
 
@@ -467,7 +468,7 @@ export function HydrationLogDrawer({
         </Animated.View>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={keyboardAvoidingBehavior}
           style={styles.keyboardWrap}
         >
           <Animated.View

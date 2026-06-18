@@ -1,6 +1,11 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { attachEntidadeBranding } from '../../lib/entidadeBranding/branding.service.js'
 import { normalizeCpf } from '../../lib/cpf.js'
 import { signUbtAccessToken } from '../../lib/jwt.js'
+import {
+  assertUbtSessionMatchesHost,
+  TenantHostMismatchError,
+} from '../../lib/tenant/loginHost.js'
 import {
   createOpaqueToken,
   hashOpaqueToken,
@@ -25,7 +30,8 @@ export class UbtAuthError extends Error {
       | 'INVALID_REFRESH'
       | 'NOT_FOUND'
       | 'INVALID_PIN'
-      | 'PIN_NOT_CONFIGURED',
+      | 'PIN_NOT_CONFIGURED'
+      | 'TENANT_HOST_MISMATCH',
     readonly statusCode = 401,
   ) {
     super(message)
@@ -138,6 +144,7 @@ async function clearFailedLogins(userId: string): Promise<void> {
 export async function loginUbt(input: {
   cpf: string
   password: string
+  tenantHost?: string
   userAgent?: string
   ipAddress?: string
 }): Promise<{ accessToken: string; refreshToken: string; user: UbtUserPublic }> {
@@ -174,6 +181,15 @@ export async function loginUbt(input: {
     throw new UbtAuthError('CPF ou senha incorretos.', 'INVALID_CREDENTIALS')
   }
 
+  try {
+    await assertUbtSessionMatchesHost(user.unidade_ubt_id, input.tenantHost)
+  } catch (error) {
+    if (error instanceof TenantHostMismatchError) {
+      throw new UbtAuthError(error.message, 'TENANT_HOST_MISMATCH', 403)
+    }
+    throw error
+  }
+
   await clearFailedLogins(user.id)
 
   const accessToken = await signUbtAccessToken({
@@ -202,15 +218,18 @@ export async function loginUbt(input: {
   return {
     accessToken,
     refreshToken,
-    user: toUbtUserPublic(
-      refreshed?.row ?? user,
-      refreshed?.permissoesSistema ?? lookup.permissoesSistema,
+    user: await attachEntidadeBranding(
+      toUbtUserPublic(
+        refreshed?.row ?? user,
+        refreshed?.permissoesSistema ?? lookup.permissoesSistema,
+      ),
     ),
   }
 }
 
 export async function refreshUbtSession(input: {
   refreshToken: string
+  tenantHost?: string
   userAgent?: string
   ipAddress?: string
 }): Promise<{ accessToken: string; refreshToken: string; user: UbtUserPublic }> {
@@ -235,6 +254,15 @@ export async function refreshUbtSession(input: {
   }
 
   const user = lookup.row
+
+  try {
+    await assertUbtSessionMatchesHost(user.unidade_ubt_id, input.tenantHost)
+  } catch (error) {
+    if (error instanceof TenantHostMismatchError) {
+      throw new UbtAuthError(error.message, 'TENANT_HOST_MISMATCH', 403)
+    }
+    throw error
+  }
 
   const newRefreshToken = createOpaqueToken()
   const newTokenHash = hashOpaqueToken(newRefreshToken)
@@ -275,7 +303,7 @@ export async function refreshUbtSession(input: {
   return {
     accessToken,
     refreshToken: newRefreshToken,
-    user: toUbtUserPublic(user, lookup.permissoesSistema),
+    user: await attachEntidadeBranding(toUbtUserPublic(user, lookup.permissoesSistema)),
   }
 }
 
@@ -343,5 +371,5 @@ export async function getUbtUserById(id: string): Promise<UbtUserPublic> {
     throw new UbtAuthError('Usuário não encontrado.', 'NOT_FOUND', 404)
   }
 
-  return toUbtUserPublic(lookup.row, lookup.permissoesSistema)
+  return attachEntidadeBranding(toUbtUserPublic(lookup.row, lookup.permissoesSistema))
 }

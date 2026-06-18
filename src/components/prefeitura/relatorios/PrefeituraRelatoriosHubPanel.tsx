@@ -7,6 +7,8 @@ import {
   Users,
 } from 'lucide-react'
 import { Fragment, useCallback, useMemo, useState } from 'react'
+import { useEntidadeCopy } from '../../../hooks/useEntidadeCopy'
+import { resolveSatisfacaoReportTitle } from '../../../utils/entidadeTerritoryPolicy'
 import { createPortal } from 'react-dom'
 import {
   PREFEITURA_RELATORIOS_DISPONIVEIS,
@@ -91,6 +93,7 @@ function RelatoriosCatalogTable({
     categoryId?: string
   }) => void
 }) {
+  const copy = useEntidadeCopy()
   const [search, setSearch] = useState('')
   const [periodStart, setPeriodStart] = useState(defaultRelatoriosHubPeriod.start)
   const [periodEnd, setPeriodEnd] = useState(defaultRelatoriosHubPeriod.end)
@@ -111,14 +114,26 @@ function RelatoriosCatalogTable({
   const filteredCategories = useMemo(() => {
     const query = normalizeSearch(search.trim())
 
+    const mapReport = (report: PrefeituraRelatorioCategoryCard['reports'][number]) => {
+      if (report.id !== 'satisfacao-cidadao') return report
+      const title = resolveSatisfacaoReportTitle(copy.satisfacaoPublico)
+      return { ...report, name: title }
+    }
+
     return prefeituraRelatorioCategoryCards
       .filter((category) => categoryFilter === 'todas' || category.id === categoryFilter)
       .map((category) => {
-        if (!query) return category
+        if (!query) {
+          return {
+            ...category,
+            reports: category.reports.map(mapReport),
+          }
+        }
 
         const categoryHaystack = normalizeSearch(`${category.title} ${category.description}`)
         const reports = category.reports.filter((report) => {
-          const reportHaystack = normalizeSearch(`${report.name} ${report.description}`)
+          const mapped = mapReport(report)
+          const reportHaystack = normalizeSearch(`${mapped.name} ${mapped.description}`)
           return reportHaystack.includes(query) || categoryHaystack.includes(query)
         })
 
@@ -126,11 +141,11 @@ function RelatoriosCatalogTable({
 
         return {
           ...category,
-          reports: reports.length > 0 ? reports : category.reports,
+          reports: reports.length > 0 ? reports : category.reports.map(mapReport),
         }
       })
       .filter((category): category is PrefeituraRelatorioCategoryCard => category !== null)
-  }, [categoryFilter, search])
+  }, [categoryFilter, copy.satisfacaoPublico, search])
 
   const totalReports = useMemo(
     () => filteredCategories.reduce((sum, category) => sum + category.reports.length, 0),
@@ -195,7 +210,7 @@ function RelatoriosCatalogTable({
         <div className="min-w-0">
           <h2 className="text-base font-bold text-gray-900">Catálogo de relatórios</h2>
           <p className="mt-0.5 text-xs text-gray-500">
-            Indicadores operacionais, clínicos e contratuais da gestão municipal.
+            Indicadores operacionais, clínicos e contratuais {copy.daRede}.
           </p>
         </div>
 
@@ -218,7 +233,7 @@ function RelatoriosCatalogTable({
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Buscar por relatório ou categoria..."
-              className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-3 pl-9 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)]/40 focus:shadow-[0_0_0_3px_rgba(255,107,0,0.12)]"
+              className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-3 pl-9 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)]/40 focus:shadow-[var(--brand-primary-focus-ring)]"
             />
           </label>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -331,7 +346,7 @@ function RelatoriosCatalogTable({
                         onClick={() => toggleReport(category.id, report.id)}
                         className={[
                           'cursor-pointer border-t border-gray-100 text-gray-800 transition hover:bg-slate-50/80',
-                          checked ? 'bg-orange-50/40' : '',
+                          checked ? 'bg-[var(--brand-primary-muted)]/40' : '',
                         ].join(' ')}
                       >
                         <td className="px-3 py-2.5 text-center align-top sm:px-4">
@@ -383,8 +398,8 @@ function RelatoriosCatalogTable({
                 className={[
                   'pointer-events-auto inline-flex items-center gap-2.5 rounded-2xl px-5 py-3.5',
                   'btn-brand-gradient text-sm font-bold text-white',
-                  'shadow-[0_12px_32px_rgba(255,107,0,0.38)]',
-                  'transition duration-200 hover:scale-[1.02] hover:shadow-[0_16px_40px_rgba(255,107,0,0.45)]',
+                  'shadow-[var(--brand-primary-shadow-lg)]',
+                  'transition duration-200 hover:scale-[1.02] hover:shadow-[var(--brand-primary-shadow-lg)]',
                   'active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--brand-primary)]',
                 ].join(' ')}
               >

@@ -130,6 +130,7 @@ export async function apiFetchPrefeituraEntitySummary(accessToken: string) {
     return await apiFetch<{
       id: string
       razaoSocial: string
+      slug: string
       municipality: string
       uf: string
       label: string

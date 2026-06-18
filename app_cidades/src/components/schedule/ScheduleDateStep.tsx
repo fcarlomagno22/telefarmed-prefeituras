@@ -16,6 +16,7 @@ import {
 import { colors } from '../../theme/colors'
 import { ScheduleCalendarPicker } from './ScheduleCalendarPicker'
 import { ScheduleCalendarSkeleton } from './ScheduleStepSkeletons'
+import { ScheduleStepTitle } from './ScheduleStepTitle'
 
 type ScheduleDateStepProps = {
   specialtyId: string
@@ -25,6 +26,7 @@ type ScheduleDateStepProps = {
   selectedDoctorId?: string
   selectedDate: Date
   onSelectDate: (date: Date) => void
+  onBack?: () => void
 }
 
 export function ScheduleDateStep({
@@ -35,6 +37,7 @@ export function ScheduleDateStep({
   selectedDoctorId,
   selectedDate,
   onSelectDate,
+  onBack,
 }: ScheduleDateStepProps) {
   const [slotCounts, setSlotCounts] = useState<Map<string, number>>(new Map())
   const [isLoading, setIsLoading] = useState(true)
@@ -93,7 +96,7 @@ export function ScheduleDateStep({
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>{title}</Text>
+      <ScheduleStepTitle title={title} onBack={onBack} />
       <Text style={styles.description}>{description}</Text>
 
       {isLoading ? (
@@ -116,12 +119,6 @@ export function ScheduleDateStep({
 const styles = StyleSheet.create({
   wrap: {
     gap: 14,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
   },
   description: {
     color: colors.textMuted,

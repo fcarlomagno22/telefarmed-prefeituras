@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 
 type AdminClienteContratoDeleteConfirmModalProps = {
   open: boolean
-  prefeitura: string
+  entidadeNome: string
   contratoLabel: string
   onCancel: () => void
   onConfirm: () => void
@@ -11,7 +11,7 @@ type AdminClienteContratoDeleteConfirmModalProps = {
 
 export function AdminClienteContratoDeleteConfirmModal({
   open,
-  prefeitura,
+  entidadeNome,
   contratoLabel,
   onCancel,
   onConfirm,
@@ -43,7 +43,7 @@ export function AdminClienteContratoDeleteConfirmModal({
           className="mt-3 text-sm leading-relaxed text-gray-600"
         >
           O contrato será removido permanentemente da entidade{' '}
-          <span className="font-semibold text-gray-900">{prefeitura}</span>. Esta ação exige
+          <span className="font-semibold text-gray-900">{entidadeNome}</span>. Esta ação exige
           login como administrador autorizado e confirmação com PIN.
         </p>
         <p className="mt-2 text-sm text-gray-500">{contratoLabel}</p>

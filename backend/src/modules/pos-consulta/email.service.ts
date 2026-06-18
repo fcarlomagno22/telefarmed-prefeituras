@@ -4,6 +4,7 @@ import {
   buildPosConsultaCheckinEmailText,
   type PosConsultaCheckinEmailVariables,
 } from '../../lib/email/posConsultaEmailTemplate.js'
+import { resolveUbtUrlForUnidade } from '../../lib/tenant/transactionalUrls.js'
 import { resolvePublicAppUrl } from '../../lib/codigoVerificacaoDocumento.js'
 import { sendMail } from '../../lib/email/smtp.js'
 import {
@@ -20,11 +21,16 @@ export type SendPosConsultaCheckinEmailInput = {
   checkinToken: string
   checkinNumber: number
   planDayNumber: number
+  unidadeUbtId?: string
 }
 
-function buildPosConsultaCheckinUrl(token: string): string {
+async function buildPosConsultaCheckinUrl(token: string, unidadeUbtId?: string): Promise<string> {
+  const path = `/acompanhamento/${encodeURIComponent(token)}`
+  if (unidadeUbtId) {
+    return resolveUbtUrlForUnidade(unidadeUbtId, path)
+  }
   const base = resolvePublicAppUrl()
-  return `${base.replace(/\/$/, '')}/ubt/acompanhamento/${encodeURIComponent(token)}`
+  return `${base.replace(/\/$/, '')}/ubt${path}`
 }
 
 function formatSentAtLabel(sentAt = new Date()): string {
@@ -41,7 +47,10 @@ function formatSentAtLabel(sentAt = new Date()): string {
     .replace(',', ' às')
 }
 
-function buildEmailVariables(input: SendPosConsultaCheckinEmailInput): PosConsultaCheckinEmailVariables {
+function buildEmailVariables(
+  input: SendPosConsultaCheckinEmailInput,
+  checkinUrl: string,
+): PosConsultaCheckinEmailVariables {
   return {
     patientFirstName: input.patientFirstName,
     specialtyName: input.specialtyName,
@@ -50,7 +59,7 @@ function buildEmailVariables(input: SendPosConsultaCheckinEmailInput): PosConsul
     checkinNumber: input.checkinNumber,
     totalCheckins: getPosConsultaTotalCheckins(),
     doctorName: input.doctorName,
-    checkinUrl: buildPosConsultaCheckinUrl(input.checkinToken),
+    checkinUrl,
     sentAtLabel: formatSentAtLabel(),
   }
 }
@@ -59,12 +68,14 @@ export { buildPosConsultaCheckinEmailSubject }
 
 export function buildPosConsultaCheckinEmailHtmlFromInput(
   input: SendPosConsultaCheckinEmailInput,
+  checkinUrl: string,
 ): string {
-  return buildPosConsultaCheckinEmailHtml(buildEmailVariables(input))
+  return buildPosConsultaCheckinEmailHtml(buildEmailVariables(input, checkinUrl))
 }
 
 export async function sendPosConsultaCheckinEmail(input: SendPosConsultaCheckinEmailInput): Promise<void> {
-  const variables = buildEmailVariables(input)
+  const checkinUrl = await buildPosConsultaCheckinUrl(input.checkinToken, input.unidadeUbtId)
+  const variables = buildEmailVariables(input, checkinUrl)
   await sendMail({
     to: input.to,
     subject: buildPosConsultaCheckinEmailSubject(input.checkinNumber),
@@ -73,6 +84,9 @@ export async function sendPosConsultaCheckinEmail(input: SendPosConsultaCheckinE
   })
 }
 
-export function posConsultaCheckinPublicUrl(token: string): string {
-  return buildPosConsultaCheckinUrl(token)
+export async function posConsultaCheckinPublicUrl(
+  token: string,
+  unidadeUbtId?: string,
+): Promise<string> {
+  return buildPosConsultaCheckinUrl(token, unidadeUbtId)
 }

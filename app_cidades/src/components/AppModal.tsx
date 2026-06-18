@@ -2,6 +2,7 @@ import * as NavigationBar from 'expo-navigation-bar'
 import * as SystemUI from 'expo-system-ui'
 import { useEffect } from 'react'
 import { Modal, ModalProps, Platform, StyleSheet, View } from 'react-native'
+import { drawerChrome } from '../theme/drawerChrome'
 import { colors } from '../theme/colors'
 import { AndroidNavBarUnderlay } from './AndroidNavBarUnderlay'
 
@@ -13,7 +14,7 @@ type AppModalProps = ModalProps & {
 export function AppModal({
   children,
   visible,
-  navBarUnderlayColor = 'transparent',
+  navBarUnderlayColor = drawerChrome.surfaceBottom,
   statusBarTranslucent,
   navigationBarTranslucent,
   ...rest

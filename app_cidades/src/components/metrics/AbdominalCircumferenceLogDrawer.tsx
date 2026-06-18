@@ -14,6 +14,7 @@ import { PrimaryButton } from '../PrimaryButton'
 import { FullBodyFigure } from './FullBodyFigure'
 import { MetricLogSuccessContent } from './MetricLogSuccessContent'
 import { getModalFooterPadding } from '../../utils/modalSafeArea'
+import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
 
 const SUCCESS_DISMISS_MS = 2600
 const SHEET_OFFSET = 460
@@ -269,7 +270,7 @@ export function AbdominalCircumferenceLogDrawer({
         </Animated.View>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={keyboardAvoidingBehavior}
           style={styles.keyboardWrap}
         >
           <Animated.View

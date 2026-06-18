@@ -1,4 +1,5 @@
 import type { PacientesInativosReportApi } from '../../../types/prefeituraRelatorios'
+import { EntidadeReportChartCaption } from './EntidadeReportChartCaption'
 
 type Props = {
   report: PacientesInativosReportApi
@@ -54,7 +55,7 @@ function EvolutionChart({
         })}
       </div>
       <p className="mt-3 text-xs text-gray-500">
-        Evolução {mode === 'monthly' ? 'mensal' : 'diária'} da base inativa na rede municipal.
+        Evolução {mode === 'monthly' ? 'mensal' : 'diária'} da base inativa naRedePlaceholder.
       </p>
     </div>
   )

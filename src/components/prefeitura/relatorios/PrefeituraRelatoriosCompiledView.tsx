@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { brand } from '../../../config/brand'
+import { useEntidadeReportPresentation } from '../../../contexts/EntidadeBrandingContext'
 import { usePrefeituraAuth } from '../../../contexts/PrefeituraAuthContext'
 import {
   findPrefeituraRelatorioCatalogMeta,
@@ -37,6 +37,7 @@ function formatGeneratedAt(iso: string) {
 
 export function PrefeituraRelatoriosCompiledView() {
   const { getAccessToken } = usePrefeituraAuth()
+  const { brandName, logoUrl } = useEntidadeReportPresentation()
   const [searchParams] = useSearchParams()
   const rootRef = useRef<HTMLDivElement>(null)
   const [reports, setReports] = useState<LoadedCompiledReport[]>([])
@@ -186,7 +187,7 @@ export function PrefeituraRelatoriosCompiledView() {
 
   return (
     <div className="min-h-dvh bg-slate-50">
-      <div className="no-print sticky top-0 z-20 border-b border-orange-100 bg-white/95 backdrop-blur-sm">
+      <div className="no-print sticky top-0 z-20 border-b border-[var(--brand-primary-border)] bg-white/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="min-w-0">
             <p className="text-sm font-bold text-gray-900">
@@ -233,8 +234,8 @@ export function PrefeituraRelatoriosCompiledView() {
             categoryTitle={categoryMeta?.categoryTitle}
             categoryDescription={categoryMeta?.categoryDescription}
             entidadeRazaoSocial={firstReport.entidadeRazaoSocial}
-            brandName={brand.appName}
-            logoUrl={brand.logoUrl}
+            brandName={brandName}
+            logoUrl={logoUrl}
             periodLabel={firstReport.periodLabel}
             generatedAtLabel={generatedAtLabel}
             generatedBy={firstReport.generatedBy}
@@ -254,8 +255,8 @@ export function PrefeituraRelatoriosCompiledView() {
             >
               <Document
                 report={entry.report as never}
-                brandName={brand.appName}
-                logoUrl={brand.logoUrl}
+                brandName={brandName}
+                logoUrl={logoUrl}
                 generatedAtLabel={formatGeneratedAt(entry.generatedAt)}
               />
             </div>

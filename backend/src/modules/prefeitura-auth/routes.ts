@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { authRefreshCookieOptions } from '../../lib/sessionCookie.js'
+import { registerEntidadeBrandingPortalRoutes } from '../../lib/entidadeBranding/portal-routes.js'
 import {
   getPrefeituraUserById,
   loginPrefeitura,
@@ -21,6 +22,7 @@ import {
   verifyPrefeituraPasswordRecoveryCode,
 } from './password-recovery.service.js'
 import { mapPrefeituraAuthError, requirePrefeituraAuth } from './middleware.js'
+import { resolveTenantHostHeader } from '../../lib/tenant/loginHost.js'
 import {
   auditAuthLoginFailure,
   auditAuthLoginSuccess,
@@ -31,6 +33,11 @@ import {
 const REFRESH_COOKIE = 'token_refresh_prefeitura'
 
 export async function registerPrefeituraAuthRoutes(app: FastifyInstance): Promise<void> {
+  await registerEntidadeBrandingPortalRoutes(app, {
+    preHandler: requirePrefeituraAuth,
+    getAuthUser: (request) => request.prefeituraUser,
+  })
+
   app.post('/login', {
     config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
     handler: async (request, reply) => {
@@ -40,9 +47,11 @@ export async function registerPrefeituraAuthRoutes(app: FastifyInstance): Promis
       }
 
       try {
+        const tenantHost = resolveTenantHostHeader(request.headers, parsed.data.tenantHost)
         const result = await loginPrefeitura({
           cpf: parsed.data.cpf,
           password: parsed.data.password,
+          tenantHost,
           userAgent: request.headers['user-agent'],
           ipAddress: request.ip,
         })
@@ -82,8 +91,10 @@ export async function registerPrefeituraAuthRoutes(app: FastifyInstance): Promis
       }
 
       try {
+        const tenantHost = resolveTenantHostHeader(request.headers)
         const result = await refreshPrefeituraSession({
           refreshToken,
+          tenantHost,
           userAgent: request.headers['user-agent'],
           ipAddress: request.ip,
         })

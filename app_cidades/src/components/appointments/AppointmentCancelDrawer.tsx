@@ -2,13 +2,14 @@ import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import { Animated, Easing, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Animated, Easing, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
 import { StoredAppointment } from '../../types/myAppointments'
 import { PrimaryButton } from '../PrimaryButton'
 import { getModalFooterPadding } from '../../utils/modalSafeArea'
+import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
 
 const SHEET_OFFSET = 360
 
@@ -85,47 +86,54 @@ export function AppointmentCancelDrawer({
           <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
         </Animated.View>
 
-        <Animated.View
-          style={[
-            styles.sheet,
-            {
-              paddingBottom: getModalFooterPadding(insets.bottom),
-              transform: [{ translateY: sheetTranslateY }],
-            },
-          ]}
-        >
-          <View style={styles.handle} />
-
-          <View style={styles.iconWrap}>
-            <LinearGradient
-              colors={['#fca5a5', '#ef4444', '#dc2626']}
-              start={{ x: 0.2, y: 0 }}
-              end={{ x: 0.85, y: 1 }}
-              style={styles.icon}
+        <KeyboardAvoidingView behavior={keyboardAvoidingBehavior} style={styles.keyboardWrap}>
+          <Animated.View
+            style={[
+              styles.sheet,
+              {
+                paddingBottom: getModalFooterPadding(insets.bottom),
+                transform: [{ translateY: sheetTranslateY }],
+              },
+            ]}
+          >
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
             >
-              <Ionicons name="calendar-clear-outline" size={24} color="#fff" />
-            </LinearGradient>
-          </View>
+              <View style={styles.handle} />
 
-          <Text style={styles.title}>Cancelar consulta?</Text>
-          <Text style={styles.message}>
-            Você está cancelando a consulta de{' '}
-            <Text style={styles.messageStrong}>{appointment.specialtyName}</Text> em{' '}
-            {appointment.selectedDate.split('-').reverse().join('/')} às {appointment.selectedTime}.
-          </Text>
+              <View style={styles.iconWrap}>
+                <LinearGradient
+                  colors={['#fca5a5', '#ef4444', '#dc2626']}
+                  start={{ x: 0.2, y: 0 }}
+                  end={{ x: 0.85, y: 1 }}
+                  style={styles.icon}
+                >
+                  <Ionicons name="calendar-clear-outline" size={24} color="#fff" />
+                </LinearGradient>
+              </View>
 
-          <Text style={styles.inputLabel}>Motivo (opcional)</Text>
-          <TextInput
-            value={reason}
-            onChangeText={setReason}
-            placeholder="Ex: conflito de horário"
-            placeholderTextColor={colors.textSubtle}
-            style={styles.input}
-            multiline
-            maxLength={120}
-          />
+              <Text style={styles.title}>Cancelar consulta?</Text>
+              <Text style={styles.message}>
+                Você está cancelando a consulta de{' '}
+                <Text style={styles.messageStrong}>{appointment.specialtyName}</Text> em{' '}
+                {appointment.selectedDate.split('-').reverse().join('/')} às {appointment.selectedTime}.
+              </Text>
 
-          <View style={styles.actions}>
+              <Text style={styles.inputLabel}>Motivo (opcional)</Text>
+              <TextInput
+                value={reason}
+                onChangeText={setReason}
+                placeholder="Ex: conflito de horário"
+                placeholderTextColor={colors.textSubtle}
+                style={styles.input}
+                multiline
+                maxLength={120}
+              />
+            </ScrollView>
+
+            <View style={styles.actions}>
             <Pressable
               onPress={onClose}
               disabled={loading}
@@ -143,6 +151,7 @@ export function AppointmentCancelDrawer({
             />
           </View>
         </Animated.View>
+        </KeyboardAvoidingView>
       </View>
     </AppModal>
   )
@@ -153,6 +162,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
   },
+  keyboardWrap: {
+    justifyContent: 'flex-end',
+  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.35)',
@@ -161,10 +173,15 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     backgroundColor: '#121218',
+    maxHeight: '88%',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     paddingHorizontal: 16,
     gap: 10,
+  },
+  scrollContent: {
+    gap: 12,
+    paddingBottom: 8,
   },
   handle: {
     alignSelf: 'center',

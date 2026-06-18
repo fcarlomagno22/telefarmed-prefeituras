@@ -3,6 +3,7 @@ import lottie from 'lottie-web'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { brand } from '../config/brand'
+import { getDedicatedPortal } from '../config/portalHost'
 import { resolveDefaultAdminHomePath } from '../config/adminPageAccess'
 import { consumeAdminPostLoginRedirect } from '../lib/auth/adminPostLoginRedirect'
 import { resolveDefaultPrefeituraHomePath } from '../config/prefeituraPageAccess'
@@ -13,7 +14,8 @@ import { useOptionalProfissionalAuth } from '../contexts/ProfissionalAuthContext
 import { useOptionalUbtAuth } from '../contexts/UbtAuthContext'
 import { resolveDefaultUbtHomePath } from '../config/ubtPageAccess'
 import { resolveDefaultProfissionalHomePath } from '../config/profissionalPageAccess'
-import { useBrandTheme } from '../hooks/useBrandTheme'
+import { useEntidadeBrandTheme } from '../hooks/useEntidadeBrandTheme'
+import { useEntidadeBranding } from '../contexts/EntidadeBrandingContext'
 
 const ubtTransitionLottiePath = `${import.meta.env.BASE_URL}online_doctor.json`
 const prefeituraTransitionLottiePath = `${import.meta.env.BASE_URL}data_lottie.json`
@@ -28,6 +30,8 @@ type LoginTransitionLocationState = {
 
 function resolvePortal(pathname: string, state: LoginTransitionLocationState | null): PortalId {
   if (state?.portal) return state.portal
+  const dedicated = getDedicatedPortal()
+  if (dedicated) return dedicated
   if (pathname.startsWith('/admin')) return 'admin'
   if (pathname.startsWith('/profissional')) return 'profissional'
   if (pathname.startsWith('/prefeitura')) return 'prefeitura'
@@ -36,7 +40,8 @@ function resolvePortal(pathname: string, state: LoginTransitionLocationState | n
 }
 
 export function LoginTransitionPage() {
-  useBrandTheme()
+  useEntidadeBrandTheme()
+  const { logoUrl: entityLogoUrl, displayName: entityBrandName } = useEntidadeBranding()
   const navigate = useNavigate()
   const location = useLocation()
   const adminAuth = useOptionalAdminAuth()
@@ -170,8 +175,8 @@ export function LoginTransitionPage() {
 
       <header className="relative z-10 flex justify-center px-6 pt-8 sm:pt-10">
         <img
-          src={brand.logoUrl}
-          alt={brand.appName}
+          src={entityLogoUrl}
+          alt={entityBrandName}
           className="login-transition-fade-up h-10 w-auto max-w-[160px] object-contain sm:h-11"
           style={{ animationDelay: '0.05s' }}
         />

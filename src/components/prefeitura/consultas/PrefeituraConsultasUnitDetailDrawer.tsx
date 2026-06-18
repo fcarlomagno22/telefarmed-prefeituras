@@ -123,7 +123,7 @@ export function PrefeituraConsultasUnitDetailDrawer({
         >
         <header className="sticky top-0 z-10 shrink-0 overflow-hidden border-b border-gray-200/80 bg-white/95 backdrop-blur-sm">
           <div
-            className="absolute inset-0 bg-gradient-to-br from-[var(--brand-primary-light)]/70 via-orange-50/50 to-white"
+            className="absolute inset-0 bg-gradient-to-br from-[var(--brand-primary-light)]/70 to-[var(--brand-primary-muted)]/50 to-white"
             aria-hidden
           />
           <div
@@ -133,7 +133,7 @@ export function PrefeituraConsultasUnitDetailDrawer({
           <div className="relative px-5 py-5 sm:px-6">
             <div className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 items-start gap-3">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--brand-primary)] to-[#ff8c33] text-white shadow-[0_8px_24px_rgba(255,107,0,0.35)]">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-primary-gradient-end)] text-white shadow-[var(--brand-primary-shadow-md)]">
                   <Building2 className="h-6 w-6" strokeWidth={1.85} />
                 </span>
                 <div className="min-w-0">

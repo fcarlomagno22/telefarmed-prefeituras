@@ -1,4 +1,3 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
@@ -90,11 +89,7 @@ export function GuestWelcomeCard({ skeleton = false }: { skeleton?: boolean }) {
           {skeleton ? (
             <>
               <View style={styles.topRow}>
-                <SkeletonBone width={44} height={44} borderRadius={14} />
-                <View style={styles.titleCol}>
-                  <SkeletonBone width="78%" height={14} borderRadius={6} />
-                  <SkeletonBone width="62%" height={11} borderRadius={5} style={{ marginTop: 6 }} />
-                </View>
+                <SkeletonBone width="72%" height={14} borderRadius={6} />
               </View>
 
               <View style={styles.messageBlock}>
@@ -112,19 +107,7 @@ export function GuestWelcomeCard({ skeleton = false }: { skeleton?: boolean }) {
           ) : (
             <>
               <View style={styles.topRow}>
-                <LinearGradient
-                  colors={['#ffb366', '#ff8533', '#ff6b00']}
-                  start={{ x: 0.2, y: 0 }}
-                  end={{ x: 0.85, y: 1 }}
-                  style={styles.iconOrb}
-                >
-                  <MaterialCommunityIcons name="heart-pulse" size={22} color="#fff" />
-                </LinearGradient>
-
-                <View style={styles.titleCol}>
-                  <Text style={styles.cardTitle}>Bem-vindo ao Telefarmed</Text>
-                  <Text style={styles.cardSubtitle}>Descubra o que o app pode fazer por você</Text>
-                </View>
+                <Text style={styles.cardSubtitle}>Descubra o que o app pode fazer por você</Text>
               </View>
 
               <Animated.View
@@ -182,35 +165,14 @@ const styles = StyleSheet.create({
     minHeight: 148,
   },
   topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
     marginBottom: 12,
   },
-  iconOrb: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
-  },
-  titleCol: {
-    flex: 1,
-    gap: 2,
-  },
-  cardTitle: {
+  cardSubtitle: {
     color: colors.text,
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: -0.2,
-  },
-  cardSubtitle: {
-    color: colors.textMuted,
-    fontSize: 11,
-    fontWeight: '500',
-    lineHeight: 14,
+    lineHeight: 18,
   },
   messageBlock: {
     flex: 1,

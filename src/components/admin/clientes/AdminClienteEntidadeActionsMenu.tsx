@@ -11,6 +11,7 @@ type AdminClienteEntidadeActionsMenuProps = {
   onView: () => void
   onViewUbts: () => void
   onAddContrato: () => void
+  onEdit: () => void
   onChangeStatus: () => void
   onDelete: () => void
 }
@@ -33,6 +34,7 @@ export function AdminClienteEntidadeActionsMenu({
   onView,
   onViewUbts,
   onAddContrato,
+  onEdit,
   onChangeStatus,
   onDelete,
 }: AdminClienteEntidadeActionsMenuProps) {
@@ -176,6 +178,18 @@ export function AdminClienteEntidadeActionsMenu({
                 }}
               >
                 Adicionar Contratos
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className={menuItemClass}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onClose()
+                  onEdit()
+                }}
+              >
+                Editar cliente
               </button>
               <button
                 type="button"

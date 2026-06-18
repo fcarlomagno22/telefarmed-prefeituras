@@ -5,6 +5,7 @@ type LoginBackdropProps = {
   children: ReactNode
   /** Gradiente do overlay — tom mais azul e claro para prefeitura. */
   tone?: 'ubt' | 'prefeitura' | 'admin'
+  backgroundImageUrl?: string
 }
 
 const toneLayers = {
@@ -42,19 +43,24 @@ const backdropBlurByTone = {
   admin: 'backdrop-blur-[1px] backdrop-saturate-105',
 } as const
 
-export function LoginBackdrop({ children, tone = 'ubt' }: LoginBackdropProps) {
+export function LoginBackdrop({
+  children,
+  tone = 'ubt',
+  backgroundImageUrl,
+}: LoginBackdropProps) {
   const layers = toneLayers[tone]
-  const backgroundImageUrl =
-    tone === 'prefeitura'
+  const resolvedBackgroundImageUrl =
+    backgroundImageUrl ??
+    (tone === 'prefeitura'
       ? brand.prefeituraBackgroundImageUrl
       : tone === 'admin'
         ? brand.adminBackgroundImageUrl
-        : brand.backgroundImageUrl
+        : brand.backgroundImageUrl)
 
   return (
     <div className="relative flex min-h-screen min-h-[100dvh] items-center justify-center overflow-hidden">
       <img
-        src={backgroundImageUrl}
+        src={resolvedBackgroundImageUrl}
         alt=""
         className="absolute inset-0 h-full w-full scale-[1.03] object-cover"
         fetchPriority="high"

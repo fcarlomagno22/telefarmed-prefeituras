@@ -7,6 +7,11 @@ import {
   type PermissionAction,
   type PrefeituraPageId,
 } from '../../lib/prefeituraPermissions.js'
+import {
+  assertGestaoSessionMatchesHost,
+  resolveTenantHostHeader,
+  TenantHostMismatchError,
+} from '../../lib/tenant/loginHost.js'
 import { PrefeituraAuthError } from './service.js'
 import type { PrefeituraPagePermissions } from './types.js'
 
@@ -76,6 +81,16 @@ export async function requirePrefeituraAuth(
 
     if (user.entidadeContratanteId !== claims.entidadeContratanteId) {
       return reply.status(401).send({ error: 'Sessão inválida ou expirada.' })
+    }
+
+    const tenantHost = resolveTenantHostHeader(request.headers)
+    try {
+      await assertGestaoSessionMatchesHost(user.entidadeContratanteId, tenantHost)
+    } catch (error) {
+      if (error instanceof TenantHostMismatchError) {
+        return reply.status(403).send({ error: error.message, code: 'TENANT_HOST_MISMATCH' })
+      }
+      throw error
     }
 
     request.prefeituraUser = user

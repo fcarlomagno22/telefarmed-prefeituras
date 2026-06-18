@@ -5,10 +5,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
 import { AppModal } from './AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import robotAnimation from '../../assets/robot.json'
+import profilePersonsAnimation from '../../assets/profile_persons.json'
 import { getGuestFeatureContent, GuestFeatureKey } from '../config/guestFeatures'
 import { colors } from '../theme/colors'
 import { PrimaryButton } from './PrimaryButton'
+import { ShiningCtaHint } from './ShiningCtaHint'
 import { WaveTitle } from './WaveTitle'
 import { getModalFooterPadding } from '../utils/modalSafeArea'
 
@@ -129,16 +130,17 @@ export function FeatureAuthDrawer({
           <View style={styles.handle} />
 
           <View style={styles.lottieWrap}>
-            <LottieView source={robotAnimation} autoPlay loop style={styles.lottie} />
+            <LottieView source={profilePersonsAnimation} autoPlay loop style={styles.lottie} />
           </View>
 
           <WaveTitle text={content.title} active={visible} />
 
           <Text style={styles.description}>{content.description}</Text>
 
-          <Text style={styles.ctaHint}>
-            Entre ou cadastre-se para usar esta funcionalidade.
-          </Text>
+          <ShiningCtaHint
+            text="Entre ou cadastre-se para usar esta funcionalidade."
+            active={visible}
+          />
 
           <PrimaryButton label="Entrar" onPress={handleLogin} />
 
@@ -191,13 +193,6 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     textAlign: 'center',
     marginBottom: 16,
-  },
-  ctaHint: {
-    color: colors.primaryLight,
-    fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 14,
   },
   secondaryButton: {
     alignItems: 'center',

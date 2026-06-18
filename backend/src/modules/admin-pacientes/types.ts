@@ -1,3 +1,5 @@
+import type { TipoEntidade } from '../../lib/entidadeBranding/types.js'
+
 export type AdminContractStatus = 'ativo' | 'encerrado'
 
 export type PacienteStatus = 'ativo' | 'inativo' | 'pre_cadastro' | 'suspenso'
@@ -175,6 +177,7 @@ export type AdminPatientContractingEntityDto = {
   uf: string
   contractStatus: AdminContractStatus
   aceitaPacientesOutrosMunicipios: boolean
+  tipoEntidade: TipoEntidade
 }
 
 export type ListPacientesQuery = {

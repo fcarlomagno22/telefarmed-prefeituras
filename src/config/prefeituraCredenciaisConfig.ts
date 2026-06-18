@@ -12,6 +12,7 @@ export type PrefeituraPortalPageId =
   | 'consultas'
   | 'agendas'
   | 'usuarios'
+  | 'faturamento'
   | 'contrato'
   | 'relatorios'
   | 'notificacoes'
@@ -30,7 +31,7 @@ export const prefeituraPortalPages: PrefeituraPortalPageDefinition[] = [
   {
     id: 'dashboard',
     label: 'Dashboard',
-    description: 'Visão consolidada da operação municipal',
+    description: 'Visão consolidada da operação da entidade',
     get route() {
       return prefeituraRoutes.dashboard
     },
@@ -62,7 +63,7 @@ export const prefeituraPortalPages: PrefeituraPortalPageDefinition[] = [
   {
     id: 'agendas',
     label: 'Agenda',
-    description: 'Agendamentos e calendário municipal',
+    description: 'Agendamentos e calendário da entidade',
     get route() {
       return prefeituraRoutes.agendas
     },
@@ -70,9 +71,17 @@ export const prefeituraPortalPages: PrefeituraPortalPageDefinition[] = [
   {
     id: 'usuarios',
     label: 'Pacientes',
-    description: 'Usuários atendidos na rede municipal',
+    description: 'Usuários atendidos na rede da entidade',
     get route() {
       return prefeituraRoutes.usuarios
+    },
+  },
+  {
+    id: 'faturamento',
+    label: 'Faturamento',
+    description: 'Notas fiscais, competências e cobranças do contrato',
+    get route() {
+      return prefeituraRoutes.faturamento
     },
   },
   {
@@ -94,7 +103,7 @@ export const prefeituraPortalPages: PrefeituraPortalPageDefinition[] = [
   {
     id: 'notificacoes',
     label: 'Notificações',
-    description: 'Comunicados à rede municipal',
+    description: 'Comunicados à rede da entidade',
     get route() {
       return prefeituraRoutes.notificacoes
     },
@@ -110,7 +119,7 @@ export const prefeituraPortalPages: PrefeituraPortalPageDefinition[] = [
   {
     id: 'credenciais',
     label: 'Credenciais de acesso',
-    description: 'Gestão de usuários do portal municipal',
+    description: 'Gestão de usuários do portal',
     get route() {
       return prefeituraRoutes.credenciais
     },
@@ -191,6 +200,7 @@ export function buildPrefeituraPagePermissions(
       'consultas',
       'agendas',
       'usuarios',
+      'faturamento',
       'contrato',
       'notificacoes',
       'suporte',
@@ -217,6 +227,7 @@ export function buildPrefeituraPagePermissions(
   }
   empty.rede = [...viewOnly]
   empty.usuarios = [...viewOnly]
+  empty.faturamento = [...viewOnly]
   empty.contrato = [...viewOnly]
   empty.relatorios = [...viewOnly]
   empty.auditoria = [...viewOnly]

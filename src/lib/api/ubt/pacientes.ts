@@ -17,6 +17,7 @@ import {
   type UbtPacienteRegistrationDetail,
 } from '../../mockServices/ubt/pacientes'
 import { ApiError, apiFetch } from '../http'
+import type { TipoEntidade } from '../../../types/entidadeBranding'
 import { ubtLgpdRequestHeaders } from './lgpdHeaders'
 
 function lgpdFetchOptions(accessToken: string) {
@@ -320,6 +321,7 @@ export type UbtPatientTerritoryPolicy = {
   municipio: string
   uf: string
   aceitaPacientesOutrosMunicipios: boolean
+  tipoEntidade?: TipoEntidade
 }
 
 export async function apiFetchUbtPatientTerritoryPolicy(accessToken: string) {

@@ -1,12 +1,17 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { getPortalDocumentTitle, type PortalId } from '../config/portalHost'
+import { getPortalDocumentTitle, resolvePortalDocumentTitle, type PortalId } from '../config/portalHost'
 
-/** Mantém o título da aba fixo por subdomínio dedicado em qualquer rota. */
-export function useDedicatedPortalDocumentTitle(portal: PortalId) {
+/** Mantém o título da aba por portal; usa nome da entidade quando informado. */
+export function useDedicatedPortalDocumentTitle(
+  portal: PortalId,
+  entityDisplayName?: string | null,
+) {
   const { pathname } = useLocation()
 
   useEffect(() => {
-    document.title = getPortalDocumentTitle(portal)
-  }, [portal, pathname])
+    document.title = entityDisplayName
+      ? resolvePortalDocumentTitle(portal, entityDisplayName)
+      : getPortalDocumentTitle(portal)
+  }, [portal, entityDisplayName, pathname])
 }

@@ -34,7 +34,7 @@ export async function listContractingEntities(): Promise<ContractingEntityOption
 export async function listUbtOptionsByEntity(entityId: string): Promise<UbtOptionDto[]> {
   const { data, error } = await supabaseAdmin
     .from('unidades_ubt')
-    .select('id, nome, ra_chave, ra_rotulo, entidade_contratante_id')
+    .select('id, nome, slug, ra_chave, ra_rotulo, entidade_contratante_id')
     .eq('entidade_contratante_id', entityId)
     .eq('status', 'ativo')
     .order('nome', { ascending: true })
@@ -45,6 +45,7 @@ export async function listUbtOptionsByEntity(entityId: string): Promise<UbtOptio
     value: String(row.id),
     label: String(row.nome),
     ubtName: String(row.nome),
+    slug: String(row.slug ?? ''),
     raKey: String(row.ra_chave),
     raLabel: String(row.ra_rotulo),
     contractingEntityId: String(row.entidade_contratante_id),
@@ -54,7 +55,7 @@ export async function listUbtOptionsByEntity(entityId: string): Promise<UbtOptio
 export async function listAllActiveUbtOptions(): Promise<UbtOptionDto[]> {
   const { data, error } = await supabaseAdmin
     .from('unidades_ubt')
-    .select('id, nome, ra_chave, ra_rotulo, entidade_contratante_id')
+    .select('id, nome, slug, ra_chave, ra_rotulo, entidade_contratante_id')
     .eq('status', 'ativo')
     .order('nome', { ascending: true })
 
@@ -64,6 +65,7 @@ export async function listAllActiveUbtOptions(): Promise<UbtOptionDto[]> {
     value: String(row.id),
     label: String(row.nome),
     ubtName: String(row.nome),
+    slug: String(row.slug ?? ''),
     raKey: String(row.ra_chave),
     raLabel: String(row.ra_rotulo),
     contractingEntityId: String(row.entidade_contratante_id),

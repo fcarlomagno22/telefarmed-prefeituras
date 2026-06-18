@@ -10,7 +10,7 @@ export function formatRedeValidationError(error: ZodError): string {
 export class PrefeituraRedeError extends Error {
   constructor(
     message: string,
-    readonly code: 'NOT_FOUND' | 'INVALID_DATA' | 'FORBIDDEN' | 'CONFLICT',
+    readonly code: 'NOT_FOUND' | 'INVALID_DATA' | 'FORBIDDEN' | 'CONFLICT' | 'DUPLICATE_SLUG',
     readonly statusCode = 400,
   ) {
     super(message)

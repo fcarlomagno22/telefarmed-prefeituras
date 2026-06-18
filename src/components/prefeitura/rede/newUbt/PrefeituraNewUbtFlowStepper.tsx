@@ -75,7 +75,7 @@ export function PrefeituraNewUbtFlowStepper({ step }: PrefeituraNewUbtFlowSteppe
               title={flowStep.label}
             >
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[var(--brand-primary)] to-orange-400"
+                className="h-full rounded-full bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-primary-gradient-end)]"
                 style={{ width: `${segmentFill * 100}%` }}
               />
             </div>

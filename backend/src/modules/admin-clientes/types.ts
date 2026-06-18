@@ -1,3 +1,5 @@
+import type { EntidadeTerminologia, TipoEntidade } from '../../lib/entidadeBranding/types.js'
+
 export type AdminClienteStatus =
   | 'ativa'
   | 'implantacao'
@@ -61,6 +63,9 @@ export type AdminClienteRowDto = {
   cnpj: string
   municipio: string
   uf: string
+  slug: string
+  publicUrl: string
+  slugLocked: boolean
   gestor: AdminClienteContactDto
   contatoContrato?: AdminClienteContactDto
   contatoTi: AdminClienteContactDto
@@ -68,6 +73,12 @@ export type AdminClienteRowDto = {
   status: AdminClienteStatus
   logoHue: number
   logoUrl?: string
+  loginBackgroundUrl?: string
+  faviconUrl?: string
+  tipoEntidade?: TipoEntidade
+  corPrimaria?: string
+  nomeMarca?: string | null
+  terminologia?: EntidadeTerminologia
   contratos: AdminClienteContratoDto[]
 }
 

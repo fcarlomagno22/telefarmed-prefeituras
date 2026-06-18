@@ -9,6 +9,7 @@ import {
   normalizeMaintenanceIndexes,
 } from '../prefeitura-rede/formatters.js'
 import { fetchUnitsMetrics } from '../prefeitura-rede/metrics.service.js'
+import { ubtPublicUrl } from '../../lib/tenant/publicUrls.js'
 import type { UnidadeUbtRow } from '../prefeitura-rede/types.js'
 import { ClientesError } from './errors.js'
 import type {
@@ -17,7 +18,7 @@ import type {
 } from './ubts.types.js'
 
 const UNIT_SELECT =
-  'id, entidade_contratante_id, nome, ra_chave, ra_rotulo, cnes, tipo_unidade, endereco, telefone, capacidade_diaria, especialidades, notas, terminais_total, terminais_manutencao, estado_operacional, status'
+  'id, entidade_contratante_id, nome, slug, slug_locked_at, ra_chave, ra_rotulo, cnes, tipo_unidade, endereco, telefone, capacidade_diaria, especialidades, notas, terminais_total, terminais_manutencao, estado_operacional, status'
 
 function mapStatusLabel(status: 'ativa' | 'manutencao' | 'inativa'): string {
   if (status === 'ativa') return 'Ativa'
@@ -134,10 +135,14 @@ function mapUnitToDto(
     maintenanceTerminalIndexes,
     row.estado_operacional,
   )
+  const slug = row.slug?.trim() ?? ''
 
   return {
     id: row.id,
     name: apiUnit.name,
+    slug,
+    publicUrl: slug ? ubtPublicUrl(slug) : '',
+    slugLocked: Boolean(row.slug_locked_at),
     region: apiUnit.region,
     regionKey: apiUnit.regionKey,
     status: apiUnit.status,

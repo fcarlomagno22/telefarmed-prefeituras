@@ -1,0 +1,5802 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "modalities_registry": [
+    {
+      "id": "breathing",
+      "label_internal": "Respiração regulada",
+      "description_internal": "Técnicas respiratórias breves para reduzir ativação fisiológica sem hiperventilação."
+    },
+    {
+      "id": "grounding",
+      "label_internal": "Ancoragem no presente",
+      "description_internal": "Exercícios de orientação sensorial e atenção ao ambiente atual."
+    },
+    {
+      "id": "journaling",
+      "label_internal": "Registro estruturado",
+      "description_internal": "Escrita breve e guiada para organizar experiências, pensamentos e próximos passos."
+    },
+    {
+      "id": "behavioral_activation",
+      "label_internal": "Ativação comportamental",
+      "description_internal": "Microações planejadas para aumentar contato com rotina, domínio e experiências agradáveis."
+    },
+    {
+      "id": "gradual_exposure",
+      "label_internal": "Aproximação gradual",
+      "description_internal": "Contato leve, planejado e reversível com situações evitadas, sem exposição a detalhes traumáticos."
+    },
+    {
+      "id": "sleep_hygiene",
+      "label_internal": "Higiene do sono",
+      "description_internal": "Ajustes comportamentais e ambientais para favorecer ritmo e recuperação."
+    },
+    {
+      "id": "emotion_regulation",
+      "label_internal": "Regulação emocional",
+      "description_internal": "Estratégias para reconhecer, nomear e atravessar emoções com segurança."
+    },
+    {
+      "id": "mindfulness",
+      "label_internal": "Atenção consciente",
+      "description_internal": "Práticas curtas de atenção ao presente, sempre com alternativa de olhos abertos."
+    },
+    {
+      "id": "social_micro_step",
+      "label_internal": "Microação social",
+      "description_internal": "Passos pequenos para ampliar apoio, comunicação e conexão."
+    },
+    {
+      "id": "cognitive_reframe",
+      "label_internal": "Revisão de pensamentos",
+      "description_internal": "Estratégias estruturadas para examinar interpretações e formular perspectivas mais equilibradas."
+    },
+    {
+      "id": "self_compassion",
+      "label_internal": "Autocompaixão",
+      "description_internal": "Práticas de acolhimento interno e redução de autocrítica."
+    },
+    {
+      "id": "body_scan",
+      "label_internal": "Observação corporal suave",
+      "description_internal": "Percepção corporal breve, sem busca de sintomas e com opção de interromper."
+    },
+    {
+      "id": "movement_micro",
+      "label_internal": "Movimento breve",
+      "description_internal": "Movimentos leves e adaptáveis para energia, orientação corporal e rotina."
+    },
+    {
+      "id": "routine_building",
+      "label_internal": "Construção de rotina",
+      "description_internal": "Planejamento de âncoras simples e repetíveis para o dia."
+    },
+    {
+      "id": "trigger_mapping",
+      "label_internal": "Mapeamento de gatilhos",
+      "description_internal": "Identificação de contexto, sinais iniciais e respostas alternativas."
+    },
+    {
+      "id": "substance_harm_reduction",
+      "label_internal": "Redução de danos",
+      "description_internal": "Pausas e escolhas de segurança que não orientam nem incentivam consumo."
+    },
+    {
+      "id": "crisis_grounding",
+      "label_internal": "Ancoragem como ponte de segurança",
+      "description_internal": "Ações breves para permanecer no presente enquanto ajuda humana ou emergencial é acionada."
+    }
+  ],
+  "intensity_levels": [
+    {
+      "id": "low",
+      "label_internal": "Baixa intensidade",
+      "max_emotional_activation": 2,
+      "suitable_for_tiers": [
+        "low_signal",
+        "moderate_signal",
+        "high_signal"
+      ]
+    },
+    {
+      "id": "medium",
+      "label_internal": "Média intensidade",
+      "max_emotional_activation": 3,
+      "suitable_for_tiers": [
+        "low_signal",
+        "moderate_signal",
+        "high_signal"
+      ]
+    },
+    {
+      "id": "high",
+      "label_internal": "Alta intensidade",
+      "max_emotional_activation": 4,
+      "suitable_for_tiers": [
+        "moderate_signal",
+        "high_signal"
+      ],
+      "requires_gate": true
+    }
+  ],
+  "evidence_levels_legend": {
+    "A": "Evidência forte / diretriz consolidada",
+    "B": "Evidência moderada / prática clínica frequente",
+    "C": "Consenso clínico / baixo risco, evidência limitada"
+  },
+  "symptom_aliases": {},
+  "activities": [
+    {
+      "id": "act_breathing_long_exhale",
+      "title": "Expiração mais longa",
+      "subtitle_user": "Alongue a saída do ar sem forçar",
+      "duration_min": 5,
+      "duration_max_min": 7,
+      "objective_user": "Diminuir a agitação do corpo",
+      "objective_internal": "downregulate_physiological_arousal",
+      "modalities": [
+        "breathing",
+        "grounding"
+      ],
+      "target_symptoms": [
+        "excessive_worry",
+        "panic_sensations",
+        "emotional_distress"
+      ],
+      "target_tracks": [
+        "anxiety_disorders",
+        "somatic_symptom_disorders",
+        "sleep_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "severe_respiratory_issue",
+        "dizziness_or_fainting"
+      ],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 2
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any",
+        "evening",
+        "night"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Sente-se com os pés apoiados e solte os ombros.",
+          "duration_sec": 45,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Inspire suavemente pelo nariz contando até 3.",
+          "duration_sec": 90,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Solte o ar devagar contando até 5, sem prender a respiração.",
+          "duration_sec": 105,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Repita no seu ritmo e pare se surgir tontura.",
+          "duration_sec": 60,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Realizou pelo menos 6 ciclos confortáveis.",
+      "reflection_prompt_optional": "Qual parte do corpo parece um pouco menos tensa?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Não prescrever retenção de ar; oferecer grounding sensorial se a atenção à respiração aumentar desconforto."
+    },
+    {
+      "id": "act_breathing_square_gentle",
+      "title": "Respiração em quatro tempos",
+      "subtitle_user": "Um ritmo simples para recuperar o compasso",
+      "duration_min": 4,
+      "duration_max_min": 6,
+      "objective_user": "Encontrar um ritmo mais estável",
+      "objective_internal": "stabilize_breathing_rhythm",
+      "modalities": [
+        "breathing",
+        "grounding"
+      ],
+      "target_symptoms": [
+        "panic_sensations",
+        "excessive_worry",
+        "irritability"
+      ],
+      "target_tracks": [
+        "anxiety_disorders",
+        "disruptive_impulse_control_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "severe_respiratory_issue",
+        "breath_holding_discomfort"
+      ],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 6,
+        "min_hours_between": 3
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Olhe para um ponto fixo e apoie os pés.",
+          "duration_sec": 36,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Inspire contando até 3.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Faça uma pausa confortável de 1 tempo e solte o ar contando até 3.",
+          "duration_sec": 84,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Repita sem buscar perfeição; volte à respiração natural ao terminar.",
+          "duration_sec": 48,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Completou 5 ciclos sem forçar.",
+      "reflection_prompt_optional": "O ritmo ficou mais fácil ao longo dos ciclos?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_breathing_counted_10",
+      "title": "Dez respirações contadas",
+      "subtitle_user": "Conte apenas o próximo ciclo",
+      "duration_min": 4,
+      "duration_max_min": 6,
+      "objective_user": "Dar uma pausa curta aos pensamentos",
+      "objective_internal": "redirect_attention_to_breath",
+      "modalities": [
+        "breathing",
+        "mindfulness"
+      ],
+      "target_symptoms": [
+        "racing_thoughts",
+        "excessive_worry",
+        "intrusive_thoughts"
+      ],
+      "target_tracks": [
+        "anxiety_disorders",
+        "obsessive_compulsive_disorder",
+        "bipolar_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "severe_respiratory_issue"
+      ],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [
+        "disorganized_thinking"
+      ],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 2
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Mantenha os olhos abertos ou semicerrados.",
+          "duration_sec": 36,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Respire naturalmente e conte 1 ao soltar o ar.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Continue até 10; se se perder, volte ao 1 sem se criticar.",
+          "duration_sec": 84,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Olhe ao redor e nomeie onde você está antes de encerrar.",
+          "duration_sec": 48,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Chegou até 10 ao menos uma vez.",
+      "reflection_prompt_optional": "Foi possível voltar à contagem quando a mente se afastou?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_breathing_hand_anchor",
+      "title": "Mão como âncora",
+      "subtitle_user": "Perceba o movimento sem mudar o ar",
+      "duration_min": 3,
+      "duration_max_min": 5,
+      "objective_user": "Sentir mais estabilidade no presente",
+      "objective_internal": "anchor_with_natural_breath",
+      "modalities": [
+        "breathing",
+        "grounding",
+        "body_scan"
+      ],
+      "target_symptoms": [
+        "dissociation",
+        "depersonalization",
+        "panic_sensations"
+      ],
+      "target_tracks": [
+        "dissociative_disorders",
+        "trauma_related_disorders",
+        "anxiety_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "touch_sensitivity_on_torso"
+      ],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "psychotic_symptoms_with_risk"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 2
+      },
+      "evidence_level": "C",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Apoie uma mão no peito ou no abdômen, onde for confortável.",
+          "duration_sec": 36,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Perceba o movimento natural da respiração sem tentar controlar.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Sinta também os pés e escolha três objetos que vê ao redor.",
+          "duration_sec": 36,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Observou a respiração e identificou três objetos.",
+      "reflection_prompt_optional": "O que ajudou mais: a mão, os pés ou olhar ao redor?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_breathing_sigh_release",
+      "title": "Suspiro suave e consciente",
+      "subtitle_user": "Solte o ar como quem larga um peso",
+      "duration_min": 3,
+      "duration_max_min": 5,
+      "objective_user": "Reduzir a tensão de forma breve",
+      "objective_internal": "release_muscular_tension_with_exhale",
+      "modalities": [
+        "breathing",
+        "emotion_regulation"
+      ],
+      "target_symptoms": [
+        "irritability",
+        "emotional_distress",
+        "panic_sensations"
+      ],
+      "target_tracks": [
+        "anxiety_disorders",
+        "personality_disorders",
+        "disruptive_impulse_control_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "severe_respiratory_issue"
+      ],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 3
+      },
+      "evidence_level": "C",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Observe se está prendendo o ar ou apertando a mandíbula.",
+          "duration_sec": 36,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Inspire de forma confortável e solte o ar com um suspiro suave.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Repita quatro vezes, relaxando mãos e ombros a cada saída de ar.",
+          "duration_sec": 36,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Fez quatro suspiros suaves e relaxou duas áreas do corpo.",
+      "reflection_prompt_optional": "A tensão mudou de 0 a 5?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_breathing_evening_slow",
+      "title": "Ritmo lento para a noite",
+      "subtitle_user": "Uma transição curta para desacelerar",
+      "duration_min": 6,
+      "duration_max_min": 8,
+      "objective_user": "Preparar o corpo para descansar",
+      "objective_internal": "prepare_sleep_with_slow_breathing",
+      "modalities": [
+        "breathing",
+        "sleep_hygiene",
+        "mindfulness"
+      ],
+      "target_symptoms": [
+        "sleep_onset_difficulty",
+        "insomnia",
+        "racing_thoughts"
+      ],
+      "target_tracks": [
+        "sleep_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "severe_respiratory_issue"
+      ],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "manic_episode_active"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 8
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "evening",
+        "night"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Reduza a luz e escolha uma posição confortável.",
+          "duration_sec": 54,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Inspire sem esforço contando até 3.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Solte o ar contando até 5 e deixe a mandíbula solta.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Repita por alguns minutos e depois volte ao ritmo natural.",
+          "duration_sec": 72,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Fez ao menos 8 ciclos e encerrou sem prender o ar.",
+      "reflection_prompt_optional": "O corpo parece mais pronto para repousar?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_grounding_five_senses",
+      "title": "Cinco sentidos no presente",
+      "subtitle_user": "Reconheça o que está ao seu redor",
+      "duration_min": 5,
+      "duration_max_min": 7,
+      "objective_user": "Voltar a atenção para o aqui e agora",
+      "objective_internal": "orient_to_present_with_senses",
+      "modalities": [
+        "grounding"
+      ],
+      "target_symptoms": [
+        "dissociation",
+        "derealization",
+        "hypervigilance",
+        "panic_sensations"
+      ],
+      "target_tracks": [
+        "trauma_related_disorders",
+        "dissociative_disorders",
+        "anxiety_disorders",
+        "psychotic_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "psychotic_symptoms_with_risk"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 2
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Olhe ao redor e nomeie cinco coisas que vê.",
+          "duration_sec": 45,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Perceba quatro pontos de contato do corpo com superfícies.",
+          "duration_sec": 90,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Identifique três sons e duas sensações de temperatura ou textura.",
+          "duration_sec": 105,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Diga em voz baixa seu nome, o local e a data aproximada.",
+          "duration_sec": 60,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Nomeou itens dos sentidos e se orientou no local.",
+      "reflection_prompt_optional": "Qual sentido trouxe mais sensação de presença?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_grounding_feet_press",
+      "title": "Pés firmes no chão",
+      "subtitle_user": "Use o apoio do corpo para se orientar",
+      "duration_min": 3,
+      "duration_max_min": 5,
+      "objective_user": "Sentir mais firmeza e presença",
+      "objective_internal": "increase_proprioceptive_grounding",
+      "modalities": [
+        "grounding",
+        "movement_micro"
+      ],
+      "target_symptoms": [
+        "depersonalization",
+        "derealization",
+        "emotional_distress"
+      ],
+      "target_tracks": [
+        "dissociative_disorders",
+        "trauma_related_disorders",
+        "personality_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "acute_foot_pain",
+        "mobility_limitation"
+      ],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 2
+      },
+      "evidence_level": "C",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Sente-se e apoie toda a planta dos pés.",
+          "duration_sec": 36,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Pressione o chão por cinco segundos e solte por cinco segundos.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Repita cinco vezes enquanto observa três detalhes do ambiente.",
+          "duration_sec": 36,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Completou cinco pressões e observou três detalhes.",
+      "reflection_prompt_optional": "A sensação de firmeza mudou?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_grounding_object_detail",
+      "title": "Objeto de detalhes",
+      "subtitle_user": "Explore algo simples com curiosidade",
+      "duration_min": 4,
+      "duration_max_min": 6,
+      "objective_user": "Organizar a atenção em algo concreto",
+      "objective_internal": "focus_attention_on_neutral_object",
+      "modalities": [
+        "grounding",
+        "mindfulness"
+      ],
+      "target_symptoms": [
+        "intrusive_thoughts",
+        "dissociation",
+        "hypervigilance"
+      ],
+      "target_tracks": [
+        "obsessive_compulsive_disorder",
+        "trauma_related_disorders",
+        "dissociative_disorders",
+        "psychotic_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "psychotic_symptoms_with_risk"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 2
+      },
+      "evidence_level": "C",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha um objeto neutro que esteja perto.",
+          "duration_sec": 36,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Observe cor, formato, peso, temperatura e textura.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Descreva cinco detalhes sem interpretar o que significam.",
+          "duration_sec": 84,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Coloque o objeto no lugar e olhe ao redor antes de terminar.",
+          "duration_sec": 48,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Descreveu cinco características concretas do objeto.",
+      "reflection_prompt_optional": "Foi possível ficar apenas nos detalhes observáveis?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_grounding_orientation_card",
+      "title": "Cartão de orientação",
+      "subtitle_user": "Relembre onde você está e o que acontece agora",
+      "duration_min": 5,
+      "duration_max_min": 7,
+      "objective_user": "Recuperar referências do momento atual",
+      "objective_internal": "restore_temporal_spatial_orientation",
+      "modalities": [
+        "grounding",
+        "routine_building"
+      ],
+      "target_symptoms": [
+        "dissociation",
+        "trauma_reexperiencing",
+        "exaggerated_startle"
+      ],
+      "target_tracks": [
+        "trauma_related_disorders",
+        "dissociative_disorders",
+        "psychotic_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "psychotic_symptoms_with_risk",
+        "severe_disorganization"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 6
+      },
+      "evidence_level": "C",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escreva seu nome, o dia aproximado e o lugar em que está.",
+          "duration_sec": 45,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Anote três fatos concretos do momento, como luz, clima ou companhia.",
+          "duration_sec": 90,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Leia: “Isso está acontecendo agora; eu posso escolher o próximo passo”.",
+          "duration_sec": 105,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Guarde o cartão em um local fácil de acessar.",
+          "duration_sec": 60,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Preencheu e leu o cartão de orientação.",
+      "reflection_prompt_optional": "Qual fato concreto trouxe mais segurança?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_grounding_cold_texture",
+      "title": "Textura e temperatura segura",
+      "subtitle_user": "Use uma sensação neutra para se ancorar",
+      "duration_min": 3,
+      "duration_max_min": 5,
+      "objective_user": "Interromper uma onda de sobrecarga",
+      "objective_internal": "interrupt_overload_with_safe_sensation",
+      "modalities": [
+        "grounding",
+        "emotion_regulation"
+      ],
+      "target_symptoms": [
+        "check_in_emotional_overload",
+        "panic_sensations",
+        "dissociation"
+      ],
+      "target_tracks": [
+        "anxiety_disorders",
+        "dissociative_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "reduced_temperature_sensation",
+        "skin_injury"
+      ],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 2
+      },
+      "evidence_level": "C",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha um objeto fresco ou com textura confortável, sem extremos de temperatura.",
+          "duration_sec": 36,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Segure-o por alguns segundos e descreva a sensação com palavras simples.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Alterne a atenção entre o objeto, os pés e três coisas que vê.",
+          "duration_sec": 36,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Usou uma sensação segura e nomeou três referências externas.",
+      "reflection_prompt_optional": "A sobrecarga diminuiu, ficou igual ou aumentou?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_crisis_grounding_name_place",
+      "title": "Nome, lugar e apoio",
+      "subtitle_user": "Uma ponte curta enquanto você busca ajuda",
+      "duration_min": 3,
+      "duration_max_min": 5,
+      "objective_user": "Permanecer no presente até o apoio chegar",
+      "objective_internal": "bridge_to_human_support_with_orientation",
+      "modalities": [
+        "crisis_grounding",
+        "grounding"
+      ],
+      "target_symptoms": [
+        "emotional_distress",
+        "help_seeking_readiness",
+        "dissociation"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "trauma_related_disorders",
+        "dissociative_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "psychotic_symptoms_with_risk"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 1
+      },
+      "evidence_level": "C",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Diga seu nome e o lugar onde está.",
+          "duration_sec": 36,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Coloque os pés no chão e nomeie três coisas que vê.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Use a opção de contato exibida na tela e permaneça perto de uma pessoa segura, quando possível.",
+          "duration_sec": 36,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Orientou-se no local e iniciou uma rota de apoio.",
+      "reflection_prompt_optional": "Você conseguiu acionar alguém?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Somente como ponte após a rota humana ou emergencial ter sido oferecida; nunca substitui avaliação."
+    },
+    {
+      "id": "act_crisis_grounding_hold_safe",
+      "title": "Segure algo seguro",
+      "subtitle_user": "Fique com uma referência concreta enquanto chama apoio",
+      "duration_min": 3,
+      "duration_max_min": 5,
+      "objective_user": "Ganhar alguns minutos de estabilidade com companhia",
+      "objective_internal": "maintain_safety_while_escalating",
+      "modalities": [
+        "crisis_grounding",
+        "grounding"
+      ],
+      "target_symptoms": [
+        "panic_sensations",
+        "emotional_distress",
+        "trusted_support_person"
+      ],
+      "target_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 1
+      },
+      "evidence_level": "C",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha um objeto seguro e firme para segurar.",
+          "duration_sec": 36,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Nomeie em voz baixa a textura, a cor e a temperatura.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Ligue ou envie uma mensagem para uma pessoa de confiança usando a opção da tela.",
+          "duration_sec": 36,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Segurou o objeto e acionou uma pessoa ou serviço de apoio.",
+      "reflection_prompt_optional": "Há alguém com você agora?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Exibir apenas junto de recursos de crise; não permitir que a conclusão libere o plano autoguiado."
+    },
+    {
+      "id": "act_crisis_grounding_next_minute",
+      "title": "Apenas o próximo minuto",
+      "subtitle_user": "Um passo de cada vez até falar com alguém",
+      "duration_min": 3,
+      "duration_max_min": 5,
+      "objective_user": "Focar no próximo passo seguro",
+      "objective_internal": "focus_on_immediate_safe_step",
+      "modalities": [
+        "crisis_grounding",
+        "grounding",
+        "social_micro_step"
+      ],
+      "target_symptoms": [
+        "hopelessness",
+        "help_seeking_barrier",
+        "emotional_distress"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "personality_disorders",
+        "substance_use_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 1
+      },
+      "evidence_level": "C",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Afaste-se de situações ou objetos que aumentem o risco, quando isso puder ser feito com segurança.",
+          "duration_sec": 36,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Escolha uma rota de apoio exibida na tela.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Fique no local mais seguro disponível e concentre-se apenas em completar esse contato.",
+          "duration_sec": 36,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Selecionou uma rota de apoio e iniciou o contato.",
+      "reflection_prompt_optional": "O contato foi iniciado?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Ponte de segurança; o aplicativo deve manter o bloqueio do plano e o alerta à equipe."
+    },
+    {
+      "id": "act_journaling_worry_parking",
+      "title": "Estacionamento de preocupações",
+      "subtitle_user": "Tire da cabeça e coloque no papel",
+      "duration_min": 7,
+      "duration_max_min": 9,
+      "objective_user": "Organizar preocupações sem resolvê-las agora",
+      "objective_internal": "externalize_worry_content",
+      "modalities": [
+        "journaling",
+        "cognitive_reframe"
+      ],
+      "target_symptoms": [
+        "excessive_worry",
+        "intrusive_thoughts",
+        "racing_thoughts"
+      ],
+      "target_tracks": [
+        "anxiety_disorders",
+        "obsessive_compulsive_disorder",
+        "sleep_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 8
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "morning",
+        "afternoon",
+        "evening"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escreva as preocupações em frases curtas, uma por linha.",
+          "duration_sec": 63,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Marque com um círculo apenas o que pode receber uma ação pequena hoje.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Escolha um horário de até 10 minutos para rever a lista.",
+          "duration_sec": 147,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Feche o registro e volte a uma tarefa concreta do momento.",
+          "duration_sec": 84,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Registrou as preocupações e escolheu no máximo uma ação.",
+      "reflection_prompt_optional": "O que pode esperar até o horário escolhido?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_journaling_three_facts",
+      "title": "Três fatos e uma interpretação",
+      "subtitle_user": "Separe o que aconteceu do que a mente concluiu",
+      "duration_min": 6,
+      "duration_max_min": 8,
+      "objective_user": "Enxergar a situação com mais clareza",
+      "objective_internal": "separate_facts_from_interpretation",
+      "modalities": [
+        "journaling",
+        "cognitive_reframe"
+      ],
+      "target_symptoms": [
+        "negative_beliefs",
+        "excessive_worry",
+        "health_anxiety"
+      ],
+      "target_tracks": [
+        "anxiety_disorders",
+        "somatic_symptom_disorders",
+        "depressive_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 4,
+        "min_hours_between": 12
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escreva três fatos observáveis sobre a situação.",
+          "duration_sec": 54,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Anote a interpretação que apareceu automaticamente.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Liste uma explicação alternativa que também combine com os fatos.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Escolha um próximo passo pequeno e verificável.",
+          "duration_sec": 72,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Registrou três fatos, uma interpretação e uma alternativa.",
+      "reflection_prompt_optional": "A alternativa parece ao menos 10% possível?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_journaling_energy_map",
+      "title": "Mapa de energia do dia",
+      "subtitle_user": "Perceba onde sua energia sobe ou cai",
+      "duration_min": 6,
+      "duration_max_min": 8,
+      "objective_user": "Planejar o dia respeitando seu ritmo",
+      "objective_internal": "map_daily_energy_pattern",
+      "modalities": [
+        "journaling",
+        "routine_building"
+      ],
+      "target_symptoms": [
+        "fatigue",
+        "daytime_sleepiness",
+        "increased_energy",
+        "circadian_misalignment"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "sleep_disorders",
+        "neurodevelopmental_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "manic_episode_active"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 4,
+        "min_hours_between": 12
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "evening"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Divida o dia em manhã, tarde e noite.",
+          "duration_sec": 54,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Dê uma nota de 0 a 5 para a energia em cada período.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Marque uma atividade que costuma ajudar e uma que costuma esgotar.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Escolha onde colocar uma tarefa curta amanhã.",
+          "duration_sec": 72,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Preencheu os três períodos e escolheu um ajuste.",
+      "reflection_prompt_optional": "Qual período merece mais proteção?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_journaling_trigger_chain",
+      "title": "Antes, durante e depois",
+      "subtitle_user": "Entenda uma sequência sem se culpar",
+      "duration_min": 8,
+      "duration_max_min": 10,
+      "objective_user": "Reconhecer gatilhos e respostas possíveis",
+      "objective_internal": "map_trigger_response_chain",
+      "modalities": [
+        "journaling",
+        "trigger_mapping",
+        "emotion_regulation"
+      ],
+      "target_symptoms": [
+        "irritability",
+        "impulsivity",
+        "craving",
+        "avoidance_behavior"
+      ],
+      "target_tracks": [
+        "personality_disorders",
+        "disruptive_impulse_control_disorders",
+        "substance_use_disorders",
+        "anxiety_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "abuse_current",
+        "current_abuse_or_violence",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 3,
+        "min_hours_between": 18
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Descreva em uma frase o que aconteceu antes.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Anote o primeiro sinal no corpo ou pensamento.",
+          "duration_sec": 144,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Registre o que você fez em seguida e o efeito imediato.",
+          "duration_sec": 168,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Escreva uma alternativa pequena para uma situação parecida.",
+          "duration_sec": 96,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Mapeou a sequência e registrou uma alternativa.",
+      "reflection_prompt_optional": "Qual foi o primeiro sinal que você percebeu?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_journaling_small_wins",
+      "title": "Pequenas coisas que aconteceram",
+      "subtitle_user": "Registre o que funcionou, sem forçar positividade",
+      "duration_min": 5,
+      "duration_max_min": 7,
+      "objective_user": "Perceber ações e apoios que já existem",
+      "objective_internal": "notice_realistic_positive_events",
+      "modalities": [
+        "journaling",
+        "self_compassion"
+      ],
+      "target_symptoms": [
+        "low_mood",
+        "hopelessness",
+        "anhedonia"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "personality_disorders",
+        "eating_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 6,
+        "min_hours_between": 8
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "evening",
+        "night"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Anote uma coisa que você conseguiu fazer hoje, mesmo pequena.",
+          "duration_sec": 60,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Registre uma ajuda recebida ou um recurso usado.",
+          "duration_sec": 180,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Escreva uma dificuldade que ainda permanece, sem apagar o que funcionou.",
+          "duration_sec": 60,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Registrou uma ação, um apoio e uma dificuldade real.",
+      "reflection_prompt_optional": "Qual pequena ação merece reconhecimento?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_journaling_sleep_download",
+      "title": "Descarregue o dia no papel",
+      "subtitle_user": "Deixe as pendências fora da cama",
+      "duration_min": 6,
+      "duration_max_min": 8,
+      "objective_user": "Diminuir a ruminação antes de dormir",
+      "objective_internal": "externalize_bedtime_thoughts",
+      "modalities": [
+        "journaling",
+        "sleep_hygiene"
+      ],
+      "target_symptoms": [
+        "sleep_onset_difficulty",
+        "racing_thoughts",
+        "work_stress"
+      ],
+      "target_tracks": [
+        "sleep_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "manic_episode_active"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 8
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "evening",
+        "night"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Liste rapidamente as pendências que estão voltando à mente.",
+          "duration_sec": 54,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Ao lado de cada uma, escreva: amanhã, depois ou não depende de mim.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Escolha a primeira ação de amanhã e deixe o papel longe da cama.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Encerre com uma frase simples: “Por hoje, isso basta”.",
+          "duration_sec": 72,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Organizou as pendências e definiu apenas a primeira ação de amanhã.",
+      "reflection_prompt_optional": "A mente ficou um pouco menos ocupada?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_journaling_body_neutral",
+      "title": "O corpo como parceiro",
+      "subtitle_user": "Observe funções, não aparência",
+      "duration_min": 7,
+      "duration_max_min": 9,
+      "objective_user": "Construir uma relação mais neutra com o corpo",
+      "objective_internal": "support_body_neutrality",
+      "modalities": [
+        "journaling",
+        "self_compassion"
+      ],
+      "target_symptoms": [
+        "body_image_disturbance",
+        "weight_shape_overvaluation",
+        "restrictive_eating"
+      ],
+      "target_tracks": [
+        "eating_disorders",
+        "depressive_disorders",
+        "personality_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 3,
+        "min_hours_between": 18
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escreva três coisas que seu corpo permitiu fazer hoje.",
+          "duration_sec": 63,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Evite avaliar tamanho, peso ou aparência.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Anote uma forma prática de cuidado possível nas próximas horas.",
+          "duration_sec": 147,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Finalize com uma frase respeitosa e realista sobre seu corpo.",
+          "duration_sec": 84,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Registrou três funções e uma ação de cuidado.",
+      "reflection_prompt_optional": "Qual função do corpo costuma passar despercebida?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Não usar como substituto de avaliação nutricional ou médica quando houver risco físico."
+    },
+    {
+      "id": "act_journaling_choice_plan",
+      "title": "Plano de escolha em três linhas",
+      "subtitle_user": "Transforme confusão em um próximo passo",
+      "duration_min": 10,
+      "duration_max_min": 12,
+      "objective_user": "Organizar uma decisão difícil",
+      "objective_internal": "structure_next_step_decision",
+      "modalities": [
+        "journaling",
+        "cognitive_reframe",
+        "routine_building"
+      ],
+      "target_symptoms": [
+        "executive_dysfunction",
+        "emotional_distress",
+        "help_seeking_barrier"
+      ],
+      "target_tracks": [
+        "neurodevelopmental_disorders",
+        "anxiety_disorders",
+        "depressive_disorders",
+        "personality_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "high",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress",
+        "abuse_current",
+        "current_abuse_or_violence",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 2,
+        "min_hours_between": 24
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [
+        "act_journaling_three_facts"
+      ],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escreva qual decisão precisa ser tomada, sem explicar toda a história.",
+          "duration_sec": 120,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Liste duas opções possíveis e uma consequência provável de cada.",
+          "duration_sec": 120,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Marque a opção mais segura e reversível.",
+          "duration_sec": 120,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Defina uma ação de até 10 minutos para começar.",
+          "duration_sec": 120,
+          "optional": false
+        },
+        {
+          "order": 5,
+          "instruction_user": "Escolha quem pode revisar a decisão com você antes de algo irreversível.",
+          "duration_sec": 120,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Definiu uma ação reversível e uma pessoa para revisar a decisão.",
+      "reflection_prompt_optional": "O próximo passo ficou claro o suficiente para começar?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Alta intensidade; exigir conclusão prévia de registro mais simples e ausência de red flag."
+    },
+    {
+      "id": "act_behavioral_activation_pleasant_five",
+      "title": "Cinco minutos de algo agradável",
+      "subtitle_user": "Comece pequeno, mesmo sem vontade",
+      "duration_min": 7,
+      "duration_max_min": 9,
+      "objective_user": "Retomar um pouco de interesse",
+      "objective_internal": "increase_contact_with_pleasant_activity",
+      "modalities": [
+        "behavioral_activation"
+      ],
+      "target_symptoms": [
+        "anhedonia",
+        "low_mood",
+        "fatigue"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "eating_disorders",
+        "personality_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 6,
+        "min_hours_between": 8
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "morning",
+        "afternoon",
+        "evening"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha algo simples que já foi agradável, como música, banho ou cuidar de uma planta.",
+          "duration_sec": 63,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Prepare apenas o necessário para começar.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Faça por cinco minutos, sem exigir que a vontade apareça primeiro.",
+          "duration_sec": 147,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Dê uma nota de 0 a 5 para o efeito e encerre sem cobrança.",
+          "duration_sec": 84,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Realizou cinco minutos e registrou o efeito.",
+      "reflection_prompt_optional": "O que tornou possível começar?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_behavioral_activation_one_surface",
+      "title": "Uma superfície por vez",
+      "subtitle_user": "Cuide de um espaço pequeno",
+      "duration_min": 8,
+      "duration_max_min": 10,
+      "objective_user": "Recuperar sensação de organização",
+      "objective_internal": "build_mastery_with_small_environment_task",
+      "modalities": [
+        "behavioral_activation",
+        "routine_building"
+      ],
+      "target_symptoms": [
+        "fatigue",
+        "executive_dysfunction",
+        "low_mood"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "psychotic_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress",
+        "severe_self_neglect"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 4,
+        "min_hours_between": 12
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha apenas uma superfície pequena, como uma mesa ou criado-mudo.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Separe lixo, itens para guardar e itens que ficam.",
+          "duration_sec": 144,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Organize por cinco minutos usando um cronômetro.",
+          "duration_sec": 168,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Pare quando o tempo acabar, mesmo que não esteja perfeito.",
+          "duration_sec": 96,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Organizou uma única superfície durante cinco minutos.",
+      "reflection_prompt_optional": "O espaço ficou funcional o suficiente?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_behavioral_activation_shower_start",
+      "title": "Começo de autocuidado",
+      "subtitle_user": "Faça apenas a primeira parte",
+      "duration_min": 6,
+      "duration_max_min": 8,
+      "objective_user": "Facilitar um cuidado básico",
+      "objective_internal": "initiate_basic_self_care",
+      "modalities": [
+        "behavioral_activation",
+        "routine_building"
+      ],
+      "target_symptoms": [
+        "fatigue",
+        "low_mood",
+        "neglect_self_care_severe"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "psychotic_disorders",
+        "personality_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "medical_restriction_on_selected_self_care"
+      ],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress",
+        "severe_self_neglect",
+        "severe_self_care_neglect"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 6
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha um cuidado simples: lavar o rosto, escovar os dentes ou trocar de roupa.",
+          "duration_sec": 54,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Deixe os itens necessários ao alcance.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Faça somente a ação escolhida, sem adicionar outras obrigações.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Marque como concluído e reconheça o esforço.",
+          "duration_sec": 72,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Concluiu uma ação básica de autocuidado.",
+      "reflection_prompt_optional": "Qual ação ficou mais fácil depois de começar?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_behavioral_activation_outdoor_light",
+      "title": "Luz e ar por alguns minutos",
+      "subtitle_user": "Mude o cenário de forma simples",
+      "duration_min": 8,
+      "duration_max_min": 10,
+      "objective_user": "Ganhar energia e referência de horário",
+      "objective_internal": "increase_daylight_and_environmental_contact",
+      "modalities": [
+        "behavioral_activation",
+        "movement_micro",
+        "sleep_hygiene"
+      ],
+      "target_symptoms": [
+        "circadian_misalignment",
+        "fatigue",
+        "low_mood"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "sleep_disorders",
+        "bipolar_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "photosensitivity_medication",
+        "unsafe_outdoor_environment"
+      ],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "manic_episode_active"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 12
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "morning",
+        "afternoon"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Vá até uma janela, varanda ou área externa segura.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Observe a luz e o clima por um minuto.",
+          "duration_sec": 144,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Caminhe devagar ou permaneça sentado por cinco minutos.",
+          "duration_sec": 168,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Volte e registre o horário em que fez a atividade.",
+          "duration_sec": 96,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Passou pelo menos cinco minutos em contato seguro com a luz do dia.",
+      "reflection_prompt_optional": "A energia mudou de 0 a 5?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_behavioral_activation_body_double",
+      "title": "Companhia para começar",
+      "subtitle_user": "Faça uma tarefa perto de alguém",
+      "duration_min": 12,
+      "duration_max_min": 14,
+      "objective_user": "Facilitar o início de uma tarefa",
+      "objective_internal": "use_social_presence_for_task_initiation",
+      "modalities": [
+        "behavioral_activation",
+        "social_micro_step",
+        "routine_building"
+      ],
+      "target_symptoms": [
+        "executive_dysfunction",
+        "attention_difficulty",
+        "social_isolation"
+      ],
+      "target_tracks": [
+        "neurodevelopmental_disorders",
+        "depressive_disorders",
+        "anxiety_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 4,
+        "min_hours_between": 12
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha uma tarefa que caiba em dez minutos.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Convide alguém para ficar perto, em chamada ou presencialmente, sem precisar ajudar.",
+          "duration_sec": 216,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Diga qual parte você fará primeiro.",
+          "duration_sec": 252,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Trabalhe por dez minutos e avise quando terminar.",
+          "duration_sec": 144,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Fez dez minutos da tarefa com presença combinada.",
+      "reflection_prompt_optional": "A companhia ajudou a começar ou manter o foco?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_behavioral_activation_walk_block",
+      "title": "Volta curta e segura",
+      "subtitle_user": "Movimente-se sem buscar desempenho",
+      "duration_min": 10,
+      "duration_max_min": 12,
+      "objective_user": "Despertar o corpo com leveza",
+      "objective_internal": "increase_energy_with_brief_walk",
+      "modalities": [
+        "behavioral_activation",
+        "movement_micro"
+      ],
+      "target_symptoms": [
+        "fatigue",
+        "low_mood",
+        "emotional_distress"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [
+        "acute_physical_pain",
+        "mobility_limitation",
+        "medical_exercise_restriction"
+      ],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress",
+        "manic_episode_active"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 12
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "morning",
+        "afternoon"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha um trajeto conhecido e seguro ou caminhe dentro de casa.",
+          "duration_sec": 90,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Comece em ritmo confortável por dois minutos.",
+          "duration_sec": 180,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Continue por seis minutos observando o ambiente, não o desempenho.",
+          "duration_sec": 210,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Retorne devagar e beba água se desejar.",
+          "duration_sec": 120,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Completou até dez minutos de caminhada segura.",
+      "reflection_prompt_optional": "Como ficou sua energia depois?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_behavioral_activation_task_sprint",
+      "title": "Bloco de uma tarefa",
+      "subtitle_user": "Proteja quinze minutos para uma única coisa",
+      "duration_min": 17,
+      "duration_max_min": 19,
+      "objective_user": "Avançar em uma tarefa importante",
+      "objective_internal": "complete_focused_mastery_block",
+      "modalities": [
+        "behavioral_activation",
+        "routine_building"
+      ],
+      "target_symptoms": [
+        "executive_dysfunction",
+        "attention_difficulty",
+        "work_stress"
+      ],
+      "target_tracks": [
+        "neurodevelopmental_disorders",
+        "depressive_disorders",
+        "anxiety_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 8
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha uma tarefa com resultado visível em quinze minutos.",
+          "duration_sec": 153,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Retire uma distração fácil, como silenciar notificações.",
+          "duration_sec": 306,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Trabalhe somente na primeira parte até o cronômetro tocar.",
+          "duration_sec": 357,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Anote onde parou para facilitar a retomada.",
+          "duration_sec": 204,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Trabalhou quinze minutos e registrou o ponto de retomada.",
+      "reflection_prompt_optional": "Qual foi o menor passo que gerou avanço?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_behavioral_activation_mastery_twenty",
+      "title": "Projeto pequeno concluído",
+      "subtitle_user": "Use vinte minutos para fechar um ciclo",
+      "duration_min": 20,
+      "duration_max_min": 20,
+      "objective_user": "Fortalecer a sensação de capacidade",
+      "objective_internal": "complete_bounded_mastery_task",
+      "modalities": [
+        "behavioral_activation",
+        "routine_building"
+      ],
+      "target_symptoms": [
+        "anhedonia",
+        "executive_dysfunction",
+        "low_mood"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "neurodevelopmental_disorders",
+        "personality_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "high",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress",
+        "manic_episode_active",
+        "manic_activation_active"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 2,
+        "min_hours_between": 24
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [
+        "act_behavioral_activation_task_sprint"
+      ],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha um projeto pequeno que possa terminar hoje.",
+          "duration_sec": 240,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Defina claramente o que significa “pronto”.",
+          "duration_sec": 240,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Trabalhe por quinze minutos sem ampliar o escopo.",
+          "duration_sec": 240,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Use os minutos finais para concluir, guardar materiais e registrar o resultado.",
+          "duration_sec": 240,
+          "optional": false
+        },
+        {
+          "order": 5,
+          "instruction_user": "Pare no limite combinado, mesmo se surgir vontade de continuar.",
+          "duration_sec": 240,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Concluiu o projeto delimitado e encerrou no tempo previsto.",
+      "reflection_prompt_optional": "O que essa conclusão mostra sobre sua capacidade de agir?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Alta intensidade; não selecionar em ativação elevada ou como primeira atividade."
+    },
+    {
+      "id": "act_emotion_regulation_name_need",
+      "title": "Nome, intensidade e necessidade",
+      "subtitle_user": "Entenda o que a emoção está pedindo",
+      "duration_min": 6,
+      "duration_max_min": 8,
+      "objective_user": "Dar forma ao que você sente",
+      "objective_internal": "label_emotion_and_need",
+      "modalities": [
+        "emotion_regulation",
+        "journaling"
+      ],
+      "target_symptoms": [
+        "emotional_distress",
+        "irritability",
+        "check_in_emotional_overload"
+      ],
+      "target_tracks": [
+        "personality_disorders",
+        "anxiety_disorders",
+        "depressive_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 6,
+        "min_hours_between": 4
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha uma palavra simples para a emoção principal.",
+          "duration_sec": 54,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Dê uma nota de 0 a 5 para a intensidade.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Pergunte: preciso de pausa, limite, apoio ou ação?",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Escolha apenas uma resposta pequena e segura.",
+          "duration_sec": 72,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Nomeou a emoção, a intensidade e uma necessidade.",
+      "reflection_prompt_optional": "A emoção ficou mais compreensível?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_emotion_regulation_pause_urge",
+      "title": "Pausa antes do impulso",
+      "subtitle_user": "Crie espaço entre vontade e ação",
+      "duration_min": 5,
+      "duration_max_min": 7,
+      "objective_user": "Escolher a próxima ação com mais calma",
+      "objective_internal": "increase_pause_before_impulsive_action",
+      "modalities": [
+        "emotion_regulation",
+        "grounding"
+      ],
+      "target_symptoms": [
+        "impulsivity",
+        "impulse_control_difficulty",
+        "irritability"
+      ],
+      "target_tracks": [
+        "disruptive_impulse_control_disorders",
+        "personality_disorders",
+        "bipolar_disorders",
+        "substance_use_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "abuse_current",
+        "current_abuse_or_violence",
+        "violence_in_progress",
+        "manic_episode_active"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 2
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Afaste-se por alguns minutos da situação, quando for seguro.",
+          "duration_sec": 45,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Nomeie o impulso sem obedecer a ele: “Estou com vontade de...”",
+          "duration_sec": 90,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Pressione os pés no chão e faça três expirações lentas.",
+          "duration_sec": 105,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Escolha entre esperar dez minutos, pedir ajuda ou sair do ambiente.",
+          "duration_sec": 60,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Fez a pausa e escolheu uma alternativa segura.",
+      "reflection_prompt_optional": "A força do impulso mudou de 0 a 5?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_emotion_regulation_temperature_neutral",
+      "title": "Mudança sensorial suave",
+      "subtitle_user": "Use água fresca sem extremos",
+      "duration_min": 4,
+      "duration_max_min": 6,
+      "objective_user": "Reduzir uma onda emocional com segurança",
+      "objective_internal": "shift_arousal_with_safe_temperature",
+      "modalities": [
+        "emotion_regulation",
+        "grounding"
+      ],
+      "target_symptoms": [
+        "emotional_distress",
+        "irritability",
+        "panic_sensations"
+      ],
+      "target_tracks": [
+        "personality_disorders",
+        "anxiety_disorders",
+        "disruptive_impulse_control_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "temperature_sensitivity",
+        "skin_injury",
+        "medical_restriction_cold_exposure"
+      ],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 4
+      },
+      "evidence_level": "C",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Verifique se água fresca é segura para você.",
+          "duration_sec": 36,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Lave as mãos ou o rosto com água fresca, sem usar gelo.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Perceba a temperatura e descreva três sensações concretas.",
+          "duration_sec": 84,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Seque-se devagar e observe se a intensidade mudou.",
+          "duration_sec": 48,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Usou uma mudança de temperatura segura e avaliou o efeito.",
+      "reflection_prompt_optional": "A intensidade diminuiu, ficou igual ou aumentou?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_emotion_regulation_opposite_small",
+      "title": "Uma ação diferente",
+      "subtitle_user": "Escolha um gesto pequeno que não alimente a emoção",
+      "duration_min": 8,
+      "duration_max_min": 10,
+      "objective_user": "Responder de forma mais útil ao momento",
+      "objective_internal": "choose_small_opposite_action",
+      "modalities": [
+        "emotion_regulation",
+        "behavioral_activation"
+      ],
+      "target_symptoms": [
+        "avoidance_behavior",
+        "social_isolation",
+        "low_mood"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "personality_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 4,
+        "min_hours_between": 8
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Nomeie a emoção e o que ela dá vontade de fazer.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Pergunte se seguir essa vontade ajuda no longo prazo.",
+          "duration_sec": 144,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Escolha uma ação pequena na direção oposta, como abrir a janela ou responder uma mensagem.",
+          "duration_sec": 168,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Faça a ação por até cinco minutos e reavalie.",
+          "duration_sec": 96,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Realizou uma ação pequena diferente do impulso inicial.",
+      "reflection_prompt_optional": "A ação mudou o rumo do momento?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_cognitive_reframe_evidence_balance",
+      "title": "Dois lados da história",
+      "subtitle_user": "Procure fatos a favor e contra",
+      "duration_min": 8,
+      "duration_max_min": 10,
+      "objective_user": "Construir uma visão mais equilibrada",
+      "objective_internal": "evaluate_thought_evidence",
+      "modalities": [
+        "cognitive_reframe",
+        "journaling"
+      ],
+      "target_symptoms": [
+        "negative_beliefs",
+        "excessive_worry",
+        "health_anxiety"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 4,
+        "min_hours_between": 12
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escreva o pensamento que está pesando.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Liste dois fatos que parecem apoiá-lo.",
+          "duration_sec": 144,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Liste dois fatos que mostram limites ou outra possibilidade.",
+          "duration_sec": 168,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Crie uma frase mais equilibrada, sem precisar ser positiva.",
+          "duration_sec": 96,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Registrou fatos dos dois lados e uma frase equilibrada.",
+      "reflection_prompt_optional": "A nova frase parece mais justa?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_cognitive_reframe_probability",
+      "title": "Possível não é certo",
+      "subtitle_user": "Diferencie chance de certeza",
+      "duration_min": 6,
+      "duration_max_min": 8,
+      "objective_user": "Diminuir conclusões apressadas",
+      "objective_internal": "calibrate_threat_probability",
+      "modalities": [
+        "cognitive_reframe",
+        "journaling"
+      ],
+      "target_symptoms": [
+        "excessive_worry",
+        "panic_sensations",
+        "health_anxiety"
+      ],
+      "target_tracks": [
+        "anxiety_disorders",
+        "somatic_symptom_disorders",
+        "sleep_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 8
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escreva o resultado que sua mente está prevendo.",
+          "duration_sec": 54,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Dê uma estimativa de chance de 0 a 100, sem buscar precisão.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Anote uma alternativa menos ameaçadora que também é possível.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Escolha uma ação baseada nos fatos disponíveis agora.",
+          "duration_sec": 72,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Estimou a chance, criou uma alternativa e definiu uma ação.",
+      "reflection_prompt_optional": "A previsão parecia certeza ou possibilidade?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_cognitive_reframe_thought_label",
+      "title": "É um pensamento, não uma ordem",
+      "subtitle_user": "Coloque um pouco de distância",
+      "duration_min": 5,
+      "duration_max_min": 7,
+      "objective_user": "Reduzir o poder de pensamentos insistentes",
+      "objective_internal": "cognitive_defusion_from_intrusions",
+      "modalities": [
+        "cognitive_reframe",
+        "mindfulness"
+      ],
+      "target_symptoms": [
+        "intrusive_thoughts",
+        "negative_beliefs",
+        "compulsive_rituals"
+      ],
+      "target_tracks": [
+        "obsessive_compulsive_disorder",
+        "anxiety_disorders",
+        "depressive_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress",
+        "psychotic_symptoms_acute"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 6,
+        "min_hours_between": 4
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Perceba a frase que está se repetindo.",
+          "duration_sec": 45,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Acrescente no início: “Estou tendo o pensamento de que...”",
+          "duration_sec": 90,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Repita a frase lentamente duas vezes.",
+          "duration_sec": 105,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Volte a uma ação concreta sem discutir com o pensamento.",
+          "duration_sec": 60,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Nomeou o pensamento e retomou uma ação concreta.",
+      "reflection_prompt_optional": "A frase pareceu um pouco menos imperativa?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Não usar para contestar experiências perceptivas agudas."
+    },
+    {
+      "id": "act_cognitive_reframe_health_plan",
+      "title": "Preocupação e cuidado responsável",
+      "subtitle_user": "Separe urgência, acompanhamento e espera",
+      "duration_min": 9,
+      "duration_max_min": 11,
+      "objective_user": "Organizar uma preocupação física com segurança",
+      "objective_internal": "differentiate_medical_action_from_catastrophizing",
+      "modalities": [
+        "cognitive_reframe",
+        "journaling"
+      ],
+      "target_symptoms": [
+        "health_anxiety",
+        "persistent_physical_symptoms",
+        "pain_preoccupation"
+      ],
+      "target_tracks": [
+        "somatic_symptom_disorders",
+        "anxiety_disorders",
+        "depressive_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [
+        "unassessed_emergency_symptoms"
+      ],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 3,
+        "min_hours_between": 18
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Anote o sintoma físico em termos concretos, sem interpretar.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Registre duração, intensidade e mudanças recentes.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Verifique se existe orientação médica prévia ou sinal de urgência já conhecido.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Escolha entre buscar atendimento, agendar acompanhamento ou observar pelo período combinado.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 5,
+          "instruction_user": "Evite novas pesquisas até cumprir o próximo passo escolhido.",
+          "duration_sec": 108,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Registrou fatos e escolheu uma ação proporcional.",
+      "reflection_prompt_optional": "O plano ficou mais claro do que a preocupação?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Nunca atrasar atendimento de urgência; esta atividade organiza decisão, não avalia sintomas médicos."
+    },
+    {
+      "id": "act_sleep_hygiene_wind_down",
+      "title": "Ritual curto de desaceleração",
+      "subtitle_user": "Repita os mesmos sinais de fim do dia",
+      "duration_min": 10,
+      "duration_max_min": 12,
+      "objective_user": "Preparar corpo e ambiente para descansar",
+      "objective_internal": "build_consistent_wind_down_routine",
+      "modalities": [
+        "sleep_hygiene",
+        "routine_building"
+      ],
+      "target_symptoms": [
+        "sleep_onset_difficulty",
+        "insomnia",
+        "circadian_misalignment"
+      ],
+      "target_tracks": [
+        "sleep_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "manic_episode_active"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 8
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "evening",
+        "night"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Reduza a luz e silencie notificações não essenciais.",
+          "duration_sec": 90,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Escolha duas ações simples, como higiene pessoal e preparar água.",
+          "duration_sec": 180,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Repita as ações na mesma ordem e sem acrescentar tarefas.",
+          "duration_sec": 210,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Vá para a cama apenas ao terminar o ritual.",
+          "duration_sec": 120,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Completou as duas ações na ordem escolhida.",
+      "reflection_prompt_optional": "Qual sinal ajudou mais a marcar o fim do dia?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_sleep_hygiene_bed_boundary",
+      "title": "Cama para descansar",
+      "subtitle_user": "Reforce uma associação simples",
+      "duration_min": 8,
+      "duration_max_min": 10,
+      "objective_user": "Diminuir o tempo acordado na cama",
+      "objective_internal": "strengthen_bed_sleep_association",
+      "modalities": [
+        "sleep_hygiene",
+        "behavioral_activation"
+      ],
+      "target_symptoms": [
+        "insomnia",
+        "sleep_onset_difficulty",
+        "nonrestorative_sleep"
+      ],
+      "target_tracks": [
+        "sleep_disorders",
+        "depressive_disorders",
+        "anxiety_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [
+        "fall_risk_at_night",
+        "mobility_limitation"
+      ],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 4
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "night"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Perceba se está acordado e frustrado na cama há algum tempo.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Levante-se com segurança e vá para um local de pouca luz.",
+          "duration_sec": 144,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Faça algo monótono e tranquilo, sem trabalho ou notícias.",
+          "duration_sec": 168,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Volte para a cama quando o sono reaparecer.",
+          "duration_sec": 96,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Deixou a cama durante a vigília prolongada e retornou com sonolência.",
+      "reflection_prompt_optional": "A frustração diminuiu fora da cama?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_sleep_hygiene_morning_anchor",
+      "title": "Âncora da manhã",
+      "subtitle_user": "Comece o dia em um horário previsível",
+      "duration_min": 7,
+      "duration_max_min": 9,
+      "objective_user": "Dar ao corpo uma referência de horário",
+      "objective_internal": "stabilize_wake_time_anchor",
+      "modalities": [
+        "sleep_hygiene",
+        "routine_building",
+        "behavioral_activation"
+      ],
+      "target_symptoms": [
+        "circadian_misalignment",
+        "daytime_sleepiness",
+        "hypersomnia"
+      ],
+      "target_tracks": [
+        "sleep_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "medical_sleep_restriction",
+        "photosensitivity_medication"
+      ],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "manic_episode_active"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 7,
+        "min_hours_between": 12
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "morning"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Levante no horário planejado dentro de uma margem realista.",
+          "duration_sec": 63,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Abra a cortina ou procure luz natural segura.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Beba água e faça uma ação curta em pé ou sentado.",
+          "duration_sec": 147,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Registre o horário para comparar ao longo da semana.",
+          "duration_sec": 84,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Levantou, recebeu luz e registrou o horário.",
+      "reflection_prompt_optional": "A manhã ficou mais organizada?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_sleep_hygiene_caffeine_cutoff",
+      "title": "Horário de corte",
+      "subtitle_user": "Escolha quando parar os estimulantes",
+      "duration_min": 5,
+      "duration_max_min": 7,
+      "objective_user": "Proteger o sono da noite",
+      "objective_internal": "reduce_late_stimulant_exposure",
+      "modalities": [
+        "sleep_hygiene",
+        "trigger_mapping"
+      ],
+      "target_symptoms": [
+        "caffeine_excess",
+        "sleep_onset_difficulty",
+        "racing_thoughts"
+      ],
+      "target_tracks": [
+        "sleep_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "medical_caffeine_plan"
+      ],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "manic_episode_active"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 4,
+        "min_hours_between": 24
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "morning",
+        "afternoon"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Registre o horário da última bebida estimulante de hoje.",
+          "duration_sec": 45,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Escolha um horário de corte compatível com sua rotina e orientação de saúde.",
+          "duration_sec": 90,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Defina uma alternativa sem estimulante para depois desse horário.",
+          "duration_sec": 105,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Coloque um lembrete simples para amanhã.",
+          "duration_sec": 60,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Definiu horário de corte e uma alternativa.",
+      "reflection_prompt_optional": "O horário escolhido parece possível de repetir?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_sleep_hygiene_night_environment",
+      "title": "Quarto mais favorável",
+      "subtitle_user": "Ajuste apenas três elementos",
+      "duration_min": 6,
+      "duration_max_min": 8,
+      "objective_user": "Facilitar um ambiente de descanso",
+      "objective_internal": "optimize_sleep_environment",
+      "modalities": [
+        "sleep_hygiene",
+        "routine_building"
+      ],
+      "target_symptoms": [
+        "sleep_disturbance",
+        "nonrestorative_sleep",
+        "parasomnias"
+      ],
+      "target_tracks": [
+        "sleep_disorders",
+        "trauma_related_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "unsafe_home_environment"
+      ],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "abuse_current",
+        "current_abuse_or_violence",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 12
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "evening",
+        "night"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha três ajustes possíveis: luz, ruído, temperatura, roupa de cama ou segurança.",
+          "duration_sec": 54,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Faça apenas os ajustes que não aumentem desconforto.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Deixe uma luz de referência se a escuridão não for confortável.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Mantenha passagem livre para evitar tropeços.",
+          "duration_sec": 72,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Concluiu até três ajustes seguros.",
+      "reflection_prompt_optional": "Qual mudança teve maior efeito?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_sleep_hygiene_restless_legs_plan",
+      "title": "Pernas mais confortáveis",
+      "subtitle_user": "Teste um cuidado leve antes de deitar",
+      "duration_min": 7,
+      "duration_max_min": 9,
+      "objective_user": "Diminuir desconforto noturno sem forçar",
+      "objective_internal": "support_restless_legs_comfort",
+      "modalities": [
+        "sleep_hygiene",
+        "movement_micro"
+      ],
+      "target_symptoms": [
+        "restless_legs_symptoms",
+        "sleep_onset_difficulty",
+        "nonrestorative_sleep"
+      ],
+      "target_tracks": [
+        "sleep_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "acute_leg_pain",
+        "mobility_limitation",
+        "suspected_medical_emergency"
+      ],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 8
+      },
+      "evidence_level": "C",
+      "time_of_day": [
+        "evening",
+        "night"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Verifique se há dor intensa, inchaço ou orientação médica que exija outro cuidado.",
+          "duration_sec": 63,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Faça movimentos leves de tornozelo ou caminhe por dois minutos, se for seguro.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Ajuste a posição das pernas e a roupa de cama.",
+          "duration_sec": 147,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Registre se o desconforto mudou de 0 a 5.",
+          "duration_sec": 84,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Fez o movimento leve e registrou o efeito.",
+      "reflection_prompt_optional": "O desconforto mudou depois do movimento?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Não substitui avaliação médica de sintomas persistentes ou súbitos."
+    },
+    {
+      "id": "act_mindfulness_sound_window",
+      "title": "Janela de sons",
+      "subtitle_user": "Escute sem precisar explicar",
+      "duration_min": 5,
+      "duration_max_min": 7,
+      "objective_user": "Descansar a atenção em sons do momento",
+      "objective_internal": "anchor_attention_to_ambient_sound",
+      "modalities": [
+        "mindfulness",
+        "grounding"
+      ],
+      "target_symptoms": [
+        "excessive_worry",
+        "intrusive_thoughts",
+        "hypervigilance"
+      ],
+      "target_tracks": [
+        "anxiety_disorders",
+        "obsessive_compulsive_disorder",
+        "trauma_related_disorders",
+        "psychotic_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 6,
+        "min_hours_between": 4
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Mantenha os olhos abertos e observe o ambiente.",
+          "duration_sec": 45,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Perceba um som próximo, um intermediário e um distante.",
+          "duration_sec": 90,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Nomeie cada som apenas pelo que é, sem buscar significado.",
+          "duration_sec": 105,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Volte a olhar três objetos do local antes de encerrar.",
+          "duration_sec": 60,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Identificou três sons e três objetos.",
+      "reflection_prompt_optional": "Qual som foi mais neutro?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_mindfulness_one_task",
+      "title": "Uma coisa de cada vez",
+      "subtitle_user": "Leve atenção total a uma tarefa simples",
+      "duration_min": 7,
+      "duration_max_min": 9,
+      "objective_user": "Reduzir dispersão por alguns minutos",
+      "objective_internal": "practice_single_task_attention",
+      "modalities": [
+        "mindfulness",
+        "routine_building"
+      ],
+      "target_symptoms": [
+        "attention_difficulty",
+        "executive_dysfunction",
+        "racing_thoughts"
+      ],
+      "target_tracks": [
+        "neurodevelopmental_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "severe_disorganization"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 6,
+        "min_hours_between": 4
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha uma tarefa simples e segura, como preparar água ou dobrar uma peça.",
+          "duration_sec": 63,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Silencie uma distração fácil.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Faça a tarefa percebendo movimentos, sons e sequência.",
+          "duration_sec": 147,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Ao terminar, diga em voz baixa: “Essa tarefa acabou”.",
+          "duration_sec": 84,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Concluiu uma única tarefa sem alternar voluntariamente.",
+      "reflection_prompt_optional": "O que ajudou a permanecer nela?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_mindfulness_leaf_stream",
+      "title": "Pensamentos passando",
+      "subtitle_user": "Observe sem seguir cada ideia",
+      "duration_min": 6,
+      "duration_max_min": 8,
+      "objective_user": "Deixar pensamentos irem e virem",
+      "objective_internal": "observe_thoughts_without_engagement",
+      "modalities": [
+        "mindfulness",
+        "cognitive_reframe"
+      ],
+      "target_symptoms": [
+        "intrusive_thoughts",
+        "excessive_worry",
+        "negative_beliefs"
+      ],
+      "target_tracks": [
+        "obsessive_compulsive_disorder",
+        "anxiety_disorders",
+        "depressive_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress",
+        "psychotic_symptoms_acute"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 4,
+        "min_hours_between": 8
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Sente-se com os olhos abertos ou semicerrados.",
+          "duration_sec": 54,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Quando um pensamento surgir, nomeie apenas “pensamento”.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Imagine colocá-lo em uma folha que segue por um riacho.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Volte aos pés no chão sempre que a imagem aumentar o desconforto.",
+          "duration_sec": 72,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Observou pensamentos por alguns minutos e voltou aos pés quando necessário.",
+      "reflection_prompt_optional": "Foi possível não acompanhar ao menos um pensamento?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_body_scan_three_zones",
+      "title": "Três áreas do corpo",
+      "subtitle_user": "Observe sem procurar problema",
+      "duration_min": 5,
+      "duration_max_min": 7,
+      "objective_user": "Perceber sinais do corpo com suavidade",
+      "objective_internal": "gentle_body_awareness",
+      "modalities": [
+        "body_scan",
+        "mindfulness"
+      ],
+      "target_symptoms": [
+        "persistent_physical_symptoms",
+        "emotional_distress",
+        "dissociation"
+      ],
+      "target_tracks": [
+        "somatic_symptom_disorders",
+        "trauma_related_disorders",
+        "dissociative_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "body_attention_increases_distress"
+      ],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "psychotic_symptoms_acute"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 6
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Mantenha os olhos abertos e escolha pés, mãos e ombros.",
+          "duration_sec": 45,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Observe cada área por alguns segundos, sem mudar nada.",
+          "duration_sec": 90,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Use palavras neutras, como quente, frio, leve ou firme.",
+          "duration_sec": 105,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Se surgir desconforto, volte a olhar o ambiente.",
+          "duration_sec": 60,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Observou três áreas e encerrou orientado ao ambiente.",
+      "reflection_prompt_optional": "Qual descrição neutra apareceu?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_body_scan_tension_release",
+      "title": "Aperta e solta suave",
+      "subtitle_user": "Compare tensão e descanso",
+      "duration_min": 7,
+      "duration_max_min": 9,
+      "objective_user": "Reconhecer e aliviar tensão muscular",
+      "objective_internal": "progressive_muscle_release_brief",
+      "modalities": [
+        "body_scan",
+        "emotion_regulation"
+      ],
+      "target_symptoms": [
+        "panic_sensations",
+        "irritability",
+        "sleep_onset_difficulty"
+      ],
+      "target_tracks": [
+        "anxiety_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [
+        "acute_physical_pain",
+        "muscle_injury",
+        "medical_restriction_isometric"
+      ],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 4,
+        "min_hours_between": 8
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any",
+        "evening",
+        "night"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha mãos, ombros e rosto; não use áreas doloridas.",
+          "duration_sec": 63,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Contraia as mãos suavemente por três segundos e solte.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Eleve os ombros suavemente e solte; depois relaxe a testa e a mandíbula.",
+          "duration_sec": 147,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Respire naturalmente e compare antes e depois.",
+          "duration_sec": 84,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Contraiu e relaxou três áreas sem dor.",
+      "reflection_prompt_optional": "Qual área respondeu melhor?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_body_scan_neutral_comfort",
+      "title": "Ponto neutro de conforto",
+      "subtitle_user": "Encontre uma área que não pede atenção",
+      "duration_min": 4,
+      "duration_max_min": 6,
+      "objective_user": "Equilibrar a atenção corporal",
+      "objective_internal": "identify_neutral_body_sensation",
+      "modalities": [
+        "body_scan",
+        "grounding"
+      ],
+      "target_symptoms": [
+        "health_anxiety",
+        "pain_preoccupation",
+        "persistent_physical_symptoms"
+      ],
+      "target_tracks": [
+        "somatic_symptom_disorders",
+        "anxiety_disorders",
+        "eating_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "body_attention_increases_distress"
+      ],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 6
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Observe o corpo de forma ampla, sem examinar sintomas.",
+          "duration_sec": 36,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Procure uma área neutra ou confortável, mesmo pequena.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Descreva essa área por textura, temperatura ou apoio.",
+          "duration_sec": 84,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Alterne a atenção entre essa área e um objeto do ambiente.",
+          "duration_sec": 48,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Encontrou uma área neutra e alternou com referência externa.",
+      "reflection_prompt_optional": "Foi possível notar algo além do desconforto?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_social_micro_step_check_in",
+      "title": "Mensagem de presença",
+      "subtitle_user": "Avise alguém que você está por perto",
+      "duration_min": 4,
+      "duration_max_min": 6,
+      "objective_user": "Diminuir o isolamento com um contato simples",
+      "objective_internal": "initiate_low_demand_social_contact",
+      "modalities": [
+        "social_micro_step"
+      ],
+      "target_symptoms": [
+        "social_isolation",
+        "help_seeking_barrier",
+        "trusted_support_person"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "anxiety_disorders",
+        "personality_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "abuse_current",
+        "current_abuse_or_violence",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 8
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha uma pessoa segura e acessível.",
+          "duration_sec": 48,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Envie uma mensagem curta, como “Oi, lembrei de você. Como está?”",
+          "duration_sec": 144,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Não exija resposta imediata e volte a uma atividade do momento.",
+          "duration_sec": 48,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Enviou uma mensagem curta para uma pessoa segura.",
+      "reflection_prompt_optional": "Como foi dar o primeiro passo?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_social_micro_step_specific_help",
+      "title": "Pedido pequeno e específico",
+      "subtitle_user": "Facilite para a outra pessoa entender",
+      "duration_min": 6,
+      "duration_max_min": 8,
+      "objective_user": "Pedir um apoio possível",
+      "objective_internal": "make_specific_support_request",
+      "modalities": [
+        "social_micro_step",
+        "emotion_regulation"
+      ],
+      "target_symptoms": [
+        "help_seeking_barrier",
+        "social_isolation",
+        "emotional_distress"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "trauma_related_disorders",
+        "personality_disorders",
+        "substance_use_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "abuse_current",
+        "current_abuse_or_violence",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 4,
+        "min_hours_between": 12
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha uma pessoa em quem costuma confiar.",
+          "duration_sec": 54,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Defina um pedido pequeno: conversar dez minutos, acompanhar uma tarefa ou lembrar um compromisso.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Escreva o pedido de forma direta e respeitosa.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Envie e prepare uma alternativa caso a pessoa não possa.",
+          "duration_sec": 72,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Fez um pedido específico e pensou em uma alternativa.",
+      "reflection_prompt_optional": "O pedido ficou claro e possível?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_social_micro_step_shared_task",
+      "title": "Faça junto, cada um no seu ritmo",
+      "subtitle_user": "Use companhia sem precisar conversar muito",
+      "duration_min": 12,
+      "duration_max_min": 14,
+      "objective_user": "Ganhar apoio para iniciar ou manter uma tarefa",
+      "objective_internal": "increase_function_with_shared_presence",
+      "modalities": [
+        "social_micro_step",
+        "behavioral_activation"
+      ],
+      "target_symptoms": [
+        "executive_dysfunction",
+        "attention_difficulty",
+        "social_isolation"
+      ],
+      "target_tracks": [
+        "neurodevelopmental_disorders",
+        "depressive_disorders",
+        "anxiety_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 4,
+        "min_hours_between": 12
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Convide alguém para realizar tarefas paralelas por dez minutos.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Diga qual tarefa você fará e pergunte qual a tarefa da outra pessoa.",
+          "duration_sec": 216,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Mantenham a chamada ou a presença sem obrigação de conversar.",
+          "duration_sec": 252,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Ao final, cada um diz apenas o que conseguiu avançar.",
+          "duration_sec": 144,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Fez dez minutos de tarefa compartilhada.",
+      "reflection_prompt_optional": "A presença tornou a tarefa mais acessível?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_social_micro_step_boundary_sentence",
+      "title": "Uma frase de limite",
+      "subtitle_user": "Prepare uma resposta curta e respeitosa",
+      "duration_min": 8,
+      "duration_max_min": 10,
+      "objective_user": "Proteger seu espaço em uma conversa",
+      "objective_internal": "practice_clear_interpersonal_boundary",
+      "modalities": [
+        "social_micro_step",
+        "emotion_regulation"
+      ],
+      "target_symptoms": [
+        "irritability",
+        "social_isolation",
+        "help_seeking_barrier"
+      ],
+      "target_tracks": [
+        "personality_disorders",
+        "disruptive_impulse_control_disorders",
+        "trauma_related_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress",
+        "abuse_current",
+        "current_abuse_or_violence",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 3,
+        "min_hours_between": 18
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha uma situação de baixo risco, sem violência ou ameaça.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Complete a frase: “Eu consigo..., mas não consigo...”",
+          "duration_sec": 144,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Leia a frase em voz alta com tom calmo.",
+          "duration_sec": 168,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Envie ou use a frase apenas se isso for seguro.",
+          "duration_sec": 96,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Preparou uma frase de limite e avaliou a segurança de usá-la.",
+      "reflection_prompt_optional": "A frase ficou clara sem ser agressiva?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Não orientar confronto em situação de abuso ou violência."
+    },
+    {
+      "id": "act_social_micro_step_repair_conversation",
+      "title": "Conversa em três partes",
+      "subtitle_user": "Organize uma tentativa de reparo",
+      "duration_min": 15,
+      "duration_max_min": 17,
+      "objective_user": "Conduzir uma conversa importante com mais clareza",
+      "objective_internal": "structure_interpersonal_repair",
+      "modalities": [
+        "social_micro_step",
+        "emotion_regulation",
+        "journaling"
+      ],
+      "target_symptoms": [
+        "irritability",
+        "negative_beliefs",
+        "social_isolation"
+      ],
+      "target_tracks": [
+        "personality_disorders",
+        "depressive_disorders",
+        "anxiety_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "high",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress",
+        "abuse_current",
+        "current_abuse_or_violence",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 1,
+        "min_hours_between": 48
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [
+        "act_social_micro_step_boundary_sentence"
+      ],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha uma conversa sem risco de violência e que possa ser adiada se necessário.",
+          "duration_sec": 180,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Escreva em uma frase o fato observado, sem acusação.",
+          "duration_sec": 180,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Escreva como isso afetou você e qual pedido concreto deseja fazer.",
+          "duration_sec": 180,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Combine um horário breve e use as três partes sem ampliar para outros conflitos.",
+          "duration_sec": 180,
+          "optional": false
+        },
+        {
+          "order": 5,
+          "instruction_user": "Se a conversa esquentar, pause e retome apenas quando houver segurança.",
+          "duration_sec": 180,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Preparou e, se seguro, realizou uma conversa com fato, impacto e pedido.",
+      "reflection_prompt_optional": "Foi possível manter o foco em um tema?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Alta intensidade; gate obrigatório e nunca usar quando houver abuso, ameaça ou ativação aguda."
+    },
+    {
+      "id": "act_gradual_exposure_social_greeting",
+      "title": "Um cumprimento simples",
+      "subtitle_user": "Pratique um contato rápido e previsível",
+      "duration_min": 6,
+      "duration_max_min": 8,
+      "objective_user": "Dar um passo pequeno em uma situação evitada",
+      "objective_internal": "approach_low_risk_social_situation",
+      "modalities": [
+        "gradual_exposure",
+        "social_micro_step"
+      ],
+      "target_symptoms": [
+        "avoidance_behavior",
+        "social_isolation",
+        "social_communication_difficulty"
+      ],
+      "target_tracks": [
+        "anxiety_disorders",
+        "neurodevelopmental_disorders",
+        "personality_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress",
+        "abuse_current",
+        "current_abuse_or_violence",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 4,
+        "min_hours_between": 12
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha uma situação segura e breve, como cumprimentar alguém conhecido.",
+          "duration_sec": 54,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Planeje apenas uma frase curta.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Faça o cumprimento e permaneça por alguns segundos.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Se ficar muito difícil, pare, afaste-se com calma e respire naturalmente.",
+          "duration_sec": 72,
+          "optional": false,
+          "exit_instruction": true
+        }
+      ],
+      "completion_criteria": "Fez um cumprimento ou chegou até o ponto planejado.",
+      "reflection_prompt_optional": "O desconforto mudou antes, durante e depois?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_gradual_exposure_delay_check",
+      "title": "Adie a checagem por dois minutos",
+      "subtitle_user": "Experimente não responder imediatamente ao impulso",
+      "duration_min": 5,
+      "duration_max_min": 7,
+      "objective_user": "Ganhar liberdade diante de uma urgência repetitiva",
+      "objective_internal": "delay_compulsive_response_briefly",
+      "modalities": [
+        "gradual_exposure",
+        "cognitive_reframe"
+      ],
+      "target_symptoms": [
+        "compulsive_rituals",
+        "intrusive_thoughts",
+        "excessive_worry"
+      ],
+      "target_tracks": [
+        "obsessive_compulsive_disorder",
+        "anxiety_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [
+        "real_safety_check_required"
+      ],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress",
+        "psychotic_symptoms_acute"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 3,
+        "min_hours_between": 18
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha uma checagem de baixo risco, nunca algo de segurança real.",
+          "duration_sec": 45,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Quando a vontade surgir, marque dois minutos no cronômetro.",
+          "duration_sec": 90,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Durante a espera, diga: “Posso sentir incerteza sem resolver agora”.",
+          "duration_sec": 105,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Ao final, escolha conscientemente o próximo passo; se ficar muito difícil, pare e respire.",
+          "duration_sec": 60,
+          "optional": false,
+          "exit_instruction": true
+        }
+      ],
+      "completion_criteria": "Adiou uma checagem segura por dois minutos.",
+      "reflection_prompt_optional": "A urgência permaneceu igual, subiu ou caiu?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Não aplicar a medicamentos, gás, portas em risco real ou outras checagens essenciais."
+    },
+    {
+      "id": "act_gradual_exposure_avoided_task",
+      "title": "Primeiro minuto da tarefa",
+      "subtitle_user": "Aproxime-se sem precisar concluir tudo",
+      "duration_min": 7,
+      "duration_max_min": 9,
+      "objective_user": "Reduzir a barreira de início",
+      "objective_internal": "approach_avoided_task_briefly",
+      "modalities": [
+        "gradual_exposure",
+        "behavioral_activation"
+      ],
+      "target_symptoms": [
+        "avoidance_behavior",
+        "executive_dysfunction",
+        "work_stress"
+      ],
+      "target_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "neurodevelopmental_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 4,
+        "min_hours_between": 12
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha uma tarefa evitada que seja segura e reversível.",
+          "duration_sec": 63,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Abra o material ou prepare o espaço sem exigir conclusão.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Trabalhe por três minutos na parte mais simples.",
+          "duration_sec": 147,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Se ficar muito difícil, pare, respire e registre onde conseguiu chegar.",
+          "duration_sec": 84,
+          "optional": false,
+          "exit_instruction": true
+        }
+      ],
+      "completion_criteria": "Permaneceu em contato com a tarefa por três minutos.",
+      "reflection_prompt_optional": "O início foi diferente do que você previa?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_gradual_exposure_uncertainty_choice",
+      "title": "Uma escolha sem certeza total",
+      "subtitle_user": "Pratique decidir com informação suficiente",
+      "duration_min": 8,
+      "duration_max_min": 10,
+      "objective_user": "Conviver com uma pequena dose de incerteza",
+      "objective_internal": "tolerate_low_stakes_uncertainty",
+      "modalities": [
+        "gradual_exposure",
+        "cognitive_reframe"
+      ],
+      "target_symptoms": [
+        "intrusive_thoughts",
+        "compulsive_rituals",
+        "excessive_worry"
+      ],
+      "target_tracks": [
+        "obsessive_compulsive_disorder",
+        "anxiety_disorders",
+        "personality_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [
+        "high_stakes_decision"
+      ],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress",
+        "psychotic_symptoms_acute"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 3,
+        "min_hours_between": 18
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha uma decisão de baixo impacto, como roupa, refeição ou ordem de tarefas.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Defina um limite curto para escolher.",
+          "duration_sec": 144,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Tome a decisão sem pedir confirmação extra.",
+          "duration_sec": 168,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Mantenha a escolha por alguns minutos; se ficar muito difícil, pare e respire.",
+          "duration_sec": 96,
+          "optional": false,
+          "exit_instruction": true
+        }
+      ],
+      "completion_criteria": "Tomou uma decisão de baixo impacto sem confirmação adicional.",
+      "reflection_prompt_optional": "Foi possível seguir mesmo sem certeza completa?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_gradual_exposure_safe_place_step",
+      "title": "Aproximação a um lugar seguro",
+      "subtitle_user": "Retome um espaço aos poucos",
+      "duration_min": 10,
+      "duration_max_min": 12,
+      "objective_user": "Diminuir uma evitação cotidiana com controle",
+      "objective_internal": "approach_safe_avoided_place",
+      "modalities": [
+        "gradual_exposure",
+        "grounding"
+      ],
+      "target_symptoms": [
+        "avoidance_behavior",
+        "trauma_avoidance",
+        "hypervigilance"
+      ],
+      "target_tracks": [
+        "trauma_related_disorders",
+        "anxiety_disorders",
+        "dissociative_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [
+        "unsafe_environment",
+        "ongoing_abuse_or_threat"
+      ],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress",
+        "abuse_current",
+        "current_abuse_or_violence",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 2,
+        "min_hours_between": 24
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha um lugar objetivamente seguro e sem ligação direta com violência atual.",
+          "duration_sec": 90,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Defina um ponto de parada próximo e leve uma referência de apoio.",
+          "duration_sec": 180,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Permaneça por até cinco minutos observando o ambiente atual.",
+          "duration_sec": 210,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Volte pelo caminho combinado; se ficar muito difícil, pare, afaste-se e respire.",
+          "duration_sec": 120,
+          "optional": false,
+          "exit_instruction": true
+        }
+      ],
+      "completion_criteria": "Chegou ao ponto planejado ou reconheceu com segurança seu limite.",
+      "reflection_prompt_optional": "O que ajudou a manter contato com o presente?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Não solicitar narrativa ou exposição a memórias traumáticas."
+    },
+    {
+      "id": "act_self_compassion_friend_voice",
+      "title": "Fale como falaria com alguém querido",
+      "subtitle_user": "Troque cobrança por uma voz mais justa",
+      "duration_min": 6,
+      "duration_max_min": 8,
+      "objective_user": "Reduzir a autocrítica no momento",
+      "objective_internal": "replace_harsh_self_talk_with_compassion",
+      "modalities": [
+        "self_compassion",
+        "cognitive_reframe"
+      ],
+      "target_symptoms": [
+        "negative_beliefs",
+        "low_mood",
+        "hopelessness"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "personality_disorders",
+        "eating_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 8
+      },
+      "evidence_level": "A",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escreva a frase crítica que apareceu.",
+          "duration_sec": 54,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Imagine que uma pessoa querida dissesse a mesma frase sobre si.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Escreva uma resposta firme e gentil que você daria a ela.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Leia essa resposta para si, sem exigir que pareça totalmente verdadeira.",
+          "duration_sec": 72,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Produziu e leu uma resposta mais justa.",
+      "reflection_prompt_optional": "Qual palavra tornou a frase menos dura?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_self_compassion_hand_support",
+      "title": "Gesto de apoio",
+      "subtitle_user": "Use um toque confortável ou uma alternativa",
+      "duration_min": 4,
+      "duration_max_min": 6,
+      "objective_user": "Oferecer acolhimento ao corpo",
+      "objective_internal": "use_safe_self_soothing_gesture",
+      "modalities": [
+        "self_compassion",
+        "grounding"
+      ],
+      "target_symptoms": [
+        "emotional_distress",
+        "low_mood",
+        "body_image_disturbance"
+      ],
+      "target_tracks": [
+        "depressive_disorders",
+        "eating_disorders",
+        "trauma_related_disorders",
+        "personality_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "touch_sensitivity"
+      ],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "abuse_current",
+        "current_abuse_or_violence",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 6,
+        "min_hours_between": 4
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Escolha apoiar a mão no braço, no peito ou apenas segurar um objeto confortável.",
+          "duration_sec": 36,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Diga: “Este momento está difícil”.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Acrescente: “Posso dar um passo pequeno de cuidado agora”.",
+          "duration_sec": 84,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Olhe ao redor e escolha esse passo.",
+          "duration_sec": 48,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Fez um gesto seguro e escolheu um cuidado pequeno.",
+      "reflection_prompt_optional": "Qual forma de apoio foi mais confortável?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_self_compassion_body_respect",
+      "title": "Cuidado sem julgamento",
+      "subtitle_user": "Escolha uma ação de respeito ao corpo",
+      "duration_min": 7,
+      "duration_max_min": 9,
+      "objective_user": "Fortalecer cuidado corporal neutro",
+      "objective_internal": "support_body_respect_action",
+      "modalities": [
+        "self_compassion",
+        "behavioral_activation"
+      ],
+      "target_symptoms": [
+        "body_image_disturbance",
+        "weight_shape_overvaluation",
+        "appetite_change"
+      ],
+      "target_tracks": [
+        "eating_disorders",
+        "depressive_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "immediate_safety_unknown",
+        "manic_episode_active",
+        "manic_episode_severe",
+        "psychotic_symptoms_acute",
+        "psychotic_symptoms_with_risk",
+        "self_harm_escalating",
+        "severe_disorganization",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "suicidal_intent_active",
+        "suicidal_plan_active",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 4,
+        "min_hours_between": 12
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Perceba uma crítica sobre o corpo sem discutir com ela.",
+          "duration_sec": 63,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Escolha uma ação neutra de cuidado, como roupa confortável, água ou descanso.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Faça a ação sem usar peso ou aparência como medida de valor.",
+          "duration_sec": 147,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Registre como ficou o conforto de 0 a 5.",
+          "duration_sec": 84,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Realizou uma ação neutra de cuidado e registrou conforto.",
+      "reflection_prompt_optional": "O que mudou quando o foco saiu da aparência?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Não orientar restrição, compensação, pesagem ou metas corporais."
+    },
+    {
+      "id": "act_self_compassion_common_humanity",
+      "title": "Você não é o único",
+      "subtitle_user": "Reconheça a dificuldade sem se diminuir",
+      "duration_min": 5,
+      "duration_max_min": 7,
+      "objective_user": "Diminuir vergonha e isolamento",
+      "objective_internal": "normalize_human_struggle_without_minimizing",
+      "modalities": [
+        "self_compassion",
+        "mindfulness"
+      ],
+      "target_symptoms": [
+        "social_isolation",
+        "negative_beliefs",
+        "emotional_numbing"
+      ],
+      "target_tracks": [
+        "personality_disorders",
+        "depressive_disorders",
+        "trauma_related_disorders",
+        "dissociative_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "suicidal_plan_active",
+        "suicidal_intent_active",
+        "self_harm_escalating",
+        "psychotic_symptoms_with_risk",
+        "manic_episode_severe",
+        "violence_in_progress",
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "immediate_safety_unknown",
+        "abuse_current",
+        "current_abuse_or_violence",
+        "violence_in_progress"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 8
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Nomeie a dificuldade em uma frase simples.",
+          "duration_sec": 45,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Lembre que outras pessoas também enfrentam momentos parecidos, sem comparar sofrimentos.",
+          "duration_sec": 90,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Diga uma frase de companhia: “Eu posso atravessar este minuto com cuidado”.",
+          "duration_sec": 105,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Escolha uma ação pequena de conexão ou descanso.",
+          "duration_sec": 60,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Nomeou a dificuldade e escolheu uma ação de cuidado.",
+      "reflection_prompt_optional": "A vergonha ou solidão mudou um pouco?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": ""
+    },
+    {
+      "id": "act_substance_harm_reduction_delay_contact",
+      "title": "Pausa e contato",
+      "subtitle_user": "Adie a decisão e fale com alguém",
+      "duration_min": 8,
+      "duration_max_min": 10,
+      "objective_user": "Criar tempo para uma escolha mais segura",
+      "objective_internal": "delay_use_and_contact_support",
+      "modalities": [
+        "substance_harm_reduction",
+        "social_micro_step",
+        "grounding"
+      ],
+      "target_symptoms": [
+        "craving",
+        "loss_of_control_use",
+        "trusted_support_person"
+      ],
+      "target_tracks": [
+        "substance_use_disorders",
+        "depressive_disorders",
+        "anxiety_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [
+        "fluid_restriction_medical"
+      ],
+      "avoid_when_red_flags": [
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "violence_in_progress",
+        "suicidal_intent_active",
+        "suicidal_plan_active"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 5,
+        "min_hours_between": 6
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Afaste-se por alguns minutos do local ou situação de gatilho, quando for seguro.",
+          "duration_sec": 72,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Beba água apenas se não houver restrição médica.",
+          "duration_sec": 144,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Envie uma mensagem para uma pessoa de confiança dizendo que precisa de companhia.",
+          "duration_sec": 168,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Adie qualquer decisão até completar o contato e reavaliar.",
+          "duration_sec": 96,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Adiou a decisão e acionou uma pessoa segura.",
+      "reflection_prompt_optional": "O contato mudou a força da vontade?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Não orienta consumo; em sinais de intoxicação ou abstinência grave, priorizar emergência."
+    },
+    {
+      "id": "act_substance_harm_reduction_trigger_exit",
+      "title": "Saída do gatilho",
+      "subtitle_user": "Mude o ambiente antes de decidir",
+      "duration_min": 6,
+      "duration_max_min": 8,
+      "objective_user": "Reduzir exposição a um gatilho imediato",
+      "objective_internal": "leave_high_risk_context_safely",
+      "modalities": [
+        "substance_harm_reduction",
+        "trigger_mapping"
+      ],
+      "target_symptoms": [
+        "craving",
+        "hazardous_use",
+        "continued_use_despite_harm"
+      ],
+      "target_tracks": [
+        "substance_use_disorders",
+        "disruptive_impulse_control_disorders",
+        "personality_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "low",
+      "contraindications": [
+        "unsafe_to_leave_current_location"
+      ],
+      "avoid_when_red_flags": [
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "violence_in_progress",
+        "immediate_safety_unknown"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 6,
+        "min_hours_between": 4
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Identifique o gatilho presente: lugar, pessoa, horário ou emoção.",
+          "duration_sec": 54,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Escolha uma saída segura e simples, como mudar de cômodo ou encerrar uma conversa.",
+          "duration_sec": 108,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Leve telefone, água e contato de apoio, quando aplicável.",
+          "duration_sec": 126,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Ao chegar ao novo local, registre a força da vontade de 0 a 5.",
+          "duration_sec": 72,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Deixou o contexto de risco e registrou a intensidade.",
+      "reflection_prompt_optional": "Qual mudança de ambiente ajudou mais?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Se sair aumentar o risco, usar rota humana ou emergencial."
+    },
+    {
+      "id": "act_substance_harm_reduction_safe_plan",
+      "title": "Plano de segurança para o próximo período",
+      "subtitle_user": "Prepare apoio antes do gatilho",
+      "duration_min": 10,
+      "duration_max_min": 12,
+      "objective_user": "Organizar escolhas de proteção",
+      "objective_internal": "prepare_substance_risk_reduction_plan",
+      "modalities": [
+        "substance_harm_reduction",
+        "trigger_mapping",
+        "routine_building"
+      ],
+      "target_symptoms": [
+        "craving",
+        "hazardous_use",
+        "loss_of_control_use",
+        "continued_use_despite_harm"
+      ],
+      "target_tracks": [
+        "substance_use_disorders",
+        "bipolar_disorders",
+        "trauma_related_disorders"
+      ],
+      "applies_to_all_tracks": false,
+      "intensity": "medium",
+      "contraindications": [],
+      "avoid_when_red_flags": [
+        "substance_overdose_risk",
+        "substance_withdrawal_severe",
+        "violence_in_progress",
+        "suicidal_intent_active",
+        "psychotic_symptoms_with_risk"
+      ],
+      "avoid_when_symptoms": [],
+      "frequency_cap": {
+        "max_per_week": 3,
+        "min_hours_between": 24
+      },
+      "evidence_level": "B",
+      "time_of_day": [
+        "any"
+      ],
+      "requires_prior_completion": [],
+      "pairs_well_with": [],
+      "not_pairs_with": [],
+      "steps": [
+        {
+          "order": 1,
+          "instruction_user": "Liste os dois gatilhos mais prováveis do próximo período.",
+          "duration_sec": 120,
+          "optional": false
+        },
+        {
+          "order": 2,
+          "instruction_user": "Escolha uma forma segura de reduzir contato com cada gatilho.",
+          "duration_sec": 120,
+          "optional": false
+        },
+        {
+          "order": 3,
+          "instruction_user": "Defina uma pessoa ou serviço para procurar se a vontade aumentar.",
+          "duration_sec": 120,
+          "optional": false
+        },
+        {
+          "order": 4,
+          "instruction_user": "Planeje transporte e companhia seguros, sem orientar quantidade ou forma de consumo.",
+          "duration_sec": 120,
+          "optional": false
+        },
+        {
+          "order": 5,
+          "instruction_user": "Salve o plano em um local fácil de acessar.",
+          "duration_sec": 120,
+          "optional": false
+        }
+      ],
+      "completion_criteria": "Registrou gatilhos, alternativas e um contato de apoio.",
+      "reflection_prompt_optional": "Qual parte do plano é mais fácil de cumprir?",
+      "feedback_question": "Isso ajudou um pouco agora?",
+      "enabled": true,
+      "version": "1.0.0",
+      "notes_internal": "Não oferece instruções de consumo. Em risco agudo, suspender e encaminhar."
+    }
+  ]
+}

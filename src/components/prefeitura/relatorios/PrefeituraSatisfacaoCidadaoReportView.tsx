@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { brand } from '../../../config/brand'
+import { useEntidadeReportPresentation } from '../../../contexts/EntidadeBrandingContext'
+import { useEntidadeCopy } from '../../../hooks/useEntidadeCopy'
 import { usePrefeituraAuth } from '../../../contexts/PrefeituraAuthContext'
 import {
   fetchPrefeituraSatisfacaoCidadaoReport,
@@ -9,6 +10,7 @@ import {
 } from '../../../lib/services/prefeitura/relatorios'
 import { exportPrefeituraSatisfacaoCidadaoReportPdf } from '../../../utils/prefeitura/prefeituraSatisfacaoCidadaoReportExport'
 import { formatDatePtBr } from '../../../utils/calendar'
+import { resolveSatisfacaoReportTitle } from '../../../utils/entidadeTerritoryPolicy'
 import { PrefeituraSatisfacaoCidadaoReportDocument } from './PrefeituraSatisfacaoCidadaoReportDocument'
 
 function formatGeneratedAt(iso: string) {
@@ -22,6 +24,8 @@ function formatGeneratedAt(iso: string) {
 }
 
 export function PrefeituraSatisfacaoCidadaoReportView() {
+  const { brandName, logoUrl } = useEntidadeReportPresentation()
+  const copy = useEntidadeCopy()
   const { getAccessToken } = usePrefeituraAuth()
   const [searchParams] = useSearchParams()
   const [report, setReport] = useState<SatisfacaoCidadaoReportApi | null>(null)
@@ -97,6 +101,8 @@ export function PrefeituraSatisfacaoCidadaoReportView() {
     }
   }, [report])
 
+  const reportTitle = resolveSatisfacaoReportTitle(copy.satisfacaoPublico)
+
   if (isLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-slate-50 text-sm text-gray-500">
@@ -122,10 +128,10 @@ export function PrefeituraSatisfacaoCidadaoReportView() {
 
   return (
     <div className="min-h-dvh bg-slate-50">
-      <div className="no-print sticky top-0 z-20 border-b border-orange-100 bg-white/95 backdrop-blur-sm">
+      <div className="no-print sticky top-0 z-20 border-b border-[var(--brand-primary-border)] bg-white/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="min-w-0">
-            <p className="text-sm font-bold text-gray-900">{report.title}</p>
+            <p className="text-sm font-bold text-gray-900">{reportTitle}</p>
             <p className="text-xs text-gray-500">
               {formatDatePtBr(report.periodStart)} – {formatDatePtBr(report.periodEnd)} ·{' '}
               {report.entidadeRazaoSocial}
@@ -162,9 +168,11 @@ export function PrefeituraSatisfacaoCidadaoReportView() {
         <div className="rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
           <PrefeituraSatisfacaoCidadaoReportDocument
             report={report}
-            brandName={brand.appName}
-            logoUrl={brand.logoUrl}
+            brandName={brandName}
+            logoUrl={logoUrl}
             generatedAtLabel={formatGeneratedAt(report.generatedAt)}
+            reportTitle={reportTitle}
+            satisfacaoNpsLabel={copy.satisfacaoNpsLabel}
           />
         </div>
       </div>

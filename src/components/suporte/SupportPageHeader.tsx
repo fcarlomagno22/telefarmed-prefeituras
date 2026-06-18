@@ -1,5 +1,6 @@
 import { MessageSquarePlus } from 'lucide-react'
 import { brand } from '../../config/brand'
+import { usePlatformOperatorLabel } from '../../hooks/useEntidadeCopy'
 import { useUbtUnitStation } from '../../hooks/useUbtUnitStation'
 
 type SupportPageHeaderProps = {
@@ -14,6 +15,7 @@ export function SupportPageHeader({
   showNewTicketButton = true,
 }: SupportPageHeaderProps) {
   const isPrefeitura = variant === 'prefeitura'
+  const platformOperatorLabel = usePlatformOperatorLabel()
   const { unitName } = useUbtUnitStation()
   const breadcrumb = isPrefeitura
     ? 'GESTÃO MUNICIPAL · SUPORTE'
@@ -32,7 +34,7 @@ export function SupportPageHeader({
           </h1>
           <p className="mt-3 max-w-xl text-sm text-gray-500">
             {isPrefeitura
-              ? 'Abra chamados da prefeitura, acompanhe solicitações abertas pelas UBTs e visualize as conversas com o suporte Telefarmed.'
+              ? `Abra chamados da entidade, acompanhe solicitações abertas pelas UBTs e visualize as conversas com o suporte ${platformOperatorLabel}.`
               : 'Acompanhe seus chamados de suporte técnico e fique por dentro das atualizações.'}
           </p>
           {isPrefeitura ? (

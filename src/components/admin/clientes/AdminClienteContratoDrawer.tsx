@@ -2,6 +2,7 @@ import { CalendarDays, FileText, Pencil, Stethoscope, Users, X } from 'lucide-re
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { AdminClienteContrato, AdminClienteRow } from '../../../types/adminClientes'
+import { isPrefeituraEntidadeTipo } from '../../../config/adminEntidadeTipo'
 import { resolveClienteContratoTipoLabel, useAdminClientesContratoCatalog } from '../../../hooks/useAdminClientesContratoCatalog'
 import {
   getClienteSpecialtyById,
@@ -258,16 +259,18 @@ export function AdminClienteContratoDrawer({
                       {detalhes.permiteUltrapassar ? 'Permitida' : 'Não permitida'}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                      Pacientes de outros municípios
-                    </p>
-                    <p className="mt-0.5 font-medium">
-                      {(detalhes.aceitaPacientesOutrosMunicipios ?? false)
-                        ? 'Aceitos'
-                        : 'Apenas do município contratante'}
-                    </p>
-                  </div>
+                  {isPrefeituraEntidadeTipo(cliente?.tipoEntidade) ? (
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                        Pacientes de outros municípios
+                      </p>
+                      <p className="mt-0.5 font-medium">
+                        {(detalhes.aceitaPacientesOutrosMunicipios ?? false)
+                          ? 'Aceitos'
+                          : 'Apenas do município contratante'}
+                      </p>
+                    </div>
+                  ) : null}
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
                       Especialidades autorizadas

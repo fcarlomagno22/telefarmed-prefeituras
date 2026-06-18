@@ -1,3 +1,4 @@
+import type { EntidadeBrandingPublic } from '../../lib/entidadeBranding/types.js'
 import {
   resolveUbtPagePermissions,
   type PermissionAction,
@@ -26,7 +27,7 @@ export type UsuarioUbtRow = {
   ultimo_login_em: Date | null
 }
 
-export type UbtUserPublic = {
+export type UbtUserBase = {
   id: string
   cpf: string
   nome: string
@@ -44,10 +45,12 @@ export type UbtUserPublic = {
   systemPermissions: UbtSystemPermissions
 }
 
+export type UbtUserPublic = UbtUserBase & EntidadeBrandingPublic
+
 export function toUbtUserPublic(
   row: UsuarioUbtRow,
   permissoesSistema?: unknown,
-): UbtUserPublic {
+): UbtUserBase {
   return {
     id: row.id,
     cpf: row.cpf,

@@ -1,11 +1,13 @@
 import { useMemo, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { brand } from '../../config/brand'
+import { getDedicatedPortal } from '../../config/portalHost'
 import { filterUbtSidebarItems } from '../../config/ubtPageAccess'
 import { useOptionalUbtAuth } from '../../contexts/UbtAuthContext'
 import { useUbtUnreadInbox } from '../../contexts/UbtNotificacoesContext'
 import { useUbtSuporteAwaitingCount } from '../../contexts/UbtSuporteContext'
 import { useAuditNavigation } from '../../hooks/useAuditNavigation'
+import { useEntidadeBrandTheme } from '../../hooks/useEntidadeBrandTheme'
 import { defaultSidebarItems } from '../../config/sidebarNav'
 import { ubtRoutes } from '../../config/ubtRoutes'
 import { OperatorFooter, type OperatorFooterProps } from './OperatorFooter'
@@ -22,6 +24,7 @@ type DashboardLayoutProps = {
   onLogout?: () => void | Promise<void>
   footer?: OperatorFooterProps
   collapsedSectionsStorageKey?: string
+  sidebarLogoClassName?: string
 }
 
 export function DashboardLayout({
@@ -32,14 +35,24 @@ export function DashboardLayout({
   onLogout,
   footer,
   collapsedSectionsStorageKey,
+  sidebarLogoClassName,
 }: DashboardLayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const ubtAuth = useOptionalUbtAuth()
   const hasUbtUnreadInbox = useUbtUnreadInbox()
   const ubtSuporteAwaitingCount = useUbtSuporteAwaitingCount()
+  const dedicatedPortal = getDedicatedPortal()
   const isUbtPortal =
-    location.pathname.startsWith('/ubt/') && !location.pathname.startsWith('/ubt/login')
+    dedicatedPortal === 'ubt' ||
+    (location.pathname.startsWith('/ubt/') && !location.pathname.startsWith('/ubt/login'))
+  const isClientPortal =
+    dedicatedPortal === 'prefeitura' ||
+    dedicatedPortal === 'ubt' ||
+    location.pathname.startsWith('/prefeitura/') ||
+    isUbtPortal
+
+  useEntidadeBrandTheme()
 
   useAuditNavigation({
     scope: 'ubt',
@@ -98,13 +111,17 @@ export function DashboardLayout({
           logoutPath={resolvedLogoutPath}
           onLogout={resolvedOnLogout}
           collapsedSectionsStorageKey={collapsedSectionsStorageKey}
+          logoClassName={sidebarLogoClassName}
         />
 
         <div className="relative flex min-w-0 flex-1 flex-col">
           <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden pb-12">
             {children}
           </main>
-          <OperatorFooter {...resolvedFooter} />
+          <OperatorFooter
+            {...resolvedFooter}
+            trailing={isClientPortal ? 'powered-by' : 'active-session'}
+          />
         </div>
       </div>
     </div>

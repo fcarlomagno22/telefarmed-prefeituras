@@ -10,6 +10,7 @@ import { networkUsers } from '../../../data/networkUsersMock'
 import { adminClientesRows } from '../../../data/adminClientesMock'
 import { getNetworkUserProfile } from '../../../data/networkUserProfiles'
 import { mockDelay } from '../delay'
+import { resolveAceitaPacientesOutrosMunicipios } from '../../../config/adminEntidadeTipo'
 
 export class AdminPacientesApiError extends Error {
   status: number
@@ -426,8 +427,11 @@ export async function fetchPacientesContractingEntities(
           municipality: item.municipio,
           uf: item.uf,
           contractStatus: activeContract ? 'ativo' : 'encerrado',
-          aceitaPacientesOutrosMunicipios:
+          tipoEntidade: item.tipoEntidade,
+          aceitaPacientesOutrosMunicipios: resolveAceitaPacientesOutrosMunicipios(
+            item.tipoEntidade,
             activeContract?.detalhes?.aceitaPacientesOutrosMunicipios ?? false,
+          ),
         }
       }),
     ),

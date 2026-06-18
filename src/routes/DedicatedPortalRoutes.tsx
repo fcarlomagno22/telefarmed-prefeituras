@@ -43,6 +43,7 @@ import { PrefeituraAuditLogsPage } from '../pages/PrefeituraAuditLogsPage'
 import { PrefeituraSuportePage } from '../pages/PrefeituraSuportePage'
 import { PrefeituraAccessCredentialsPage } from '../pages/PrefeituraAccessCredentialsPage'
 import { PrefeituraContratoPage } from '../pages/PrefeituraContratoPage'
+import { PrefeituraFaturamentoPage } from '../pages/PrefeituraFaturamentoPage'
 import { PrefeituraNotificacoesPage } from '../pages/PrefeituraNotificacoesPage'
 import {
   PrefeituraRelatoriosCategoryPage,
@@ -225,6 +226,7 @@ export const prefeituraDedicatedRoutes = (
             <Route path="auditoria" element={<PrefeituraAuditLogsPage />} />
             <Route path="suporte" element={<PrefeituraSuportePage />} />
             <Route path="credenciais" element={<PrefeituraAccessCredentialsPage />} />
+            <Route path="faturamento" element={<PrefeituraFaturamentoPage />} />
             <Route path="contrato" element={<PrefeituraContratoPage />} />
             <Route path="relatorios" element={<PrefeituraRelatoriosPage />} />
             <Route path="relatorios/:categoryId" element={<PrefeituraRelatoriosCategoryPage />} />

@@ -1,17 +1,6 @@
-export type PrefeituraAccessCredentialsTab = 'portal' | 'ubt'
+import { useEntidadeCopy } from '../../../hooks/useEntidadeCopy'
 
-const tabs: { id: PrefeituraAccessCredentialsTab; label: string; hint: string }[] = [
-  {
-    id: 'portal',
-    label: 'Portal municipal',
-    hint: 'Gestores · /prefeitura',
-  },
-  {
-    id: 'ubt',
-    label: 'Operadores UBT',
-    hint: 'Terminais · /ubt',
-  },
-]
+export type PrefeituraAccessCredentialsTab = 'portal' | 'ubt'
 
 type PrefeituraAccessCredentialsTabsProps = {
   activeTab: PrefeituraAccessCredentialsTab
@@ -22,6 +11,21 @@ export function PrefeituraAccessCredentialsTabs({
   activeTab,
   onTabChange,
 }: PrefeituraAccessCredentialsTabsProps) {
+  const copy = useEntidadeCopy()
+
+  const tabs: { id: PrefeituraAccessCredentialsTab; label: string; hint: string }[] = [
+    {
+      id: 'portal',
+      label: copy.portal.charAt(0).toUpperCase() + copy.portal.slice(1),
+      hint: `Gestores · /prefeitura`,
+    },
+    {
+      id: 'ubt',
+      label: 'Operadores UBT',
+      hint: 'Terminais · /ubt',
+    },
+  ]
+
   return (
     <nav
       role="tablist"
@@ -48,7 +52,7 @@ export function PrefeituraAccessCredentialsTabs({
               className={[
                 'pointer-events-none absolute inset-x-3 bottom-0 h-[3px] rounded-full transition-all duration-200 sm:inset-x-4',
                 isActive
-                  ? 'bg-gradient-to-r from-[var(--brand-primary)] via-orange-500 to-amber-400 opacity-100 shadow-[0_2px_10px_rgba(255,107,0,0.45)]'
+                  ? 'bg-[var(--brand-primary-gradient)] opacity-100 shadow-[var(--brand-primary-shadow-sm)]'
                   : 'scale-x-0 opacity-0',
               ].join(' ')}
               aria-hidden

@@ -40,6 +40,13 @@ const envSchema = z.object({
   SMTP_FROM: z.string().optional(),
   /** Segredo para rotas `/internal/cron/*` (Vercel Cron envia Bearer token). */
   CRON_SECRET: z.string().min(16).optional(),
+  /** Domínio raiz dos tenants (ex.: telefarmed.com.br). */
+  PUBLIC_ROOT_DOMAIN: z.string().min(3).default('telefarmed.com.br'),
+  /** Aceita origens https://{slug}.PUBLIC_ROOT_DOMAIN e http://{slug}.localhost (dev). */
+  CORS_ALLOW_TENANT_ORIGINS: z
+    .string()
+    .optional()
+    .transform((v) => v !== 'false' && v !== '0'),
 })
 
 export type Env = z.infer<typeof envSchema> & {
@@ -65,6 +72,8 @@ const parsedEnv = envSchema.parse({
   SMTP_PASS: envValue('SMTP_PASS'),
   SMTP_FROM: envValue('SMTP_FROM'),
   CRON_SECRET: envValue('CRON_SECRET'),
+  PUBLIC_ROOT_DOMAIN: envValue('PUBLIC_ROOT_DOMAIN'),
+  CORS_ALLOW_TENANT_ORIGINS: envValue('CORS_ALLOW_TENANT_ORIGINS'),
 })
 
 export const env: Env = {

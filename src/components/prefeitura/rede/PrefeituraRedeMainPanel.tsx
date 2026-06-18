@@ -182,7 +182,7 @@ export function PrefeituraRedeMainPanel({
                   setPage(1)
                 }}
                 placeholder="Buscar por nome da UBT, CNES ou região..."
-                className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-3 pl-9 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)]/40 focus:shadow-[0_0_0_3px_rgba(255,107,0,0.12)]"
+                className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-3 pl-9 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)]/40 focus:shadow-[var(--brand-primary-focus-ring)]"
               />
             </label>
             <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">

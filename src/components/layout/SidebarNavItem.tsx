@@ -159,7 +159,7 @@ export function SidebarNavItem({
         [
           'group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition',
           isActive
-            ? 'bg-[var(--brand-primary)] text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)]'
+            ? 'bg-brand-gradient text-white shadow-brand-sm'
             : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
         ].join(' ')
       }

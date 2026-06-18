@@ -34,9 +34,9 @@ function buildKpiCards(kpis: CredenciaisKpis): KpiStatCardItem[] {
       topBar: 'from-violet-400 to-purple-500',
     },
     {
-      label: 'Prefeitura',
+      label: 'Entidade',
       value: formatKpiNumber(kpis.prefeituraTotal),
-      suffix: 'gestores municipais',
+      suffix: 'gestores da entidade',
       icon: Landmark,
       iconGradient: 'from-orange-500 via-amber-500 to-orange-600',
       iconShadow: 'shadow-[0_8px_20px_rgba(249,115,22,0.35)]',

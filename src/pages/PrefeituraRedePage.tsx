@@ -1,3 +1,4 @@
+import { useEntidadeCopy } from '../hooks/useEntidadeCopy'
 import { PrefeituraRedeMainPanel } from '../components/prefeitura/rede/PrefeituraRedeMainPanel'
 import { PrefeituraRedePageSkeleton } from '../components/prefeitura/skeletons/PrefeituraRedePageSkeleton'
 import { PrefeituraRedeQuickActionsButton } from '../components/prefeitura/rede/PrefeituraRedeQuickActionsButton'
@@ -16,6 +17,7 @@ import { usePrefeituraRedeUnitActions } from '../hooks/usePrefeituraRedeUnitActi
 import { usePrefeituraUbsDetailDrawer } from '../hooks/usePrefeituraUbsDetailDrawer'
 
 export function PrefeituraRedePage() {
+  const copy = useEntidadeCopy()
   const { pageAccess } = usePrefeituraPageAccess('rede')
   const {
     units,
@@ -52,13 +54,13 @@ export function PrefeituraRedePage() {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs font-bold uppercase tracking-wider text-[var(--brand-primary)]">
-                    Gestão da rede
+                    Gestão {copy.daRede}
                   </p>
                   <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 sm:text-[1.65rem]">
                     Unidades Básicas de Teleatendimento
                   </h1>
                   <p className="mt-1 text-sm text-gray-500">
-                    Unidades básicas de teleatendimento e terminais de atendimento da rede municipal.
+                    Unidades básicas de teleatendimento e terminais de atendimento {copy.daRede}.
                   </p>
                   {loadError ? (
                     <p className="mt-2 text-sm font-medium text-red-600">{loadError}</p>

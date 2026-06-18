@@ -16,6 +16,7 @@ import {
 import { AgeGroupSelectionStep } from '../../../dashboard/AgeGroupSelectionStep'
 import { CpfLookupStep } from '../../../dashboard/CpfLookupStep'
 import { PatientAddressStep } from '../../../dashboard/PatientAddressStep'
+import { shouldEnforcePatientMunicipalityTerritory } from '../../../../utils/entidadeTerritoryPolicy'
 import { PatientContactsStep } from '../../../dashboard/PatientContactsStep'
 import { PatientRegistrationForm } from '../../../dashboard/PatientRegistrationForm'
 import { AdminPatientContractingEntityStep } from './AdminPatientContractingEntityStep'
@@ -556,13 +557,23 @@ export function AdminPatientPreRegistrationDrawer({
                   : []),
               ]}
               requiredTerritory={
-                selectedEntity.aceitaPacientesOutrosMunicipios
-                  ? undefined
-                  : {
+                shouldEnforcePatientMunicipalityTerritory(
+                  selectedEntity.tipoEntidade,
+                  selectedEntity.aceitaPacientesOutrosMunicipios,
+                )
+                  ? {
                       municipality: selectedEntity.municipality,
                       uf: selectedEntity.uf,
                     }
+                  : undefined
               }
+              contractAllowsOtherMunicipalities={
+                !shouldEnforcePatientMunicipalityTerritory(
+                  selectedEntity.tipoEntidade,
+                  selectedEntity.aceitaPacientesOutrosMunicipios,
+                )
+              }
+              entidadeTipo={selectedEntity.tipoEntidade}
             />
           ) : null}
 

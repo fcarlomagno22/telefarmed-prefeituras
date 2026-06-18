@@ -37,7 +37,7 @@ export function PrefeituraNotificacoesSidebarPanelSkeleton() {
 
       <section className="relative aspect-square w-full shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
         <div
-          className="absolute inset-0 bg-gradient-to-br from-[var(--brand-primary-light)]/40 via-white to-orange-50/50"
+          className="absolute inset-0 bg-gradient-to-br from-[var(--brand-primary-light)]/40 via-white to-[var(--brand-primary-muted)]/50"
           aria-hidden
         />
         <Skeleton className="relative m-auto h-[70%] w-[70%] max-w-[200px] rounded-2xl" />

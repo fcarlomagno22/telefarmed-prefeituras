@@ -1,4 +1,5 @@
 import type { AvaliacoesAtendimentosReportApi } from '../../../types/prefeituraRelatorios'
+import { EntidadeReportChartCaption } from './EntidadeReportChartCaption'
 type Props = { report: AvaliacoesAtendimentosReportApi; brandName: string; logoUrl: string; generatedAtLabel: string }
 function formatNumber(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value)
@@ -120,7 +121,7 @@ function EvolutionChart({ points, mode, title, valueSuffix = '', barStyle }: { p
           )
         })}
       </div>
-      <p className="mt-3 text-xs text-gray-500">Evolução {mode === 'monthly' ? 'mensal' : 'diária'} de {title.toLowerCase()} na rede municipal.</p>
+      <EntidadeReportChartCaption mode={mode} subject={`de ${title.toLowerCase()}`} />
     </div>
   )
 }

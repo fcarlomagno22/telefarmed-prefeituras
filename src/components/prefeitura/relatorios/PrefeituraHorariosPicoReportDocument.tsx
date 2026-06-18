@@ -1,4 +1,5 @@
 import type { HorariosPicoReportApi } from '../../../types/prefeituraRelatorios'
+import { EntidadeReportChartCaption } from './EntidadeReportChartCaption'
 
 type Props = {
   report: HorariosPicoReportApi
@@ -116,9 +117,7 @@ function EvolutionChart({
           )
         })}
       </div>
-      <p className="mt-3 text-xs text-gray-500">
-        Evolução {mode === 'monthly' ? 'mensal' : 'diária'} do volume total na rede municipal.
-      </p>
+      <EntidadeReportChartCaption mode={mode} subject="do volume total" />
     </div>
   )
 }

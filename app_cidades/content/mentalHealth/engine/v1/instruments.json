@@ -1,0 +1,1357 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "instruments": [
+    {
+      "id": "mood_screen_v1",
+      "internal_name": "Triagem de humor v1",
+      "description_internal": "Mini-instrumento proprietário para sinais de redução de humor, interesse, energia e alterações do sono. Inclui itens de segurança apenas para acionamento independente de red flags.",
+      "questions": [
+        "q_core_09",
+        "q_core_10",
+        "q_sleep_10",
+        "q_sleep_02",
+        "q_core_15",
+        "q_core_02",
+        "q_core_03",
+        "q_core_05"
+      ],
+      "question_weights": {
+        "q_core_09": 1.0,
+        "q_core_10": 1.0,
+        "q_sleep_10": 1.0,
+        "q_sleep_02": 1.0,
+        "q_core_15": 0.5,
+        "q_core_02": 0.0,
+        "q_core_03": 0.0,
+        "q_core_05": 0.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 18,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 3,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 4,
+          "max": 6,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 7,
+          "max": 10,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 11,
+          "max": 14,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 15,
+          "max": 18,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders"
+      ],
+      "feeds_symptoms": [
+        "low_mood",
+        "anhedonia",
+        "fatigue",
+        "sleep_disturbance",
+        "symptom_duration_prolonged",
+        "suicidal_ideation",
+        "self_harm_recent"
+      ],
+      "minimum_answered_ratio": 1.0,
+      "missing_answer_policy": "invalidate_score",
+      "clinical_sensitivity": "crisis",
+      "enabled": true,
+      "notes_internal": "Máximo: 4 + 4 + 4 + 4 + (4 × 0,5) = 18. Itens q_core_02, q_core_03 e q_core_05 têm peso zero no score dimensional; qualquer resposta de risco mantém prioridade sobre a faixa calculada."
+    },
+    {
+      "id": "anxiety_screen_v1",
+      "internal_name": "Triagem de tensão e preocupação v1",
+      "description_internal": "Mini-instrumento proprietário para preocupação persistente, irritabilidade, tensão subjetiva, sono e impacto nas tarefas.",
+      "questions": [
+        "q_core_11",
+        "q_core_14",
+        "q_core_01",
+        "q_sleep_01",
+        "q_func_01"
+      ],
+      "question_weights": {
+        "q_core_11": 1.0,
+        "q_core_14": 1.0,
+        "q_core_01": 1.0,
+        "q_sleep_01": 1.0,
+        "q_func_01": 1.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 19,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 3,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 4,
+          "max": 7,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 8,
+          "max": 11,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 12,
+          "max": 15,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 16,
+          "max": 19,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "anxiety_disorders",
+        "depressive_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "feeds_symptoms": [
+        "excessive_worry",
+        "irritability",
+        "emotional_distress",
+        "insomnia",
+        "functional_impairment"
+      ],
+      "minimum_answered_ratio": 0.7,
+      "missing_answer_policy": "exclude_item",
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "notes_internal": "Máximo: 4 + 4 + 3 + 4 + 4 = 19. Inspirado em rastreios breves de ansiedade, sem equivalência com instrumento oficial."
+    },
+    {
+      "id": "panic_screen_v1",
+      "internal_name": "Triagem de episódios súbitos de medo v1",
+      "description_internal": "Mini-instrumento proprietário para episódios repentinos de medo, repercussões físicas e impacto cotidiano.",
+      "questions": [
+        "q_core_12",
+        "q_sleep_04",
+        "q_medical_02",
+        "q_core_01",
+        "q_func_02"
+      ],
+      "question_weights": {
+        "q_core_12": 1.0,
+        "q_sleep_04": 1.0,
+        "q_medical_02": 1.0,
+        "q_core_01": 1.0,
+        "q_func_02": 1.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 16,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 2,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 3,
+          "max": 5,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 6,
+          "max": 8,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 9,
+          "max": 12,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 13,
+          "max": 16,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "anxiety_disorders",
+        "somatic_symptom_disorders",
+        "trauma_related_disorders"
+      ],
+      "feeds_symptoms": [
+        "panic_attacks",
+        "daytime_sleepiness",
+        "physical_emotional_temporal_link",
+        "emotional_distress",
+        "interpersonal_impairment"
+      ],
+      "minimum_answered_ratio": 0.8,
+      "missing_answer_policy": "exclude_item",
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "notes_internal": "Máximo: 4 + 4 + 1 + 3 + 4 = 16. O v1 possui apenas um item diretamente específico para episódios súbitos; interpretar junto do contexto e do prejuízo."
+    },
+    {
+      "id": "ocd_screen_v1",
+      "internal_name": "Triagem de pensamentos repetitivos v1",
+      "description_internal": "Mini-instrumento proprietário para pensamentos intrusivos, preocupação associada, persistência e interferência na rotina.",
+      "questions": [
+        "q_core_13",
+        "q_core_11",
+        "q_core_15",
+        "q_sleep_01",
+        "q_func_04"
+      ],
+      "question_weights": {
+        "q_core_13": 1.0,
+        "q_core_11": 1.0,
+        "q_core_15": 1.0,
+        "q_sleep_01": 1.0,
+        "q_func_04": 1.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 20,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 3,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 4,
+          "max": 7,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 8,
+          "max": 11,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 12,
+          "max": 15,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 16,
+          "max": 20,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "obsessive_compulsive_disorder",
+        "anxiety_disorders",
+        "depressive_disorders"
+      ],
+      "feeds_symptoms": [
+        "intrusive_thoughts",
+        "excessive_worry",
+        "symptom_duration_prolonged",
+        "insomnia",
+        "leisure_impairment"
+      ],
+      "minimum_answered_ratio": 0.8,
+      "missing_answer_policy": "exclude_item",
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "notes_internal": "Máximo: 5 itens × 4 = 20. Proxy de v1; falta item dedicado a comportamentos compulsivos, rituais mentais e tempo consumido."
+    },
+    {
+      "id": "trauma_screen_v1",
+      "internal_name": "Triagem de impacto de experiências difíceis v1",
+      "description_internal": "Mini-instrumento proprietário para lembranças involuntárias, sonhos, evitação, alerta, desconexão e alterações emocionais após experiência marcante.",
+      "questions": [
+        "q_trauma_01",
+        "q_trauma_02",
+        "q_trauma_03",
+        "q_trauma_04",
+        "q_trauma_05",
+        "q_trauma_06",
+        "q_trauma_07",
+        "q_trauma_08"
+      ],
+      "question_weights": {
+        "q_trauma_01": 0.0,
+        "q_trauma_02": 0.0,
+        "q_trauma_03": 1.0,
+        "q_trauma_04": 1.0,
+        "q_trauma_05": 1.0,
+        "q_trauma_06": 1.0,
+        "q_trauma_07": 1.0,
+        "q_trauma_08": 1.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 24,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 4,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 5,
+          "max": 8,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 9,
+          "max": 13,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 14,
+          "max": 18,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 19,
+          "max": 24,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "trauma_related_disorders",
+        "dissociative_disorders",
+        "depressive_disorders",
+        "anxiety_disorders"
+      ],
+      "feeds_symptoms": [
+        "trauma_reexperiencing",
+        "trauma_related_nightmares",
+        "trauma_avoidance",
+        "hypervigilance",
+        "exaggerated_startle",
+        "dissociation",
+        "emotional_numbing",
+        "negative_beliefs",
+        "ongoing_abuse_or_violence"
+      ],
+      "minimum_answered_ratio": 0.7,
+      "missing_answer_policy": "exclude_item",
+      "clinical_sensitivity": "crisis",
+      "enabled": true,
+      "notes_internal": "Máximo dimensional: 6 itens × 4 = 24. q_trauma_01 controla aplicabilidade e q_trauma_02 aciona segurança; ambos têm peso zero e prevalecem sobre o score."
+    },
+    {
+      "id": "bipolar_screen_v1",
+      "internal_name": "Triagem de ativação e variação de ritmo v1",
+      "description_internal": "Mini-instrumento proprietário para períodos de energia incomum, menor necessidade de sono, mudança do padrão habitual e irritabilidade.",
+      "questions": [
+        "q_core_07",
+        "q_sleep_05",
+        "q_core_08",
+        "q_core_14",
+        "q_core_15"
+      ],
+      "question_weights": {
+        "q_core_07": 0.5,
+        "q_sleep_05": 1.0,
+        "q_core_08": 1.0,
+        "q_core_14": 1.0,
+        "q_core_15": 0.5
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 19,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 3,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 4,
+          "max": 7,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 8,
+          "max": 11,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 12,
+          "max": 15,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 16,
+          "max": 19,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "bipolar_disorders",
+        "substance_use_disorders",
+        "sleep_disorders"
+      ],
+      "feeds_symptoms": [
+        "manic_episode_signals",
+        "decreased_need_for_sleep",
+        "change_from_baseline",
+        "irritability",
+        "symptom_duration_prolonged"
+      ],
+      "minimum_answered_ratio": 1.0,
+      "missing_answer_policy": "invalidate_score",
+      "clinical_sensitivity": "crisis",
+      "enabled": true,
+      "notes_internal": "Máximo: (10 × 0,5) + 5 + 3 + 4 + (4 × 0,5) = 19. q_core_07 positivo deve acionar revisão prioritária independentemente da banda."
+    },
+    {
+      "id": "psychosis_screen_v1",
+      "internal_name": "Triagem de percepção e organização do pensamento v1",
+      "description_internal": "Mini-instrumento proprietário para experiências perceptivas incomuns, impacto funcional e possíveis relações com sono, substâncias ou mudanças físicas.",
+      "questions": [
+        "q_core_06",
+        "q_func_06",
+        "q_substance_03",
+        "q_sleep_03",
+        "q_medical_05"
+      ],
+      "question_weights": {
+        "q_core_06": 0.5,
+        "q_func_06": 1.0,
+        "q_substance_03": 1.0,
+        "q_sleep_03": 1.0,
+        "q_medical_05": 1.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 25,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 4,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 5,
+          "max": 9,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 10,
+          "max": 14,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 15,
+          "max": 19,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 20,
+          "max": 25,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "psychotic_disorders",
+        "bipolar_disorders",
+        "substance_use_disorders"
+      ],
+      "feeds_symptoms": [
+        "hallucinations",
+        "delusional_beliefs",
+        "impaired_reality_testing",
+        "functional_impairment",
+        "other_substance_use",
+        "nonrestorative_sleep",
+        "recent_medical_change"
+      ],
+      "minimum_answered_ratio": 1.0,
+      "missing_answer_policy": "invalidate_score",
+      "clinical_sensitivity": "crisis",
+      "enabled": true,
+      "notes_internal": "Máximo: (24 × 0,5) + 4 + 3 + 4 + 2 = 25. Qualquer opção crítica em q_core_06 deve gerar red flag mesmo com score dimensional baixo."
+    },
+    {
+      "id": "eating_screen_v1",
+      "internal_name": "Triagem da relação com alimentação e corpo v1",
+      "description_internal": "Mini-instrumento proprietário para restrição, perda de controle, compensação, preocupação corporal, apetite e impacto na rotina.",
+      "questions": [
+        "q_sleep_09",
+        "q_sleep_08",
+        "q_core_10",
+        "q_func_03",
+        "q_func_04"
+      ],
+      "question_weights": {
+        "q_sleep_09": 1.0,
+        "q_sleep_08": 1.0,
+        "q_core_10": 1.0,
+        "q_func_03": 1.0,
+        "q_func_04": 1.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 30,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 5,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 6,
+          "max": 11,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 12,
+          "max": 17,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 18,
+          "max": 23,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 24,
+          "max": 30,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "eating_disorders",
+        "depressive_disorders",
+        "anxiety_disorders",
+        "obsessive_compulsive_disorder"
+      ],
+      "feeds_symptoms": [
+        "restrictive_eating",
+        "loss_of_control_eating",
+        "compensatory_behaviors",
+        "body_image_disturbance",
+        "appetite_change",
+        "anhedonia",
+        "self_care_impairment",
+        "leisure_impairment"
+      ],
+      "minimum_answered_ratio": 0.8,
+      "missing_answer_policy": "exclude_item",
+      "clinical_sensitivity": "sensitive",
+      "enabled": true,
+      "notes_internal": "Máximo: 16 + 2 + 4 + 4 + 4 = 30. A presença de compensação ou restrição relevante deve ser tratada por regras clínicas próprias, não apenas pela banda total."
+    },
+    {
+      "id": "adhd_screen_v1",
+      "internal_name": "Triagem de atenção e organização v1",
+      "description_internal": "Mini-instrumento proprietário para dificuldades de organização, manutenção de tarefas, cansaço e impacto funcional.",
+      "questions": [
+        "q_func_05",
+        "q_func_01",
+        "q_sleep_04",
+        "q_sleep_10",
+        "q_core_01"
+      ],
+      "question_weights": {
+        "q_func_05": 1.0,
+        "q_func_01": 1.0,
+        "q_sleep_04": 1.0,
+        "q_sleep_10": 1.0,
+        "q_core_01": 1.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 19,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 3,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 4,
+          "max": 7,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 8,
+          "max": 11,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 12,
+          "max": 15,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 16,
+          "max": 19,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "neurodevelopmental_disorders",
+        "anxiety_disorders",
+        "sleep_disorders"
+      ],
+      "feeds_symptoms": [
+        "executive_dysfunction",
+        "functional_impairment",
+        "daytime_sleepiness",
+        "fatigue",
+        "emotional_distress"
+      ],
+      "minimum_answered_ratio": 0.8,
+      "missing_answer_policy": "exclude_item",
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "notes_internal": "Máximo: 4 + 4 + 4 + 4 + 3 = 19. Proxy de v1; não substitui investigação de início no desenvolvimento, desatenção, hiperatividade e ocorrência em múltiplos contextos."
+    },
+    {
+      "id": "substance_screen_v1",
+      "internal_name": "Triagem de uso e perda de controle v1",
+      "description_internal": "Mini-instrumento proprietário para frequência de consumo, uso diferente do orientado, perda de controle, consequências e reações ao reduzir.",
+      "questions": [
+        "q_substance_01",
+        "q_substance_02",
+        "q_substance_03",
+        "q_substance_04",
+        "q_substance_05",
+        "q_substance_06",
+        "q_substance_07"
+      ],
+      "question_weights": {
+        "q_substance_01": 1.0,
+        "q_substance_02": 1.0,
+        "q_substance_03": 1.0,
+        "q_substance_04": 1.0,
+        "q_substance_05": 1.0,
+        "q_substance_06": 1.0,
+        "q_substance_07": 0.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 24,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 4,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 5,
+          "max": 8,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 9,
+          "max": 13,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 14,
+          "max": 18,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 19,
+          "max": 24,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "substance_use_disorders",
+        "depressive_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders"
+      ],
+      "feeds_symptoms": [
+        "substance_use_frequency",
+        "medication_misuse",
+        "other_substance_use",
+        "loss_of_control_use",
+        "continued_use_despite_harm",
+        "role_impairment",
+        "withdrawal_symptoms",
+        "craving",
+        "hazardous_use"
+      ],
+      "minimum_answered_ratio": 1.0,
+      "missing_answer_policy": "invalidate_score",
+      "clinical_sensitivity": "crisis",
+      "enabled": true,
+      "notes_internal": "Máximo dimensional: 4 + 4 + 3 + 4 + 4 + 5 = 24. q_substance_07 tem peso zero e funciona como red flag independente para risco imediato."
+    },
+    {
+      "id": "sleep_screen_v1",
+      "internal_name": "Triagem de sono e recuperação v1",
+      "description_internal": "Mini-instrumento proprietário para início e manutenção do sono, descanso, sonolência, quantidade, horários e sinais noturnos.",
+      "questions": [
+        "q_sleep_01",
+        "q_sleep_02",
+        "q_sleep_03",
+        "q_sleep_04",
+        "q_sleep_05",
+        "q_sleep_06",
+        "q_sleep_07",
+        "q_sleep_10"
+      ],
+      "question_weights": {
+        "q_sleep_01": 1.0,
+        "q_sleep_02": 1.0,
+        "q_sleep_03": 1.0,
+        "q_sleep_04": 1.0,
+        "q_sleep_05": 1.0,
+        "q_sleep_06": 1.0,
+        "q_sleep_07": 0.5,
+        "q_sleep_10": 1.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 33,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 5,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 6,
+          "max": 11,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 12,
+          "max": 18,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 19,
+          "max": 25,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 26,
+          "max": 33,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "sleep_disorders",
+        "depressive_disorders",
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "trauma_related_disorders",
+        "neurodevelopmental_disorders"
+      ],
+      "feeds_symptoms": [
+        "insomnia",
+        "sleep_disturbance",
+        "nonrestorative_sleep",
+        "daytime_sleepiness",
+        "decreased_need_for_sleep",
+        "hypersomnia",
+        "circadian_misalignment",
+        "sleep_related_breathing_symptoms",
+        "restless_legs_symptoms",
+        "parasomnias",
+        "fatigue"
+      ],
+      "minimum_answered_ratio": 0.75,
+      "missing_answer_policy": "exclude_item",
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "notes_internal": "Máximo: 4 + 4 + 4 + 4 + 5 + 3 + (10 × 0,5) + 4 = 33. Sinais respiratórios e comportamentos noturnos exigem encaminhamento clínico próprio."
+    },
+    {
+      "id": "functioning_screen_v1",
+      "internal_name": "Índice de impacto funcional v1",
+      "description_internal": "Índice proprietário transversal para impacto em tarefas, relações, autocuidado, lazer, organização e funcionamento global.",
+      "questions": [
+        "q_func_01",
+        "q_func_02",
+        "q_func_03",
+        "q_func_04",
+        "q_func_05",
+        "q_func_06"
+      ],
+      "question_weights": {
+        "q_func_01": 1.0,
+        "q_func_02": 1.0,
+        "q_func_03": 1.0,
+        "q_func_04": 1.0,
+        "q_func_05": 1.0,
+        "q_func_06": 1.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 24,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 4,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 5,
+          "max": 8,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 9,
+          "max": 13,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 14,
+          "max": 18,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 19,
+          "max": 24,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "feeds_symptoms": [
+        "functional_impairment",
+        "interpersonal_impairment",
+        "self_care_impairment",
+        "leisure_impairment",
+        "executive_dysfunction"
+      ],
+      "minimum_answered_ratio": 0.8,
+      "missing_answer_policy": "exclude_item",
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "notes_internal": "Máximo: 6 itens × 4 = 24. Aplicar como modulador transversal; não utilizar isoladamente para inferir qualquer track."
+    },
+    {
+      "id": "somatic_screen_v1",
+      "internal_name": "Triagem de sensações físicas e preocupação com saúde v1",
+      "description_internal": "Mini-instrumento proprietário para sintomas físicos persistentes, relação temporal com emoções, mudanças médicas e impacto cotidiano.",
+      "questions": [
+        "q_medical_01",
+        "q_medical_02",
+        "q_medical_05",
+        "q_core_11",
+        "q_core_12",
+        "q_func_03"
+      ],
+      "question_weights": {
+        "q_medical_01": 1.0,
+        "q_medical_02": 1.0,
+        "q_medical_05": 1.0,
+        "q_core_11": 1.0,
+        "q_core_12": 1.0,
+        "q_func_03": 1.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 21,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 3,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 4,
+          "max": 7,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 8,
+          "max": 11,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 12,
+          "max": 16,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 17,
+          "max": 21,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "somatic_symptom_disorders",
+        "anxiety_disorders",
+        "depressive_disorders",
+        "sleep_disorders"
+      ],
+      "feeds_symptoms": [
+        "persistent_physical_symptoms",
+        "pain_preoccupation",
+        "medical_condition_present",
+        "physical_emotional_temporal_link",
+        "recent_medical_change",
+        "excessive_worry",
+        "panic_attacks",
+        "self_care_impairment"
+      ],
+      "minimum_answered_ratio": 0.8,
+      "missing_answer_policy": "exclude_item",
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "notes_internal": "Máximo: 6 + 1 + 2 + 4 + 4 + 4 = 21. Não interpretar como evidência de origem emocional sem avaliação médica adequada."
+    },
+    {
+      "id": "impulse_screen_v1",
+      "internal_name": "Triagem de impulsos e reações intensas v1",
+      "description_internal": "Mini-instrumento proprietário para irritabilidade, impacto nas relações, mudança do padrão e dificuldade de interromper um comportamento.",
+      "questions": [
+        "q_core_14",
+        "q_func_02",
+        "q_core_08",
+        "q_substance_04"
+      ],
+      "question_weights": {
+        "q_core_14": 1.0,
+        "q_func_02": 1.0,
+        "q_core_08": 1.0,
+        "q_substance_04": 1.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 15,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 2,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 3,
+          "max": 5,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 6,
+          "max": 8,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 9,
+          "max": 11,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 12,
+          "max": 15,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "disruptive_impulse_control_disorders",
+        "personality_disorders",
+        "substance_use_disorders",
+        "bipolar_disorders"
+      ],
+      "feeds_symptoms": [
+        "irritability",
+        "interpersonal_impairment",
+        "change_from_baseline",
+        "loss_of_control_use"
+      ],
+      "minimum_answered_ratio": 0.75,
+      "missing_answer_policy": "exclude_item",
+      "clinical_sensitivity": "sensitive",
+      "enabled": true,
+      "notes_internal": "Máximo: 4 + 4 + 3 + 4 = 15. Proxy de v1; falta cobertura específica de agressividade recorrente, violação de regras e comportamentos de impulso não relacionados a substâncias."
+    },
+    {
+      "id": "dissociation_screen_v1",
+      "internal_name": "Triagem de desconexão e estranhamento v1",
+      "description_internal": "Mini-instrumento proprietário para sensação de desconexão, lembranças invasivas, mudança do padrão habitual e alterações na recuperação pelo sono.",
+      "questions": [
+        "q_trauma_07",
+        "q_trauma_01",
+        "q_trauma_03",
+        "q_core_08",
+        "q_sleep_03"
+      ],
+      "question_weights": {
+        "q_trauma_07": 1.0,
+        "q_trauma_01": 0.0,
+        "q_trauma_03": 1.0,
+        "q_core_08": 1.0,
+        "q_sleep_03": 1.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 15,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 2,
+          "severity": "minimal",
+          "internal_label": "Sinal mínimo",
+          "score_multiplier_for_track": 0.5
+        },
+        {
+          "min": 3,
+          "max": 5,
+          "severity": "mild",
+          "internal_label": "Sinal leve",
+          "score_multiplier_for_track": 1.0
+        },
+        {
+          "min": 6,
+          "max": 8,
+          "severity": "moderate",
+          "internal_label": "Sinal moderado",
+          "score_multiplier_for_track": 1.5
+        },
+        {
+          "min": 9,
+          "max": 11,
+          "severity": "moderately_severe",
+          "internal_label": "Sinal moderadamente intenso",
+          "score_multiplier_for_track": 2.0
+        },
+        {
+          "min": 12,
+          "max": 15,
+          "severity": "severe",
+          "internal_label": "Sinal intenso",
+          "score_multiplier_for_track": 2.5
+        }
+      ],
+      "feeds_tracks": [
+        "dissociative_disorders",
+        "trauma_related_disorders",
+        "anxiety_disorders",
+        "depressive_disorders"
+      ],
+      "feeds_symptoms": [
+        "dissociation",
+        "depersonalization",
+        "derealization",
+        "trauma_reexperiencing",
+        "change_from_baseline",
+        "nonrestorative_sleep"
+      ],
+      "minimum_answered_ratio": 0.8,
+      "missing_answer_policy": "exclude_item",
+      "clinical_sensitivity": "sensitive",
+      "enabled": true,
+      "notes_internal": "Máximo: 4 + 4 + 3 + 4 = 15; q_trauma_01 tem peso zero e controla aplicabilidade. Diferenciar de privação de sono, alterações neurológicas, substâncias e experiências perceptivas incomuns."
+    },
+    {
+      "id": "protective_factors_index_v1",
+      "internal_name": "Índice de recursos protetivos v1",
+      "description_internal": "Índice proprietário transversal de apoio, pessoa de confiança, estratégias úteis, compromissos e disponibilidade para buscar ajuda.",
+      "questions": [
+        "q_protect_01",
+        "q_protect_02",
+        "q_protect_03",
+        "q_protect_04",
+        "q_protect_05"
+      ],
+      "question_weights": {
+        "q_protect_01": -1.0,
+        "q_protect_02": -1.0,
+        "q_protect_03": -1.0,
+        "q_protect_04": -1.0,
+        "q_protect_05": -1.0
+      },
+      "scoring": {
+        "method": "weighted_sum",
+        "item_score_source": "from_anamnesis",
+        "max_score": 20,
+        "clamp_min": 0,
+        "normalize_to_100": false
+      },
+      "bands": [
+        {
+          "min": 0,
+          "max": 3,
+          "severity": "minimal",
+          "internal_label": "Proteção muito limitada",
+          "score_multiplier_for_track": 0.0
+        },
+        {
+          "min": 4,
+          "max": 7,
+          "severity": "mild",
+          "internal_label": "Proteção limitada",
+          "score_multiplier_for_track": -0.25
+        },
+        {
+          "min": 8,
+          "max": 11,
+          "severity": "moderate",
+          "internal_label": "Proteção intermediária",
+          "score_multiplier_for_track": -0.5
+        },
+        {
+          "min": 12,
+          "max": 15,
+          "severity": "moderately_severe",
+          "internal_label": "Proteção consistente",
+          "score_multiplier_for_track": -0.75
+        },
+        {
+          "min": 16,
+          "max": 20,
+          "severity": "severe",
+          "internal_label": "Proteção forte",
+          "score_multiplier_for_track": -1.0
+        }
+      ],
+      "feeds_tracks": [
+        "anxiety_disorders",
+        "bipolar_disorders",
+        "depressive_disorders",
+        "disruptive_impulse_control_disorders",
+        "dissociative_disorders",
+        "eating_disorders",
+        "neurodevelopmental_disorders",
+        "obsessive_compulsive_disorder",
+        "personality_disorders",
+        "psychotic_disorders",
+        "sleep_disorders",
+        "somatic_symptom_disorders",
+        "substance_use_disorders",
+        "trauma_related_disorders"
+      ],
+      "feeds_symptoms": [
+        "strong_support_network",
+        "trusted_support_person",
+        "coping_support",
+        "coping_routine",
+        "coping_movement",
+        "coping_relaxation",
+        "coping_meaning",
+        "professional_support_access",
+        "protective_commitments",
+        "help_seeking_readiness",
+        "limited_coping_resources",
+        "help_seeking_barrier"
+      ],
+      "minimum_answered_ratio": 0.8,
+      "missing_answer_policy": "exclude_item",
+      "clinical_sensitivity": "normal",
+      "enabled": true,
+      "notes_internal": "Máximo protetivo: 4 + 3 + 7 + 4 + 2 = 20. Os pesos negativos invertem contribuições protetivas já registradas com direção negativa; respostas de risco podem reduzir o índice, limitado a zero. Multiplicadores negativos devem reduzir, nunca zerar, evidências clínicas de outros instrumentos."
+    }
+  ]
+}

@@ -67,6 +67,7 @@ import { PrefeituraAuditLogsPage } from './pages/PrefeituraAuditLogsPage'
 import { PrefeituraSuportePage } from './pages/PrefeituraSuportePage'
 import { PrefeituraAccessCredentialsPage } from './pages/PrefeituraAccessCredentialsPage'
 import { PrefeituraContratoPage } from './pages/PrefeituraContratoPage'
+import { PrefeituraFaturamentoPage } from './pages/PrefeituraFaturamentoPage'
 import { PrefeituraNotificacoesPage } from './pages/PrefeituraNotificacoesPage'
 import {
   PrefeituraRelatoriosCategoryPage,
@@ -93,6 +94,9 @@ import { prefeituraRoutes } from './config/prefeituraRoutes'
 import { dedicatedPortalRoutes, LiveShareDedicatedRoutes, SharedPublicRoutes } from './routes/DedicatedPortalRoutes'
 import { useDedicatedPortalDocumentTitle } from './hooks/useDedicatedPortalDocumentTitle'
 import { getDedicatedPortal, isLiveShareDedicatedHost, type PortalId } from './config/portalHost'
+import { TenantHostProvider, useTenantHost } from './contexts/TenantHostContext'
+import { TenantHostLoadingPage } from './components/tenant/TenantHostLoadingPage'
+import { TenantHostNotFoundPage } from './components/tenant/TenantHostNotFoundPage'
 
 const AdminNotificacoesPage = lazy(() =>
   import('./pages/AdminNotificacoesPage').then((module) => ({
@@ -125,13 +129,42 @@ function DedicatedPortalDocumentTitle({ portal }: { portal: PortalId }) {
 }
 
 function App() {
+  return (
+    <BrowserRouter>
+      <TenantHostProvider>
+        <AppRoutes />
+      </TenantHostProvider>
+    </BrowserRouter>
+  )
+}
+
+function AppRoutes() {
   const dedicatedPortal = getDedicatedPortal()
   const liveShareHost =
     typeof window !== 'undefined' && isLiveShareDedicatedHost(window.location.hostname)
+  const tenantHost = useTenantHost()
+
+  if (tenantHost.slug) {
+    if (tenantHost.status === 'loading') {
+      return <TenantHostLoadingPage />
+    }
+    if (tenantHost.status === 'not_found') {
+      return <TenantHostNotFoundPage slug={tenantHost.slug} />
+    }
+    if (tenantHost.status === 'error') {
+      return (
+        <div className="flex min-h-[100dvh] items-center justify-center bg-slate-50 px-6 text-center text-sm text-gray-600">
+          Não foi possível carregar este endereço. Tente novamente em instantes.
+        </div>
+      )
+    }
+  }
 
   return (
-    <BrowserRouter>
-      {dedicatedPortal ? <DedicatedPortalDocumentTitle portal={dedicatedPortal} /> : null}
+    <>
+      {dedicatedPortal === 'admin' || dedicatedPortal === 'profissional' ? (
+        <DedicatedPortalDocumentTitle portal={dedicatedPortal} />
+      ) : null}
       <Routes>
         {!liveShareHost ? SharedPublicRoutes() : null}
         {liveShareHost ? (
@@ -257,6 +290,7 @@ function App() {
               <Route path="auditoria" element={<PrefeituraAuditLogsPage />} />
               <Route path="suporte" element={<PrefeituraSuportePage />} />
               <Route path="credenciais" element={<PrefeituraAccessCredentialsPage />} />
+              <Route path="faturamento" element={<PrefeituraFaturamentoPage />} />
               <Route path="contrato" element={<PrefeituraContratoPage />} />
               <Route path="relatorios" element={<PrefeituraRelatoriosPage />} />
               <Route path="relatorios/:categoryId" element={<PrefeituraRelatoriosCategoryPage />} />
@@ -309,7 +343,7 @@ function App() {
           </>
         )}
       </Routes>
-    </BrowserRouter>
+    </>
   )
 }
 

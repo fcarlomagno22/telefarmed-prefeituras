@@ -3,21 +3,34 @@ import type {
   AdminClienteContratoTipo,
   AdminClienteStatus,
 } from '../../../../types/adminClientes'
-import { isValidEmail } from '../../../prefeitura/rede/newUbt/newUbtFormTypes'
+import type { TipoEntidade } from '../../../../types/entidadeBranding'
+import { isPrefeituraEntidadeTipo } from '../../../../config/adminEntidadeTipo'
 import {
   buildOptionalAdminClienteContact,
   validateCadastroContratoContactStep,
   validateCadastroContratoStep,
   validateCadastroEspecialidadesStep,
   validateCadastroExcedenteStep,
+  validateCadastroOperacionalContactsRequirement,
+  validateOptionalAdminClienteContact,
 } from '../adminClienteContratoForm'
 
+import type { ClienteSpecialtyOption } from '../../../../hooks/useAdminClientesClinicoCatalog'
+import {
+  isSlugAvailabilityConfirmed,
+  validateTenantSlug,
+  type TenantSlugAvailabilityState,
+} from '../../../../utils/tenantSlug'
+
+export type AdminEntidadeCadastroValidationOptions = {
+  specialties?: ClienteSpecialtyOption[]
+}
+
 export const adminEntidadeCadastroFlowSteps = [
-  { id: 'entidade', label: 'Dados da entidade' },
-  { id: 'contrato', label: 'Contrato' },
-  { id: 'especialidades', label: 'Profissões e especialidades' },
-  { id: 'excedente', label: 'Ultrapassagem' },
-  { id: 'contatos', label: 'Contatos operacionais' },
+  { id: 'identificacao', label: 'Identificação' },
+  { id: 'marca', label: 'Marca' },
+  { id: 'endereco', label: 'Endereço público' },
+  { id: 'contrato', label: 'Contrato e contatos' },
   { id: 'revisao', label: 'Revisão' },
 ] as const
 
@@ -85,11 +98,17 @@ export const adminEntidadeTelefoneTipoOptions: {
 export type AdminEntidadePrecosEspecialidadeForm = Record<string, string>
 
 export type AdminEntidadeCadastroFormState = {
+  tipoEntidade: TipoEntidade
   nome: string
   subtitulo: string
   razaoSocial: string
   cnpj: string
   logoDataUrl: string | null
+  loginBackgroundDataUrl: string | null
+  faviconDataUrl: string | null
+  corPrimaria: string
+  nomeMarca: string
+  slug: string
   municipio: string
   uf: string
   status: AdminClienteStatus
@@ -127,11 +146,17 @@ export type AdminEntidadeCadastroFormState = {
 
 export function createEmptyAdminEntidadeCadastroForm(): AdminEntidadeCadastroFormState {
   return {
+    tipoEntidade: 'prefeitura',
     nome: '',
     subtitulo: 'Prefeitura Municipal',
     razaoSocial: '',
     cnpj: '',
     logoDataUrl: null,
+    loginBackgroundDataUrl: null,
+    faviconDataUrl: null,
+    corPrimaria: '#ff6b00',
+    nomeMarca: '',
+    slug: '',
     municipio: 'Brasília',
     uf: 'DF',
     status: 'implantacao',
@@ -191,53 +216,69 @@ function isValidCnpj(value: string) {
   return value.replace(/\D/g, '').length === 14
 }
 
-function validateContact(
-  name: string,
-  email: string,
-  phone: string,
-  label: string,
-): string | null {
-  if (!name.trim()) return `Informe o nome do contato de ${label}.`
-  if (!email.trim()) return `Informe o e-mail do contato de ${label}.`
-  if (!isValidEmail(email)) return `E-mail inválido para o contato de ${label}.`
-  if (phone.replace(/\D/g, '').length < 10) {
-    return `Informe o telefone do contato de ${label} com DDD.`
-  }
-  return null
-}
-
 export function validateAdminEntidadeCadastroStep(
   step: AdminEntidadeCadastroStep,
   form: AdminEntidadeCadastroFormState,
+  slugAvailability?: TenantSlugAvailabilityState,
+  options?: AdminEntidadeCadastroValidationOptions,
 ): string | null {
   switch (step) {
-    case 'entidade':
+    case 'identificacao':
       if (!form.razaoSocial.trim()) return 'Informe a razão social.'
       if (!isValidCnpj(form.cnpj)) return 'Informe um CNPJ válido com 14 dígitos.'
-      if (!form.municipio.trim()) return 'Selecione o município.'
+      if (!form.municipio.trim()) {
+        return isPrefeituraEntidadeTipo(form.tipoEntidade)
+          ? 'Selecione o município.'
+          : 'Informe a cidade.'
+      }
       if (!form.uf.trim()) return 'Selecione a UF.'
-      if (!form.nome.trim()) return 'Informe o nome da entidade.'
       return null
+    case 'marca':
+      if (!form.nomeMarca.trim()) return 'Informe o nome exibido da marca.'
+      if (!/^#[0-9A-Fa-f]{6}$/.test(form.corPrimaria.trim())) {
+        return 'Informe uma cor primária válida (#RRGGBB).'
+      }
+      return null
+    case 'endereco': {
+      const slugError = validateTenantSlug(form.slug)
+      if (slugError) return slugError
+      if (!slugAvailability || !isSlugAvailabilityConfirmed(form.slug, slugAvailability)) {
+        return 'Aguarde a confirmação de disponibilidade do endereço público.'
+      }
+      return null
+    }
     case 'contrato':
-      return validateCadastroContratoStep(form)
-    case 'especialidades':
-      return validateCadastroEspecialidadesStep(form)
-    case 'excedente':
-      return validateCadastroExcedenteStep(form)
-    case 'contatos':
       return (
-        validateContact(form.gestorNome, form.gestorEmail, form.gestorTelefone, 'gestor da entidade') ??
-        validateContact(form.saudeNome, form.saudeEmail, form.saudeTelefone, 'saúde') ??
-        validateContact(form.tiNome, form.tiEmail, form.tiTelefone, 'TI') ??
-        validateCadastroContratoContactStep(form)
+        validateCadastroContratoStep(form) ??
+        validateCadastroEspecialidadesStep(form, options?.specialties) ??
+        validateCadastroExcedenteStep(form) ??
+        validateOptionalAdminClienteContact(
+          form.gestorNome,
+          form.gestorEmail,
+          form.gestorTelefone,
+          'gestor da entidade',
+        ) ??
+        validateOptionalAdminClienteContact(
+          form.saudeNome,
+          form.saudeEmail,
+          form.saudeTelefone,
+          'saúde',
+        ) ??
+        validateCadastroContratoContactStep(form) ??
+        validateOptionalAdminClienteContact(
+          form.tiNome,
+          form.tiEmail,
+          form.tiTelefone,
+          'TI',
+        ) ??
+        validateCadastroOperacionalContactsRequirement(form)
       )
     case 'revisao':
       return (
-        validateAdminEntidadeCadastroStep('entidade', form) ??
-        validateAdminEntidadeCadastroStep('contrato', form) ??
-        validateAdminEntidadeCadastroStep('especialidades', form) ??
-        validateAdminEntidadeCadastroStep('excedente', form) ??
-        validateAdminEntidadeCadastroStep('contatos', form)
+        validateAdminEntidadeCadastroStep('identificacao', form) ??
+        validateAdminEntidadeCadastroStep('marca', form) ??
+        validateAdminEntidadeCadastroStep('endereco', form, slugAvailability) ??
+        validateAdminEntidadeCadastroStep('contrato', form, slugAvailability, options)
       )
     default:
       return null
@@ -247,23 +288,21 @@ export function validateAdminEntidadeCadastroStep(
 export function isAdminEntidadeCadastroStepReady(
   step: AdminEntidadeCadastroStep,
   form: AdminEntidadeCadastroFormState,
+  slugAvailability?: TenantSlugAvailabilityState,
+  options?: AdminEntidadeCadastroValidationOptions,
 ): boolean {
-  return validateAdminEntidadeCadastroStep(step, form) === null
+  return validateAdminEntidadeCadastroStep(step, form, slugAvailability, options) === null
 }
 
 export function resolveFirstInvalidCadastroStep(
   form: AdminEntidadeCadastroFormState,
+  slugAvailability?: TenantSlugAvailabilityState,
+  options?: AdminEntidadeCadastroValidationOptions,
 ): { step: AdminEntidadeCadastroStep; error: string } | null {
-  const steps: AdminEntidadeCadastroStep[] = [
-    'entidade',
-    'contrato',
-    'especialidades',
-    'excedente',
-    'contatos',
-  ]
+  const steps: AdminEntidadeCadastroStep[] = ['identificacao', 'marca', 'endereco', 'contrato']
 
   for (const targetStep of steps) {
-    const error = validateAdminEntidadeCadastroStep(targetStep, form)
+    const error = validateAdminEntidadeCadastroStep(targetStep, form, slugAvailability, options)
     if (error) return { step: targetStep, error }
   }
 
@@ -280,35 +319,46 @@ export function buildCreateEntidadePayloadFromCadastroForm(
     phone: form.contratoTelefone,
     phoneType: form.contratoTelefoneTipo,
   })
+  const gestor = buildOptionalAdminClienteContact({
+    name: form.gestorNome,
+    email: form.gestorEmail,
+    phone: form.gestorTelefone,
+    phoneType: form.gestorTelefoneTipo,
+  })
+  const contatoSaude = buildOptionalAdminClienteContact({
+    name: form.saudeNome,
+    email: form.saudeEmail,
+    phone: form.saudeTelefone,
+    phoneType: form.saudeTelefoneTipo,
+  })
+  const contatoTi = buildOptionalAdminClienteContact({
+    name: form.tiNome,
+    email: form.tiEmail,
+    phone: form.tiTelefone,
+    phoneType: form.tiTelefoneTipo,
+  })
 
   return {
     pin,
-    nome: form.nome.trim(),
+    nome: (form.nome.trim() || form.nomeMarca.trim() || form.municipio.trim()).trim(),
     subtitulo: form.subtitulo.trim(),
     razaoSocial: form.razaoSocial.trim(),
     cnpj: form.cnpj.trim(),
+    slug: form.slug.trim().toLowerCase(),
+    tipoEntidade: form.tipoEntidade,
+    corPrimaria: form.corPrimaria.trim(),
+    nomeMarca: form.nomeMarca.trim(),
     ...(form.logoDataUrl ? { logoDataUrl: form.logoDataUrl } : {}),
+    ...(form.loginBackgroundDataUrl
+      ? { loginBackgroundDataUrl: form.loginBackgroundDataUrl }
+      : {}),
+    ...(form.faviconDataUrl ? { faviconDataUrl: form.faviconDataUrl } : {}),
     municipio: form.municipio.trim(),
     uf: form.uf,
     status: form.status,
-    gestor: {
-      name: form.gestorNome.trim(),
-      email: form.gestorEmail.trim(),
-      phone: form.gestorTelefone.trim(),
-      phoneType: form.gestorTelefoneTipo,
-    },
+    ...(gestor ? { gestor } : {}),
     contatoContrato,
-    contatoTi: {
-      name: form.tiNome.trim(),
-      email: form.tiEmail.trim(),
-      phone: form.tiTelefone.trim(),
-      phoneType: form.tiTelefoneTipo,
-    },
-    contatoSaude: {
-      name: form.saudeNome.trim(),
-      email: form.saudeEmail.trim(),
-      phone: form.saudeTelefone.trim(),
-      phoneType: form.saudeTelefoneTipo,
-    },
+    ...(contatoSaude ? { contatoSaude } : {}),
+    ...(contatoTi ? { contatoTi } : {}),
   }
 }

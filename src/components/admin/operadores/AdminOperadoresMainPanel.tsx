@@ -45,7 +45,7 @@ export function AdminOperadoresMainPanel({
   embedded = false,
   fixedScope,
   panelTitle = 'Operadores',
-  panelDescription = 'Usuários UBT/prefeitura agregados com último acesso, unidade e perfil operacional.',
+  panelDescription,
   searchQuery = '',
   onSearchQueryChange,
   profileFilter = '',
@@ -99,7 +99,7 @@ export function AdminOperadoresMainPanel({
       {
         label: 'Operadores totais',
         value: formatNumber(rows.length),
-        suffix: fixedScope === 'UBT' ? 'operadores UBT' : 'UBT + prefeitura',
+        suffix: fixedScope === 'UBT' ? 'operadores UBT' : 'UBT + entidade',
         icon: Users,
         iconGradient: 'from-sky-500 via-blue-500 to-indigo-600',
         iconShadow: 'shadow-[0_8px_20px_rgba(59,130,246,0.35)]',
@@ -196,7 +196,9 @@ export function AdminOperadoresMainPanel({
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <h2 className="text-lg font-bold text-gray-900">{panelTitle}</h2>
-              <p className="mt-1 text-sm text-gray-500">{panelDescription}</p>
+              {panelDescription ? (
+                <p className="mt-1 text-sm text-gray-500">{panelDescription}</p>
+              ) : null}
             </div>
             <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:max-w-4xl lg:justify-end">
               {!fixedScope ? (
@@ -208,7 +210,7 @@ export function AdminOperadoresMainPanel({
                     options={[
                       { value: 'all', label: 'Todos' },
                       { value: 'UBT', label: 'UBT' },
-                      { value: 'Prefeitura', label: 'Prefeitura' },
+                      { value: 'Prefeitura', label: 'Entidade' },
                     ]}
                     className="min-w-[140px] text-left normal-case"
                   />

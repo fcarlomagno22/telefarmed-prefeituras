@@ -1,4 +1,5 @@
 import { Building2, ChevronRight, Eye, Filter, RotateCcw } from 'lucide-react'
+import { useEntidadeCopy } from '../../hooks/useEntidadeCopy'
 import { useCallback, useMemo } from 'react'
 import { usePrefeituraAlertsDrawer } from '../../hooks/usePrefeituraAlertsDrawer'
 import { usePrefeituraRegionDrawer } from '../../hooks/usePrefeituraRegionDrawer'
@@ -33,6 +34,7 @@ import {
 } from './prefeituraDashboardUi'
 
 export function PrefeituraDashboardMainPanel() {
+  const copy = useEntidadeCopy()
   const {
     period,
     setPeriod,
@@ -115,7 +117,7 @@ export function PrefeituraDashboardMainPanel() {
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-[var(--brand-primary)]">
-              Painel municipal
+              {copy.portal}
             </p>
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 sm:text-[1.65rem]">
               Visão consolidada da rede de teleatendimento
@@ -285,7 +287,7 @@ export function PrefeituraDashboardMainPanel() {
               'Período selecionado'
             }
             sectionLabel="Saúde da população"
-            title="Triagem clínica da rede municipal"
+            title={`Triagem clínica ${copy.daRede}`}
             scopeHint="somente pacientes da sua prefeitura"
           />
 

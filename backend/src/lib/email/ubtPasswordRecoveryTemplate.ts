@@ -182,6 +182,8 @@ const RECOVERY_CODE_EMAIL_HTML = `<!DOCTYPE html>
                 </tr>
               </table>
 
+              {{portalUrlBlock}}
+
               <p style="
                 margin: 26px 0 0 0;
                 color: #737a86;
@@ -264,21 +266,45 @@ const RECOVERY_CODE_EMAIL_HTML = `<!DOCTYPE html>
 </body>
 </html>`
 
-export function buildUbtPasswordRecoveryEmailHtml(code: string): string {
+export function buildUbtPasswordRecoveryEmailHtml(code: string, portalUrl?: string): string {
   const year = String(new Date().getFullYear())
-  return RECOVERY_CODE_EMAIL_HTML.replaceAll('{{codigo}}', code).replaceAll('{{ano}}', year)
+  const portalUrlBlock = portalUrl
+    ? `<p style="
+                margin: 24px 0 0 0;
+                color: #737a86;
+                font-size: 13px;
+                line-height: 21px;
+              ">
+                Acesse o portal em
+                <a href="${portalUrl}" style="color: #f97316; text-decoration: none; font-weight: 700;">${portalUrl}</a>
+                para concluir a recuperação.
+              </p>`
+    : ''
+
+  return RECOVERY_CODE_EMAIL_HTML.replaceAll('{{codigo}}', code)
+    .replaceAll('{{ano}}', year)
+    .replaceAll('{{portalUrlBlock}}', portalUrlBlock)
 }
 
-export function buildUbtPasswordRecoveryEmailText(code: string): string {
-  return [
+export function buildUbtPasswordRecoveryEmailText(code: string, portalUrl?: string): string {
+  const lines = [
     'Recuperação de acesso — Telefarmed',
     '',
     `Seu código de verificação: ${code}`,
     '',
-    'Digite este código no terminal UBT para continuar com a recuperação da sua conta.',
+    'Digite este código no portal para continuar com a recuperação da sua conta.',
     'O código é válido por 15 minutos.',
+  ]
+
+  if (portalUrl) {
+    lines.push('', `Acesse: ${portalUrl}`)
+  }
+
+  lines.push(
     '',
     'Não compartilhe este código com ninguém.',
     'Se você não solicitou a recuperação, ignore este e-mail.',
-  ].join('\n')
+  )
+
+  return lines.join('\n')
 }

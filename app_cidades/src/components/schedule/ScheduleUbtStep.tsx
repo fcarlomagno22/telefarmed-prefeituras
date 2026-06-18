@@ -14,12 +14,14 @@ import {
 } from './ScheduleSelectableCard'
 import { ScheduleUbtListSkeleton } from './ScheduleStepSkeletons'
 import { ScheduleUbtMap } from './ScheduleUbtMap'
+import { ScheduleStepTitle } from './ScheduleStepTitle'
 
 type ScheduleUbtStepProps = {
   specialtyName: string
   userAddress: RegistrationAddress
   selectedId: string
   onSelect: (id: string, name: string) => void
+  onBack?: () => void
 }
 
 export function ScheduleUbtStep({
@@ -27,6 +29,7 @@ export function ScheduleUbtStep({
   userAddress,
   selectedId,
   onSelect,
+  onBack,
 }: ScheduleUbtStepProps) {
   const [ubts, setUbts] = useState<ScheduleUbtWithDistance[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -94,7 +97,7 @@ export function ScheduleUbtStep({
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>Escolha a UBT</Text>
+      <ScheduleStepTitle title="Escolha a unidade" onBack={onBack} />
       <Text style={styles.description}>
         Para {specialtyName}, selecione a unidade mais conveniente. A distância é calculada a partir
         do seu endereço em {userAddress.neighborhood}, {userAddress.city}.
@@ -189,12 +192,6 @@ export function ScheduleUbtStep({
 const styles = StyleSheet.create({
   wrap: {
     gap: 12,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
   },
   description: {
     color: colors.textMuted,

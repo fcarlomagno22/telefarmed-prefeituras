@@ -1,4 +1,11 @@
 import { brand } from '../../config/brand'
+import {applyEntidadeCopyToExportText,
+  buildEntidadeExportBaseStyles,
+  resolveEntidadeExportBranding,
+  type EntidadeExportBranding,
+  resolveExportAssetUrl,
+  escapeExportHtml
+} from '../entidadeExportHtml'
 import type { RankingUbtsReportApi } from '../../types/prefeituraRelatorios'
 import { downloadWindowAsPdf, pdfFilenameFromLabel } from '../htmlDocumentToPdf'
 
@@ -61,7 +68,7 @@ const SLA_STATUS_LABEL = {
   critico: 'Crítico',
 } as const
 
-function buildReportStyles() {
+function buildReportStyles(branding: EntidadeExportBranding = resolveEntidadeExportBranding()) {
   return `
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -78,7 +85,7 @@ function buildReportStyles() {
       border-radius: 16px;
       background: #fff;
     }
-    .brand-bar { height: 4px; background: #ff6b00; border-radius: 999px; margin-bottom: 20px; }
+    .brand-bar { height: 4px; background: ${branding.corPrimaria}; border-radius: 999px; margin-bottom: 20px; }
     .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
     .header img { height: 36px; width: auto; }
     .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #9ca3af; }
@@ -91,7 +98,7 @@ function buildReportStyles() {
       font-size: 14px;
       font-weight: 700;
       color: #111827;
-      border-bottom: 2px solid #ff6b00;
+      border-bottom: 2px solid ${branding.corPrimaria};
       padding-bottom: 8px;
       margin-bottom: 14px;
     }
@@ -485,15 +492,15 @@ function buildKpiCards(report: RankingUbtsReportApi) {
 }
 
 export function buildRankingUbtsReportHtml({ report, generatedAtLabel }: ExportContext) {
-  const logoUrl = resolveAssetUrl(brand.logoUrl)
+  const logoUrl = resolveExportAssetUrl(branding.logoUrl)
 
-  return `<!DOCTYPE html>
+  return applyEntidadeCopyToExportText(`<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${escapeHtml(report.title)}</title>
-  <style>${buildReportStyles()}</style>
+  <style>${buildReportStyles(branding)}</style>
 </head>
 <body>
   <main>
@@ -505,11 +512,11 @@ export function buildRankingUbtsReportHtml({ report, generatedAtLabel }: ExportC
         <h1>${escapeHtml(report.title)}</h1>
         <p class="subtitle">${escapeHtml(report.description)}</p>
         <div class="meta">
-          <p><strong>${escapeHtml(report.entidadeRazaoSocial)}</strong> · ${escapeHtml(brand.appName)}</p>
+          <p><strong>${escapeHtml(report.entidadeRazaoSocial)}</strong> · ${escapeExportHtml(branding.brandName)}</p>
           <p>Período: <strong>${escapeHtml(report.periodLabel)}</strong></p>
         </div>
       </div>
-      <img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brand.appName)}" />
+      <img src="${escapeHtml(logoUrl)}" alt="${escapeExportHtml(branding.brandName)}" />
     </header>
 
     <section>
@@ -569,7 +576,7 @@ export function buildRankingUbtsReportHtml({ report, generatedAtLabel }: ExportC
     </footer>
   </main>
 </body>
-</html>`
+</html>`)
 }
 
 function createExportFrame(html: string) {

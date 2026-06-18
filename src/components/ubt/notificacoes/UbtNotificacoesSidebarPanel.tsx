@@ -1,6 +1,7 @@
 import { Send } from 'lucide-react'
 import { useMemo } from 'react'
 import type { PrefeituraNotification } from '../../../data/prefeituraNotificacoesMock'
+import { usePlatformOperatorLabel } from '../../../hooks/useEntidadeCopy'
 import { useUbtPageAccess } from '../../../hooks/useUbtPageAccess'
 import { computeUbtNotificacoesOriginSlices } from '../../../utils/notificacoes/ubtNotificacoesOriginSlices'
 import { PrefeituraNotificacoesIllustration } from '../../prefeitura/notificacoes/PrefeituraNotificacoesIllustration'
@@ -21,9 +22,10 @@ export function UbtNotificacoesSidebarPanel({
   onCompose,
 }: UbtNotificacoesSidebarPanelProps) {
   const { pageAccess } = useUbtPageAccess('notificacoes')
+  const platformOperatorLabel = usePlatformOperatorLabel()
   const originSlices = useMemo(
-    () => computeUbtNotificacoesOriginSlices(notifications),
-    [notifications],
+    () => computeUbtNotificacoesOriginSlices(notifications, platformOperatorLabel),
+    [notifications, platformOperatorLabel],
   )
   const totalUnread = originSlices.reduce((sum, slice) => sum + slice.unread, 0)
   const totalMessages = useMemo(
@@ -48,7 +50,8 @@ export function UbtNotificacoesSidebarPanel({
             Nova notificação
           </button>
           <p className="mt-2 text-[10px] leading-snug text-gray-500">
-            Mensagens da Telefarmed são somente leitura. Para a operadora, use Suporte técnico.
+            Mensagens da {platformOperatorLabel} são somente leitura. Para a operadora, use Suporte
+            técnico.
           </p>
         </section>
       ) : null}
@@ -65,7 +68,7 @@ export function UbtNotificacoesSidebarPanel({
               </p>
             </div>
             {totalUnread > 0 ? (
-              <span className="shrink-0 rounded-full bg-orange-500 px-2 py-0.5 text-[10px] font-bold text-white">
+              <span className="shrink-0 rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[10px] font-bold text-white">
                 {totalUnread} não lidas
               </span>
             ) : null}

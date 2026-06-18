@@ -2,21 +2,24 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { ScheduleViewMode } from '../../types/scheduleAppointment'
 import { colors } from '../../theme/colors'
+import { ScheduleStepTitle } from './ScheduleStepTitle'
 
 type ScheduleModeStepProps = {
   specialtyName: string
   selectedMode: ScheduleViewMode
   onSelectMode: (mode: ScheduleViewMode) => void
+  onBack?: () => void
 }
 
 export function ScheduleModeStep({
   specialtyName,
   selectedMode,
   onSelectMode,
+  onBack,
 }: ScheduleModeStepProps) {
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>Como prefere agendar?</Text>
+      <ScheduleStepTitle title="Como prefere agendar?" onBack={onBack} />
       <Text style={styles.description}>
         Em {specialtyName}, escolha se quer começar pela data ou pelo médico.
       </Text>
@@ -79,12 +82,6 @@ export function ScheduleModeStep({
 const styles = StyleSheet.create({
   wrap: {
     gap: 14,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
   },
   description: {
     color: colors.textMuted,

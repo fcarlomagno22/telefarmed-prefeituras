@@ -5,7 +5,7 @@ import { listUbtOptionsByEntity } from '../admin-credenciais/referencias.service
 export async function getPrefeituraEntitySummary(entidadeId: string) {
   const { data, error } = await supabaseAdmin
     .from('entidades_contratantes')
-    .select('id, razao_social, municipio, uf, status')
+    .select('id, razao_social, municipio, uf, status, slug')
     .eq('id', entidadeId)
     .maybeSingle()
 
@@ -20,6 +20,7 @@ export async function getPrefeituraEntitySummary(entidadeId: string) {
   return {
     id: String(data.id),
     razaoSocial: String(data.razao_social),
+    slug: String(data.slug ?? ''),
     municipality,
     uf,
     label: `${municipality} · ${uf}`,

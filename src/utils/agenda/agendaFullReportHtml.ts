@@ -1,5 +1,11 @@
 import { brand } from '../../config/brand'
 import {
+  applyEntidadeCopyToExportText,
+  escapeExportHtml,
+  resolveEntidadeExportBranding,
+  resolveExportAssetUrl,
+} from '../entidadeExportHtml'
+import {
   agendaChartSegments,
   AGENDA_PIXEL_COUNT,
   filledAgendaPixelCount,
@@ -380,10 +386,12 @@ function buildDoctorsSection(doctors: AgendaDoctorShiftRecord[]) {
 }
 
 function buildFullReportStyles() {
+  const branding = resolveEntidadeExportBranding()
+  const brandColor = branding.corPrimaria
   return `
     :root {
-      --brand: #ff6b00;
-      --brand-soft: #fff7ed;
+      --brand: ${brandColor};
+      --brand-soft: color-mix(in srgb, ${brandColor} 12%, white);
       --text: #111827;
       --muted: #6b7280;
       --border: #f3f4f6;
@@ -483,7 +491,7 @@ function buildFullReportStyles() {
     .climate-col--peak .climate-col-count { color: var(--brand); }
     .climate-col-track { height: 72px; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
     .climate-col-bar { width: 100%; max-width: 28px; min-width: 16px; border-radius: 6px 6px 4px 4px; background: linear-gradient(to top, #9ca3af, #d1d5db); }
-    .climate-col--peak .climate-col-bar { background: linear-gradient(to top, #e55f00, #ff6b00, #ff9a3d); box-shadow: 0 0 12px rgba(255,107,0,0.35); }
+    .climate-col--peak .climate-col-bar { background: linear-gradient(to top, color-mix(in srgb, var(--brand) 85%, black), var(--brand), color-mix(in srgb, var(--brand) 70%, white)); box-shadow: 0 0 12px color-mix(in srgb, var(--brand) 35%, transparent); }
     .climate-col-hour { font-size: 10px; font-weight: 600; color: #6b7280; }
     .climate-col--peak .climate-col-hour { color: var(--brand); }
 
@@ -687,7 +695,8 @@ function buildFullReportHtml(options: AgendaFullReportOptions) {
     doctorShifts,
   } = options
 
-  const logoUrl = resolveAssetUrl(brand.logoUrl)
+  const branding = resolveEntidadeExportBranding()
+  const logoUrl = resolveExportAssetUrl(branding.logoUrl)
   const rows = appointments.map((a) => buildAppointmentRow(a, sensitiveDataUnlocked)).join('')
   const tableBody = appointments.length
     ? rows
@@ -697,7 +706,7 @@ function buildFullReportHtml(options: AgendaFullReportOptions) {
     ? buildClimatePanel(operationalClimate)
     : '<section class="panel climate-panel"><p class="empty-note">Sem dados de clima operacional.</p></section>'
 
-  return `<!DOCTYPE html>
+  return applyEntidadeCopyToExportText(`<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
@@ -714,7 +723,7 @@ function buildFullReportHtml(options: AgendaFullReportOptions) {
     <div class="brand-bar"></div>
 
     <header class="header">
-      <div><img class="header-logo" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brand.appName)}" crossorigin="anonymous" /></div>
+      <div><img class="header-logo" src="${escapeHtml(logoUrl)}" alt="${escapeExportHtml(branding.brandName)}" crossorigin="anonymous" /></div>
       <div class="header-right">
         <h1 class="doc-title">Relatório completo da agenda</h1>
         <p class="doc-date">${escapeHtml(dayLabel)}</p>
@@ -759,7 +768,7 @@ function buildFullReportHtml(options: AgendaFullReportOptions) {
 
     <footer class="footer">
       <span>${escapeHtml(brand.copyright)}</span>
-      <span>${escapeHtml(brand.appName)} · Relatório completo gerado automaticamente</span>
+      <span>${escapeExportHtml(branding.brandName)} · Relatório completo gerado automaticamente</span>
     </footer>
   </main>
   <script>
@@ -775,7 +784,7 @@ function buildFullReportHtml(options: AgendaFullReportOptions) {
     });
   </script>
 </body>
-</html>`
+</html>`)
 }
 
 function openPrintWindow(html: string, title: string): Window | null {

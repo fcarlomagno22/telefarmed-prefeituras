@@ -3,7 +3,7 @@ import { Skeleton } from '../../ui/Skeleton'
 export function PrefeituraContratoExpiryBannerSkeleton() {
   return (
     <section
-      className="relative overflow-hidden rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50/90 to-orange-50/50 p-5 sm:p-6"
+      className="relative overflow-hidden rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50/90 to-[var(--brand-primary-muted)]/50 p-5 sm:p-6"
       aria-hidden
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

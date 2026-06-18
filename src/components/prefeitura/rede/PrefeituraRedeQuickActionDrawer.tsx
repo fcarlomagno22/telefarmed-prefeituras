@@ -831,7 +831,7 @@ function SettingsDrawerContent({
                   min={1}
                   value={dailyCapacity}
                   onChange={(event) => handleDailyCapacityChange(event.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[var(--brand-primary)]/40 focus:shadow-[0_0_0_3px_rgba(255,107,0,0.12)]"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[var(--brand-primary)]/40 focus:shadow-[var(--brand-primary-focus-ring)]"
                 />
               </label>
 

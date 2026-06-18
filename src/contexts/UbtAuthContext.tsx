@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import { emptyPagePermissions } from '../config/accessCredentials'
+import { ubtRoutes } from '../config/ubtRoutes'
 import { registerUbtAccessTokenRefresh } from '../lib/api/ubtAuthRefresh'
 import { isBackendApiEnabled } from '../lib/api/config'
 import {
@@ -18,6 +19,12 @@ import {
   notifyUnauthorizedSession,
 } from '../lib/auth/sessionRevocation'
 import { bootstrapTabBoundAuthSession } from '../lib/auth/bootstrapTabBoundSession'
+import {
+  bindAuthSessionToHostSlug,
+  clearAuthSessionHostSlug,
+  currentAuthHostSlug,
+  isAuthSessionHostSlugMismatch,
+} from '../lib/auth/tenantSessionBinding'
 import {
   UbtAuthApiError,
   ubtLogin,
@@ -31,6 +38,7 @@ import {
   type UbtSystemPermissions,
 } from '../lib/services/ubt/auth'
 import { useAuthSessionGuard } from '../hooks/useAuthSessionGuard'
+import { useTenantHostAuthGuard } from '../hooks/useTenantHostAuthGuard'
 import { setSessionUserDisplayName } from '../utils/sessionUser'
 
 function emptyUbtSystemPermissions(): UbtAuthUser['systemPermissions'] {
@@ -70,6 +78,7 @@ export function UbtAuthProvider({ children }: { children: ReactNode }) {
       userIdRef.current = normalized.id
       writeUbtMockSession(token, normalized)
       clearAuthSessionRevoked('ubt')
+      bindAuthSessionToHostSlug('ubt', currentAuthHostSlug())
       setSessionUserDisplayName(normalized.nome)
 
       if (options?.silent) {
@@ -88,14 +97,16 @@ export function UbtAuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(null)
     setUser(null)
     setSessionUserDisplayName(null)
+    clearAuthSessionHostSlug('ubt')
     writeUbtMockSession(null, null)
   }, [])
 
   const forceLogout = useCallback(async () => {
     markAuthSessionRevoked('ubt')
     clearSession()
-    if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/ubt/login')) {
-      window.location.replace('/ubt/login')
+    const loginPath = ubtRoutes.login
+    if (typeof window !== 'undefined' && !window.location.pathname.startsWith(loginPath)) {
+      window.location.replace(loginPath)
     }
   }, [clearSession])
 
@@ -144,6 +155,15 @@ export function UbtAuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false
 
     async function bootstrap() {
+      if (isAuthSessionHostSlugMismatch('ubt')) {
+        await ubtLogout().catch(() => {})
+        if (!cancelled) {
+          clearSession()
+          setIsBootstrapping(false)
+        }
+        return
+      }
+
       if (isAuthSessionRevoked('ubt')) {
         if (!cancelled) {
           clearSession()
@@ -206,6 +226,11 @@ export function UbtAuthProvider({ children }: { children: ReactNode }) {
     await ubtLogout()
     clearSession()
   }, [clearSession])
+
+  useTenantHostAuthGuard('ubt', {
+    isAuthenticated: Boolean(user && accessToken),
+    onForceLogout: logout,
+  })
 
   const value = useMemo<UbtAuthContextValue>(
     () => ({

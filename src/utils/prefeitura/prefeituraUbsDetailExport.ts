@@ -1,4 +1,11 @@
 import { brand } from '../../config/brand'
+import {applyEntidadeCopyToExportText,
+  buildEntidadeExportBaseStyles,
+  resolveEntidadeExportBranding,
+  type EntidadeExportBranding,
+  resolveExportAssetUrl,
+  escapeExportHtml
+} from '../entidadeExportHtml'
 import type { PrefeituraSlaStatus } from '../../types/prefeituraDashboard'
 import {
   formatPrefeituraRedeUnitLocation,
@@ -209,7 +216,7 @@ function csvCell(value: string | number) {
   return `"${text.replace(/"/g, '""')}"`
 }
 
-function buildReportStyles() {
+function buildReportStyles(branding: EntidadeExportBranding = resolveEntidadeExportBranding()) {
   return `
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -220,7 +227,7 @@ function buildReportStyles() {
       -webkit-font-smoothing: antialiased;
     }
     main { max-width: 900px; margin: 0 auto; padding: 28px 32px 36px; }
-    .brand-bar { height: 5px; background: #ff6b00; border-radius: 999px; margin-bottom: 20px; }
+    .brand-bar { height: 5px; background: ${branding.corPrimaria}; border-radius: 999px; margin-bottom: 20px; }
     .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
     .header img { height: 36px; width: auto; }
     h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
@@ -234,7 +241,7 @@ function buildReportStyles() {
     .kpi-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #6b7280; }
     .kpi-value { font-size: 18px; font-weight: 700; margin-top: 4px; color: #111827; }
     section { margin-top: 22px; }
-    h2 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #111827; border-bottom: 2px solid #ff6b00; padding-bottom: 6px; }
+    h2 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #111827; border-bottom: 2px solid ${branding.corPrimaria}; padding-bottom: 6px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     th, td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; }
     th { background: #f9fafb; font-weight: 600; color: #374151; }
@@ -257,7 +264,7 @@ function buildUbsDetailReportHtml(context: PrefeituraUbsDetailExportContext) {
   const slaLabel = SLA_LABELS[unit.sla]
   const operatorName = getLoggedOperatorName()
   const generatedAt = formatGeneratedAt(new Date())
-  const logoUrl = resolveAssetUrl(brand.logoUrl)
+  const logoUrl = resolveExportAssetUrl(branding.logoUrl)
   const displayName = cadastral?.unit.name ?? unit.name
   const displaySubtitle = cadastral
     ? `${cadastral.unit.region} · ${cadastral.unitType} · CNES ${cadastral.unit.cnes}`
@@ -320,7 +327,7 @@ function buildUbsDetailReportHtml(context: PrefeituraUbsDetailExportContext) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Detalhes da unidade — ${escapeHtml(displayName)}</title>
-  <style>${buildReportStyles()}</style>
+  <style>${buildReportStyles(branding)}</style>
 </head>
 <body>
   <main>
@@ -330,14 +337,14 @@ function buildUbsDetailReportHtml(context: PrefeituraUbsDetailExportContext) {
         <h1>${escapeHtml(displayName)}</h1>
         <p class="subtitle">${escapeHtml(displaySubtitle)}</p>
         <div class="meta">
-          <p><strong>${escapeHtml(brand.appName)}</strong> · Painel municipal</p>
+          <p><strong>${escapeExportHtml(branding.brandName)}</strong> · Painel municipal</p>
           <p>SLA: ${escapeHtml(slaLabel)} · Espera média: ${escapeHtml(unit.avgWait)}</p>
           ${cadastral ? `<p>Situação cadastral: ${escapeHtml(cadastral.statusLabel)}</p>` : ''}
           <p>Operador: ${escapeHtml(operatorName)} · Gerado em ${escapeHtml(generatedAt)}</p>
         </div>
         ${buildFilterBlock(context.filterSummaryLines)}
       </div>
-      <img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brand.appName)}" />
+      <img src="${escapeHtml(logoUrl)}" alt="${escapeExportHtml(branding.brandName)}" />
     </div>
 
     ${cadastralHtml}

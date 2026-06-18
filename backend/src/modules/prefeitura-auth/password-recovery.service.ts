@@ -6,6 +6,7 @@ import {
   buildUbtPasswordRecoveryEmailText,
 } from '../../lib/email/ubtPasswordRecoveryTemplate.js'
 import { sendMail } from '../../lib/email/smtp.js'
+import { resolveGestaoUrlForEntidade } from '../../lib/tenant/transactionalUrls.js'
 import {
   createOpaqueToken,
   hashOpaqueToken,
@@ -76,10 +77,11 @@ async function findPrefeituraUserByCpf(cpf: string): Promise<{
   id: string
   email: string | null
   status: string
+  entidadeContratanteId: string
 } | null> {
   const { data, error } = await supabaseAdmin
     .from('usuarios_prefeitura')
-    .select('id, email, status')
+    .select('id, email, status, entidade_contratante_id')
     .eq('cpf', cpf)
     .maybeSingle()
 
@@ -90,6 +92,7 @@ async function findPrefeituraUserByCpf(cpf: string): Promise<{
     id: String(data.id),
     email: data.email == null ? null : String(data.email).trim().toLowerCase(),
     status: String(data.status),
+    entidadeContratanteId: String(data.entidade_contratante_id),
   }
 }
 
@@ -134,12 +137,12 @@ async function purgeExpiredRecoveries(): Promise<void> {
   if (error) throw error
 }
 
-async function sendRecoveryCodeEmail(to: string, code: string): Promise<void> {
+async function sendRecoveryCodeEmail(to: string, code: string, portalUrl: string): Promise<void> {
   await sendMail({
     to,
     subject: 'Seu código de verificação — Telefarmed',
-    html: buildUbtPasswordRecoveryEmailHtml(code),
-    text: buildUbtPasswordRecoveryEmailText(code),
+    html: buildUbtPasswordRecoveryEmailHtml(code, portalUrl),
+    text: buildUbtPasswordRecoveryEmailText(code, portalUrl),
   })
 }
 
@@ -200,8 +203,10 @@ export async function requestPrefeituraPasswordRecovery(cpfInput: string): Promi
 
   if (error) throw error
 
+  const portalUrl = await resolveGestaoUrlForEntidade(user.entidadeContratanteId, '/login')
+
   try {
-    await sendRecoveryCodeEmail(user.email, code)
+    await sendRecoveryCodeEmail(user.email, code, portalUrl)
   } catch (mailError) {
     await supabaseAdmin
       .from('prefeitura_recuperacao_senha')

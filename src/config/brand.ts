@@ -7,6 +7,8 @@ export const brand = {
   primaryColor: env('VITE_BRAND_COLOR', '#ff6b00'),
   logoUrl: env('VITE_LOGO_URL', '/logo_4.png'),
   backgroundImageUrl: env('VITE_BACKGROUND_IMAGE_URL', '/fundo_login.png'),
+  /** Fundo do login das UBTs whitelabel (clientes). Plataforma ubt.telefarmed.com.br mantém `backgroundImageUrl`. */
+  ubtClientLoginBackgroundUrl: '/ubt_login_cl.png',
   profissionalBackgroundImageUrl: env(
     'VITE_PROFISSIONAL_BACKGROUND_IMAGE_URL',
     '/login_prof.png',
@@ -20,6 +22,7 @@ export const brand = {
     '/fundo_painel_admin.png',
   ),
   appName: env('VITE_APP_NAME', 'Telefarmed'),
+  faviconUrl: env('VITE_FAVICON_URL', '/new_favicon.ico'),
   appTagline: env('VITE_APP_TAGLINE', 'Farmácia e Telemedicina'),
   headline: env(
     'VITE_HEADLINE',
@@ -221,3 +224,9 @@ export const profissionalFeatures = [
     text: 'Recebimentos, notas fiscais e contrato de prestação',
   },
 ]
+
+export function buildEntityCopyright(entityName: string): string {
+  const year = new Date().getFullYear()
+  const name = entityName.trim() || brand.appName
+  return `© ${year} ${name}. Todos os direitos reservados.`
+}

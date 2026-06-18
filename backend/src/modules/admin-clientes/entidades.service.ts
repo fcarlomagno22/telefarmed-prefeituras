@@ -9,20 +9,45 @@ import {
   normalizeCnpj,
   parseBrazilianDateToIso,
   serializeContact,
+  serializeOptionalContact,
   type EntidadeRow,
 } from './formatters.js'
+import {
+  deleteEntidadeFavicon,
+  uploadEntidadeFavicon,
+} from './favicon.service.js'
 import { deleteEntidadeLogo, resolveLogoUrlsByEntityId, uploadEntidadeLogo } from './logo.service.js'
+import {
+  deleteEntidadeLoginBackground,
+  resolveLoginBackgroundUrlsByEntityId,
+  uploadEntidadeLoginBackground,
+} from './loginBackground.service.js'
+import {
+  resolveFaviconUrlsByEntityId,
+} from './favicon.service.js'
+import { buildEntidadeBrandingDbPatch } from './entidadeBrandingPatch.js'
+import { checkTenantSlugAvailability } from '../../lib/tenant/slugAvailability.js'
+import { shouldLockEntidadeSlugOnStatus, slugLockedAtNow } from '../../lib/tenant/slugLock.js'
 import type { AdminClienteRowDto } from './types.js'
 import type {
   CreateContratoBody,
   CreateEntidadeBody,
   ListEntidadesQuery,
   UpdateEntidadeBody,
+  UpdateEntidadeContactsBody,
   UpdateContratoBody,
 } from './schemas.js'
 
 const ENTIDADE_COLUMNS =
-  'id, nome_exibicao, subtitulo, razao_social, cnpj, municipio, uf, status_cliente, logo_hue, logo_storage_path, gestor, contato_contrato, contato_ti, contato_saude, atualizado_em'
+  'id, nome_exibicao, subtitulo, razao_social, cnpj, municipio, uf, status_cliente, slug, slug_locked_at, logo_hue, logo_storage_path, login_background_storage_path, favicon_storage_path, tipo_entidade, cor_primaria, nome_marca, terminologia, gestor, contato_contrato, contato_ti, contato_saude, atualizado_em'
+
+export async function getClienteSlugAvailability(input: {
+  value: string
+  excludeEntidadeId?: string
+  excludeUbtId?: string
+}) {
+  return checkTenantSlugAvailability(input)
+}
 
 export async function listClientesEntidades(
   queryParams: ListEntidadesQuery,
@@ -58,8 +83,10 @@ export async function listClientesEntidades(
   const entidades = (data ?? []) as EntidadeRow[]
   if (entidades.length === 0) return []
 
-  const [logoUrls, contratosBundle] = await Promise.all([
+  const [logoUrls, loginBackgroundUrls, faviconUrls, contratosBundle] = await Promise.all([
     resolveLogoUrlsByEntityId(entidades),
+    resolveLoginBackgroundUrlsByEntityId(entidades),
+    resolveFaviconUrlsByEntityId(entidades),
     loadContratosBundleForEntidades(entidades.map((row) => row.id)),
   ])
 
@@ -67,7 +94,11 @@ export async function listClientesEntidades(
     mapEntidadeRow(
       row,
       contratosBundle.contratosByEntidade.get(row.id) ?? [],
-      logoUrls.get(row.id),
+      {
+        logoUrl: logoUrls.get(row.id),
+        loginBackgroundUrl: loginBackgroundUrls.get(row.id),
+        faviconUrl: faviconUrls.get(row.id),
+      },
     ),
   )
 }
@@ -85,12 +116,18 @@ export async function getClienteEntidade(entidadeId: string): Promise<AdminClien
   }
 
   const row = data as EntidadeRow
-  const [logoUrls, contratos] = await Promise.all([
+  const [logoUrls, loginBackgroundUrls, faviconUrls, contratos] = await Promise.all([
     resolveLogoUrlsByEntityId([row]),
+    resolveLoginBackgroundUrlsByEntityId([row]),
+    resolveFaviconUrlsByEntityId([row]),
     loadContratosForEntidade(entidadeId),
   ])
 
-  return mapEntidadeRow(row, contratos, logoUrls.get(row.id))
+  return mapEntidadeRow(row, contratos, {
+    logoUrl: logoUrls.get(row.id),
+    loginBackgroundUrl: loginBackgroundUrls.get(row.id),
+    faviconUrl: faviconUrls.get(row.id),
+  })
 }
 
 export async function createClienteEntidade(
@@ -104,35 +141,81 @@ export async function createClienteEntidade(
     throw new ClientesError('CNPJ inválido.', 'INVALID_DATA', 400)
   }
 
-  const { data, error } = await supabaseAdmin
-    .from('entidades_contratantes')
-    .insert({
-      nome_exibicao: input.nome.trim(),
-      subtitulo: input.subtitulo.trim(),
-      razao_social: input.razaoSocial.trim(),
-      cnpj,
-      municipio: input.municipio.trim(),
-      uf: input.uf.trim().toUpperCase(),
-      status: 'ativo',
-      status_cliente: input.status,
-      logo_hue: input.logoHue ?? 180,
-      gestor: serializeContact(input.gestor),
-      contato_contrato: input.contatoContrato ? serializeContact(input.contatoContrato) : null,
-      contato_ti: serializeContact(input.contatoTi),
-      contato_saude: serializeContact(input.contatoSaude),
-    })
-    .select(ENTIDADE_COLUMNS)
-    .single()
+  await assertEntidadeCnpjAvailable(cnpj)
+  await assertEntidadeSlugAvailable(input.slug)
 
-  if (error) throw error
+  let entidadeId: string | null = null
 
-  const row = data as EntidadeRow
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('entidades_contratantes')
+      .insert({
+        nome_exibicao: input.nome.trim(),
+        subtitulo: input.subtitulo.trim(),
+        razao_social: input.razaoSocial.trim(),
+        cnpj,
+        municipio: input.municipio.trim(),
+        uf: input.uf.trim().toUpperCase(),
+        slug: input.slug,
+        ...(shouldLockEntidadeSlugOnStatus(input.status)
+          ? { slug_locked_at: slugLockedAtNow() }
+          : {}),
+        status: 'ativo',
+        status_cliente: input.status,
+        logo_hue: input.logoHue ?? 180,
+        gestor: serializeOptionalContact(input.gestor),
+        contato_contrato: input.contatoContrato ? serializeContact(input.contatoContrato) : null,
+        contato_ti: serializeOptionalContact(input.contatoTi),
+        contato_saude: serializeOptionalContact(input.contatoSaude),
+        ...buildEntidadeBrandingDbPatch({
+          tipoEntidade: input.tipoEntidade,
+          corPrimaria: input.corPrimaria,
+          nomeMarca: input.nomeMarca,
+          terminologia: input.terminologia,
+        }),
+      })
+      .select(ENTIDADE_COLUMNS)
+      .single()
 
-  if (input.logoDataUrl) {
-    await uploadEntidadeLogo(row.id, input.logoDataUrl)
+    if (error) throw error
+
+    const row = data as EntidadeRow
+    entidadeId = row.id
+
+    if (input.logoDataUrl) {
+      await uploadEntidadeLogo(row.id, input.logoDataUrl)
+    }
+
+    if (input.loginBackgroundDataUrl) {
+      await uploadEntidadeLoginBackground(row.id, input.loginBackgroundDataUrl)
+    }
+
+    if (input.faviconDataUrl) {
+      await uploadEntidadeFavicon(row.id, input.faviconDataUrl)
+    }
+
+    return getClienteEntidade(row.id)
+  } catch (error) {
+    if (entidadeId) {
+      await supabaseAdmin.from('entidades_contratantes').delete().eq('id', entidadeId)
+    }
+    throw error
   }
+}
 
-  return getClienteEntidade(row.id)
+async function assertEntidadeSlugAvailable(slug: string, excludeEntidadeId?: string): Promise<void> {
+  const availability = await checkTenantSlugAvailability({
+    value: slug,
+    excludeEntidadeId,
+  })
+
+  if (!availability.available) {
+    throw new ClientesError(
+      availability.reason ?? 'Endereço público indisponível.',
+      'DUPLICATE_SLUG',
+      409,
+    )
+  }
 }
 
 async function assertEntidadeCnpjAvailable(cnpj: string, excludeEntidadeId?: string): Promise<void> {
@@ -167,6 +250,30 @@ export async function updateClienteEntidade(
 
   await assertEntidadeCnpjAvailable(cnpj, entidadeId)
 
+  await assertEntidadeCnpjAvailable(cnpj, entidadeId)
+
+  const { data: existing, error: existingError } = await supabaseAdmin
+    .from('entidades_contratantes')
+    .select('slug, slug_locked_at')
+    .eq('id', entidadeId)
+    .maybeSingle()
+
+  if (existingError) throw existingError
+  if (!existing) {
+    throw new ClientesError('Entidade não encontrada.', 'NOT_FOUND', 404)
+  }
+
+  if (input.slug && input.slug !== existing.slug) {
+    if (existing.slug_locked_at) {
+      throw new ClientesError(
+        'O endereço público não pode ser alterado após a publicação.',
+        'INVALID_DATA',
+        400,
+      )
+    }
+    await assertEntidadeSlugAvailable(input.slug, entidadeId)
+  }
+
   const { data, error } = await supabaseAdmin
     .from('entidades_contratantes')
     .update({
@@ -176,7 +283,14 @@ export async function updateClienteEntidade(
       cnpj,
       municipio: input.municipio.trim(),
       uf: input.uf.trim().toUpperCase(),
+      ...(input.slug ? { slug: input.slug } : {}),
       ...(input.logoHue != null ? { logo_hue: input.logoHue } : {}),
+      ...buildEntidadeBrandingDbPatch({
+        tipoEntidade: input.tipoEntidade,
+        corPrimaria: input.corPrimaria,
+        nomeMarca: input.nomeMarca,
+        terminologia: input.terminologia,
+      }),
     })
     .eq('id', entidadeId)
     .select(ENTIDADE_COLUMNS)
@@ -189,6 +303,14 @@ export async function updateClienteEntidade(
 
   if (input.logoDataUrl) {
     await uploadEntidadeLogo(entidadeId, input.logoDataUrl)
+  }
+
+  if (input.loginBackgroundDataUrl) {
+    await uploadEntidadeLoginBackground(entidadeId, input.loginBackgroundDataUrl)
+  }
+
+  if (input.faviconDataUrl) {
+    await uploadEntidadeFavicon(entidadeId, input.faviconDataUrl)
   }
 
   return getClienteEntidade(entidadeId)
@@ -204,7 +326,10 @@ export async function updateClienteEntidadeStatus(
 
   const { data, error } = await supabaseAdmin
     .from('entidades_contratantes')
-    .update({ status_cliente: status })
+    .update({
+      status_cliente: status,
+      ...(shouldLockEntidadeSlugOnStatus(status) ? { slug_locked_at: slugLockedAtNow() } : {}),
+    })
     .eq('id', entidadeId)
     .select(ENTIDADE_COLUMNS)
     .maybeSingle()
@@ -220,7 +345,7 @@ export async function updateClienteEntidadeStatus(
 export async function updateClienteEntidadeContacts(
   adminId: string,
   entidadeId: string,
-  input: Pick<CreateEntidadeBody, 'pin' | 'gestor' | 'contatoContrato' | 'contatoTi' | 'contatoSaude'>,
+  input: UpdateEntidadeContactsBody,
 ): Promise<AdminClienteRowDto> {
   await verifyAdminAuthorizationPin(adminId, input.pin)
 
@@ -253,7 +378,7 @@ export async function deleteClienteEntidade(
 
   const { data, error } = await supabaseAdmin
     .from('entidades_contratantes')
-    .select('id, logo_storage_path')
+    .select('id, logo_storage_path, login_background_storage_path, favicon_storage_path')
     .eq('id', entidadeId)
     .maybeSingle()
 
@@ -269,6 +394,12 @@ export async function deleteClienteEntidade(
   if (rpcError) throw rpcError
 
   await deleteEntidadeLogo(data.logo_storage_path ? String(data.logo_storage_path) : null)
+  await deleteEntidadeLoginBackground(
+    data.login_background_storage_path ? String(data.login_background_storage_path) : null,
+  )
+  await deleteEntidadeFavicon(
+    data.favicon_storage_path ? String(data.favicon_storage_path) : null,
+  )
 }
 
 export async function createClienteContrato(

@@ -4,7 +4,7 @@ import type { AdminClienteContratoAction } from './adminClienteContratoActions'
 type AdminClienteContratoConfirmModalProps = {
   open: boolean
   action: AdminClienteContratoAction | null
-  prefeitura: string
+  entidadeNome: string
   contratoLabel: string
   onCancel: () => void
   onConfirm: () => void
@@ -39,7 +39,7 @@ const actionCopy: Record<
 export function AdminClienteContratoConfirmModal({
   open,
   action,
-  prefeitura,
+  entidadeNome,
   contratoLabel,
   onCancel,
   onConfirm,
@@ -80,7 +80,7 @@ export function AdminClienteContratoConfirmModal({
           {copy.description}
         </p>
         <p className="mt-2 text-sm text-gray-500">
-          <span className="font-semibold text-gray-800">{prefeitura}</span>
+          <span className="font-semibold text-gray-800">{entidadeNome}</span>
           <span className="text-gray-400"> · </span>
           {contratoLabel}
         </p>

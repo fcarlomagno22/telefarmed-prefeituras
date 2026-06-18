@@ -67,6 +67,7 @@ type UseAdminOperatorUserDrawerOptions = {
   skipPasswordOnCreate?: boolean
   /** Exige CPF no cadastro (operadores UBT — login no terminal). */
   requireCpfOnCreate?: boolean
+  defaultPortalSlug?: string | null
   getAccessToken?: () => string | null
   onDataChanged?: () => Promise<void>
   contractingEntityOptionsFromApi?: ContractingEntityOption[]
@@ -708,6 +709,7 @@ export function useAdminOperatorUserDrawer(
           ubtOptionsByContractingEntityId,
           skipPasswordOnCreate,
           requireCpfOnCreate: requireCpfOnCreate && defaultScope === 'UBT',
+          defaultPortalSlug: options?.defaultPortalSlug,
         }}
         onClose={requestClose}
         onTransitionEnd={handleTransitionEnd}

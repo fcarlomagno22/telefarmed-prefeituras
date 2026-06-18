@@ -1,0 +1,2626 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "tone_guidelines": {
+    "voice": "acolhedora_direta_segunda_pessoa",
+    "sentence_style": "frases_curtas_naturais_pt_br",
+    "validation_principle": "Reconhecer o momento sem minimizar, dramatizar ou concluir algo sobre a pessoa.",
+    "encouragement_principle": "Valorizar passos pequenos, escolhas possíveis e autonomia.",
+    "avoid_user_blame": true,
+    "avoid_clinical_labels": true,
+    "avoid_internal_engine_terms": true,
+    "max_sentences_per_message": 3,
+    "preferred_patterns": [
+      "Um passo de cada vez.",
+      "O que você fez já conta.",
+      "Escolha o que fizer sentido para você.",
+      "Você pode adaptar ao seu ritmo."
+    ]
+  },
+  "placeholder_registry": {
+    "formatter_definitions": {
+      "list_lowercase": {
+        "description_internal": "Converte os itens para minúsculas e une os dois últimos com 'e'.",
+        "example_input": [
+          "Preocupado",
+          "Cansado"
+        ],
+        "example_output": "preocupado e cansado"
+      },
+      "list_with_intensity": {
+        "description_internal": "Formata a lista de emoções e acrescenta o rótulo de intensidade.",
+        "example_input": {
+          "items": [
+            "Preocupado",
+            "Cansado"
+          ],
+          "intensity_label": "moderada"
+        },
+        "example_output": "preocupado e cansado em intensidade moderada"
+      },
+      "influence_phrase_by_valence": {
+        "description_internal": "Escolhe a preposição e o tom da influência conforme positive, negative ou mixed.",
+        "mapping": {
+          "positive": "depois de algo positivo envolvendo {{main_influence}}",
+          "negative": "depois de algo difícil envolvendo {{main_influence}}",
+          "mixed": "depois de uma situação com lados diferentes envolvendo {{main_influence}}"
+        },
+        "fallback": "depois de algo envolvendo {{main_influence}}"
+      },
+      "safe_count_phrase": {
+        "description_internal": "Converte contagens em frase natural, inclusive singular.",
+        "mapping": {
+          "1": "1 cuidado leve",
+          "other": "{{activity_count}} cuidados leves"
+        }
+      }
+    },
+    "mood_label": {
+      "source": "check_in.mood",
+      "formatter": "mood_label_lowercase",
+      "mapping": {
+        "very-good": "muito bem",
+        "good": "bem",
+        "neutral": "neutro",
+        "bad": "mal",
+        "very-bad": "muito mal"
+      },
+      "example": "mal",
+      "fallback": "como conseguiu perceber agora"
+    },
+    "emotions_inline": {
+      "source": "check_in.emotions",
+      "formatter": "list_lowercase",
+      "example": "preocupado e cansado",
+      "fallback": "algumas emoções ao mesmo tempo"
+    },
+    "dominant_emotion_label": {
+      "source": "check_in.emotions[0]",
+      "formatter": "lowercase",
+      "example": "preocupado",
+      "fallback": "essa emoção"
+    },
+    "emotion_intensity_label": {
+      "source": "check_in.emotion_intensity",
+      "mapping": {
+        "1": "muito leve",
+        "2": "leve",
+        "3": "moderada",
+        "4": "forte",
+        "5": "muito forte"
+      },
+      "example": "moderada",
+      "fallback": "percebida"
+    },
+    "main_influence": {
+      "source": "check_in.main_influence",
+      "formatter": "lowercase",
+      "allowed_values": [
+        "Trabalho",
+        "Estudos",
+        "Família",
+        "Relacionamento",
+        "Dinheiro",
+        "Saúde",
+        "Sono",
+        "Alimentação",
+        "Conflito",
+        "Solidão",
+        "Conquista",
+        "Atividade física",
+        "Espiritualidade",
+        "Outro acontecimento"
+      ],
+      "example": "trabalho",
+      "fallback": "o que aconteceu no dia"
+    },
+    "influence_valence": {
+      "source": "check_in.influence_valence",
+      "allowed_values": [
+        "positive",
+        "negative",
+        "mixed"
+      ],
+      "example": "negative",
+      "fallback": "mixed"
+    },
+    "reaction_label": {
+      "source": "check_in.reactions[0]",
+      "formatter": "lowercase",
+      "example": "conversei com alguém",
+      "fallback": "a forma como você reagiu"
+    },
+    "activity_count": {
+      "source": "plan.activity_count",
+      "formatter": "integer",
+      "example": "3",
+      "fallback": "alguns"
+    },
+    "first_activity_title": {
+      "source": "plan.slots[0].activity_title",
+      "example": "Cinco sentidos no presente",
+      "fallback": "um cuidado curto"
+    },
+    "activity_title": {
+      "source": "activity.title",
+      "example": "Expiração mais longa",
+      "fallback": "esta atividade"
+    },
+    "user_name": {
+      "source": "profile.name",
+      "fallback": "você"
+    },
+    "care_focus_label": {
+      "source": "profile.careFocus[0]",
+      "mapping": {
+        "anxiety": "preocupações e tensão",
+        "sadness": "tristeza e desânimo",
+        "stress": "sobrecarga do dia a dia",
+        "sleep": "sono e descanso",
+        "relationships": "relações e convivência",
+        "work": "trabalho ou estudos",
+        "loneliness": "solidão e conexão",
+        "self-esteem": "forma de se tratar e se perceber",
+        "routine": "rotina e organização",
+        "undecided": "seu momento atual"
+      },
+      "example": "sono e descanso",
+      "fallback": "o que mais importa para você agora"
+    },
+    "day_period": {
+      "source": "time.local_period",
+      "values": [
+        "manhã",
+        "tarde",
+        "noite"
+      ],
+      "mapping": {
+        "morning": "manhã",
+        "afternoon": "tarde",
+        "evening": "noite",
+        "night": "noite"
+      },
+      "fallback": "hoje"
+    },
+    "completed_count": {
+      "source": "plan.completed_count",
+      "example": "2",
+      "fallback": "0"
+    },
+    "total_count": {
+      "source": "plan.total_count",
+      "example": "3",
+      "fallback": "1"
+    },
+    "days_since_last_plan": {
+      "source": "history.days_since_last_plan",
+      "example": "4",
+      "fallback": "0"
+    }
+  },
+  "moment_summary": {
+    "templates": [
+      {
+        "id": "summary_mood_very_good",
+        "template": "Você informou estar se sentindo {{mood_label}}",
+        "conditions": {
+          "mood": {
+            "eq": "very-good"
+          }
+        },
+        "priority": 55,
+        "block": "mood"
+      },
+      {
+        "id": "summary_mood_good",
+        "template": "Você informou estar se sentindo {{mood_label}}",
+        "conditions": {
+          "mood": {
+            "eq": "good"
+          }
+        },
+        "priority": 54,
+        "block": "mood"
+      },
+      {
+        "id": "summary_mood_neutral",
+        "template": "Você informou estar se sentindo {{mood_label}}",
+        "conditions": {
+          "mood": {
+            "eq": "neutral"
+          }
+        },
+        "priority": 53,
+        "block": "mood"
+      },
+      {
+        "id": "summary_mood_bad",
+        "template": "Você informou estar se sentindo {{mood_label}}",
+        "conditions": {
+          "mood": {
+            "eq": "bad"
+          }
+        },
+        "priority": 52,
+        "block": "mood"
+      },
+      {
+        "id": "summary_mood_very_bad",
+        "template": "Você informou estar se sentindo {{mood_label}}",
+        "conditions": {
+          "mood": {
+            "eq": "very-bad"
+          }
+        },
+        "priority": 51,
+        "block": "mood"
+      },
+      {
+        "id": "summary_emotions_multiple_intensity",
+        "template": ", com {{emotions_inline}} em intensidade {{emotion_intensity_label}}",
+        "conditions": {
+          "emotions_count": {
+            "gte": 2
+          },
+          "emotion_intensity": {
+            "present": true
+          }
+        },
+        "priority": 78,
+        "block": "emotions",
+        "suffix": true
+      },
+      {
+        "id": "summary_emotion_single_intensity",
+        "template": ", com {{emotions_inline}} em intensidade {{emotion_intensity_label}}",
+        "conditions": {
+          "emotions_count": {
+            "eq": 1
+          },
+          "emotion_intensity": {
+            "present": true
+          }
+        },
+        "priority": 77,
+        "block": "emotions",
+        "suffix": true
+      },
+      {
+        "id": "summary_emotions_multiple_no_intensity",
+        "template": ", sentindo {{emotions_inline}}",
+        "conditions": {
+          "emotions_count": {
+            "gte": 2
+          },
+          "emotion_intensity": {
+            "absent": true
+          }
+        },
+        "priority": 76,
+        "block": "emotions",
+        "suffix": true
+      },
+      {
+        "id": "summary_emotion_single_no_intensity",
+        "template": ", sentindo {{emotions_inline}}",
+        "conditions": {
+          "emotions_count": {
+            "eq": 1
+          },
+          "emotion_intensity": {
+            "absent": true
+          }
+        },
+        "priority": 75,
+        "block": "emotions",
+        "suffix": true
+      },
+      {
+        "id": "summary_emotions_positive",
+        "template": ", com {{emotions_inline}} presentes neste momento",
+        "conditions": {
+          "emotions": {
+            "includes_any": [
+              "Tranquilo",
+              "Animado",
+              "Grato",
+              "Esperançoso"
+            ]
+          },
+          "emotion_intensity": {
+            "absent": true
+          }
+        },
+        "priority": 74,
+        "block": "emotions",
+        "suffix": true
+      },
+      {
+        "id": "summary_emotions_heavy",
+        "template": ", percebendo {{emotions_inline}} ao mesmo tempo",
+        "conditions": {
+          "emotions": {
+            "includes_any": [
+              "Preocupado",
+              "Irritado",
+              "Triste",
+              "Sobrecarregado",
+              "Confuso",
+              "Frustrado"
+            ]
+          },
+          "emotions_count": {
+            "gte": 2
+          },
+          "emotion_intensity": {
+            "absent": true
+          }
+        },
+        "priority": 73,
+        "block": "emotions",
+        "suffix": true
+      },
+      {
+        "id": "summary_emotions_mixed",
+        "template": ", com emoções diferentes aparecendo juntas: {{emotions_inline}}",
+        "conditions": {
+          "emotional_mix": {
+            "eq": "mixed"
+          },
+          "emotion_intensity": {
+            "absent": true
+          }
+        },
+        "priority": 72,
+        "block": "emotions",
+        "suffix": true
+      },
+      {
+        "id": "summary_influence_negative",
+        "template": ", depois de algo difícil envolvendo {{main_influence}}",
+        "conditions": {
+          "main_influence": {
+            "present": true
+          },
+          "influence_valence": {
+            "eq": "negative"
+          }
+        },
+        "priority": 86,
+        "block": "influence",
+        "suffix": true
+      },
+      {
+        "id": "summary_influence_positive",
+        "template": ", depois de algo positivo envolvendo {{main_influence}}",
+        "conditions": {
+          "main_influence": {
+            "present": true
+          },
+          "influence_valence": {
+            "eq": "positive"
+          }
+        },
+        "priority": 85,
+        "block": "influence",
+        "suffix": true
+      },
+      {
+        "id": "summary_influence_mixed",
+        "template": ", depois de uma situação com lados diferentes envolvendo {{main_influence}}",
+        "conditions": {
+          "main_influence": {
+            "present": true
+          },
+          "influence_valence": {
+            "eq": "mixed"
+          }
+        },
+        "priority": 84,
+        "block": "influence",
+        "suffix": true
+      },
+      {
+        "id": "summary_influence_neutral",
+        "template": ", depois de algo envolvendo {{main_influence}}",
+        "conditions": {
+          "main_influence": {
+            "present": true
+          },
+          "influence_valence": {
+            "absent": true
+          }
+        },
+        "priority": 83,
+        "block": "influence",
+        "suffix": true
+      },
+      {
+        "id": "summary_reaction_connection",
+        "template": ". Você também contou que conversou com alguém",
+        "conditions": {
+          "reactions": {
+            "includes_any": [
+              "Conversei com alguém"
+            ]
+          }
+        },
+        "priority": 92,
+        "block": "reaction",
+        "suffix": true
+      },
+      {
+        "id": "summary_reaction_active",
+        "template": ". Você tentou dar algum passo diante do que aconteceu",
+        "conditions": {
+          "reactions": {
+            "includes_any": [
+              "Tentei resolver",
+              "Descansei",
+              "Fiz atividade física",
+              "Fiz uma prática espiritual"
+            ]
+          }
+        },
+        "priority": 91,
+        "block": "reaction",
+        "suffix": true
+      },
+      {
+        "id": "summary_reaction_avoidance",
+        "template": ". Você percebeu que se afastou ou evitou a situação",
+        "conditions": {
+          "reactions": {
+            "includes_any": [
+              "Evitei a situação",
+              "Fiquei isolado"
+            ]
+          }
+        },
+        "priority": 90,
+        "block": "reaction",
+        "suffix": true
+      },
+      {
+        "id": "summary_reaction_uncertain",
+        "template": ". Você ainda está entendendo como lidar com isso",
+        "conditions": {
+          "reactions": {
+            "includes_any": [
+              "Ainda não sei como lidar"
+            ]
+          }
+        },
+        "priority": 89,
+        "block": "reaction",
+        "suffix": true
+      },
+      {
+        "id": "summary_mood_only",
+        "template": "Você registrou como está se sentindo hoje",
+        "conditions": {
+          "default": true
+        },
+        "priority": 1,
+        "block": "mood"
+      }
+    ],
+    "assembly": {
+      "order": [
+        "mood",
+        "emotions",
+        "influence",
+        "reaction"
+      ],
+      "select_one_per_block": true,
+      "join_suffix": true,
+      "ending_punctuation": ".",
+      "remove_duplicate_punctuation": true,
+      "compatibility_target_internal": "buildCheckInSummarySentence",
+      "empty_blocks_policy": "omit"
+    }
+  },
+  "moment_support": {
+    "rotation": {
+      "method": "stable_hash",
+      "hash_inputs": [
+        "mood",
+        "emotions",
+        "local_date"
+      ],
+      "avoid_same_variant_days": 3
+    },
+    "by_mood": {
+      "very-good": {
+        "variants": [
+          {
+            "id": "support_very_good_01",
+            "text": "Que bom registrar um momento leve. Guarde o que ajudou seu dia."
+          },
+          {
+            "id": "support_very_good_02",
+            "text": "Aproveite este momento sem a obrigação de mantê-lo perfeito."
+          },
+          {
+            "id": "support_very_good_03",
+            "text": "Perceber o que está bem também faz parte do cuidado."
+          }
+        ]
+      },
+      "good": {
+        "variants": [
+          {
+            "id": "support_good_01",
+            "text": "É bom perceber quando o dia encontra um pouco mais de equilíbrio."
+          },
+          {
+            "id": "support_good_02",
+            "text": "Leve com você o que fez bem, mesmo que tenha sido algo simples."
+          },
+          {
+            "id": "support_good_03",
+            "text": "Você pode usar este momento para fortalecer um hábito que ajuda."
+          }
+        ]
+      },
+      "neutral": {
+        "variants": [
+          {
+            "id": "support_neutral_01",
+            "text": "Dias neutros também dizem algo. Obrigado por registrar."
+          },
+          {
+            "id": "support_neutral_02",
+            "text": "Nem todo dia precisa ser intenso. Perceber o meio do caminho também conta."
+          },
+          {
+            "id": "support_neutral_03",
+            "text": "Você pode seguir observando o dia sem precisar chegar a uma conclusão agora."
+          }
+        ]
+      },
+      "bad": {
+        "variants": [
+          {
+            "id": "support_bad_01",
+            "text": "Obrigado por compartilhar como você está. Vá com calma neste momento."
+          },
+          {
+            "id": "support_bad_02",
+            "text": "Reconhecer um dia difícil já é uma forma de cuidado."
+          },
+          {
+            "id": "support_bad_03",
+            "text": "Você não precisa resolver tudo agora. Um passo pequeno é suficiente."
+          }
+        ]
+      },
+      "very-bad": {
+        "variants": [
+          {
+            "id": "support_very_bad_01",
+            "text": "Sinto que este momento está pesado. Procure ficar perto de alguém de confiança."
+          },
+          {
+            "id": "support_very_bad_02",
+            "text": "Obrigado por contar. Por agora, escolha apenas o próximo passo mais seguro e possível."
+          },
+          {
+            "id": "support_very_bad_03",
+            "text": "Você não precisa carregar tudo sozinho. Apoio humano pode fazer diferença agora."
+          }
+        ]
+      }
+    },
+    "by_emotion": [
+      {
+        "id": "support_emotion_worried",
+        "emotions": [
+          "Preocupado"
+        ],
+        "text": "Quando a preocupação ocupa muito espaço, reduzir o próximo passo pode ajudar."
+      },
+      {
+        "id": "support_emotion_overloaded",
+        "emotions": [
+          "Sobrecarregado"
+        ],
+        "text": "Parece que muita coisa chegou ao mesmo tempo. Vamos separar uma coisa de cada vez."
+      },
+      {
+        "id": "support_emotion_confused",
+        "emotions": [
+          "Confuso"
+        ],
+        "text": "Não entender tudo agora é permitido. Primeiro, volte ao que está diante de você."
+      },
+      {
+        "id": "support_emotion_sad",
+        "emotions": [
+          "Triste"
+        ],
+        "text": "Você pode tratar este momento com mais gentileza e menos cobrança."
+      },
+      {
+        "id": "support_emotion_alone",
+        "emotions": [
+          "Sozinho"
+        ],
+        "text": "Se for possível, uma mensagem curta para alguém de confiança já pode ser um começo."
+      },
+      {
+        "id": "support_emotion_tired_sleep",
+        "emotions": [
+          "Cansado"
+        ],
+        "influences": [
+          "Sono"
+        ],
+        "text": "O cansaço muda a forma como o dia pesa. Hoje, respeitar sua energia importa."
+      },
+      {
+        "id": "support_emotion_irritated",
+        "emotions": [
+          "Irritado"
+        ],
+        "text": "Antes de reagir, uma pausa curta pode criar um pouco mais de escolha."
+      },
+      {
+        "id": "support_emotion_frustrated",
+        "emotions": [
+          "Frustrado"
+        ],
+        "text": "Nem tudo precisa ser resolvido de uma vez. Tente escolher apenas o que está ao seu alcance."
+      },
+      {
+        "id": "support_emotion_hopeful",
+        "emotions": [
+          "Esperançoso"
+        ],
+        "text": "Aproveite essa abertura para escolher um cuidado que você gostaria de repetir."
+      },
+      {
+        "id": "support_emotion_grateful",
+        "emotions": [
+          "Grato"
+        ],
+        "text": "Perceber algo bom não apaga o que foi difícil. As duas coisas podem existir juntas."
+      }
+    ]
+  },
+  "relevant_change": {
+    "templates": [
+      {
+        "id": "change_worse_significant",
+        "template": "Hoje você informou um momento mais pesado do que nos registros recentes.",
+        "conditions": {
+          "mood_score_delta": {
+            "lte": -2
+          },
+          "latest_mood": {
+            "in": [
+              "bad",
+              "very-bad"
+            ]
+          }
+        },
+        "priority": 100
+      },
+      {
+        "id": "change_worse_mild",
+        "template": "Hoje seu registro ficou um pouco abaixo dos últimos dias.",
+        "conditions": {
+          "mood_score_delta": {
+            "eq": -1
+          }
+        },
+        "priority": 90
+      },
+      {
+        "id": "change_better",
+        "template": "Hoje você percebeu uma melhora em relação aos registros recentes.",
+        "conditions": {
+          "mood_score_delta": {
+            "gte": 1
+          }
+        },
+        "priority": 80
+      },
+      {
+        "id": "change_stable",
+        "template": "Seu registro de hoje ficou próximo do que você vinha sentindo.",
+        "conditions": {
+          "mood_score_delta": {
+            "eq": 0
+          }
+        },
+        "priority": 70
+      },
+      {
+        "id": "change_not_enough_history",
+        "template": "Com mais alguns registros, você poderá acompanhar mudanças ao longo dos dias.",
+        "conditions": {
+          "history_days_count": {
+            "lt": 3
+          }
+        },
+        "priority": 60
+      }
+    ]
+  },
+  "plan_intro": {
+    "templates": [
+      {
+        "id": "plan_intro_standard_01",
+        "title": "Seu plano de hoje",
+        "body": "Separamos {{activity_count}} cuidados leves para {{day_period}}. Um de cada vez, no seu ritmo.",
+        "conditions": {
+          "default": true
+        },
+        "priority": 10,
+        "related_plan_template_id": "welcome_standard"
+      },
+      {
+        "id": "plan_intro_standard_02",
+        "title": "Pequenos cuidados para hoje",
+        "body": "Comece por {{first_activity_title}} e deixe o restante para quando fizer sentido.",
+        "conditions": {
+          "check_in_completed_today": {
+            "eq": true
+          }
+        },
+        "priority": 20,
+        "related_plan_template_id": "welcome_standard"
+      },
+      {
+        "id": "plan_intro_standard_03",
+        "title": "Um plano possível",
+        "body": "Nada precisa ser perfeito. Escolha os momentos que realmente cabem no seu dia.",
+        "conditions": {
+          "activity_count": {
+            "gte": 2
+          }
+        },
+        "priority": 18,
+        "related_plan_template_id": "welcome_standard"
+      },
+      {
+        "id": "plan_intro_first_01",
+        "title": "Seu primeiro plano",
+        "body": "Este é um começo simples. Experimente as atividades no seu ritmo e conte depois como foi.",
+        "conditions": {
+          "is_first_plan": {
+            "eq": true
+          }
+        },
+        "priority": 220,
+        "related_plan_template_id": "welcome_first_plan"
+      },
+      {
+        "id": "plan_intro_first_02",
+        "title": "Vamos começar devagar",
+        "body": "Hoje você vai conhecer o formato com poucos passos. Não é preciso fazer tudo de uma vez.",
+        "conditions": {
+          "is_first_plan": {
+            "eq": true
+          },
+          "activity_count": {
+            "gte": 2
+          }
+        },
+        "priority": 219,
+        "related_plan_template_id": "welcome_first_plan"
+      },
+      {
+        "id": "plan_intro_return_01",
+        "title": "Bom ter você de volta",
+        "body": "Vamos retomar sem compensar os dias anteriores. Só o que for possível hoje.",
+        "conditions": {
+          "days_since_last_plan": {
+            "gte": 3
+          }
+        },
+        "priority": 205,
+        "related_plan_template_id": "welcome_return_after_gap"
+      },
+      {
+        "id": "plan_intro_return_02",
+        "title": "Recomeçar também conta",
+        "body": "Seu plano voltou com passos leves. Comece por um e veja se deseja continuar.",
+        "conditions": {
+          "days_since_last_plan": {
+            "gte": 7
+          }
+        },
+        "priority": 206,
+        "related_plan_template_id": "welcome_return_after_gap"
+      },
+      {
+        "id": "plan_intro_mood_very_good",
+        "title": "Cuidar do que está fazendo bem",
+        "body": "Use este plano para perceber e repetir pequenos hábitos que combinaram com o seu dia.",
+        "conditions": {
+          "mood": {
+            "eq": "very-good"
+          }
+        },
+        "priority": 150,
+        "related_plan_template_id": "welcome_good_mood"
+      },
+      {
+        "id": "plan_intro_mood_good",
+        "title": "Manter o que ajuda",
+        "body": "Escolhemos passos leves para apoiar este momento e fortalecer o que fez bem.",
+        "conditions": {
+          "mood": {
+            "eq": "good"
+          }
+        },
+        "priority": 149,
+        "related_plan_template_id": "welcome_good_mood"
+      },
+      {
+        "id": "plan_intro_mood_neutral",
+        "title": "Um cuidado sem pressa",
+        "body": "Mesmo em um dia neutro, uma pausa curta pode ajudar você a perceber do que precisa.",
+        "conditions": {
+          "mood": {
+            "eq": "neutral"
+          }
+        },
+        "priority": 148,
+        "related_plan_template_id": "welcome_neutral_short"
+      },
+      {
+        "id": "plan_intro_mood_bad",
+        "title": "Hoje, vamos com calma",
+        "body": "Comece pelo menor passo. O restante pode esperar.",
+        "conditions": {
+          "mood": {
+            "eq": "bad"
+          }
+        },
+        "priority": 152,
+        "related_plan_template_id": "welcome_low_mood"
+      },
+      {
+        "id": "plan_intro_mood_very_bad",
+        "title": "Só o próximo passo",
+        "body": "Seu plano está mais curto e leve hoje. Faça apenas o que parecer seguro e possível.",
+        "conditions": {
+          "mood": {
+            "eq": "very-bad"
+          }
+        },
+        "priority": 153,
+        "related_plan_template_id": "welcome_low_mood"
+      },
+      {
+        "id": "plan_intro_emotion_worried",
+        "title": "Uma pausa antes do próximo passo",
+        "body": "Vamos começar com algo curto para reduzir o peso das preocupações neste momento.",
+        "conditions": {
+          "emotions": {
+            "includes_any": [
+              "Preocupado"
+            ]
+          }
+        },
+        "priority": 175,
+        "related_plan_template_id": "welcome_anxious_moment"
+      },
+      {
+        "id": "plan_intro_emotion_sad",
+        "title": "Gentileza para este dia",
+        "body": "Escolhemos atividades pequenas, sem cobrança para você se sentir diferente imediatamente.",
+        "conditions": {
+          "emotions": {
+            "includes_any": [
+              "Triste"
+            ]
+          }
+        },
+        "priority": 174,
+        "related_plan_template_id": "welcome_low_mood"
+      },
+      {
+        "id": "plan_intro_emotion_tired",
+        "title": "Um plano que respeita sua energia",
+        "body": "Hoje, passos curtos e descanso também fazem parte do cuidado.",
+        "conditions": {
+          "emotions": {
+            "includes_any": [
+              "Cansado"
+            ]
+          }
+        },
+        "priority": 173,
+        "related_plan_template_id": "welcome_tired"
+      },
+      {
+        "id": "plan_intro_emotion_overloaded",
+        "title": "Uma coisa de cada vez",
+        "body": "O plano foi dividido em momentos curtos para você não carregar tudo de uma vez.",
+        "conditions": {
+          "emotions": {
+            "includes_any": [
+              "Sobrecarregado",
+              "Confuso"
+            ]
+          }
+        },
+        "priority": 176,
+        "related_plan_template_id": "welcome_overwhelmed"
+      },
+      {
+        "id": "plan_intro_low_adherence_01",
+        "title": "O mínimo já conta",
+        "body": "Hoje, fazer só uma atividade já pode ser o plano completo.",
+        "conditions": {
+          "adherence_7d": {
+            "lt": 0.3
+          }
+        },
+        "priority": 190,
+        "related_plan_template_id": "welcome_low_adherence"
+      },
+      {
+        "id": "plan_intro_low_adherence_02",
+        "title": "Sem recuperar o tempo perdido",
+        "body": "Você não precisa compensar nada. Escolha um passo possível para hoje.",
+        "conditions": {
+          "adherence_7d": {
+            "lt": 0.3
+          },
+          "days_since_last_plan": {
+            "gte": 2
+          }
+        },
+        "priority": 191,
+        "related_plan_template_id": "welcome_low_adherence"
+      },
+      {
+        "id": "plan_intro_count_one",
+        "title": "Só um cuidado por hoje",
+        "body": "{{first_activity_title}} é a única atividade planejada. Quando terminar, está completo.",
+        "conditions": {
+          "activity_count": {
+            "eq": 1
+          }
+        },
+        "priority": 130,
+        "related_plan_template_id": "welcome_single_activity"
+      },
+      {
+        "id": "plan_intro_count_two",
+        "title": "Dois momentos possíveis",
+        "body": "Há um cuidado para agora e outro para mais tarde. Faça na ordem que couber no seu dia.",
+        "conditions": {
+          "activity_count": {
+            "eq": 2
+          }
+        },
+        "priority": 129,
+        "related_plan_template_id": "welcome_standard"
+      },
+      {
+        "id": "plan_intro_count_three",
+        "title": "Três momentos, sem obrigação",
+        "body": "Comece agora, deixe o segundo para o dia e use o da noite apenas se quiser.",
+        "conditions": {
+          "activity_count": {
+            "gte": 3
+          }
+        },
+        "priority": 128,
+        "related_plan_template_id": "welcome_evening_optional"
+      },
+      {
+        "id": "plan_intro_focus_sleep",
+        "title": "Um dia que prepara a noite",
+        "body": "Os passos de hoje foram organizados para apoiar {{care_focus_label}} com mudanças pequenas.",
+        "conditions": {
+          "primary_care_focus": {
+            "eq": "sleep"
+          }
+        },
+        "priority": 70,
+        "related_plan_template_id": "welcome_care_focus_sleep"
+      },
+      {
+        "id": "plan_intro_focus_routine",
+        "title": "Um ritmo possível para hoje",
+        "body": "Seu plano divide {{care_focus_label}} em ações curtas e adaptáveis.",
+        "conditions": {
+          "primary_care_focus": {
+            "eq": "routine"
+          }
+        },
+        "priority": 69,
+        "related_plan_template_id": "welcome_care_focus_routine"
+      }
+    ]
+  },
+  "plan_slot_intro": {
+    "now": {
+      "slot": "now",
+      "variants": [
+        {
+          "id": "slot_now_default",
+          "title": "Para agora",
+          "subtitle": "Algo rápido — cerca de 5 minutos",
+          "conditions": {
+            "default": true
+          },
+          "priority": 10
+        },
+        {
+          "id": "slot_now_low_mood",
+          "title": "Um passo de cada vez",
+          "subtitle": "Só o mínimo por agora",
+          "conditions": {
+            "mood": {
+              "in": [
+                "bad",
+                "very-bad"
+              ]
+            }
+          },
+          "priority": 100
+        },
+        {
+          "id": "slot_now_overloaded",
+          "title": "Primeiro, uma pausa",
+          "subtitle": "Volte ao presente antes de decidir o próximo passo",
+          "conditions": {
+            "emotions": {
+              "includes_any": [
+                "Sobrecarregado",
+                "Confuso"
+              ]
+            }
+          },
+          "priority": 110
+        }
+      ]
+    },
+    "daytime": {
+      "slot": "daytime",
+      "variants": [
+        {
+          "id": "slot_daytime_default",
+          "title": "Durante o dia",
+          "subtitle": "Quando fizer sentido para você",
+          "conditions": {
+            "default": true
+          },
+          "priority": 10
+        },
+        {
+          "id": "slot_daytime_low_adherence",
+          "title": "Se couber no seu dia",
+          "subtitle": "Este segundo passo pode ficar para depois",
+          "conditions": {
+            "adherence_7d": {
+              "lt": 0.3
+            }
+          },
+          "priority": 100
+        },
+        {
+          "id": "slot_daytime_work",
+          "title": "Seu próximo passo",
+          "subtitle": "Uma tarefa por vez, sem precisar terminar tudo",
+          "conditions": {
+            "main_influence": {
+              "in": [
+                "Trabalho",
+                "Estudos"
+              ]
+            }
+          },
+          "priority": 90
+        }
+      ]
+    },
+    "evening": {
+      "slot": "evening",
+      "variants": [
+        {
+          "id": "slot_evening_default",
+          "title": "À noite (opcional)",
+          "subtitle": "Para fechar o dia com calma",
+          "conditions": {
+            "default": true
+          },
+          "priority": 10
+        },
+        {
+          "id": "slot_evening_tired",
+          "title": "Para desacelerar",
+          "subtitle": "Se quiser, prepare o corpo para descansar",
+          "conditions": {
+            "emotions": {
+              "includes_any": [
+                "Cansado"
+              ]
+            }
+          },
+          "priority": 100
+        },
+        {
+          "id": "slot_evening_free",
+          "title": "Uma opção para a noite",
+          "subtitle": "Sem obrigação — descansar também conta",
+          "conditions": {
+            "activity_count": {
+              "gte": 3
+            }
+          },
+          "priority": 80
+        }
+      ]
+    }
+  },
+  "activity_intro": {
+    "templates": [
+      {
+        "id": "activity_intro_breathing",
+        "template": "Uma pausa curta pode ajudar o corpo a desacelerar.",
+        "context": {
+          "modalities": [
+            "breathing"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_grounding",
+        "template": "Voltar aos sentidos pode ajudar você a se orientar neste momento.",
+        "context": {
+          "modalities": [
+            "grounding"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_behavioral_activation",
+        "template": "Um passo pequeno pode colocar um pouco de movimento no dia.",
+        "context": {
+          "modalities": [
+            "behavioral_activation"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_journaling",
+        "template": "Escrever por alguns minutos pode ajudar a organizar o que está passando pela sua cabeça.",
+        "context": {
+          "modalities": [
+            "journaling"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_emotion_regulation",
+        "template": "Esta pausa ajuda a criar espaço entre o que você sente e o que fará depois.",
+        "context": {
+          "modalities": [
+            "emotion_regulation"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_reframe",
+        "template": "Olhar a situação por outro ângulo pode reduzir um pouco o peso agora.",
+        "context": {
+          "modalities": [
+            "cognitive_reframe"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_sleep",
+        "template": "Uma mudança simples agora pode preparar melhor o descanso.",
+        "context": {
+          "modalities": [
+            "sleep_hygiene"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_mindfulness",
+        "template": "Por alguns minutos, você só precisa notar o que está acontecendo agora.",
+        "context": {
+          "modalities": [
+            "mindfulness"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_body_scan",
+        "template": "Perceber o corpo com suavidade pode mostrar onde soltar um pouco da tensão.",
+        "context": {
+          "modalities": [
+            "body_scan"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_social",
+        "template": "Um contato pequeno e seguro pode diminuir a sensação de estar sozinho.",
+        "context": {
+          "modalities": [
+            "social_micro_step"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_self_compassion",
+        "template": "Este exercício convida você a trocar cobrança por um pouco mais de cuidado.",
+        "context": {
+          "modalities": [
+            "self_compassion"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_movement",
+        "template": "Mover o corpo por alguns minutos pode mudar o ritmo deste momento.",
+        "context": {
+          "modalities": [
+            "movement_micro"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_routine",
+        "template": "Organizar apenas o próximo passo pode tornar o dia mais possível.",
+        "context": {
+          "modalities": [
+            "routine_building"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_trigger_mapping",
+        "template": "Observar o que aconteceu antes pode ajudar você a reconhecer padrões.",
+        "context": {
+          "modalities": [
+            "trigger_mapping"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_exposure",
+        "template": "Esta aproximação é pequena e pode ser interrompida a qualquer momento.",
+        "context": {
+          "modalities": [
+            "gradual_exposure"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_harm_reduction",
+        "template": "Uma pausa antes de agir pode abrir espaço para uma escolha mais segura.",
+        "context": {
+          "modalities": [
+            "substance_harm_reduction"
+          ]
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_intro_crisis_bridge",
+        "template": "Use esta atividade apenas enquanto mantém uma opção de apoio humano aberta.",
+        "context": {
+          "modalities": [
+            "crisis_grounding"
+          ]
+        },
+        "priority": 200
+      },
+      {
+        "id": "activity_intro_now_low_mood",
+        "template": "Você só precisa experimentar por alguns minutos. O mínimo já conta.",
+        "context": {
+          "slot": "now",
+          "mood": {
+            "in": [
+              "bad",
+              "very-bad"
+            ]
+          }
+        },
+        "priority": 180
+      }
+    ],
+    "fallback_template_id": "activity_intro_grounding"
+  },
+  "plan_conclusion": {
+    "templates": [
+      {
+        "id": "conclusion_all_done",
+        "title": "Você concluiu o plano de hoje",
+        "body": "Cada atividade foi um pequeno momento de cuidado. Agora, o dia está completo.",
+        "conditions": {
+          "completed_count": {
+            "eq_field": "total_count"
+          }
+        },
+        "priority": 200,
+        "related_plan_template_id": "completion_all_three"
+      },
+      {
+        "id": "conclusion_partial",
+        "title": "O que você fez já vale",
+        "body": "Não precisa completar tudo. {{completed_count}} de {{total_count}} já é cuidado real.",
+        "conditions": {
+          "completed_count": {
+            "gte": 1
+          },
+          "completed_count_lt_field": "total_count"
+        },
+        "priority": 190,
+        "related_plan_template_id": "completion_partial"
+      },
+      {
+        "id": "conclusion_none",
+        "title": "Hoje não aconteceu, e tudo bem",
+        "body": "Você pode tentar novamente amanhã sem compensar nada. O plano recomeça do ponto em que você está.",
+        "conditions": {
+          "completed_count": {
+            "eq": 0
+          }
+        },
+        "priority": 180
+      },
+      {
+        "id": "conclusion_first_plan",
+        "title": "Seu primeiro plano terminou",
+        "body": "Agora você já conhece o formato. Seu retorno ajuda a deixar os próximos dias mais adequados.",
+        "conditions": {
+          "is_first_plan": {
+            "eq": true
+          },
+          "completed_count": {
+            "gte": 1
+          }
+        },
+        "priority": 210,
+        "related_plan_template_id": "completion_first_plan"
+      },
+      {
+        "id": "conclusion_very_bad_one",
+        "title": "Este passo exigiu esforço",
+        "body": "Em um dia muito difícil, concluir uma atividade já é bastante. Descanse se puder.",
+        "conditions": {
+          "mood": {
+            "eq": "very-bad"
+          },
+          "completed_count": {
+            "eq": 1
+          }
+        },
+        "priority": 220,
+        "related_plan_template_id": "completion_gentle_day"
+      },
+      {
+        "id": "conclusion_low_adherence_return",
+        "title": "Você retomou",
+        "body": "Não importa quantos dias passaram. Fazer um passo hoje já muda a direção.",
+        "conditions": {
+          "adherence_7d": {
+            "lt": 0.3
+          },
+          "completed_count": {
+            "gte": 1
+          }
+        },
+        "priority": 205
+      },
+      {
+        "id": "conclusion_single_done",
+        "title": "Seu passo de hoje está feito",
+        "body": "Uma atividade era o plano completo. Você concluiu.",
+        "conditions": {
+          "total_count": {
+            "eq": 1
+          },
+          "completed_count": {
+            "eq": 1
+          }
+        },
+        "priority": 195,
+        "related_plan_template_id": "completion_single"
+      },
+      {
+        "id": "conclusion_evening_skipped",
+        "title": "O dia já conta",
+        "body": "A atividade da noite era opcional. Você pode encerrar sem deixar nada pendente.",
+        "conditions": {
+          "evening_skipped": {
+            "eq": true
+          },
+          "completed_count": {
+            "gte": 1
+          }
+        },
+        "priority": 170,
+        "related_plan_template_id": "completion_evening_skipped"
+      },
+      {
+        "id": "conclusion_high_adherence",
+        "title": "Mais um dia de constância",
+        "body": "Você vem encontrando espaço para pequenos cuidados. Continue sem buscar perfeição.",
+        "conditions": {
+          "adherence_7d": {
+            "gte": 0.7
+          },
+          "completed_count": {
+            "gte": 1
+          }
+        },
+        "priority": 160,
+        "related_plan_template_id": "completion_high_adherence"
+      },
+      {
+        "id": "conclusion_activity_helped",
+        "title": "Guarde o que funcionou",
+        "body": "Seu retorno mostrou que uma das atividades ajudou. Ela poderá aparecer novamente em outros dias.",
+        "conditions": {
+          "any_activity_feedback": {
+            "eq": "yes"
+          }
+        },
+        "priority": 150
+      },
+      {
+        "id": "conclusion_activity_somewhat",
+        "title": "Um pouco também conta",
+        "body": "Nem toda mudança precisa ser grande. Vamos usar seu retorno para ajustar os próximos cuidados.",
+        "conditions": {
+          "any_activity_feedback": {
+            "eq": "somewhat"
+          }
+        },
+        "priority": 149
+      },
+      {
+        "id": "conclusion_activity_not_helped",
+        "title": "Obrigado por contar como foi",
+        "body": "Nem toda atividade combina com todo momento. Seu retorno ajuda a tentar algo diferente depois.",
+        "conditions": {
+          "all_activity_feedback": {
+            "eq": "no"
+          }
+        },
+        "priority": 148,
+        "related_plan_template_id": "completion_no_effect"
+      },
+      {
+        "id": "conclusion_good_mood",
+        "title": "Cuidado também é manutenção",
+        "body": "Você reservou tempo para o que está fazendo bem. Isso pode ajudar a sustentar o seu ritmo.",
+        "conditions": {
+          "mood": {
+            "in": [
+              "good",
+              "very-good"
+            ]
+          },
+          "completed_count": {
+            "gte": 1
+          }
+        },
+        "priority": 140
+      },
+      {
+        "id": "conclusion_default",
+        "title": "O que você fez hoje conta",
+        "body": "Feche o plano no seu ritmo. Amanhã haverá uma nova oportunidade.",
+        "conditions": {
+          "default": true
+        },
+        "priority": 10,
+        "related_plan_template_id": "completion_standard"
+      }
+    ]
+  },
+  "activity_completion": {
+    "templates": [
+      {
+        "id": "activity_done_generic",
+        "text": "Você dedicou alguns minutos a si. Isso importa.",
+        "conditions": {
+          "default": true
+        },
+        "priority": 10
+      },
+      {
+        "id": "activity_done_breathing",
+        "text": "A pausa terminou. Perceba se algo mudou no ritmo do corpo.",
+        "conditions": {
+          "modalities": {
+            "includes_any": [
+              "breathing"
+            ]
+          }
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_done_grounding",
+        "text": "Você voltou a atenção ao presente. Observe como está agora.",
+        "conditions": {
+          "modalities": {
+            "includes_any": [
+              "grounding"
+            ]
+          }
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_done_action",
+        "text": "Você transformou uma intenção em um passo concreto.",
+        "conditions": {
+          "modalities": {
+            "includes_any": [
+              "behavioral_activation",
+              "routine_building",
+              "movement_micro"
+            ]
+          }
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_done_writing",
+        "text": "Você colocou parte do que estava sentindo em palavras.",
+        "conditions": {
+          "modalities": {
+            "includes_any": [
+              "journaling"
+            ]
+          }
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_done_social",
+        "text": "Você fez um pequeno movimento em direção à conexão.",
+        "conditions": {
+          "modalities": {
+            "includes_any": [
+              "social_micro_step"
+            ]
+          }
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_done_sleep",
+        "text": "O cuidado de agora ajudou a preparar o fechamento do dia.",
+        "conditions": {
+          "modalities": {
+            "includes_any": [
+              "sleep_hygiene"
+            ]
+          }
+        },
+        "priority": 100
+      },
+      {
+        "id": "activity_done_difficult_day",
+        "text": "Mesmo com o dia pesado, você conseguiu concluir este passo.",
+        "conditions": {
+          "mood": {
+            "in": [
+              "bad",
+              "very-bad"
+            ]
+          }
+        },
+        "priority": 150
+      },
+      {
+        "id": "activity_done_first",
+        "text": "Primeira atividade concluída. Agora você já sabe como funciona.",
+        "conditions": {
+          "is_first_plan": {
+            "eq": true
+          },
+          "completed_count": {
+            "eq": 1
+          }
+        },
+        "priority": 160
+      },
+      {
+        "id": "activity_done_optional",
+        "text": "Você pode seguir para a próxima ou encerrar por agora.",
+        "conditions": {
+          "has_next_activity": {
+            "eq": true
+          }
+        },
+        "priority": 80
+      }
+    ]
+  },
+  "feedback_prompts": {
+    "after_activity": [
+      {
+        "id": "feedback_after_01",
+        "text": "Isso ajudou um pouco agora?"
+      },
+      {
+        "id": "feedback_after_02",
+        "text": "Como você se sente depois dessa pausa?"
+      },
+      {
+        "id": "feedback_after_03",
+        "text": "Fez alguma diferença para este momento?"
+      }
+    ],
+    "answers": {
+      "yes": [
+        "Que bom. Vamos lembrar do que funcionou para você.",
+        "Obrigado por contar. Esta atividade pode voltar em outro dia.",
+        "Ótimo. Perceber o que ajuda deixa os próximos planos mais adequados."
+      ],
+      "somewhat": [
+        "Tudo bem. Nem tudo ajuda da mesma forma em todos os dias.",
+        "Um pouco já é uma informação útil para ajustar o plano.",
+        "Obrigado por perceber com honestidade. Vamos continuar adaptando."
+      ],
+      "no": [
+        "Obrigado por contar. Vamos evitar repetir isso cedo demais.",
+        "Tudo bem. Outra atividade pode combinar melhor com um próximo momento.",
+        "Seu retorno é importante. Não é preciso insistir no que não ajudou."
+      ],
+      "made_worse": [
+        "Pare por aqui e escolha uma opção mais leve.",
+        "Obrigado por avisar. Esta atividade não será repetida agora.",
+        "Cuide do seu ritmo. Você pode encerrar o plano por hoje."
+      ]
+    },
+    "rotation_method": "stable_hash_by_activity_and_date"
+  },
+  "cta_labels": {
+    "create_micro_plan": "Criar meu plano de microatividades",
+    "start_activity": "Começar agora",
+    "continue_later": "Continuar depois",
+    "skip_optional_evening": "Pular por hoje",
+    "view_plan": "Ver meu plano",
+    "done_for_today": "Encerrar por hoje",
+    "register_day": "Registrar como está meu dia",
+    "finish_activity": "Concluir atividade",
+    "give_feedback": "Contar como foi",
+    "choose_another": "Tentar outra opção",
+    "pause_plan": "Pausar por agora",
+    "resume_plan": "Retomar meu plano",
+    "view_support_options": "Ver opções de apoio"
+  },
+  "transition_copy": {
+    "check_in_to_plan": {
+      "title": "Obrigado por registrar seu momento",
+      "body": "Agora vamos separar cuidados curtos para o restante do dia."
+    },
+    "anamnesis_to_plan": {
+      "title": "Organizando seu primeiro plano",
+      "body": "Estamos escolhendo passos simples com base no que você compartilhou."
+    },
+    "plan_loading": {
+      "title": "Preparando seu plano",
+      "body": "Isso leva apenas alguns instantes."
+    },
+    "plan_to_activity": {
+      "title": "Vamos começar",
+      "body": "{{first_activity_title}} é o próximo passo."
+    },
+    "activity_to_next": {
+      "title": "Um passo concluído",
+      "body": "Você pode seguir para a próxima atividade ou continuar depois."
+    },
+    "activity_to_evening": {
+      "title": "A próxima fica para a noite",
+      "body": "Ela é opcional. Se preferir descansar, o dia já conta."
+    },
+    "plan_blocked_to_support": {
+      "title": "Seu bem-estar vem primeiro",
+      "body": "Neste momento, vamos mostrar opções de apoio humano em vez do plano comum."
+    },
+    "check_in_pending_to_general_plan": {
+      "title": "Um plano geral para hoje",
+      "body": "Sem o check-in, vamos começar por cuidados leves e neutros."
+    },
+    "feedback_to_adaptation": {
+      "title": "Obrigado pelo retorno",
+      "body": "Vamos usar sua resposta para ajustar as próximas escolhas."
+    },
+    "day_closed": {
+      "title": "Plano encerrado",
+      "body": "O que você fez hoje já foi registrado."
+    }
+  },
+  "selection_rules": [
+    {
+      "id": "pick_change_not_enough_history",
+      "target": "relevant_change",
+      "priority": 150,
+      "when": {
+        "history_days_count": {
+          "lt": 3
+        }
+      },
+      "then": {
+        "template_id": "change_not_enough_history"
+      }
+    },
+    {
+      "id": "pick_change_worse_significant",
+      "target": "relevant_change",
+      "priority": 140,
+      "when": {
+        "all": [
+          {
+            "mood_score_delta": {
+              "lte": -2
+            }
+          },
+          {
+            "latest_mood": {
+              "in": [
+                "bad",
+                "very-bad"
+              ]
+            }
+          }
+        ]
+      },
+      "then": {
+        "template_id": "change_worse_significant"
+      }
+    },
+    {
+      "id": "pick_change_worse_mild",
+      "target": "relevant_change",
+      "priority": 130,
+      "when": {
+        "mood_score_delta": {
+          "eq": -1
+        }
+      },
+      "then": {
+        "template_id": "change_worse_mild"
+      }
+    },
+    {
+      "id": "pick_change_better",
+      "target": "relevant_change",
+      "priority": 120,
+      "when": {
+        "mood_score_delta": {
+          "gte": 1
+        }
+      },
+      "then": {
+        "template_id": "change_better"
+      }
+    },
+    {
+      "id": "pick_change_stable",
+      "target": "relevant_change",
+      "priority": 10,
+      "when": {
+        "always": true
+      },
+      "then": {
+        "template_id": "change_stable"
+      }
+    },
+    {
+      "id": "pick_support_overloaded",
+      "target": "moment_support",
+      "priority": 180,
+      "when": {
+        "emotions": {
+          "includes_any": [
+            "Sobrecarregado"
+          ]
+        }
+      },
+      "then": {
+        "template_id": "support_emotion_overloaded"
+      }
+    },
+    {
+      "id": "pick_support_tired_sleep",
+      "target": "moment_support",
+      "priority": 175,
+      "when": {
+        "all": [
+          {
+            "emotions": {
+              "includes_any": [
+                "Cansado"
+              ]
+            }
+          },
+          {
+            "influences": {
+              "includes_any": [
+                "Sono"
+              ]
+            }
+          }
+        ]
+      },
+      "then": {
+        "template_id": "support_emotion_tired_sleep"
+      }
+    },
+    {
+      "id": "pick_support_alone",
+      "target": "moment_support",
+      "priority": 170,
+      "when": {
+        "emotions": {
+          "includes_any": [
+            "Sozinho"
+          ]
+        }
+      },
+      "then": {
+        "template_id": "support_emotion_alone"
+      }
+    },
+    {
+      "id": "pick_support_worried",
+      "target": "moment_support",
+      "priority": 165,
+      "when": {
+        "emotions": {
+          "includes_any": [
+            "Preocupado"
+          ]
+        }
+      },
+      "then": {
+        "template_id": "support_emotion_worried"
+      }
+    },
+    {
+      "id": "pick_support_very_bad",
+      "target": "moment_support",
+      "priority": 150,
+      "when": {
+        "mood": {
+          "eq": "very-bad"
+        }
+      },
+      "then": {
+        "template_group": "by_mood.very-bad",
+        "rotation": "stable_hash"
+      }
+    },
+    {
+      "id": "pick_support_bad",
+      "target": "moment_support",
+      "priority": 145,
+      "when": {
+        "mood": {
+          "eq": "bad"
+        }
+      },
+      "then": {
+        "template_group": "by_mood.bad",
+        "rotation": "stable_hash"
+      }
+    },
+    {
+      "id": "pick_support_good",
+      "target": "moment_support",
+      "priority": 140,
+      "when": {
+        "mood": {
+          "in": [
+            "good",
+            "very-good"
+          ]
+        }
+      },
+      "then": {
+        "template_group_from_mood": true,
+        "rotation": "stable_hash"
+      }
+    },
+    {
+      "id": "pick_support_neutral_fallback",
+      "target": "moment_support",
+      "priority": 10,
+      "when": {
+        "always": true
+      },
+      "then": {
+        "template_id": "support_neutral_01"
+      }
+    },
+    {
+      "id": "pick_plan_intro_first",
+      "target": "plan_intro",
+      "priority": 260,
+      "when": {
+        "is_first_plan": {
+          "eq": true
+        }
+      },
+      "then": {
+        "template_id": "plan_intro_first_01"
+      }
+    },
+    {
+      "id": "pick_plan_intro_return",
+      "target": "plan_intro",
+      "priority": 250,
+      "when": {
+        "days_since_last_plan": {
+          "gte": 3
+        }
+      },
+      "then": {
+        "template_id": "plan_intro_return_01"
+      }
+    },
+    {
+      "id": "pick_plan_intro_overloaded",
+      "target": "plan_intro",
+      "priority": 240,
+      "when": {
+        "emotions": {
+          "includes_any": [
+            "Sobrecarregado",
+            "Confuso"
+          ]
+        }
+      },
+      "then": {
+        "template_id": "plan_intro_emotion_overloaded"
+      }
+    },
+    {
+      "id": "pick_plan_intro_low_adherence",
+      "target": "plan_intro",
+      "priority": 235,
+      "when": {
+        "adherence_7d": {
+          "lt": 0.3
+        }
+      },
+      "then": {
+        "template_id": "plan_intro_low_adherence_01"
+      }
+    },
+    {
+      "id": "pick_plan_intro_very_bad",
+      "target": "plan_intro",
+      "priority": 230,
+      "when": {
+        "mood": {
+          "eq": "very-bad"
+        }
+      },
+      "then": {
+        "template_id": "plan_intro_mood_very_bad"
+      }
+    },
+    {
+      "id": "pick_plan_intro_bad",
+      "target": "plan_intro",
+      "priority": 225,
+      "when": {
+        "mood": {
+          "eq": "bad"
+        }
+      },
+      "then": {
+        "template_id": "plan_intro_mood_bad"
+      }
+    },
+    {
+      "id": "pick_plan_intro_worried",
+      "target": "plan_intro",
+      "priority": 220,
+      "when": {
+        "emotions": {
+          "includes_any": [
+            "Preocupado"
+          ]
+        }
+      },
+      "then": {
+        "template_id": "plan_intro_emotion_worried"
+      }
+    },
+    {
+      "id": "pick_plan_intro_tired",
+      "target": "plan_intro",
+      "priority": 215,
+      "when": {
+        "emotions": {
+          "includes_any": [
+            "Cansado"
+          ]
+        }
+      },
+      "then": {
+        "template_id": "plan_intro_emotion_tired"
+      }
+    },
+    {
+      "id": "pick_plan_intro_one",
+      "target": "plan_intro",
+      "priority": 180,
+      "when": {
+        "activity_count": {
+          "eq": 1
+        }
+      },
+      "then": {
+        "template_id": "plan_intro_count_one"
+      }
+    },
+    {
+      "id": "pick_plan_intro_three",
+      "target": "plan_intro",
+      "priority": 170,
+      "when": {
+        "activity_count": {
+          "gte": 3
+        }
+      },
+      "then": {
+        "template_id": "plan_intro_count_three"
+      }
+    },
+    {
+      "id": "pick_plan_intro_standard",
+      "target": "plan_intro",
+      "priority": 10,
+      "when": {
+        "always": true
+      },
+      "then": {
+        "template_id": "plan_intro_standard_01"
+      }
+    },
+    {
+      "id": "pick_conclusion_very_bad_one",
+      "target": "plan_conclusion",
+      "priority": 260,
+      "when": {
+        "all": [
+          {
+            "mood": {
+              "eq": "very-bad"
+            }
+          },
+          {
+            "completed_count": {
+              "eq": 1
+            }
+          }
+        ]
+      },
+      "then": {
+        "template_id": "conclusion_very_bad_one"
+      }
+    },
+    {
+      "id": "pick_conclusion_first_plan",
+      "target": "plan_conclusion",
+      "priority": 250,
+      "when": {
+        "all": [
+          {
+            "is_first_plan": {
+              "eq": true
+            }
+          },
+          {
+            "completed_count": {
+              "gte": 1
+            }
+          }
+        ]
+      },
+      "then": {
+        "template_id": "conclusion_first_plan"
+      }
+    },
+    {
+      "id": "pick_conclusion_all_done",
+      "target": "plan_conclusion",
+      "priority": 240,
+      "when": {
+        "completed_count": {
+          "eq_field": "total_count"
+        }
+      },
+      "then": {
+        "template_id": "conclusion_all_done"
+      }
+    },
+    {
+      "id": "pick_conclusion_partial",
+      "target": "plan_conclusion",
+      "priority": 230,
+      "when": {
+        "all": [
+          {
+            "completed_count": {
+              "gte": 1
+            }
+          },
+          {
+            "completed_count": {
+              "lt_field": "total_count"
+            }
+          }
+        ]
+      },
+      "then": {
+        "template_id": "conclusion_partial"
+      }
+    },
+    {
+      "id": "pick_conclusion_none",
+      "target": "plan_conclusion",
+      "priority": 220,
+      "when": {
+        "completed_count": {
+          "eq": 0
+        }
+      },
+      "then": {
+        "template_id": "conclusion_none"
+      }
+    },
+    {
+      "id": "pick_conclusion_default",
+      "target": "plan_conclusion",
+      "priority": 10,
+      "when": {
+        "always": true
+      },
+      "then": {
+        "template_id": "conclusion_default"
+      }
+    },
+    {
+      "id": "pick_activity_intro_crisis_bridge",
+      "target": "activity_intro",
+      "priority": 300,
+      "when": {
+        "modalities": {
+          "includes_any": [
+            "crisis_grounding"
+          ]
+        }
+      },
+      "then": {
+        "template_id": "activity_intro_crisis_bridge"
+      }
+    },
+    {
+      "id": "pick_activity_intro_low_mood_now",
+      "target": "activity_intro",
+      "priority": 250,
+      "when": {
+        "all": [
+          {
+            "slot": {
+              "eq": "now"
+            }
+          },
+          {
+            "mood": {
+              "in": [
+                "bad",
+                "very-bad"
+              ]
+            }
+          }
+        ]
+      },
+      "then": {
+        "template_id": "activity_intro_now_low_mood"
+      }
+    },
+    {
+      "id": "pick_activity_intro_breathing",
+      "target": "activity_intro",
+      "priority": 200,
+      "when": {
+        "modalities": {
+          "includes_any": [
+            "breathing"
+          ]
+        }
+      },
+      "then": {
+        "template_id": "activity_intro_breathing"
+      }
+    },
+    {
+      "id": "pick_activity_intro_action",
+      "target": "activity_intro",
+      "priority": 190,
+      "when": {
+        "modalities": {
+          "includes_any": [
+            "behavioral_activation",
+            "routine_building",
+            "movement_micro"
+          ]
+        }
+      },
+      "then": {
+        "template_id": "activity_intro_behavioral_activation"
+      }
+    },
+    {
+      "id": "pick_activity_intro_sleep",
+      "target": "activity_intro",
+      "priority": 180,
+      "when": {
+        "modalities": {
+          "includes_any": [
+            "sleep_hygiene"
+          ]
+        }
+      },
+      "then": {
+        "template_id": "activity_intro_sleep"
+      }
+    },
+    {
+      "id": "pick_activity_intro_fallback",
+      "target": "activity_intro",
+      "priority": 10,
+      "when": {
+        "always": true
+      },
+      "then": {
+        "template_id": "activity_intro_grounding"
+      }
+    },
+    {
+      "id": "pick_moment_summary_composed",
+      "target": "moment_summary",
+      "priority": 100,
+      "when": {
+        "mood": {
+          "present": true
+        }
+      },
+      "then": {
+        "assembly_id": "moment_summary.assembly"
+      }
+    },
+    {
+      "id": "pick_moment_summary_fallback",
+      "target": "moment_summary",
+      "priority": 10,
+      "when": {
+        "always": true
+      },
+      "then": {
+        "template_id": "summary_mood_only"
+      }
+    }
+  ],
+  "fallbacks": {
+    "moment_summary": "summary_mood_only",
+    "moment_support": "support_neutral_01",
+    "relevant_change": null,
+    "plan_intro": "plan_intro_standard_01",
+    "plan_conclusion": "conclusion_default",
+    "activity_intro": "activity_intro_grounding",
+    "activity_completion": "activity_done_generic",
+    "slot_now": "slot_now_default",
+    "slot_daytime": "slot_daytime_default",
+    "slot_evening": "slot_evening_default",
+    "missing_placeholder_policy": "use_registered_fallback",
+    "unresolved_placeholder_policy": "remove_sentence_if_essential_otherwise_replace"
+  },
+  "output_schema": {
+    "rendered_copy": {
+      "moment_summary": "string",
+      "moment_support": "string",
+      "relevant_change": "string|null",
+      "plan_intro": {
+        "title": "string",
+        "body": "string"
+      },
+      "plan_conclusion": {
+        "title": "string",
+        "body": "string"
+      },
+      "slot_intros": [
+        {
+          "slot": "now|daytime|evening",
+          "title": "string",
+          "subtitle": "string"
+        }
+      ],
+      "activity_intros": [
+        {
+          "activity_id": "string",
+          "text": "string"
+        }
+      ],
+      "activity_completion": "string|null",
+      "feedback_prompt": "string|null",
+      "cta_labels": [
+        "string"
+      ]
+    },
+    "template_ids_used": [
+      "string"
+    ],
+    "forbidden_in_output": [
+      "track_id",
+      "tier",
+      "score",
+      "diagnosis",
+      "evidence_tags",
+      "red_flag_id"
+    ]
+  },
+  "output_examples": [
+    {
+      "scenario_internal": "Humor bad, emoções Preocupado e Cansado, intensidade 3, influência Trabalho negativa.",
+      "input": {
+        "mood": "bad",
+        "emotions": [
+          "Preocupado",
+          "Cansado"
+        ],
+        "emotion_intensity": 3,
+        "main_influence": "Trabalho",
+        "influence_valence": "negative",
+        "activity_count": 2,
+        "day_period": "tarde"
+      },
+      "rendered_copy": {
+        "moment_summary": "Você informou estar se sentindo mal, com preocupado e cansado em intensidade moderada, depois de algo difícil envolvendo trabalho.",
+        "moment_support": "Quando a preocupação ocupa muito espaço, reduzir o próximo passo pode ajudar.",
+        "relevant_change": null,
+        "plan_intro": {
+          "title": "Hoje, vamos com calma",
+          "body": "Comece pelo menor passo. O restante pode esperar."
+        },
+        "plan_conclusion": {
+          "title": "O que você fez já vale",
+          "body": "Não precisa completar tudo. 1 de 2 já é cuidado real."
+        },
+        "slot_intros": [
+          {
+            "slot": "now",
+            "title": "Um passo de cada vez",
+            "subtitle": "Só o mínimo por agora"
+          }
+        ],
+        "activity_intros": [
+          {
+            "activity_id": "act_breathing_long_exhale",
+            "text": "Uma pausa curta pode ajudar o corpo a desacelerar."
+          }
+        ]
+      },
+      "template_ids_used": [
+        "summary_mood_bad",
+        "summary_emotions_multiple_intensity",
+        "summary_influence_negative",
+        "support_emotion_worried",
+        "plan_intro_mood_bad",
+        "conclusion_partial",
+        "slot_now_low_mood",
+        "activity_intro_breathing"
+      ]
+    },
+    {
+      "scenario_internal": "Humor very-good sem emoções.",
+      "input": {
+        "mood": "very-good",
+        "emotions": [],
+        "activity_count": 2,
+        "day_period": "manhã"
+      },
+      "rendered_copy": {
+        "moment_summary": "Você informou estar se sentindo muito bem.",
+        "moment_support": "Que bom registrar um momento leve. Guarde o que ajudou seu dia.",
+        "relevant_change": "Hoje você percebeu uma melhora em relação aos registros recentes.",
+        "plan_intro": {
+          "title": "Cuidar do que está fazendo bem",
+          "body": "Use este plano para perceber e repetir pequenos hábitos que combinaram com o seu dia."
+        },
+        "plan_conclusion": {
+          "title": "Cuidado também é manutenção",
+          "body": "Você reservou tempo para o que está fazendo bem. Isso pode ajudar a sustentar o seu ritmo."
+        },
+        "slot_intros": [
+          {
+            "slot": "now",
+            "title": "Para agora",
+            "subtitle": "Algo rápido — cerca de 5 minutos"
+          }
+        ],
+        "activity_intros": [
+          {
+            "activity_id": "act_journaling_small_wins",
+            "text": "Escrever por alguns minutos pode ajudar a organizar o que está passando pela sua cabeça."
+          }
+        ]
+      },
+      "template_ids_used": [
+        "summary_mood_very_good",
+        "support_very_good_01",
+        "change_better",
+        "plan_intro_mood_very_good",
+        "conclusion_good_mood",
+        "slot_now_default",
+        "activity_intro_journaling"
+      ]
+    },
+    {
+      "scenario_internal": "Primeiro plano com três atividades.",
+      "input": {
+        "is_first_plan": true,
+        "activity_count": 3,
+        "first_activity_title": "Cinco sentidos no presente",
+        "day_period": "tarde"
+      },
+      "rendered_copy": {
+        "moment_summary": "Você registrou como está se sentindo hoje.",
+        "moment_support": "Dias neutros também dizem algo. Obrigado por registrar.",
+        "relevant_change": "Com mais alguns registros, você poderá acompanhar mudanças ao longo dos dias.",
+        "plan_intro": {
+          "title": "Seu primeiro plano",
+          "body": "Este é um começo simples. Experimente as atividades no seu ritmo e conte depois como foi."
+        },
+        "plan_conclusion": {
+          "title": "Seu primeiro plano terminou",
+          "body": "Agora você já conhece o formato. Seu retorno ajuda a deixar os próximos dias mais adequados."
+        },
+        "slot_intros": [
+          {
+            "slot": "now",
+            "title": "Para agora",
+            "subtitle": "Algo rápido — cerca de 5 minutos"
+          },
+          {
+            "slot": "daytime",
+            "title": "Durante o dia",
+            "subtitle": "Quando fizer sentido para você"
+          },
+          {
+            "slot": "evening",
+            "title": "À noite (opcional)",
+            "subtitle": "Para fechar o dia com calma"
+          }
+        ],
+        "activity_intros": [
+          {
+            "activity_id": "act_grounding_five_senses",
+            "text": "Voltar aos sentidos pode ajudar você a se orientar neste momento."
+          }
+        ]
+      },
+      "template_ids_used": [
+        "summary_mood_only",
+        "support_neutral_01",
+        "change_not_enough_history",
+        "plan_intro_first_01",
+        "conclusion_first_plan",
+        "slot_now_default",
+        "slot_daytime_default",
+        "slot_evening_default",
+        "activity_intro_grounding"
+      ]
+    },
+    {
+      "scenario_internal": "Conclusão parcial: uma de três atividades.",
+      "input": {
+        "completed_count": 1,
+        "total_count": 3
+      },
+      "rendered_copy": {
+        "moment_summary": "Você registrou como está se sentindo hoje.",
+        "moment_support": "Você pode seguir observando o dia sem precisar chegar a uma conclusão agora.",
+        "relevant_change": null,
+        "plan_intro": {
+          "title": "Seu plano de hoje",
+          "body": "Separamos 3 cuidados leves para hoje. Um de cada vez, no seu ritmo."
+        },
+        "plan_conclusion": {
+          "title": "O que você fez já vale",
+          "body": "Não precisa completar tudo. 1 de 3 já é cuidado real."
+        },
+        "slot_intros": [],
+        "activity_intros": []
+      },
+      "template_ids_used": [
+        "summary_mood_only",
+        "support_neutral_03",
+        "plan_intro_standard_01",
+        "conclusion_partial"
+      ]
+    },
+    {
+      "scenario_internal": "Humor very-bad, baixa aderência e uma atividade.",
+      "input": {
+        "mood": "very-bad",
+        "emotions": [
+          "Sobrecarregado"
+        ],
+        "adherence_7d": 0.2,
+        "activity_count": 1,
+        "first_activity_title": "Expiração mais longa"
+      },
+      "rendered_copy": {
+        "moment_summary": "Você informou estar se sentindo muito mal, sentindo sobrecarregado.",
+        "moment_support": "Parece que muita coisa chegou ao mesmo tempo. Vamos separar uma coisa de cada vez.",
+        "relevant_change": "Hoje você informou um momento mais pesado do que nos registros recentes.",
+        "plan_intro": {
+          "title": "Uma coisa de cada vez",
+          "body": "O plano foi dividido em momentos curtos para você não carregar tudo de uma vez."
+        },
+        "plan_conclusion": {
+          "title": "Este passo exigiu esforço",
+          "body": "Em um dia muito difícil, concluir uma atividade já é bastante. Descanse se puder."
+        },
+        "slot_intros": [
+          {
+            "slot": "now",
+            "title": "Primeiro, uma pausa",
+            "subtitle": "Volte ao presente antes de decidir o próximo passo"
+          }
+        ],
+        "activity_intros": [
+          {
+            "activity_id": "act_breathing_long_exhale",
+            "text": "Você só precisa experimentar por alguns minutos. O mínimo já conta."
+          }
+        ]
+      },
+      "template_ids_used": [
+        "summary_mood_very_bad",
+        "summary_emotion_single_no_intensity",
+        "support_emotion_overloaded",
+        "change_worse_significant",
+        "plan_intro_emotion_overloaded",
+        "conclusion_very_bad_one",
+        "slot_now_overloaded",
+        "activity_intro_now_low_mood"
+      ]
+    }
+  ]
+}

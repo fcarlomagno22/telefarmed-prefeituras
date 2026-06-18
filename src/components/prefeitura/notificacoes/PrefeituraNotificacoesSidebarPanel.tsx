@@ -57,7 +57,7 @@ export function PrefeituraNotificacoesSidebarPanel({
               </p>
             </div>
             {totalUnread > 0 ? (
-              <span className="shrink-0 rounded-full bg-orange-500 px-2 py-0.5 text-[10px] font-bold text-white">
+              <span className="shrink-0 rounded-full bg-[var(--brand-primary)] px-2 py-0.5 text-[10px] font-bold text-white">
                 {totalUnread} não lidas
               </span>
             ) : null}

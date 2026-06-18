@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { brand } from '../../../config/brand'
+import { useEntidadeReportPresentation } from '../../../contexts/EntidadeBrandingContext'
 import { usePrefeituraAuth } from '../../../contexts/PrefeituraAuthContext'
 import {
   fetchPrefeituraFilaEsperaAbandonoReport,
@@ -22,6 +22,7 @@ function formatGeneratedAt(iso: string) {
 }
 
 export function PrefeituraFilaEsperaAbandonoReportView() {
+  const { brandName, logoUrl } = useEntidadeReportPresentation()
   const { getAccessToken } = usePrefeituraAuth()
   const [searchParams] = useSearchParams()
   const [report, setReport] = useState<FilaEsperaAbandonoReportApi | null>(null)
@@ -122,7 +123,7 @@ export function PrefeituraFilaEsperaAbandonoReportView() {
 
   return (
     <div className="min-h-dvh bg-slate-50">
-      <div className="no-print sticky top-0 z-20 border-b border-orange-100 bg-white/95 backdrop-blur-sm">
+      <div className="no-print sticky top-0 z-20 border-b border-[var(--brand-primary-border)] bg-white/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="min-w-0">
             <p className="text-sm font-bold text-gray-900">{report.title}</p>
@@ -162,8 +163,8 @@ export function PrefeituraFilaEsperaAbandonoReportView() {
         <div className="rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
           <PrefeituraFilaEsperaAbandonoReportDocument
             report={report}
-            brandName={brand.appName}
-            logoUrl={brand.logoUrl}
+            brandName={brandName}
+            logoUrl={logoUrl}
             generatedAtLabel={formatGeneratedAt(report.generatedAt)}
           />
         </div>

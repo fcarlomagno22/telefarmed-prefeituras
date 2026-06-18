@@ -1,0 +1,1842 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "package_structure": {
+    "id": "daily_plan_standard_v1",
+    "label_internal": "Plano diário padrão",
+    "source_engine": "activity_selection_rules_v1",
+    "source_slot_role_map": {
+      "regulate": "now",
+      "act_or_organize": "daytime",
+      "reflect_or_connect": "evening"
+    },
+    "slots": [
+      {
+        "slot_id": "now",
+        "required": true,
+        "optional": false,
+        "label_user": "Para agora",
+        "subtitle_user": "5–10 minutos",
+        "duration_min": 5,
+        "duration_max_min": 10,
+        "position": 1,
+        "icon": "sparkles-outline"
+      },
+      {
+        "slot_id": "daytime",
+        "required": true,
+        "optional": false,
+        "label_user": "Durante o dia",
+        "subtitle_user": "Quando fizer sentido para você",
+        "duration_min": 5,
+        "duration_max_min": 15,
+        "position": 2,
+        "icon": "sunny-outline"
+      },
+      {
+        "slot_id": "evening",
+        "required": false,
+        "optional": true,
+        "label_user": "À noite (opcional)",
+        "subtitle_user": "Para fechar o dia com calma",
+        "duration_min": 5,
+        "duration_max_min": 15,
+        "position": 3,
+        "icon": "moon-outline"
+      }
+    ],
+    "max_activities": 3,
+    "min_activities": 1
+  },
+  "slot_definitions": {
+    "now": {
+      "slot_id": "now",
+      "source_slot_roles": [
+        "regulate"
+      ],
+      "purpose_internal": "Intervenção imediata e de baixa carga alinhada ao check-in atual.",
+      "ideal_modalities": [
+        "breathing",
+        "grounding",
+        "emotion_regulation",
+        "crisis_grounding"
+      ],
+      "ideal_intensity": [
+        "low"
+      ],
+      "conditional_intensity": {
+        "allow": [
+          "medium"
+        ],
+        "when": {
+          "all": [
+            {
+              "today_mood": {
+                "in": [
+                  "neutral",
+                  "good",
+                  "very-good"
+                ]
+              }
+            },
+            {
+              "adherence_7d": {
+                "gte": 0.4
+              }
+            },
+            {
+              "active_red_flags_count": {
+                "eq": 0
+              }
+            }
+          ]
+        }
+      },
+      "duration_min": 5,
+      "duration_max_min": 10,
+      "time_of_day_preference": [
+        "any",
+        "morning",
+        "afternoon",
+        "evening",
+        "night"
+      ],
+      "show_if_no_activity": false,
+      "empty_fallback_copy": null
+    },
+    "daytime": {
+      "slot_id": "daytime",
+      "source_slot_roles": [
+        "act_or_organize",
+        "reflect_or_connect"
+      ],
+      "purpose_internal": "Ação prática, organização, movimento leve ou contato social durante o dia.",
+      "ideal_modalities": [
+        "behavioral_activation",
+        "social_micro_step",
+        "routine_building",
+        "journaling",
+        "movement_micro",
+        "substance_harm_reduction"
+      ],
+      "ideal_intensity": [
+        "low",
+        "medium"
+      ],
+      "conditional_intensity": {
+        "allow": [
+          "high"
+        ],
+        "when": {
+          "all": [
+            {
+              "adherence_7d": {
+                "gte": 0.7
+              }
+            },
+            {
+              "completed_required_prerequisites": {
+                "eq": true
+              }
+            },
+            {
+              "active_red_flags_count": {
+                "eq": 0
+              }
+            }
+          ]
+        }
+      },
+      "duration_min": 5,
+      "duration_max_min": 15,
+      "time_of_day_preference": [
+        "morning",
+        "afternoon",
+        "any"
+      ],
+      "show_if_no_activity": false,
+      "empty_fallback_copy": null
+    },
+    "evening": {
+      "slot_id": "evening",
+      "source_slot_roles": [
+        "reflect_or_connect",
+        "act_or_organize"
+      ],
+      "purpose_internal": "Desaceleração, reflexão breve e preparação do descanso.",
+      "ideal_modalities": [
+        "sleep_hygiene",
+        "journaling",
+        "mindfulness",
+        "body_scan",
+        "self_compassion",
+        "breathing"
+      ],
+      "ideal_intensity": [
+        "low"
+      ],
+      "conditional_intensity": {
+        "allow": [
+          "medium"
+        ],
+        "when": {
+          "all": [
+            {
+              "today_mood": {
+                "in": [
+                  "neutral",
+                  "good",
+                  "very-good"
+                ]
+              }
+            },
+            {
+              "adherence_7d": {
+                "gte": 0.4
+              }
+            },
+            {
+              "active_red_flags_count": {
+                "eq": 0
+              }
+            }
+          ]
+        }
+      },
+      "duration_min": 5,
+      "duration_max_min": 15,
+      "time_of_day_preference": [
+        "evening",
+        "night"
+      ],
+      "show_if_no_activity": true,
+      "empty_fallback_copy": "Se quiser, deixe este espaço livre e priorize o descanso."
+    }
+  },
+  "assembly_rules": [
+    {
+      "id": "assemble_blocked_red_flag",
+      "priority": 1000,
+      "when": {
+        "any": [
+          {
+            "plan_blocked": {
+              "eq": true
+            }
+          },
+          {
+            "planner_status": {
+              "in": [
+                "suspended_for_safety",
+                "awaiting_support_route"
+              ]
+            }
+          }
+        ]
+      },
+      "then": {
+        "blocked_state_id": "red_flag_active",
+        "assign": [],
+        "hide_activity_slots": true,
+        "welcome_template_id": null,
+        "completion_template_id": null
+      }
+    },
+    {
+      "id": "assemble_safety_bridge_only",
+      "priority": 990,
+      "when": {
+        "all": [
+          {
+            "planner_status": {
+              "eq": "safety_bridge_only"
+            }
+          },
+          {
+            "support_route_initiated": {
+              "eq": true
+            }
+          },
+          {
+            "selected_activities_count": {
+              "gte": 1
+            }
+          }
+        ]
+      },
+      "then": {
+        "assign": [
+          {
+            "slot": "now",
+            "activity_index": 0,
+            "required": true,
+            "allowed_modalities": [
+              "crisis_grounding"
+            ]
+          }
+        ],
+        "welcome_template_id": "welcome_support_bridge",
+        "completion_template_id": "completion_support_bridge",
+        "maximum_slots": 1
+      }
+    },
+    {
+      "id": "assemble_insufficient_data",
+      "priority": 950,
+      "when": {
+        "planner_status": {
+          "eq": "insufficient_data_limited"
+        }
+      },
+      "then": {
+        "blocked_state_id": "insufficient_data",
+        "assign": [
+          {
+            "slot": "now",
+            "activity_index": 0,
+            "required": true,
+            "only_if_available": true
+          }
+        ],
+        "welcome_template_id": "welcome_neutral_short",
+        "completion_template_id": "completion_single"
+      }
+    },
+    {
+      "id": "assemble_no_time_fit",
+      "priority": 940,
+      "when": {
+        "planner_status": {
+          "eq": "no_time_fit"
+        }
+      },
+      "then": {
+        "blocked_state_id": "no_time_fit",
+        "assign": [],
+        "welcome_template_id": null,
+        "completion_template_id": null
+      }
+    },
+    {
+      "id": "assemble_no_safe_activity",
+      "priority": 930,
+      "when": {
+        "all": [
+          {
+            "selected_activities_count": {
+              "eq": 0
+            }
+          },
+          {
+            "plan_blocked": {
+              "eq": false
+            }
+          }
+        ]
+      },
+      "then": {
+        "blocked_state_id": "no_safe_activity",
+        "assign": [],
+        "welcome_template_id": null,
+        "completion_template_id": null
+      }
+    },
+    {
+      "id": "assemble_first_plan_three",
+      "priority": 800,
+      "when": {
+        "all": [
+          {
+            "is_first_plan": {
+              "eq": true
+            }
+          },
+          {
+            "selected_activities_count": {
+              "gte": 3
+            }
+          },
+          {
+            "plan_blocked": {
+              "eq": false
+            }
+          }
+        ]
+      },
+      "then": {
+        "assign": [
+          {
+            "slot": "now",
+            "activity_index": 0,
+            "required": true
+          },
+          {
+            "slot": "daytime",
+            "activity_index": 1,
+            "required": true
+          }
+        ],
+        "welcome_template_id": "welcome_first_plan",
+        "completion_template_id": "completion_first_plan",
+        "maximum_slots": 2,
+        "notes_internal": "O primeiro plano é limitado a dois momentos para reduzir sobrecarga."
+      }
+    },
+    {
+      "id": "assemble_first_plan_one_or_two",
+      "priority": 795,
+      "when": {
+        "all": [
+          {
+            "is_first_plan": {
+              "eq": true
+            }
+          },
+          {
+            "selected_activities_count": {
+              "in": [
+                1,
+                2
+              ]
+            }
+          },
+          {
+            "plan_blocked": {
+              "eq": false
+            }
+          }
+        ]
+      },
+      "then": {
+        "assign": [
+          {
+            "slot": "now",
+            "activity_index": 0,
+            "required": true
+          },
+          {
+            "slot": "daytime",
+            "activity_index": 1,
+            "required": false,
+            "only_if_available": true
+          }
+        ],
+        "welcome_template_id": "welcome_first_plan",
+        "completion_template_id": "completion_first_plan"
+      }
+    },
+    {
+      "id": "assemble_low_adherence_simplified",
+      "priority": 760,
+      "when": {
+        "all": [
+          {
+            "adherence_7d": {
+              "lt": 0.3
+            }
+          },
+          {
+            "selected_activities_count": {
+              "gte": 2
+            }
+          },
+          {
+            "plan_blocked": {
+              "eq": false
+            }
+          }
+        ]
+      },
+      "then": {
+        "assign": [
+          {
+            "slot": "now",
+            "activity_index": 0,
+            "required": true
+          },
+          {
+            "slot": "daytime",
+            "activity_index": 1,
+            "required": false
+          }
+        ],
+        "welcome_template_id": "welcome_low_adherence",
+        "completion_template_id": "completion_partial",
+        "maximum_slots": 2
+      }
+    },
+    {
+      "id": "assemble_low_adherence_single",
+      "priority": 755,
+      "when": {
+        "all": [
+          {
+            "adherence_7d": {
+              "lt": 0.3
+            }
+          },
+          {
+            "selected_activities_count": {
+              "eq": 1
+            }
+          },
+          {
+            "plan_blocked": {
+              "eq": false
+            }
+          }
+        ]
+      },
+      "then": {
+        "assign": [
+          {
+            "slot": "now",
+            "activity_index": 0,
+            "required": true
+          }
+        ],
+        "welcome_template_id": "welcome_single_activity",
+        "completion_template_id": "completion_single"
+      }
+    },
+    {
+      "id": "assemble_very_low_mood_three",
+      "priority": 730,
+      "when": {
+        "all": [
+          {
+            "today_mood": {
+              "in": [
+                "bad",
+                "very-bad"
+              ]
+            }
+          },
+          {
+            "selected_activities_count": {
+              "gte": 3
+            }
+          },
+          {
+            "plan_blocked": {
+              "eq": false
+            }
+          }
+        ]
+      },
+      "then": {
+        "assign": [
+          {
+            "slot": "now",
+            "activity_index": 0,
+            "required": true,
+            "force_intensity": "low"
+          },
+          {
+            "slot": "daytime",
+            "activity_index": 1,
+            "required": true
+          },
+          {
+            "slot": "evening",
+            "activity_index": 2,
+            "required": false,
+            "recommended": true
+          }
+        ],
+        "welcome_template_id": "welcome_low_mood",
+        "completion_template_id": "completion_gentle_day"
+      }
+    },
+    {
+      "id": "assemble_very_low_mood_two",
+      "priority": 725,
+      "when": {
+        "all": [
+          {
+            "today_mood": {
+              "in": [
+                "bad",
+                "very-bad"
+              ]
+            }
+          },
+          {
+            "selected_activities_count": {
+              "eq": 2
+            }
+          },
+          {
+            "plan_blocked": {
+              "eq": false
+            }
+          }
+        ]
+      },
+      "then": {
+        "assign": [
+          {
+            "slot": "now",
+            "activity_index": 0,
+            "required": true,
+            "force_intensity": "low"
+          },
+          {
+            "slot": "daytime",
+            "activity_index": 1,
+            "required": false
+          }
+        ],
+        "welcome_template_id": "welcome_low_mood",
+        "completion_template_id": "completion_gentle_day"
+      }
+    },
+    {
+      "id": "assemble_checkin_pending_three",
+      "priority": 690,
+      "when": {
+        "all": [
+          {
+            "check_in_completed_today": {
+              "eq": false
+            }
+          },
+          {
+            "selected_activities_count": {
+              "gte": 3
+            }
+          },
+          {
+            "plan_blocked": {
+              "eq": false
+            }
+          }
+        ]
+      },
+      "then": {
+        "assign": [
+          {
+            "slot": "now",
+            "activity_index": 0,
+            "required": true
+          },
+          {
+            "slot": "daytime",
+            "activity_index": 1,
+            "required": true
+          },
+          {
+            "slot": "evening",
+            "activity_index": 2,
+            "required": false
+          }
+        ],
+        "welcome_template_id": "welcome_checkin_pending",
+        "completion_template_id": "completion_standard"
+      }
+    },
+    {
+      "id": "assemble_standard_three",
+      "priority": 300,
+      "when": {
+        "all": [
+          {
+            "selected_activities_count": {
+              "gte": 3
+            }
+          },
+          {
+            "plan_blocked": {
+              "eq": false
+            }
+          }
+        ]
+      },
+      "then": {
+        "assign": [
+          {
+            "slot": "now",
+            "activity_index": 0,
+            "required": true
+          },
+          {
+            "slot": "daytime",
+            "activity_index": 1,
+            "required": true
+          },
+          {
+            "slot": "evening",
+            "activity_index": 2,
+            "required": false
+          }
+        ],
+        "welcome_template_id": "welcome_evening_optional",
+        "completion_template_id": "completion_all_three"
+      }
+    },
+    {
+      "id": "assemble_standard_two",
+      "priority": 290,
+      "when": {
+        "all": [
+          {
+            "selected_activities_count": {
+              "eq": 2
+            }
+          },
+          {
+            "plan_blocked": {
+              "eq": false
+            }
+          }
+        ]
+      },
+      "then": {
+        "assign": [
+          {
+            "slot": "now",
+            "activity_index": 0,
+            "required": true
+          },
+          {
+            "slot": "daytime",
+            "activity_index": 1,
+            "required": true
+          }
+        ],
+        "welcome_template_id": "welcome_standard",
+        "completion_template_id": "completion_standard"
+      }
+    },
+    {
+      "id": "assemble_standard_one",
+      "priority": 280,
+      "when": {
+        "all": [
+          {
+            "selected_activities_count": {
+              "eq": 1
+            }
+          },
+          {
+            "plan_blocked": {
+              "eq": false
+            }
+          }
+        ]
+      },
+      "then": {
+        "assign": [
+          {
+            "slot": "now",
+            "activity_index": 0,
+            "required": true
+          }
+        ],
+        "welcome_template_id": "welcome_single_activity",
+        "completion_template_id": "completion_single"
+      }
+    }
+  ],
+  "welcome_messages": {
+    "welcome_standard": {
+      "id": "welcome_standard",
+      "title": "Seu plano de hoje",
+      "body": "Separamos {{activity_count}} cuidados leves para hoje. Um de cada vez, no seu ritmo.",
+      "tone": "warm",
+      "conditions_internal": "Plano padrão com check-in disponível."
+    },
+    "welcome_first_plan": {
+      "id": "welcome_first_plan",
+      "title": "Seu primeiro plano",
+      "body": "Este é um começo simples: pequenas atividades para experimentar no seu ritmo. Hoje, você pode começar por {{first_activity_title}}.",
+      "tone": "warm_explanatory",
+      "conditions_internal": "Primeiro plano depois da conversa inicial."
+    },
+    "welcome_return_after_gap": {
+      "id": "welcome_return_after_gap",
+      "title": "Bom ter você de volta",
+      "body": "Vamos retomar sem pressa. Separamos {{activity_count}} passos possíveis para esta {{day_period}}.",
+      "tone": "warm_reengagement",
+      "conditions_internal": "Retorno após três ou mais dias sem plano."
+    },
+    "welcome_low_mood": {
+      "id": "welcome_low_mood",
+      "title": "Hoje, vamos com calma",
+      "body": "Você não precisa dar conta de tudo. Comece pelo menor passo e veja como se sente.",
+      "tone": "gentle",
+      "conditions_internal": "Humor bad ou very-bad."
+    },
+    "welcome_good_mood": {
+      "id": "welcome_good_mood",
+      "title": "Vamos cuidar do que está fazendo bem",
+      "body": "Seu plano de hoje ajuda a manter pequenos hábitos que combinam com este momento.",
+      "tone": "positive_grounded",
+      "conditions_internal": "Humor good ou very-good."
+    },
+    "welcome_overwhelmed": {
+      "id": "welcome_overwhelmed",
+      "title": "Uma coisa de cada vez",
+      "body": "Quando tudo parece demais, reduzir o próximo passo pode ajudar. Comece pelo que está em “Para agora”.",
+      "tone": "calm",
+      "conditions_internal": "Emoção Sobrecarregado ou Confuso."
+    },
+    "welcome_anxious_moment": {
+      "id": "welcome_anxious_moment",
+      "title": "Uma pausa para este momento",
+      "body": "Vamos começar com algo curto para desacelerar e depois escolher o próximo passo.",
+      "tone": "calm",
+      "conditions_internal": "Emoção Preocupado ou Frustrado."
+    },
+    "welcome_tired": {
+      "id": "welcome_tired",
+      "title": "Um plano que respeita sua energia",
+      "body": "Hoje, menos também pode ser suficiente. Escolhemos atividades curtas e um fechamento leve para a noite.",
+      "tone": "gentle",
+      "conditions_internal": "Emoção Cansado e influência Sono."
+    },
+    "welcome_low_adherence": {
+      "id": "welcome_low_adherence",
+      "title": "O mínimo já conta",
+      "body": "Hoje, escolha apenas um passo possível. Fazer pouco ainda é cuidar de você.",
+      "tone": "encouraging",
+      "conditions_internal": "Aderência dos últimos sete dias abaixo de 0,3."
+    },
+    "welcome_high_adherence": {
+      "id": "welcome_high_adherence",
+      "title": "Você está construindo constância",
+      "body": "Seu cuidado tem aparecido no dia a dia. Continue no seu ritmo, sem precisar fazer tudo perfeitamente.",
+      "tone": "celebratory_grounded",
+      "conditions_internal": "Aderência dos últimos sete dias igual ou superior a 0,7."
+    },
+    "welcome_single_activity": {
+      "id": "welcome_single_activity",
+      "title": "Só um passo por hoje",
+      "body": "{{first_activity_title}} é o seu único cuidado planejado. Quando terminar, o dia já está completo.",
+      "tone": "simple",
+      "conditions_internal": "Plano com uma atividade."
+    },
+    "welcome_evening_optional": {
+      "id": "welcome_evening_optional",
+      "title": "Três momentos possíveis",
+      "body": "Há um cuidado para agora, outro para o dia e uma opção leve para a noite. O último é opcional.",
+      "tone": "warm",
+      "conditions_internal": "Plano com três slots."
+    },
+    "welcome_checkin_pending": {
+      "id": "welcome_checkin_pending",
+      "title": "Um plano leve para hoje",
+      "body": "Como você ainda não fez o check-in, montamos cuidados gerais e tranquilos. Você pode atualizar o plano depois.",
+      "tone": "neutral",
+      "conditions_internal": "Check-in do dia ainda não concluído."
+    },
+    "welcome_neutral_short": {
+      "id": "welcome_neutral_short",
+      "title": "Um cuidado para este momento",
+      "body": "Comece por algo curto e observe como fica depois. O seu retorno ajuda a ajustar os próximos dias.",
+      "tone": "neutral",
+      "conditions_internal": "Fallback genérico e dados ainda limitados."
+    },
+    "welcome_support_bridge": {
+      "id": "welcome_support_bridge",
+      "title": "Fique com este passo enquanto o apoio chega",
+      "body": "Esta atividade é apenas uma ponte para os próximos minutos. Mantenha a opção de apoio humano aberta.",
+      "tone": "calm_urgent",
+      "conditions_internal": "Somente quando rota de apoio já foi iniciada."
+    },
+    "welcome_care_focus_anxiety": {
+      "id": "welcome_care_focus_anxiety",
+      "title": "Mais espaço para respirar",
+      "body": "Seu plano prioriza pausas curtas para lidar com {{care_focus_label}} sem tentar resolver tudo de uma vez.",
+      "tone": "calm",
+      "conditions_internal": "careFocus principal anxiety."
+    },
+    "welcome_care_focus_sadness": {
+      "id": "welcome_care_focus_sadness",
+      "title": "Pequenos passos para o dia",
+      "body": "Seu plano traz ações leves para cuidar de {{care_focus_label}} e recuperar um pouco de movimento.",
+      "tone": "gentle",
+      "conditions_internal": "careFocus principal sadness."
+    },
+    "welcome_care_focus_stress": {
+      "id": "welcome_care_focus_stress",
+      "title": "Menos peso no próximo passo",
+      "body": "Seu plano combina pausas e organização para cuidar de {{care_focus_label}}.",
+      "tone": "calm",
+      "conditions_internal": "careFocus principal stress."
+    },
+    "welcome_care_focus_sleep": {
+      "id": "welcome_care_focus_sleep",
+      "title": "Um dia que prepara a noite",
+      "body": "Os cuidados de hoje foram organizados para apoiar {{care_focus_label}} com mudanças pequenas.",
+      "tone": "soft",
+      "conditions_internal": "careFocus principal sleep."
+    },
+    "welcome_care_focus_relationships": {
+      "id": "welcome_care_focus_relationships",
+      "title": "Cuidar dos vínculos, aos poucos",
+      "body": "Seu plano inclui passos simples para lidar com {{care_focus_label}} com mais calma.",
+      "tone": "warm",
+      "conditions_internal": "careFocus principal relationships."
+    },
+    "welcome_care_focus_work": {
+      "id": "welcome_care_focus_work",
+      "title": "Uma tarefa de cada vez",
+      "body": "Seu plano ajuda a organizar {{care_focus_label}} em passos menores e possíveis.",
+      "tone": "practical",
+      "conditions_internal": "careFocus principal work."
+    },
+    "welcome_care_focus_loneliness": {
+      "id": "welcome_care_focus_loneliness",
+      "title": "Um pouco mais de conexão",
+      "body": "Seu plano inclui uma aproximação pequena e segura para cuidar de {{care_focus_label}}.",
+      "tone": "warm",
+      "conditions_internal": "careFocus principal loneliness."
+    },
+    "welcome_care_focus_self_esteem": {
+      "id": "welcome_care_focus_self_esteem",
+      "title": "Falar consigo com mais cuidado",
+      "body": "Os passos de hoje apoiam {{care_focus_label}} sem cobrança por perfeição.",
+      "tone": "compassionate",
+      "conditions_internal": "careFocus principal self-esteem."
+    },
+    "welcome_care_focus_routine": {
+      "id": "welcome_care_focus_routine",
+      "title": "Um ritmo possível para hoje",
+      "body": "Seu plano organiza {{care_focus_label}} em poucos momentos, com espaço para adaptar.",
+      "tone": "practical",
+      "conditions_internal": "careFocus principal routine."
+    },
+    "welcome_care_focus_undecided": {
+      "id": "welcome_care_focus_undecided",
+      "title": "Você pode descobrir aos poucos",
+      "body": "Não é preciso escolher um foco agora. Estes cuidados ajudam a perceber o que faz mais sentido para você.",
+      "tone": "neutral",
+      "conditions_internal": "careFocus principal undecided."
+    }
+  },
+  "slot_headers": {
+    "now": {
+      "default": {
+        "title": "Para agora",
+        "subtitle": "Algo rápido para este momento"
+      },
+      "variants": [
+        {
+          "id": "now_low_mood",
+          "priority": 200,
+          "when": {
+            "today_mood": {
+              "in": [
+                "bad",
+                "very-bad"
+              ]
+            }
+          },
+          "title": "Um passo de cada vez",
+          "subtitle": "Só alguns minutos — o mínimo já conta"
+        },
+        {
+          "id": "now_overwhelmed",
+          "priority": 190,
+          "when": {
+            "today_emotions": {
+              "includes_any": [
+                "Sobrecarregado",
+                "Confuso"
+              ]
+            }
+          },
+          "title": "Primeiro, uma pausa",
+          "subtitle": "Comece pelo corpo e pelo momento presente"
+        },
+        {
+          "id": "now_good_mood",
+          "priority": 100,
+          "when": {
+            "today_mood": {
+              "in": [
+                "good",
+                "very-good"
+              ]
+            }
+          },
+          "title": "Para manter o ritmo",
+          "subtitle": "Um cuidado breve para começar bem"
+        }
+      ]
+    },
+    "daytime": {
+      "default": {
+        "title": "Durante o dia",
+        "subtitle": "Quando fizer sentido para você"
+      },
+      "variants": [
+        {
+          "id": "daytime_low_adherence",
+          "priority": 200,
+          "when": {
+            "adherence_7d": {
+              "lt": 0.3
+            }
+          },
+          "title": "Se couber no seu dia",
+          "subtitle": "Opcional: um passo pequeno já basta"
+        },
+        {
+          "id": "daytime_work_focus",
+          "priority": 170,
+          "when": {
+            "care_focus": {
+              "includes_any": [
+                "work",
+                "routine"
+              ]
+            }
+          },
+          "title": "Seu próximo passo",
+          "subtitle": "Uma tarefa por vez, sem precisar terminar tudo"
+        },
+        {
+          "id": "daytime_loneliness",
+          "priority": 160,
+          "when": {
+            "today_emotions": {
+              "includes_any": [
+                "Sozinho"
+              ]
+            }
+          },
+          "title": "Um momento de conexão",
+          "subtitle": "Um contato pequeno e possível"
+        }
+      ]
+    },
+    "evening": {
+      "default": {
+        "title": "À noite (opcional)",
+        "subtitle": "Para fechar o dia com calma"
+      },
+      "variants": [
+        {
+          "id": "evening_tired",
+          "priority": 200,
+          "when": {
+            "today_emotions": {
+              "includes_any": [
+                "Cansado"
+              ]
+            }
+          },
+          "title": "Para desacelerar",
+          "subtitle": "Se quiser, prepare o corpo para descansar"
+        },
+        {
+          "id": "evening_completed_yesterday",
+          "priority": 150,
+          "when": {
+            "completed_yesterday": {
+              "eq": true
+            }
+          },
+          "title": "Fechamento leve",
+          "subtitle": "Mais um pequeno momento, apenas se fizer sentido"
+        },
+        {
+          "id": "evening_optional_reminder",
+          "priority": 100,
+          "when": {
+            "selected_activities_count": {
+              "gte": 3
+            }
+          },
+          "title": "Uma opção para a noite",
+          "subtitle": "Sem obrigação — descansar também conta"
+        }
+      ]
+    }
+  },
+  "completion_messages": {
+    "completion_standard": {
+      "title": "Você cuidou de você hoje",
+      "body": "Cada pequeno passo importa. O que você fez hoje já conta.",
+      "cta_label": "Ver meu dia"
+    },
+    "completion_partial": {
+      "title": "O que você fez já vale",
+      "body": "Não precisa completar tudo. Você pode continuar depois ou encerrar por hoje.",
+      "cta_label": "Continuar depois"
+    },
+    "completion_all_three": {
+      "title": "Três momentos de cuidado",
+      "body": "Você encontrou espaço para três pequenas pausas ao longo do dia.",
+      "cta_label": "Fechar"
+    },
+    "completion_single": {
+      "title": "Seu passo de hoje está feito",
+      "body": "Uma atividade era o suficiente para este plano. Você concluiu.",
+      "cta_label": "Concluir"
+    },
+    "completion_first_plan": {
+      "title": "Primeiro plano concluído",
+      "body": "Agora você já conhece o formato. Seus retornos ajudam a deixar os próximos dias mais adequados.",
+      "cta_label": "Finalizar"
+    },
+    "completion_gentle_day": {
+      "title": "Você respeitou o seu ritmo",
+      "body": "Em dias difíceis, fazer o possível já é importante.",
+      "cta_label": "Fechar o dia"
+    },
+    "completion_high_adherence": {
+      "title": "Mais um dia de constância",
+      "body": "Repetir pequenos cuidados pode ajudar a construir um ritmo sustentável.",
+      "cta_label": "Ver evolução"
+    },
+    "completion_evening_skipped": {
+      "title": "O dia já conta",
+      "body": "A atividade da noite era opcional. Você pode descansar sem precisar completar mais nada.",
+      "cta_label": "Encerrar"
+    },
+    "completion_support_bridge": {
+      "title": "Continue perto do apoio",
+      "body": "A atividade terminou, mas a rota de apoio continua sendo o próximo passo.",
+      "cta_label": "Voltar às opções de apoio"
+    },
+    "completion_no_effect": {
+      "title": "Obrigado por contar como foi",
+      "body": "Nem toda atividade ajuda em todo momento. Seu retorno será usado para evitar repetições que não funcionaram.",
+      "cta_label": "Finalizar"
+    }
+  },
+  "empty_states": {
+    "evening_optional_empty": {
+      "slot_id": "evening",
+      "title": "Noite livre",
+      "body": "Se quiser, descanse. Não há nada pendente neste espaço.",
+      "show_skip": true
+    },
+    "daytime_optional_empty": {
+      "slot_id": "daytime",
+      "title": "Sem tarefa extra",
+      "body": "O cuidado de agora já pode ser suficiente para hoje.",
+      "show_skip": true
+    },
+    "activity_unavailable": {
+      "slot_id": "any",
+      "title": "Esta atividade não está disponível",
+      "body": "Ela foi retirada deste plano. Vamos tentar outra opção segura quando houver.",
+      "show_skip": true
+    },
+    "plan_completed_empty": {
+      "slot_id": "any",
+      "title": "Tudo certo por hoje",
+      "body": "Você concluiu os cuidados disponíveis neste plano.",
+      "show_skip": false
+    }
+  },
+  "blocked_plan_states": {
+    "red_flag_active": {
+      "template_id": "blocked_red_flag",
+      "title": "Seu bem-estar vem primeiro",
+      "body": "Neste momento, o melhor próximo passo é falar com alguém. Preparamos opções de apoio.",
+      "hide_activity_slots": true,
+      "route_to": "red_flags_crisis_flow",
+      "show_crisis_routes": true,
+      "allowed_response_route_ids": [
+        "route_cvv",
+        "route_samu",
+        "route_police",
+        "route_human_clinical",
+        "route_emergency_contacts"
+      ]
+    },
+    "awaiting_support_route": {
+      "template_id": "blocked_awaiting_support",
+      "title": "Escolha uma opção de apoio",
+      "body": "Antes de qualquer atividade, conecte-se com uma pessoa ou serviço de apoio.",
+      "hide_activity_slots": true,
+      "route_to": "red_flags_crisis_flow",
+      "show_crisis_routes": true,
+      "allowed_response_route_ids": [
+        "route_cvv",
+        "route_samu",
+        "route_human_clinical",
+        "route_emergency_contacts"
+      ]
+    },
+    "insufficient_data": {
+      "template_id": "blocked_insufficient",
+      "title": "Queremos conhecer melhor o seu momento",
+      "body": "Complete mais algumas perguntas para montarmos cuidados mais adequados. Enquanto isso, podemos oferecer uma atividade leve.",
+      "cta_label": "Continuar perguntas",
+      "hide_activity_slots": false,
+      "route_to": "anamnesis_resume",
+      "show_crisis_routes": false
+    },
+    "no_time_fit": {
+      "template_id": "blocked_no_time_fit",
+      "title": "Hoje não coube uma atividade",
+      "body": "O tempo disponível foi menor que a duração das opções seguras. Você pode atualizar quanto tempo tem agora.",
+      "cta_label": "Ajustar meu tempo",
+      "hide_activity_slots": true,
+      "route_to": "plan_time_preferences",
+      "show_crisis_routes": false
+    },
+    "no_safe_activity": {
+      "template_id": "blocked_no_safe_activity",
+      "title": "Vamos pausar por enquanto",
+      "body": "Não encontramos uma atividade adequada às suas respostas e preferências neste momento.",
+      "cta_label": "Revisar preferências",
+      "hide_activity_slots": true,
+      "route_to": "plan_preferences_review",
+      "show_crisis_routes": false
+    },
+    "needs_preference_update": {
+      "template_id": "blocked_preference_update",
+      "title": "Vamos ajustar suas escolhas",
+      "body": "Atualize suas preferências para receber atividades que combinem melhor com você.",
+      "cta_label": "Atualizar preferências",
+      "hide_activity_slots": true,
+      "route_to": "plan_preferences_review",
+      "show_crisis_routes": false
+    }
+  },
+  "template_selection_rules": [
+    {
+      "id": "pick_blocked_red_flag",
+      "priority": 1000,
+      "when": {
+        "any": [
+          {
+            "plan_blocked": {
+              "eq": true
+            }
+          },
+          {
+            "planner_status": {
+              "in": [
+                "suspended_for_safety",
+                "awaiting_support_route"
+              ]
+            }
+          }
+        ]
+      },
+      "then": {
+        "blocked_state_id": "red_flag_active"
+      }
+    },
+    {
+      "id": "pick_support_bridge",
+      "priority": 990,
+      "when": {
+        "all": [
+          {
+            "planner_status": {
+              "eq": "safety_bridge_only"
+            }
+          },
+          {
+            "support_route_initiated": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "then": {
+        "welcome_template_id": "welcome_support_bridge"
+      }
+    },
+    {
+      "id": "pick_welcome_first_plan",
+      "priority": 900,
+      "when": {
+        "is_first_plan": {
+          "eq": true
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_first_plan"
+      }
+    },
+    {
+      "id": "pick_welcome_return_gap",
+      "priority": 880,
+      "when": {
+        "days_since_last_plan": {
+          "gte": 3
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_return_after_gap"
+      }
+    },
+    {
+      "id": "pick_welcome_checkin_pending",
+      "priority": 850,
+      "when": {
+        "check_in_completed_today": {
+          "eq": false
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_checkin_pending"
+      }
+    },
+    {
+      "id": "pick_welcome_overwhelmed",
+      "priority": 820,
+      "when": {
+        "today_emotions": {
+          "includes_any": [
+            "Sobrecarregado",
+            "Confuso"
+          ]
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_overwhelmed"
+      }
+    },
+    {
+      "id": "pick_welcome_low_mood",
+      "priority": 810,
+      "when": {
+        "today_mood": {
+          "in": [
+            "bad",
+            "very-bad"
+          ]
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_low_mood"
+      }
+    },
+    {
+      "id": "pick_welcome_anxious_moment",
+      "priority": 800,
+      "when": {
+        "today_emotions": {
+          "includes_any": [
+            "Preocupado",
+            "Frustrado"
+          ]
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_anxious_moment"
+      }
+    },
+    {
+      "id": "pick_welcome_tired",
+      "priority": 790,
+      "when": {
+        "all": [
+          {
+            "today_emotions": {
+              "includes_any": [
+                "Cansado"
+              ]
+            }
+          },
+          {
+            "today_influences": {
+              "includes_any": [
+                "Sono"
+              ]
+            }
+          }
+        ]
+      },
+      "then": {
+        "welcome_template_id": "welcome_tired"
+      }
+    },
+    {
+      "id": "pick_welcome_low_adherence",
+      "priority": 700,
+      "when": {
+        "adherence_7d": {
+          "lt": 0.3
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_low_adherence"
+      }
+    },
+    {
+      "id": "pick_welcome_high_adherence",
+      "priority": 690,
+      "when": {
+        "adherence_7d": {
+          "gte": 0.7
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_high_adherence"
+      }
+    },
+    {
+      "id": "pick_welcome_good_mood",
+      "priority": 680,
+      "when": {
+        "today_mood": {
+          "in": [
+            "good",
+            "very-good"
+          ]
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_good_mood"
+      }
+    },
+    {
+      "id": "pick_welcome_single_activity",
+      "priority": 650,
+      "when": {
+        "selected_activities_count": {
+          "eq": 1
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_single_activity"
+      }
+    },
+    {
+      "id": "pick_welcome_evening_optional",
+      "priority": 640,
+      "when": {
+        "selected_activities_count": {
+          "gte": 3
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_evening_optional"
+      }
+    },
+    {
+      "id": "pick_focus_anxiety",
+      "priority": 500,
+      "when": {
+        "primary_care_focus": {
+          "eq": "anxiety"
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_care_focus_anxiety"
+      }
+    },
+    {
+      "id": "pick_focus_sadness",
+      "priority": 499,
+      "when": {
+        "primary_care_focus": {
+          "eq": "sadness"
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_care_focus_sadness"
+      }
+    },
+    {
+      "id": "pick_focus_stress",
+      "priority": 498,
+      "when": {
+        "primary_care_focus": {
+          "eq": "stress"
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_care_focus_stress"
+      }
+    },
+    {
+      "id": "pick_focus_sleep",
+      "priority": 497,
+      "when": {
+        "primary_care_focus": {
+          "eq": "sleep"
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_care_focus_sleep"
+      }
+    },
+    {
+      "id": "pick_focus_relationships",
+      "priority": 496,
+      "when": {
+        "primary_care_focus": {
+          "eq": "relationships"
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_care_focus_relationships"
+      }
+    },
+    {
+      "id": "pick_focus_work",
+      "priority": 495,
+      "when": {
+        "primary_care_focus": {
+          "eq": "work"
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_care_focus_work"
+      }
+    },
+    {
+      "id": "pick_focus_loneliness",
+      "priority": 494,
+      "when": {
+        "primary_care_focus": {
+          "eq": "loneliness"
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_care_focus_loneliness"
+      }
+    },
+    {
+      "id": "pick_focus_self_esteem",
+      "priority": 493,
+      "when": {
+        "primary_care_focus": {
+          "eq": "self-esteem"
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_care_focus_self_esteem"
+      }
+    },
+    {
+      "id": "pick_focus_routine",
+      "priority": 492,
+      "when": {
+        "primary_care_focus": {
+          "eq": "routine"
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_care_focus_routine"
+      }
+    },
+    {
+      "id": "pick_focus_undecided",
+      "priority": 491,
+      "when": {
+        "primary_care_focus": {
+          "in": [
+            "undecided",
+            null
+          ]
+        }
+      },
+      "then": {
+        "welcome_template_id": "welcome_care_focus_undecided"
+      }
+    },
+    {
+      "id": "pick_welcome_standard",
+      "priority": 10,
+      "when": {
+        "always": true
+      },
+      "then": {
+        "welcome_template_id": "welcome_standard"
+      }
+    }
+  ],
+  "placeholder_registry": {
+    "activity_count": {
+      "source": "computed",
+      "description_internal": "Número de atividades efetivamente inseridas no pacote.",
+      "fallback": "alguns"
+    },
+    "user_name": {
+      "source": "user_profile.display_name",
+      "description_internal": "Primeiro nome ou nome de exibição do usuário.",
+      "fallback": "você"
+    },
+    "first_activity_title": {
+      "source": "assembled_slots[0].activity_title",
+      "description_internal": "Título da primeira atividade renderizada.",
+      "fallback": "um cuidado curto"
+    },
+    "care_focus_label": {
+      "source": "profile.careFocus[0]",
+      "description_internal": "Rótulo acolhedor do foco principal informado no onboarding.",
+      "fallback": "o que mais importa para você agora",
+      "mapping": {
+        "anxiety": "preocupações e tensão",
+        "sadness": "tristeza e desânimo",
+        "stress": "sobrecarga do dia a dia",
+        "sleep": "sono e descanso",
+        "relationships": "relações e convivência",
+        "work": "trabalho ou estudos",
+        "loneliness": "solidão e conexão",
+        "self-esteem": "forma de se tratar e se perceber",
+        "routine": "rotina e organização",
+        "undecided": "seu momento atual"
+      }
+    },
+    "day_period": {
+      "source": "computed_time",
+      "description_internal": "Período local em que o plano está sendo aberto.",
+      "fallback": "hoje",
+      "mapping": {
+        "morning": "manhã",
+        "afternoon": "tarde",
+        "evening": "noite",
+        "night": "noite"
+      }
+    }
+  },
+  "output_schema": {
+    "daily_plan_package": {
+      "plan_date": "ISO8601 date",
+      "package_template_id": "daily_plan_standard_v1",
+      "blocked": "boolean",
+      "blocked_state_id": "string|null",
+      "welcome": {
+        "template_id": "string|null",
+        "title": "string|null",
+        "body": "string|null"
+      },
+      "slots": [
+        {
+          "slot_id": "now|daytime|evening",
+          "header_title": "string",
+          "header_subtitle": "string",
+          "required": "boolean",
+          "optional": "boolean",
+          "activity_id": "activity_catalog.activities.id|null",
+          "activity_title": "string|null",
+          "duration_min": "number|null",
+          "why_user_moment": "string|null",
+          "position": "integer 1-3"
+        }
+      ],
+      "completion": {
+        "template_id": "string|null",
+        "title": "string|null",
+        "body": "string|null",
+        "cta_label": "string|null"
+      },
+      "crisis_routes": [
+        {
+          "route_id": "red_flags.response_routes.id",
+          "user_label": "string"
+        }
+      ],
+      "internal": {
+        "assembly_rule_id": "string",
+        "welcome_selection_rule_id": "string|null",
+        "selection_engine_plan_id": "uuid|null"
+      }
+    },
+    "forbidden_user_fields": [
+      "internal",
+      "primary_track",
+      "secondary_tracks",
+      "tier",
+      "score",
+      "confidence",
+      "evidence_tags",
+      "active_red_flag_ids"
+    ]
+  },
+  "output_examples": [
+    {
+      "scenario_internal": "Plano completo com três atividades e humor neutro.",
+      "plan_date": "2026-06-17",
+      "package_template_id": "daily_plan_standard_v1",
+      "blocked": false,
+      "blocked_state_id": null,
+      "welcome": {
+        "template_id": "welcome_evening_optional",
+        "title": "Três momentos possíveis",
+        "body": "Há um cuidado para agora, outro para o dia e uma opção leve para a noite. O último é opcional."
+      },
+      "slots": [
+        {
+          "slot_id": "now",
+          "header_title": "Para agora",
+          "header_subtitle": "Algo rápido para este momento",
+          "required": true,
+          "optional": false,
+          "activity_id": "act_grounding_five_senses",
+          "activity_title": "Cinco sentidos no presente",
+          "duration_min": 5,
+          "why_user_moment": "Para criar uma pequena pausa antes do próximo passo.",
+          "position": 1
+        },
+        {
+          "slot_id": "daytime",
+          "header_title": "Durante o dia",
+          "header_subtitle": "Quando fizer sentido para você",
+          "required": true,
+          "optional": false,
+          "activity_id": "act_behavioral_activation_pleasant_five",
+          "activity_title": "Cinco minutos de algo agradável",
+          "duration_min": 7,
+          "why_user_moment": "Para dar um passo pequeno e possível hoje.",
+          "position": 2
+        },
+        {
+          "slot_id": "evening",
+          "header_title": "À noite (opcional)",
+          "header_subtitle": "Para fechar o dia com calma",
+          "required": false,
+          "optional": true,
+          "activity_id": "act_sleep_hygiene_wind_down",
+          "activity_title": "Ritual curto de desaceleração",
+          "duration_min": 10,
+          "why_user_moment": "Para preparar o corpo e o ambiente para descansar.",
+          "position": 3
+        }
+      ],
+      "completion": {
+        "template_id": "completion_all_three",
+        "title": "Três momentos de cuidado",
+        "body": "Você encontrou espaço para três pequenas pausas ao longo do dia.",
+        "cta_label": "Fechar"
+      },
+      "crisis_routes": [],
+      "internal": {
+        "assembly_rule_id": "assemble_standard_three",
+        "welcome_selection_rule_id": "pick_welcome_evening_optional",
+        "selection_engine_plan_id": "00000000-0000-4000-8000-000000000001"
+      }
+    },
+    {
+      "scenario_internal": "Plano de uma atividade com baixa aderência.",
+      "plan_date": "2026-06-17",
+      "package_template_id": "daily_plan_standard_v1",
+      "blocked": false,
+      "blocked_state_id": null,
+      "welcome": {
+        "template_id": "welcome_low_adherence",
+        "title": "O mínimo já conta",
+        "body": "Hoje, escolha apenas um passo possível. Fazer pouco ainda é cuidar de você."
+      },
+      "slots": [
+        {
+          "slot_id": "now",
+          "header_title": "Um passo de cada vez",
+          "header_subtitle": "Só alguns minutos — o mínimo já conta",
+          "required": true,
+          "optional": false,
+          "activity_id": "act_breathing_long_exhale",
+          "activity_title": "Expiração mais longa",
+          "duration_min": 5,
+          "why_user_moment": "Para ajudar o corpo e a mente a desacelerar agora.",
+          "position": 1
+        }
+      ],
+      "completion": {
+        "template_id": "completion_single",
+        "title": "Seu passo de hoje está feito",
+        "body": "Uma atividade era o suficiente para este plano. Você concluiu.",
+        "cta_label": "Concluir"
+      },
+      "crisis_routes": [],
+      "internal": {
+        "assembly_rule_id": "assemble_low_adherence_single",
+        "welcome_selection_rule_id": "pick_welcome_low_adherence",
+        "selection_engine_plan_id": "00000000-0000-4000-8000-000000000002"
+      }
+    },
+    {
+      "scenario_internal": "Primeiro plano depois da anamnese.",
+      "plan_date": "2026-06-17",
+      "package_template_id": "daily_plan_standard_v1",
+      "blocked": false,
+      "blocked_state_id": null,
+      "welcome": {
+        "template_id": "welcome_first_plan",
+        "title": "Seu primeiro plano",
+        "body": "Este é um começo simples: pequenas atividades para experimentar no seu ritmo. Hoje, você pode começar por Cartão de orientação."
+      },
+      "slots": [
+        {
+          "slot_id": "now",
+          "header_title": "Para agora",
+          "header_subtitle": "Algo rápido para este momento",
+          "required": true,
+          "optional": false,
+          "activity_id": "act_grounding_orientation_card",
+          "activity_title": "Cartão de orientação",
+          "duration_min": 5,
+          "why_user_moment": "Para reforçar a conexão com o presente.",
+          "position": 1
+        },
+        {
+          "slot_id": "daytime",
+          "header_title": "Durante o dia",
+          "header_subtitle": "Quando fizer sentido para você",
+          "required": true,
+          "optional": false,
+          "activity_id": "act_journaling_small_wins",
+          "activity_title": "Pequenas coisas que aconteceram",
+          "duration_min": 5,
+          "why_user_moment": "Para dar um passo pequeno e possível hoje.",
+          "position": 2
+        }
+      ],
+      "completion": {
+        "template_id": "completion_first_plan",
+        "title": "Primeiro plano concluído",
+        "body": "Agora você já conhece o formato. Seus retornos ajudam a deixar os próximos dias mais adequados.",
+        "cta_label": "Finalizar"
+      },
+      "crisis_routes": [],
+      "internal": {
+        "assembly_rule_id": "assemble_first_plan_one_or_two",
+        "welcome_selection_rule_id": "pick_welcome_first_plan",
+        "selection_engine_plan_id": "00000000-0000-4000-8000-000000000003"
+      }
+    },
+    {
+      "scenario_internal": "Plano bloqueado por red flag.",
+      "plan_date": "2026-06-17",
+      "package_template_id": "daily_plan_standard_v1",
+      "blocked": true,
+      "blocked_state_id": "red_flag_active",
+      "welcome": {
+        "template_id": null,
+        "title": "Seu bem-estar vem primeiro",
+        "body": "Neste momento, o melhor próximo passo é falar com alguém. Preparamos opções de apoio."
+      },
+      "slots": [],
+      "completion": {
+        "template_id": null,
+        "title": null,
+        "body": null,
+        "cta_label": null
+      },
+      "crisis_routes": [
+        {
+          "route_id": "route_cvv",
+          "user_label": "Ligar para o CVV (188)"
+        },
+        {
+          "route_id": "route_human_clinical",
+          "user_label": "Pedir contato da equipe"
+        },
+        {
+          "route_id": "route_emergency_contacts",
+          "user_label": "Chamar uma pessoa de confiança"
+        }
+      ],
+      "internal": {
+        "assembly_rule_id": "assemble_blocked_red_flag",
+        "welcome_selection_rule_id": "pick_blocked_red_flag",
+        "selection_engine_plan_id": "00000000-0000-4000-8000-000000000004"
+      }
+    }
+  ]
+}

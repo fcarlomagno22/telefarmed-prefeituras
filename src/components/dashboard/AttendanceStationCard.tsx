@@ -30,6 +30,7 @@ import { AttendanceFlowStepper, isFlowStepStatus } from './AttendanceFlowStepper
 import { AgeGroupSelectionStep } from './AgeGroupSelectionStep'
 import { useUbtPatientRegistration } from '../../hooks/useUbtPatientRegistration'
 import { useUbtWalkInSpecialtyAvailability } from '../../hooks/useUbtWalkInSpecialtyAvailability'
+import { useUbtPatientTerritoryPolicy } from '../../hooks/useUbtPatientTerritoryPolicy'
 import { readConsultationLockFromStorage, writeConsultationLockToStorage } from '../../hooks/useConsultationSessionGuard'
 import { ConsultationLockOverlay } from './ConsultationLockOverlay'
 import { CpfLookupStep } from './CpfLookupStep'
@@ -270,6 +271,7 @@ export function AttendanceStationCard({
     loadError: catalogLoadError,
     reload: reloadCatalog,
   } = useUbtWalkInSpecialtyAvailability(triagemCatalogEnabled, triagemDate)
+  const territoryPolicy = useUbtPatientTerritoryPolicy(true)
   const [session, setSession] = useState<AttendanceSession>(emptyAttendanceSession())
   const [registration, setRegistration] = useState<PatientRegistration>(
     emptyPatientRegistration(),
@@ -731,6 +733,12 @@ export function AttendanceStationCard({
           onChange={setRegistration}
           onSubmit={() => setStatus('photo')}
           onBack={() => setStatus('contacts')}
+          requiredTerritory={territoryPolicy.requiredTerritory}
+          contractAllowsOtherMunicipalities={territoryPolicy.allowsOtherMunicipalities}
+          entidadeTipo={territoryPolicy.policy?.tipoEntidade}
+          territoryScope="patient_registration"
+          policyLoadWarning={territoryPolicy.loadError}
+          isPolicyLoading={territoryPolicy.isLoading}
         />
       )}
 

@@ -1,3 +1,4 @@
+import { useEntidadeCopy } from '../hooks/useEntidadeCopy'
 import { Navigate, useParams } from 'react-router-dom'
 import { PrefeituraRelatoriosHubPanel } from '../components/prefeitura/relatorios/PrefeituraRelatoriosHubPanel'
 import { RelatoriosCategoryPanel } from '../components/relatorios/RelatoriosCategoryPanel'
@@ -26,6 +27,7 @@ function formatHeaderTime(date = new Date()) {
 }
 
 export function PrefeituraRelatoriosPage() {
+  const copy = useEntidadeCopy()
   const now = new Date()
 
   return (
@@ -37,7 +39,7 @@ export function PrefeituraRelatoriosPage() {
               Relatórios
             </h1>
             <p className="mt-1 max-w-2xl text-sm text-gray-500">
-              Catálogo de indicadores operacionais, clínicos e contratuais da gestão municipal
+              Catálogo de indicadores operacionais, clínicos e contratuais {copy.daRede}
             </p>
           </div>
           <div className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-gray-200 bg-white px-2 py-1.5 shadow-sm">

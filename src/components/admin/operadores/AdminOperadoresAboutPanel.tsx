@@ -142,7 +142,7 @@ export function AdminOperadoresAboutPanel({ rows }: AdminOperadoresAboutPanelPro
   const scopeSlices = useMemo<BarSlice[]>(
     () => [
       { label: 'UBT', count: ubtScopeCount },
-      { label: 'Prefeitura', count: prefeituraScopeCount },
+      { label: 'Entidade', count: prefeituraScopeCount },
     ],
     [ubtScopeCount, prefeituraScopeCount],
   )
@@ -169,7 +169,7 @@ export function AdminOperadoresAboutPanel({ rows }: AdminOperadoresAboutPanelPro
         <header className="shrink-0 text-center">
           <h2 className="text-lg font-bold text-gray-900">Indicadores de operadores</h2>
           <p className="mt-1 text-xs text-gray-500">
-            Visão consolidada de acessos, unidades e perfis na rede municipal
+            Visão consolidada de acessos, unidades e perfis na rede das entidades
           </p>
         </header>
 
@@ -177,7 +177,7 @@ export function AdminOperadoresAboutPanel({ rows }: AdminOperadoresAboutPanelPro
           <MiniKpi
             label="Total"
             value={formatNumber(uniqueCities)}
-            hint="cidades com operadores"
+            hint="localidades com operadores"
             valueClassName="text-gray-900"
           />
           <MiniKpi
@@ -219,7 +219,7 @@ export function AdminOperadoresAboutPanel({ rows }: AdminOperadoresAboutPanelPro
               <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                 Escopo operacional
               </h3>
-              <p className="mt-1 text-[11px] text-gray-500">Distribuição UBT e prefeitura</p>
+              <p className="mt-1 text-[11px] text-gray-500">Distribuição UBT e entidade</p>
               <div className="mt-3">
                 <HorizontalBars
                   data={scopeSlices}

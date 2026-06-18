@@ -1,8 +1,19 @@
 import { brand } from '../../config/brand'
+import {applyEntidadeCopyToExportText,
+  buildEntidadeExportBaseStyles,
+  resolveEntidadeExportBranding,
+  type EntidadeExportBranding,
+  resolveExportAssetUrl,
+  escapeExportHtml
+} from '../entidadeExportHtml'
 import type { RetornosPendentesReportApi } from '../../types/prefeituraRelatorios'
 import { downloadWindowAsPdf, pdfFilenameFromLabel } from '../htmlDocumentToPdf'
 
-type ExportContext = { report: RetornosPendentesReportApi; generatedAtLabel: string }
+type ExportContext = {
+  report: RetornosPendentesReportApi
+  generatedAtLabel: string
+  branding?: EntidadeExportBranding
+}
 
 function escapeHtml(value: string) {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -27,19 +38,19 @@ const HIGHLIGHT_TONE_STYLE = {
   blue: 'border:1px solid #bae6fd;background:#f0f9ff;color:#0c4a6e;',
 } as const
 
-function buildStyles() {
-  return `
+function buildStyles(branding: EntidadeExportBranding = resolveEntidadeExportBranding()) {
+  return buildEntidadeExportBaseStyles(branding.corPrimaria) + `
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #111827; background: #fff; line-height: 1.45; }
     main { max-width: 1100px; margin: 0 auto; padding: 28px 32px 36px; border: 1px solid #e5e7eb; border-radius: 16px; background: #fff; }
-    .brand-bar { height: 4px; background: #ff6b00; border-radius: 999px; margin-bottom: 20px; }
+    .brand-bar { height: 4px; background: ${branding.corPrimaria}; border-radius: 999px; margin-bottom: 20px; }
     .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
     .header img { height: 36px; width: auto; }
     .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #9ca3af; }
     h1 { font-size: 24px; font-weight: 700; color: #111827; margin-top: 4px; }
     .subtitle { margin-top: 4px; font-size: 13px; color: #6b7280; max-width: 42rem; }
     .meta { margin-top: 12px; font-size: 12px; color: #6b7280; } .meta p + p { margin-top: 4px; }
-    section { margin-top: 28px; } h2 { font-size: 14px; font-weight: 700; color: #111827; border-bottom: 2px solid #ff6b00; padding-bottom: 8px; margin-bottom: 14px; }
+    section { margin-top: 28px; } h2 { font-size: 14px; font-weight: 700; color: #111827; border-bottom: 2px solid ${branding.corPrimaria}; padding-bottom: 8px; margin-bottom: 14px; }
     .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
     .card { border: 1px solid #e5e7eb; border-radius: 12px; background: #f8fafc; padding: 16px; text-align: center; }
     .card-label { font-size: 12px; color: #6b7280; font-weight: 500; } .card-value { margin-top: 4px; font-size: 24px; font-weight: 700; color: #111827; }
@@ -74,8 +85,9 @@ function buildChart(points: Array<{ label: string; value: number }>, mode: 'dail
   return `<div class="chart-wrap"><div class="chart-bars">${bars}</div><p class="chart-caption">Evolução ${mode === 'monthly' ? 'mensal' : 'diária'} de retornos pendentes na rede municipal.</p></div>`
 }
 
-export function buildRetornosPendentesReportHtml({ report, generatedAtLabel }: ExportContext) {
-  const logoUrl = resolveAssetUrl(brand.logoUrl)
+export function buildRetornosPendentesReportHtml({ report, generatedAtLabel, branding: brandingInput }: ExportContext) {
+  const branding = brandingInput ?? resolveEntidadeExportBranding()
+  const logoUrl = resolveExportAssetUrl(branding.logoUrl)
   const highlightCards = report.highlights
     .map(
       (item) =>
@@ -106,7 +118,7 @@ export function buildRetornosPendentesReportHtml({ report, generatedAtLabel }: E
         `<article class="card"><p class="card-label">${escapeHtml(kpi.label)}</p><p class="card-value">${escapeHtml(kpi.value)}</p><p class="subtitle">${escapeHtml(kpi.footer)}</p></article>`,
     )
     .join('')
-  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8" /><title>${escapeHtml(report.title)}</title><style>${buildStyles()}</style></head><body><main><div class="brand-bar"></div><header class="header"><div><p class="eyebrow">Relatório operacional</p><h1>${escapeHtml(report.title)}</h1><p class="subtitle">${escapeHtml(report.description)}</p><div class="meta"><p><strong>${escapeHtml(report.entidadeRazaoSocial)}</strong> · ${escapeHtml(brand.appName)}</p><p>Período: <strong>${escapeHtml(report.periodLabel)}</strong></p></div></div><img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brand.appName)}" /></header><section><div class="summary-grid"><article class="card"><p class="card-label">Retornos pendentes</p><p class="card-value">${formatNumber(report.summary.pendingCount)}</p></article><article class="card"><p class="card-label">Não agendados</p><p class="card-value">${formatNumber(report.summary.notScheduledCount)}</p></article><article class="card"><p class="card-label">Não realizados</p><p class="card-value">${formatNumber(report.summary.notPerformedCount)}</p></article><article class="card"><p class="card-label">Atrasados</p><p class="card-value">${formatNumber(report.summary.overdueCount)}</p></article></div></section><section><h2>Destaques do período</h2><div class="highlight-grid">${highlightCards}</div></section><section><h2>Composição dos retornos</h2><table><thead><tr><th class="unit">Situação</th><th class="metric">Volume</th><th class="metric">Participação</th></tr></thead><tbody>${breakdownRows}</tbody></table></section><section><h2>Unidades com retornos pendentes</h2><table><thead><tr><th class="unit">Unidade</th><th class="metric">Região</th><th class="metric">Pendências</th><th class="metric">Participação</th></tr></thead><tbody>${unitRows}</tbody></table></section><section><h2>Pacientes em destaque</h2><table><thead><tr><th class="unit">Paciente</th><th class="metric">Unidade</th><th class="metric">Data</th><th class="metric">Status</th><th class="metric">Dias atraso</th></tr></thead><tbody>${patientRows}</tbody></table></section><section><h2>Evolução das pendências</h2>${buildChart(report.evolution.pendingPoints, report.evolution.mode)}</section><section><h2>Indicadores do período</h2><div class="kpi-grid">${kpiCards}</div></section><footer class="footer"><p>Relatório gerado em <strong>${escapeHtml(generatedAtLabel)}</strong> por <strong>${escapeHtml(report.generatedBy)}</strong></p><p>${escapeHtml(report.description)}</p></footer></main></body></html>`
+  return applyEntidadeCopyToExportText(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8" /><title>${escapeHtml(report.title)}</title><style>${buildStyles(branding)}</style></head><body><main><div class="brand-bar"></div><header class="header"><div><p class="eyebrow">Relatório operacional</p><h1>${escapeHtml(report.title)}</h1><p class="subtitle">${escapeHtml(report.description)}</p><div class="meta"><p><strong>${escapeHtml(report.entidadeRazaoSocial)}</strong> · ${escapeExportHtml(branding.brandName)}</p><p>Período: <strong>${escapeHtml(report.periodLabel)}</strong></p></div></div><img src="${escapeHtml(logoUrl)}" alt="${escapeExportHtml(branding.brandName)}" /></header><section><div class="summary-grid"><article class="card"><p class="card-label">Retornos pendentes</p><p class="card-value">${formatNumber(report.summary.pendingCount)}</p></article><article class="card"><p class="card-label">Não agendados</p><p class="card-value">${formatNumber(report.summary.notScheduledCount)}</p></article><article class="card"><p class="card-label">Não realizados</p><p class="card-value">${formatNumber(report.summary.notPerformedCount)}</p></article><article class="card"><p class="card-label">Atrasados</p><p class="card-value">${formatNumber(report.summary.overdueCount)}</p></article></div></section><section><h2>Destaques do período</h2><div class="highlight-grid">${highlightCards}</div></section><section><h2>Composição dos retornos</h2><table><thead><tr><th class="unit">Situação</th><th class="metric">Volume</th><th class="metric">Participação</th></tr></thead><tbody>${breakdownRows}</tbody></table></section><section><h2>Unidades com retornos pendentes</h2><table><thead><tr><th class="unit">Unidade</th><th class="metric">Região</th><th class="metric">Pendências</th><th class="metric">Participação</th></tr></thead><tbody>${unitRows}</tbody></table></section><section><h2>Pacientes em destaque</h2><table><thead><tr><th class="unit">Paciente</th><th class="metric">Unidade</th><th class="metric">Data</th><th class="metric">Status</th><th class="metric">Dias atraso</th></tr></thead><tbody>${patientRows}</tbody></table></section><section><h2>Evolução das pendências</h2>${buildChart(report.evolution.pendingPoints, report.evolution.mode)}</section><section><h2>Indicadores do período</h2><div class="kpi-grid">${kpiCards}</div></section><footer class="footer"><p>Relatório gerado em <strong>${escapeHtml(generatedAtLabel)}</strong> por <strong>${escapeHtml(report.generatedBy)}</strong></p><p>${escapeHtml(report.description)}</p></footer></main></body></html>`)
 }
 
 function createExportFrame(html: string) {

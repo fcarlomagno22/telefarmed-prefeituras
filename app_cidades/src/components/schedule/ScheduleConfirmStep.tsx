@@ -6,18 +6,20 @@ import { formatScheduleDayLabel } from '../../utils/scheduleDate'
 import { colors } from '../../theme/colors'
 import { AuthUser } from '../../types/auth'
 import { scheduleDoctors } from '../../data/mockScheduleCatalog'
+import { ScheduleStepTitle } from './ScheduleStepTitle'
 
 type ScheduleConfirmStepProps = {
   user: AuthUser
   draft: ScheduleAppointmentDraft
+  onBack?: () => void
 }
 
-export function ScheduleConfirmStep({ user, draft }: ScheduleConfirmStepProps) {
+export function ScheduleConfirmStep({ user, draft, onBack }: ScheduleConfirmStepProps) {
   const doctor = scheduleDoctors.find((d) => d.id === draft.selectedDoctorId)
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>Confirme seu agendamento</Text>
+      <ScheduleStepTitle title="Confirme seu agendamento" onBack={onBack} />
       <Text style={styles.description}>
         Revise os dados antes de confirmar. Você receberá a confirmação no app.
       </Text>
@@ -108,12 +110,6 @@ export function ScheduleConfirmStep({ user, draft }: ScheduleConfirmStepProps) {
 const styles = StyleSheet.create({
   wrap: {
     gap: 14,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
   },
   description: {
     color: colors.textMuted,

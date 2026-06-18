@@ -11,6 +11,7 @@ import {
   prefeituraRedeUnits,
 } from '../../../data/prefeituraRedeMock'
 import { prefeituraRedeUbtOperators } from '../../../data/prefeituraRedeBroadcastMock'
+import { ubtPublicUrl } from '../../../config/tenantHost'
 import type {
   PrefeituraRedeUnitCadastral,
   PrefeituraRedeUnitCadastralProfile,
@@ -40,6 +41,8 @@ export class PrefeituraRedeApiError extends Error {
 export type PrefeituraRedeUnitApi = {
   id: string
   name: string
+  slug?: string
+  publicUrl?: string
   address: string
   cnes: string
   region: string
@@ -104,6 +107,7 @@ export type PrefeituraRedeSettingsApi = {
 
 export type CreatePrefeituraRedeUnitInput = {
   name: string
+  slug: string
   cnes?: string
   unitType: 'fixa' | 'movel'
   status: PrefeituraRedeUnitStatus
@@ -188,7 +192,9 @@ function ensureUnit(unitId: string) {
 }
 
 function mapUnitToApi(unit: PrefeituraRedeUnit): PrefeituraRedeUnitApi {
-  return { ...unit }
+  const slug = unit.slug?.trim() ?? ''
+  const publicUrl = unit.publicUrl?.trim() || (slug ? ubtPublicUrl(slug) : '')
+  return { ...unit, slug: slug || undefined, publicUrl: publicUrl || undefined }
 }
 
 function buildDetail(unit: PrefeituraRedeUnit, profile?: PrefeituraRedeUnitCadastralProfile): PrefeituraRedeUnitDetailApi {
@@ -459,6 +465,7 @@ export async function createPrefeituraRedeUnit(
   const unit: PrefeituraRedeUnit = {
     id,
     name: body.name,
+    slug: body.slug.trim().toLowerCase(),
     address: body.address
       ? [body.address.street, body.address.number, body.address.neighborhood, body.address.city]
           .filter(Boolean)

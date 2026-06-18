@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { authRefreshCookieOptions } from '../../lib/sessionCookie.js'
+import { registerEntidadeBrandingPortalRoutes } from '../../lib/entidadeBranding/portal-routes.js'
 import {
   getUbtUserById,
   loginUbt,
@@ -21,6 +22,7 @@ import {
   verifyUbtPasswordRecoveryCode,
 } from './password-recovery.service.js'
 import { mapUbtAuthError, requireUbtAuth } from './middleware.js'
+import { resolveTenantHostHeader } from '../../lib/tenant/loginHost.js'
 import {
   auditAuthLoginFailure,
   auditAuthLoginSuccess,
@@ -37,6 +39,11 @@ import {
 const REFRESH_COOKIE = 'token_refresh_ubt'
 
 export async function registerUbtAuthRoutes(app: FastifyInstance): Promise<void> {
+  await registerEntidadeBrandingPortalRoutes(app, {
+    preHandler: requireUbtAuth,
+    getAuthUser: (request) => request.ubtUser,
+  })
+
   app.post('/login', {
     config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
     handler: async (request, reply) => {
@@ -46,9 +53,11 @@ export async function registerUbtAuthRoutes(app: FastifyInstance): Promise<void>
       }
 
       try {
+        const tenantHost = resolveTenantHostHeader(request.headers, parsed.data.tenantHost)
         const result = await loginUbt({
           cpf: parsed.data.cpf,
           password: parsed.data.password,
+          tenantHost,
           userAgent: request.headers['user-agent'],
           ipAddress: request.ip,
         })
@@ -89,8 +98,10 @@ export async function registerUbtAuthRoutes(app: FastifyInstance): Promise<void>
       }
 
       try {
+        const tenantHost = resolveTenantHostHeader(request.headers)
         const result = await refreshUbtSession({
           refreshToken,
+          tenantHost,
           userAgent: request.headers['user-agent'],
           ipAddress: request.ip,
         })

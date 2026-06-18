@@ -1,4 +1,5 @@
 import type { AgendaComparecimentoReportApi } from '../../../types/prefeituraRelatorios'
+import { EntidadeReportChartCaption } from './EntidadeReportChartCaption'
 
 type Props = {
   report: AgendaComparecimentoReportApi
@@ -98,9 +99,7 @@ function EvolutionChart({
           )
         })}
       </div>
-      <p className="mt-3 text-xs text-gray-500">
-        Evolução {mode === 'monthly' ? 'mensal' : 'diária'} de {title.toLowerCase()} na rede municipal.
-      </p>
+      <EntidadeReportChartCaption mode={mode} subject={`de ${title.toLowerCase()}`} />
     </div>
   )
 }

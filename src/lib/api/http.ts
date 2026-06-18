@@ -1,4 +1,5 @@
 import { handlePortalAuthFailure } from '../auth/sessionRevocation'
+import { extractTenantSlugFromHostname } from '../../config/tenantHost'
 import { tryRefreshAdminAccessToken } from './adminAuthRefresh'
 import { tryRefreshPrefeituraAccessToken } from './prefeituraAuthRefresh'
 import { tryRefreshProfissionalAccessToken } from './profissionalAuthRefresh'
@@ -34,6 +35,13 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
 
   if (accessToken) {
     headers.set('Authorization', `Bearer ${accessToken}`)
+  }
+
+  if (typeof window !== 'undefined') {
+    const tenantSlug = extractTenantSlugFromHostname(window.location.hostname)
+    if (tenantSlug && !headers.has('X-Tenant-Host')) {
+      headers.set('X-Tenant-Host', window.location.host)
+    }
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -128,6 +136,13 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
 
   if (!response.ok) {
     const message = payload?.error ?? 'Não foi possível completar a requisição.'
+    if (response.status === 403 && payload?.code === 'TENANT_HOST_MISMATCH') {
+      if (path.startsWith('/prefeitura/')) {
+        handlePortalAuthFailure('prefeitura', response.status, payload.code)
+      } else if (path.startsWith('/ubt/')) {
+        handlePortalAuthFailure('ubt', response.status, payload.code)
+      }
+    }
     throw new ApiError(message, response.status, payload?.code)
   }
 

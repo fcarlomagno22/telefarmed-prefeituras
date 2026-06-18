@@ -8,6 +8,7 @@ import {
   Headphones,
   LayoutDashboard,
   Network,
+  Receipt,
   ScrollText,
   Key,
   Users,
@@ -60,6 +61,15 @@ const redeEOperacao: SidebarNavItemProps[] = [
   },
 ]
 
+const financeiro: SidebarNavItemProps[] = [
+  {
+    to: prefeituraRoutes.faturamento,
+    label: 'Faturamento',
+    icon: Receipt,
+    end: true,
+  },
+]
+
 const contratoEIndicadores: SidebarNavItemProps[] = [
   {
     to: prefeituraRoutes.contrato,
@@ -108,6 +118,7 @@ const governanca: SidebarNavItemProps[] = [
 export const prefeituraSidebarSections: SidebarNavSection[] = [
   { id: 'visao-geral', label: 'Visão geral', items: visaoGeral },
   { id: 'rede-operacao', label: 'Rede e operação', items: redeEOperacao },
+  { id: 'financeiro', label: 'Financeiro', items: financeiro },
   {
     id: 'contrato-indicadores',
     label: 'Contrato e indicadores',

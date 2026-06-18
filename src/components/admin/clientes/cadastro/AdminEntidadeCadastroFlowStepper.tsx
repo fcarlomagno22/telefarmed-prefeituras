@@ -34,7 +34,7 @@ export function AdminEntidadeCadastroFlowStepper({ step }: AdminEntidadeCadastro
       const eased = 1 - (1 - progress) ** 3
       const next = from + (to - from) * eased
       fillRatioRef.current = next
-      setFillRatio(next)
+      setFillRatio((current) => (Math.abs(current - next) < 0.0001 ? current : next))
       if (progress < 1) rafId = requestAnimationFrame(tick)
     }
 

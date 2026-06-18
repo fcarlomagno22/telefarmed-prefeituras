@@ -28,6 +28,8 @@ export type CredentialPinAction =
   | 'save_entidade_edit'
   | 'save_entidade_contacts'
   | 'save_entidade_status'
+  | 'save_entidade_logo'
+  | 'save_entidade_cliente_edit'
   | 'save_contrato_create'
   | 'save_contrato_edit'
   | 'contrato_suspender'
@@ -48,6 +50,8 @@ type CredentialActionPinModalProps = {
   transferTargetUbtName?: string
   /** Textos do modal para ações sensíveis (editar, bloquear, excluir). */
   pinAudience?: 'admin' | 'portal'
+  gestorPortalLabel?: string
+  portalGestaoLabel?: string
   onClose: () => void
   onSuccess: () => void
   verifyPin?: (pin: string) => Promise<boolean>
@@ -66,8 +70,11 @@ function configFor(
   userName: string,
   transferTargetUbtName?: string,
   pinAudience: 'admin' | 'portal' = 'portal',
+  labels?: { gestorPortalLabel?: string; portalGestaoLabel?: string },
 ) {
   const pinPhrase = pinAudience === 'admin' ? adminPinPhrase() : portalPinPhrase()
+  const gestorPortalLabel = labels?.gestorPortalLabel ?? 'Gestor'
+  const portalGestaoLabel = labels?.portalGestaoLabel ?? 'portal'
   if (action === 'save_interno_create') {
     return {
       title: 'Confirmar novo acesso interno',
@@ -92,9 +99,9 @@ function configFor(
 
   if (action === 'save_prefeitura_create') {
     return {
-      title: 'Confirmar novo gestor municipal',
+      title: `Confirmar novo ${gestorPortalLabel.toLowerCase()}`,
       titleId: 'credential-save-prefeitura-create-pin-title',
-      description: `Para cadastrar ${userName} no portal municipal, informe sua senha de autorização de 6 dígitos.`,
+      description: `Para cadastrar ${userName} no ${portalGestaoLabel}, informe sua senha de autorização de 6 dígitos.`,
       submitLabel: 'Confirmar cadastro',
       pinCompleteHint: 'Senha completa. Toque em confirmar cadastro.',
       icon: UserPlus,
@@ -150,6 +157,28 @@ function configFor(
       title: 'Confirmar alteração de status',
       titleId: 'cliente-save-entidade-status-pin-title',
       description: `Para alterar o status de ${userName}, informe sua senha de autorização de 6 dígitos.`,
+      submitLabel: 'Confirmar e salvar',
+      pinCompleteHint: 'Senha completa. Toque em confirmar e salvar.',
+      icon: Pencil,
+    }
+  }
+
+  if (action === 'save_entidade_logo') {
+    return {
+      title: 'Confirmar alteração de logo',
+      titleId: 'cliente-save-entidade-logo-pin-title',
+      description: `Para atualizar a logo de ${userName}, informe sua senha de autorização de 6 dígitos.`,
+      submitLabel: 'Confirmar e salvar',
+      pinCompleteHint: 'Senha completa. Toque em confirmar e salvar.',
+      icon: Pencil,
+    }
+  }
+
+  if (action === 'save_entidade_cliente_edit') {
+    return {
+      title: 'Confirmar alterações do cliente',
+      titleId: 'cliente-save-entidade-cliente-edit-pin-title',
+      description: `Para salvar responsáveis e marca de ${userName}, informe sua senha de autorização de 6 dígitos.`,
       submitLabel: 'Confirmar e salvar',
       pinCompleteHint: 'Senha completa. Toque em confirmar e salvar.',
       icon: Pencil,
@@ -359,13 +388,18 @@ export function CredentialActionPinModal({
   userName,
   transferTargetUbtName,
   pinAudience = 'portal',
+  gestorPortalLabel,
+  portalGestaoLabel,
   onClose,
   onSuccess,
   verifyPin,
 }: CredentialActionPinModalProps) {
   if (!action) return null
 
-  const config = configFor(action, userName, transferTargetUbtName, pinAudience)
+  const config = configFor(action, userName, transferTargetUbtName, pinAudience, {
+    gestorPortalLabel,
+    portalGestaoLabel,
+  })
 
   return (
     <PinUnlockModal

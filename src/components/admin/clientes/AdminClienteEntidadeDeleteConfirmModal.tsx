@@ -3,14 +3,14 @@ import { createPortal } from 'react-dom'
 
 type AdminClienteEntidadeDeleteConfirmModalProps = {
   open: boolean
-  prefeitura: string
+  entidadeNome: string
   onCancel: () => void
   onConfirm: () => void
 }
 
 export function AdminClienteEntidadeDeleteConfirmModal({
   open,
-  prefeitura,
+  entidadeNome,
   onCancel,
   onConfirm,
 }: AdminClienteEntidadeDeleteConfirmModalProps) {
@@ -40,7 +40,7 @@ export function AdminClienteEntidadeDeleteConfirmModal({
           id="admin-entidade-delete-description"
           className="mt-3 text-sm leading-relaxed text-gray-600"
         >
-          A entidade <span className="font-semibold text-gray-900">{prefeitura}</span>, seus
+          A entidade <span className="font-semibold text-gray-900">{entidadeNome}</span>, seus
           contratos, unidades UBT e credenciais de portal vinculadas serão removidos
           permanentemente. Esta ação exige login como administrador autorizado e confirmação com PIN.
         </p>

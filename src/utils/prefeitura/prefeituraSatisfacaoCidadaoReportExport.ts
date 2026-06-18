@@ -1,4 +1,12 @@
 import { brand } from '../../config/brand'
+import {
+  applyEntidadeCopyToExportText,
+  buildEntidadeExportBaseStyles,
+  escapeExportHtml,
+  resolveEntidadeExportBranding,
+  resolveExportAssetUrl,
+  type EntidadeExportBranding,
+} from '../entidadeExportHtml'
 import type { SatisfacaoCidadaoReportApi } from '../../types/prefeituraRelatorios'
 import { downloadWindowAsPdf, pdfFilenameFromLabel } from '../htmlDocumentToPdf'
 
@@ -19,12 +27,12 @@ function signedPercent(value: number) { return value === 0 ? '0%' : `${value > 0
 function signedPp(value: number) { return value === 0 ? '0 p.p.' : `${value > 0 ? '+' : ''}${formatPercent(value)} p.p.` }
 function signedMinutes(value: number) { return value === 0 ? '0 min' : `${value > 0 ? '+' : ''}${formatNumber(Math.abs(value))} min` }
 const HIGHLIGHT_TONE_STYLE = { red: 'border:1px solid #fecdd3;background:#fff1f2;color:#9f1239;', green: 'border:1px solid #bbf7d0;background:#ecfdf5;color:#065f46;', amber: 'border:1px solid #fde68a;background:#fffbeb;color:#92400e;', blue: 'border:1px solid #bae6fd;background:#f0f9ff;color:#0c4a6e;' } as const
-function buildReportStyles() {
+function buildReportStyles(branding: EntidadeExportBranding = resolveEntidadeExportBranding()) {
   return `
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #111827; background: #fff; line-height: 1.45; }
     main { max-width: 1100px; margin: 0 auto; padding: 28px 32px 36px; border: 1px solid #e5e7eb; border-radius: 16px; background: #fff; }
-    .brand-bar { height: 4px; background: #ff6b00; border-radius: 999px; margin-bottom: 20px; }
+    .brand-bar { height: 4px; background: ${branding.corPrimaria}; border-radius: 999px; margin-bottom: 20px; }
     .header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
     .header img { height: 36px; width: auto; }
     .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #9ca3af; }
@@ -32,7 +40,7 @@ function buildReportStyles() {
     .subtitle { margin-top: 4px; font-size: 13px; color: #6b7280; max-width: 42rem; }
     .meta { margin-top: 12px; font-size: 12px; color: #6b7280; } .meta p + p { margin-top: 4px; }
     section { margin-top: 28px; }
-    h2 { font-size: 14px; font-weight: 700; color: #111827; border-bottom: 2px solid #ff6b00; padding-bottom: 8px; margin-bottom: 14px; }
+    h2 { font-size: 14px; font-weight: 700; color: #111827; border-bottom: 2px solid ${branding.corPrimaria}; padding-bottom: 8px; margin-bottom: 14px; }
     .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
     .card { border: 1px solid #e5e7eb; border-radius: 12px; background: #f8fafc; padding: 16px; text-align: center; }
     .card-label { font-size: 12px; color: #6b7280; font-weight: 500; }
@@ -83,9 +91,10 @@ function buildEvolutionChart(points: Array<{ label: string; value: number }>, mo
 function buildKpiCards(kpis: Array<{ label: string; value: string; footer: string }>) {
   return `<div class="kpi-grid">${kpis.map((kpi) => `<article class="card"><p class="card-label">${escapeHtml(kpi.label)}</p><p class="card-value-sm">${escapeHtml(kpi.value)}</p><p class="card-footer">${escapeHtml(kpi.footer)}</p></article>`).join('')}</div>`
 }
-function buildReportShell(report: { title: string; description: string; entidadeRazaoSocial: string; periodLabel: string; generatedBy: string }, generatedAtLabel: string, body: string) {
-  const logoUrl = resolveAssetUrl(brand.logoUrl)
-  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8" /><title>${escapeHtml(report.title)}</title><style>${buildReportStyles()}</style></head><body><main><div class="brand-bar"></div><header class="header"><div><p class="eyebrow">Relatório operacional</p><h1>${escapeHtml(report.title)}</h1><p class="subtitle">${escapeHtml(report.description)}</p><div class="meta"><p><strong>${escapeHtml(report.entidadeRazaoSocial)}</strong> · ${escapeHtml(brand.appName)}</p><p>Período: <strong>${escapeHtml(report.periodLabel)}</strong></p></div></div><img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brand.appName)}" /></header>${body}<footer class="footer"><p>Relatório gerado em <strong>${escapeHtml(generatedAtLabel)}</strong> por <strong>${escapeHtml(report.generatedBy)}</strong></p><p>${escapeHtml(report.description)}</p></footer></main></body></html>`
+function buildReportShell(report: { title: string; description: string; entidadeRazaoSocial: string; periodLabel: string; generatedBy: string }, generatedAtLabel: string, body: string, branding: EntidadeExportBranding = resolveEntidadeExportBranding()) {
+  const logoUrl = resolveExportAssetUrl(branding.logoUrl)
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8" /><title>${escapeHtml(report.title)}</title><style>${buildReportStyles(branding)}</style></head><body><main><div class="brand-bar"></div><header class="header"><div><p class="eyebrow">Relatório operacional</p><h1>${escapeHtml(report.title)}</h1><p class="subtitle">${escapeHtml(report.description)}</p><div class="meta"><p><strong>${escapeHtml(report.entidadeRazaoSocial)}</strong> · ${escapeExportHtml(branding.brandName)}</p><p>Período: <strong>${escapeHtml(report.periodLabel)}</strong></p></div></div><img src="${escapeHtml(logoUrl)}" alt="${escapeExportHtml(branding.brandName)}" /></header>${body}<footer class="footer"><p>Relatório gerado em <strong>${escapeHtml(generatedAtLabel)}</strong> por <strong>${escapeHtml(report.generatedBy)}</strong></p><p>${escapeHtml(report.description)}</p></footer></main></body></html>`
+  return applyEntidadeCopyToExportText(html)
 }
 export function buildSatisfacaoCidadaoReportHtml({ report, generatedAtLabel }: ExportContext) {
   const summary = `<section><div class="summary-grid">

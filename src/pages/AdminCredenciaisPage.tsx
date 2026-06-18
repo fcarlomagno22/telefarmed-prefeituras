@@ -105,7 +105,7 @@ export function AdminCredenciaisPage() {
     activeTab === 'admin'
       ? 'Novo acesso interno'
       : activeTab === 'prefeitura'
-        ? 'Novo gestor prefeitura'
+        ? 'Novo gestor da entidade'
         : 'Novo operador UBT'
 
   if (isLoading) {
@@ -128,7 +128,7 @@ export function AdminCredenciaisPage() {
           <AdminPageHeader
             sectionLabel="Governança"
             title="Credenciais de acesso"
-            description="Gerencie quem acessa o painel administrativo Telefarmed, os portais das prefeituras e as unidades UBT. Crie, edite ou revogue credenciais por portal."
+            description="Gerencie quem acessa o painel administrativo Telefarmed, os portais de gestão das entidades e as unidades UBT. Crie, edite ou revogue credenciais por portal."
             actions={
               pageAccess.canInsert ? (
                 <button
@@ -201,7 +201,6 @@ export function AdminCredenciaisPage() {
                       userDrawer={operatorDrawer}
                       fixedScope="UBT"
                       panelTitle="Operadores de UBT"
-                      panelDescription="Usuários das unidades com acesso ao terminal UBT."
                     />
                   ) : null}
                 </div>

@@ -1,11 +1,6 @@
-export type AuthPortalScope = 'admin' | 'prefeitura' | 'ubt' | 'profissional'
+import { portalPath } from '../../config/portalHost'
 
-const LOGIN_PATHS: Record<AuthPortalScope, string> = {
-  admin: '/admin/login',
-  prefeitura: '/prefeitura/login',
-  ubt: '/ubt/login',
-  profissional: '/profissional/login',
-}
+export type AuthPortalScope = 'admin' | 'prefeitura' | 'ubt' | 'profissional'
 
 const UNAUTHORIZED_CODES = new Set([
   'INVALID_REFRESH',
@@ -44,12 +39,12 @@ export function isAuthSessionRevoked(scope: AuthPortalScope): boolean {
 }
 
 export function getPortalLoginPath(scope: AuthPortalScope): string {
-  return LOGIN_PATHS[scope]
+  return portalPath(scope, '/login')
 }
 
 export function isUnauthorizedAuthResponse(status: number, code?: string): boolean {
   if (status === 401) return true
-  if (status === 403 && code === 'USER_INACTIVE') return true
+  if (status === 403 && (code === 'USER_INACTIVE' || code === 'TENANT_HOST_MISMATCH')) return true
   if (code && UNAUTHORIZED_CODES.has(code)) return true
   return false
 }

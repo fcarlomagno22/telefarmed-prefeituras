@@ -23,6 +23,7 @@ import {
 import { colors } from '../../theme/colors'
 import { ScheduleSelectableCard } from './ScheduleSelectableCard'
 import { ScheduleDoctorListSkeleton } from './ScheduleStepSkeletons'
+import { ScheduleStepTitle } from './ScheduleStepTitle'
 
 type ScheduleDoctorStepProps = {
   specialtyId: string
@@ -31,6 +32,7 @@ type ScheduleDoctorStepProps = {
   selectedDate?: Date
   selectedDoctorId: string
   onSelectDoctor: (id: string, name: string) => void
+  onBack?: () => void
 }
 
 export function ScheduleDoctorStep({
@@ -40,6 +42,7 @@ export function ScheduleDoctorStep({
   selectedDate,
   selectedDoctorId,
   onSelectDoctor,
+  onBack,
 }: ScheduleDoctorStepProps) {
   const [doctorSearch, setDoctorSearch] = useState('')
   const [doctors, setDoctors] = useState<ScheduleDoctor[]>([])
@@ -131,7 +134,7 @@ export function ScheduleDoctorStep({
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>{title}</Text>
+      <ScheduleStepTitle title={title} onBack={onBack} />
       <Text style={styles.description}>{description}</Text>
 
       {mode === 'by_doctor' ? (
@@ -206,12 +209,6 @@ export function ScheduleDoctorStep({
 const styles = StyleSheet.create({
   wrap: {
     gap: 12,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
   },
   description: {
     color: colors.textMuted,

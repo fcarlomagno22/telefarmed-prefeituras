@@ -2,6 +2,8 @@ import type { NetworkUser } from '../data/networkUsersMock'
 
 export type AdminContractStatus = 'ativo' | 'encerrado'
 
+import type { TipoEntidade } from './entidadeBranding'
+
 export type AdminPatientContractingEntity = {
   id: string
   razaoSocial: string
@@ -9,6 +11,7 @@ export type AdminPatientContractingEntity = {
   uf: string
   contractStatus: AdminContractStatus
   aceitaPacientesOutrosMunicipios: boolean
+  tipoEntidade?: TipoEntidade
 }
 
 export type AdminMunicipalPatient = NetworkUser & {

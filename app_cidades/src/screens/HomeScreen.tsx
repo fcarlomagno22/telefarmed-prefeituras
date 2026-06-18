@@ -121,6 +121,11 @@ export function HomeScreen() {
 
     if (actionId === 'sleep-time') {
       navigateTo('sleep-time')
+      return
+    }
+
+    if (actionId === 'mental-health') {
+      navigateTo('mental-health')
     }
   }
 

@@ -12,6 +12,8 @@ export type ClientePinAction = Extract<
   | 'save_entidade_edit'
   | 'save_entidade_contacts'
   | 'save_entidade_status'
+  | 'save_entidade_logo'
+  | 'save_entidade_cliente_edit'
   | 'save_contrato_create'
   | 'save_contrato_edit'
   | 'contrato_suspender'

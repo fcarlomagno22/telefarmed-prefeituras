@@ -16,6 +16,7 @@ import {
 import { PosConsultaCheckinAlreadyAnswered } from '../postConsultation/PosConsultaCheckinAlreadyAnswered'
 import { PosConsultaCheckinWizard } from '../postConsultation/PosConsultaCheckinWizard'
 import { getModalFooterPadding } from '../../utils/modalSafeArea'
+import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
 
 const SHEET_OFFSET = 720
 
@@ -150,7 +151,7 @@ export function PosConsultaCheckinDrawer({
         </Animated.View>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={keyboardAvoidingBehavior}
           style={styles.keyboardWrap}
         >
           <Animated.View

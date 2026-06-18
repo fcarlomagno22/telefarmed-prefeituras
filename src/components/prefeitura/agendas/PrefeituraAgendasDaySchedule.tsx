@@ -35,8 +35,8 @@ const statusConfig: Record<
   aguardando: {
     label: 'Aguardando',
     text: 'text-orange-700',
-    accent: 'bg-gradient-to-r from-amber-400 via-orange-500 to-[#ff6b00]',
-    lineGlow: 'shadow-[0_2px_10px_rgba(255,107,0,0.55)]',
+    accent: 'bg-[var(--brand-primary-gradient)]',
+    lineGlow: 'shadow-[var(--brand-primary-shadow-sm)]',
   },
   agendado: {
     label: 'Agendado',
@@ -57,7 +57,7 @@ function rowBackground(status: AppointmentStatus) {
     case 'em_atendimento':
       return 'bg-sky-50/70'
     case 'aguardando':
-      return 'bg-orange-50/60'
+      return 'bg-[var(--brand-primary-muted)]/60'
     case 'faltou':
       return 'bg-red-50/50'
     default:
@@ -230,7 +230,7 @@ export function PrefeituraAgendasDaySchedule({
               className={[
                 'rounded-lg border px-3 py-2 text-xs font-medium transition',
                 isToday
-                  ? 'cursor-default border-[var(--brand-primary)]/30 bg-orange-50 text-[var(--brand-primary)]'
+                  ? 'cursor-default border-[var(--brand-primary)]/30 bg-[var(--brand-primary-muted)] text-[var(--brand-primary)]'
                   : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
               ].join(' ')}
             >

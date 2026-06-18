@@ -6,6 +6,7 @@ import type {
   RedeUnitStatus,
   UnidadeUbtRow,
 } from './types.js'
+import { ubtPublicUrl } from '../../lib/tenant/publicUrls.js'
 
 const REGION_SLICE_COLORS = [
   '#0ea5e9',
@@ -96,10 +97,13 @@ export function mapUnitRowToApi(
     row.terminais_total,
   )
   const { formatted } = formatUnitAddress(row.endereco)
+  const slug = row.slug?.trim() ?? ''
 
   return {
     id: row.id,
     name: row.nome,
+    slug,
+    publicUrl: slug ? ubtPublicUrl(slug) : '',
     address: formatted,
     cnes: row.cnes || '—',
     region: row.ra_rotulo,

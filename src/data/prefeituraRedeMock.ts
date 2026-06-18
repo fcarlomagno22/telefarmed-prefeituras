@@ -9,6 +9,8 @@ export type PrefeituraRedeUnitStatus = 'ativa' | 'manutencao' | 'inativa'
 export type PrefeituraRedeUnit = {
   id: string
   name: string
+  slug?: string
+  publicUrl?: string
   address: string
   cnes: string
   region: string

@@ -2,11 +2,13 @@ import { Loader2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { PatientRegistration } from '../../types/attendance'
+import type { TipoEntidade } from '../../types/entidadeBranding'
 import {
   addressMatchesEntityTerritory,
   buildTerritoryMismatchMessage,
   PATIENT_TERRITORY_MISMATCH_SUBJECT,
 } from '../../utils/municipalityTerritory'
+import { buildPatientAddressStepDescription } from '../../utils/entidadeTerritoryPolicy'
 import { maskCep } from '../../utils/masks'
 import { fetchAddressByCep } from '../../utils/viacep'
 import { CustomSelect } from '../ui/CustomSelect'
@@ -43,6 +45,7 @@ type PatientAddressStepProps = {
   contractAllowsOtherMunicipalities?: boolean
   /** Texto de orientação quando há restrição territorial. */
   territoryScope?: 'patient_registration' | 'pre_registration'
+  entidadeTipo?: TipoEntidade
   policyLoadWarning?: string | null
   isPolicyLoading?: boolean
   continueLabel?: string
@@ -94,6 +97,7 @@ export function PatientAddressStep({
   requiredTerritory,
   contractAllowsOtherMunicipalities = false,
   territoryScope = 'pre_registration',
+  entidadeTipo = 'prefeitura',
   policyLoadWarning = null,
   isPolicyLoading = false,
   continueLabel = 'Continuar',
@@ -112,13 +116,14 @@ export function PatientAddressStep({
   const continueReady = isAddressStepReady(data) && !territoryMismatch
   const highlight = (field: AddressFieldKey) => showHints && missingFields.includes(field)
 
-  const description = requiredTerritory
-    ? territoryScope === 'patient_registration'
-      ? `Informe o CEP do endereço do paciente em ${requiredTerritory.municipality}/${requiredTerritory.uf}. O contrato vigente aceita apenas moradores deste município.`
-      : `Informe o CEP do endereço do paciente em ${requiredTerritory.municipality}/${requiredTerritory.uf}. Apenas moradores deste município podem ser pré-cadastrados.`
-    : contractAllowsOtherMunicipalities
-      ? 'Informe onde o paciente reside. O contrato vigente permite cadastrar pacientes de outras cidades.'
-      : 'Informe onde o paciente reside para concluir o cadastro.'
+  const description = buildPatientAddressStepDescription({
+    requiredTerritory,
+    contractAllowsOtherMunicipalities,
+    territoryScope,
+    entityMunicipality: requiredTerritory?.municipality,
+    entityUf: requiredTerritory?.uf,
+    tipoEntidade: entidadeTipo,
+  })
 
   function patch(field: keyof PatientRegistration, value: string) {
     const next = { ...data, [field]: value }

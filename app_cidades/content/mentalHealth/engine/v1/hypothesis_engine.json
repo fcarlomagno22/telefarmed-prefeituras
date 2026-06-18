@@ -1,0 +1,4145 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "evaluation_order": [
+    "red_flag_override",
+    "data_completeness",
+    "track_scoring",
+    "tier_assignment",
+    "confidence_assignment",
+    "status_assignment",
+    "evidence_summary",
+    "primary_track_selection",
+    "comorbidity_limits"
+  ],
+  "global_settings": {
+    "score_floor_default": 0,
+    "score_cap_default": 100,
+    "minimum_anamnesis_completion_ratio": 0.6,
+    "minimum_instruments_valid": 3,
+    "minimum_symptoms_scored": 10,
+    "minimum_response_consistency_index": 0.35,
+    "recalculation_triggers": [
+      "anamnesis_completed",
+      "daily_check_in",
+      "anamnesis_updated"
+    ],
+    "hypothesis_ttl_days": 30,
+    "decay_enabled": true,
+    "decay_rate_per_week_without_reinforcement": 0.05,
+    "decay_applies_after_days_without_reinforcement": 7,
+    "decay_floor_score": 0,
+    "confidence_default": "low",
+    "confidence_resolution": "highest_priority_first_match",
+    "status_default_by_tier": {
+      "insufficient_data": "insufficient_data",
+      "low_signal": "monitoring",
+      "moderate_signal": "active",
+      "high_signal": "active"
+    },
+    "status_resolution": "highest_priority_override_then_default",
+    "evidence_deduplication_key": "add_evidence",
+    "deterministic_tie_breaker": "rule_id_asc"
+  },
+  "tier_bands": {
+    "default": [
+      {
+        "tier": "insufficient_data",
+        "min_score": 0,
+        "max_score": 0,
+        "requires": {
+          "data_completeness_met": false
+        }
+      },
+      {
+        "tier": "low_signal",
+        "min_score": 1,
+        "max_score": 24,
+        "requires": {
+          "data_completeness_met": true
+        }
+      },
+      {
+        "tier": "moderate_signal",
+        "min_score": 25,
+        "max_score": 54,
+        "requires": {
+          "data_completeness_met": true
+        }
+      },
+      {
+        "tier": "high_signal",
+        "min_score": 55,
+        "max_score": 100,
+        "requires": {
+          "data_completeness_met": true
+        }
+      }
+    ],
+    "by_track": {
+      "depressive_disorders": {
+        "bands": [
+          {
+            "tier": "insufficient_data",
+            "min_score": 0,
+            "max_score": 0,
+            "requires": {
+              "data_completeness_met": false
+            }
+          },
+          {
+            "tier": "low_signal",
+            "min_score": 1,
+            "max_score": 19,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "moderate_signal",
+            "min_score": 20,
+            "max_score": 64,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "high_signal",
+            "min_score": 65,
+            "max_score": 100,
+            "requires": {
+              "data_completeness_met": true
+            }
+          }
+        ],
+        "minimum_evidence_count": 2,
+        "required_evidence_any": [
+          "persistent_low_mood_with_impairment",
+          "mood_instrument_elevated",
+          "anhedonia_with_fatigue"
+        ],
+        "required_evidence_all": [],
+        "notes_internal": "Exige pelo menos duas evidências distintas; score 62 permanece em sinal moderado no v1."
+      },
+      "anxiety_disorders": {
+        "bands": [
+          {
+            "tier": "insufficient_data",
+            "min_score": 0,
+            "max_score": 0,
+            "requires": {
+              "data_completeness_met": false
+            }
+          },
+          {
+            "tier": "low_signal",
+            "min_score": 1,
+            "max_score": 19,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "moderate_signal",
+            "min_score": 20,
+            "max_score": 54,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "high_signal",
+            "min_score": 55,
+            "max_score": 100,
+            "requires": {
+              "data_completeness_met": true
+            }
+          }
+        ],
+        "minimum_evidence_count": 2,
+        "required_evidence_any": [
+          "persistent_worry_with_impairment",
+          "anxiety_instrument_elevated",
+          "panic_attacks_with_impairment"
+        ],
+        "required_evidence_all": [],
+        "notes_internal": "Combina preocupação, pânico, evitação e impacto funcional."
+      },
+      "obsessive_compulsive_disorder": {
+        "bands": [
+          {
+            "tier": "insufficient_data",
+            "min_score": 0,
+            "max_score": 0,
+            "requires": {
+              "data_completeness_met": false
+            }
+          },
+          {
+            "tier": "low_signal",
+            "min_score": 1,
+            "max_score": 24,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "moderate_signal",
+            "min_score": 25,
+            "max_score": 54,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "high_signal",
+            "min_score": 55,
+            "max_score": 100,
+            "requires": {
+              "data_completeness_met": true
+            }
+          }
+        ],
+        "minimum_evidence_count": 2,
+        "required_evidence_any": [
+          "intrusions_with_compulsive_rituals",
+          "ocd_instrument_elevated",
+          "persistent_intrusions_with_impairment"
+        ],
+        "required_evidence_all": [],
+        "notes_internal": "Evita elevar o tier apenas por pensamentos intrusivos sem interferência ou repetição."
+      },
+      "trauma_related_disorders": {
+        "bands": [
+          {
+            "tier": "insufficient_data",
+            "min_score": 0,
+            "max_score": 0,
+            "requires": {
+              "data_completeness_met": false
+            }
+          },
+          {
+            "tier": "low_signal",
+            "min_score": 1,
+            "max_score": 19,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "moderate_signal",
+            "min_score": 20,
+            "max_score": 49,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "high_signal",
+            "min_score": 50,
+            "max_score": 100,
+            "requires": {
+              "data_completeness_met": true
+            }
+          }
+        ],
+        "minimum_evidence_count": 2,
+        "required_evidence_any": [
+          "trauma_exposure_reexperiencing_impairment",
+          "trauma_instrument_elevated",
+          "trauma_hyperarousal_cluster"
+        ],
+        "required_evidence_all": [],
+        "notes_internal": "Limiar alto reduzido por sensibilidade e possibilidade de risco atual."
+      },
+      "bipolar_disorders": {
+        "bands": [
+          {
+            "tier": "insufficient_data",
+            "min_score": 0,
+            "max_score": 0,
+            "requires": {
+              "data_completeness_met": false
+            }
+          },
+          {
+            "tier": "low_signal",
+            "min_score": 1,
+            "max_score": 14,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "moderate_signal",
+            "min_score": 15,
+            "max_score": 44,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "high_signal",
+            "min_score": 45,
+            "max_score": 100,
+            "requires": {
+              "data_completeness_met": true
+            }
+          }
+        ],
+        "minimum_evidence_count": 2,
+        "required_evidence_any": [
+          "activation_sleep_baseline_cluster",
+          "bipolar_instrument_elevated",
+          "episodic_activation_pattern"
+        ],
+        "required_evidence_all": [],
+        "notes_internal": "Mudança episódica do padrão e menor necessidade de sono recebem maior relevância."
+      },
+      "psychotic_disorders": {
+        "bands": [
+          {
+            "tier": "insufficient_data",
+            "min_score": 0,
+            "max_score": 0,
+            "requires": {
+              "data_completeness_met": false
+            }
+          },
+          {
+            "tier": "low_signal",
+            "min_score": 1,
+            "max_score": 14,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "moderate_signal",
+            "min_score": 15,
+            "max_score": 44,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "high_signal",
+            "min_score": 45,
+            "max_score": 100,
+            "requires": {
+              "data_completeness_met": true
+            }
+          }
+        ],
+        "minimum_evidence_count": 2,
+        "required_evidence_any": [
+          "psychotic_signals_with_impairment",
+          "psychosis_instrument_elevated",
+          "hallucinations_with_impaired_reality_testing"
+        ],
+        "required_evidence_all": [],
+        "notes_internal": "Limiar alto reduzido; red flags prevalecem sobre a faixa numérica."
+      },
+      "eating_disorders": {
+        "bands": [
+          {
+            "tier": "insufficient_data",
+            "min_score": 0,
+            "max_score": 0,
+            "requires": {
+              "data_completeness_met": false
+            }
+          },
+          {
+            "tier": "low_signal",
+            "min_score": 1,
+            "max_score": 19,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "moderate_signal",
+            "min_score": 20,
+            "max_score": 49,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "high_signal",
+            "min_score": 50,
+            "max_score": 100,
+            "requires": {
+              "data_completeness_met": true
+            }
+          }
+        ],
+        "minimum_evidence_count": 2,
+        "required_evidence_any": [
+          "restriction_with_body_image_disturbance",
+          "binge_eating_loss_of_control",
+          "eating_instrument_elevated"
+        ],
+        "required_evidence_all": [],
+        "notes_internal": "Comportamentos compensatórios ou comprometimento do autocuidado exigem revisão independente."
+      },
+      "personality_disorders": {
+        "bands": [
+          {
+            "tier": "insufficient_data",
+            "min_score": 0,
+            "max_score": 0,
+            "requires": {
+              "data_completeness_met": false
+            }
+          },
+          {
+            "tier": "low_signal",
+            "min_score": 1,
+            "max_score": 24,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "moderate_signal",
+            "min_score": 25,
+            "max_score": 59,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "high_signal",
+            "min_score": 60,
+            "max_score": 100,
+            "requires": {
+              "data_completeness_met": true
+            }
+          }
+        ],
+        "minimum_evidence_count": 3,
+        "required_evidence_any": [
+          "persistent_interpersonal_impulsivity",
+          "irritability_relationship_impairment",
+          "persistent_social_avoidance_pattern"
+        ],
+        "required_evidence_all": [],
+        "notes_internal": "Exige múltiplas evidências e padrão persistente em mais de um contexto."
+      },
+      "neurodevelopmental_disorders": {
+        "bands": [
+          {
+            "tier": "insufficient_data",
+            "min_score": 0,
+            "max_score": 0,
+            "requires": {
+              "data_completeness_met": false
+            }
+          },
+          {
+            "tier": "low_signal",
+            "min_score": 1,
+            "max_score": 24,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "moderate_signal",
+            "min_score": 25,
+            "max_score": 59,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "high_signal",
+            "min_score": 60,
+            "max_score": 100,
+            "requires": {
+              "data_completeness_met": true
+            }
+          }
+        ],
+        "minimum_evidence_count": 3,
+        "required_evidence_any": [
+          "attention_execution_impairment",
+          "attention_instrument_elevated",
+          "persistent_social_communication_impact"
+        ],
+        "required_evidence_all": [],
+        "notes_internal": "Exige ao menos três evidências e histórico compatível com padrão de desenvolvimento."
+      },
+      "dissociative_disorders": {
+        "bands": [
+          {
+            "tier": "insufficient_data",
+            "min_score": 0,
+            "max_score": 0,
+            "requires": {
+              "data_completeness_met": false
+            }
+          },
+          {
+            "tier": "low_signal",
+            "min_score": 1,
+            "max_score": 19,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "moderate_signal",
+            "min_score": 20,
+            "max_score": 49,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "high_signal",
+            "min_score": 50,
+            "max_score": 100,
+            "requires": {
+              "data_completeness_met": true
+            }
+          }
+        ],
+        "minimum_evidence_count": 2,
+        "required_evidence_any": [
+          "dissociation_with_impairment",
+          "recurrent_depersonalization",
+          "dissociation_instrument_elevated"
+        ],
+        "required_evidence_all": [],
+        "notes_internal": "Requer recorrência ou prejuízo e avaliação diferencial com sono, substâncias e alterações físicas."
+      },
+      "substance_use_disorders": {
+        "bands": [
+          {
+            "tier": "insufficient_data",
+            "min_score": 0,
+            "max_score": 0,
+            "requires": {
+              "data_completeness_met": false
+            }
+          },
+          {
+            "tier": "low_signal",
+            "min_score": 1,
+            "max_score": 19,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "moderate_signal",
+            "min_score": 20,
+            "max_score": 49,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "high_signal",
+            "min_score": 50,
+            "max_score": 100,
+            "requires": {
+              "data_completeness_met": true
+            }
+          }
+        ],
+        "minimum_evidence_count": 2,
+        "required_evidence_any": [
+          "substance_instrument_elevated",
+          "substance_loss_control_with_role_impact",
+          "continued_use_despite_harm_present"
+        ],
+        "required_evidence_all": [],
+        "notes_internal": "Risco agudo por uso ou abstinência é tratado fora do tier pelo fluxo de segurança."
+      },
+      "disruptive_impulse_control_disorders": {
+        "bands": [
+          {
+            "tier": "insufficient_data",
+            "min_score": 0,
+            "max_score": 0,
+            "requires": {
+              "data_completeness_met": false
+            }
+          },
+          {
+            "tier": "low_signal",
+            "min_score": 1,
+            "max_score": 24,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "moderate_signal",
+            "min_score": 25,
+            "max_score": 54,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "high_signal",
+            "min_score": 55,
+            "max_score": 100,
+            "requires": {
+              "data_completeness_met": true
+            }
+          }
+        ],
+        "minimum_evidence_count": 2,
+        "required_evidence_any": [
+          "impulse_control_difficulty_with_impairment",
+          "impulse_instrument_elevated",
+          "impulsivity_with_hazardous_behavior"
+        ],
+        "required_evidence_all": [],
+        "notes_internal": "Evita inferência por irritabilidade isolada; requer impacto ou perda de controle."
+      },
+      "somatic_symptom_disorders": {
+        "bands": [
+          {
+            "tier": "insufficient_data",
+            "min_score": 0,
+            "max_score": 0,
+            "requires": {
+              "data_completeness_met": false
+            }
+          },
+          {
+            "tier": "low_signal",
+            "min_score": 1,
+            "max_score": 24,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "moderate_signal",
+            "min_score": 25,
+            "max_score": 54,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "high_signal",
+            "min_score": 55,
+            "max_score": 100,
+            "requires": {
+              "data_completeness_met": true
+            }
+          }
+        ],
+        "minimum_evidence_count": 2,
+        "required_evidence_any": [
+          "persistent_physical_symptoms_health_worry",
+          "somatic_instrument_elevated",
+          "pain_preoccupation_with_impairment"
+        ],
+        "required_evidence_all": [],
+        "notes_internal": "Não presume origem emocional e exige preocupação persistente ou prejuízo."
+      },
+      "sleep_disorders": {
+        "bands": [
+          {
+            "tier": "insufficient_data",
+            "min_score": 0,
+            "max_score": 0,
+            "requires": {
+              "data_completeness_met": false
+            }
+          },
+          {
+            "tier": "low_signal",
+            "min_score": 1,
+            "max_score": 24,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "moderate_signal",
+            "min_score": 25,
+            "max_score": 54,
+            "requires": {
+              "data_completeness_met": true
+            }
+          },
+          {
+            "tier": "high_signal",
+            "min_score": 55,
+            "max_score": 100,
+            "requires": {
+              "data_completeness_met": true
+            }
+          }
+        ],
+        "minimum_evidence_count": 2,
+        "required_evidence_any": [
+          "sleep_instrument_elevated",
+          "insomnia_with_daytime_impact",
+          "hypersomnia_with_impairment"
+        ],
+        "required_evidence_all": [],
+        "notes_internal": "Diferencia alteração pontual de padrão persistente com impacto diurno."
+      }
+    }
+  },
+  "confidence_rules": [
+    {
+      "id": "confidence_low_incomplete_data_01",
+      "priority": 900,
+      "when": {
+        "any": [
+          {
+            "anamnesis_completion_ratio": {
+              "lt": 0.6
+            }
+          },
+          {
+            "valid_instruments_count": {
+              "lt": 3
+            }
+          },
+          {
+            "symptoms_scored_count": {
+              "lt": 10
+            }
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "low"
+      },
+      "notes_internal": "Dados globais abaixo do mínimo prevalecem sobre regras de confiança."
+    },
+    {
+      "id": "confidence_low_response_inconsistency_02",
+      "priority": 850,
+      "when": {
+        "metric": "response_consistency_index",
+        "lt": 0.4
+      },
+      "then": {
+        "set_confidence": "low"
+      },
+      "notes_internal": "Baixa consistência impede confiança média ou alta."
+    },
+    {
+      "id": "confidence_low_mood_contradiction_04",
+      "priority": 820,
+      "when": {
+        "all": [
+          {
+            "track": "depressive_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "instrument": "mood_screen_v1",
+            "severity_in": [
+              "minimal"
+            ]
+          },
+          {
+            "symptom": "low_mood",
+            "gte": 3
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "low"
+      },
+      "notes_internal": "Discordância relevante entre item sintomático e instrumento exige revisão."
+    },
+    {
+      "id": "confidence_low_anxiety_contradiction_05",
+      "priority": 819,
+      "when": {
+        "all": [
+          {
+            "track": "anxiety_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "instrument": "anxiety_screen_v1",
+            "severity_in": [
+              "minimal"
+            ]
+          },
+          {
+            "symptom": "excessive_worry",
+            "gte": 3
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "low"
+      },
+      "notes_internal": "Discordância relevante entre preocupação reportada e instrumento exige revisão."
+    },
+    {
+      "id": "confidence_medium_recent_improvement_03",
+      "priority": 800,
+      "when": {
+        "all": [
+          {
+            "metric": "symptom_improving_7d",
+            "eq": true
+          },
+          {
+            "not": {
+              "metric": "symptom_worsening_7d",
+              "eq": true
+            }
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Melhora recente reduz a estabilidade temporal da inferência atual."
+    },
+    {
+      "id": "confidence_high_sustained_checkin_concordance_06",
+      "priority": 260,
+      "when": {
+        "all": [
+          {
+            "track": "anxiety_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "instrument": "anxiety_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "check_in": {
+              "symptom_signal": "check_in_high_anxiety_today",
+              "days_in_last_7": {
+                "gte": 4
+              }
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Concordância entre instrumento e padrão sustentado de check-ins."
+    },
+    {
+      "id": "confidence_high_depressive_01",
+      "priority": 239,
+      "when": {
+        "all": [
+          {
+            "track": "depressive_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 5
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          },
+          {
+            "metric": "symptom_duration_days",
+            "gte": 14
+          },
+          {
+            "instrument": "mood_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "symptom": "low_mood",
+            "gte": 2
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Exige concordância entre instrumento, sintoma, duração, consistência e múltiplas evidências."
+    },
+    {
+      "id": "confidence_high_anxiety_02",
+      "priority": 238,
+      "when": {
+        "all": [
+          {
+            "track": "anxiety_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 5
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          },
+          {
+            "metric": "symptom_duration_days",
+            "gte": 14
+          },
+          {
+            "instrument": "anxiety_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "symptom": "excessive_worry",
+            "gte": 2
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Exige concordância entre instrumento, sintoma, duração, consistência e múltiplas evidências."
+    },
+    {
+      "id": "confidence_high_obsessive_compulsive_03",
+      "priority": 237,
+      "when": {
+        "all": [
+          {
+            "track": "obsessive_compulsive_disorder",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 4
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          },
+          {
+            "metric": "symptom_duration_days",
+            "gte": 30
+          },
+          {
+            "instrument": "ocd_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "symptom": "intrusive_thoughts",
+            "gte": 2
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Exige concordância entre instrumento, sintoma, duração, consistência e múltiplas evidências."
+    },
+    {
+      "id": "confidence_high_trauma_related_04",
+      "priority": 236,
+      "when": {
+        "all": [
+          {
+            "track": "trauma_related_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 4
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          },
+          {
+            "metric": "symptom_duration_days",
+            "gte": 30
+          },
+          {
+            "instrument": "trauma_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "symptom": "trauma_reexperiencing",
+            "gte": 2
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Exige concordância entre instrumento, sintoma, duração, consistência e múltiplas evidências."
+    },
+    {
+      "id": "confidence_high_bipolar_05",
+      "priority": 235,
+      "when": {
+        "all": [
+          {
+            "track": "bipolar_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 4
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          },
+          {
+            "metric": "symptom_duration_days",
+            "gte": 4
+          },
+          {
+            "instrument": "bipolar_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "symptom": "decreased_need_for_sleep",
+            "gte": 2
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Exige concordância entre instrumento, sintoma, duração, consistência e múltiplas evidências."
+    },
+    {
+      "id": "confidence_high_psychotic_06",
+      "priority": 234,
+      "when": {
+        "all": [
+          {
+            "track": "psychotic_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 3
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          },
+          {
+            "metric": "symptom_duration_days",
+            "gte": 1
+          },
+          {
+            "instrument": "psychosis_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "symptom": "impaired_reality_testing",
+            "gte": 1
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Exige concordância entre instrumento, sintoma, duração, consistência e múltiplas evidências."
+    },
+    {
+      "id": "confidence_high_eating_07",
+      "priority": 233,
+      "when": {
+        "all": [
+          {
+            "track": "eating_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 4
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          },
+          {
+            "metric": "symptom_duration_days",
+            "gte": 14
+          },
+          {
+            "instrument": "eating_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "symptom": "restrictive_eating",
+            "gte": 1
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Exige concordância entre instrumento, sintoma, duração, consistência e múltiplas evidências."
+    },
+    {
+      "id": "confidence_high_personality_08",
+      "priority": 232,
+      "when": {
+        "all": [
+          {
+            "track": "personality_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 5
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          },
+          {
+            "metric": "symptom_duration_days",
+            "gte": 30
+          },
+          {
+            "instrument": "impulse_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "symptom": "impulsivity",
+            "gte": 2
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Exige concordância entre instrumento, sintoma, duração, consistência e múltiplas evidências."
+    },
+    {
+      "id": "confidence_high_neurodevelopmental_09",
+      "priority": 231,
+      "when": {
+        "all": [
+          {
+            "track": "neurodevelopmental_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 5
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          },
+          {
+            "metric": "symptom_duration_days",
+            "gte": 30
+          },
+          {
+            "instrument": "adhd_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "symptom": "executive_dysfunction",
+            "gte": 2
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Exige concordância entre instrumento, sintoma, duração, consistência e múltiplas evidências."
+    },
+    {
+      "id": "confidence_high_dissociative_10",
+      "priority": 230,
+      "when": {
+        "all": [
+          {
+            "track": "dissociative_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 4
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          },
+          {
+            "metric": "symptom_duration_days",
+            "gte": 14
+          },
+          {
+            "instrument": "dissociation_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "symptom": "dissociation",
+            "gte": 2
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Exige concordância entre instrumento, sintoma, duração, consistência e múltiplas evidências."
+    },
+    {
+      "id": "confidence_high_substance_use_11",
+      "priority": 229,
+      "when": {
+        "all": [
+          {
+            "track": "substance_use_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 4
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          },
+          {
+            "metric": "symptom_duration_days",
+            "gte": 14
+          },
+          {
+            "instrument": "substance_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "symptom": "loss_of_control_use",
+            "gte": 1
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Exige concordância entre instrumento, sintoma, duração, consistência e múltiplas evidências."
+    },
+    {
+      "id": "confidence_high_disruptive_impulse_control_12",
+      "priority": 228,
+      "when": {
+        "all": [
+          {
+            "track": "disruptive_impulse_control_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 4
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          },
+          {
+            "metric": "symptom_duration_days",
+            "gte": 14
+          },
+          {
+            "instrument": "impulse_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "symptom": "impulse_control_difficulty",
+            "gte": 2
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Exige concordância entre instrumento, sintoma, duração, consistência e múltiplas evidências."
+    },
+    {
+      "id": "confidence_high_somatic_symptom_13",
+      "priority": 227,
+      "when": {
+        "all": [
+          {
+            "track": "somatic_symptom_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 4
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          },
+          {
+            "metric": "symptom_duration_days",
+            "gte": 30
+          },
+          {
+            "instrument": "somatic_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "symptom": "persistent_physical_symptoms",
+            "gte": 2
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Exige concordância entre instrumento, sintoma, duração, consistência e múltiplas evidências."
+    },
+    {
+      "id": "confidence_high_sleep_14",
+      "priority": 226,
+      "when": {
+        "all": [
+          {
+            "track": "sleep_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 4
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.7
+          },
+          {
+            "metric": "symptom_duration_days",
+            "gte": 14
+          },
+          {
+            "instrument": "sleep_screen_v1",
+            "severity_in": [
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          {
+            "symptom": "sleep_disturbance",
+            "gte": 2
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "high"
+      },
+      "notes_internal": "Exige concordância entre instrumento, sintoma, duração, consistência e múltiplas evidências."
+    },
+    {
+      "id": "confidence_medium_depressive_01",
+      "priority": 139,
+      "when": {
+        "all": [
+          {
+            "track": "depressive_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 2
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.55
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Fallback conservador quando há base suficiente, mas sem concordância forte para confiança alta."
+    },
+    {
+      "id": "confidence_medium_anxiety_02",
+      "priority": 138,
+      "when": {
+        "all": [
+          {
+            "track": "anxiety_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 2
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.55
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Fallback conservador quando há base suficiente, mas sem concordância forte para confiança alta."
+    },
+    {
+      "id": "confidence_medium_obsessive_compulsive_03",
+      "priority": 137,
+      "when": {
+        "all": [
+          {
+            "track": "obsessive_compulsive_disorder",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 2
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.55
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Fallback conservador quando há base suficiente, mas sem concordância forte para confiança alta."
+    },
+    {
+      "id": "confidence_medium_trauma_related_04",
+      "priority": 136,
+      "when": {
+        "all": [
+          {
+            "track": "trauma_related_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 2
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.55
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Fallback conservador quando há base suficiente, mas sem concordância forte para confiança alta."
+    },
+    {
+      "id": "confidence_medium_bipolar_05",
+      "priority": 135,
+      "when": {
+        "all": [
+          {
+            "track": "bipolar_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 2
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.55
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Fallback conservador quando há base suficiente, mas sem concordância forte para confiança alta."
+    },
+    {
+      "id": "confidence_medium_psychotic_06",
+      "priority": 134,
+      "when": {
+        "all": [
+          {
+            "track": "psychotic_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 2
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.55
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Fallback conservador quando há base suficiente, mas sem concordância forte para confiança alta."
+    },
+    {
+      "id": "confidence_medium_eating_07",
+      "priority": 133,
+      "when": {
+        "all": [
+          {
+            "track": "eating_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 2
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.55
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Fallback conservador quando há base suficiente, mas sem concordância forte para confiança alta."
+    },
+    {
+      "id": "confidence_medium_personality_08",
+      "priority": 132,
+      "when": {
+        "all": [
+          {
+            "track": "personality_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 3
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.55
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Fallback conservador quando há base suficiente, mas sem concordância forte para confiança alta."
+    },
+    {
+      "id": "confidence_medium_neurodevelopmental_09",
+      "priority": 131,
+      "when": {
+        "all": [
+          {
+            "track": "neurodevelopmental_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 3
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.55
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Fallback conservador quando há base suficiente, mas sem concordância forte para confiança alta."
+    },
+    {
+      "id": "confidence_medium_dissociative_10",
+      "priority": 130,
+      "when": {
+        "all": [
+          {
+            "track": "dissociative_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 2
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.55
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Fallback conservador quando há base suficiente, mas sem concordância forte para confiança alta."
+    },
+    {
+      "id": "confidence_medium_substance_use_11",
+      "priority": 129,
+      "when": {
+        "all": [
+          {
+            "track": "substance_use_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 2
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.55
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Fallback conservador quando há base suficiente, mas sem concordância forte para confiança alta."
+    },
+    {
+      "id": "confidence_medium_disruptive_impulse_control_12",
+      "priority": 128,
+      "when": {
+        "all": [
+          {
+            "track": "disruptive_impulse_control_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 2
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.55
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Fallback conservador quando há base suficiente, mas sem concordância forte para confiança alta."
+    },
+    {
+      "id": "confidence_medium_somatic_symptom_13",
+      "priority": 127,
+      "when": {
+        "all": [
+          {
+            "track": "somatic_symptom_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 2
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.55
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Fallback conservador quando há base suficiente, mas sem concordância forte para confiança alta."
+    },
+    {
+      "id": "confidence_medium_sleep_14",
+      "priority": 126,
+      "when": {
+        "all": [
+          {
+            "track": "sleep_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "gte": 2
+            }
+          },
+          {
+            "metric": "response_consistency_index",
+            "gte": 0.55
+          }
+        ]
+      },
+      "then": {
+        "set_confidence": "medium"
+      },
+      "notes_internal": "Fallback conservador quando há base suficiente, mas sem concordância forte para confiança alta."
+    }
+  ],
+  "status_rules": [
+    {
+      "id": "status_insufficient_data_global_01",
+      "priority": 1000,
+      "when": {
+        "data_completeness_met": {
+          "eq": false
+        }
+      },
+      "then": {
+        "set_all_status": "insufficient_data"
+      },
+      "notes_internal": "Aplicado antes de qualquer status por faixa."
+    },
+    {
+      "id": "status_suppressed_depression_by_mania_02",
+      "priority": 950,
+      "when": {
+        "any": [
+          {
+            "red_flag": "manic_activation_active"
+          },
+          {
+            "metric": "manic_episode_signals",
+            "eq": true
+          }
+        ]
+      },
+      "then": {
+        "suppress_tracks": [
+          "depressive_disorders"
+        ],
+        "set_status": {
+          "track": "bipolar_disorders",
+          "status": "active"
+        }
+      },
+      "notes_internal": "Não elimina evidências depressivas; apenas impede que liderem enquanto houver ativação."
+    },
+    {
+      "id": "status_active_psychosis_red_flag_03",
+      "priority": 945,
+      "when": {
+        "red_flag": "acute_psychotic_symptoms"
+      },
+      "then": {
+        "set_status": {
+          "track": "psychotic_disorders",
+          "status": "active"
+        }
+      },
+      "notes_internal": "Fluxo de segurança é definido em red_flag_interactions."
+    },
+    {
+      "id": "status_active_current_abuse_04",
+      "priority": 940,
+      "when": {
+        "red_flag": "current_abuse_or_violence"
+      },
+      "then": {
+        "set_status": {
+          "track": "trauma_related_disorders",
+          "status": "active"
+        }
+      },
+      "notes_internal": "A prioridade é segurança atual, sem exigir detalhamento do evento."
+    },
+    {
+      "id": "status_active_recent_self_harm_05",
+      "priority": 938,
+      "when": {
+        "red_flag": "recent_self_harm"
+      },
+      "then": {
+        "set_status": [
+          {
+            "track": "depressive_disorders",
+            "status": "active"
+          },
+          {
+            "track": "personality_disorders",
+            "status": "monitoring"
+          },
+          {
+            "track": "trauma_related_disorders",
+            "status": "monitoring"
+          }
+        ]
+      },
+      "notes_internal": "Não infere causa; mantém tracks associados sob revisão."
+    },
+    {
+      "id": "status_active_violence_risk_06",
+      "priority": 936,
+      "when": {
+        "red_flag": "violence_risk_active"
+      },
+      "then": {
+        "set_status": [
+          {
+            "track": "disruptive_impulse_control_disorders",
+            "status": "active"
+          },
+          {
+            "track": "personality_disorders",
+            "status": "monitoring"
+          },
+          {
+            "track": "substance_use_disorders",
+            "status": "monitoring"
+          },
+          {
+            "track": "psychotic_disorders",
+            "status": "monitoring"
+          }
+        ]
+      },
+      "notes_internal": "O risco prevalece sobre o ranking de hipótese."
+    },
+    {
+      "id": "status_monitoring_suicidal_ideation_07",
+      "priority": 934,
+      "when": {
+        "red_flag": "suicidal_ideation_detected"
+      },
+      "then": {
+        "set_status": [
+          {
+            "track": "depressive_disorders",
+            "status": "monitoring"
+          },
+          {
+            "track": "bipolar_disorders",
+            "status": "monitoring"
+          },
+          {
+            "track": "personality_disorders",
+            "status": "monitoring"
+          }
+        ]
+      },
+      "notes_internal": "Status não substitui o acionamento do fluxo de crise."
+    },
+    {
+      "id": "status_monitoring_suicidal_plan_08",
+      "priority": 990,
+      "when": {
+        "red_flag": "suicidal_plan_or_intent_active"
+      },
+      "then": {
+        "set_all_status": "monitoring"
+      },
+      "notes_internal": "Plano autoguiado é suspenso; hipóteses permanecem disponíveis para a equipe."
+    },
+    {
+      "id": "status_active_severe_selfcare_09",
+      "priority": 932,
+      "when": {
+        "red_flag": "severe_self_care_neglect"
+      },
+      "then": {
+        "set_status": [
+          {
+            "track": "depressive_disorders",
+            "status": "active"
+          },
+          {
+            "track": "psychotic_disorders",
+            "status": "active"
+          },
+          {
+            "track": "eating_disorders",
+            "status": "monitoring"
+          },
+          {
+            "track": "somatic_symptom_disorders",
+            "status": "monitoring"
+          }
+        ]
+      },
+      "notes_internal": "Exige revisão humana independentemente do tier."
+    },
+    {
+      "id": "status_attenuated_depression_improving_10",
+      "priority": 700,
+      "when": {
+        "all": [
+          {
+            "track": "depressive_disorders",
+            "tier_in": [
+              "low_signal",
+              "moderate_signal"
+            ]
+          },
+          {
+            "metric": "symptom_improving_7d",
+            "eq": true
+          },
+          {
+            "symptom": "strong_support_network",
+            "eq": true
+          }
+        ]
+      },
+      "then": {
+        "set_status": {
+          "track": "depressive_disorders",
+          "status": "attenuated"
+        }
+      },
+      "notes_internal": "Melhora e proteção reduzem relevância, sem apagar evidências."
+    },
+    {
+      "id": "status_attenuated_anxiety_improving_11",
+      "priority": 699,
+      "when": {
+        "all": [
+          {
+            "track": "anxiety_disorders",
+            "tier_in": [
+              "low_signal",
+              "moderate_signal"
+            ]
+          },
+          {
+            "metric": "symptom_improving_7d",
+            "eq": true
+          },
+          {
+            "symptom": "trusted_support_person",
+            "eq": true
+          }
+        ]
+      },
+      "then": {
+        "set_status": {
+          "track": "anxiety_disorders",
+          "status": "attenuated"
+        }
+      },
+      "notes_internal": "Aplicado somente quando não há red flag prioritária."
+    },
+    {
+      "id": "status_attenuated_sleep_improving_12",
+      "priority": 698,
+      "when": {
+        "all": [
+          {
+            "track": "sleep_disorders",
+            "tier_in": [
+              "low_signal",
+              "moderate_signal"
+            ]
+          },
+          {
+            "metric": "symptom_improving_7d",
+            "eq": true
+          }
+        ]
+      },
+      "then": {
+        "set_status": {
+          "track": "sleep_disorders",
+          "status": "attenuated"
+        }
+      },
+      "notes_internal": "Mantém monitoramento leve durante melhora sustentada."
+    },
+    {
+      "id": "status_suppressed_psychosis_by_substance_temporal_13",
+      "priority": 820,
+      "when": {
+        "all": [
+          {
+            "track": "psychotic_disorders",
+            "tier_in": [
+              "low_signal",
+              "moderate_signal"
+            ]
+          },
+          {
+            "track_score": {
+              "track": "substance_use_disorders",
+              "gte": 45
+            }
+          },
+          {
+            "symptom": "other_substance_use",
+            "gte": 1
+          },
+          {
+            "metric": "psychotic_symptoms",
+            "eq": true
+          }
+        ]
+      },
+      "then": {
+        "set_status": {
+          "track": "psychotic_disorders",
+          "status": "suppressed"
+        }
+      },
+      "notes_internal": "Suprime apenas a primazia do track até esclarecer temporalidade com substâncias."
+    },
+    {
+      "id": "status_active_substance_withdrawal_14",
+      "priority": 825,
+      "when": {
+        "all": [
+          {
+            "track": "substance_use_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "symptom": "withdrawal_symptoms",
+            "gte": 1
+          }
+        ]
+      },
+      "then": {
+        "set_status": {
+          "track": "substance_use_disorders",
+          "status": "active"
+        }
+      },
+      "notes_internal": "Possível abstinência requer avaliação clínica separada."
+    },
+    {
+      "id": "status_inactive_depression_no_reinforcement_15",
+      "priority": 300,
+      "when": {
+        "all": [
+          {
+            "track": "depressive_disorders",
+            "tier_in": [
+              "low_signal"
+            ]
+          },
+          {
+            "days_without_reinforcement": {
+              "gte": 30
+            }
+          },
+          {
+            "track_score": {
+              "track": "depressive_disorders",
+              "lte": 1
+            }
+          }
+        ]
+      },
+      "then": {
+        "set_status": {
+          "track": "depressive_disorders",
+          "status": "inactive"
+        }
+      },
+      "notes_internal": "Aplicado após decay e ausência prolongada de reforço."
+    },
+    {
+      "id": "status_inactive_anxiety_no_reinforcement_16",
+      "priority": 299,
+      "when": {
+        "all": [
+          {
+            "track": "anxiety_disorders",
+            "tier_in": [
+              "low_signal"
+            ]
+          },
+          {
+            "days_without_reinforcement": {
+              "gte": 30
+            }
+          },
+          {
+            "track_score": {
+              "track": "anxiety_disorders",
+              "lte": 1
+            }
+          }
+        ]
+      },
+      "then": {
+        "set_status": {
+          "track": "anxiety_disorders",
+          "status": "inactive"
+        }
+      },
+      "notes_internal": "Aplicado após decay e ausência prolongada de reforço."
+    },
+    {
+      "id": "status_active_high_signal_default_17",
+      "priority": 200,
+      "scope": "each_track",
+      "when": {
+        "current_track_tier_in": [
+          "high_signal"
+        ]
+      },
+      "then": {
+        "set_current_track_status": "active"
+      },
+      "notes_internal": "Regra genérica executada por track após overrides de segurança."
+    },
+    {
+      "id": "status_active_moderate_signal_default_18",
+      "priority": 190,
+      "scope": "each_track",
+      "when": {
+        "current_track_tier_in": [
+          "moderate_signal"
+        ]
+      },
+      "then": {
+        "set_current_track_status": "active"
+      },
+      "notes_internal": "Regra genérica executada por track."
+    },
+    {
+      "id": "status_monitoring_low_signal_default_19",
+      "priority": 180,
+      "scope": "each_track",
+      "when": {
+        "current_track_tier_in": [
+          "low_signal"
+        ]
+      },
+      "then": {
+        "set_current_track_status": "monitoring"
+      },
+      "notes_internal": "Regra genérica executada por track."
+    }
+  ],
+  "evidence_summary_rules": [
+    {
+      "evidence_tag": "activation_sleep_baseline_cluster",
+      "summary_internal": "Ativação incomum com menor necessidade de sono e mudança do padrão",
+      "maps_to_tracks": [
+        "bipolar_disorders"
+      ],
+      "weight_in_summary": 2.2
+    },
+    {
+      "evidence_tag": "acute_manic_activation_cluster",
+      "summary_internal": "Combinação de sinais de ativação intensa",
+      "maps_to_tracks": [
+        "bipolar_disorders"
+      ],
+      "weight_in_summary": 3.0
+    },
+    {
+      "evidence_tag": "acute_perception_or_reality_change",
+      "summary_internal": "Alteração aguda de percepção ou realidade",
+      "maps_to_tracks": [
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "weight_in_summary": 3.0
+    },
+    {
+      "evidence_tag": "anhedonia_with_fatigue",
+      "summary_internal": "Redução de interesse combinada com baixa energia",
+      "maps_to_tracks": [
+        "depressive_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "anxiety_duration_one_month",
+      "summary_internal": "Duração igual ou superior a trinta dias reforça sinais de ansiedade",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "anxiety_instrument_elevated",
+      "summary_internal": "Faixa interna elevada no instrumento de tensão e preocupação",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "anxiety_instrument_score_threshold",
+      "summary_internal": "Pontuação relevante no instrumento de tensão e preocupação",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "anxiety_with_physical_arousal",
+      "summary_internal": "Sofrimento emocional com sensações físicas e preocupação",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "appetite_change_low_mood_selfcare",
+      "summary_internal": "Alteração de apetite com humor baixo e autocuidado prejudicado",
+      "maps_to_tracks": [
+        "depressive_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "appetite_change_with_selfcare_impact",
+      "summary_internal": "Alteração de apetite associada a prejuízo de autocuidado",
+      "maps_to_tracks": [
+        "eating_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "attention_execution_impairment",
+      "summary_internal": "Dificuldade de atenção e organização com prejuízo funcional",
+      "maps_to_tracks": [
+        "neurodevelopmental_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "attention_instrument_elevated",
+      "summary_internal": "Faixa elevada no instrumento de atenção e organização",
+      "maps_to_tracks": [
+        "neurodevelopmental_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "baseline_emotional_decline",
+      "summary_internal": "Mudança recente do padrão habitual com sofrimento emocional",
+      "maps_to_tracks": [
+        "depressive_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "baseline_worry_increase",
+      "summary_internal": "Aumento de preocupação em relação ao padrão habitual",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "binge_eating_loss_of_control",
+      "summary_internal": "Episódios de comer em excesso com perda de controle",
+      "maps_to_tracks": [
+        "eating_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "bipolar_instrument_elevated",
+      "summary_internal": "Faixa elevada no instrumento de ativação e variação de ritmo",
+      "maps_to_tracks": [
+        "bipolar_disorders"
+      ],
+      "weight_in_summary": 2.2
+    },
+    {
+      "evidence_tag": "bipolar_substance_cooccurrence",
+      "summary_internal": "Ativação incomum coexistindo com uso problemático",
+      "maps_to_tracks": [
+        "bipolar_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "checkin_avoidance_after_trauma",
+      "summary_internal": "Evitação recorrente nos check-ins com exposição difícil registrada",
+      "maps_to_tracks": [
+        "trauma_related_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "checkin_social_withdrawal_psychosis_context",
+      "summary_internal": "Retraimento social recorrente reforça alterações perceptivas já identificadas",
+      "maps_to_tracks": [
+        "psychotic_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "compensation_weight_shape_overvaluation",
+      "summary_internal": "Comportamentos compensatórios com valorização excessiva de peso ou forma",
+      "maps_to_tracks": [
+        "eating_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "continued_use_despite_harm_present",
+      "summary_internal": "Uso mantido apesar de prejuízos percebidos",
+      "maps_to_tracks": [
+        "substance_use_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "craving_with_frequent_use",
+      "summary_internal": "Desejo intenso de consumir associado a uso frequente",
+      "maps_to_tracks": [
+        "substance_use_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "current_violence_risk",
+      "summary_internal": "Risco atual de violência contra terceiros",
+      "maps_to_tracks": [
+        "disruptive_impulse_control_disorders",
+        "personality_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "weight_in_summary": 3.0
+    },
+    {
+      "evidence_tag": "depression_anxiety_cooccurrence",
+      "summary_internal": "Coocorrência de sinais relevantes de humor e ansiedade",
+      "maps_to_tracks": [
+        "depressive_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "depression_duration_two_weeks",
+      "summary_internal": "Duração igual ou superior a duas semanas reforça sinais depressivos",
+      "maps_to_tracks": [
+        "depressive_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "disorganized_thinking_functional_decline",
+      "summary_internal": "Pensamento desorganizado com perda de funcionamento",
+      "maps_to_tracks": [
+        "psychotic_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "dissociation_instrument_elevated",
+      "summary_internal": "Faixa elevada no instrumento de desconexão e estranhamento",
+      "maps_to_tracks": [
+        "dissociative_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "dissociation_linked_to_trauma",
+      "summary_internal": "Desconexão associada a revivescência de experiência difícil",
+      "maps_to_tracks": [
+        "dissociative_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "dissociation_with_impairment",
+      "summary_internal": "Experiências de desconexão com impacto funcional",
+      "maps_to_tracks": [
+        "dissociative_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "distress_help_ambivalence_interpersonal",
+      "summary_internal": "Sofrimento emocional recorrente com ambivalência para buscar ajuda e impacto interpessoal",
+      "maps_to_tracks": [
+        "personality_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "eating_instrument_elevated",
+      "summary_internal": "Faixa elevada no instrumento da relação com alimentação e corpo",
+      "maps_to_tracks": [
+        "eating_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "eating_ocd_cooccurrence",
+      "summary_internal": "Sinais alimentares coexistindo com pensamentos e rituais repetitivos",
+      "maps_to_tracks": [
+        "eating_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "elevated_mood_racing_thoughts",
+      "summary_internal": "Humor elevado associado a pensamentos acelerados",
+      "maps_to_tracks": [
+        "bipolar_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "episodic_activation_pattern",
+      "summary_internal": "Mudança episódica de humor com energia aumentada",
+      "maps_to_tracks": [
+        "bipolar_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "episodic_baseline_change_amplifies_bipolar",
+      "summary_internal": "Mudança episódica em relação ao padrão reforça ativação incomum",
+      "maps_to_tracks": [
+        "bipolar_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "fixed_beliefs_with_impairment",
+      "summary_internal": "Crenças rígidas desconectadas de evidências com impacto",
+      "maps_to_tracks": [
+        "psychotic_disorders"
+      ],
+      "weight_in_summary": 2.2
+    },
+    {
+      "evidence_tag": "frequent_prolonged_intrusions",
+      "summary_internal": "Pensamentos repetitivos frequentes e prolongados",
+      "maps_to_tracks": [
+        "obsessive_compulsive_disorder"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "functioning_amplifies_somatic_track",
+      "summary_internal": "Prejuízo funcional global reforça sinais físicos persistentes",
+      "maps_to_tracks": [
+        "somatic_symptom_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "grandiosity_with_impulsivity",
+      "summary_internal": "Ideias grandiosas acompanhadas de impulsividade",
+      "maps_to_tracks": [
+        "bipolar_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "hallucinations_with_impaired_reality_testing",
+      "summary_internal": "Percepções incomuns com dificuldade de avaliar a realidade",
+      "maps_to_tracks": [
+        "psychotic_disorders"
+      ],
+      "weight_in_summary": 2.2
+    },
+    {
+      "evidence_tag": "hazardous_or_nonprescribed_use",
+      "summary_internal": "Uso inadequado de medicamento ou uso em situação de risco",
+      "maps_to_tracks": [
+        "substance_use_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "health_focused_worry",
+      "summary_internal": "Preocupação com saúde integrada a padrão amplo de preocupação",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "hopelessness_with_low_mood",
+      "summary_internal": "Desesperança combinada com humor baixo",
+      "maps_to_tracks": [
+        "depressive_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "hyperactivity_impulsivity_cluster",
+      "summary_internal": "Atividade excessiva combinada com impulsividade",
+      "maps_to_tracks": [
+        "neurodevelopmental_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "hypersomnia_with_impairment",
+      "summary_internal": "Sono excessivo com prejuízo funcional",
+      "maps_to_tracks": [
+        "sleep_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "impulse_control_difficulty_with_impairment",
+      "summary_internal": "Dificuldade de controlar impulsos com prejuízo funcional",
+      "maps_to_tracks": [
+        "disruptive_impulse_control_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "impulse_difficulty_relationship_impact",
+      "summary_internal": "Dificuldade de controle com impacto nas relações",
+      "maps_to_tracks": [
+        "disruptive_impulse_control_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "impulse_index_with_relationship_impact",
+      "summary_internal": "Faixa elevada no instrumento de impulsos combinada a impacto relacional",
+      "maps_to_tracks": [
+        "personality_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "impulse_instrument_elevated",
+      "summary_internal": "Faixa elevada no instrumento de impulsos e reações intensas",
+      "maps_to_tracks": [
+        "disruptive_impulse_control_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "impulsivity_with_hazardous_behavior",
+      "summary_internal": "Impulsividade associada a comportamento de risco",
+      "maps_to_tracks": [
+        "disruptive_impulse_control_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "increased_energy_reduced_sleep_need",
+      "summary_internal": "Aumento incomum de energia com menor necessidade de sono",
+      "maps_to_tracks": [
+        "bipolar_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "insomnia_with_daytime_impact",
+      "summary_internal": "Dificuldade para dormir com impacto durante o dia",
+      "maps_to_tracks": [
+        "sleep_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "intrusions_with_compulsive_rituals",
+      "summary_internal": "Pensamentos intrusivos acompanhados de rituais repetitivos",
+      "maps_to_tracks": [
+        "obsessive_compulsive_disorder"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "irritability_impulsivity_cluster",
+      "summary_internal": "Irritabilidade combinada com impulsividade",
+      "maps_to_tracks": [
+        "disruptive_impulse_control_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "irritability_relationship_impairment",
+      "summary_internal": "Irritabilidade recorrente com impacto relacional",
+      "maps_to_tracks": [
+        "personality_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "low_mood_with_sleep_change",
+      "summary_internal": "Humor baixo associado a alteração do sono",
+      "maps_to_tracks": [
+        "depressive_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "mood_instrument_elevated",
+      "summary_internal": "Faixa interna elevada no instrumento de humor",
+      "maps_to_tracks": [
+        "depressive_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "mood_instrument_score_threshold",
+      "summary_internal": "Pontuação dimensional relevante no instrumento de humor",
+      "maps_to_tracks": [
+        "depressive_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "neurodevelopmental_signals_family_history",
+      "summary_internal": "Dificuldades de atenção ou comunicação com histórico familiar relacionado",
+      "maps_to_tracks": [
+        "neurodevelopmental_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "obsessional_avoidance_pattern",
+      "summary_internal": "Evitação relacionada a rituais ou pensamentos repetitivos",
+      "maps_to_tracks": [
+        "obsessive_compulsive_disorder"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "ocd_duration_one_month",
+      "summary_internal": "Duração prolongada reforça pensamentos e rituais repetitivos",
+      "maps_to_tracks": [
+        "obsessive_compulsive_disorder"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "ocd_instrument_elevated",
+      "summary_internal": "Faixa elevada no instrumento de pensamentos repetitivos",
+      "maps_to_tracks": [
+        "obsessive_compulsive_disorder"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "ongoing_abuse_or_violence_present",
+      "summary_internal": "Abuso ou violência em curso",
+      "maps_to_tracks": [
+        "trauma_related_disorders"
+      ],
+      "weight_in_summary": 3.0
+    },
+    {
+      "evidence_tag": "pain_preoccupation_with_impairment",
+      "summary_internal": "Preocupação persistente com dor e impacto funcional",
+      "maps_to_tracks": [
+        "somatic_symptom_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "panic_attacks_with_impairment",
+      "summary_internal": "Episódios súbitos de medo com impacto funcional",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "panic_instrument_elevated",
+      "summary_internal": "Faixa elevada no instrumento de episódios súbitos de medo",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "panic_sensations_with_avoidance",
+      "summary_internal": "Sensações de pânico associadas à evitação",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "panic_startle_sleep_cluster",
+      "summary_internal": "Episódios súbitos associados a susto aumentado e sono não reparador",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "persistent_circadian_misalignment",
+      "summary_internal": "Desalinhamento persistente dos horários de sono",
+      "maps_to_tracks": [
+        "sleep_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "persistent_interpersonal_impulsivity",
+      "summary_internal": "Impulsividade com prejuízo persistente nas relações",
+      "maps_to_tracks": [
+        "personality_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "persistent_intrusions_with_impairment",
+      "summary_internal": "Pensamentos intrusivos persistentes com prejuízo funcional",
+      "maps_to_tracks": [
+        "obsessive_compulsive_disorder"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "persistent_low_mood_with_impairment",
+      "summary_internal": "Humor baixo persistente com prejuízo funcional",
+      "maps_to_tracks": [
+        "depressive_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "persistent_physical_symptoms_health_worry",
+      "summary_internal": "Sintomas físicos persistentes com preocupação intensa de saúde",
+      "maps_to_tracks": [
+        "somatic_symptom_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "persistent_social_avoidance_pattern",
+      "summary_internal": "Evitação social persistente com prejuízo nas relações",
+      "maps_to_tracks": [
+        "personality_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "persistent_social_communication_impact",
+      "summary_internal": "Dificuldade persistente de comunicação social com impacto",
+      "maps_to_tracks": [
+        "neurodevelopmental_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "persistent_trauma_avoidance",
+      "summary_internal": "Evitação persistente após experiência difícil",
+      "maps_to_tracks": [
+        "trauma_related_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "persistent_worry_with_impairment",
+      "summary_internal": "Preocupação persistente com prejuízo funcional",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "physical_emotional_temporal_association",
+      "summary_internal": "Relação temporal entre sintomas físicos e sofrimento emocional",
+      "maps_to_tracks": [
+        "somatic_symptom_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "previous_helpful_care_reduces_substance_vulnerability",
+      "summary_internal": "Experiência anterior útil de cuidado reduz vulnerabilidade relacionada ao uso",
+      "maps_to_tracks": [
+        "substance_use_disorders"
+      ],
+      "weight_in_summary": 0.8
+    },
+    {
+      "evidence_tag": "professional_support_reduces_trauma_vulnerability",
+      "summary_internal": "Acesso a apoio profissional reduz vulnerabilidade após experiência difícil",
+      "maps_to_tracks": [
+        "trauma_related_disorders"
+      ],
+      "weight_in_summary": 0.8
+    },
+    {
+      "evidence_tag": "protective_commitments_reduce_interpersonal_vulnerability",
+      "summary_internal": "Compromissos protetivos e apoio reduzem vulnerabilidade interpessoal",
+      "maps_to_tracks": [
+        "personality_disorders"
+      ],
+      "weight_in_summary": 0.8
+    },
+    {
+      "evidence_tag": "protective_support_reduces_depression",
+      "summary_internal": "Rede de apoio consistente reduz vulnerabilidade associada ao isolamento",
+      "maps_to_tracks": [
+        "depressive_disorders"
+      ],
+      "weight_in_summary": 0.8
+    },
+    {
+      "evidence_tag": "psychosis_instrument_elevated",
+      "summary_internal": "Faixa elevada no instrumento de percepção e organização do pensamento",
+      "maps_to_tracks": [
+        "psychotic_disorders"
+      ],
+      "weight_in_summary": 2.2
+    },
+    {
+      "evidence_tag": "psychotic_signals_with_impairment",
+      "summary_internal": "Alteração perceptiva ou de realidade com prejuízo funcional",
+      "maps_to_tracks": [
+        "psychotic_disorders"
+      ],
+      "weight_in_summary": 2.2
+    },
+    {
+      "evidence_tag": "recent_self_harm_present",
+      "summary_internal": "Autolesão recente identificada",
+      "maps_to_tracks": [
+        "depressive_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "weight_in_summary": 3.0
+    },
+    {
+      "evidence_tag": "recurrent_checkin_overload_interpersonal",
+      "summary_internal": "Sobrecarga emocional recorrente com impacto interpessoal já presente",
+      "maps_to_tracks": [
+        "personality_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "recurrent_depersonalization",
+      "summary_internal": "Distanciamento de si recorrente e intenso",
+      "maps_to_tracks": [
+        "dissociative_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "recurrent_derealization",
+      "summary_internal": "Sensação recorrente de irrealidade do ambiente",
+      "maps_to_tracks": [
+        "dissociative_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "recurrent_panic_pattern",
+      "summary_internal": "Padrão recorrente de episódios súbitos em período recente",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "relationship_impairment_amplifies_personality_track",
+      "summary_internal": "Prejuízo relacional relevante reforça padrão interpessoal",
+      "maps_to_tracks": [
+        "personality_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "restriction_with_body_image_disturbance",
+      "summary_internal": "Restrição alimentar associada à alteração da percepção corporal",
+      "maps_to_tracks": [
+        "eating_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "routine_relaxation_reduces_sleep_vulnerability",
+      "summary_internal": "Rotina e relaxamento úteis reduzem vulnerabilidade relacionada ao sono",
+      "maps_to_tracks": [
+        "sleep_disorders"
+      ],
+      "weight_in_summary": 0.8
+    },
+    {
+      "evidence_tag": "selfcare_impairment_amplifies_psychosis",
+      "summary_internal": "Prejuízo importante de autocuidado reforça alterações perceptivas graves",
+      "maps_to_tracks": [
+        "psychotic_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "severe_functioning_amplifies_depression",
+      "summary_internal": "Prejuízo funcional global intenso reforça evidência de humor",
+      "maps_to_tracks": [
+        "depressive_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "severe_self_care_neglect_present",
+      "summary_internal": "Comprometimento grave do autocuidado",
+      "maps_to_tracks": [
+        "depressive_disorders",
+        "eating_disorders",
+        "psychotic_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "weight_in_summary": 3.0
+    },
+    {
+      "evidence_tag": "sleep_instrument_elevated",
+      "summary_internal": "Faixa elevada no instrumento de sono e recuperação",
+      "maps_to_tracks": [
+        "sleep_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "sleep_physiological_warning_signals",
+      "summary_internal": "Sinais respiratórios, movimentos ou comportamentos incomuns durante o sono",
+      "maps_to_tracks": [
+        "sleep_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "sleep_worsening_seven_days",
+      "summary_internal": "Piora em sete dias reforça sinais de sono quando já presentes",
+      "maps_to_tracks": [
+        "sleep_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "social_impairment_amplifies_neurodevelopmental",
+      "summary_internal": "Prejuízo social persistente reforça sinais do desenvolvimento",
+      "maps_to_tracks": [
+        "neurodevelopmental_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "somatic_instrument_elevated",
+      "summary_internal": "Faixa elevada no instrumento de sensações físicas e preocupação com saúde",
+      "maps_to_tracks": [
+        "somatic_symptom_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "substance_instrument_elevated",
+      "summary_internal": "Faixa elevada no instrumento de uso e perda de controle",
+      "maps_to_tracks": [
+        "substance_use_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "substance_loss_control_with_role_impact",
+      "summary_internal": "Perda de controle sobre o uso com prejuízo funcional",
+      "maps_to_tracks": [
+        "substance_use_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "suicidal_ideation_passive_or_active",
+      "summary_internal": "Ideação suicida passiva ou ativa identificada",
+      "maps_to_tracks": [
+        "bipolar_disorders",
+        "depressive_disorders",
+        "personality_disorders"
+      ],
+      "weight_in_summary": 3.0
+    },
+    {
+      "evidence_tag": "suicidal_plan_or_intent_present",
+      "summary_internal": "Plano ou intenção suicida identificados",
+      "maps_to_tracks": [
+        "bipolar_disorders",
+        "depressive_disorders",
+        "personality_disorders"
+      ],
+      "weight_in_summary": 3.0
+    },
+    {
+      "evidence_tag": "sustained_checkin_anxiety",
+      "summary_internal": "Ansiedade elevada registrada em pelo menos quatro dos últimos sete dias",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "sustained_checkin_low_mood",
+      "summary_internal": "Humor baixo registrado em pelo menos quatro dos últimos sete dias",
+      "maps_to_tracks": [
+        "depressive_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "sustained_checkin_sleep_stress",
+      "summary_internal": "Estresse relacionado ao sono em pelo menos quatro dos últimos sete dias",
+      "maps_to_tracks": [
+        "sleep_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "trauma_dissociation_cooccurrence",
+      "summary_internal": "Impacto de trauma coexistindo com desconexão",
+      "maps_to_tracks": [
+        "dissociative_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "trauma_exposure_reexperiencing_impairment",
+      "summary_internal": "Experiência difícil com revivescência e prejuízo funcional",
+      "maps_to_tracks": [
+        "trauma_related_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "trauma_hyperarousal_cluster",
+      "summary_internal": "Hipervigilância combinada com resposta de susto aumentada",
+      "maps_to_tracks": [
+        "trauma_related_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "trauma_instrument_elevated",
+      "summary_internal": "Faixa elevada no instrumento de impacto de experiências difíceis",
+      "maps_to_tracks": [
+        "trauma_related_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "trauma_nightmares_with_sleep_impact",
+      "summary_internal": "Pesadelos relacionados a experiência difícil com sono não reparador",
+      "maps_to_tracks": [
+        "trauma_related_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "trauma_numbing_negative_beliefs",
+      "summary_internal": "Entorpecimento emocional e crenças negativas após experiência difícil",
+      "maps_to_tracks": [
+        "trauma_related_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "trauma_persistence_one_month",
+      "summary_internal": "Persistência após experiência difícil reforça sinais relacionados ao trauma",
+      "maps_to_tracks": [
+        "trauma_related_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "trauma_substance_cooccurrence",
+      "summary_internal": "Coocorrência de impacto de trauma e uso problemático",
+      "maps_to_tracks": [
+        "substance_use_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "trusted_person_reduces_anxiety",
+      "summary_internal": "Pessoa de confiança disponível reduz impacto de preocupação e medo",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 0.8
+    },
+    {
+      "evidence_tag": "withdrawal_symptoms_present",
+      "summary_internal": "Sinais ao reduzir ou interromper o uso",
+      "maps_to_tracks": [
+        "substance_use_disorders"
+      ],
+      "weight_in_summary": 1.8
+    },
+    {
+      "evidence_tag": "work_study_impairment_amplifies_anxiety",
+      "summary_internal": "Prejuízo em trabalho ou estudos reforça evidência de ansiedade",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.2
+    },
+    {
+      "evidence_tag": "worry_driven_avoidance",
+      "summary_internal": "Evitação associada a preocupação elevada",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.5
+    },
+    {
+      "evidence_tag": "worry_irritability_insomnia_cluster",
+      "summary_internal": "Preocupação acompanhada de irritabilidade e dificuldade de sono",
+      "maps_to_tracks": [
+        "anxiety_disorders"
+      ],
+      "weight_in_summary": 1.5
+    }
+  ],
+  "evidence_summary_assembly": {
+    "max_items_per_track": 8,
+    "sort_by": "weight_in_summary_desc",
+    "secondary_sort_by": "evidence_tag_asc",
+    "deduplicate": true,
+    "include_only_matching_track": true
+  },
+  "primary_track_rules": {
+    "method": "weighted_rank",
+    "weights": {
+      "tier": {
+        "high_signal": 3,
+        "moderate_signal": 2,
+        "low_signal": 1,
+        "insufficient_data": 0
+      },
+      "confidence": {
+        "high": 1.2,
+        "medium": 1.0,
+        "low": 0.8
+      },
+      "track_priority_weight_from_disorder_tracks": true
+    },
+    "score_formula": "tier_weight * confidence_weight * disorder_track_priority_weight + normalized_score + evidence_count_bonus",
+    "evidence_count_bonus": {
+      "per_distinct_evidence": 0.25,
+      "cap": 2.0
+    },
+    "tie_breakers": [
+      "score_desc",
+      "red_flag_sensitive_desc",
+      "evidence_count_desc",
+      "track_id_asc"
+    ],
+    "max_primary_tracks": 1,
+    "max_secondary_tracks": 2,
+    "overrides": [
+      {
+        "id": "primary_override_red_flag_01",
+        "priority": 950,
+        "when": {
+          "red_flag_any": true
+        },
+        "then": {
+          "suspend_primary_selection": true,
+          "route_to": "crisis_flow"
+        }
+      },
+      {
+        "id": "primary_override_psychosis_02",
+        "priority": 800,
+        "when": {
+          "all": [
+            {
+              "track": "psychotic_disorders",
+              "tier_in": [
+                "high_signal"
+              ]
+            },
+            {
+              "confidence_in": [
+                "medium",
+                "high"
+              ]
+            }
+          ]
+        },
+        "then": {
+          "prioritize_track": "psychotic_disorders"
+        }
+      },
+      {
+        "id": "primary_override_bipolar_03",
+        "priority": 790,
+        "when": {
+          "all": [
+            {
+              "track": "bipolar_disorders",
+              "tier_in": [
+                "high_signal"
+              ]
+            },
+            {
+              "evidence_any": [
+                "activation_sleep_baseline_cluster",
+                "episodic_activation_pattern"
+              ]
+            }
+          ]
+        },
+        "then": {
+          "prioritize_track": "bipolar_disorders",
+          "suppress_tracks": [
+            "depressive_disorders"
+          ]
+        }
+      },
+      {
+        "id": "primary_override_substance_04",
+        "priority": 780,
+        "when": {
+          "all": [
+            {
+              "track": "substance_use_disorders",
+              "tier_in": [
+                "high_signal"
+              ]
+            },
+            {
+              "evidence_any": [
+                "withdrawal_symptoms_present",
+                "hazardous_or_nonprescribed_use"
+              ]
+            }
+          ]
+        },
+        "then": {
+          "prioritize_track": "substance_use_disorders",
+          "route_to": "clinical_review_flow"
+        }
+      },
+      {
+        "id": "primary_override_insufficient_05",
+        "priority": 900,
+        "when": {
+          "data_completeness_met": {
+            "eq": false
+          }
+        },
+        "then": {
+          "suspend_primary_selection": true,
+          "route_to": "complete_assessment_flow"
+        }
+      }
+    ]
+  },
+  "comorbidity_settings": {
+    "allow_multiple_active": true,
+    "max_active_tracks": 4,
+    "max_active_tracks_tier_gte": {
+      "tier": "moderate_signal",
+      "max": 3
+    },
+    "known_affinity_boosts": [
+      {
+        "tracks": [
+          "depressive_disorders",
+          "anxiety_disorders"
+        ],
+        "when_both_tier_gte": "low_signal",
+        "boost_both_scores": 5,
+        "notes_internal": "Afinidade frequente entre humor baixo e preocupação persistente."
+      },
+      {
+        "tracks": [
+          "depressive_disorders",
+          "sleep_disorders"
+        ],
+        "when_both_tier_gte": "low_signal",
+        "boost_both_scores": 3,
+        "notes_internal": "Alterações de humor e sono frequentemente se reforçam."
+      },
+      {
+        "tracks": [
+          "trauma_related_disorders",
+          "dissociative_disorders"
+        ],
+        "when_both_tier_gte": "low_signal",
+        "boost_both_scores": 5,
+        "notes_internal": "Associação entre impacto traumático e desconexão dissociativa."
+      },
+      {
+        "tracks": [
+          "trauma_related_disorders",
+          "substance_use_disorders"
+        ],
+        "when_both_tier_gte": "low_signal",
+        "boost_both_scores": 4,
+        "notes_internal": "Uso de substâncias pode coexistir com estratégias de enfrentamento após trauma."
+      },
+      {
+        "tracks": [
+          "bipolar_disorders",
+          "substance_use_disorders"
+        ],
+        "when_both_tier_gte": "low_signal",
+        "boost_both_scores": 4,
+        "notes_internal": "Ativação episódica e uso de substâncias exigem leitura temporal conjunta."
+      },
+      {
+        "tracks": [
+          "psychotic_disorders",
+          "substance_use_disorders"
+        ],
+        "when_both_tier_gte": "low_signal",
+        "boost_both_scores": 3,
+        "notes_internal": "Coocorrência exige diferenciação temporal antes de definir primazia."
+      },
+      {
+        "tracks": [
+          "eating_disorders",
+          "obsessive_compulsive_disorder"
+        ],
+        "when_both_tier_gte": "low_signal",
+        "boost_both_scores": 3,
+        "notes_internal": "Rigidez, pensamentos intrusivos e comportamentos repetitivos podem coexistir."
+      },
+      {
+        "tracks": [
+          "anxiety_disorders",
+          "somatic_symptom_disorders"
+        ],
+        "when_both_tier_gte": "low_signal",
+        "boost_both_scores": 4,
+        "notes_internal": "Preocupação e foco em sensações físicas podem se reforçar."
+      },
+      {
+        "tracks": [
+          "personality_disorders",
+          "trauma_related_disorders"
+        ],
+        "when_both_tier_gte": "low_signal",
+        "boost_both_scores": 3,
+        "notes_internal": "Padrões relacionais e histórico de experiências difíceis podem coexistir."
+      },
+      {
+        "tracks": [
+          "neurodevelopmental_disorders",
+          "sleep_disorders"
+        ],
+        "when_both_tier_gte": "low_signal",
+        "boost_both_scores": 3,
+        "notes_internal": "Dificuldades executivas e sono inadequado podem amplificar-se mutuamente."
+      },
+      {
+        "tracks": [
+          "disruptive_impulse_control_disorders",
+          "personality_disorders"
+        ],
+        "when_both_tier_gte": "low_signal",
+        "boost_both_scores": 3,
+        "notes_internal": "Impulsividade e dificuldades relacionais podem compartilhar evidências."
+      }
+    ],
+    "contradiction_pairs": [
+      {
+        "tracks": [
+          "depressive_disorders",
+          "bipolar_disorders"
+        ],
+        "resolution": "higher_score_wins",
+        "unless_track": "bipolar_disorders",
+        "unless_when": {
+          "any": [
+            {
+              "red_flag": "manic_activation_active"
+            },
+            {
+              "evidence_any": [
+                "activation_sleep_baseline_cluster",
+                "episodic_activation_pattern"
+              ]
+            }
+          ]
+        },
+        "suppress_lower": true,
+        "notes_internal": "Sinais de ativação episódica impedem primazia automática do track depressivo."
+      },
+      {
+        "tracks": [
+          "psychotic_disorders",
+          "substance_use_disorders"
+        ],
+        "resolution": "preserve_both_until_temporal_review",
+        "suppress_lower": false,
+        "notes_internal": "Não resolver automaticamente sem avaliar temporalidade do uso."
+      },
+      {
+        "tracks": [
+          "somatic_symptom_disorders",
+          "anxiety_disorders"
+        ],
+        "resolution": "allow_both_with_shared_evidence_deduplication",
+        "suppress_lower": false,
+        "notes_internal": "Evita pontuar duas vezes a mesma preocupação física."
+      }
+    ],
+    "shared_evidence_policy": {
+      "deduplicate_within_track": true,
+      "allow_same_evidence_across_affinity_pair": true,
+      "maximum_single_tag_contribution_per_track": 1
+    }
+  },
+  "insufficient_data_rules": [
+    {
+      "id": "insufficient_anamnesis_completion_01",
+      "priority": 260,
+      "when": {
+        "anamnesis_completion_ratio": {
+          "lt": 0.6
+        }
+      },
+      "then": {
+        "force_tier": "insufficient_data",
+        "force_confidence": "low",
+        "force_status": "insufficient_data"
+      },
+      "notes_internal": "Aplica-se a todos os tracks."
+    },
+    {
+      "id": "insufficient_valid_instruments_02",
+      "priority": 250,
+      "when": {
+        "valid_instruments_count": {
+          "lt": 3
+        }
+      },
+      "then": {
+        "force_tier": "insufficient_data",
+        "force_confidence": "low",
+        "force_status": "insufficient_data"
+      },
+      "notes_internal": "Evita hipótese forte baseada em poucos agrupadores."
+    },
+    {
+      "id": "insufficient_symptoms_scored_03",
+      "priority": 240,
+      "when": {
+        "symptoms_scored_count": {
+          "lt": 10
+        }
+      },
+      "then": {
+        "force_tier": "insufficient_data",
+        "force_confidence": "low",
+        "force_status": "insufficient_data"
+      },
+      "notes_internal": "Exige cobertura mínima do vocabulário sintomático."
+    },
+    {
+      "id": "insufficient_response_consistency_04",
+      "priority": 230,
+      "when": {
+        "metric": "response_consistency_index",
+        "lt": 0.35
+      },
+      "then": {
+        "force_tier": "insufficient_data",
+        "force_confidence": "low",
+        "force_status": "insufficient_data"
+      },
+      "notes_internal": "Dados muito inconsistentes devem ser revisados antes da agregação."
+    },
+    {
+      "id": "insufficient_neurodevelopmental_evidence_05",
+      "priority": 220,
+      "when": {
+        "all": [
+          {
+            "track": "neurodevelopmental_disorders",
+            "score_gt": 0
+          },
+          {
+            "evidence_count": {
+              "lt": 3
+            }
+          }
+        ]
+      },
+      "then": {
+        "force_track_tier": {
+          "track": "neurodevelopmental_disorders",
+          "tier": "insufficient_data"
+        },
+        "force_track_confidence": {
+          "track": "neurodevelopmental_disorders",
+          "confidence": "low"
+        },
+        "force_track_status": {
+          "track": "neurodevelopmental_disorders",
+          "status": "insufficient_data"
+        }
+      },
+      "notes_internal": "Sinais de desenvolvimento exigem múltiplas fontes ou evidências."
+    },
+    {
+      "id": "insufficient_personality_evidence_06",
+      "priority": 219,
+      "when": {
+        "all": [
+          {
+            "track": "personality_disorders",
+            "score_gt": 0
+          },
+          {
+            "evidence_count": {
+              "lt": 3
+            }
+          },
+          {
+            "metric": "symptom_duration_days",
+            "lt": 30
+          }
+        ]
+      },
+      "then": {
+        "force_track_tier": {
+          "track": "personality_disorders",
+          "tier": "insufficient_data"
+        },
+        "force_track_confidence": {
+          "track": "personality_disorders",
+          "confidence": "low"
+        },
+        "force_track_status": {
+          "track": "personality_disorders",
+          "status": "insufficient_data"
+        }
+      },
+      "notes_internal": "Evita inferir padrão duradouro com evidência breve ou isolada."
+    },
+    {
+      "id": "insufficient_track_required_evidence_07",
+      "priority": 210,
+      "scope": "each_track",
+      "when": {
+        "configured_required_evidence_any_met": {
+          "eq": false
+        }
+      },
+      "then": {
+        "force_current_track_tier": "insufficient_data",
+        "force_current_track_confidence": "low",
+        "force_current_track_status": "insufficient_data"
+      },
+      "notes_internal": "Usa required_evidence_any da configuração específica do track."
+    }
+  ],
+  "red_flag_interactions": [
+    {
+      "red_flag_id": "suicidal_ideation_detected",
+      "priority": 980,
+      "actions": {
+        "suspend_activity_plan": true,
+        "allow_hypothesis_calculation": true,
+        "mark_all_tracks": {
+          "status": "monitoring"
+        },
+        "except_tracks": [],
+        "route_to": "crisis_support_flow",
+        "notes_internal": "Hipóteses permanecem disponíveis para a equipe; plano autoguiado é interrompido."
+      }
+    },
+    {
+      "red_flag_id": "suicidal_plan_or_intent_active",
+      "priority": 999,
+      "actions": {
+        "suspend_activity_plan": true,
+        "allow_hypothesis_calculation": true,
+        "mark_all_tracks": {
+          "status": "monitoring"
+        },
+        "except_tracks": [],
+        "route_to": "urgent_crisis_flow",
+        "notes_internal": "Prioridade máxima de segurança; não continuar fluxo longo como experiência normal."
+      }
+    },
+    {
+      "red_flag_id": "recent_self_harm",
+      "priority": 995,
+      "actions": {
+        "suspend_activity_plan": true,
+        "allow_hypothesis_calculation": true,
+        "mark_all_tracks": {
+          "status": "monitoring"
+        },
+        "except_tracks": [
+          "depressive_disorders",
+          "personality_disorders",
+          "trauma_related_disorders"
+        ],
+        "route_to": "urgent_crisis_flow",
+        "notes_internal": "Tracks relacionados permanecem ativos ou sob revisão conforme status_rules."
+      }
+    },
+    {
+      "red_flag_id": "acute_psychotic_symptoms",
+      "priority": 997,
+      "actions": {
+        "suspend_activity_plan": true,
+        "allow_hypothesis_calculation": true,
+        "mark_all_tracks": {
+          "status": "monitoring"
+        },
+        "except_tracks": [
+          "psychotic_disorders",
+          "bipolar_disorders",
+          "substance_use_disorders"
+        ],
+        "route_to": "urgent_clinical_review_flow",
+        "notes_internal": "Alterações agudas de percepção ou realidade exigem avaliação humana prioritária."
+      }
+    },
+    {
+      "red_flag_id": "manic_activation_active",
+      "priority": 996,
+      "actions": {
+        "suspend_activity_plan": true,
+        "allow_hypothesis_calculation": true,
+        "mark_all_tracks": {
+          "status": "monitoring"
+        },
+        "except_tracks": [
+          "bipolar_disorders"
+        ],
+        "route_to": "urgent_clinical_review_flow",
+        "notes_internal": "Suspende primazia depressiva e prioriza revisão de ativação episódica."
+      }
+    },
+    {
+      "red_flag_id": "violence_risk_active",
+      "priority": 998,
+      "actions": {
+        "suspend_activity_plan": true,
+        "allow_hypothesis_calculation": true,
+        "mark_all_tracks": {
+          "status": "monitoring"
+        },
+        "except_tracks": [
+          "disruptive_impulse_control_disorders",
+          "personality_disorders",
+          "substance_use_disorders",
+          "psychotic_disorders"
+        ],
+        "route_to": "safety_escalation_flow",
+        "notes_internal": "Ação de segurança prevalece sobre qualquer recomendação autoguiada."
+      }
+    },
+    {
+      "red_flag_id": "current_abuse_or_violence",
+      "priority": 994,
+      "actions": {
+        "suspend_activity_plan": true,
+        "allow_hypothesis_calculation": true,
+        "mark_all_tracks": {
+          "status": "monitoring"
+        },
+        "except_tracks": [
+          "trauma_related_disorders"
+        ],
+        "route_to": "safety_support_flow",
+        "notes_internal": "Evitar solicitar relato detalhado; priorizar proteção e apoio apropriado."
+      }
+    },
+    {
+      "red_flag_id": "severe_self_care_neglect",
+      "priority": 990,
+      "actions": {
+        "suspend_activity_plan": true,
+        "allow_hypothesis_calculation": true,
+        "mark_all_tracks": {
+          "status": "monitoring"
+        },
+        "except_tracks": [
+          "depressive_disorders",
+          "psychotic_disorders",
+          "eating_disorders",
+          "somatic_symptom_disorders"
+        ],
+        "route_to": "urgent_clinical_review_flow",
+        "notes_internal": "Comprometimento grave do autocuidado exige avaliação humana."
+      }
+    }
+  ],
+  "track_overrides": [
+    {
+      "id": "track_override_depression_mania_01",
+      "priority": 930,
+      "when": {
+        "any": [
+          {
+            "red_flag": "manic_activation_active"
+          },
+          {
+            "metric": "manic_episode_signals",
+            "eq": true
+          }
+        ]
+      },
+      "then": {
+        "suppress_track": "depressive_disorders",
+        "preserve_evidence": true,
+        "prioritize_track": "bipolar_disorders"
+      },
+      "notes_internal": "Não descarta sintomas depressivos; altera apenas a primazia durante ativação."
+    },
+    {
+      "id": "track_override_psychosis_red_flag_02",
+      "priority": 940,
+      "when": {
+        "red_flag": "acute_psychotic_symptoms"
+      },
+      "then": {
+        "set_minimum_track_score": {
+          "track": "psychotic_disorders",
+          "points": 45
+        },
+        "force_status": {
+          "track": "psychotic_disorders",
+          "status": "active"
+        }
+      },
+      "notes_internal": "Red flag reduz dependência do score bruto sem equivaler a conclusão clínica."
+    },
+    {
+      "id": "track_override_bipolar_red_flag_03",
+      "priority": 939,
+      "when": {
+        "red_flag": "manic_activation_active"
+      },
+      "then": {
+        "set_minimum_track_score": {
+          "track": "bipolar_disorders",
+          "points": 45
+        },
+        "force_status": {
+          "track": "bipolar_disorders",
+          "status": "active"
+        }
+      },
+      "notes_internal": "Mantém cálculo auditável e prioriza revisão."
+    },
+    {
+      "id": "track_override_trauma_current_violence_04",
+      "priority": 938,
+      "when": {
+        "red_flag": "current_abuse_or_violence"
+      },
+      "then": {
+        "force_status": {
+          "track": "trauma_related_disorders",
+          "status": "active"
+        },
+        "suspend_primary_selection": true
+      },
+      "notes_internal": "Segurança atual substitui a seleção normal do plano."
+    },
+    {
+      "id": "track_override_neurodevelopmental_history_05",
+      "priority": 500,
+      "when": {
+        "all": [
+          {
+            "track": "neurodevelopmental_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "evidence_count": {
+              "lt": 3
+            }
+          }
+        ]
+      },
+      "then": {
+        "cap_tier": {
+          "track": "neurodevelopmental_disorders",
+          "tier": "low_signal"
+        },
+        "force_confidence": {
+          "track": "neurodevelopmental_disorders",
+          "confidence": "low"
+        }
+      },
+      "notes_internal": "Sinais observáveis isolados não sustentam tier elevado."
+    },
+    {
+      "id": "track_override_personality_persistence_06",
+      "priority": 499,
+      "when": {
+        "all": [
+          {
+            "track": "personality_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "metric": "symptom_duration_days",
+            "lt": 30
+          }
+        ]
+      },
+      "then": {
+        "cap_tier": {
+          "track": "personality_disorders",
+          "tier": "low_signal"
+        },
+        "force_confidence": {
+          "track": "personality_disorders",
+          "confidence": "low"
+        }
+      },
+      "notes_internal": "Padrões duradouros não devem ser inferidos a partir de período breve."
+    },
+    {
+      "id": "track_override_somatic_medical_review_07",
+      "priority": 498,
+      "when": {
+        "all": [
+          {
+            "track": "somatic_symptom_disorders",
+            "tier_in": [
+              "moderate_signal",
+              "high_signal"
+            ]
+          },
+          {
+            "symptom": "recent_medical_change",
+            "gte": 1
+          }
+        ]
+      },
+      "then": {
+        "cap_status": {
+          "track": "somatic_symptom_disorders",
+          "status": "monitoring"
+        },
+        "require_review": "medical_differential_review"
+      },
+      "notes_internal": "Mudança médica recente impede interpretação isoladamente emocional."
+    },
+    {
+      "id": "track_override_substance_psychosis_temporal_08",
+      "priority": 497,
+      "when": {
+        "all": [
+          {
+            "track_score": {
+              "track": "psychotic_disorders",
+              "gte": 25
+            }
+          },
+          {
+            "track_score": {
+              "track": "substance_use_disorders",
+              "gte": 25
+            }
+          },
+          {
+            "symptom": "other_substance_use",
+            "gte": 1
+          }
+        ]
+      },
+      "then": {
+        "preserve_both_tracks": true,
+        "require_review": "substance_temporal_relationship_review"
+      },
+      "notes_internal": "Evita resolução automática sem relação temporal clara."
+    }
+  ],
+  "output_schema": {
+    "hypothesis_item": {
+      "track": "string (disorder_tracks.id)",
+      "score": "number 0-100",
+      "tier": "low_signal | moderate_signal | high_signal | insufficient_data",
+      "status": "active | monitoring | attenuated | suppressed | inactive | insufficient_data",
+      "confidence": "low | medium | high",
+      "evidence_summary": [
+        "string"
+      ],
+      "evidence_tags": [
+        "string"
+      ],
+      "evidence_count": "number",
+      "is_primary": "boolean",
+      "is_secondary": "boolean",
+      "last_updated_at": "ISO8601",
+      "engine_version": "1.0.0"
+    },
+    "hypothesis_collection": {
+      "items": "array<hypothesis_item>",
+      "primary_track": "disorder_tracks.id | null",
+      "secondary_tracks": "array<disorder_tracks.id>",
+      "red_flags": "array<string>",
+      "activity_plan_suspended": "boolean",
+      "route_to": "string | null",
+      "calculated_at": "ISO8601"
+    },
+    "validation": {
+      "score_min": 0,
+      "score_max": 100,
+      "evidence_tags_must_exist_in_scoring_rules": true,
+      "track_must_exist_in_disorder_tracks": true,
+      "deterministic_sorting_required": true
+    },
+    "forbidden_fields": [
+      "diagnosis",
+      "diagnosis_confirmed",
+      "diagnosed",
+      "positive_for_disorder",
+      "clinical_diagnosis",
+      "disorder_label_user",
+      "clinical_conclusion"
+    ]
+  },
+  "output_examples": [
+    {
+      "track": "depressive_disorders",
+      "score": 62,
+      "tier": "moderate_signal",
+      "status": "active",
+      "confidence": "medium",
+      "evidence_summary": [
+        "Humor baixo persistente com prejuízo funcional",
+        "Persistência de sinais depressivos por pelo menos duas semanas"
+      ],
+      "evidence_tags": [
+        "persistent_low_mood_with_impairment",
+        "depression_duration_two_weeks"
+      ],
+      "evidence_count": 4,
+      "is_primary": true,
+      "is_secondary": false,
+      "last_updated_at": "2026-06-17T00:00:00Z",
+      "engine_version": "1.0.0"
+    },
+    {
+      "track": "anxiety_disorders",
+      "score": 48,
+      "tier": "moderate_signal",
+      "status": "active",
+      "confidence": "medium",
+      "evidence_summary": [
+        "Preocupação persistente com prejuízo funcional",
+        "Episódios súbitos de medo com prejuízo"
+      ],
+      "evidence_tags": [
+        "persistent_worry_with_impairment",
+        "panic_attacks_with_impairment"
+      ],
+      "evidence_count": 4,
+      "is_primary": false,
+      "is_secondary": true,
+      "last_updated_at": "2026-06-17T00:00:00Z",
+      "engine_version": "1.0.0"
+    },
+    {
+      "track": "sleep_disorders",
+      "score": 18,
+      "tier": "insufficient_data",
+      "status": "insufficient_data",
+      "confidence": "low",
+      "evidence_summary": [],
+      "evidence_tags": [],
+      "evidence_count": 1,
+      "is_primary": false,
+      "is_secondary": false,
+      "last_updated_at": "2026-06-17T00:00:00Z",
+      "engine_version": "1.0.0"
+    }
+  ]
+}

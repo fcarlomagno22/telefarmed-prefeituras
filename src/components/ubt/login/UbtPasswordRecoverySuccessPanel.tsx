@@ -29,7 +29,7 @@ export function UbtPasswordRecoverySuccessPanel({ onClose }: UbtPasswordRecovery
       <button
         type="button"
         onClick={onClose}
-        className="mt-8 w-full max-w-xs rounded-xl bg-[var(--brand-primary)] py-3 text-sm font-semibold text-white transition hover:bg-[var(--brand-primary-hover)]"
+        className="btn-brand-gradient mt-8 w-full max-w-xs rounded-xl py-3 text-sm font-semibold"
       >
         Voltar ao login
       </button>

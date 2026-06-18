@@ -1,0 +1,2686 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "schema_id": "user_clinical_state",
+  "description_internal": "Estado clínico-computacional interno por usuário; não deve ser renderizado diretamente na interface do paciente.",
+  "storage": {
+    "scope": "per_user",
+    "backend_table_suggested": "mental_health_user_clinical_state",
+    "backend_primary_key": "user_id",
+    "local_cache_key": "mental_health_clinical_state_v1",
+    "sync_strategy": "backend_authoritative",
+    "conflict_resolution": "server_updated_at_wins_except_append_only_collections",
+    "encryption_at_rest": true,
+    "encryption_in_transit": true,
+    "access_roles": [
+      "clinical_staff",
+      "system_engine"
+    ],
+    "write_roles": [
+      "system_engine",
+      "clinical_state_repository"
+    ],
+    "forbidden_access": [
+      "patient_ui_raw"
+    ],
+    "optimistic_concurrency_field": "updated_at",
+    "local_cache_storage_requirement": "encrypted_secure_storage_not_plain_async_storage"
+  },
+  "schema": {
+    "user_id": {
+      "type": "string",
+      "required": true,
+      "description_internal": "Identificador técnico estável do usuário no serviço de identidade.",
+      "source": "identity_service",
+      "user_visible": false,
+      "min_length": 1,
+      "immutable": true
+    },
+    "engine_version": {
+      "type": "string",
+      "required": true,
+      "description_internal": "Versão do contrato e do motor que produziu o estado atual.",
+      "source": "clinical_state_repository",
+      "user_visible": false,
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "example": "1.0.0"
+    },
+    "created_at": {
+      "type": "ISO8601",
+      "required": true,
+      "description_internal": "Data e hora de criação do estado.",
+      "source": "clinical_state_repository",
+      "user_visible": false,
+      "immutable": true,
+      "initial_state_allows_null": true
+    },
+    "updated_at": {
+      "type": "ISO8601",
+      "required": true,
+      "description_internal": "Data e hora da última alteração persistida.",
+      "source": "clinical_state_repository",
+      "user_visible": false,
+      "initial_state_allows_null": true
+    },
+    "anamnesis": {
+      "type": "object",
+      "required": true,
+      "description_internal": "Estado agregado da anamnese estruturada.",
+      "source": "anamnesis_flow",
+      "user_visible": false,
+      "additional_properties": false,
+      "properties": {
+        "completion_ratio": {
+          "type": "number",
+          "required": true,
+          "description_internal": "Proporção de conclusão calculada a partir dos módulos e itens aplicáveis.",
+          "source": "anamnesis_flow",
+          "user_visible": false,
+          "min": 0,
+          "max": 1
+        },
+        "completed_module_ids": {
+          "type": "string[]",
+          "required": true,
+          "description_internal": "Módulos concluídos pelo usuário.",
+          "source": "anamnesis_flow",
+          "user_visible": false,
+          "items_reference": "anamnesis_modules.modules.id",
+          "unique_items": true
+        },
+        "completed_at": {
+          "type": "ISO8601|null",
+          "required": true,
+          "description_internal": "Momento em que a anamnese atingiu o critério de conclusão.",
+          "source": "anamnesis_flow",
+          "user_visible": false
+        },
+        "answers_index": {
+          "type": "object",
+          "required": true,
+          "description_internal": "Índice question_id → resposta normalizada; texto livre sensível não deve ser mantido aqui.",
+          "source": "anamnesis_flow",
+          "user_visible": false,
+          "key_reference": "anamnesis_modules.questions.id",
+          "value_schema": {
+            "type": "object",
+            "required_fields": [
+              "value",
+              "answered_at",
+              "source",
+              "skipped"
+            ],
+            "properties": {
+              "value": {
+                "type": "boolean|number|string|string[]|null",
+                "required": true,
+                "description_internal": "Resposta normalizada de acordo com o tipo da pergunta.",
+                "source": "anamnesis_flow",
+                "user_visible": false
+              },
+              "answered_at": {
+                "type": "ISO8601",
+                "required": true,
+                "description_internal": "Momento em que a resposta foi persistida.",
+                "source": "anamnesis_flow",
+                "user_visible": false
+              },
+              "source": {
+                "type": "string",
+                "required": true,
+                "description_internal": "Origem da resposta.",
+                "source": "anamnesis_flow",
+                "user_visible": false,
+                "enum": [
+                  "anamnesis"
+                ]
+              },
+              "skipped": {
+                "type": "boolean",
+                "required": true,
+                "description_internal": "Indica que a pergunta foi exibida, mas não respondida.",
+                "source": "anamnesis_flow",
+                "user_visible": false
+              }
+            }
+          }
+        },
+        "last_updated_at": {
+          "type": "ISO8601|null",
+          "required": true,
+          "description_internal": "Momento da última resposta ou alteração na anamnese.",
+          "source": "anamnesis_flow",
+          "user_visible": false
+        }
+      }
+    },
+    "anamnesis_completion": {
+      "type": "number",
+      "required": true,
+      "description_internal": "Alias temporário para compatibilidade com integrações antigas.",
+      "source": "compatibility_layer",
+      "user_visible": false,
+      "min": 0,
+      "max": 1,
+      "deprecated": true,
+      "deprecated_alias_of": "anamnesis.completion_ratio"
+    },
+    "symptom_scores": {
+      "type": "object",
+      "required": true,
+      "description_internal": "Mapa symptom_id → valor normalizado atual.",
+      "source": "symptom_normalizer",
+      "user_visible": false,
+      "key_reference": "symptom_dictionary.symptoms.id",
+      "value_schema": {
+        "type": "number|boolean|string",
+        "constraints_from_reference": "symptom_dictionary.symptoms.value_type_and_score_range"
+      },
+      "replace_on_recalc": true
+    },
+    "derived_metrics": {
+      "type": "object",
+      "required": true,
+      "description_internal": "Mapa metric_id → valor calculado a partir de respostas e histórico.",
+      "source": "derived_metrics_engine",
+      "user_visible": false,
+      "key_reference": "symptom_dictionary.derived_metrics.id",
+      "value_schema": {
+        "type": "number|boolean|string|null"
+      },
+      "replace_on_recalc": true
+    },
+    "instrument_scores": {
+      "type": "object",
+      "required": true,
+      "description_internal": "Mapa instrument_id → resultado interno do mini-instrumento.",
+      "source": "instrument_calculator",
+      "user_visible": false,
+      "key_reference": "instruments.instruments.id",
+      "item_schema": {
+        "type": "object",
+        "required_fields": [
+          "score",
+          "max_score",
+          "severity",
+          "valid",
+          "answered_ratio",
+          "calculated_at"
+        ],
+        "properties": {
+          "score": {
+            "type": "number",
+            "required": true,
+            "description_internal": "Pontuação calculada para o instrumento.",
+            "source": "instrument_calculator",
+            "user_visible": false,
+            "min": 0
+          },
+          "max_score": {
+            "type": "number",
+            "required": true,
+            "description_internal": "Pontuação máxima definida no catálogo do instrumento.",
+            "source": "instruments.json",
+            "user_visible": false,
+            "gt": 0
+          },
+          "severity": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Faixa interna calculada; nunca deve ser exibida ao usuário.",
+            "source": "instrument_calculator",
+            "user_visible": false,
+            "enum": [
+              "minimal",
+              "mild",
+              "moderate",
+              "moderately_severe",
+              "severe"
+            ]
+          },
+          "valid": {
+            "type": "boolean",
+            "required": true,
+            "description_internal": "Indica se o mínimo de respostas foi atingido.",
+            "source": "instrument_calculator",
+            "user_visible": false
+          },
+          "answered_ratio": {
+            "type": "number",
+            "required": true,
+            "description_internal": "Proporção de itens válidos respondidos.",
+            "source": "instrument_calculator",
+            "user_visible": false,
+            "min": 0,
+            "max": 1
+          },
+          "calculated_at": {
+            "type": "ISO8601",
+            "required": true,
+            "description_internal": "Momento do cálculo.",
+            "source": "instrument_calculator",
+            "user_visible": false
+          }
+        }
+      },
+      "replace_on_recalc": true
+    },
+    "track_scores_raw": {
+      "type": "object",
+      "required": true,
+      "description_internal": "Mapa track_id → pontos acumulados antes de normalização e tier.",
+      "source": "scoring_rules_engine",
+      "user_visible": false,
+      "key_reference": "disorder_tracks.id",
+      "value_schema": {
+        "type": "number",
+        "min": 0
+      },
+      "replace_on_recalc": true
+    },
+    "active_hypotheses": {
+      "type": "array",
+      "required": true,
+      "description_internal": "Objetos internos de hipótese produzidos pelo hypothesis_engine.",
+      "source": "hypothesis_engine",
+      "user_visible": false,
+      "max_items": 14,
+      "item_schema": {
+        "type": "object",
+        "required_fields": [
+          "track",
+          "score",
+          "tier",
+          "status",
+          "confidence",
+          "evidence_summary",
+          "evidence_tags",
+          "evidence_count",
+          "is_primary",
+          "is_secondary",
+          "last_updated_at",
+          "engine_version"
+        ],
+        "properties": {
+          "track": {
+            "type": "string",
+            "required": true,
+            "description_internal": "ID do track interno associado.",
+            "source": "hypothesis_engine",
+            "user_visible": false,
+            "reference": "disorder_tracks.id"
+          },
+          "score": {
+            "type": "number",
+            "required": true,
+            "description_internal": "Score normalizado do track.",
+            "source": "hypothesis_engine",
+            "user_visible": false,
+            "min": 0,
+            "max": 100
+          },
+          "tier": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Faixa interna de sinal.",
+            "source": "hypothesis_engine",
+            "user_visible": false,
+            "enum": [
+              "low_signal",
+              "moderate_signal",
+              "high_signal",
+              "insufficient_data"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Estado operacional interno da hipótese.",
+            "source": "hypothesis_engine",
+            "user_visible": false,
+            "enum": [
+              "active",
+              "monitoring",
+              "attenuated",
+              "suppressed",
+              "inactive",
+              "insufficient_data"
+            ]
+          },
+          "confidence": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Confiança interna da hipótese.",
+            "source": "hypothesis_engine",
+            "user_visible": false,
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "evidence_summary": {
+            "type": "string[]",
+            "required": true,
+            "description_internal": "Resumos auditáveis para equipe autorizada.",
+            "source": "hypothesis_engine",
+            "user_visible": false,
+            "max_items": 8
+          },
+          "evidence_tags": {
+            "type": "string[]",
+            "required": true,
+            "description_internal": "Tags de evidência que sustentam o item.",
+            "source": "hypothesis_engine",
+            "user_visible": false,
+            "reference": "scoring_rules.rules.then.add_evidence",
+            "unique_items": true
+          },
+          "evidence_count": {
+            "type": "integer",
+            "required": true,
+            "description_internal": "Quantidade de tags distintas.",
+            "source": "hypothesis_engine",
+            "user_visible": false,
+            "min": 0
+          },
+          "is_primary": {
+            "type": "boolean",
+            "required": true,
+            "description_internal": "Indica seleção como track principal.",
+            "source": "hypothesis_engine",
+            "user_visible": false
+          },
+          "is_secondary": {
+            "type": "boolean",
+            "required": true,
+            "description_internal": "Indica seleção como track secundário.",
+            "source": "hypothesis_engine",
+            "user_visible": false
+          },
+          "last_updated_at": {
+            "type": "ISO8601",
+            "required": true,
+            "description_internal": "Momento do último cálculo deste item.",
+            "source": "hypothesis_engine",
+            "user_visible": false
+          },
+          "engine_version": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Versão do motor que produziu o item.",
+            "source": "hypothesis_engine",
+            "user_visible": false,
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          }
+        }
+      },
+      "replace_on_recalc": true
+    },
+    "primary_track_id": {
+      "type": "string|null",
+      "required": true,
+      "description_internal": "Track interno selecionado como principal para o planner.",
+      "source": "hypothesis_engine",
+      "user_visible": false,
+      "internal_only": true,
+      "reference": "disorder_tracks.id"
+    },
+    "secondary_track_ids": {
+      "type": "string[]",
+      "required": true,
+      "description_internal": "Tracks internos secundários selecionados para o planner.",
+      "source": "hypothesis_engine",
+      "user_visible": false,
+      "internal_only": true,
+      "reference": "disorder_tracks.id",
+      "unique_items": true,
+      "max_items": 2
+    },
+    "symptom_timeline": {
+      "type": "array",
+      "required": true,
+      "description_internal": "Snapshots diários usados para tendência temporal; no máximo um item por data.",
+      "source": "timeline_aggregator",
+      "user_visible": false,
+      "max_items": 365,
+      "append_only": true,
+      "deduplicate_by": "date",
+      "item_schema": {
+        "type": "object",
+        "required_fields": [
+          "date",
+          "symptom_scores_snapshot",
+          "derived_metrics_snapshot",
+          "check_in_id",
+          "source"
+        ],
+        "properties": {
+          "date": {
+            "type": "YYYY-MM-DD",
+            "required": true,
+            "description_internal": "Data local do snapshot.",
+            "source": "timeline_aggregator",
+            "user_visible": false
+          },
+          "symptom_scores_snapshot": {
+            "type": "object",
+            "required": true,
+            "description_internal": "Cópia dos valores de sintomas no fechamento do dia.",
+            "source": "timeline_aggregator",
+            "user_visible": false,
+            "key_reference": "symptom_dictionary.symptoms.id"
+          },
+          "derived_metrics_snapshot": {
+            "type": "object",
+            "required": true,
+            "description_internal": "Cópia das métricas temporais e funcionais do dia.",
+            "source": "timeline_aggregator",
+            "user_visible": false,
+            "key_reference": "symptom_dictionary.derived_metrics.id"
+          },
+          "check_in_id": {
+            "type": "string|null",
+            "required": true,
+            "description_internal": "ID do check-in relacionado, quando houver.",
+            "source": "timeline_aggregator",
+            "user_visible": false
+          },
+          "source": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Evento que originou o snapshot.",
+            "source": "timeline_aggregator",
+            "user_visible": false,
+            "enum": [
+              "check_in",
+              "anamnesis",
+              "engine_recalc"
+            ]
+          }
+        }
+      }
+    },
+    "check_in_summary_7d": {
+      "type": "object",
+      "required": true,
+      "description_internal": "Agregados determinísticos dos últimos sete dias para regras temporais.",
+      "source": "check_in_aggregator",
+      "user_visible": false,
+      "additional_properties": false,
+      "properties": {
+        "mood_counts": {
+          "type": "object",
+          "required": true,
+          "description_internal": "Contagem por mood id nos últimos sete dias.",
+          "source": "check_in_aggregator",
+          "user_visible": false,
+          "allowed_keys": [
+            "very-good",
+            "good",
+            "neutral",
+            "bad",
+            "very-bad"
+          ],
+          "value_schema": {
+            "type": "integer",
+            "min": 0,
+            "max": 7
+          }
+        },
+        "emotion_counts": {
+          "type": "object",
+          "required": true,
+          "description_internal": "Contagem por emoção nos últimos sete dias.",
+          "source": "check_in_aggregator",
+          "user_visible": false,
+          "value_schema": {
+            "type": "integer",
+            "min": 0,
+            "max": 7
+          }
+        },
+        "dominant_emotions": {
+          "type": "string[]",
+          "required": true,
+          "description_internal": "Emoções mais frequentes no período.",
+          "source": "check_in_aggregator",
+          "user_visible": false,
+          "unique_items": true
+        },
+        "negative_influence_days": {
+          "type": "integer",
+          "required": true,
+          "description_internal": "Dias com influência principal negativa.",
+          "source": "check_in_aggregator",
+          "user_visible": false,
+          "min": 0,
+          "max": 7
+        },
+        "completed_days": {
+          "type": "integer",
+          "required": true,
+          "description_internal": "Quantidade de dias com check-in concluído.",
+          "source": "check_in_aggregator",
+          "user_visible": false,
+          "min": 0,
+          "max": 7
+        }
+      }
+    },
+    "evidence_log": {
+      "type": "array",
+      "required": true,
+      "description_internal": "Registro auditável e append-only das evidências disparadas; aplica truncamento FIFO.",
+      "source": "scoring_rules_engine",
+      "user_visible": false,
+      "max_items": 200,
+      "append_only": true,
+      "overflow_policy": "truncate_fifo",
+      "item_schema": {
+        "type": "object",
+        "required_fields": [
+          "evidence_tag",
+          "rule_id",
+          "track",
+          "points",
+          "fired_at"
+        ],
+        "properties": {
+          "evidence_tag": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Tag auditável produzida por uma regra.",
+            "source": "scoring_rules_engine",
+            "user_visible": false,
+            "reference": "scoring_rules.rules.then.add_evidence"
+          },
+          "rule_id": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Regra que disparou a evidência.",
+            "source": "scoring_rules_engine",
+            "user_visible": false,
+            "reference": "scoring_rules.rules.id"
+          },
+          "track": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Track que recebeu o efeito da regra.",
+            "source": "scoring_rules_engine",
+            "user_visible": false,
+            "reference": "disorder_tracks.id"
+          },
+          "points": {
+            "type": "number",
+            "required": true,
+            "description_internal": "Pontos adicionados, subtraídos ou zero para evidência de segurança.",
+            "source": "scoring_rules_engine",
+            "user_visible": false
+          },
+          "fired_at": {
+            "type": "ISO8601",
+            "required": true,
+            "description_internal": "Momento do disparo.",
+            "source": "scoring_rules_engine",
+            "user_visible": false
+          }
+        }
+      }
+    },
+    "active_red_flags": {
+      "type": "array",
+      "required": true,
+      "description_internal": "Flags de segurança atualmente abertas ou reconhecidas.",
+      "source": "red_flags_engine",
+      "user_visible": false,
+      "item_schema": {
+        "type": "object",
+        "required_fields": [
+          "red_flag_id",
+          "severity",
+          "triggered_at",
+          "trigger_rule_id",
+          "status",
+          "resolved_at"
+        ],
+        "properties": {
+          "red_flag_id": {
+            "type": "string",
+            "required": true,
+            "description_internal": "ID da flag de segurança.",
+            "source": "red_flags_engine",
+            "user_visible": false,
+            "reference": "red_flags.red_flags.id"
+          },
+          "severity": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Nível interno de segurança.",
+            "source": "red_flags_engine",
+            "user_visible": false,
+            "enum": [
+              "S0",
+              "S1",
+              "S2",
+              "S3"
+            ]
+          },
+          "triggered_at": {
+            "type": "ISO8601",
+            "required": true,
+            "description_internal": "Momento do primeiro disparo no ciclo aberto.",
+            "source": "red_flags_engine",
+            "user_visible": false
+          },
+          "trigger_rule_id": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Regra de gatilho que abriu a flag.",
+            "source": "red_flags_engine",
+            "user_visible": false,
+            "reference": "red_flags.trigger_rules.id"
+          },
+          "status": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Estado operacional da flag ativa.",
+            "source": "red_flags_engine",
+            "user_visible": false,
+            "enum": [
+              "open",
+              "acknowledged",
+              "resolved",
+              "false_positive"
+            ]
+          },
+          "resolved_at": {
+            "type": "ISO8601|null",
+            "required": true,
+            "description_internal": "Momento de resolução, quando aplicável.",
+            "source": "red_flags_engine",
+            "user_visible": false
+          }
+        }
+      }
+    },
+    "risk_events": {
+      "type": "array",
+      "required": true,
+      "description_internal": "Histórico append-only de eventos de risco alinhado ao audit_log_schema.",
+      "source": "red_flags_engine",
+      "user_visible": false,
+      "append_only": true,
+      "item_schema": {
+        "type": "object",
+        "required_fields": [
+          "event_id",
+          "red_flag_id",
+          "severity",
+          "trigger_rule_id",
+          "triggered_at",
+          "source",
+          "actions_taken",
+          "resolution_status",
+          "staff_notified_at",
+          "notes_internal"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "uuid",
+            "required": true,
+            "description_internal": "Identificador imutável do evento.",
+            "source": "red_flags_engine",
+            "user_visible": false,
+            "immutable": true
+          },
+          "red_flag_id": {
+            "type": "string",
+            "required": true,
+            "description_internal": "ID emitido no momento do evento.",
+            "source": "red_flags_engine",
+            "user_visible": false,
+            "reference": "red_flags.red_flags.id"
+          },
+          "canonical_red_flag_id": {
+            "type": "string|null",
+            "required": false,
+            "description_internal": "ID canônico usado para deduplicação, quando o evento usa alias.",
+            "source": "red_flags_engine",
+            "user_visible": false,
+            "reference": "red_flags.red_flags.id"
+          },
+          "severity": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Gravidade interna do evento.",
+            "source": "red_flags_engine",
+            "user_visible": false,
+            "enum": [
+              "S0",
+              "S1",
+              "S2",
+              "S3"
+            ]
+          },
+          "trigger_rule_id": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Regra determinística responsável pelo disparo.",
+            "source": "red_flags_engine",
+            "user_visible": false,
+            "reference": "red_flags.trigger_rules.id"
+          },
+          "triggered_at": {
+            "type": "ISO8601",
+            "required": true,
+            "description_internal": "Momento do disparo.",
+            "source": "red_flags_engine",
+            "user_visible": false
+          },
+          "source": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Origem operacional do evento.",
+            "source": "red_flags_engine",
+            "user_visible": false,
+            "enum": [
+              "anamnesis",
+              "check_in",
+              "scoring_rule",
+              "manual"
+            ]
+          },
+          "actions_taken": {
+            "type": "string[]",
+            "required": true,
+            "description_internal": "Ações executadas pelo protocolo.",
+            "source": "red_flags_engine",
+            "user_visible": false
+          },
+          "resolution_status": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Estado de acompanhamento do evento.",
+            "source": "red_flags_engine",
+            "user_visible": false,
+            "enum": [
+              "open",
+              "acknowledged",
+              "contacted",
+              "resolved",
+              "false_positive"
+            ]
+          },
+          "staff_notified_at": {
+            "type": "ISO8601|null",
+            "required": true,
+            "description_internal": "Momento em que a equipe foi notificada.",
+            "source": "red_flags_engine",
+            "user_visible": false
+          },
+          "notes_internal": {
+            "type": "string|null",
+            "required": true,
+            "description_internal": "Observação restrita da equipe ou do sistema.",
+            "source": "red_flags_engine|clinical_staff",
+            "user_visible": false
+          }
+        }
+      }
+    },
+    "plan_state": {
+      "type": "object",
+      "required": true,
+      "description_internal": "Estado resumido do planner diário e do pacote vigente.",
+      "source": "daily_planner",
+      "user_visible": false,
+      "additional_properties": false,
+      "properties": {
+        "last_plan_date": {
+          "type": "YYYY-MM-DD|null",
+          "required": true,
+          "description_internal": "Data do último plano gerado.",
+          "source": "daily_planner",
+          "user_visible": false
+        },
+        "last_plan_generated_at": {
+          "type": "ISO8601|null",
+          "required": true,
+          "description_internal": "Momento de geração do último plano.",
+          "source": "daily_planner",
+          "user_visible": false
+        },
+        "last_plan_blocked": {
+          "type": "boolean",
+          "required": true,
+          "description_internal": "Indica se o último plano foi bloqueado ou suspenso.",
+          "source": "daily_planner",
+          "user_visible": false
+        },
+        "last_block_reason": {
+          "type": "string|null",
+          "required": true,
+          "description_internal": "Motivo interno do bloqueio.",
+          "source": "daily_planner",
+          "user_visible": false,
+          "enum": [
+            "red_flag",
+            "insufficient_data",
+            null
+          ]
+        },
+        "current_plan_id": {
+          "type": "uuid|null",
+          "required": true,
+          "description_internal": "Identificador do plano atual produzido pelo selection engine.",
+          "source": "daily_planner",
+          "user_visible": false
+        },
+        "planner_status": {
+          "type": "string|null",
+          "required": true,
+          "description_internal": "Status técnico do último resultado do activity selection engine.",
+          "source": "daily_planner",
+          "user_visible": false,
+          "enum": [
+            "ready",
+            "safety_bridge_only",
+            "suspended_for_safety",
+            "awaiting_support_route",
+            "insufficient_data_limited",
+            "no_time_fit",
+            "needs_preference_update",
+            null
+          ]
+        },
+        "adherence_7d": {
+          "type": "number",
+          "required": true,
+          "description_internal": "Proporção de atividades atribuídas concluídas nos últimos sete dias.",
+          "source": "adherence_aggregator",
+          "user_visible": false,
+          "min": 0,
+          "max": 1
+        },
+        "completed_yesterday": {
+          "type": "boolean",
+          "required": true,
+          "description_internal": "Indica se ao menos uma atividade foi concluída no dia anterior.",
+          "source": "adherence_aggregator",
+          "user_visible": false
+        }
+      }
+    },
+    "last_plan_date": {
+      "type": "YYYY-MM-DD|null",
+      "required": true,
+      "description_internal": "Alias temporário para plan_state.last_plan_date.",
+      "source": "compatibility_layer",
+      "user_visible": false,
+      "deprecated": true,
+      "deprecated_alias_of": "plan_state.last_plan_date"
+    },
+    "activity_history": {
+      "type": "array",
+      "required": true,
+      "description_internal": "Histórico de execução das atividades atribuídas pelo planner.",
+      "source": "plan_executor",
+      "user_visible": false,
+      "max_items": 500,
+      "overflow_policy": "truncate_fifo_preserve_risk_linked_records",
+      "item_schema": {
+        "type": "object",
+        "required_fields": [
+          "activity_id",
+          "plan_id",
+          "plan_date",
+          "slot",
+          "status",
+          "assigned_at",
+          "completed_at",
+          "duration_actual_sec",
+          "feedback",
+          "feedback_at",
+          "matched_rule_id"
+        ],
+        "properties": {
+          "activity_id": {
+            "type": "string",
+            "required": true,
+            "description_internal": "ID da atividade do catálogo.",
+            "source": "daily_planner",
+            "user_visible": false,
+            "reference": "activity_catalog.activities.id"
+          },
+          "plan_id": {
+            "type": "uuid|null",
+            "required": true,
+            "description_internal": "Plano diário que atribuiu a atividade.",
+            "source": "daily_planner",
+            "user_visible": false
+          },
+          "plan_date": {
+            "type": "YYYY-MM-DD",
+            "required": true,
+            "description_internal": "Data local do plano.",
+            "source": "daily_planner",
+            "user_visible": false
+          },
+          "slot": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Slot de apresentação.",
+            "source": "plan_templates",
+            "user_visible": false,
+            "enum": [
+              "now",
+              "daytime",
+              "evening"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "required": true,
+            "description_internal": "Estado da execução.",
+            "source": "plan_executor",
+            "user_visible": false,
+            "enum": [
+              "assigned",
+              "started",
+              "completed",
+              "skipped",
+              "blocked"
+            ]
+          },
+          "assigned_at": {
+            "type": "ISO8601",
+            "required": true,
+            "description_internal": "Momento de atribuição.",
+            "source": "daily_planner",
+            "user_visible": false
+          },
+          "completed_at": {
+            "type": "ISO8601|null",
+            "required": true,
+            "description_internal": "Momento da conclusão.",
+            "source": "plan_executor",
+            "user_visible": false
+          },
+          "duration_actual_sec": {
+            "type": "number|null",
+            "required": true,
+            "description_internal": "Duração real quando medida.",
+            "source": "plan_executor",
+            "user_visible": false,
+            "min": 0
+          },
+          "feedback": {
+            "type": "string|null",
+            "required": true,
+            "description_internal": "Retorno normalizado após a atividade.",
+            "source": "plan_executor",
+            "user_visible": false,
+            "enum": [
+              "helpful",
+              "somewhat",
+              "not_helpful",
+              "made_worse",
+              null
+            ]
+          },
+          "feedback_at": {
+            "type": "ISO8601|null",
+            "required": true,
+            "description_internal": "Momento do feedback.",
+            "source": "plan_executor",
+            "user_visible": false
+          },
+          "matched_rule_id": {
+            "type": "string|null",
+            "required": true,
+            "description_internal": "Regra de seleção que contribuiu para a escolha.",
+            "source": "daily_planner",
+            "user_visible": false,
+            "reference": "activity_selection_rules.selection_rules.id"
+          }
+        }
+      }
+    },
+    "profile_snapshot": {
+      "type": "object",
+      "required": true,
+      "description_internal": "Snapshot mínimo das preferências usadas pelo planner, sem substituir o perfil principal.",
+      "source": "profile_sync",
+      "user_visible": false,
+      "additional_properties": false,
+      "properties": {
+        "care_focus": {
+          "type": "string[]",
+          "required": true,
+          "description_internal": "Focos de cuidado selecionados no onboarding.",
+          "source": "profile_sync",
+          "user_visible": false,
+          "enum_items": [
+            "anxiety",
+            "sadness",
+            "stress",
+            "sleep",
+            "relationships",
+            "work",
+            "loneliness",
+            "self-esteem",
+            "routine",
+            "undecided"
+          ]
+        },
+        "spirituality_preference": {
+          "type": "string|null",
+          "required": true,
+          "description_internal": "Preferência declarada para conteúdos de espiritualidade.",
+          "source": "profile_sync",
+          "user_visible": false,
+          "enum": [
+            "christian",
+            "non-religious",
+            "other-tradition",
+            "none",
+            "decide-later",
+            null
+          ]
+        },
+        "tracking_frequency": {
+          "type": "string|null",
+          "required": true,
+          "description_internal": "Frequência preferida de acompanhamento.",
+          "source": "profile_sync",
+          "user_visible": false
+        },
+        "captured_at": {
+          "type": "ISO8601|null",
+          "required": true,
+          "description_internal": "Momento em que o snapshot foi obtido.",
+          "source": "profile_sync",
+          "user_visible": false
+        }
+      }
+    },
+    "data_completeness": {
+      "type": "object",
+      "required": true,
+      "description_internal": "Indicadores usados para liberar hipóteses e planejamento.",
+      "source": "data_completeness_engine",
+      "user_visible": false,
+      "additional_properties": false,
+      "properties": {
+        "anamnesis_ratio": {
+          "type": "number",
+          "required": true,
+          "description_internal": "Razão de conclusão da anamnese.",
+          "source": "data_completeness_engine",
+          "user_visible": false,
+          "min": 0,
+          "max": 1
+        },
+        "valid_instruments_count": {
+          "type": "integer",
+          "required": true,
+          "description_internal": "Quantidade de instrumentos com score válido.",
+          "source": "data_completeness_engine",
+          "user_visible": false,
+          "min": 0
+        },
+        "symptoms_scored_count": {
+          "type": "integer",
+          "required": true,
+          "description_internal": "Quantidade de tokens com valor calculado.",
+          "source": "data_completeness_engine",
+          "user_visible": false,
+          "min": 0
+        },
+        "check_ins_7d_count": {
+          "type": "integer",
+          "required": true,
+          "description_internal": "Quantidade de check-ins concluídos nos últimos sete dias.",
+          "source": "data_completeness_engine",
+          "user_visible": false,
+          "min": 0,
+          "max": 7
+        },
+        "sufficient_for_hypothesis": {
+          "type": "boolean",
+          "required": true,
+          "description_internal": "Indica se os mínimos do hypothesis_engine foram atingidos.",
+          "source": "data_completeness_engine",
+          "user_visible": false
+        },
+        "sufficient_for_plan": {
+          "type": "boolean",
+          "required": true,
+          "description_internal": "Indica se há dados e segurança suficientes para o planner.",
+          "source": "data_completeness_engine",
+          "user_visible": false
+        }
+      }
+    },
+    "recalc_meta": {
+      "type": "object",
+      "required": true,
+      "description_internal": "Metadados do último ciclo de recálculo.",
+      "source": "engine_orchestrator",
+      "user_visible": false,
+      "additional_properties": false,
+      "properties": {
+        "last_engine_run_at": {
+          "type": "ISO8601|null",
+          "required": true,
+          "description_internal": "Momento do último ciclo completo.",
+          "source": "engine_orchestrator",
+          "user_visible": false
+        },
+        "last_engine_run_trigger": {
+          "type": "string|null",
+          "required": true,
+          "description_internal": "Evento que iniciou o último ciclo.",
+          "source": "engine_orchestrator",
+          "user_visible": false,
+          "enum": [
+            "anamnesis_module_completed",
+            "anamnesis_completed",
+            "check_in",
+            "activity_completed",
+            "activity_feedback_submitted",
+            "red_flag_triggered",
+            "red_flag_resolved",
+            "daily_cron",
+            "manual",
+            null
+          ]
+        },
+        "rules_version": {
+          "type": "string",
+          "required": true,
+          "description_internal": "Versão do conjunto de regras.",
+          "source": "engine_orchestrator",
+          "user_visible": false,
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "content_version": {
+          "type": "string",
+          "required": true,
+          "description_internal": "Versão dos catálogos de conteúdo.",
+          "source": "engine_orchestrator",
+          "user_visible": false,
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        }
+      }
+    }
+  },
+  "initial_state": {
+    "user_id": "{{user_id}}",
+    "engine_version": "1.0.0",
+    "created_at": null,
+    "updated_at": null,
+    "anamnesis": {
+      "completion_ratio": 0,
+      "completed_module_ids": [],
+      "completed_at": null,
+      "answers_index": {},
+      "last_updated_at": null
+    },
+    "anamnesis_completion": 0,
+    "symptom_scores": {},
+    "derived_metrics": {},
+    "instrument_scores": {},
+    "track_scores_raw": {},
+    "active_hypotheses": [],
+    "primary_track_id": null,
+    "secondary_track_ids": [],
+    "symptom_timeline": [],
+    "check_in_summary_7d": {
+      "mood_counts": {},
+      "emotion_counts": {},
+      "dominant_emotions": [],
+      "negative_influence_days": 0,
+      "completed_days": 0
+    },
+    "evidence_log": [],
+    "active_red_flags": [],
+    "risk_events": [],
+    "plan_state": {
+      "last_plan_date": null,
+      "last_plan_generated_at": null,
+      "last_plan_blocked": false,
+      "last_block_reason": null,
+      "current_plan_id": null,
+      "planner_status": null,
+      "adherence_7d": 0,
+      "completed_yesterday": false
+    },
+    "last_plan_date": null,
+    "activity_history": [],
+    "profile_snapshot": {
+      "care_focus": [],
+      "spirituality_preference": null,
+      "tracking_frequency": null,
+      "captured_at": null
+    },
+    "data_completeness": {
+      "anamnesis_ratio": 0,
+      "valid_instruments_count": 0,
+      "symptoms_scored_count": 0,
+      "check_ins_7d_count": 0,
+      "sufficient_for_hypothesis": false,
+      "sufficient_for_plan": false
+    },
+    "recalc_meta": {
+      "last_engine_run_at": null,
+      "last_engine_run_trigger": null,
+      "rules_version": "1.0.0",
+      "content_version": "1.0.0"
+    }
+  },
+  "field_provenance": {
+    "user_id": {
+      "written_by": "identity_service",
+      "on_event": "state_created",
+      "immutable": true
+    },
+    "engine_version": {
+      "written_by": "migration_runner|engine_orchestrator",
+      "on_event": [
+        "state_created",
+        "schema_migrated"
+      ]
+    },
+    "created_at": {
+      "written_by": "clinical_state_repository",
+      "on_event": "state_created",
+      "immutable": true
+    },
+    "updated_at": {
+      "written_by": "clinical_state_repository",
+      "on_event": "any_successful_state_write",
+      "formula": "server_timestamp"
+    },
+    "anamnesis.completion_ratio": {
+      "written_by": "anamnesis_flow",
+      "on_event": [
+        "anamnesis_module_completed",
+        "anamnesis_answer_updated"
+      ],
+      "formula": "completed_applicable_required_units / total_applicable_required_units"
+    },
+    "anamnesis.completed_module_ids": {
+      "written_by": "anamnesis_flow",
+      "on_event": "anamnesis_module_completed",
+      "inputs": [
+        "anamnesis_modules.modules"
+      ]
+    },
+    "anamnesis.completed_at": {
+      "written_by": "anamnesis_flow",
+      "on_event": "anamnesis_completed"
+    },
+    "anamnesis.answers_index": {
+      "written_by": "anamnesis_flow",
+      "on_event": [
+        "anamnesis_answer_created",
+        "anamnesis_answer_updated"
+      ],
+      "inputs": [
+        "anamnesis_modules.questions"
+      ],
+      "free_text_policy": "store_reference_only_for_text_optional"
+    },
+    "anamnesis.last_updated_at": {
+      "written_by": "anamnesis_flow",
+      "on_event": [
+        "anamnesis_answer_created",
+        "anamnesis_answer_updated"
+      ]
+    },
+    "anamnesis_completion": {
+      "written_by": "compatibility_layer",
+      "on_event": "anamnesis.completion_ratio_changed",
+      "formula": "copy(anamnesis.completion_ratio)",
+      "deprecated": true
+    },
+    "symptom_scores": {
+      "written_by": "symptom_normalizer",
+      "on_event": [
+        "anamnesis_answer",
+        "check_in_completed",
+        "engine_recalc"
+      ],
+      "inputs": [
+        "anamnesis_modules.maps_to",
+        "symptom_dictionary"
+      ],
+      "write_mode": "replace_current_map"
+    },
+    "derived_metrics": {
+      "written_by": "derived_metrics_engine",
+      "on_event": [
+        "anamnesis_answer",
+        "check_in_completed",
+        "daily_cron"
+      ],
+      "inputs": [
+        "symptom_dictionary.derived_metrics",
+        "symptom_timeline",
+        "check_in_summary_7d"
+      ],
+      "write_mode": "replace_current_map"
+    },
+    "instrument_scores.*": {
+      "written_by": "instrument_calculator",
+      "on_event": [
+        "anamnesis_completed",
+        "partial_recalc"
+      ],
+      "inputs": [
+        "instruments.json",
+        "anamnesis.answers_index"
+      ],
+      "write_mode": "replace_by_instrument_id"
+    },
+    "track_scores_raw": {
+      "written_by": "scoring_rules_engine",
+      "on_event": "engine_recalc",
+      "inputs": [
+        "scoring_rules.json",
+        "symptom_scores",
+        "derived_metrics",
+        "instrument_scores"
+      ],
+      "write_mode": "replace_current_map"
+    },
+    "active_hypotheses": {
+      "written_by": "hypothesis_engine",
+      "on_event": "engine_recalc",
+      "inputs": [
+        "hypothesis_engine.json",
+        "track_scores_raw",
+        "evidence_log",
+        "data_completeness",
+        "active_red_flags"
+      ],
+      "write_mode": "replace_collection"
+    },
+    "primary_track_id": {
+      "written_by": "hypothesis_engine",
+      "on_event": "engine_recalc",
+      "inputs": [
+        "active_hypotheses",
+        "hypothesis_engine.primary_track_rules"
+      ]
+    },
+    "secondary_track_ids": {
+      "written_by": "hypothesis_engine",
+      "on_event": "engine_recalc",
+      "inputs": [
+        "active_hypotheses",
+        "hypothesis_engine.primary_track_rules"
+      ]
+    },
+    "symptom_timeline": {
+      "written_by": "timeline_aggregator",
+      "on_event": [
+        "daily_snapshot",
+        "check_in_completed"
+      ],
+      "frequency": "max_1_per_day_per_user",
+      "write_mode": "upsert_by_date_then_append"
+    },
+    "check_in_summary_7d": {
+      "written_by": "check_in_aggregator",
+      "on_event": [
+        "check_in_completed",
+        "daily_cron"
+      ],
+      "window": "rolling_7_days",
+      "write_mode": "replace_object"
+    },
+    "evidence_log": {
+      "written_by": "scoring_rules_engine",
+      "on_event": "rule_fired",
+      "append_only": true,
+      "overflow_policy": "truncate_fifo_at_200"
+    },
+    "active_red_flags": {
+      "written_by": "red_flags_engine",
+      "on_event": [
+        "anamnesis_answer",
+        "check_in",
+        "engine_recalc",
+        "red_flag_resolved"
+      ],
+      "inputs": [
+        "red_flags.json"
+      ],
+      "write_mode": "upsert_by_red_flag_id_and_open_cycle"
+    },
+    "risk_events": {
+      "written_by": "red_flags_engine",
+      "on_event": [
+        "red_flag_triggered",
+        "red_flag_status_updated"
+      ],
+      "append_only": true,
+      "status_update_policy": "append_resolution_event_or_update_designated_mutable_resolution_fields_only"
+    },
+    "plan_state": {
+      "written_by": "daily_planner",
+      "on_event": [
+        "plan_generated",
+        "plan_blocked",
+        "daily_adherence_recalculated"
+      ],
+      "inputs": [
+        "activity_selection_rules.json",
+        "plan_templates.json",
+        "active_hypotheses",
+        "active_red_flags"
+      ]
+    },
+    "last_plan_date": {
+      "written_by": "compatibility_layer",
+      "on_event": "plan_state.last_plan_date_changed",
+      "formula": "copy(plan_state.last_plan_date)",
+      "deprecated": true
+    },
+    "activity_history": {
+      "written_by": "plan_executor",
+      "on_event": [
+        "plan_generated",
+        "activity_started",
+        "activity_completed",
+        "activity_skipped",
+        "activity_blocked",
+        "activity_feedback_submitted"
+      ],
+      "inputs": [
+        "activity_catalog.json",
+        "activity_selection_rules.json"
+      ],
+      "write_mode": "append_assignment_then_update_execution_fields"
+    },
+    "profile_snapshot": {
+      "written_by": "profile_sync",
+      "on_event": [
+        "state_created",
+        "profile_preferences_updated"
+      ],
+      "inputs": [
+        "onboarding_profile"
+      ]
+    },
+    "data_completeness": {
+      "written_by": "data_completeness_engine",
+      "on_event": [
+        "anamnesis_module_completed",
+        "instrument_recalculated",
+        "check_in_completed",
+        "engine_recalc"
+      ],
+      "inputs": [
+        "hypothesis_engine.global_settings",
+        "anamnesis",
+        "instrument_scores",
+        "symptom_scores"
+      ]
+    },
+    "recalc_meta": {
+      "written_by": "engine_orchestrator",
+      "on_event": "engine_recalc_completed",
+      "write_mode": "replace_object"
+    }
+  },
+  "validation_rules": [
+    {
+      "id": "val_user_id_required",
+      "field": "user_id",
+      "rule": "non_empty_string",
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_engine_version_semver",
+      "field": "engine_version",
+      "rule": "matches_pattern",
+      "value": "^\\d+\\.\\d+\\.\\d+$",
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_created_at_immutable",
+      "field": "created_at",
+      "rule": "immutable_after_create",
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_updated_after_created",
+      "field": "updated_at",
+      "rule": "gte_field",
+      "reference_field": "created_at",
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_anamnesis_ratio_range",
+      "field": "anamnesis.completion_ratio",
+      "rule": "number_between_inclusive",
+      "min": 0,
+      "max": 1,
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_anamnesis_alias_match",
+      "field": "anamnesis_completion",
+      "rule": "equals_field",
+      "reference_field": "anamnesis.completion_ratio",
+      "on_fail": "repair_from_canonical"
+    },
+    {
+      "id": "val_completed_modules_exist",
+      "field": "anamnesis.completed_module_ids[]",
+      "rule": "must_exist_in",
+      "reference": "anamnesis_modules.modules.id",
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_answer_question_ids_exist",
+      "field": "anamnesis.answers_index.keys",
+      "rule": "must_exist_in",
+      "reference": "anamnesis_modules.questions.id",
+      "on_fail": "quarantine_invalid_key"
+    },
+    {
+      "id": "val_symptom_ids_exist",
+      "field": "symptom_scores.keys",
+      "rule": "must_exist_in",
+      "reference": "symptom_dictionary.symptoms.id",
+      "on_fail": "quarantine_invalid_key"
+    },
+    {
+      "id": "val_metric_ids_exist",
+      "field": "derived_metrics.keys",
+      "rule": "must_exist_in",
+      "reference": "symptom_dictionary.derived_metrics.id",
+      "on_fail": "quarantine_invalid_key"
+    },
+    {
+      "id": "val_instrument_ids_exist",
+      "field": "instrument_scores.keys",
+      "rule": "must_exist_in",
+      "reference": "instruments.instruments.id",
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_instrument_score_range",
+      "field": "instrument_scores.*.score",
+      "rule": "between_zero_and_referenced_max_score",
+      "reference": "instruments.instruments.scoring.max_score",
+      "on_fail": "invalidate_instrument_score"
+    },
+    {
+      "id": "val_instrument_answered_ratio",
+      "field": "instrument_scores.*.answered_ratio",
+      "rule": "number_between_inclusive",
+      "min": 0,
+      "max": 1,
+      "on_fail": "invalidate_instrument_score"
+    },
+    {
+      "id": "val_track_score_ids_exist",
+      "field": "track_scores_raw.keys",
+      "rule": "must_exist_in",
+      "reference": "disorder_tracks.id",
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_hypothesis_track_exists",
+      "field": "active_hypotheses[].track",
+      "rule": "must_exist_in",
+      "reference": "disorder_tracks.id",
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_hypothesis_score_range",
+      "field": "active_hypotheses[].score",
+      "rule": "number_between_inclusive",
+      "min": 0,
+      "max": 100,
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_hypothesis_tier_enum",
+      "field": "active_hypotheses[].tier",
+      "rule": "enum",
+      "values": [
+        "low_signal",
+        "moderate_signal",
+        "high_signal",
+        "insufficient_data"
+      ],
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_hypothesis_status_enum",
+      "field": "active_hypotheses[].status",
+      "rule": "enum",
+      "values": [
+        "active",
+        "monitoring",
+        "attenuated",
+        "suppressed",
+        "inactive",
+        "insufficient_data"
+      ],
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_hypothesis_confidence_enum",
+      "field": "active_hypotheses[].confidence",
+      "rule": "enum",
+      "values": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_hypothesis_evidence_exists",
+      "field": "active_hypotheses[].evidence_tags[]",
+      "rule": "must_exist_in",
+      "reference": "scoring_rules.rules.then.add_evidence",
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_primary_unique",
+      "field": "active_hypotheses[].is_primary",
+      "rule": "max_true_count",
+      "max": 1,
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_secondary_limit",
+      "field": "active_hypotheses[].is_secondary",
+      "rule": "max_true_count",
+      "max": 2,
+      "on_fail": "truncate_by_rank"
+    },
+    {
+      "id": "val_primary_track_consistency",
+      "field": "primary_track_id",
+      "rule": "matches_unique_item_where",
+      "reference_collection": "active_hypotheses",
+      "predicate": {
+        "is_primary": true
+      },
+      "match_field": "track",
+      "allow_null_when_no_primary": true,
+      "on_fail": "repair_from_hypotheses"
+    },
+    {
+      "id": "val_timeline_max",
+      "field": "symptom_timeline",
+      "rule": "max_items",
+      "max": 365,
+      "on_fail": "truncate_fifo"
+    },
+    {
+      "id": "val_timeline_sorted",
+      "field": "symptom_timeline[].date",
+      "rule": "ordered_ascending",
+      "on_fail": "sort_ascending"
+    },
+    {
+      "id": "val_timeline_unique_date",
+      "field": "symptom_timeline[].date",
+      "rule": "unique",
+      "on_fail": "merge_same_date_latest_wins"
+    },
+    {
+      "id": "val_evidence_log_max",
+      "field": "evidence_log",
+      "rule": "max_items",
+      "max": 200,
+      "on_fail": "truncate_fifo"
+    },
+    {
+      "id": "val_evidence_log_refs",
+      "field": "evidence_log[]",
+      "rule": "references_exist",
+      "references": {
+        "rule_id": "scoring_rules.rules.id",
+        "evidence_tag": "scoring_rules.rules.then.add_evidence",
+        "track": "disorder_tracks.id"
+      },
+      "on_fail": "quarantine_invalid_item"
+    },
+    {
+      "id": "val_red_flag_id_exists",
+      "field": "active_red_flags[].red_flag_id",
+      "rule": "must_exist_in",
+      "reference": "red_flags.red_flags.id",
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_red_flag_severity_matches",
+      "field": "active_red_flags[]",
+      "rule": "field_matches_reference",
+      "field_name": "severity",
+      "reference": "red_flags.red_flags.severity",
+      "join_on": "red_flag_id",
+      "on_fail": "repair_from_reference"
+    },
+    {
+      "id": "val_risk_events_append_only",
+      "field": "risk_events",
+      "rule": "append_only",
+      "mutable_fields": [
+        "resolution_status",
+        "staff_notified_at",
+        "notes_internal"
+      ],
+      "on_fail": "reject_save_and_audit"
+    },
+    {
+      "id": "val_risk_event_unique_id",
+      "field": "risk_events[].event_id",
+      "rule": "unique",
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_activity_exists",
+      "field": "activity_history[].activity_id",
+      "rule": "must_exist_in",
+      "reference": "activity_catalog.activities.id",
+      "on_fail": "reject_save"
+    },
+    {
+      "id": "val_activity_rule_exists",
+      "field": "activity_history[].matched_rule_id",
+      "rule": "must_exist_in_or_null",
+      "reference": "activity_selection_rules.selection_rules.id",
+      "on_fail": "set_null_and_audit"
+    },
+    {
+      "id": "val_activity_history_max",
+      "field": "activity_history",
+      "rule": "max_items",
+      "max": 500,
+      "on_fail": "truncate_fifo_preserve_risk_linked"
+    },
+    {
+      "id": "val_plan_alias_match",
+      "field": "last_plan_date",
+      "rule": "equals_field",
+      "reference_field": "plan_state.last_plan_date",
+      "on_fail": "repair_from_canonical"
+    },
+    {
+      "id": "val_adherence_range",
+      "field": "plan_state.adherence_7d",
+      "rule": "number_between_inclusive",
+      "min": 0,
+      "max": 1,
+      "on_fail": "clamp_and_audit"
+    },
+    {
+      "id": "val_data_completeness_ranges",
+      "field": "data_completeness",
+      "rule": "composite_range_validation",
+      "ranges": {
+        "anamnesis_ratio": [
+          0,
+          1
+        ],
+        "check_ins_7d_count": [
+          0,
+          7
+        ]
+      },
+      "on_fail": "reject_save"
+    }
+  ],
+  "update_triggers": [
+    {
+      "id": "trigger_anamnesis_module_completed",
+      "event": "anamnesis_module_completed",
+      "updates": [
+        "anamnesis.completion_ratio",
+        "anamnesis.completed_module_ids",
+        "anamnesis.last_updated_at",
+        "anamnesis_completion",
+        "data_completeness"
+      ],
+      "recalculate_engine": "partial",
+      "may_generate_plan": false
+    },
+    {
+      "id": "trigger_anamnesis_completed",
+      "event": "anamnesis_completed",
+      "updates": [
+        "anamnesis.completed_at",
+        "symptom_scores",
+        "derived_metrics",
+        "instrument_scores",
+        "track_scores_raw",
+        "evidence_log",
+        "active_hypotheses",
+        "primary_track_id",
+        "secondary_track_ids",
+        "active_red_flags",
+        "data_completeness",
+        "recalc_meta"
+      ],
+      "recalculate_engine": "full",
+      "may_generate_plan": true
+    },
+    {
+      "id": "trigger_check_in_completed",
+      "event": "check_in_completed",
+      "updates": [
+        "symptom_scores",
+        "check_in_summary_7d",
+        "symptom_timeline",
+        "derived_metrics",
+        "track_scores_raw",
+        "evidence_log",
+        "active_hypotheses",
+        "active_red_flags",
+        "data_completeness",
+        "recalc_meta"
+      ],
+      "recalculate_engine": "full",
+      "may_generate_plan": true,
+      "idempotency_key": "user_id+check_in_id+event_version"
+    },
+    {
+      "id": "trigger_activity_completed",
+      "event": "activity_completed",
+      "updates": [
+        "activity_history",
+        "plan_state.adherence_7d",
+        "plan_state.completed_yesterday",
+        "updated_at"
+      ],
+      "recalculate_engine": "none",
+      "may_generate_plan": false
+    },
+    {
+      "id": "trigger_activity_feedback_submitted",
+      "event": "activity_feedback_submitted",
+      "updates": [
+        "activity_history",
+        "plan_state.adherence_7d",
+        "updated_at"
+      ],
+      "recalculate_engine": "planner_history_only",
+      "may_generate_plan": false
+    },
+    {
+      "id": "trigger_red_flag_triggered",
+      "event": "red_flag_triggered",
+      "updates": [
+        "active_red_flags",
+        "risk_events",
+        "plan_state.last_plan_blocked",
+        "plan_state.last_block_reason",
+        "plan_state.planner_status",
+        "active_hypotheses",
+        "primary_track_id",
+        "secondary_track_ids",
+        "recalc_meta"
+      ],
+      "recalculate_engine": "safety_override",
+      "may_generate_plan": false,
+      "suspend_current_plan": true
+    },
+    {
+      "id": "trigger_red_flag_resolved",
+      "event": "red_flag_resolved",
+      "updates": [
+        "active_red_flags",
+        "risk_events",
+        "track_scores_raw",
+        "active_hypotheses",
+        "data_completeness",
+        "recalc_meta"
+      ],
+      "recalculate_engine": "full",
+      "may_generate_plan": "only_after_safety_gate"
+    },
+    {
+      "id": "trigger_daily_cron",
+      "event": "daily_cron",
+      "updates": [
+        "check_in_summary_7d",
+        "symptom_timeline",
+        "derived_metrics",
+        "track_scores_raw",
+        "active_hypotheses",
+        "plan_state.adherence_7d",
+        "plan_state.completed_yesterday",
+        "data_completeness",
+        "recalc_meta"
+      ],
+      "recalculate_engine": "full_with_decay",
+      "may_generate_plan": false,
+      "idempotency_key": "user_id+local_date"
+    },
+    {
+      "id": "trigger_manual_staff_recalc",
+      "event": "manual_staff_recalc",
+      "updates": [
+        "symptom_scores",
+        "derived_metrics",
+        "instrument_scores",
+        "track_scores_raw",
+        "evidence_log",
+        "active_hypotheses",
+        "primary_track_id",
+        "secondary_track_ids",
+        "active_red_flags",
+        "data_completeness",
+        "recalc_meta"
+      ],
+      "recalculate_engine": "full",
+      "may_generate_plan": false,
+      "requires_role": "clinical_staff",
+      "audit_required": true
+    }
+  ],
+  "retention_policy": {
+    "symptom_timeline_days": 365,
+    "symptom_timeline_max_items": 365,
+    "activity_history_max_items": 500,
+    "evidence_log_max_items": 200,
+    "risk_events_retention_days": 2555,
+    "inactive_user_archive_after_days": 730,
+    "anonymize_on_account_delete": true,
+    "free_text_blob_retention_policy": "separate_policy_minimum_necessary",
+    "deletion_exceptions_internal": [
+      "legal_hold",
+      "mandatory_health_record_retention_when_applicable"
+    ],
+    "review_frequency_days": 365,
+    "notes_internal": "Prazos e base legal devem ser validados pelo encarregado de dados e pela assessoria jurídica antes da produção."
+  },
+  "privacy": {
+    "classification": "sensitive_health_data",
+    "lgpd_legal_basis_internal": [
+      "consent_when_applicable",
+      "healthcare_service_and_protection_of_health_when_applicable"
+    ],
+    "legal_basis_requires_dpo_validation": true,
+    "purpose_limitation": [
+      "mental_health_self_care_planning",
+      "clinical_safety_escalation",
+      "authorized_clinical_review",
+      "engine_quality_and_audit"
+    ],
+    "never_expose_to_patient_ui": [
+      "active_hypotheses",
+      "track_scores_raw",
+      "evidence_log",
+      "risk_events",
+      "active_red_flags",
+      "primary_track_id",
+      "secondary_track_ids",
+      "instrument_scores.severity",
+      "recalc_meta"
+    ],
+    "patient_facing_derivations_allowed": [
+      "rendered_daily_plan",
+      "rendered_copy_templates",
+      "activity_history_user_safe_summary",
+      "check_in_history_user_entered_fields"
+    ],
+    "staff_audit_required_for_access": true,
+    "export_allowed_roles": [
+      "clinical_staff"
+    ],
+    "system_write_roles": [
+      "system_engine",
+      "clinical_state_repository"
+    ],
+    "free_text_anamnesis_storage": "separate_encrypted_blob",
+    "encryption_in_transit": true,
+    "encryption_at_rest": true,
+    "minimum_necessary_access": true,
+    "prohibit_use_for_advertising": true,
+    "prohibit_unreviewed_model_training": true
+  },
+  "migration": {
+    "current_version": "1.0.0",
+    "strategy": "versioned_forward_only_with_idempotent_steps",
+    "migrations": [
+      {
+        "id": "migration_0_9_0_to_1_0_0",
+        "from": "0.9.0",
+        "to": "1.0.0",
+        "changes": [
+          "move last_plan_date to plan_state.last_plan_date",
+          "retain last_plan_date as deprecated read/write compatibility alias",
+          "move anamnesis_completion to anamnesis.completion_ratio",
+          "retain anamnesis_completion as deprecated compatibility alias",
+          "initialize data_completeness and recalc_meta",
+          "normalize hypothesis fields to hypothesis_engine.output_schema"
+        ],
+        "backfill": {
+          "plan_state.last_plan_date": "coalesce(last_plan_date, null)",
+          "anamnesis.completion_ratio": "coalesce(anamnesis_completion, 0)",
+          "data_completeness.anamnesis_ratio": "anamnesis.completion_ratio"
+        },
+        "idempotent": true
+      }
+    ],
+    "unknown_future_version_policy": "reject_write_allow_read_only_export",
+    "migration_audit_required": true
+  },
+  "example_runtime_instances": [
+    {
+      "_label": "MOCK — anamnese parcial suficiente, hipótese de preocupação em sinal moderado e plano ativo",
+      "user_id": "usr_mock_001",
+      "engine_version": "1.0.0",
+      "created_at": "2026-06-16T12:00:00Z",
+      "updated_at": "2026-06-17T13:10:00Z",
+      "anamnesis": {
+        "completion_ratio": 0.75,
+        "completed_module_ids": [
+          "core_mood_anxiety",
+          "functioning_impairment",
+          "sleep_appetite",
+          "substance_use",
+          "medical_medications",
+          "protective_factors"
+        ],
+        "completed_at": "2026-06-17T09:20:00Z",
+        "answers_index": {
+          "q_core_11": {
+            "value": 3,
+            "answered_at": "2026-06-17T09:02:00Z",
+            "source": "anamnesis",
+            "skipped": false
+          },
+          "q_func_01": {
+            "value": 2,
+            "answered_at": "2026-06-17T09:08:00Z",
+            "source": "anamnesis",
+            "skipped": false
+          },
+          "q_sleep_01": {
+            "value": 2,
+            "answered_at": "2026-06-17T09:12:00Z",
+            "source": "anamnesis",
+            "skipped": false
+          }
+        },
+        "last_updated_at": "2026-06-17T09:20:00Z"
+      },
+      "anamnesis_completion": 0.75,
+      "symptom_scores": {
+        "excessive_worry": 3,
+        "irritability": 2,
+        "insomnia": 2,
+        "strong_support_network": true
+      },
+      "derived_metrics": {
+        "symptom_duration_days": 21,
+        "functional_impairment_global": 2,
+        "functional_impairment_work": 2,
+        "functional_impairment_relationships": 1,
+        "functional_impairment_self_care": 0,
+        "change_from_baseline": 2,
+        "response_consistency_index": 0.86,
+        "symptom_worsening_7d": false,
+        "symptom_improving_7d": false
+      },
+      "instrument_scores": {
+        "anxiety_screen_v1": {
+          "score": 10,
+          "max_score": 19,
+          "severity": "moderate",
+          "valid": true,
+          "answered_ratio": 1.0,
+          "calculated_at": "2026-06-17T09:30:00Z"
+        },
+        "functioning_screen_v1": {
+          "score": 7,
+          "max_score": 24,
+          "severity": "mild",
+          "valid": true,
+          "answered_ratio": 0.83,
+          "calculated_at": "2026-06-17T09:30:00Z"
+        },
+        "sleep_screen_v1": {
+          "score": 8,
+          "max_score": 33,
+          "severity": "mild",
+          "valid": true,
+          "answered_ratio": 0.75,
+          "calculated_at": "2026-06-17T09:30:00Z"
+        }
+      },
+      "track_scores_raw": {
+        "anxiety_disorders": 44,
+        "sleep_disorders": 16,
+        "depressive_disorders": 8
+      },
+      "active_hypotheses": [
+        {
+          "track": "anxiety_disorders",
+          "score": 48,
+          "tier": "moderate_signal",
+          "status": "active",
+          "confidence": "high",
+          "evidence_summary": [
+            "Preocupação persistente associada a impacto funcional",
+            "Instrumento interno de preocupação com sinal moderado"
+          ],
+          "evidence_tags": [
+            "persistent_worry_with_impairment",
+            "anxiety_instrument_elevated",
+            "worry_irritability_insomnia_cluster",
+            "baseline_worry_increase"
+          ],
+          "evidence_count": 4,
+          "is_primary": true,
+          "is_secondary": false,
+          "last_updated_at": "2026-06-17T09:31:00Z",
+          "engine_version": "1.0.0"
+        }
+      ],
+      "primary_track_id": "anxiety_disorders",
+      "secondary_track_ids": [],
+      "symptom_timeline": [
+        {
+          "date": "2026-06-16",
+          "symptom_scores_snapshot": {
+            "excessive_worry": 3,
+            "insomnia": 2
+          },
+          "derived_metrics_snapshot": {
+            "functional_impairment_global": 1
+          },
+          "check_in_id": "chk_mock_001",
+          "source": "check_in"
+        },
+        {
+          "date": "2026-06-17",
+          "symptom_scores_snapshot": {
+            "excessive_worry": 3,
+            "irritability": 2,
+            "insomnia": 2
+          },
+          "derived_metrics_snapshot": {
+            "functional_impairment_global": 2,
+            "response_consistency_index": 0.86
+          },
+          "check_in_id": "chk_mock_002",
+          "source": "check_in"
+        }
+      ],
+      "check_in_summary_7d": {
+        "mood_counts": {
+          "neutral": 1,
+          "bad": 1
+        },
+        "emotion_counts": {
+          "Preocupado": 2,
+          "Cansado": 1
+        },
+        "dominant_emotions": [
+          "Preocupado"
+        ],
+        "negative_influence_days": 1,
+        "completed_days": 2
+      },
+      "evidence_log": [
+        {
+          "evidence_tag": "persistent_worry_with_impairment",
+          "rule_id": "rule_anxiety_persistent_worry_01",
+          "track": "anxiety_disorders",
+          "points": 18,
+          "fired_at": "2026-06-17T09:31:00Z"
+        },
+        {
+          "evidence_tag": "anxiety_instrument_elevated",
+          "rule_id": "rule_anxiety_instrument_band_02",
+          "track": "anxiety_disorders",
+          "points": 15,
+          "fired_at": "2026-06-17T09:31:00Z"
+        }
+      ],
+      "active_red_flags": [],
+      "risk_events": [],
+      "plan_state": {
+        "last_plan_date": "2026-06-17",
+        "last_plan_generated_at": "2026-06-17T10:00:00Z",
+        "last_plan_blocked": false,
+        "last_block_reason": null,
+        "current_plan_id": "00000000-0000-4000-8000-000000000101",
+        "planner_status": "ready",
+        "adherence_7d": 0.67,
+        "completed_yesterday": true
+      },
+      "last_plan_date": "2026-06-17",
+      "activity_history": [
+        {
+          "activity_id": "act_breathing_long_exhale",
+          "plan_id": "00000000-0000-4000-8000-000000000101",
+          "plan_date": "2026-06-17",
+          "slot": "now",
+          "status": "completed",
+          "assigned_at": "2026-06-17T10:00:00Z",
+          "completed_at": "2026-06-17T10:07:00Z",
+          "duration_actual_sec": 420,
+          "feedback": "helpful",
+          "feedback_at": "2026-06-17T10:08:00Z",
+          "matched_rule_id": "rule_checkin_anxiety_01"
+        }
+      ],
+      "profile_snapshot": {
+        "care_focus": [
+          "anxiety",
+          "sleep"
+        ],
+        "spirituality_preference": "decide-later",
+        "tracking_frequency": "daily",
+        "captured_at": "2026-06-16T12:02:00Z"
+      },
+      "data_completeness": {
+        "anamnesis_ratio": 0.75,
+        "valid_instruments_count": 3,
+        "symptoms_scored_count": 14,
+        "check_ins_7d_count": 2,
+        "sufficient_for_hypothesis": true,
+        "sufficient_for_plan": true
+      },
+      "recalc_meta": {
+        "last_engine_run_at": "2026-06-17T09:31:00Z",
+        "last_engine_run_trigger": "anamnesis_completed",
+        "rules_version": "1.0.0",
+        "content_version": "1.0.0"
+      }
+    },
+    {
+      "_label": "MOCK — red flag de segurança aberta e plano autoguiado bloqueado",
+      "user_id": "usr_mock_002",
+      "engine_version": "1.0.0",
+      "created_at": "2026-06-15T15:00:00Z",
+      "updated_at": "2026-06-17T11:06:00Z",
+      "anamnesis": {
+        "completion_ratio": 0.88,
+        "completed_module_ids": [
+          "core_mood_anxiety",
+          "functioning_impairment",
+          "sleep_appetite",
+          "trauma_exposure",
+          "substance_use",
+          "medical_medications",
+          "protective_factors"
+        ],
+        "completed_at": "2026-06-17T10:40:00Z",
+        "answers_index": {
+          "q_core_02": {
+            "value": "yes",
+            "answered_at": "2026-06-17T10:20:00Z",
+            "source": "anamnesis",
+            "skipped": false
+          },
+          "q_core_03": {
+            "value": "yes",
+            "answered_at": "2026-06-17T10:21:00Z",
+            "source": "anamnesis",
+            "skipped": false
+          },
+          "q_core_04": {
+            "value": "yes",
+            "answered_at": "2026-06-17T10:22:00Z",
+            "source": "anamnesis",
+            "skipped": false
+          }
+        },
+        "last_updated_at": "2026-06-17T10:40:00Z"
+      },
+      "anamnesis_completion": 0.88,
+      "symptom_scores": {
+        "low_mood": 4,
+        "anhedonia": 3,
+        "hopelessness": 4,
+        "suicidal_ideation": true,
+        "suicidal_plan": true,
+        "suicidal_intent": true
+      },
+      "derived_metrics": {
+        "symptom_duration_days": 24,
+        "functional_impairment_global": 3,
+        "functional_impairment_work": 3,
+        "functional_impairment_relationships": 2,
+        "functional_impairment_self_care": 2,
+        "change_from_baseline": 3,
+        "response_consistency_index": 0.91,
+        "symptom_worsening_7d": true,
+        "symptom_improving_7d": false
+      },
+      "instrument_scores": {
+        "mood_screen_v1": {
+          "score": 12,
+          "max_score": 18,
+          "severity": "moderately_severe",
+          "valid": true,
+          "answered_ratio": 1.0,
+          "calculated_at": "2026-06-17T10:41:00Z"
+        },
+        "functioning_screen_v1": {
+          "score": 16,
+          "max_score": 24,
+          "severity": "moderately_severe",
+          "valid": true,
+          "answered_ratio": 1.0,
+          "calculated_at": "2026-06-17T10:41:00Z"
+        },
+        "sleep_screen_v1": {
+          "score": 13,
+          "max_score": 33,
+          "severity": "moderate",
+          "valid": true,
+          "answered_ratio": 0.88,
+          "calculated_at": "2026-06-17T10:41:00Z"
+        }
+      },
+      "track_scores_raw": {
+        "depressive_disorders": 51,
+        "anxiety_disorders": 22,
+        "sleep_disorders": 18
+      },
+      "active_hypotheses": [
+        {
+          "track": "depressive_disorders",
+          "score": 56,
+          "tier": "moderate_signal",
+          "status": "monitoring",
+          "confidence": "high",
+          "evidence_summary": [
+            "Humor baixo persistente com impacto funcional",
+            "Piora recente registrada"
+          ],
+          "evidence_tags": [
+            "persistent_low_mood_with_impairment",
+            "mood_instrument_elevated",
+            "depression_duration_two_weeks",
+            "sustained_checkin_low_mood"
+          ],
+          "evidence_count": 4,
+          "is_primary": false,
+          "is_secondary": false,
+          "last_updated_at": "2026-06-17T10:43:00Z",
+          "engine_version": "1.0.0"
+        }
+      ],
+      "primary_track_id": null,
+      "secondary_track_ids": [],
+      "symptom_timeline": [
+        {
+          "date": "2026-06-17",
+          "symptom_scores_snapshot": {
+            "low_mood": 4,
+            "hopelessness": 4,
+            "suicidal_ideation": true
+          },
+          "derived_metrics_snapshot": {
+            "functional_impairment_global": 3,
+            "symptom_worsening_7d": true
+          },
+          "check_in_id": null,
+          "source": "anamnesis"
+        }
+      ],
+      "check_in_summary_7d": {
+        "mood_counts": {
+          "very-bad": 2,
+          "bad": 1
+        },
+        "emotion_counts": {
+          "Triste": 3,
+          "Sobrecarregado": 2
+        },
+        "dominant_emotions": [
+          "Triste",
+          "Sobrecarregado"
+        ],
+        "negative_influence_days": 3,
+        "completed_days": 3
+      },
+      "evidence_log": [
+        {
+          "evidence_tag": "persistent_low_mood_with_impairment",
+          "rule_id": "rule_depression_persistent_low_mood_01",
+          "track": "depressive_disorders",
+          "points": 18,
+          "fired_at": "2026-06-17T10:43:00Z"
+        },
+        {
+          "evidence_tag": "suicidal_plan_or_intent_present",
+          "rule_id": "rule_red_flag_suicidal_plan_02",
+          "track": "depressive_disorders",
+          "points": 0,
+          "fired_at": "2026-06-17T10:43:00Z"
+        }
+      ],
+      "active_red_flags": [
+        {
+          "red_flag_id": "suicidal_plan_or_intent_active",
+          "severity": "S3",
+          "triggered_at": "2026-06-17T10:43:00Z",
+          "trigger_rule_id": "trigger_compat_suicidal_plan_or_intent_01",
+          "status": "open",
+          "resolved_at": null
+        }
+      ],
+      "risk_events": [
+        {
+          "event_id": "00000000-0000-4000-8000-000000000201",
+          "red_flag_id": "suicidal_plan_or_intent_active",
+          "canonical_red_flag_id": "suicidal_intent_active",
+          "severity": "S3",
+          "trigger_rule_id": "trigger_compat_suicidal_plan_or_intent_01",
+          "triggered_at": "2026-06-17T10:43:00Z",
+          "source": "scoring_rule",
+          "actions_taken": [
+            "block_micro_activity_plan",
+            "route_samu",
+            "route_human_clinical",
+            "staff_alert"
+          ],
+          "resolution_status": "open",
+          "staff_notified_at": "2026-06-17T10:44:00Z",
+          "notes_internal": "Mock de teste; sem dado real."
+        }
+      ],
+      "plan_state": {
+        "last_plan_date": "2026-06-17",
+        "last_plan_generated_at": "2026-06-17T10:45:00Z",
+        "last_plan_blocked": true,
+        "last_block_reason": "red_flag",
+        "current_plan_id": null,
+        "planner_status": "suspended_for_safety",
+        "adherence_7d": 0.25,
+        "completed_yesterday": false
+      },
+      "last_plan_date": "2026-06-17",
+      "activity_history": [
+        {
+          "activity_id": "act_behavioral_activation_pleasant_five",
+          "plan_id": "00000000-0000-4000-8000-000000000202",
+          "plan_date": "2026-06-17",
+          "slot": "now",
+          "status": "blocked",
+          "assigned_at": "2026-06-17T10:42:00Z",
+          "completed_at": null,
+          "duration_actual_sec": null,
+          "feedback": null,
+          "feedback_at": null,
+          "matched_rule_id": "rule_checkin_low_mood_01"
+        }
+      ],
+      "profile_snapshot": {
+        "care_focus": [
+          "sadness",
+          "sleep"
+        ],
+        "spirituality_preference": "none",
+        "tracking_frequency": "daily",
+        "captured_at": "2026-06-15T15:02:00Z"
+      },
+      "data_completeness": {
+        "anamnesis_ratio": 0.88,
+        "valid_instruments_count": 3,
+        "symptoms_scored_count": 18,
+        "check_ins_7d_count": 3,
+        "sufficient_for_hypothesis": true,
+        "sufficient_for_plan": false
+      },
+      "recalc_meta": {
+        "last_engine_run_at": "2026-06-17T10:43:00Z",
+        "last_engine_run_trigger": "red_flag_triggered",
+        "rules_version": "1.0.0",
+        "content_version": "1.0.0"
+      }
+    },
+    {
+      "_label": "MOCK — dados insuficientes, sem plano personalizado completo",
+      "user_id": "usr_mock_003",
+      "engine_version": "1.0.0",
+      "created_at": "2026-06-17T08:00:00Z",
+      "updated_at": "2026-06-17T08:25:00Z",
+      "anamnesis": {
+        "completion_ratio": 0.25,
+        "completed_module_ids": [
+          "core_mood_anxiety",
+          "protective_factors"
+        ],
+        "completed_at": null,
+        "answers_index": {
+          "q_core_01": {
+            "value": 1,
+            "answered_at": "2026-06-17T08:15:00Z",
+            "source": "anamnesis",
+            "skipped": false
+          },
+          "q_protect_01": {
+            "value": 2,
+            "answered_at": "2026-06-17T08:20:00Z",
+            "source": "anamnesis",
+            "skipped": false
+          }
+        },
+        "last_updated_at": "2026-06-17T08:20:00Z"
+      },
+      "anamnesis_completion": 0.25,
+      "symptom_scores": {
+        "emotional_distress": 1,
+        "strong_support_network": true
+      },
+      "derived_metrics": {
+        "symptom_duration_days": 3,
+        "functional_impairment_global": 0,
+        "change_from_baseline": 0,
+        "response_consistency_index": 0.5,
+        "symptom_worsening_7d": false,
+        "symptom_improving_7d": false
+      },
+      "instrument_scores": {
+        "anxiety_screen_v1": {
+          "score": 2,
+          "max_score": 19,
+          "severity": "minimal",
+          "valid": false,
+          "answered_ratio": 0.4,
+          "calculated_at": "2026-06-17T08:21:00Z"
+        }
+      },
+      "track_scores_raw": {
+        "anxiety_disorders": 5
+      },
+      "active_hypotheses": [
+        {
+          "track": "anxiety_disorders",
+          "score": 5,
+          "tier": "insufficient_data",
+          "status": "insufficient_data",
+          "confidence": "low",
+          "evidence_summary": [],
+          "evidence_tags": [],
+          "evidence_count": 0,
+          "is_primary": false,
+          "is_secondary": false,
+          "last_updated_at": "2026-06-17T08:22:00Z",
+          "engine_version": "1.0.0"
+        }
+      ],
+      "primary_track_id": null,
+      "secondary_track_ids": [],
+      "symptom_timeline": [
+        {
+          "date": "2026-06-17",
+          "symptom_scores_snapshot": {
+            "emotional_distress": 1
+          },
+          "derived_metrics_snapshot": {
+            "functional_impairment_global": 0
+          },
+          "check_in_id": null,
+          "source": "anamnesis"
+        }
+      ],
+      "check_in_summary_7d": {
+        "mood_counts": {},
+        "emotion_counts": {},
+        "dominant_emotions": [],
+        "negative_influence_days": 0,
+        "completed_days": 0
+      },
+      "evidence_log": [],
+      "active_red_flags": [],
+      "risk_events": [],
+      "plan_state": {
+        "last_plan_date": null,
+        "last_plan_generated_at": null,
+        "last_plan_blocked": true,
+        "last_block_reason": "insufficient_data",
+        "current_plan_id": null,
+        "planner_status": "insufficient_data_limited",
+        "adherence_7d": 0,
+        "completed_yesterday": false
+      },
+      "last_plan_date": null,
+      "activity_history": [],
+      "profile_snapshot": {
+        "care_focus": [
+          "undecided"
+        ],
+        "spirituality_preference": "decide-later",
+        "tracking_frequency": null,
+        "captured_at": "2026-06-17T08:02:00Z"
+      },
+      "data_completeness": {
+        "anamnesis_ratio": 0.25,
+        "valid_instruments_count": 0,
+        "symptoms_scored_count": 2,
+        "check_ins_7d_count": 0,
+        "sufficient_for_hypothesis": false,
+        "sufficient_for_plan": false
+      },
+      "recalc_meta": {
+        "last_engine_run_at": "2026-06-17T08:22:00Z",
+        "last_engine_run_trigger": "anamnesis_module_completed",
+        "rules_version": "1.0.0",
+        "content_version": "1.0.0"
+      }
+    }
+  ]
+}

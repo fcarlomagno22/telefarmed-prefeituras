@@ -1,4 +1,11 @@
 import { z } from 'zod'
+import { tenantSlugZodSchema } from '../../lib/tenant/slugSchema.js'
+
+export const slugAvailabilityQuerySchema = z.object({
+  value: z.string().trim().min(1),
+  excludeEntidadeId: z.string().uuid().optional(),
+  excludeUbtId: z.string().uuid().optional(),
+})
 
 export const unitIdParamSchema = z.object({
   unitId: z.string().uuid('ID da unidade inválido.'),
@@ -16,11 +23,12 @@ const addressSchema = z.object({
 
 export const createUnitBodySchema = z.object({
   name: z.string().trim().min(2).max(200),
+  slug: tenantSlugZodSchema,
   cnes: z.string().trim().max(20).optional(),
   unitType: z.enum(['fixa', 'movel']),
   status: z.enum(['ativa', 'manutencao', 'inativa']),
-  regionKey: z.string().trim().min(1).max(64),
-  regionLabel: z.string().trim().min(1).max(120),
+  regionKey: z.string().trim().min(1).max(64).optional(),
+  regionLabel: z.string().trim().min(1).max(120).optional(),
   phone: z.string().trim().max(32).optional(),
   dailyCapacity: z.number().int().min(0).max(100_000).optional(),
   specialties: z.array(z.string().trim().min(1).max(64)).max(64).optional(),
@@ -43,6 +51,7 @@ const responsibleBodySchema = z.object({
 })
 
 export const updateUnitBodySchema = createUnitBodySchema.partial().extend({
+  slug: tenantSlugZodSchema.optional(),
   maintenanceTerminalIndexes: z.array(z.number().int().min(0).max(63)).max(64).optional(),
   responsible: responsibleBodySchema.optional(),
 })

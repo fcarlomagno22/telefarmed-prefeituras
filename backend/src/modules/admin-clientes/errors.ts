@@ -13,6 +13,7 @@ export function formatClientesValidationError(error: ZodError): string {
     nome: 'Informe o nome da entidade.',
     subtitulo: 'Informe o subtítulo da entidade.',
     razaoSocial: 'Informe a razão social.',
+    slug: 'Informe um endereço público válido.',
     municipio: 'Informe o município.',
     uf: 'Informe a UF.',
     tipo: 'Selecione um tipo de contrato válido.',
@@ -44,6 +45,7 @@ export class ClientesError extends Error {
       | 'NOT_FOUND'
       | 'INVALID_DATA'
       | 'DUPLICATE_CNPJ'
+      | 'DUPLICATE_SLUG'
       | 'PIN_INVALID'
       | 'PIN_NOT_CONFIGURED'
       | 'FORBIDDEN'
@@ -97,9 +99,21 @@ export function mapClientesError(error: unknown): {
   }
 
   if (pgCode === '23505') {
+    const message =
+      typeof error === 'object' &&
+      error !== null &&
+      'message' in error &&
+      typeof (error as { message: unknown }).message === 'string' &&
+      (error as { message: string }).message.includes('slug')
+        ? 'Este endereço público já está em uso.'
+        : 'Já existe um cliente com estes dados.'
+
     return {
       statusCode: 409,
-      body: { error: 'Já existe um cliente com estes dados.', code: 'DUPLICATE_CNPJ' },
+      body: {
+        error: message,
+        code: message.includes('endereço') ? 'DUPLICATE_SLUG' : 'DUPLICATE_CNPJ',
+      },
     }
   }
 

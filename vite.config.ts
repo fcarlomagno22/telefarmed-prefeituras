@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     host: true,
+    allowedHosts: ['.localhost', '.telefarmed.local'],
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

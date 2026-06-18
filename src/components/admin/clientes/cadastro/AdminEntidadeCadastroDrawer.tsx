@@ -9,11 +9,17 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useAdminAuth } from '../../../../contexts/AdminAuthContext'
+import { checkClienteSlugAvailability } from '../../../../lib/api/admin/clientes'
+import { gestaoPublicUrl } from '../../../../config/tenantHost'
+import { TenantSlugField } from '../../../tenant/TenantSlugField'
 import {
-  type AdminClienteRow,
-} from '../../../../types/adminClientes'
+  createIdleSlugAvailability,
+  suggestTenantSlugFromText,
+  type TenantSlugAvailabilityState,
+} from '../../../../utils/tenantSlug'
 import { getAdminEntidadeCidadeOptions } from '../../../../data/adminEntidadeCidades'
 import { useAdminClientesClinicoCatalog } from '../../../../hooks/useAdminClientesClinicoCatalog'
 import {
@@ -26,8 +32,14 @@ import {
   fetchEmpresaDataByCnpjReceitaFederal,
 } from '../../../../utils/cnpj/fetchCnpjReceitaFederal'
 import { maskBirthDate, maskCnpj, maskCurrencyBrl, maskIntegerPtBr, maskPhone } from '../../../../utils/masks'
-import { AttendanceFieldHighlight } from '../../../dashboard/AttendanceFieldHighlight'
 import { CustomSelect } from '../../../ui/CustomSelect'
+import {
+  adminEntidadeTipoOptions,
+  applyTipoEntidadePreset,
+  getLocalidadeLabel,
+  isPrefeituraEntidadeTipo,
+  resolveEntidadeTipoLabel,
+} from '../../../../config/adminEntidadeTipo'
 import { AdminClienteStatusBadge } from '../AdminClienteStatusBadge'
 import { AdminClienteContratoPacientesTerritorioField } from '../AdminClienteContratoPacientesTerritorioField'
 import {
@@ -42,7 +54,11 @@ import {
 import { hasPositiveCurrency } from '../adminClienteContratoForm'
 import { groupSpecialtiesBySelectedProfessions } from '../adminClienteContratoPricing'
 import { AdminEntidadeCadastroFlowStepper } from './AdminEntidadeCadastroFlowStepper'
-import { EntidadeLogoCropCard } from './EntidadeLogoCropCard'
+import {
+  EntidadeLogoCropCard,
+  EntidadeLoginBackgroundCropCard,
+  EntidadeFaviconCropCard,
+} from './EntidadeLogoCropCard'
 import {
   adminEntidadeCadastroFlowSteps,
   adminEntidadeStatusOptions,
@@ -56,6 +72,7 @@ import {
   resolveFirstInvalidCadastroStep,
   type AdminEntidadeCadastroFormState,
   type AdminEntidadeCadastroStep,
+  type AdminEntidadeCadastroValidationOptions,
 } from './adminEntidadeCadastroTypes'
 
 const drawerPanelShell =
@@ -183,6 +200,7 @@ export function AdminEntidadeCadastroDrawer({
   onTransitionEnd,
   onSubmit,
 }: AdminEntidadeCadastroDrawerProps) {
+  const { getAccessToken } = useAdminAuth()
   const { professions, specialties: catalogSpecialties } = useAdminClientesClinicoCatalog()
   const { contractTypes } = useAdminClientesContratoCatalog()
   const contratoTipoOptions = useMemo(
@@ -194,8 +212,11 @@ export function AdminEntidadeCadastroDrawer({
     [catalogSpecialties],
   )
   const [entered, setEntered] = useState(false)
-  const [step, setStep] = useState<AdminEntidadeCadastroStep>('entidade')
+  const [step, setStep] = useState<AdminEntidadeCadastroStep>('identificacao')
   const [form, setForm] = useState<AdminEntidadeCadastroFormState>(createEmptyAdminEntidadeCadastroForm)
+  const [slugAvailability, setSlugAvailability] = useState<TenantSlugAvailabilityState>(
+    createIdleSlugAvailability,
+  )
   const [stepError, setStepError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const stepErrorRef = useRef<HTMLParagraphElement>(null)
@@ -208,9 +229,65 @@ export function AdminEntidadeCadastroDrawer({
   const isLastStep = step === 'revisao'
   const pacoteOuMensal = isPacoteOuMensal(form.contratoModalidade)
   const selectedContratoTipo = getClienteContratoTipoOption(contractTypes, form.contratoTipo)
+  const validationOptions = useMemo<AdminEntidadeCadastroValidationOptions>(
+    () => ({ specialties: sortedSpecialties }),
+    [sortedSpecialties],
+  )
+
   const canAdvance = useMemo(
-    () => isAdminEntidadeCadastroStepReady(step, form),
-    [step, form],
+    () => isAdminEntidadeCadastroStepReady(step, form, slugAvailability, validationOptions),
+    [step, form, slugAvailability, validationOptions],
+  )
+
+  const stepBlockingReason = useMemo(
+    () =>
+      canAdvance
+        ? null
+        : validateAdminEntidadeCadastroStep(step, form, slugAvailability, validationOptions),
+    [canAdvance, step, form, slugAvailability, validationOptions],
+  )
+
+  const checkSlugAvailability = useMemo(
+    () => async (slug: string) => {
+      const token = getAccessToken()
+      if (!token) {
+        return { value: slug, available: false, reason: 'Sessão expirada. Faça login novamente.' }
+      }
+      return checkClienteSlugAvailability(token, slug)
+    },
+    [getAccessToken],
+  )
+
+  const handleSlugAvailabilityChange = useCallback(
+    (state: {
+      available: boolean
+      reason: string | null
+      checkedValue: string
+      checking: boolean
+    }) => {
+      setSlugAvailability((prev) => {
+        const next: TenantSlugAvailabilityState = {
+          status: state.checking
+            ? 'checking'
+            : state.available
+              ? 'available'
+              : state.checkedValue
+                ? 'unavailable'
+                : 'idle',
+          reason: state.reason,
+          checkedValue: state.checkedValue,
+        }
+        if (
+          prev.status === next.status &&
+          prev.reason === next.reason &&
+          prev.checkedValue === next.checkedValue
+        ) {
+          return prev
+        }
+        return next
+      })
+    },
+    [],
   )
 
   const visibleSpecialties = useMemo(
@@ -265,9 +342,10 @@ export function AdminEntidadeCadastroDrawer({
       return
     }
 
-    setStep('entidade')
+    setStep('identificacao')
     setStepError(null)
     setIsSaving(false)
+    setSlugAvailability(createIdleSlugAvailability())
     setCnpjLookupError(null)
     setCnpjLookupLoading(false)
     setHighlightStatusInicial(false)
@@ -313,7 +391,7 @@ export function AdminEntidadeCadastroDrawer({
   }, [open])
 
   useEffect(() => {
-    if (!open || step !== 'entidade') return
+    if (!open || step !== 'identificacao') return
 
     const uf = form.uf
     if (!uf) {
@@ -354,7 +432,7 @@ export function AdminEntidadeCadastroDrawer({
   }, [open, step, form.uf])
 
   useEffect(() => {
-    if (!open || step !== 'entidade') return
+    if (!open || step !== 'identificacao') return
     if (cnpjDigits.length !== 14) {
       if (cnpjDigits.length < 14) lastFetchedCnpjRef.current = ''
       return
@@ -393,6 +471,9 @@ export function AdminEntidadeCadastroDrawer({
           uf: data.uf || prev.uf,
           municipio: municipio || prev.municipio,
           nome: prev.nome.trim() ? prev.nome : municipio || data.nomeFantasia || prev.nome,
+          nomeMarca: prev.nomeMarca.trim()
+            ? prev.nomeMarca
+            : municipio || data.nomeFantasia || prev.nomeMarca,
         }))
         setHighlightStatusInicial(true)
       } catch (error) {
@@ -413,6 +494,16 @@ export function AdminEntidadeCadastroDrawer({
       cancelled = true
     }
   }, [open, step, cnpjDigits, form.cnpj])
+
+  useEffect(() => {
+    if (!open || step !== 'endereco') return
+    setForm((prev) => {
+      if (prev.slug.trim()) return prev
+      const suggested = suggestTenantSlugFromText(prev.municipio || prev.nomeMarca || prev.razaoSocial)
+      if (!suggested) return prev
+      return { ...prev, slug: suggested }
+    })
+  }, [open, step])
 
   useEffect(() => {
     if (!isActive) return
@@ -445,6 +536,17 @@ export function AdminEntidadeCadastroDrawer({
   function handleUfChange(uf: string) {
     setForm((current) => ({ ...current, uf, municipio: '' }))
   }
+
+  function handleTipoEntidadeChange(tipoEntidade: AdminEntidadeCadastroFormState['tipoEntidade']) {
+    setForm((current) => ({
+      ...current,
+      ...applyTipoEntidadePreset(current, tipoEntidade),
+    }))
+    setStepError(null)
+  }
+
+  const isPrefeituraTipo = isPrefeituraEntidadeTipo(form.tipoEntidade)
+  const localidadeLabel = getLocalidadeLabel(form.tipoEntidade)
 
   function updatePrecoProfissao(professionId: string, value: string) {
     setForm((current) => ({
@@ -619,7 +721,7 @@ export function AdminEntidadeCadastroDrawer({
 
   function goNext() {
     setStepError(null)
-    const error = validateAdminEntidadeCadastroStep(step, form)
+    const error = validateAdminEntidadeCadastroStep(step, form, slugAvailability, validationOptions)
     if (error) {
       showStepValidationError(step, error)
       return
@@ -632,7 +734,7 @@ export function AdminEntidadeCadastroDrawer({
   async function handleSubmit() {
     setStepError(null)
 
-    const invalid = resolveFirstInvalidCadastroStep(form)
+    const invalid = resolveFirstInvalidCadastroStep(form, slugAvailability, validationOptions)
     if (invalid) {
       showStepValidationError(invalid.step, invalid.error)
       return
@@ -716,21 +818,15 @@ export function AdminEntidadeCadastroDrawer({
           <AdminEntidadeCadastroFlowStepper step={step} />
 
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            {step === 'entidade' ? (
+            {step === 'identificacao' ? (
               <section className={`${drawerPanelShell} min-h-0 flex-1 overflow-y-auto p-5 sm:p-6`}>
                 <div className="flex min-h-0 flex-1 flex-col space-y-4">
                   <div className={sectionCardClass}>
                     <p className={sectionTitleClass}>Identificação</p>
                     <p className={sectionHintClass}>
-                      CNPJ, razão social e localização. Logo opcional, exibido na lista.
+                      CNPJ, razão social, tipo de entidade e município de atuação.
                     </p>
                   </div>
-
-                  <EntidadeLogoCropCard
-                    value={form.logoDataUrl}
-                    onChange={(logoDataUrl) => updateForm({ logoDataUrl })}
-                    entityName={form.nome}
-                  />
 
                   <div className="grid gap-3 lg:grid-cols-12">
                     <label className="relative min-w-0 lg:col-span-3">
@@ -756,7 +852,7 @@ export function AdminEntidadeCadastroDrawer({
                       ) : null}
                     </label>
                     <label className="min-w-0 lg:col-span-9">
-                      <span className={labelClass}>Razão social da entidade</span>
+                      <span className={labelClass}>Razão social</span>
                       <input
                         className={inputClass}
                         value={form.razaoSocial}
@@ -775,6 +871,28 @@ export function AdminEntidadeCadastroDrawer({
                   ) : null}
 
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-12">
+                    <label className="sm:col-span-2 lg:col-span-12">
+                      <span className={labelClass}>Tipo de entidade</span>
+                      <CustomSelect
+                        value={form.tipoEntidade}
+                        onChange={(value) =>
+                          handleTipoEntidadeChange(value as AdminEntidadeCadastroFormState['tipoEntidade'])
+                        }
+                        options={adminEntidadeTipoOptions.map((item) => ({
+                          value: item.value,
+                          label: item.label,
+                        }))}
+                        size="compact"
+                        className="w-full"
+                        menuMinWidthPx={220}
+                      />
+                      <p className="mt-1.5 text-xs text-gray-500">
+                        {adminEntidadeTipoOptions.find((item) => item.value === form.tipoEntidade)?.description}
+                      </p>
+                    </label>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-12">
                     <label className="min-w-0 lg:col-span-3">
                       <span className={labelClass}>UF</span>
                       <CustomSelect
@@ -787,290 +905,154 @@ export function AdminEntidadeCadastroDrawer({
                       />
                     </label>
                     <label className="min-w-0 lg:col-span-9">
-                      <span className={labelClass}>Cidade</span>
-                      <CustomSelect
-                        value={form.municipio}
-                        onChange={(value) => updateForm({ municipio: value })}
-                        options={cidadeOptions}
-                        placeholder={
-                          citiesLoading
-                            ? 'Carregando cidades...'
-                            : cidadeOptions.length > 0
-                              ? 'Selecione a cidade'
-                              : 'Nenhuma cidade para esta UF'
-                        }
-                        size="compact"
-                        className="w-full"
-                        menuMinWidthPx={240}
-                      />
-                    </label>
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-12">
-                    <label className="sm:col-span-2 lg:col-span-7">
-                      <span className={labelClass}>Nome da entidade</span>
-                      <input
-                        className={inputClass}
-                        value={form.nome}
-                        onChange={(e) => updateForm({ nome: e.target.value })}
-                        placeholder="Ex.: Brasília"
-                      />
-                    </label>
-                    <AttendanceFieldHighlight
-                      highlight={highlightStatusInicial}
-                      className="lg:col-span-5"
-                    >
-                      <label className="block">
-                        <span className={labelClass}>Status inicial</span>
+                      <span className={labelClass}>{localidadeLabel}</span>
+                      {isPrefeituraTipo ? (
                         <CustomSelect
-                          value={form.status}
-                          onChange={(value) => {
-                            setHighlightStatusInicial(false)
-                            updateForm({
-                              status: value as AdminEntidadeCadastroFormState['status'],
-                            })
-                          }}
-                          options={adminEntidadeStatusOptions}
+                          value={form.municipio}
+                          onChange={(value) => updateForm({ municipio: value })}
+                          options={cidadeOptions}
+                          placeholder={
+                            citiesLoading
+                              ? 'Carregando cidades...'
+                              : cidadeOptions.length > 0
+                                ? 'Selecione o município'
+                                : 'Nenhum município para esta UF'
+                          }
                           size="compact"
                           className="w-full"
+                          menuMinWidthPx={240}
                         />
-                        {highlightStatusInicial ? (
-                          <p className="mt-1.5 text-xs font-medium text-amber-800">
-                            Confira o status da entidade antes de continuar.
-                          </p>
-                        ) : null}
-                      </label>
-                    </AttendanceFieldHighlight>
-                    <label className="sm:col-span-2 lg:col-span-12">
-                      <span className={labelClass}>Subtítulo / tipo</span>
-                      <input
-                        className={inputClass}
-                        value={form.subtitulo}
-                        onChange={(e) => updateForm({ subtitulo: e.target.value })}
-                        placeholder="Prefeitura Municipal"
-                      />
+                      ) : (
+                        <input
+                          className={inputClass}
+                          value={form.municipio}
+                          onChange={(e) => updateForm({ municipio: e.target.value })}
+                          placeholder="Ex.: São Paulo"
+                        />
+                      )}
                     </label>
                   </div>
                 </div>
               </section>
             ) : null}
 
-            {step === 'contatos' ? (
+            {step === 'marca' ? (
               <section className={`${drawerPanelShell} min-h-0 flex-1 overflow-y-auto p-5 sm:p-6`}>
-                <div className="space-y-5">
+                <div className="space-y-4">
                   <div className={sectionCardClass}>
-                    <p className={sectionTitleClass}>Contatos operacionais</p>
+                    <p className={sectionTitleClass}>Marca</p>
                     <p className={sectionHintClass}>
-                      Gestor da entidade, saúde, gestor do contrato e TI responsáveis pelo
-                      relacionamento com a Telefarmed.
+                      Logo, favicon, cor primária, fundo do login e nome exibido no portal de gestão
+                      e materiais da entidade.
                     </p>
                   </div>
 
-                  <fieldset className={fieldsetClass}>
-                    <legend className={legendClass}>
-                      Gestor da entidade
-                    </legend>
-                    <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-12">
-                      <label className="lg:col-span-4">
-                        <span className={labelClass}>Nome</span>
-                        <input
-                          className={inputClass}
-                          value={form.gestorNome}
-                          onChange={(e) => updateForm({ gestorNome: e.target.value })}
-                        />
-                      </label>
-                      <label className="lg:col-span-4">
-                        <span className={labelClass}>E-mail</span>
-                        <input
-                          type="email"
-                          className={inputClass}
-                          value={form.gestorEmail}
-                          onChange={(e) => updateForm({ gestorEmail: e.target.value })}
-                        />
-                      </label>
-                      <div className="sm:col-span-2 lg:col-span-4">
-                        <span className={labelClass}>Telefone</span>
-                        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
-                          <input
-                            className={inputClass}
-                            value={form.gestorTelefone}
-                            onChange={(e) =>
-                              updateForm({ gestorTelefone: maskPhone(e.target.value) })
-                            }
-                            placeholder="(00) 00000-0000"
-                          />
-                          <CustomSelect
-                            value={form.gestorTelefoneTipo}
-                            onChange={(value) =>
-                              updateForm({
-                                gestorTelefoneTipo:
-                                  value as AdminEntidadeCadastroFormState['gestorTelefoneTipo'],
-                              })
-                            }
-                            options={adminEntidadeTelefoneTipoOptions}
-                            size="compact"
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </fieldset>
+                  <EntidadeLogoCropCard
+                    value={form.logoDataUrl}
+                    onChange={(logoDataUrl) => updateForm({ logoDataUrl })}
+                    entityName={form.nomeMarca || form.municipio}
+                  />
 
-                  <fieldset className={fieldsetClass}>
-                    <legend className={legendClass}>
-                      Saúde
-                    </legend>
-                    <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-12">
-                      <label className="lg:col-span-4">
-                        <span className={labelClass}>Nome</span>
-                        <input
-                          className={inputClass}
-                          value={form.saudeNome}
-                          onChange={(e) => updateForm({ saudeNome: e.target.value })}
-                        />
-                      </label>
-                      <label className="lg:col-span-4">
-                        <span className={labelClass}>E-mail</span>
-                        <input
-                          type="email"
-                          className={inputClass}
-                          value={form.saudeEmail}
-                          onChange={(e) => updateForm({ saudeEmail: e.target.value })}
-                        />
-                      </label>
-                      <div className="sm:col-span-2 lg:col-span-4">
-                        <span className={labelClass}>Telefone</span>
-                        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
-                          <input
-                            className={inputClass}
-                            value={form.saudeTelefone}
-                            onChange={(e) =>
-                              updateForm({ saudeTelefone: maskPhone(e.target.value) })
-                            }
-                            placeholder="(00) 00000-0000"
-                          />
-                          <CustomSelect
-                            value={form.saudeTelefoneTipo}
-                            onChange={(value) =>
-                              updateForm({
-                                saudeTelefoneTipo:
-                                  value as AdminEntidadeCadastroFormState['saudeTelefoneTipo'],
-                              })
-                            }
-                            options={adminEntidadeTelefoneTipoOptions}
-                            size="compact"
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </fieldset>
+                  <div className={sectionCardClass}>
+                    <p className={sectionTitleClass}>Fundo do login</p>
+                    <p className={sectionHintClass}>
+                      Imagem de fundo das telas de login do portal de gestão e das unidades UBT
+                      desta entidade. Se não enviar, usamos o padrão Telefarmed.
+                    </p>
+                  </div>
 
-                  <fieldset className={fieldsetClass}>
-                    <legend className={legendClass}>
-                      Gestor do contrato
-                    </legend>
-                    <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-12">
-                      <label className="lg:col-span-4">
-                        <span className={labelClass}>Nome</span>
-                        <input
-                          className={inputClass}
-                          value={form.contratoNome}
-                          onChange={(e) => updateForm({ contratoNome: e.target.value })}
-                        />
-                      </label>
-                      <label className="lg:col-span-4">
-                        <span className={labelClass}>E-mail</span>
-                        <input
-                          type="email"
-                          className={inputClass}
-                          value={form.contratoEmail}
-                          onChange={(e) => updateForm({ contratoEmail: e.target.value })}
-                        />
-                      </label>
-                      <div className="sm:col-span-2 lg:col-span-4">
-                        <span className={labelClass}>Telefone</span>
-                        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
-                          <input
-                            className={inputClass}
-                            value={form.contratoTelefone}
-                            onChange={(e) =>
-                              updateForm({ contratoTelefone: maskPhone(e.target.value) })
-                            }
-                            placeholder="(00) 00000-0000"
-                          />
-                          <CustomSelect
-                            value={form.contratoTelefoneTipo}
-                            onChange={(value) =>
-                              updateForm({
-                                contratoTelefoneTipo:
-                                  value as AdminEntidadeCadastroFormState['contratoTelefoneTipo'],
-                              })
-                            }
-                            options={adminEntidadeTelefoneTipoOptions}
-                            size="compact"
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </fieldset>
+                  <EntidadeLoginBackgroundCropCard
+                    value={form.loginBackgroundDataUrl}
+                    onChange={(loginBackgroundDataUrl) => updateForm({ loginBackgroundDataUrl })}
+                    entityName={form.nomeMarca || form.municipio}
+                  />
 
-                  <fieldset className={fieldsetClass}>
-                    <legend className={legendClass}>
-                      TI
-                    </legend>
-                    <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-12">
-                      <label className="lg:col-span-4">
-                        <span className={labelClass}>Nome</span>
+                  <div className={sectionCardClass}>
+                    <p className={sectionTitleClass}>Favicon</p>
+                    <p className={sectionHintClass}>
+                      Ícone exibido na aba do navegador nos portais de gestão e UBT desta entidade.
+                      Se não enviar, usamos o favicon padrão Telefarmed.
+                    </p>
+                  </div>
+
+                  <EntidadeFaviconCropCard
+                    value={form.faviconDataUrl}
+                    onChange={(faviconDataUrl) => updateForm({ faviconDataUrl })}
+                    entityName={form.nomeMarca || form.municipio}
+                  />
+
+                  <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(11rem,13rem)]">
+                    <label className="block min-w-0">
+                      <span className={labelClass}>Nome exibido</span>
+                      <input
+                        className={inputClass}
+                        value={form.nomeMarca}
+                        onChange={(e) => {
+                          const nomeMarca = e.target.value
+                          updateForm({
+                            nomeMarca,
+                            nome: form.nome.trim() ? form.nome : nomeMarca,
+                          })
+                        }}
+                        placeholder="Ex.: Prefeitura de Brasília"
+                      />
+                    </label>
+
+                    <div className="min-w-0">
+                      <span className={labelClass}>Cor primária</span>
+                      <div className="mt-1 flex items-center gap-3">
                         <input
-                          className={inputClass}
-                          value={form.tiNome}
-                          onChange={(e) => updateForm({ tiNome: e.target.value })}
+                          type="color"
+                          value={form.corPrimaria}
+                          onChange={(e) => updateForm({ corPrimaria: e.target.value })}
+                          className="h-11 w-14 shrink-0 cursor-pointer overflow-hidden rounded-xl border border-gray-200 p-0 [&::-moz-color-swatch]:rounded-xl [&::-moz-color-swatch]:border-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-xl [&::-webkit-color-swatch]:border-none"
+                          aria-label="Selecionar cor primária"
                         />
-                      </label>
-                      <label className="lg:col-span-4">
-                        <span className={labelClass}>E-mail</span>
                         <input
-                          type="email"
-                          className={inputClass}
-                          value={form.tiEmail}
-                          onChange={(e) => updateForm({ tiEmail: e.target.value })}
+                          className={`${inputClass} min-w-0 flex-1 font-mono uppercase`}
+                          value={form.corPrimaria}
+                          onChange={(e) => {
+                            const value = e.target.value.trim()
+                            if (/^#[0-9A-Fa-f]{0,6}$/.test(value) || value === '') {
+                              updateForm({ corPrimaria: value })
+                            }
+                          }}
+                          placeholder="#FF6B00"
+                          spellCheck={false}
                         />
-                      </label>
-                      <div className="sm:col-span-2 lg:col-span-4">
-                        <span className={labelClass}>Telefone</span>
-                        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
-                          <input
-                            className={inputClass}
-                            value={form.tiTelefone}
-                            onChange={(e) =>
-                              updateForm({ tiTelefone: maskPhone(e.target.value) })
-                            }
-                            placeholder="(00) 00000-0000"
-                          />
-                          <CustomSelect
-                            value={form.tiTelefoneTipo}
-                            onChange={(value) =>
-                              updateForm({
-                                tiTelefoneTipo:
-                                  value as AdminEntidadeCadastroFormState['tiTelefoneTipo'],
-                              })
-                            }
-                            options={adminEntidadeTelefoneTipoOptions}
-                            size="compact"
-                            className="w-full"
-                          />
-                        </div>
                       </div>
                     </div>
-                  </fieldset>
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
+            {step === 'endereco' ? (
+              <section className={`${drawerPanelShell} min-h-0 flex-1 overflow-y-auto p-5 sm:p-6`}>
+                <div className="space-y-4">
+                  <div className={sectionCardClass}>
+                    <p className={sectionTitleClass}>Endereço público</p>
+                    <p className={sectionHintClass}>
+                      Slug único do portal de gestão. Será usado em{' '}
+                      <span className="font-mono text-gray-700">https://{'{slug}'}.telefarmed.com.br</span>.
+                    </p>
+                  </div>
+
+                  <TenantSlugField
+                    value={form.slug}
+                    onChange={(slug) => updateForm({ slug })}
+                    urlKind="gestao"
+                    checkAvailability={checkSlugAvailability}
+                    onAvailabilityChange={handleSlugAvailabilityChange}
+                    hint="Use letras minúsculas, números e hífens. O endereço não pode ser alterado depois que o portal entrar em uso."
+                  />
                 </div>
               </section>
             ) : null}
 
             {step === 'contrato' ? (
               <section className={`${drawerPanelShell} min-h-0 flex-1 overflow-y-auto p-5 sm:p-6`}>
+                <div className="space-y-8">
                 <div className="space-y-4">
                   <div className={sectionCardClass}>
                     <p className={sectionTitleClass}>Contrato inicial</p>
@@ -1165,13 +1147,10 @@ export function AdminEntidadeCadastroDrawer({
                     onChange={(checked) =>
                       updateForm({ aceitaPacientesOutrosMunicipios: checked })
                     }
+                    entidadeTipo={form.tipoEntidade}
                   />
                 </div>
-              </section>
-            ) : null}
 
-            {step === 'especialidades' ? (
-              <section className={`${drawerPanelShell} min-h-0 flex-1 overflow-y-auto p-5 sm:p-6`}>
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-end justify-between gap-3">
                     <div className={sectionCardClass}>
@@ -1279,11 +1258,7 @@ export function AdminEntidadeCadastroDrawer({
                     }
                   />
                 </div>
-              </section>
-            ) : null}
 
-            {step === 'excedente' ? (
-              <section className={`${drawerPanelShell} min-h-0 flex-1 overflow-y-auto p-5 sm:p-6`}>
                 <div className="space-y-4">
                   <div className={sectionCardClass}>
                     <p className={sectionTitleClass}>Ultrapassagem do volume</p>
@@ -1556,6 +1531,209 @@ export function AdminEntidadeCadastroDrawer({
                     </>
                   )}
                 </div>
+
+                <div className="space-y-5">
+                  <div className={sectionCardClass}>
+                    <p className={sectionTitleClass}>Contatos operacionais</p>
+                    <p className={sectionHintClass}>
+                      Informe ao menos um contato completo entre Gestor da entidade, Saúde ou Gestor
+                      do contrato. TI é opcional e não substitui os demais.
+                    </p>
+                  </div>
+
+                  <fieldset className={fieldsetClass}>
+                    <legend className={legendClass}>Gestor da entidade</legend>
+                    <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-12">
+                      <label className="lg:col-span-4">
+                        <span className={labelClass}>Nome</span>
+                        <input
+                          className={inputClass}
+                          value={form.gestorNome}
+                          onChange={(e) => updateForm({ gestorNome: e.target.value })}
+                        />
+                      </label>
+                      <label className="lg:col-span-4">
+                        <span className={labelClass}>E-mail</span>
+                        <input
+                          type="email"
+                          className={inputClass}
+                          value={form.gestorEmail}
+                          onChange={(e) => updateForm({ gestorEmail: e.target.value })}
+                        />
+                      </label>
+                      <div className="sm:col-span-2 lg:col-span-4">
+                        <span className={labelClass}>Telefone</span>
+                        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
+                          <input
+                            className={inputClass}
+                            value={form.gestorTelefone}
+                            onChange={(e) =>
+                              updateForm({ gestorTelefone: maskPhone(e.target.value) })
+                            }
+                            placeholder="(00) 00000-0000"
+                          />
+                          <CustomSelect
+                            value={form.gestorTelefoneTipo}
+                            onChange={(value) =>
+                              updateForm({
+                                gestorTelefoneTipo:
+                                  value as AdminEntidadeCadastroFormState['gestorTelefoneTipo'],
+                              })
+                            }
+                            options={adminEntidadeTelefoneTipoOptions}
+                            size="compact"
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className={fieldsetClass}>
+                    <legend className={legendClass}>Saúde</legend>
+                    <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-12">
+                      <label className="lg:col-span-4">
+                        <span className={labelClass}>Nome</span>
+                        <input
+                          className={inputClass}
+                          value={form.saudeNome}
+                          onChange={(e) => updateForm({ saudeNome: e.target.value })}
+                        />
+                      </label>
+                      <label className="lg:col-span-4">
+                        <span className={labelClass}>E-mail</span>
+                        <input
+                          type="email"
+                          className={inputClass}
+                          value={form.saudeEmail}
+                          onChange={(e) => updateForm({ saudeEmail: e.target.value })}
+                        />
+                      </label>
+                      <div className="sm:col-span-2 lg:col-span-4">
+                        <span className={labelClass}>Telefone</span>
+                        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
+                          <input
+                            className={inputClass}
+                            value={form.saudeTelefone}
+                            onChange={(e) =>
+                              updateForm({ saudeTelefone: maskPhone(e.target.value) })
+                            }
+                            placeholder="(00) 00000-0000"
+                          />
+                          <CustomSelect
+                            value={form.saudeTelefoneTipo}
+                            onChange={(value) =>
+                              updateForm({
+                                saudeTelefoneTipo:
+                                  value as AdminEntidadeCadastroFormState['saudeTelefoneTipo'],
+                              })
+                            }
+                            options={adminEntidadeTelefoneTipoOptions}
+                            size="compact"
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className={fieldsetClass}>
+                    <legend className={legendClass}>Gestor do contrato</legend>
+                    <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-12">
+                      <label className="lg:col-span-4">
+                        <span className={labelClass}>Nome</span>
+                        <input
+                          className={inputClass}
+                          value={form.contratoNome}
+                          onChange={(e) => updateForm({ contratoNome: e.target.value })}
+                        />
+                      </label>
+                      <label className="lg:col-span-4">
+                        <span className={labelClass}>E-mail</span>
+                        <input
+                          type="email"
+                          className={inputClass}
+                          value={form.contratoEmail}
+                          onChange={(e) => updateForm({ contratoEmail: e.target.value })}
+                        />
+                      </label>
+                      <div className="sm:col-span-2 lg:col-span-4">
+                        <span className={labelClass}>Telefone</span>
+                        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
+                          <input
+                            className={inputClass}
+                            value={form.contratoTelefone}
+                            onChange={(e) =>
+                              updateForm({ contratoTelefone: maskPhone(e.target.value) })
+                            }
+                            placeholder="(00) 00000-0000"
+                          />
+                          <CustomSelect
+                            value={form.contratoTelefoneTipo}
+                            onChange={(value) =>
+                              updateForm({
+                                contratoTelefoneTipo:
+                                  value as AdminEntidadeCadastroFormState['contratoTelefoneTipo'],
+                              })
+                            }
+                            options={adminEntidadeTelefoneTipoOptions}
+                            size="compact"
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className={fieldsetClass}>
+                    <legend className={legendClass}>TI</legend>
+                    <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-12">
+                      <label className="lg:col-span-4">
+                        <span className={labelClass}>Nome</span>
+                        <input
+                          className={inputClass}
+                          value={form.tiNome}
+                          onChange={(e) => updateForm({ tiNome: e.target.value })}
+                        />
+                      </label>
+                      <label className="lg:col-span-4">
+                        <span className={labelClass}>E-mail</span>
+                        <input
+                          type="email"
+                          className={inputClass}
+                          value={form.tiEmail}
+                          onChange={(e) => updateForm({ tiEmail: e.target.value })}
+                        />
+                      </label>
+                      <div className="sm:col-span-2 lg:col-span-4">
+                        <span className={labelClass}>Telefone</span>
+                        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_8rem]">
+                          <input
+                            className={inputClass}
+                            value={form.tiTelefone}
+                            onChange={(e) =>
+                              updateForm({ tiTelefone: maskPhone(e.target.value) })
+                            }
+                            placeholder="(00) 00000-0000"
+                          />
+                          <CustomSelect
+                            value={form.tiTelefoneTipo}
+                            onChange={(value) =>
+                              updateForm({
+                                tiTelefoneTipo:
+                                  value as AdminEntidadeCadastroFormState['tiTelefoneTipo'],
+                              })
+                            }
+                            options={adminEntidadeTelefoneTipoOptions}
+                            size="compact"
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </fieldset>
+                </div>
+                </div>
               </section>
             ) : null}
 
@@ -1569,31 +1747,82 @@ export function AdminEntidadeCadastroDrawer({
                       entidades.
                     </p>
                   </div>
-                  <section className="space-y-2">
-                    <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-gray-500">
-                      <Building2 className="h-3.5 w-3.5" />
-                      Entidade
-                    </h3>
-                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                      <div className="rounded-lg border border-gray-100 bg-slate-50/80 px-3 py-2 sm:col-span-2 lg:col-span-3">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                          Logo
-                        </p>
+                  <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                      Portal de gestão
+                    </p>
+                    <p className="mt-1 font-mono text-sm font-semibold text-gray-900">
+                      {form.slug ? gestaoPublicUrl(form.slug) : '—'}
+                    </p>
+                    <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
+                      <div className="flex items-center gap-4">
                         {form.logoDataUrl ? (
                           <img
                             src={form.logoDataUrl}
                             alt=""
-                            className="mt-2 h-14 w-14 rounded-xl border border-gray-200 object-cover"
+                            className="h-14 w-14 rounded-xl border border-gray-200 object-contain"
                           />
                         ) : (
-                          <p className="mt-1 text-sm font-medium text-gray-500">Não enviado</p>
+                          <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-dashed border-gray-200 bg-slate-50 text-xs text-gray-400">
+                            Sem logo
+                          </div>
                         )}
+                        <div>
+                          <p className="text-sm font-bold text-gray-900">
+                            {form.nomeMarca || form.nome || '—'}
+                          </p>
+                          <div className="mt-1 flex items-center gap-2">
+                            <span
+                              className="inline-block h-4 w-4 rounded-full border border-gray-200"
+                              style={{ backgroundColor: form.corPrimaria }}
+                              aria-hidden
+                            />
+                            <span className="font-mono text-xs text-gray-600">{form.corPrimaria}</span>
+                          </div>
+                        </div>
                       </div>
-                      <ReviewRow label="Nome" value={form.nome} />
-                      <ReviewRow label="Subtítulo" value={form.subtitulo} />
+                      {form.loginBackgroundDataUrl ? (
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                            Fundo do login
+                          </p>
+                          <img
+                            src={form.loginBackgroundDataUrl}
+                            alt=""
+                            className="mt-2 h-20 w-full max-w-xs rounded-xl border border-gray-200 object-cover"
+                          />
+                        </div>
+                      ) : null}
+                      {form.faviconDataUrl ? (
+                        <div>
+                          <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                            Favicon
+                          </p>
+                          <img
+                            src={form.faviconDataUrl}
+                            alt=""
+                            className="mt-2 h-10 w-10 rounded-lg border border-gray-200 object-contain"
+                          />
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                  <section className="space-y-2">
+                    <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-gray-500">
+                      <Building2 className="h-3.5 w-3.5" />
+                      Identificação
+                    </h3>
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      <ReviewRow
+                        label="Tipo"
+                        value={resolveEntidadeTipoLabel(form.tipoEntidade)}
+                      />
                       <ReviewRow label="Razão social" value={form.razaoSocial} />
                       <ReviewRow label="CNPJ" value={form.cnpj} />
-                      <ReviewRow label="Cidade / UF" value={`${form.municipio} / ${form.uf}`} />
+                      <ReviewRow
+                        label={`${localidadeLabel} / UF`}
+                        value={`${form.municipio} / ${form.uf}`}
+                      />
                       <div className="rounded-lg border border-gray-100 bg-slate-50/80 px-3 py-2">
                         <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                           Status
@@ -1641,14 +1870,16 @@ export function AdminEntidadeCadastroDrawer({
                       <ReviewRow label="Numero" value={form.numeroContrato} />
                       <ReviewRow label="Inicio da vigencia" value={form.vigenciaInicio} />
                       <ReviewRow label="Fim da vigencia" value={form.vigenciaFim} />
-                      <ReviewRow
-                        label="Pacientes de outros municípios"
-                        value={
-                          form.aceitaPacientesOutrosMunicipios
-                            ? 'Aceitos'
-                            : 'Apenas do município contratante'
-                        }
-                      />
+                      {isPrefeituraTipo ? (
+                        <ReviewRow
+                          label="Pacientes de outros municípios"
+                          value={
+                            form.aceitaPacientesOutrosMunicipios
+                              ? 'Aceitos'
+                              : 'Apenas do município contratante'
+                          }
+                        />
+                      ) : null}
                       {pacoteOuMensal ? (
                         <>
                           <ReviewRow
@@ -1731,6 +1962,10 @@ export function AdminEntidadeCadastroDrawer({
             >
               {stepError}
             </p>
+          ) : stepBlockingReason ? (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              {stepBlockingReason}
+            </p>
           ) : null}
 
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1748,8 +1983,8 @@ export function AdminEntidadeCadastroDrawer({
             <button
               type="button"
               onClick={() => void handleSubmit()}
-              disabled={isSaving || !canAdvance}
-              aria-disabled={isSaving || !canAdvance}
+              disabled={isSaving}
+              aria-disabled={isSaving}
               className="btn-brand-gradient inline-flex h-11 items-center gap-2 rounded-xl px-8 text-sm font-semibold shadow-[0_8px_20px_rgba(255,107,0,0.22)] disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none"
             >
               {isSaving ? (
@@ -1763,8 +1998,8 @@ export function AdminEntidadeCadastroDrawer({
             <button
               type="button"
               onClick={goNext}
-              disabled={isSaving || !canAdvance}
-              aria-disabled={isSaving || !canAdvance}
+              disabled={isSaving}
+              aria-disabled={isSaving}
               className="btn-brand-gradient inline-flex h-11 items-center gap-2 rounded-xl px-6 text-sm font-semibold shadow-[0_8px_20px_rgba(255,107,0,0.22)] disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none"
             >
               Continuar

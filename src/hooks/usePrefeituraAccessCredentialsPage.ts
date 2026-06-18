@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { usePrefeituraAuth } from '../contexts/PrefeituraAuthContext'
+import { buildGestaoUrl } from '../config/tenantHost'
 import type { AdminOperatorRow } from '../data/adminOperadoresMock'
 import type { PrefeituraCredentialUbtOption } from '../data/prefeituraAccessCredentialsMock'
 import type { PrefeituraCredentialUser } from '../config/prefeituraCredenciaisConfig'
@@ -19,6 +20,7 @@ export function usePrefeituraAccessCredentialsPage() {
   const [contractingEntityOptions, setContractingEntityOptions] = useState<
     Array<{ value: string; label: string }>
   >([])
+  const [entitySlug, setEntitySlug] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
@@ -41,6 +43,7 @@ export function usePrefeituraAccessCredentialsPage() {
       setGestorRows(gestores)
       setUbtOptions(options)
       setContractingEntityOptions([{ value: entity.id, label: entity.label }])
+      setEntitySlug(entity.slug ?? '')
     } catch (error) {
       const message = isPrefeituraCredenciaisApiError(error)
         ? error.message
@@ -64,6 +67,11 @@ export function usePrefeituraAccessCredentialsPage() {
     await reload()
   }, [reload])
 
+  const gestorPortalLoginUrl = useMemo(
+    () => (entitySlug.trim() ? buildGestaoUrl(entitySlug.trim()) : null),
+    [entitySlug],
+  )
+
   return useMemo(
     () => ({
       operatorRows,
@@ -72,6 +80,7 @@ export function usePrefeituraAccessCredentialsPage() {
       setGestorRows,
       ubtOptions,
       contractingEntityOptions,
+      gestorPortalLoginUrl,
       isLoading: isLoading || isBootstrapping,
       loadError,
       reload,
@@ -83,6 +92,7 @@ export function usePrefeituraAccessCredentialsPage() {
       gestorRows,
       ubtOptions,
       contractingEntityOptions,
+      gestorPortalLoginUrl,
       isLoading,
       isBootstrapping,
       loadError,

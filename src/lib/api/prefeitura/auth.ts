@@ -1,5 +1,10 @@
 import type { PrefeituraAuthUser } from '../../mockAuth/prefeituraAuthMock'
+import type {
+  EntidadeBrandingFields,
+  EntidadeLogoSignedUrlResponse,
+} from '../../types/entidadeBranding'
 import { ApiError, apiFetch } from '../http'
+import { extractTenantSlugFromHostname } from '../../../config/tenantHost'
 
 export class PrefeituraAuthApiError extends ApiError {
   constructor(message: string, status: number, code?: string) {
@@ -20,9 +25,22 @@ export async function apiPrefeituraLogin(credentials: {
   password: string
 }): Promise<{ accessToken: string; user: PrefeituraAuthUser }> {
   try {
+    const headers = new Headers()
+    const tenantSlug =
+      typeof window !== 'undefined' ? extractTenantSlugFromHostname(window.location.hostname) : null
+    if (tenantSlug && typeof window !== 'undefined') {
+      headers.set('X-Tenant-Host', window.location.host)
+    }
+
     return await apiFetch('/prefeitura/auth/login', {
       method: 'POST',
-      json: credentials,
+      headers,
+      json: {
+        ...credentials,
+        ...(tenantSlug && typeof window !== 'undefined'
+          ? { tenantHost: window.location.host }
+          : {}),
+      },
     })
   } catch (error) {
     throw mapApiError(error)
@@ -64,6 +82,26 @@ export async function apiVerifyPrefeituraAuthorizationPin(
       accessToken,
       json: { pin },
     })
+  } catch (error) {
+    throw mapApiError(error)
+  }
+}
+
+export async function apiPrefeituraEntidadeLogo(
+  accessToken: string,
+): Promise<EntidadeLogoSignedUrlResponse> {
+  try {
+    return await apiFetch('/prefeitura/auth/entidade/logo', { accessToken })
+  } catch (error) {
+    throw mapApiError(error)
+  }
+}
+
+export async function apiPrefeituraEntidadeBranding(
+  accessToken: string,
+): Promise<{ branding: EntidadeBrandingFields }> {
+  try {
+    return await apiFetch('/prefeitura/auth/entidade/branding', { accessToken })
   } catch (error) {
     throw mapApiError(error)
   }

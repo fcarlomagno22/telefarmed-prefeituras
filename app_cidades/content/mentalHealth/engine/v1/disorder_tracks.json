@@ -1,0 +1,524 @@
+[
+  {
+    "id": "depressive_disorders",
+    "internal_label": "Transtornos depressivos",
+    "user_facing_theme": "humor e energia",
+    "user_facing_description": "Momentos em que a disposição, o interesse ou a energia parecem mais baixos que o habitual.",
+    "related_symptoms": [
+      "low_mood",
+      "anhedonia",
+      "fatigue",
+      "hopelessness",
+      "sleep_disturbance",
+      "appetite_change",
+      "psychomotor_change",
+      "concentration_difficulty",
+      "guilt_worthlessness",
+      "functional_impairment"
+    ],
+    "subtypes_internal": [
+      "major_depressive_disorder",
+      "persistent_depressive_disorder",
+      "other_specified_depressive_disorder"
+    ],
+    "priority_weight": 1.2,
+    "comorbidity_affinity": [
+      "anxiety_disorders",
+      "sleep_disorders",
+      "substance_use_disorders",
+      "trauma_related_disorders"
+    ],
+    "red_flag_sensitive": true,
+    "enabled": true,
+    "version": "1.0.0",
+    "notes_internal": "Exigir persistência, mudança do padrão habitual e impacto funcional; excluir causas médicas, medicamentosas e relacionadas a substâncias."
+  },
+  {
+    "id": "anxiety_disorders",
+    "internal_label": "Transtornos de ansiedade",
+    "user_facing_theme": "preocupações e sensação de segurança",
+    "user_facing_description": "Situações em que preocupações, medo ou tensão ficam difíceis de controlar e atrapalham a rotina.",
+    "related_symptoms": [
+      "excessive_worry",
+      "restlessness",
+      "muscle_tension",
+      "panic_attacks",
+      "anticipatory_anxiety",
+      "avoidance",
+      "social_fear",
+      "autonomic_arousal",
+      "concentration_difficulty",
+      "sleep_disturbance"
+    ],
+    "subtypes_internal": [
+      "generalized_anxiety_disorder",
+      "panic_disorder",
+      "agoraphobia",
+      "specific_phobia",
+      "social_anxiety_disorder",
+      "separation_anxiety_disorder"
+    ],
+    "priority_weight": 1.0,
+    "comorbidity_affinity": [
+      "depressive_disorders",
+      "obsessive_compulsive_disorder",
+      "trauma_related_disorders",
+      "sleep_disorders",
+      "somatic_symptom_disorders"
+    ],
+    "red_flag_sensitive": true,
+    "enabled": true,
+    "version": "1.0.0",
+    "notes_internal": "Pontuar frequência, dificuldade de controle, evitação e impacto funcional; sintomas físicos agudos exigem triagem clínica diferencial."
+  },
+  {
+    "id": "obsessive_compulsive_disorder",
+    "internal_label": "Transtorno obsessivo-compulsivo",
+    "user_facing_theme": "pensamentos repetitivos e necessidade de conferir",
+    "user_facing_description": "Experiências em que pensamentos insistentes ou rituais ocupam muito tempo e dificultam seguir a rotina.",
+    "related_symptoms": [
+      "intrusive_thoughts",
+      "compulsive_behaviors",
+      "mental_rituals",
+      "reassurance_seeking",
+      "avoidance",
+      "inflated_responsibility",
+      "intolerance_uncertainty",
+      "time_consuming_rituals",
+      "functional_impairment"
+    ],
+    "subtypes_internal": [
+      "obsessive_compulsive_disorder",
+      "ocd_good_or_fair_insight",
+      "ocd_poor_insight",
+      "ocd_absent_insight"
+    ],
+    "priority_weight": 1.0,
+    "comorbidity_affinity": [
+      "anxiety_disorders",
+      "depressive_disorders",
+      "eating_disorders",
+      "personality_disorders"
+    ],
+    "red_flag_sensitive": true,
+    "enabled": true,
+    "version": "1.0.0",
+    "notes_internal": "Diferenciar obsessões de preocupações comuns; conteúdo intrusivo não deve ser interpretado automaticamente como intenção."
+  },
+  {
+    "id": "trauma_related_disorders",
+    "internal_label": "Transtornos relacionados a traumas e estressores",
+    "user_facing_theme": "impacto de experiências difíceis",
+    "user_facing_description": "Reações que podem surgir após experiências marcantes e afetar segurança, sono, emoções ou rotina.",
+    "related_symptoms": [
+      "trauma_reexperiencing",
+      "trauma_avoidance",
+      "hypervigilance",
+      "exaggerated_startle",
+      "trauma_related_nightmares",
+      "emotional_numbing",
+      "negative_beliefs",
+      "irritability",
+      "sleep_disturbance",
+      "dissociation"
+    ],
+    "subtypes_internal": [
+      "posttraumatic_stress_disorder",
+      "complex_posttraumatic_stress_disorder",
+      "acute_stress_disorder",
+      "prolonged_grief_disorder",
+      "adjustment_disorder"
+    ],
+    "priority_weight": 1.2,
+    "comorbidity_affinity": [
+      "depressive_disorders",
+      "anxiety_disorders",
+      "dissociative_disorders",
+      "substance_use_disorders",
+      "sleep_disorders",
+      "personality_disorders"
+    ],
+    "red_flag_sensitive": true,
+    "enabled": true,
+    "version": "1.0.0",
+    "notes_internal": "Não exigir relato detalhado do evento; considerar temporalidade, evitação, alterações de ameaça percebida e segurança atual."
+  },
+  {
+    "id": "bipolar_disorders",
+    "internal_label": "Transtornos bipolares e relacionados",
+    "user_facing_theme": "variações marcantes de humor e ritmo",
+    "user_facing_description": "Períodos de mudanças incomuns em energia, sono, velocidade dos pensamentos e forma de agir.",
+    "related_symptoms": [
+      "elevated_mood",
+      "irritability",
+      "decreased_need_for_sleep",
+      "increased_energy",
+      "pressured_speech",
+      "racing_thoughts",
+      "grandiosity",
+      "increased_goal_directed_activity",
+      "impulsivity",
+      "low_mood",
+      "episodic_mood_change"
+    ],
+    "subtypes_internal": [
+      "bipolar_i_disorder",
+      "bipolar_ii_disorder",
+      "cyclothymic_disorder",
+      "other_specified_bipolar_disorder"
+    ],
+    "priority_weight": 1.3,
+    "comorbidity_affinity": [
+      "anxiety_disorders",
+      "substance_use_disorders",
+      "sleep_disorders",
+      "personality_disorders",
+      "neurodevelopmental_disorders"
+    ],
+    "red_flag_sensitive": true,
+    "enabled": true,
+    "version": "1.0.0",
+    "notes_internal": "Priorizar episódios e mudança clara do padrão habitual; diferenciar menor necessidade de sono de insônia e agitação inespecífica."
+  },
+  {
+    "id": "psychotic_disorders",
+    "internal_label": "Transtornos do espectro da esquizofrenia e outros transtornos psicóticos",
+    "user_facing_theme": "percepções e pensamentos",
+    "user_facing_description": "Momentos em que percepções ou ideias mudam de forma intensa e tornam mais difícil entender o que acontece ao redor.",
+    "related_symptoms": [
+      "hallucinations",
+      "delusional_beliefs",
+      "disorganized_thinking",
+      "disorganized_behavior",
+      "negative_symptoms",
+      "impaired_reality_testing",
+      "social_withdrawal",
+      "functional_decline",
+      "avolition"
+    ],
+    "subtypes_internal": [
+      "schizophrenia",
+      "schizoaffective_disorder",
+      "schizophreniform_disorder",
+      "brief_psychotic_disorder",
+      "delusional_disorder"
+    ],
+    "priority_weight": 1.5,
+    "comorbidity_affinity": [
+      "substance_use_disorders",
+      "bipolar_disorders",
+      "depressive_disorders",
+      "sleep_disorders",
+      "neurodevelopmental_disorders"
+    ],
+    "red_flag_sensitive": true,
+    "enabled": true,
+    "version": "1.0.0",
+    "notes_internal": "Sinais de perda de contato com a realidade exigem revisão humana prioritária e exclusão de causas médicas ou relacionadas a substâncias."
+  },
+  {
+    "id": "eating_disorders",
+    "internal_label": "Transtornos alimentares e da ingestão alimentar",
+    "user_facing_theme": "relação com alimentação e corpo",
+    "user_facing_description": "Quando comer, evitar alimentos ou lidar com a própria imagem começa a trazer sofrimento e atrapalhar a rotina.",
+    "related_symptoms": [
+      "restrictive_eating",
+      "binge_eating",
+      "compensatory_behaviors",
+      "body_image_disturbance",
+      "fear_of_weight_gain",
+      "loss_of_control_eating",
+      "weight_shape_overvaluation",
+      "meal_avoidance",
+      "nutritional_compromise",
+      "secretive_eating"
+    ],
+    "subtypes_internal": [
+      "anorexia_nervosa",
+      "bulimia_nervosa",
+      "binge_eating_disorder",
+      "avoidant_restrictive_food_intake_disorder",
+      "other_specified_feeding_or_eating_disorder"
+    ],
+    "priority_weight": 1.3,
+    "comorbidity_affinity": [
+      "depressive_disorders",
+      "anxiety_disorders",
+      "obsessive_compulsive_disorder",
+      "personality_disorders",
+      "somatic_symptom_disorders"
+    ],
+    "red_flag_sensitive": true,
+    "enabled": true,
+    "version": "1.0.0",
+    "notes_internal": "Não usar peso ou IMC isoladamente; regras devem detectar restrição, perda de controle, compensação e possível instabilidade clínica."
+  },
+  {
+    "id": "personality_disorders",
+    "internal_label": "Transtornos da personalidade",
+    "user_facing_theme": "relações, emoções e formas de reagir",
+    "user_facing_description": "Formas de sentir e reagir que se repetem nas relações e acabam trazendo sofrimento ou conflitos.",
+    "related_symptoms": [
+      "identity_instability",
+      "interpersonal_instability",
+      "affective_instability",
+      "impulsivity",
+      "rejection_sensitivity",
+      "rigid_personality_patterns",
+      "suspiciousness",
+      "empathy_difficulty",
+      "anger_dysregulation",
+      "social_avoidance"
+    ],
+    "subtypes_internal": [
+      "borderline_personality_disorder",
+      "antisocial_personality_disorder",
+      "narcissistic_personality_disorder",
+      "avoidant_personality_disorder",
+      "paranoid_personality_disorder",
+      "schizoid_personality_disorder",
+      "schizotypal_personality_disorder",
+      "histrionic_personality_disorder",
+      "dependent_personality_disorder",
+      "obsessive_compulsive_personality_disorder"
+    ],
+    "priority_weight": 1.1,
+    "comorbidity_affinity": [
+      "depressive_disorders",
+      "anxiety_disorders",
+      "trauma_related_disorders",
+      "substance_use_disorders",
+      "eating_disorders",
+      "disruptive_impulse_control_disorders"
+    ],
+    "red_flag_sensitive": true,
+    "enabled": true,
+    "version": "1.0.0",
+    "notes_internal": "Não inferir por episódio isolado; exigir padrão persistente, inflexível, presente em diferentes contextos e com impacto significativo."
+  },
+  {
+    "id": "neurodevelopmental_disorders",
+    "internal_label": "Transtornos do neurodesenvolvimento",
+    "user_facing_theme": "atenção, aprendizagem e interação",
+    "user_facing_description": "Jeitos de prestar atenção, se organizar, aprender ou se comunicar que podem exigir mais apoio no dia a dia.",
+    "related_symptoms": [
+      "attention_difficulty",
+      "hyperactivity",
+      "impulsivity",
+      "social_communication_difficulty",
+      "restricted_repetitive_behaviors",
+      "sensory_sensitivity",
+      "executive_dysfunction",
+      "adaptive_functioning_difficulty",
+      "learning_difficulty",
+      "developmental_delay"
+    ],
+    "subtypes_internal": [
+      "attention_deficit_hyperactivity_disorder",
+      "autism_spectrum_disorder",
+      "intellectual_developmental_disorder",
+      "specific_learning_disorder",
+      "communication_disorders",
+      "motor_disorders"
+    ],
+    "priority_weight": 0.9,
+    "comorbidity_affinity": [
+      "anxiety_disorders",
+      "depressive_disorders",
+      "sleep_disorders",
+      "disruptive_impulse_control_disorders",
+      "bipolar_disorders"
+    ],
+    "red_flag_sensitive": false,
+    "enabled": true,
+    "version": "1.0.0",
+    "notes_internal": "Exigir início no desenvolvimento e impacto funcional; usar histórico longitudinal e, quando possível, informações de diferentes contextos."
+  },
+  {
+    "id": "dissociative_disorders",
+    "internal_label": "Transtornos dissociativos",
+    "user_facing_theme": "presença e memória",
+    "user_facing_description": "Momentos de desconexão, estranhamento ou falhas de memória que podem deixar o dia a dia confuso.",
+    "related_symptoms": [
+      "depersonalization",
+      "derealization",
+      "identity_discontinuity",
+      "time_loss",
+      "detachment",
+      "stress_triggered_dissociation",
+      "autobiographical_memory_gaps"
+    ],
+    "subtypes_internal": [
+      "dissociative_identity_disorder",
+      "partial_dissociative_identity_disorder",
+      "depersonalization_derealization_disorder",
+      "dissociative_amnesia"
+    ],
+    "priority_weight": 1.2,
+    "comorbidity_affinity": [
+      "trauma_related_disorders",
+      "depressive_disorders",
+      "anxiety_disorders",
+      "personality_disorders",
+      "sleep_disorders"
+    ],
+    "red_flag_sensitive": true,
+    "enabled": true,
+    "version": "1.0.0",
+    "notes_internal": "Diferenciar dissociação de psicose, alterações neurológicas, privação de sono e efeitos de substâncias."
+  },
+  {
+    "id": "substance_use_disorders",
+    "internal_label": "Transtornos relacionados ao uso de substâncias",
+    "user_facing_theme": "hábitos e escolhas do dia a dia",
+    "user_facing_description": "Quando algum consumo fica difícil de controlar e começa a afetar saúde, relações, sono ou responsabilidades.",
+    "related_symptoms": [
+      "craving",
+      "tolerance",
+      "withdrawal_symptoms",
+      "loss_of_control_use",
+      "continued_use_despite_harm",
+      "hazardous_use",
+      "role_impairment",
+      "unsuccessful_cut_down",
+      "substance_related_mood_change",
+      "substance_related_sleep_disturbance"
+    ],
+    "subtypes_internal": [
+      "alcohol_use_disorder",
+      "cannabis_use_disorder",
+      "stimulant_use_disorder",
+      "opioid_use_disorder",
+      "sedative_hypnotic_anxiolytic_use_disorder",
+      "tobacco_use_disorder",
+      "other_substance_use_disorder"
+    ],
+    "priority_weight": 1.4,
+    "comorbidity_affinity": [
+      "depressive_disorders",
+      "anxiety_disorders",
+      "bipolar_disorders",
+      "psychotic_disorders",
+      "trauma_related_disorders",
+      "personality_disorders",
+      "sleep_disorders"
+    ],
+    "red_flag_sensitive": true,
+    "enabled": true,
+    "version": "1.0.0",
+    "notes_internal": "Separar padrão de uso, perda de controle, consequências e estados agudos; alterações intensas exigem avaliação clínica."
+  },
+  {
+    "id": "disruptive_impulse_control_disorders",
+    "internal_label": "Transtornos disruptivos, do controle de impulsos e da conduta",
+    "user_facing_theme": "impulsos e reações intensas",
+    "user_facing_description": "Situações em que agir no impulso ou lidar com raiva e reações intensas se torna especialmente difícil.",
+    "related_symptoms": [
+      "aggression_outbursts",
+      "impulsivity",
+      "rule_violation",
+      "oppositional_behavior",
+      "irritability",
+      "anger_dysregulation",
+      "risk_taking",
+      "remorse_after_act",
+      "repetitive_urge_behavior"
+    ],
+    "subtypes_internal": [
+      "oppositional_defiant_disorder",
+      "conduct_disorder",
+      "intermittent_explosive_disorder",
+      "kleptomania",
+      "pyromania",
+      "other_specified_disruptive_impulse_control_conduct_disorder"
+    ],
+    "priority_weight": 1.2,
+    "comorbidity_affinity": [
+      "neurodevelopmental_disorders",
+      "substance_use_disorders",
+      "personality_disorders",
+      "bipolar_disorders",
+      "trauma_related_disorders"
+    ],
+    "red_flag_sensitive": true,
+    "enabled": true,
+    "version": "1.0.0",
+    "notes_internal": "Considerar idade, desenvolvimento, contexto e recorrência; evitar linguagem moralizante e diferenciar impulsividade de episódios de humor."
+  },
+  {
+    "id": "somatic_symptom_disorders",
+    "internal_label": "Transtornos de sintomas somáticos e relacionados",
+    "user_facing_theme": "sensações físicas e preocupações com a saúde",
+    "user_facing_description": "Quando sensações do corpo ou preocupações com a saúde ocupam muito espaço e atrapalham o cotidiano.",
+    "related_symptoms": [
+      "persistent_physical_symptoms",
+      "health_anxiety",
+      "symptom_preoccupation",
+      "reassurance_seeking",
+      "functional_impairment",
+      "disproportionate_distress",
+      "frequent_healthcare_use",
+      "pain_preoccupation",
+      "functional_neurological_symptoms"
+    ],
+    "subtypes_internal": [
+      "somatic_symptom_disorder",
+      "illness_anxiety_disorder",
+      "functional_neurological_symptom_disorder",
+      "psychological_factors_affecting_medical_condition"
+    ],
+    "priority_weight": 1.0,
+    "comorbidity_affinity": [
+      "anxiety_disorders",
+      "depressive_disorders",
+      "trauma_related_disorders",
+      "sleep_disorders",
+      "eating_disorders"
+    ],
+    "red_flag_sensitive": true,
+    "enabled": true,
+    "version": "1.0.0",
+    "notes_internal": "Nunca presumir origem emocional antes de avaliação clínica adequada; pontuar preocupação e impacto, não a ausência de explicação médica."
+  },
+  {
+    "id": "sleep_disorders",
+    "internal_label": "Transtornos do sono-vigília",
+    "user_facing_theme": "sono e recuperação",
+    "user_facing_description": "Dificuldades para dormir, manter horários, descansar ou permanecer desperto durante o dia.",
+    "related_symptoms": [
+      "insomnia",
+      "hypersomnia",
+      "circadian_misalignment",
+      "nonrestorative_sleep",
+      "daytime_sleepiness",
+      "parasomnias",
+      "sleep_related_breathing_symptoms",
+      "restless_legs_symptoms",
+      "fatigue",
+      "concentration_difficulty"
+    ],
+    "subtypes_internal": [
+      "insomnia_disorder",
+      "hypersomnolence_disorder",
+      "circadian_rhythm_sleep_wake_disorder",
+      "nightmare_disorder",
+      "non_rem_sleep_arousal_disorder",
+      "rem_sleep_behavior_disorder",
+      "restless_legs_syndrome",
+      "sleep_related_breathing_disorders"
+    ],
+    "priority_weight": 1.0,
+    "comorbidity_affinity": [
+      "depressive_disorders",
+      "anxiety_disorders",
+      "bipolar_disorders",
+      "trauma_related_disorders",
+      "substance_use_disorders",
+      "neurodevelopmental_disorders"
+    ],
+    "red_flag_sensitive": true,
+    "enabled": true,
+    "version": "1.0.0",
+    "notes_internal": "Avaliar duração, regularidade, oportunidade de sono, sintomas respiratórios, medicamentos, substâncias e episódios de humor."
+  }
+]

@@ -49,7 +49,7 @@ function NewRegistrationsByMonth({ slices }: { slices: PrefeituraMunicipalPatien
             </span>
             <div className="flex w-full items-end justify-center" style={{ height: chartHeight }}>
               <div
-                className="w-full max-w-10 rounded-t-md bg-gradient-to-t from-[var(--brand-primary)] to-orange-400"
+                className="w-full max-w-10 rounded-t-md bg-gradient-to-t from-[var(--brand-primary)] to-[var(--brand-primary-gradient-end)]"
                 style={{
                   height: animate ? heightPx : 0,
                   transition: `height 0.9s ${CHART_EASE} ${index * 0.1}s`,

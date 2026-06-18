@@ -65,6 +65,7 @@
         "android.permission.POST_NOTIFICATIONS"
       ],
       "package": "com.fcarlomagno2.app_cidades",
+      "softwareKeyboardLayoutMode": "resize",
       "queries": [
         { "scheme": "whatsapp" },
         { "scheme": "spotify" },

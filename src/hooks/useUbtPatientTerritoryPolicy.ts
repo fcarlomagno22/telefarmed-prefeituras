@@ -1,19 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { PatientAddressTerritoryRequirement } from '../components/dashboard/PatientAddressStep'
+import {
+  patientContractAllowsOtherMunicipalities,
+  resolvePatientAddressTerritoryRequirement,
+  type PatientTerritoryPolicyInput,
+} from '../utils/entidadeTerritoryPolicy'
+import { isPrefeituraEntidadeTipo, resolveAceitaPacientesOutrosMunicipios } from '../config/adminEntidadeTipo'
 import { useUbtAuth } from '../contexts/UbtAuthContext'
 import {
   fetchUbtPatientTerritoryPolicy,
   type UbtPatientTerritoryPolicy,
 } from '../lib/services/ubt/pacientes'
 
+export type { PatientAddressTerritoryRequirement } from '../components/dashboard/PatientAddressStep'
+
 export function resolveUbtPatientAddressTerritoryRequirement(
-  policy: UbtPatientTerritoryPolicy | null | undefined,
-): PatientAddressTerritoryRequirement | undefined {
-  if (!policy || policy.aceitaPacientesOutrosMunicipios) return undefined
-  return {
-    municipality: policy.municipio,
-    uf: policy.uf,
-  }
+  policy: PatientTerritoryPolicyInput | null | undefined,
+) {
+  return resolvePatientAddressTerritoryRequirement(policy)
 }
 
 export function useUbtPatientTerritoryPolicy(enabled = true) {
@@ -37,15 +40,24 @@ export function useUbtPatientTerritoryPolicy(enabled = true) {
       setLoadError(null)
     } catch {
       if (user) {
+        const tipoEntidade = user.entidadeTipo
         setPolicy({
           municipio: user.municipio,
           uf: user.uf,
-          aceitaPacientesOutrosMunicipios: false,
+          aceitaPacientesOutrosMunicipios: resolveAceitaPacientesOutrosMunicipios(
+            tipoEntidade,
+            false,
+          ),
+          tipoEntidade,
         })
       } else {
         setPolicy(null)
       }
-      setLoadError('Não foi possível confirmar a política do contrato. Aplicando restrição do município da entidade.')
+      setLoadError(
+        isPrefeituraEntidadeTipo(user?.entidadeTipo)
+          ? 'Não foi possível confirmar a política do contrato. Aplicando restrição do município da entidade.'
+          : 'Não foi possível confirmar a política do contrato.',
+      )
     } finally {
       setIsLoading(false)
     }
@@ -64,7 +76,7 @@ export function useUbtPatientTerritoryPolicy(enabled = true) {
   return {
     policy,
     requiredTerritory,
-    allowsOtherMunicipalities: Boolean(policy?.aceitaPacientesOutrosMunicipios),
+    allowsOtherMunicipalities: patientContractAllowsOtherMunicipalities(policy),
     isLoading,
     loadError,
     reload,

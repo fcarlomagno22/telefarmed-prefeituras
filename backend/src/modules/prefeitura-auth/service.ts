@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { attachEntidadeBranding } from '../../lib/entidadeBranding/branding.service.js'
 import { normalizeCpf } from '../../lib/cpf.js'
 import {
   createOpaqueToken,
@@ -6,6 +7,7 @@ import {
   verifyPassword,
 } from '../../lib/password.js'
 import { signPrefeituraAccessToken } from '../../lib/jwt.js'
+import { resolveGestaoTenantFromHost, assertGestaoSessionMatchesHost, TenantHostMismatchError } from '../../lib/tenant/loginHost.js'
 import { type PrefeituraUserPublic, type UsuarioPrefeituraRow, toPrefeituraUserPublic } from './types.js'
 
 const MAX_FAILED_ATTEMPTS = 5
@@ -25,7 +27,8 @@ export class PrefeituraAuthError extends Error {
       | 'INVALID_REFRESH'
       | 'NOT_FOUND'
       | 'INVALID_PIN'
-      | 'PIN_NOT_CONFIGURED',
+      | 'PIN_NOT_CONFIGURED'
+      | 'TENANT_HOST_MISMATCH',
     readonly statusCode = 401,
   ) {
     super(message)
@@ -136,6 +139,7 @@ async function clearFailedLogins(userId: string): Promise<void> {
 export async function loginPrefeitura(input: {
   cpf: string
   password: string
+  tenantHost?: string
   userAgent?: string
   ipAddress?: string
 }): Promise<{ accessToken: string; refreshToken: string; user: PrefeituraUserPublic }> {
@@ -172,6 +176,15 @@ export async function loginPrefeitura(input: {
     throw new PrefeituraAuthError('CPF ou senha incorretos.', 'INVALID_CREDENTIALS')
   }
 
+  const gestaoTenant = await resolveGestaoTenantFromHost(input.tenantHost)
+  if (gestaoTenant && gestaoTenant.entidadeId !== user.entidade_contratante_id) {
+    throw new PrefeituraAuthError(
+      'Use o endereço da sua instituição.',
+      'TENANT_HOST_MISMATCH',
+      403,
+    )
+  }
+
   await clearFailedLogins(user.id)
 
   const accessToken = await signPrefeituraAccessToken({
@@ -199,15 +212,18 @@ export async function loginPrefeitura(input: {
   return {
     accessToken,
     refreshToken,
-    user: toPrefeituraUserPublic(
-      refreshed?.row ?? user,
-      refreshed?.permissoesPaginas ?? lookup.permissoesPaginas,
+    user: await attachEntidadeBranding(
+      toPrefeituraUserPublic(
+        refreshed?.row ?? user,
+        refreshed?.permissoesPaginas ?? lookup.permissoesPaginas,
+      ),
     ),
   }
 }
 
 export async function refreshPrefeituraSession(input: {
   refreshToken: string
+  tenantHost?: string
   userAgent?: string
   ipAddress?: string
 }): Promise<{ accessToken: string; refreshToken: string; user: PrefeituraUserPublic }> {
@@ -232,6 +248,15 @@ export async function refreshPrefeituraSession(input: {
   }
 
   const user = lookup.row
+
+  try {
+    await assertGestaoSessionMatchesHost(user.entidade_contratante_id, input.tenantHost)
+  } catch (error) {
+    if (error instanceof TenantHostMismatchError) {
+      throw new PrefeituraAuthError(error.message, 'TENANT_HOST_MISMATCH', 403)
+    }
+    throw error
+  }
 
   const newRefreshToken = createOpaqueToken()
   const newTokenHash = hashOpaqueToken(newRefreshToken)
@@ -271,7 +296,7 @@ export async function refreshPrefeituraSession(input: {
   return {
     accessToken,
     refreshToken: newRefreshToken,
-    user: toPrefeituraUserPublic(user, lookup.permissoesPaginas),
+    user: await attachEntidadeBranding(toPrefeituraUserPublic(user, lookup.permissoesPaginas)),
   }
 }
 
@@ -328,5 +353,5 @@ export async function getPrefeituraUserById(id: string): Promise<PrefeituraUserP
     throw new PrefeituraAuthError('Usuário não encontrado.', 'NOT_FOUND', 404)
   }
 
-  return toPrefeituraUserPublic(lookup.row, lookup.permissoesPaginas)
+  return attachEntidadeBranding(toPrefeituraUserPublic(lookup.row, lookup.permissoesPaginas))
 }

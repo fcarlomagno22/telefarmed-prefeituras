@@ -8,6 +8,7 @@ import type {
   AdminClienteStatus,
   AdminClientesTab,
 } from '../../../types/adminClientes'
+import type { TipoEntidade } from '../../../types/entidadeBranding'
 import type { AdminClienteUbtsResponse } from '../../../types/adminClienteUbts'
 import { ApiError, apiFetch } from '../http'
 
@@ -92,15 +93,27 @@ export type CreateEntidadePayload = {
   subtitulo: string
   razaoSocial: string
   cnpj: string
+  slug: string
   municipio: string
   uf: string
   status: AdminClienteStatus
+  tipoEntidade?: TipoEntidade
+  corPrimaria?: string
+  nomeMarca?: string
   logoHue?: number
   logoDataUrl?: string
-  gestor: AdminClienteRow['gestor']
+  loginBackgroundDataUrl?: string
+  faviconDataUrl?: string
+  gestor?: AdminClienteRow['gestor']
   contatoContrato?: AdminClienteRow['contatoContrato']
-  contatoTi: AdminClienteRow['contatoTi']
-  contatoSaude: AdminClienteRow['contatoSaude']
+  contatoTi?: AdminClienteRow['contatoTi']
+  contatoSaude?: AdminClienteRow['contatoSaude']
+}
+
+export type TenantSlugAvailabilityResponse = {
+  value: string
+  available: boolean
+  reason: string | null
 }
 
 export type UpdateEntidadeContactsPayload = {
@@ -119,8 +132,12 @@ export type UpdateEntidadePayload = {
   cnpj: string
   municipio: string
   uf: string
+  tipoEntidade?: TipoEntidade
   logoHue?: number
   logoDataUrl?: string
+  loginBackgroundDataUrl?: string
+  faviconDataUrl?: string
+  corPrimaria?: string
 }
 
 export type UpdateEntidadeStatusPayload = {
@@ -154,6 +171,24 @@ export function isAdminClientesApiError(error: unknown): error is AdminClientesA
 export async function fetchClientesSummary(accessToken: string): Promise<ClientesSummaryResponse> {
   try {
     return await apiFetch<ClientesSummaryResponse>('/admin/clientes/summary', { accessToken })
+  } catch (error) {
+    throw mapError(error)
+  }
+}
+
+export async function checkClienteSlugAvailability(
+  accessToken: string,
+  value: string,
+  options?: { excludeEntidadeId?: string; excludeUbtId?: string },
+): Promise<TenantSlugAvailabilityResponse> {
+  try {
+    const query = new URLSearchParams({ value })
+    if (options?.excludeEntidadeId) query.set('excludeEntidadeId', options.excludeEntidadeId)
+    if (options?.excludeUbtId) query.set('excludeUbtId', options.excludeUbtId)
+    return await apiFetch<TenantSlugAvailabilityResponse>(
+      `/admin/clientes/slugs/availability?${query.toString()}`,
+      { accessToken },
+    )
   } catch (error) {
     throw mapError(error)
   }

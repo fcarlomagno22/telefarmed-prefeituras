@@ -1,6 +1,6 @@
 import { portalPath } from './portalHost'
 
-/** Rotas do portal UBT (subdomínio dedicado: `/login`; local: `/ubt/login`). */
+/** Rotas do portal UBT (host dedicado: `/login`; local: `/ubt/login`). */
 export const ubtRoutes = {
   get login() {
     return portalPath('ubt', '/login')

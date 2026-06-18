@@ -11,6 +11,8 @@ import type { PatientLookupContext, PatientLookupResult } from '../../../types/p
 import { normalizePatientRegistration, type PatientRegistration } from '../../../types/attendance'
 import { maskCpf } from '../../../utils/masks'
 import { mockDelay } from '../delay'
+import { resolveAceitaPacientesOutrosMunicipios } from '../../../config/adminEntidadeTipo'
+import type { TipoEntidade } from '../../../types/entidadeBranding'
 
 export class UbtPacientesApiError extends Error {
   status: number
@@ -38,6 +40,7 @@ export type UbtPatientTerritoryPolicy = {
   municipio: string
   uf: string
   aceitaPacientesOutrosMunicipios: boolean
+  tipoEntidade?: TipoEntidade
 }
 
 export type UbtPacientesListResponse = {
@@ -344,8 +347,11 @@ function resolveMockTerritoryPolicy(): UbtPatientTerritoryPolicy {
   return {
     municipio: entity?.municipio ?? user.municipio,
     uf: entity?.uf ?? user.uf,
-    aceitaPacientesOutrosMunicipios:
+    tipoEntidade: entity?.tipoEntidade,
+    aceitaPacientesOutrosMunicipios: resolveAceitaPacientesOutrosMunicipios(
+      entity?.tipoEntidade,
       activeContract?.detalhes?.aceitaPacientesOutrosMunicipios ?? false,
+    ),
   }
 }
 

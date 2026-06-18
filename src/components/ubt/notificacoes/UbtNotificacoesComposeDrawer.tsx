@@ -2,10 +2,11 @@ import { AlertCircle, Send, Sparkles, Stethoscope, Users, X } from 'lucide-react
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  ubtCannotNotifyTelefarmedHint,
+  buildUbtCannotNotifyTelefarmedHint,
   ubtProfissionaisRecipientHint,
 } from '../../../constants/ubtNotificacoesCopy'
 import { useUbtAuth } from '../../../contexts/UbtAuthContext'
+import { usePlatformOperatorLabel } from '../../../hooks/useEntidadeCopy'
 import {
   fetchUbtProfissionaisCatalog,
   type CreateUbtBroadcastPayload,
@@ -39,6 +40,7 @@ export function UbtNotificacoesComposeDrawer({
   onSend,
 }: UbtNotificacoesComposeDrawerProps) {
   const { user, getAccessToken } = useUbtAuth()
+  const platformOperatorLabel = usePlatformOperatorLabel()
   const unitName = user?.unidadeUbtNome ?? 'Unidade UBT'
   const operatorName = user?.nome ?? 'Operador'
   const [entered, setEntered] = useState(false)
@@ -204,7 +206,7 @@ export function UbtNotificacoesComposeDrawer({
         <header className="relative shrink-0 overflow-hidden border-b border-gray-200 bg-gradient-to-b from-[var(--brand-primary-light)]/50 to-white px-5 py-4 sm:px-8">
           <div className="relative flex flex-wrap items-start justify-between gap-4">
             <div className="flex min-w-0 items-start gap-4">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand-primary-light)] text-[var(--brand-primary)] ring-2 ring-orange-100">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand-primary-light)] text-[var(--brand-primary)] ring-2 ring-[var(--brand-primary-border)]">
                 <Sparkles className="h-5 w-5" strokeWidth={2} />
               </span>
               <div className="min-w-0">
@@ -237,7 +239,9 @@ export function UbtNotificacoesComposeDrawer({
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-5 sm:p-8">
           <div className="flex gap-3 rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-900">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" strokeWidth={2} />
-            <p className="leading-relaxed">{ubtCannotNotifyTelefarmedHint}</p>
+            <p className="leading-relaxed">
+              {buildUbtCannotNotifyTelefarmedHint(platformOperatorLabel)}
+            </p>
           </div>
 
           <div className="rounded-2xl border border-gray-200 bg-slate-50/60 px-4 py-3 text-sm text-gray-700">
@@ -335,7 +339,7 @@ export function UbtNotificacoesComposeDrawer({
             </div>
           ) : null}
 
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-orange-100/80 bg-white shadow-[0_4px_24px_rgba(255,107,0,0.08)]">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--brand-primary-border)]/80 bg-white shadow-[var(--brand-primary-shadow-sm)]">
             <div className="shrink-0 border-b border-gray-100 px-5 py-4">
               <label className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
                 Título da notificação
@@ -376,7 +380,7 @@ export function UbtNotificacoesComposeDrawer({
                   type="button"
                   onClick={handleSend}
                   disabled={!canSend}
-                  className="btn-brand-gradient inline-flex items-center justify-center gap-2.5 rounded-xl px-6 py-4 text-base font-bold tracking-tight shadow-[0_12px_32px_rgba(255,107,0,0.35)] transition hover:shadow-[0_14px_36px_rgba(255,107,0,0.42)] disabled:shadow-none"
+                  className="btn-brand-gradient inline-flex items-center justify-center gap-2.5 rounded-xl px-6 py-4 text-base font-bold tracking-tight shadow-[var(--brand-primary-shadow-lg)] transition hover:shadow-[var(--brand-primary-shadow-lg)] disabled:shadow-none"
                 >
                   <Send className="h-5 w-5" strokeWidth={2.25} />
                   Enviar para {recipientCount} profissional{recipientCount === 1 ? '' : 'is'}

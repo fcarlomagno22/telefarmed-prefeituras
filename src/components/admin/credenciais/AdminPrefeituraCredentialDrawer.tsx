@@ -19,6 +19,7 @@ import { cpfDigits, isValidCpf } from '../../../utils/cpf'
 import { maskCpf } from '../../../utils/masks'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { PinInput } from '../../ui/PinInput'
+import { CredentialPortalAccessLink } from '../../credenciais/CredentialPortalAccessLink'
 
 export type AdminPrefeituraDrawerMode = 'create' | 'edit' | 'view'
 
@@ -28,6 +29,7 @@ type AdminPrefeituraCredentialDrawerProps = {
   mode: AdminPrefeituraDrawerMode
   editingUser: PrefeituraCredentialUser | null
   contractingEntityOptions: Array<{ value: string; label: string }>
+  portalLoginUrl?: string | null
   lockContractingEntity?: boolean
   onClose: () => void
   onTransitionEnd: () => void
@@ -138,6 +140,7 @@ export function AdminPrefeituraCredentialDrawer({
   mode,
   editingUser,
   contractingEntityOptions,
+  portalLoginUrl,
   lockContractingEntity = false,
   onClose,
   onTransitionEnd,
@@ -281,7 +284,7 @@ export function AdminPrefeituraCredentialDrawer({
     if (isViewMode) return null
     const digitsCount = cpfDigits(cpf).length
     if (digitsCount === 0) {
-      return 'Informe o CPF do gestor municipal.'
+      return 'Informe o CPF do gestor da entidade.'
     }
     if (digitsCount < 11) {
       return 'Informe um CPF completo com 11 dígitos.'
@@ -410,13 +413,13 @@ export function AdminPrefeituraCredentialDrawer({
               <div>
                 <h2 id="admin-prefeitura-drawer-title" className="text-lg font-bold text-gray-900">
                   {isViewMode
-                    ? 'Visualizar gestor municipal'
+                    ? 'Visualizar gestor da entidade'
                     : isEditMode
-                      ? 'Editar gestor municipal'
-                      : 'Novo gestor prefeitura'}
+                      ? 'Editar gestor da entidade'
+                      : 'Novo gestor da entidade'}
                 </h2>
                 <p className="mt-1 text-sm text-gray-500">
-                  Credencial para o portal municipal da prefeitura (/prefeitura).
+                  Credencial para o portal de gestão da entidade.
                 </p>
               </div>
               <button
@@ -547,6 +550,9 @@ export function AdminPrefeituraCredentialDrawer({
 
             {!isViewMode ? (
               <>
+                {isCreateMode ? (
+                  <CredentialPortalAccessLink loginUrl={portalLoginUrl} />
+                ) : null}
                 <section>
                   <h3 className="text-sm font-bold text-gray-900">Senha de acesso à plataforma</h3>
                   {isEditMode && editingUser ? (
@@ -579,7 +585,7 @@ export function AdminPrefeituraCredentialDrawer({
                     </div>
                   ) : (
                     <p className="mt-1 text-xs text-gray-500">
-                      Senha usada no login do portal municipal (/prefeitura/login).
+                      Senha usada no login do portal de gestão.
                     </p>
                   )}
 
@@ -621,7 +627,7 @@ export function AdminPrefeituraCredentialDrawer({
                 <section>
                   <h3 className="text-sm font-bold text-gray-900">Senha de autorização</h3>
                   <p className="mt-1 text-xs text-gray-500">
-                    Senha numérica de 6 dígitos para confirmar ações sensíveis no portal municipal
+                    Senha numérica de 6 dígitos para confirmar ações sensíveis no portal de gestão
                     (opcional).
                   </p>
                   {isEditMode && editingUser ? (
@@ -820,7 +826,7 @@ export function AdminPrefeituraCredentialDrawer({
                   ? 'Salvando...'
                   : isEditMode
                     ? 'Salvar alterações'
-                    : 'Cadastrar gestor municipal'}
+                    : 'Cadastrar gestor da entidade'}
               </button>
             ) : null}
           </footer>

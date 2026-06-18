@@ -5,6 +5,7 @@ const PREFEITURA_PASSWORD_RECOVERY_CODE_LENGTH = 8
 export const loginBodySchema = z.object({
   cpf: z.string().min(11).max(14),
   password: z.string().trim().min(6).max(128),
+  tenantHost: z.string().trim().min(1).max(253).optional(),
 })
 
 export const verifyPrefeituraPinBodySchema = z.object({

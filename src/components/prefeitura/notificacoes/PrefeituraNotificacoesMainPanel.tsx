@@ -2,6 +2,7 @@ import { CheckCheck, Eye, Search } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import type { PrefeituraNotification } from '../../../data/prefeituraNotificacoesMock'
 import { usePrefeituraNotificacoesOptional } from '../../../contexts/PrefeituraNotificacoesContext'
+import { useEntidadeCopy } from '../../../hooks/useEntidadeCopy'
 import { CustomSelect } from '../../ui/CustomSelect'
 import { SituationStatusBadge } from '../../ui/SituationStatusBadge'
 import { Toast, type ToastVariant } from '../../ui/Toast'
@@ -32,12 +33,14 @@ const readOptions = [
   { value: 'read', label: 'Lidas' },
 ]
 
-const originOptions = [
-  { value: 'all', label: 'Origem: Todas' },
-  { value: 'telefarmed', label: 'Telefarmed' },
-  { value: 'ubt', label: 'UBTs' },
-  { value: 'contract_manager', label: 'Gestão municipal' },
-]
+function buildOriginOptions(platformOperatorLabel: string, gestaoLabel: string) {
+  return [
+    { value: 'all', label: 'Origem: Todas' },
+    { value: 'telefarmed', label: platformOperatorLabel },
+    { value: 'ubt', label: 'UBTs' },
+    { value: 'contract_manager', label: gestaoLabel },
+  ]
+}
 
 function normalizeSearch(value: string) {
   return value
@@ -62,6 +65,12 @@ export function PrefeituraNotificacoesMainPanel({
   onNotificationsChange,
 }: PrefeituraNotificacoesMainPanelProps) {
   const notificacoesContext = usePrefeituraNotificacoesOptional()
+  const copy = useEntidadeCopy()
+  const platformOperatorLabel = copy.platformOperatorLabel
+  const originOptions = useMemo(
+    () => buildOriginOptions(platformOperatorLabel, copy.gestaoLabel),
+    [copy.gestaoLabel, platformOperatorLabel],
+  )
   const [search, setSearch] = useState('')
   const [directionFilter, setDirectionFilter] = useState<DirectionFilter>('all')
   const [readFilter, setReadFilter] = useState<ReadFilter>('all')
@@ -199,7 +208,7 @@ export function PrefeituraNotificacoesMainPanel({
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar por título, unidade ou remetente..."
-                className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-sm text-gray-800 outline-none transition focus:border-[var(--brand-primary)]/40 focus:shadow-[0_0_0_3px_rgba(255,107,0,0.12)]"
+                className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-sm text-gray-800 outline-none transition focus:border-[var(--brand-primary)]/40 focus:shadow-[var(--brand-primary-focus-ring)]"
               />
             </div>
             <div className="grid shrink-0 grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-2 lg:w-[min(100%,36rem)]">
@@ -272,7 +281,7 @@ export function PrefeituraNotificacoesMainPanel({
                     >
                       <td className={tdClass}>
                         {unread ? (
-                          <span className="inline-flex items-center justify-center gap-1 rounded-full bg-orange-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                          <span className="inline-flex items-center justify-center gap-1 rounded-full bg-[var(--brand-primary)] px-1.5 py-0.5 text-[9px] font-bold text-white">
                             Nova
                           </span>
                         ) : (

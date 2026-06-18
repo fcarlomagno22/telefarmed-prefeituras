@@ -14,9 +14,11 @@ import {
   prefeituraUsuariosSidebarColumnWrapClass,
 } from '../components/prefeitura/usuarios/prefeituraUsuariosPageLayout'
 import { DashboardPageHeader } from '../components/users/DashboardPageHeader'
+import { useEntidadeCopy } from '../hooks/useEntidadeCopy'
 import { usePrefeituraPacientesPage } from '../hooks/usePrefeituraPacientesPage'
 
 export function PrefeituraUsuariosPage() {
+  const copy = useEntidadeCopy()
   const {
     patients,
     summary,
@@ -41,7 +43,7 @@ export function PrefeituraUsuariosPage() {
       <div className={dashboardPageHeaderWrapClass}>
         <DashboardPageHeader
           title="Pacientes"
-          subtitle="Base única municipal — visão consolidada, LGPD e campanhas de retorno"
+          subtitle={`Base única ${copy.daRede} — visão consolidada, LGPD e campanhas de retorno`}
         />
       </div>
 

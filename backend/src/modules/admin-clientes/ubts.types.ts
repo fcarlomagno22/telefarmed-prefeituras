@@ -37,6 +37,9 @@ export type AdminClienteUbtAddressDto = {
 export type AdminClienteUbtRowDto = {
   id: string
   name: string
+  slug: string
+  publicUrl: string
+  slugLocked: boolean
   region: string
   regionKey: string
   status: 'ativa' | 'manutencao' | 'inativa'

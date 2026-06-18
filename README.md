@@ -2,6 +2,10 @@
 
 Monorepo: **frontend** na raiz (`src/`) e **backend** em [`backend/`](backend/README.md) (API Fastify + migrations Supabase).
 
+Documentação operacional do whitelabel (decisões de produto, QA): [`docs/whitelabel-operacional.md`](docs/whitelabel-operacional.md).
+
+Arquitetura de tenants por subdomínio (Fase 0): [`docs/tenant-hosts.md`](docs/tenant-hosts.md).
+
 ## Configuração do frontend
 
 Copie `.env.example` para `.env` na raiz e ajuste os valores:

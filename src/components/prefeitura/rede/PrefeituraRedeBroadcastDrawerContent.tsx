@@ -291,7 +291,7 @@ export function PrefeituraRedeBroadcastDrawerContent({
             value={message}
             onChange={(event) => setMessage(event.target.value)}
             placeholder="Escreva o comunicado para os destinatários selecionados..."
-            className="min-h-[10rem] flex-1 resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[var(--brand-primary)]/40 focus:shadow-[0_0_0_3px_rgba(255,107,0,0.12)] lg:min-h-[12rem]"
+            className="min-h-[10rem] flex-1 resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[var(--brand-primary)]/40 focus:shadow-[var(--brand-primary-focus-ring)] lg:min-h-[12rem]"
           />
         </div>
 
@@ -356,7 +356,7 @@ export function PrefeituraRedeBroadcastDrawerContent({
                   className={[
                     'flex items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition',
                     active
-                      ? 'border-[var(--brand-primary)]/35 bg-[var(--brand-primary-light)]/50 shadow-[0_0_0_3px_rgba(255,107,0,0.1)]'
+                      ? 'border-[var(--brand-primary)]/35 bg-[var(--brand-primary-light)]/50 shadow-[var(--brand-primary-focus-ring)]'
                       : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-slate-50/80',
                   ].join(' ')}
                 >

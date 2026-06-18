@@ -58,7 +58,7 @@ export function PrefeituraNewUbtProfessionsSpecialtiesPanel({
         {isLoading ? (
           <p className="flex items-center gap-2 py-8 text-sm text-gray-600">
             <Loader2 className="h-4 w-4 animate-spin text-[var(--brand-primary)]" />
-            Carregando catálogo clínico...
+            Carregando profissões e especialidades contratadas...
           </p>
         ) : error ? (
           <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -69,11 +69,11 @@ export function PrefeituraNewUbtProfessionsSpecialtiesPanel({
             <section>
               <p className="text-sm font-semibold text-gray-900">1. Profissões atendidas</p>
               <p className="mt-1 text-xs leading-relaxed text-gray-500">
-                Selecione as profissões que esta UBT poderá atender.
+                Selecione as profissões contratadas que esta UBT poderá atender.
               </p>
               {sortedProfessions.length === 0 ? (
                 <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                  Nenhuma profissão ativa no catálogo clínico.
+                  Nenhuma profissão contratada nos contratos ativos da entidade.
                 </p>
               ) : (
                 <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
@@ -85,7 +85,7 @@ export function PrefeituraNewUbtProfessionsSpecialtiesPanel({
                           className={[
                             'flex h-full cursor-pointer items-start gap-2 rounded-lg border px-3 py-2.5 transition',
                             checked
-                              ? 'border-[var(--brand-primary)]/30 bg-orange-50/50'
+                              ? 'border-[var(--brand-primary)]/30 bg-[var(--brand-primary-muted)]/50'
                               : 'border-gray-200 bg-slate-50/60 hover:bg-white',
                           ].join(' ')}
                         >
@@ -116,8 +116,7 @@ export function PrefeituraNewUbtProfessionsSpecialtiesPanel({
                 <div>
                   <p className="text-sm font-semibold text-gray-900">2. Especialidades</p>
                   <p className="mt-1 text-xs leading-relaxed text-gray-500">
-                    Quando houver especialidades vinculadas à profissão, marque as habilitadas nesta
-                    UBT.
+                    Marque as especialidades contratadas habilitadas nesta UBT.
                   </p>
                 </div>
                 {visibleSpecialties.length > 0 ? (
@@ -146,7 +145,7 @@ export function PrefeituraNewUbtProfessionsSpecialtiesPanel({
                 </p>
               ) : groupedSpecialties.length === 0 ? (
                 <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                  Nenhuma especialidade vinculada às profissões selecionadas.
+                  Nenhuma especialidade contratada vinculada às profissões selecionadas.
                 </p>
               ) : (
                 <div className="mt-3 space-y-4">
@@ -168,7 +167,7 @@ export function PrefeituraNewUbtProfessionsSpecialtiesPanel({
                                   className={[
                                     'flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-2 text-sm transition',
                                     checked
-                                      ? 'border-[var(--brand-primary)]/25 bg-orange-50/40'
+                                      ? 'border-[var(--brand-primary)]/25 bg-[var(--brand-primary-muted)]/40'
                                       : 'border-gray-200 bg-white hover:border-[var(--brand-primary)]/20',
                                   ].join(' ')}
                                 >

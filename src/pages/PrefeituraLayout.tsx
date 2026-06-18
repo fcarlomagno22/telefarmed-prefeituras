@@ -12,7 +12,7 @@ import {
 } from '../contexts/PrefeituraNotificacoesContext'
 import { PrefeituraSuporteProvider, usePrefeituraSuporteAwaitingCount } from '../contexts/PrefeituraSuporteContext'
 import { usePrefeituraAuth } from '../contexts/PrefeituraAuthContext'
-import { useBrandTheme } from '../hooks/useBrandTheme'
+import { useEntidadeBrandTheme } from '../hooks/useEntidadeBrandTheme'
 import { useAuditNavigation } from '../hooks/useAuditNavigation'
 
 const PREFEITURA_NOTIFICACOES_PATH = '/prefeitura/notificacoes'
@@ -49,6 +49,7 @@ function PrefeituraLayoutShell() {
   return (
     <DashboardLayout
       sidebarSections={sidebarSections}
+      sidebarLogoClassName="h-[35px] w-auto max-w-[150px] object-contain"
       logoutPath={portals.prefeitura.loginPath}
       onLogout={handleLogout}
       footer={{
@@ -63,7 +64,7 @@ function PrefeituraLayoutShell() {
 }
 
 export function PrefeituraLayout() {
-  useBrandTheme()
+  useEntidadeBrandTheme()
 
   return (
     <PrefeituraNotificacoesProvider>

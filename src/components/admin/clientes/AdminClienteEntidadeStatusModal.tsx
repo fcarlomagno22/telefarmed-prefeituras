@@ -7,7 +7,7 @@ import { adminEntidadeStatusEditOptions } from './cadastro/adminEntidadeCadastro
 
 type AdminClienteEntidadeStatusModalProps = {
   open: boolean
-  prefeitura: string
+  entidadeNome: string
   currentStatus: AdminClienteStatus
   onCancel: () => void
   onConfirm: (nextStatus: AdminClienteStatus) => void
@@ -15,7 +15,7 @@ type AdminClienteEntidadeStatusModalProps = {
 
 export function AdminClienteEntidadeStatusModal({
   open,
-  prefeitura,
+  entidadeNome,
   currentStatus,
   onCancel,
   onConfirm,
@@ -40,7 +40,7 @@ export function AdminClienteEntidadeStatusModal({
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-[0_16px_48px_rgba(0,0,0,0.18)] sm:p-8"
+        className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-[0_16px_48px_rgba(0,0,0,0.18)] sm:p-8"
         onClick={(event) => event.stopPropagation()}
       >
         <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--brand-primary-light)] text-[var(--brand-primary)]">
@@ -53,7 +53,7 @@ export function AdminClienteEntidadeStatusModal({
         <p className="mt-2 text-sm text-gray-600">
           Revise a transição de status antes de confirmar a alteração.
         </p>
-        <p className="mt-1 text-sm font-semibold text-gray-800">{prefeitura}</p>
+        <p className="mt-1 text-sm font-semibold text-gray-800">{entidadeNome}</p>
 
         <div className="mt-6 rounded-2xl border border-gray-200 bg-slate-50/70 p-4 sm:p-5">
           <div className="grid items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
@@ -79,8 +79,8 @@ export function AdminClienteEntidadeStatusModal({
                 onChange={(value) => setNextStatus(value as AdminClienteStatus)}
                 options={adminEntidadeStatusEditOptions}
                 size="compact"
-                className="w-full max-w-[220px]"
-                menuMinWidthPx={200}
+                className="w-full max-w-[280px]"
+                menuMinWidthPx={240}
               />
               {hasChange ? (
                 <AdminClienteStatusBadge status={nextStatus} />

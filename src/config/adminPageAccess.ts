@@ -3,12 +3,12 @@ import { adminPortalPages } from './adminCredenciaisConfig'
 import type { PermissionAction } from './accessCredentials'
 import type { AdminAuthUser } from '../lib/mockAuth/adminAuthMock'
 import { adminRoutes } from './adminRoutes'
-import { getDedicatedPortal } from './portalHost'
+import { isDedicatedPortal } from './portalHost'
 
 const ADMIN_LEGACY_PREFIX = '/admin'
 
 function normalizeAdminPathname(pathname: string): string {
-  if (getDedicatedPortal() === 'admin') return pathname
+  if (isDedicatedPortal('admin')) return pathname
   if (pathname.startsWith(ADMIN_LEGACY_PREFIX)) {
     return pathname.slice(ADMIN_LEGACY_PREFIX.length) || '/'
   }

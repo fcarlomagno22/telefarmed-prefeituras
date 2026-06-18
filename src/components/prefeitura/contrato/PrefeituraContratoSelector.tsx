@@ -77,7 +77,7 @@ export function PrefeituraContratoSelector({
           'flex items-center gap-2.5 rounded-xl border bg-white px-3.5 py-2.5 text-left shadow-sm transition',
           isSidebar ? 'w-full' : 'inline-flex max-w-[min(100%,20rem)]',
           open
-            ? 'border-[var(--brand-primary)]/40 shadow-[0_0_0_3px_rgba(255,107,0,0.12)]'
+            ? 'border-[var(--brand-primary)]/40 shadow-[var(--brand-primary-focus-ring)]'
             : 'border-gray-200 hover:border-gray-300',
         ].join(' ')}
       >

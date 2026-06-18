@@ -1,0 +1,2266 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "evaluation_order": [
+    "red_flag_block",
+    "insufficient_hypothesis_fallback",
+    "primary_track_rules",
+    "check_in_context_rules",
+    "history_adherence_rules",
+    "profile_preference_rules",
+    "comorbidity_rules",
+    "fallback_default",
+    "deduplication",
+    "ordering"
+  ],
+  "global_settings": {
+    "min_activities_per_day": 1,
+    "max_activities_per_day": 3,
+    "default_exclude_recent_days": 3,
+    "default_exclude_not_helpful_days": 7,
+    "boost_helpful_activity_weight": 1.5,
+    "penalize_not_helpful_weight": 0.3,
+    "require_low_intensity_if_mood_bad": true,
+    "block_on_active_red_flags": true,
+    "allow_spiritual_activities_if": [
+      "christian",
+      "non-religious",
+      "other-tradition"
+    ],
+    "suppress_spiritual_if": [
+      "none"
+    ],
+    "plan_valid_hours": 24
+  },
+  "activity_pools": {
+    "anxiety_grounding_low_intensity": {
+      "label_internal": "Ansiedade — grounding e respiração (baixa intensidade)",
+      "activity_ids": [
+        "act_breathing_long_exhale",
+        "act_breathing_square_gentle",
+        "act_breathing_counted_10",
+        "act_breathing_hand_anchor",
+        "act_breathing_sigh_release",
+        "act_breathing_evening_slow",
+        "act_grounding_five_senses",
+        "act_grounding_cold_texture",
+        "act_crisis_grounding_hold_safe",
+        "act_emotion_regulation_temperature_neutral",
+        "act_mindfulness_sound_window",
+        "act_body_scan_neutral_comfort"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "anxiety_disorders"
+      ],
+      "enabled": true
+    },
+    "depression_behavioral_activation_low": {
+      "label_internal": "Humor baixo — ativação comportamental leve",
+      "activity_ids": [
+        "act_behavioral_activation_pleasant_five",
+        "act_behavioral_activation_one_surface",
+        "act_behavioral_activation_shower_start",
+        "act_behavioral_activation_outdoor_light",
+        "act_emotion_regulation_opposite_small",
+        "act_sleep_hygiene_morning_anchor",
+        "act_gradual_exposure_avoided_task"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "depressive_disorders"
+      ],
+      "enabled": true
+    },
+    "depression_self_compassion_low": {
+      "label_internal": "Humor baixo — autocompaixão leve",
+      "activity_ids": [
+        "act_journaling_small_wins",
+        "act_journaling_body_neutral",
+        "act_self_compassion_friend_voice",
+        "act_self_compassion_hand_support",
+        "act_self_compassion_common_humanity"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "depressive_disorders"
+      ],
+      "enabled": true
+    },
+    "sleep_wind_down_low": {
+      "label_internal": "Sono — desaceleração noturna",
+      "activity_ids": [
+        "act_breathing_long_exhale",
+        "act_breathing_evening_slow",
+        "act_journaling_sleep_download",
+        "act_behavioral_activation_outdoor_light",
+        "act_sleep_hygiene_wind_down",
+        "act_sleep_hygiene_morning_anchor",
+        "act_sleep_hygiene_caffeine_cutoff",
+        "act_sleep_hygiene_night_environment",
+        "act_sleep_hygiene_restless_legs_plan"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "sleep_disorders"
+      ],
+      "enabled": true
+    },
+    "trauma_grounding_low": {
+      "label_internal": "Trauma — grounding e orientação presente",
+      "activity_ids": [
+        "act_breathing_hand_anchor",
+        "act_grounding_five_senses",
+        "act_grounding_feet_press",
+        "act_grounding_object_detail",
+        "act_grounding_orientation_card",
+        "act_grounding_cold_texture",
+        "act_crisis_grounding_name_place",
+        "act_crisis_grounding_hold_safe",
+        "act_mindfulness_sound_window",
+        "act_self_compassion_hand_support"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "trauma_related_disorders"
+      ],
+      "enabled": true
+    },
+    "ocd_regulation_low": {
+      "label_internal": "Pensamentos repetitivos — regulação leve",
+      "activity_ids": [
+        "act_breathing_counted_10",
+        "act_grounding_object_detail",
+        "act_journaling_worry_parking",
+        "act_cognitive_reframe_thought_label",
+        "act_mindfulness_sound_window"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "obsessive_compulsive_disorder"
+      ],
+      "enabled": true
+    },
+    "substance_harm_reduction_low": {
+      "label_internal": "Substâncias — redução de dano",
+      "activity_ids": [
+        "act_substance_harm_reduction_trigger_exit",
+        "act_crisis_grounding_next_minute",
+        "act_emotion_regulation_pause_urge"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "substance_use_disorders"
+      ],
+      "enabled": true
+    },
+    "universal_low_intensity": {
+      "label_internal": "Transversal — baixa intensidade",
+      "activity_ids": [
+        "act_breathing_long_exhale",
+        "act_breathing_square_gentle",
+        "act_breathing_counted_10",
+        "act_breathing_hand_anchor",
+        "act_breathing_sigh_release",
+        "act_breathing_evening_slow",
+        "act_grounding_five_senses",
+        "act_grounding_feet_press",
+        "act_grounding_object_detail",
+        "act_grounding_orientation_card",
+        "act_grounding_cold_texture",
+        "act_crisis_grounding_name_place",
+        "act_crisis_grounding_hold_safe",
+        "act_crisis_grounding_next_minute",
+        "act_journaling_worry_parking",
+        "act_journaling_three_facts",
+        "act_journaling_energy_map",
+        "act_journaling_small_wins",
+        "act_journaling_sleep_download",
+        "act_journaling_body_neutral",
+        "act_behavioral_activation_pleasant_five",
+        "act_behavioral_activation_one_surface",
+        "act_behavioral_activation_shower_start",
+        "act_behavioral_activation_outdoor_light"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [],
+      "enabled": true
+    },
+    "fallback_safe_low": {
+      "label_internal": "Fallback seguro — respiração e grounding",
+      "activity_ids": [
+        "act_breathing_long_exhale",
+        "act_breathing_square_gentle",
+        "act_breathing_counted_10",
+        "act_breathing_hand_anchor",
+        "act_breathing_sigh_release",
+        "act_breathing_evening_slow",
+        "act_grounding_five_senses",
+        "act_grounding_feet_press",
+        "act_grounding_object_detail",
+        "act_grounding_orientation_card",
+        "act_grounding_cold_texture",
+        "act_crisis_grounding_name_place",
+        "act_crisis_grounding_hold_safe",
+        "act_crisis_grounding_next_minute",
+        "act_emotion_regulation_pause_urge"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [],
+      "enabled": true
+    },
+    "evening_wind_down": {
+      "label_internal": "Noite — journaling e sono",
+      "activity_ids": [
+        "act_breathing_evening_slow",
+        "act_journaling_worry_parking",
+        "act_journaling_three_facts",
+        "act_journaling_energy_map",
+        "act_journaling_small_wins",
+        "act_journaling_sleep_download",
+        "act_journaling_body_neutral",
+        "act_behavioral_activation_outdoor_light",
+        "act_emotion_regulation_name_need",
+        "act_cognitive_reframe_evidence_balance",
+        "act_cognitive_reframe_probability",
+        "act_sleep_hygiene_wind_down",
+        "act_sleep_hygiene_morning_anchor",
+        "act_sleep_hygiene_caffeine_cutoff",
+        "act_sleep_hygiene_night_environment",
+        "act_sleep_hygiene_restless_legs_plan"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "sleep_disorders",
+        "anxiety_disorders",
+        "depressive_disorders"
+      ],
+      "enabled": true
+    },
+    "social_micro_step_low": {
+      "label_internal": "Conexão — micro passo social",
+      "activity_ids": [
+        "act_crisis_grounding_next_minute",
+        "act_social_micro_step_check_in",
+        "act_gradual_exposure_social_greeting"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "depressive_disorders",
+        "personality_disorders",
+        "anxiety_disorders"
+      ],
+      "enabled": true
+    },
+    "history_helpful_boost": {
+      "label_internal": "Runtime — atividades que ajudaram recentemente",
+      "activity_ids": [],
+      "default_intensity": "low",
+      "target_tracks": [],
+      "runtime_source": "history.helpful_activity_ids",
+      "enabled": true
+    },
+    "track_depressive_disorders_low": {
+      "label_internal": "Transtornos depressivos — baixa intensidade",
+      "activity_ids": [
+        "act_crisis_grounding_name_place",
+        "act_crisis_grounding_hold_safe",
+        "act_crisis_grounding_next_minute",
+        "act_journaling_three_facts",
+        "act_journaling_energy_map",
+        "act_journaling_small_wins",
+        "act_journaling_body_neutral",
+        "act_behavioral_activation_pleasant_five",
+        "act_behavioral_activation_one_surface",
+        "act_behavioral_activation_shower_start",
+        "act_behavioral_activation_outdoor_light",
+        "act_emotion_regulation_name_need",
+        "act_emotion_regulation_opposite_small",
+        "act_cognitive_reframe_evidence_balance",
+        "act_cognitive_reframe_thought_label",
+        "act_sleep_hygiene_morning_anchor",
+        "act_social_micro_step_check_in",
+        "act_gradual_exposure_avoided_task",
+        "act_self_compassion_friend_voice",
+        "act_self_compassion_hand_support",
+        "act_self_compassion_common_humanity"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "depressive_disorders"
+      ],
+      "enabled": true
+    },
+    "track_anxiety_disorders_low": {
+      "label_internal": "Transtornos de ansiedade — baixa intensidade",
+      "activity_ids": [
+        "act_breathing_long_exhale",
+        "act_breathing_square_gentle",
+        "act_breathing_counted_10",
+        "act_breathing_hand_anchor",
+        "act_breathing_sigh_release",
+        "act_breathing_evening_slow",
+        "act_grounding_five_senses",
+        "act_grounding_cold_texture",
+        "act_crisis_grounding_hold_safe",
+        "act_journaling_worry_parking",
+        "act_journaling_three_facts",
+        "act_journaling_sleep_download",
+        "act_emotion_regulation_name_need",
+        "act_emotion_regulation_temperature_neutral",
+        "act_emotion_regulation_opposite_small",
+        "act_cognitive_reframe_evidence_balance",
+        "act_cognitive_reframe_probability",
+        "act_cognitive_reframe_thought_label",
+        "act_sleep_hygiene_wind_down",
+        "act_sleep_hygiene_caffeine_cutoff",
+        "act_mindfulness_sound_window",
+        "act_mindfulness_one_task",
+        "act_body_scan_neutral_comfort",
+        "act_social_micro_step_check_in",
+        "act_gradual_exposure_social_greeting",
+        "act_gradual_exposure_avoided_task"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "anxiety_disorders"
+      ],
+      "enabled": true
+    },
+    "track_obsessive_compulsive_disorder_low": {
+      "label_internal": "Transtorno obsessivo-compulsivo — baixa intensidade",
+      "activity_ids": [
+        "act_breathing_counted_10",
+        "act_grounding_object_detail",
+        "act_journaling_worry_parking",
+        "act_cognitive_reframe_thought_label",
+        "act_mindfulness_sound_window"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "obsessive_compulsive_disorder"
+      ],
+      "enabled": true
+    },
+    "track_trauma_related_disorders_low": {
+      "label_internal": "Transtornos relacionados a traumas e estressores — baixa intensidade",
+      "activity_ids": [
+        "act_breathing_hand_anchor",
+        "act_grounding_five_senses",
+        "act_grounding_feet_press",
+        "act_grounding_object_detail",
+        "act_grounding_orientation_card",
+        "act_grounding_cold_texture",
+        "act_crisis_grounding_name_place",
+        "act_crisis_grounding_hold_safe",
+        "act_sleep_hygiene_night_environment",
+        "act_mindfulness_sound_window",
+        "act_body_scan_three_zones",
+        "act_self_compassion_hand_support",
+        "act_self_compassion_common_humanity"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "trauma_related_disorders"
+      ],
+      "enabled": true
+    },
+    "track_bipolar_disorders_low": {
+      "label_internal": "Transtornos bipolares e relacionados — baixa intensidade",
+      "activity_ids": [
+        "act_breathing_counted_10",
+        "act_breathing_evening_slow",
+        "act_crisis_grounding_next_minute",
+        "act_journaling_energy_map",
+        "act_journaling_sleep_download",
+        "act_behavioral_activation_outdoor_light",
+        "act_emotion_regulation_pause_urge",
+        "act_sleep_hygiene_wind_down",
+        "act_sleep_hygiene_morning_anchor",
+        "act_sleep_hygiene_caffeine_cutoff",
+        "act_mindfulness_one_task"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "bipolar_disorders"
+      ],
+      "enabled": true
+    },
+    "track_psychotic_disorders_low": {
+      "label_internal": "Transtornos do espectro da esquizofrenia e outros transtornos psicóticos — baixa intensidade",
+      "activity_ids": [
+        "act_grounding_five_senses",
+        "act_grounding_object_detail",
+        "act_grounding_orientation_card",
+        "act_behavioral_activation_one_surface",
+        "act_behavioral_activation_shower_start",
+        "act_mindfulness_sound_window"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "psychotic_disorders"
+      ],
+      "enabled": true
+    },
+    "track_eating_disorders_low": {
+      "label_internal": "Transtornos alimentares e da ingestão alimentar — baixa intensidade",
+      "activity_ids": [
+        "act_journaling_small_wins",
+        "act_journaling_body_neutral",
+        "act_behavioral_activation_pleasant_five",
+        "act_body_scan_neutral_comfort",
+        "act_self_compassion_friend_voice",
+        "act_self_compassion_hand_support"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "eating_disorders"
+      ],
+      "enabled": true
+    },
+    "track_personality_disorders_low": {
+      "label_internal": "Transtornos da personalidade — baixa intensidade",
+      "activity_ids": [
+        "act_breathing_sigh_release",
+        "act_grounding_feet_press",
+        "act_grounding_cold_texture",
+        "act_crisis_grounding_hold_safe",
+        "act_crisis_grounding_next_minute",
+        "act_journaling_small_wins",
+        "act_journaling_body_neutral",
+        "act_behavioral_activation_pleasant_five",
+        "act_behavioral_activation_shower_start",
+        "act_emotion_regulation_name_need",
+        "act_emotion_regulation_pause_urge",
+        "act_emotion_regulation_temperature_neutral",
+        "act_emotion_regulation_opposite_small",
+        "act_social_micro_step_check_in",
+        "act_gradual_exposure_social_greeting",
+        "act_self_compassion_friend_voice",
+        "act_self_compassion_hand_support",
+        "act_self_compassion_common_humanity",
+        "act_substance_harm_reduction_trigger_exit"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "personality_disorders"
+      ],
+      "enabled": true
+    },
+    "track_neurodevelopmental_disorders_low": {
+      "label_internal": "Transtornos do neurodesenvolvimento — baixa intensidade",
+      "activity_ids": [
+        "act_journaling_energy_map",
+        "act_behavioral_activation_one_surface",
+        "act_sleep_hygiene_morning_anchor",
+        "act_mindfulness_one_task",
+        "act_gradual_exposure_social_greeting",
+        "act_gradual_exposure_avoided_task"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "neurodevelopmental_disorders"
+      ],
+      "enabled": true
+    },
+    "track_dissociative_disorders_low": {
+      "label_internal": "Transtornos dissociativos — baixa intensidade",
+      "activity_ids": [
+        "act_breathing_hand_anchor",
+        "act_grounding_five_senses",
+        "act_grounding_feet_press",
+        "act_grounding_object_detail",
+        "act_grounding_orientation_card",
+        "act_grounding_cold_texture",
+        "act_crisis_grounding_name_place",
+        "act_body_scan_three_zones",
+        "act_self_compassion_common_humanity"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "dissociative_disorders"
+      ],
+      "enabled": true
+    },
+    "track_substance_use_disorders_low": {
+      "label_internal": "Transtornos relacionados ao uso de substâncias — baixa intensidade",
+      "activity_ids": [
+        "act_crisis_grounding_next_minute",
+        "act_emotion_regulation_pause_urge",
+        "act_substance_harm_reduction_trigger_exit"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "substance_use_disorders"
+      ],
+      "enabled": true
+    },
+    "track_disruptive_impulse_control_disorders_low": {
+      "label_internal": "Transtornos disruptivos, do controle de impulsos e da conduta — baixa intensidade",
+      "activity_ids": [
+        "act_breathing_square_gentle",
+        "act_breathing_sigh_release",
+        "act_emotion_regulation_pause_urge",
+        "act_emotion_regulation_temperature_neutral",
+        "act_substance_harm_reduction_trigger_exit"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "disruptive_impulse_control_disorders"
+      ],
+      "enabled": true
+    },
+    "track_somatic_symptom_disorders_low": {
+      "label_internal": "Transtornos de sintomas somáticos e relacionados — baixa intensidade",
+      "activity_ids": [
+        "act_breathing_long_exhale",
+        "act_breathing_square_gentle",
+        "act_journaling_three_facts",
+        "act_behavioral_activation_shower_start",
+        "act_cognitive_reframe_evidence_balance",
+        "act_cognitive_reframe_probability",
+        "act_sleep_hygiene_night_environment",
+        "act_sleep_hygiene_restless_legs_plan",
+        "act_body_scan_three_zones",
+        "act_body_scan_neutral_comfort"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "somatic_symptom_disorders"
+      ],
+      "enabled": true
+    },
+    "track_sleep_disorders_low": {
+      "label_internal": "Transtornos do sono-vigília — baixa intensidade",
+      "activity_ids": [
+        "act_breathing_long_exhale",
+        "act_breathing_evening_slow",
+        "act_journaling_worry_parking",
+        "act_journaling_energy_map",
+        "act_journaling_sleep_download",
+        "act_behavioral_activation_outdoor_light",
+        "act_cognitive_reframe_probability",
+        "act_sleep_hygiene_wind_down",
+        "act_sleep_hygiene_morning_anchor",
+        "act_sleep_hygiene_caffeine_cutoff",
+        "act_sleep_hygiene_night_environment",
+        "act_sleep_hygiene_restless_legs_plan"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [
+        "sleep_disorders"
+      ],
+      "enabled": true
+    }
+  },
+  "plan_structure": {
+    "slots": [
+      {
+        "id": "now",
+        "label_user": "Para agora",
+        "priority": 1,
+        "ideal_duration_max_min": 10,
+        "time_of_day": [
+          "any"
+        ]
+      },
+      {
+        "id": "daytime",
+        "label_user": "Durante o dia",
+        "priority": 2,
+        "ideal_duration_max_min": 15,
+        "time_of_day": [
+          "morning",
+          "afternoon"
+        ]
+      },
+      {
+        "id": "evening",
+        "label_user": "À noite",
+        "priority": 3,
+        "ideal_duration_max_min": 15,
+        "time_of_day": [
+          "evening",
+          "night"
+        ]
+      }
+    ],
+    "activities_by_day_count": {
+      "1": [
+        "now"
+      ],
+      "2": [
+        "now",
+        "daytime"
+      ],
+      "3": [
+        "now",
+        "daytime",
+        "evening"
+      ]
+    }
+  },
+  "copy_templates": {
+    "moment_anxiety": "Uma pausa curta pode ajudar a acalmar o corpo agora.",
+    "moment_low_mood": "Um passo pequeno hoje já conta.",
+    "moment_overwhelmed": "Vamos simplificar: só uma coisa de cada vez.",
+    "moment_sleep": "Preparar o corpo para descansar pode facilitar a noite.",
+    "moment_isolation": "Um micro-passo de conexão pode fazer diferença.",
+    "moment_default": "Escolhemos algo leve para o seu momento de hoje."
+  },
+  "rules": [
+    {
+      "id": "block_red_flag_crisis_01",
+      "priority": 999,
+      "enabled": true,
+      "description_internal": "Red flag ativa bloqueia plano autoguiado",
+      "when": {
+        "active_red_flags": {
+          "any": true
+        }
+      },
+      "pick": {
+        "count": 0
+      },
+      "assign_slot": null,
+      "why_internal": "red_flag_active → block_micro_activity_plan",
+      "why_user_moment": null,
+      "unless": [],
+      "notes_internal": "Rotear para red_flags.json crisis flow"
+    },
+    {
+      "id": "select_checkin_high_intensity_01",
+      "priority": 245,
+      "enabled": true,
+      "description_internal": "Intensidade emocional >= 4",
+      "when": {
+        "all": [
+          {
+            "today_emotion_intensity": {
+              "gte": 4
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "fallback_safe_low",
+        "count": 1,
+        "exclude_recent_days": 1,
+        "max_duration_min": 8,
+        "intensity_in": [
+          "low"
+        ]
+      },
+      "assign_slot": "now",
+      "why_internal": "high_emotion_intensity → shortest regulation",
+      "why_user_moment": "Vamos começar com algo bem curto para este momento.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_checkin_anxiety_01",
+      "priority": 240,
+      "enabled": true,
+      "description_internal": "Check-in com emoções de preocupação ou sobrecarga",
+      "when": {
+        "all": [
+          {
+            "today_emotions": {
+              "includes_any": [
+                "Preocupado",
+                "Frustrado",
+                "Confuso",
+                "Sobrecarregado",
+                "Confuso"
+              ]
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "anxiety_grounding_low_intensity",
+        "count": 1,
+        "exclude_recent_days": 2,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "checkin_anxiety_emotions → grounding",
+      "why_user_moment": "Uma pausa curta pode ajudar neste momento de preocupação.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_checkin_low_mood_01",
+      "priority": 235,
+      "enabled": true,
+      "description_internal": "Humor mal/muito mal ou emoções tristes",
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "today_mood": {
+                  "in": [
+                    "bad",
+                    "very-bad"
+                  ]
+                }
+              },
+              {
+                "today_emotions": {
+                  "includes_any": [
+                    "Triste",
+                    "Cansado",
+                    "Sozinho"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "depression_behavioral_activation_low",
+        "count": 1,
+        "exclude_recent_days": 4,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "depression_self_compassion_low"
+      },
+      "assign_slot": "daytime",
+      "why_internal": "low_mood_checkin → BA micro",
+      "why_user_moment": "Um passo pequeno hoje já conta.",
+      "unless": [
+        {
+          "active_red_flags": {
+            "includes_any": [
+              "suicidal_plan_active",
+              "suicidal_intent_active"
+            ]
+          }
+        }
+      ],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_first_plan_01",
+      "priority": 230,
+      "enabled": true,
+      "description_internal": "Primeiro plano pós-anamnese",
+      "when": {
+        "all": [
+          {
+            "is_first_plan": {
+              "eq": true
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "fallback_safe_low",
+        "count": 1,
+        "exclude_recent_days": 0,
+        "max_duration_min": 8,
+        "intensity_in": [
+          "low"
+        ]
+      },
+      "assign_slot": "now",
+      "why_internal": "first_plan_safe_entry",
+      "why_user_moment": "Começamos com algo simples — no seu ritmo.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_track_depressive_disorders_moderate_01",
+      "priority": 220,
+      "enabled": true,
+      "description_internal": "Track depressive_disorders tier moderado ou alto",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "depressive_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_depressive_disorders_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "depressive_disorders_tier_gte_moderate → track pool",
+      "why_user_moment": "Separamos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_track_anxiety_disorders_moderate_01",
+      "priority": 220,
+      "enabled": true,
+      "description_internal": "Track anxiety_disorders tier moderado ou alto",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "anxiety_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_anxiety_disorders_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "anxiety_disorders_tier_gte_moderate → track pool",
+      "why_user_moment": "Separamos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_track_obsessive_compulsive_disorder_moderate_01",
+      "priority": 220,
+      "enabled": true,
+      "description_internal": "Track obsessive_compulsive_disorder tier moderado ou alto",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "obsessive_compulsive_disorder": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_obsessive_compulsive_disorder_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "obsessive_compulsive_disorder_tier_gte_moderate → track pool",
+      "why_user_moment": "Separamos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_track_trauma_related_disorders_moderate_01",
+      "priority": 220,
+      "enabled": true,
+      "description_internal": "Track trauma_related_disorders tier moderado ou alto",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "trauma_related_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_trauma_related_disorders_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "trauma_related_disorders_tier_gte_moderate → track pool",
+      "why_user_moment": "Separamos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_track_bipolar_disorders_moderate_01",
+      "priority": 220,
+      "enabled": true,
+      "description_internal": "Track bipolar_disorders tier moderado ou alto",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "bipolar_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_bipolar_disorders_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "bipolar_disorders_tier_gte_moderate → track pool",
+      "why_user_moment": "Separamos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_track_psychotic_disorders_moderate_01",
+      "priority": 220,
+      "enabled": true,
+      "description_internal": "Track psychotic_disorders tier moderado ou alto",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "psychotic_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_psychotic_disorders_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "psychotic_disorders_tier_gte_moderate → track pool",
+      "why_user_moment": "Separamos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_track_eating_disorders_moderate_01",
+      "priority": 220,
+      "enabled": true,
+      "description_internal": "Track eating_disorders tier moderado ou alto",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "eating_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_eating_disorders_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "eating_disorders_tier_gte_moderate → track pool",
+      "why_user_moment": "Separamos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_track_personality_disorders_moderate_01",
+      "priority": 220,
+      "enabled": true,
+      "description_internal": "Track personality_disorders tier moderado ou alto",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "personality_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_personality_disorders_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "personality_disorders_tier_gte_moderate → track pool",
+      "why_user_moment": "Separamos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_track_neurodevelopmental_disorders_moderate_01",
+      "priority": 220,
+      "enabled": true,
+      "description_internal": "Track neurodevelopmental_disorders tier moderado ou alto",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "neurodevelopmental_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_neurodevelopmental_disorders_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "neurodevelopmental_disorders_tier_gte_moderate → track pool",
+      "why_user_moment": "Separamos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_track_dissociative_disorders_moderate_01",
+      "priority": 220,
+      "enabled": true,
+      "description_internal": "Track dissociative_disorders tier moderado ou alto",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "dissociative_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_dissociative_disorders_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "dissociative_disorders_tier_gte_moderate → track pool",
+      "why_user_moment": "Separamos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_track_substance_use_disorders_moderate_01",
+      "priority": 220,
+      "enabled": true,
+      "description_internal": "Track substance_use_disorders tier moderado ou alto",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "substance_use_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_substance_use_disorders_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "substance_use_disorders_tier_gte_moderate → track pool",
+      "why_user_moment": "Separamos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_track_disruptive_impulse_control_disorders_moderate_01",
+      "priority": 220,
+      "enabled": true,
+      "description_internal": "Track disruptive_impulse_control_disorders tier moderado ou alto",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "disruptive_impulse_control_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_disruptive_impulse_control_disorders_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "disruptive_impulse_control_disorders_tier_gte_moderate → track pool",
+      "why_user_moment": "Separamos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_track_somatic_symptom_disorders_moderate_01",
+      "priority": 220,
+      "enabled": true,
+      "description_internal": "Track somatic_symptom_disorders tier moderado ou alto",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "somatic_symptom_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_somatic_symptom_disorders_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "somatic_symptom_disorders_tier_gte_moderate → track pool",
+      "why_user_moment": "Separamos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_track_sleep_disorders_moderate_01",
+      "priority": 220,
+      "enabled": true,
+      "description_internal": "Track sleep_disorders tier moderado ou alto",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "sleep_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_sleep_disorders_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "sleep_disorders_tier_gte_moderate → track pool",
+      "why_user_moment": "Separamos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_checkin_sleep_influence_01",
+      "priority": 210,
+      "enabled": true,
+      "description_internal": "Influência de sono no check-in",
+      "when": {
+        "all": [
+          {
+            "today_influences": {
+              "includes_any": [
+                "Sono"
+              ]
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "sleep_wind_down_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "evening_wind_down"
+      },
+      "assign_slot": "evening",
+      "why_internal": "influence_sleep → sleep pool",
+      "why_user_moment": "Preparar o corpo para descansar pode facilitar a noite.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_checkin_negative_influence_01",
+      "priority": 205,
+      "enabled": true,
+      "description_internal": "Valência negativa da influência",
+      "when": {
+        "all": [
+          {
+            "today_influence_valence": {
+              "eq": "negative"
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "anxiety_grounding_low_intensity",
+        "count": 1,
+        "exclude_recent_days": 2,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "negative_influence_valence",
+      "why_user_moment": "Depois de um momento difícil, uma pausa curta pode ajudar.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_checkin_isolation_01",
+      "priority": 200,
+      "enabled": true,
+      "description_internal": "Reação de isolamento ou emoção sozinho",
+      "when": {
+        "any": [
+          {
+            "today_reactions": {
+              "includes_any": [
+                "Fiquei isolado"
+              ]
+            }
+          },
+          {
+            "today_emotions": {
+              "includes_any": [
+                "Sozinho"
+              ]
+            }
+          }
+        ],
+        "all": [
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "social_micro_step_low",
+        "count": 1,
+        "exclude_recent_days": 5,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "universal_low_intensity"
+      },
+      "assign_slot": "daytime",
+      "why_internal": "isolation_signal → social micro step",
+      "why_user_moment": "Um micro-passo de conexão pode fazer diferença.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_comorbidity_depression_anxiety_01",
+      "priority": 195,
+      "enabled": true,
+      "description_internal": "Depressão e ansiedade moderadas simultâneas",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "depressive_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "track_tier": {
+              "anxiety_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "depression_behavioral_activation_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "anxiety_grounding_low_intensity"
+      },
+      "assign_slot": "daytime",
+      "why_internal": "comorbidity_depression_anxiety",
+      "why_user_moment": "Um passo pequeno hoje já conta.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_comorbidity_anxiety_sleep_01",
+      "priority": 190,
+      "enabled": true,
+      "description_internal": "Ansiedade + sono ativos",
+      "when": {
+        "all": [
+          {
+            "track_tier": {
+              "anxiety_disorders": {
+                "in": [
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "track_tier": {
+              "sleep_disorders": {
+                "in": [
+                  "low_signal",
+                  "moderate_signal",
+                  "high_signal"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "sleep_wind_down_low",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "anxiety_grounding_low_intensity"
+      },
+      "assign_slot": "evening",
+      "why_internal": "comorbidity_anxiety_sleep",
+      "why_user_moment": "Cuidar do descanso pode ajudar a segurar a preocupação.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_checkin_emotion_irritability_01",
+      "priority": 185,
+      "enabled": true,
+      "description_internal": "Check-in emoções Irritado/Frustrado",
+      "when": {
+        "all": [
+          {
+            "today_emotions": {
+              "includes_any": [
+                "Irritado",
+                "Frustrado"
+              ]
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "anxiety_grounding_low_intensity",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "checkin_emotion_irritability",
+      "why_user_moment": "Escolhemos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_checkin_emotion_positive_maintenance_01",
+      "priority": 185,
+      "enabled": true,
+      "description_internal": "Check-in emoções Grato/Esperançoso",
+      "when": {
+        "all": [
+          {
+            "today_emotions": {
+              "includes_any": [
+                "Grato",
+                "Esperançoso"
+              ]
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "universal_low_intensity",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "checkin_emotion_positive_maintenance",
+      "why_user_moment": "Escolhemos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_checkin_emotion_positive_energy_01",
+      "priority": 185,
+      "enabled": true,
+      "description_internal": "Check-in emoções Animado/Tranquilo",
+      "when": {
+        "all": [
+          {
+            "today_emotions": {
+              "includes_any": [
+                "Animado",
+                "Tranquilo"
+              ]
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "universal_low_intensity",
+        "count": 1,
+        "exclude_recent_days": 3,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "checkin_emotion_positive_energy",
+      "why_user_moment": "Escolhemos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_history_helpful_01",
+      "priority": 180,
+      "enabled": true,
+      "description_internal": "Repetir atividade com feedback positivo",
+      "when": {
+        "all": [
+          {
+            "history": {
+              "helpful_activity_ids": {
+                "count_gte": 1
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "history_helpful_boost",
+        "count": 1,
+        "exclude_recent_days": 1,
+        "prefer_helpful": true,
+        "intensity_in": [
+          "low",
+          "medium"
+        ],
+        "fallback_pool": "universal_low_intensity"
+      },
+      "assign_slot": "now",
+      "why_internal": "history_helpful_repeat",
+      "why_user_moment": "Algo que já te fez bem — vale tentar de novo.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_history_low_adherence_01",
+      "priority": 170,
+      "enabled": true,
+      "description_internal": "Aderência baixa — simplificar plano",
+      "when": {
+        "all": [
+          {
+            "history": {
+              "adherence_7d": {
+                "lt": 0.3
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "fallback_safe_low",
+        "count": 1,
+        "exclude_recent_days": 1,
+        "max_duration_min": 8,
+        "intensity_in": [
+          "low"
+        ]
+      },
+      "assign_slot": "now",
+      "why_internal": "low_adherence → shortest safe activity",
+      "why_user_moment": "Hoje vamos ficar só com o mínimo — e tudo bem.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_profile_care_focus_sleep_01",
+      "priority": 150,
+      "enabled": true,
+      "description_internal": "Perfil com foco em sono",
+      "when": {
+        "all": [
+          {
+            "profile": {
+              "careFocus": {
+                "includes_any": [
+                  "sleep"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "sleep_wind_down_low",
+        "count": 1,
+        "exclude_recent_days": 4,
+        "intensity_in": [
+          "low"
+        ]
+      },
+      "assign_slot": "evening",
+      "why_internal": "profile_care_focus_sleep",
+      "why_user_moment": "Um cuidado leve para apoiar seu descanso.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_profile_care_focus_anxiety_01",
+      "priority": 140,
+      "enabled": true,
+      "description_internal": "Perfil careFocus=anxiety",
+      "when": {
+        "all": [
+          {
+            "profile": {
+              "careFocus": {
+                "includes_any": [
+                  "anxiety"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "anxiety_grounding_low_intensity",
+        "count": 1,
+        "exclude_recent_days": 4,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "profile_care_focus_anxiety",
+      "why_user_moment": "Uma pausa curta pode ajudar a acalmar o corpo agora.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_profile_care_focus_sadness_01",
+      "priority": 140,
+      "enabled": true,
+      "description_internal": "Perfil careFocus=sadness",
+      "when": {
+        "all": [
+          {
+            "profile": {
+              "careFocus": {
+                "includes_any": [
+                  "sadness"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "depression_self_compassion_low",
+        "count": 1,
+        "exclude_recent_days": 4,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "daytime",
+      "why_internal": "profile_care_focus_sadness",
+      "why_user_moment": "Um passo pequeno hoje já conta.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_profile_care_focus_stress_01",
+      "priority": 140,
+      "enabled": true,
+      "description_internal": "Perfil careFocus=stress",
+      "when": {
+        "all": [
+          {
+            "profile": {
+              "careFocus": {
+                "includes_any": [
+                  "stress"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "anxiety_grounding_low_intensity",
+        "count": 1,
+        "exclude_recent_days": 4,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "profile_care_focus_stress",
+      "why_user_moment": "Vamos simplificar: só uma coisa de cada vez.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_profile_care_focus_sleep_01",
+      "priority": 140,
+      "enabled": true,
+      "description_internal": "Perfil careFocus=sleep",
+      "when": {
+        "all": [
+          {
+            "profile": {
+              "careFocus": {
+                "includes_any": [
+                  "sleep"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "sleep_wind_down_low",
+        "count": 1,
+        "exclude_recent_days": 4,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "evening",
+      "why_internal": "profile_care_focus_sleep",
+      "why_user_moment": "Preparar o corpo para descansar pode facilitar a noite.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_profile_care_focus_relationships_01",
+      "priority": 140,
+      "enabled": true,
+      "description_internal": "Perfil careFocus=relationships",
+      "when": {
+        "all": [
+          {
+            "profile": {
+              "careFocus": {
+                "includes_any": [
+                  "relationships"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "social_micro_step_low",
+        "count": 1,
+        "exclude_recent_days": 4,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "daytime",
+      "why_internal": "profile_care_focus_relationships",
+      "why_user_moment": "Um micro-passo de conexão pode fazer diferença.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_profile_care_focus_work_01",
+      "priority": 140,
+      "enabled": true,
+      "description_internal": "Perfil careFocus=work",
+      "when": {
+        "all": [
+          {
+            "profile": {
+              "careFocus": {
+                "includes_any": [
+                  "work"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "track_anxiety_disorders_low",
+        "count": 1,
+        "exclude_recent_days": 4,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "daytime",
+      "why_internal": "profile_care_focus_work",
+      "why_user_moment": "Organizar o próximo passo pode aliviar a pressão.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_profile_care_focus_loneliness_01",
+      "priority": 140,
+      "enabled": true,
+      "description_internal": "Perfil careFocus=loneliness",
+      "when": {
+        "all": [
+          {
+            "profile": {
+              "careFocus": {
+                "includes_any": [
+                  "loneliness"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "social_micro_step_low",
+        "count": 1,
+        "exclude_recent_days": 4,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "daytime",
+      "why_internal": "profile_care_focus_loneliness",
+      "why_user_moment": "Você não precisa fazer isso completamente sozinho(a).",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_profile_care_focus_self-esteem_01",
+      "priority": 140,
+      "enabled": true,
+      "description_internal": "Perfil careFocus=self-esteem",
+      "when": {
+        "all": [
+          {
+            "profile": {
+              "careFocus": {
+                "includes_any": [
+                  "self-esteem"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "depression_self_compassion_low",
+        "count": 1,
+        "exclude_recent_days": 4,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "daytime",
+      "why_internal": "profile_care_focus_self-esteem",
+      "why_user_moment": "Trate-se hoje com a mesma gentileza que daria a um amigo.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_profile_care_focus_routine_01",
+      "priority": 140,
+      "enabled": true,
+      "description_internal": "Perfil careFocus=routine",
+      "when": {
+        "all": [
+          {
+            "profile": {
+              "careFocus": {
+                "includes_any": [
+                  "routine"
+                ]
+              }
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "universal_low_intensity",
+        "count": 1,
+        "exclude_recent_days": 4,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "daytime",
+      "why_internal": "profile_care_focus_routine",
+      "why_user_moment": "Um hábito pequeno já ajuda a organizar o dia.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_insufficient_data_fallback_01",
+      "priority": 20,
+      "enabled": true,
+      "description_internal": "Dados insuficientes — plano seguro universal",
+      "when": {
+        "any": [
+          {
+            "data_completeness": {
+              "sufficient_for_plan": {
+                "eq": false
+              }
+            }
+          },
+          {
+            "active_hypotheses_count": {
+              "eq": 0
+            }
+          }
+        ],
+        "all": [
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "fallback_safe_low",
+        "count": 1,
+        "exclude_recent_days": 2,
+        "intensity_in": [
+          "low"
+        ]
+      },
+      "assign_slot": "now",
+      "why_internal": "insufficient_data_fallback",
+      "why_user_moment": "Escolhemos algo leve para o seu momento de hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "fallback_default_safe_01",
+      "priority": 10,
+      "enabled": true,
+      "description_internal": "Fallback global",
+      "when": {
+        "no_active_red_flags": {
+          "eq": true
+        }
+      },
+      "pick": {
+        "from_pool": "universal_low_intensity",
+        "count": 1,
+        "exclude_recent_days": 2,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "default_fallback",
+      "why_user_moment": "Separamos um cuidado leve para hoje.",
+      "unless": [],
+      "notes_internal": ""
+    }
+  ],
+  "fallback_chain": [
+    {
+      "id": "fallback_low_mood_safe",
+      "pool": "fallback_safe_low",
+      "slot": "now"
+    },
+    {
+      "id": "fallback_any_safe",
+      "pool": "universal_low_intensity",
+      "slot": "now"
+    }
+  ],
+  "deduplication_rules": {
+    "max_same_modality_per_day": 2,
+    "max_same_activity_per_week": 5,
+    "not_pairs_enforced": true,
+    "respect_activity_catalog_not_pairs_with": true
+  },
+  "ordering_rules": {
+    "slot_priority": [
+      "now",
+      "daytime",
+      "evening"
+    ],
+    "mood_very_bad_force_low_intensity_first": true,
+    "evening_prefers": [
+      "sleep_hygiene",
+      "journaling",
+      "emotion_regulation"
+    ]
+  },
+  "output_schema": {
+    "daily_plan": {
+      "plan_date": "ISO8601 date",
+      "generated_at": "ISO8601",
+      "blocked": "boolean",
+      "block_reason": "red_flag | insufficient_data | null",
+      "activities": [
+        {
+          "activity_id": "string",
+          "slot": "now | daytime | evening",
+          "order": "number",
+          "why_internal": "string",
+          "why_user_moment": "string",
+          "matched_rule_id": "string",
+          "pool_id": "string | null"
+        }
+      ],
+      "primary_track_internal": "string | null",
+      "rules_fired": [
+        "string"
+      ],
+      "engine_version": "1.0.0"
+    },
+    "forbidden_user_fields": [
+      "primary_track_internal",
+      "rules_fired",
+      "why_internal",
+      "diagnosis"
+    ]
+  }
+}

@@ -10,13 +10,15 @@ import {
   ScheduleSelectableCard,
 } from './ScheduleSelectableCard'
 import { ScheduleSpecialtyListSkeleton } from './ScheduleStepSkeletons'
+import { ScheduleStepTitle } from './ScheduleStepTitle'
 
 type ScheduleSpecialtyStepProps = {
   selectedId: string
   onSelect: (id: string, name: string) => void
+  onBack?: () => void
 }
 
-export function ScheduleSpecialtyStep({ selectedId, onSelect }: ScheduleSpecialtyStepProps) {
+export function ScheduleSpecialtyStep({ selectedId, onSelect, onBack }: ScheduleSpecialtyStepProps) {
   const [search, setSearch] = useState('')
   const [specialties, setSpecialties] = useState<ScheduleSpecialty[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -62,7 +64,7 @@ export function ScheduleSpecialtyStep({ selectedId, onSelect }: ScheduleSpecialt
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>Escolha a especialidade</Text>
+      <ScheduleStepTitle title="Escolha a especialidade" onBack={onBack} />
       <Text style={styles.description}>
         Selecione a área médica do seu contrato. Depois você define data, profissional e horário.
       </Text>
@@ -127,12 +129,6 @@ export function ScheduleSpecialtyStep({ selectedId, onSelect }: ScheduleSpecialt
 const styles = StyleSheet.create({
   wrap: {
     gap: 12,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
   },
   description: {
     color: colors.textMuted,

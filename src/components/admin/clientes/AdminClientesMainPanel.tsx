@@ -161,6 +161,14 @@ export function AdminClientesMainPanel() {
               Cadastro mestre das entidades, implantação e relacionamento operacional.
             </p>
           </div>
+          <button
+            type="button"
+            onClick={openCadastroDrawer}
+            className="btn-brand-gradient inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold"
+          >
+            <Plus className="h-4 w-4" strokeWidth={2.5} />
+            Novo cliente
+          </button>
         </header>
 
         {loadError ? (
@@ -175,17 +183,6 @@ export function AdminClientesMainPanel() {
             </button>
           </div>
         ) : null}
-
-        <div className="flex shrink-0 justify-end">
-          <button
-            type="button"
-            onClick={openCadastroDrawer}
-            className="btn-brand-gradient inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold"
-          >
-            <Plus className="h-4 w-4" strokeWidth={2.5} />
-            Novo cliente
-          </button>
-        </div>
 
         <div className="shrink-0">
           <AdminClientesSummaryCards summary={summary} isLoading={isLoading} />

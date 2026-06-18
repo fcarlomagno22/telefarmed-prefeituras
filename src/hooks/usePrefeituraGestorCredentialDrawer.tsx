@@ -6,6 +6,7 @@ import {
 } from '../components/credenciais/CredentialActionPinModal'
 import type { PrefeituraCredentialUser } from '../config/prefeituraCredenciaisConfig'
 import { Toast } from '../components/ui/Toast'
+import { useEntidadeCopy } from './useEntidadeCopy'
 import {
   activatePrefeituraGestorCredential,
   createPrefeituraGestorCredential,
@@ -21,6 +22,7 @@ type UsePrefeituraGestorCredentialDrawerOptions = {
   getAccessToken: () => string | null
   onDataChanged?: () => Promise<void>
   contractingEntityOptions: Array<{ value: string; label: string }>
+  portalLoginUrl?: string | null
 }
 
 type PendingGestorPin = {
@@ -39,7 +41,8 @@ export function usePrefeituraGestorCredentialDrawer(
   onRowsChange: (rows: PrefeituraCredentialUser[]) => void,
   options: UsePrefeituraGestorCredentialDrawerOptions,
 ) {
-  const { getAccessToken, onDataChanged, contractingEntityOptions } = options
+  const { getAccessToken, onDataChanged, contractingEntityOptions, portalLoginUrl } = options
+  const copy = useEntidadeCopy()
   const [open, setOpen] = useState(false)
   const [closing, setClosing] = useState(false)
   const [mode, setMode] = useState<'create' | 'edit' | 'view'>('view')
@@ -127,7 +130,7 @@ export function usePrefeituraGestorCredentialDrawer(
             password: secrets.password,
           })
           onRowsChange([...rows, saved])
-          setToast({ message: 'Gestor cadastrado no portal municipal.', variant: 'success' })
+          setToast({ message: 'Gestor cadastrado no portal.', variant: 'success' })
         } else {
           const saved = await updatePrefeituraGestorCredential(token, user.id, {
             name: payload.name,
@@ -196,7 +199,7 @@ export function usePrefeituraGestorCredentialDrawer(
           setEditingUser(saved)
         }
         setToast({
-          message: 'Acesso desbloqueado. O gestor já pode entrar no portal municipal.',
+          message: 'Acesso desbloqueado. O gestor já pode entrar no portal.',
           variant: 'success',
         })
         await onDataChanged?.()
@@ -306,6 +309,7 @@ export function usePrefeituraGestorCredentialDrawer(
         mode={mode}
         editingUser={editingUser}
         contractingEntityOptions={contractingEntityOptions}
+        portalLoginUrl={portalLoginUrl}
         lockContractingEntity
         onClose={requestClose}
         onTransitionEnd={handleTransitionEnd}
@@ -317,6 +321,8 @@ export function usePrefeituraGestorCredentialDrawer(
         action={pendingPin?.pinAction ?? null}
         userName={pendingPin?.user.name ?? ''}
         pinAudience="admin"
+        gestorPortalLabel={copy.gestorPortalLabel}
+        portalGestaoLabel={copy.portal}
         onClose={() => setPendingPin(null)}
         onSuccess={() => void executePinAction()}
         verifyPin={verifyOwnPin}

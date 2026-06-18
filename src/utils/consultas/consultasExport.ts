@@ -1,5 +1,12 @@
 import { brand } from '../../config/brand'
 import {
+  applyEntidadeCopyToExportText,
+  buildEntidadeDocumentExportStyles,
+  escapeExportHtml,
+  resolveEntidadeExportBranding,
+  resolveExportAssetUrl,
+} from '../entidadeExportHtml'
+import {
   consultasFilterOptions,
   type ConsultationRecord,
   type ConsultationStatus,
@@ -108,17 +115,11 @@ function genderLabel(gender: ConsultationRecord['gender']) {
 }
 
 function buildReportStyles() {
-  return `
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      color: #111827;
-      background: #fff;
-      line-height: 1.4;
-      -webkit-font-smoothing: antialiased;
-    }
+  const branding = resolveEntidadeExportBranding()
+  const { corPrimaria } = branding
+  return `${buildEntidadeDocumentExportStyles(branding)}
     main { max-width: 1100px; margin: 0 auto; padding: 28px 32px 36px; }
-    .brand-bar { height: 5px; background: #ff6b00; border-radius: 999px; margin-bottom: 20px; }
+    .brand-bar { height: 5px; }
     .header {
       display: flex;
       justify-content: space-between;
@@ -127,8 +128,8 @@ function buildReportStyles() {
       padding-bottom: 16px;
       border-bottom: 1px solid #e5e7eb;
     }
-    .header-logo { height: 36px; width: auto; max-width: 180px; object-fit: contain; }
-    .header-fallback { font-size: 20px; font-weight: 800; color: #ff6b00; }
+    .header-logo { max-width: 180px; object-fit: contain; }
+    .header-fallback { font-size: 20px; font-weight: 800; color: ${corPrimaria}; }
     .doc-title { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
     .doc-meta { margin-top: 4px; font-size: 13px; color: #6b7280; }
     .filters {
@@ -194,8 +195,9 @@ function buildReportStyles() {
 }
 
 function buildConsultasReportHtml(context: ConsultasExportContext) {
+  const branding = resolveEntidadeExportBranding()
   const generatedAt = formatGeneratedAt(new Date())
-  const logoUrl = resolveAssetUrl(brand.logoUrl)
+  const logoUrl = resolveExportAssetUrl(branding.logoUrl)
   const filterLines = buildFilterSummaryLines(context.filters, context.generalSearch)
   const periodLabel = `${formatDatePtBr(context.filters.periodStart)} a ${formatDatePtBr(context.filters.periodEnd)}`
 
@@ -236,7 +238,7 @@ function buildConsultasReportHtml(context: ConsultasExportContext) {
     ? '<p class="lgpd-note">CPF exibido com mascaramento conforme a LGPD.</p>'
     : ''
 
-  return `<!DOCTYPE html>
+  return applyEntidadeCopyToExportText(`<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -249,8 +251,8 @@ function buildConsultasReportHtml(context: ConsultasExportContext) {
     <div class="brand-bar"></div>
     <header class="header">
       <div>
-        <img class="header-logo" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brand.appName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
-        <div class="header-fallback" style="display:none">${escapeHtml(brand.appName)}</div>
+        <img class="header-logo" src="${escapeHtml(logoUrl)}" alt="${escapeExportHtml(branding.brandName)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" />
+        <div class="header-fallback" style="display:none">${escapeExportHtml(branding.brandName)}</div>
       </div>
       <div style="text-align:right">
         <h1 class="doc-title">Histórico de consultas</h1>
@@ -292,11 +294,11 @@ function buildConsultasReportHtml(context: ConsultasExportContext) {
 
     <footer class="footer">
       <span>${escapeHtml(brand.copyright)}</span>
-      <span>${escapeHtml(brand.appName)} · Documento gerado automaticamente</span>
+      <span>${escapeExportHtml(branding.brandName)} · Documento gerado automaticamente</span>
     </footer>
   </main>
 </body>
-</html>`
+</html>`)
 }
 
 function openExportWindow(html: string, title: string): Window {

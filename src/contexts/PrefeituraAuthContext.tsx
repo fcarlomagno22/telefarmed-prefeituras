@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import { emptyPrefeituraPagePermissions } from '../config/prefeituraCredenciaisConfig'
+import { prefeituraRoutes } from '../config/prefeituraRoutes'
 import { registerPrefeituraAccessTokenRefresh } from '../lib/api/prefeituraAuthRefresh'
 import { isBackendApiEnabled } from '../lib/api/config'
 import {
@@ -18,6 +19,12 @@ import {
   notifyUnauthorizedSession,
 } from '../lib/auth/sessionRevocation'
 import { bootstrapTabBoundAuthSession } from '../lib/auth/bootstrapTabBoundSession'
+import {
+  bindAuthSessionToHostSlug,
+  clearAuthSessionHostSlug,
+  currentAuthHostSlug,
+  isAuthSessionHostSlugMismatch,
+} from '../lib/auth/tenantSessionBinding'
 import {
   PrefeituraAuthApiError,
   prefeituraLogin,
@@ -29,6 +36,7 @@ import {
   type PrefeituraAuthUser,
 } from '../lib/services/prefeitura/auth'
 import { useAuthSessionGuard } from '../hooks/useAuthSessionGuard'
+import { useTenantHostAuthGuard } from '../hooks/useTenantHostAuthGuard'
 import { setSessionUserDisplayName } from '../utils/sessionUser'
 
 function normalizePrefeituraUser(user: PrefeituraAuthUser): PrefeituraAuthUser {
@@ -64,6 +72,7 @@ export function PrefeituraAuthProvider({ children }: { children: ReactNode }) {
       userIdRef.current = normalized.id
       writePrefeituraMockSession(token, normalized)
       clearAuthSessionRevoked('prefeitura')
+      bindAuthSessionToHostSlug('prefeitura', currentAuthHostSlug())
       setSessionUserDisplayName(normalized.nome)
 
       if (options?.silent) {
@@ -82,17 +91,16 @@ export function PrefeituraAuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(null)
     setUser(null)
     setSessionUserDisplayName(null)
+    clearAuthSessionHostSlug('prefeitura')
     writePrefeituraMockSession(null, null)
   }, [])
 
   const forceLogout = useCallback(async () => {
     markAuthSessionRevoked('prefeitura')
     clearSession()
-    if (
-      typeof window !== 'undefined' &&
-      !window.location.pathname.startsWith('/prefeitura/login')
-    ) {
-      window.location.replace('/prefeitura/login')
+    const loginPath = prefeituraRoutes.login
+    if (typeof window !== 'undefined' && !window.location.pathname.startsWith(loginPath)) {
+      window.location.replace(loginPath)
     }
   }, [clearSession])
 
@@ -141,6 +149,15 @@ export function PrefeituraAuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false
 
     async function bootstrap() {
+      if (isAuthSessionHostSlugMismatch('prefeitura')) {
+        await prefeituraLogout().catch(() => {})
+        if (!cancelled) {
+          clearSession()
+          setIsBootstrapping(false)
+        }
+        return
+      }
+
       if (isAuthSessionRevoked('prefeitura')) {
         if (!cancelled) {
           clearSession()
@@ -202,6 +219,11 @@ export function PrefeituraAuthProvider({ children }: { children: ReactNode }) {
     await prefeituraLogout()
     clearSession()
   }, [clearSession])
+
+  useTenantHostAuthGuard('prefeitura', {
+    isAuthenticated: Boolean(user && accessToken),
+    onForceLogout: logout,
+  })
 
   const value = useMemo<PrefeituraAuthContextValue>(
     () => ({

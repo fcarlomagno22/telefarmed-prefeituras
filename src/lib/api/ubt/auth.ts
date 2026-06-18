@@ -1,5 +1,10 @@
 import type { UbtAuthUser } from '../../mockAuth/ubtAuthMock'
+import type {
+  EntidadeBrandingFields,
+  EntidadeLogoSignedUrlResponse,
+} from '../../types/entidadeBranding'
 import { ApiError, apiFetch } from '../http'
+import { extractTenantSlugFromHostname } from '../../../config/tenantHost'
 
 export class UbtAuthApiError extends ApiError {
   constructor(message: string, status: number, code?: string) {
@@ -20,9 +25,22 @@ export async function apiUbtLogin(credentials: {
   password: string
 }): Promise<{ accessToken: string; user: UbtAuthUser }> {
   try {
+    const headers = new Headers()
+    const tenantSlug =
+      typeof window !== 'undefined' ? extractTenantSlugFromHostname(window.location.hostname) : null
+    if (tenantSlug && typeof window !== 'undefined') {
+      headers.set('X-Tenant-Host', window.location.host)
+    }
+
     return await apiFetch('/ubt/auth/login', {
       method: 'POST',
-      json: credentials,
+      headers,
+      json: {
+        ...credentials,
+        ...(tenantSlug && typeof window !== 'undefined'
+          ? { tenantHost: window.location.host }
+          : {}),
+      },
     })
   } catch (error) {
     throw mapApiError(error)
@@ -110,6 +128,26 @@ export async function apiCheckUbtLgpdUnlockStatus(
       },
     })
     return data.active
+  } catch (error) {
+    throw mapApiError(error)
+  }
+}
+
+export async function apiUbtEntidadeLogo(
+  accessToken: string,
+): Promise<EntidadeLogoSignedUrlResponse> {
+  try {
+    return await apiFetch('/ubt/auth/entidade/logo', { accessToken })
+  } catch (error) {
+    throw mapApiError(error)
+  }
+}
+
+export async function apiUbtEntidadeBranding(
+  accessToken: string,
+): Promise<{ branding: EntidadeBrandingFields }> {
+  try {
+    return await apiFetch('/ubt/auth/entidade/branding', { accessToken })
   } catch (error) {
     throw mapApiError(error)
   }

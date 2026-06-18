@@ -1,6 +1,7 @@
-import { Building2, X } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { Building2, ExternalLink, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { ubtPublicUrl } from '../../config/tenantHost'
 import type { PrefeituraRedeUnitCadastral } from '../../data/prefeituraRedeUnitDetail'
 import type { PrefeituraUbsDetail } from '../../data/prefeituraUbsDetails'
 import { prefeituraRedeStatusBadgeConfig } from './rede/prefeituraRedeStatusBadge'
@@ -70,6 +71,12 @@ export function PrefeituraUbsDetailDrawer({
   const displayName = cadastral?.unit.name ?? unit.name
   const displayRegion = cadastral?.unit.region ?? unit.region
   const displayType = cadastral ? `${cadastral.unitType} · CNES ${cadastral.unit.cnes}` : unit.type
+  const portalUrl = useMemo(() => {
+    const fromApi = cadastral?.unit.publicUrl?.trim()
+    if (fromApi) return fromApi
+    const slug = cadastral?.unit.slug?.trim()
+    return slug ? ubtPublicUrl(slug) : ''
+  }, [cadastral?.unit.publicUrl, cadastral?.unit.slug])
 
   useEffect(() => {
     if (!open) {
@@ -161,12 +168,26 @@ export function PrefeituraUbsDetailDrawer({
                     <span className={`h-2 w-2 rounded-full ${prefeituraSlaDotClass[unit.sla]}`} />
                     Espera {unit.avgWait}
                   </span>
-                  {cadastral ? (
+                </div>
+                {cadastral ? (
+                  <div className="mt-2 flex items-center justify-between gap-3">
                     <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-800">
                       Cadastro completo
                     </span>
-                  ) : null}
-                </div>
+                    {portalUrl ? (
+                      <a
+                        href={portalUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={portalUrl}
+                        className="inline-flex max-w-[min(100%,22rem)] items-center gap-1.5 truncate rounded-lg border border-[var(--brand-primary)]/25 bg-[var(--brand-primary-light)]/60 px-2.5 py-1 font-mono text-[10px] font-semibold text-[var(--brand-primary)] transition hover:border-[var(--brand-primary)]/40 hover:bg-[var(--brand-primary-light)]"
+                      >
+                        <span className="truncate">{portalUrl}</span>
+                        <ExternalLink className="h-3 w-3 shrink-0 opacity-80" strokeWidth={2} />
+                      </a>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2">

@@ -7,9 +7,10 @@ import { colors } from '../../theme/colors'
 const DOT_SIZE = 34
 
 const scheduleSteps = [
-  { id: 1, icon: 'medkit-outline' as const },
-  { id: 2, icon: 'calendar-outline' as const },
-  { id: 3, icon: 'checkmark-done-outline' as const },
+  { id: 1, icon: 'options-outline' as const },
+  { id: 2, icon: 'medkit-outline' as const },
+  { id: 3, icon: 'calendar-outline' as const },
+  { id: 4, icon: 'checkmark-done-outline' as const },
 ]
 
 type ScheduleTimelineProps = {
@@ -18,18 +19,20 @@ type ScheduleTimelineProps = {
 
 function resolveTimelineStep(step: ScheduleAppointmentStep): number {
   switch (step) {
+    case 'care_mode':
+      return 1
     case 'specialty':
     case 'ubt':
-      return 1
+      return 2
     case 'schedule_mode':
     case 'schedule_date':
     case 'schedule_doctor':
     case 'schedule_time':
-      return 2
-    case 'confirm':
       return 3
-    case 'success':
+    case 'confirm':
       return 4
+    case 'success':
+      return 5
     default:
       return 1
   }
@@ -118,8 +121,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   timeline: {
-    width: '72%',
-    maxWidth: 260,
+    width: '92%',
+    maxWidth: 340,
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'center',

@@ -36,6 +36,8 @@ import { AdminClienteContratoActionsMenu } from './AdminClienteContratoActionsMe
 import { AdminClienteEntidadeActionsMenu } from './AdminClienteEntidadeActionsMenu'
 import { AdminClienteEntidadeDeleteConfirmModal } from './AdminClienteEntidadeDeleteConfirmModal'
 import { AdminClienteEntidadeStatusModal } from './AdminClienteEntidadeStatusModal'
+import { AdminClienteEntidadeEditDrawer } from './AdminClienteEntidadeEditDrawer'
+import { buildEntidadeBrandingUpdatePayload } from './adminEntidadeUpdatePayload'
 import { AdminClienteContratoDeleteConfirmModal } from './AdminClienteContratoDeleteConfirmModal'
 import { AdminClienteAddContratoDrawer } from './AdminClienteAddContratoDrawer'
 import { AdminClienteUbtsDrawer } from './AdminClienteUbtsDrawer'
@@ -46,6 +48,7 @@ import { AdminClienteContratoStatusBadge } from './AdminClienteContratoStatusBad
 import { AdminClienteStatusBadge } from './AdminClienteStatusBadge'
 import { formatContratoUtilizacao, type AdminClienteContratoAction } from './adminClienteContratoActions'
 import { ADMIN_CLIENTE_TABLE_COL_COUNT, formatAdminClientesNumber } from './adminClientesUi'
+import { resolveEntidadeTipoLabel } from '../../../config/adminEntidadeTipo'
 
 type AdminClientesTableProps = {
   rows: AdminClienteRow[]
@@ -63,45 +66,46 @@ type AdminClientesTableProps = {
 type PendingContratoAction = {
   clienteId: string
   contratoId: string
-  prefeitura: string
+  entidadeNome: string
   contratoLabel: string
   action: AdminClienteContratoAction
 }
 
 type PendingEntidadeDelete = {
   clienteId: string
-  prefeitura: string
+  entidadeNome: string
 }
 
 type PendingContratoDelete = {
   clienteId: string
   contratoId: string
-  prefeitura: string
+  entidadeNome: string
   contratoLabel: string
 }
 
-function ClienteLogo({
+function ClienteFavicon({
   hue,
   name,
-  logoUrl,
+  faviconUrl,
 }: {
   hue: number
   name: string
-  logoUrl?: string
+  faviconUrl?: string
 }) {
+  const imageUrl = faviconUrl?.trim()
   const initial = name.trim().charAt(0).toUpperCase()
-  if (logoUrl) {
+  if (imageUrl) {
     return (
       <img
-        src={logoUrl}
+        src={imageUrl}
         alt=""
-        className="h-9 w-9 shrink-0 rounded-xl border border-gray-200 object-cover shadow-sm"
+        className="h-9 w-9 shrink-0 rounded-lg border border-gray-200 bg-white object-contain p-1 shadow-sm"
       />
     )
   }
   return (
     <span
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white shadow-sm"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white shadow-sm"
       style={{ background: `hsl(${hue} 65% 45%)` }}
       aria-hidden
     >
@@ -169,6 +173,8 @@ export function AdminClientesTable({
   const [pendingAction, setPendingAction] = useState<PendingContratoAction | null>(null)
   const [pendingDelete, setPendingDelete] = useState<PendingEntidadeDelete | null>(null)
   const [pendingStatusChange, setPendingStatusChange] = useState<AdminClienteRow | null>(null)
+  const [editEntity, setEditEntity] = useState<AdminClienteRow | null>(null)
+  const [editEntityDrawerClosing, setEditEntityDrawerClosing] = useState(false)
   const [pendingContratoDelete, setPendingContratoDelete] = useState<PendingContratoDelete | null>(
     null,
   )
@@ -215,7 +221,7 @@ export function AdminClientesTable({
       setPendingAction({
         clienteId: cliente.id,
         contratoId: contrato.id,
-        prefeitura: cliente.prefeitura,
+        entidadeNome: cliente.prefeitura,
         contratoLabel: getContratoLabel(contrato, contratoTipoLabels),
         action,
       })
@@ -232,7 +238,7 @@ export function AdminClientesTable({
 
     requestPin({
       action: CONTRATO_PIN_ACTION[snapshot.action],
-      label: `${snapshot.prefeitura} · ${snapshot.contratoLabel}`,
+      label: `${snapshot.entidadeNome} · ${snapshot.contratoLabel}`,
       onConfirmed: async (pin) => {
         const token = getAccessToken()
         if (!token) return
@@ -316,7 +322,7 @@ export function AdminClientesTable({
               type="search"
               value={searchQuery}
               onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Buscar por razão social, município ou contato"
+              placeholder="Buscar por razão social, localidade ou contato"
               className="w-full rounded-xl border border-gray-200 bg-gray-50/80 py-2 pl-9 pr-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[var(--brand-primary)]/40 focus:bg-white focus:ring-2 focus:ring-[var(--brand-primary)]/15"
             />
           </label>
@@ -337,7 +343,7 @@ export function AdminClientesTable({
                 <th className="px-4 py-3">Entidade</th>
                 <th className="px-4 py-3">Razão social</th>
                 <th className="px-4 py-3 text-center">CNPJ</th>
-                <th className="px-4 py-3">Município / UF</th>
+                <th className="px-4 py-3">Localidade / UF</th>
                 <th className="px-4 py-3 text-center">Gestor</th>
                 <th className="px-4 py-3 text-center">Contatos TI</th>
                 <th className="px-4 py-3 text-center">Saúde</th>
@@ -387,10 +393,19 @@ export function AdminClientesTable({
                               <ChevronRight className="h-4 w-4" strokeWidth={2.25} />
                             )}
                           </span>
-                          <ClienteLogo hue={row.logoHue} name={row.prefeitura} logoUrl={row.logoUrl} />
+                          <ClienteFavicon
+                            hue={row.logoHue}
+                            name={row.prefeitura}
+                            faviconUrl={row.faviconUrl}
+                          />
                           <div className="min-w-0">
                             <p className="font-semibold text-gray-900">{row.prefeitura}</p>
                             <p className="text-xs text-gray-500">{row.subtitle}</p>
+                            {row.tipoEntidade && row.tipoEntidade !== 'prefeitura' ? (
+                              <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-primary)]">
+                                {resolveEntidadeTipoLabel(row.tipoEntidade)}
+                              </p>
+                            ) : null}
                           </div>
                         </div>
                       </td>
@@ -439,13 +454,17 @@ export function AdminClientesTable({
                             setAddContratoCliente(row)
                             setAddContratoDrawerClosing(false)
                           }}
+                          onEdit={() => {
+                            setEditEntity(row)
+                            setEditEntityDrawerClosing(false)
+                          }}
                           onChangeStatus={() => {
                             setPendingStatusChange(row)
                           }}
                           onDelete={() => {
                             setPendingDelete({
                               clienteId: row.id,
-                              prefeitura: row.prefeitura,
+                              entidadeNome: row.prefeitura,
                             })
                           }}
                         />
@@ -525,7 +544,7 @@ export function AdminClientesTable({
                                               setPendingContratoDelete({
                                                 clienteId: row.id,
                                                 contratoId: contrato.id,
-                                                prefeitura: row.prefeitura,
+                                                entidadeNome: row.prefeitura,
                                                 contratoLabel: getContratoLabel(contrato, contratoTipoLabels),
                                               })
                                             }}
@@ -556,7 +575,7 @@ export function AdminClientesTable({
 
       <AdminClienteEntidadeDeleteConfirmModal
         open={pendingDelete !== null}
-        prefeitura={pendingDelete?.prefeitura ?? ''}
+        entidadeNome={pendingDelete?.entidadeNome ?? ''}
         onCancel={() => setPendingDelete(null)}
         onConfirm={() => {
           if (!pendingDelete) return
@@ -565,7 +584,7 @@ export function AdminClientesTable({
 
           requestPin({
             action: 'delete_entidade',
-            label: snapshot.prefeitura,
+            label: snapshot.entidadeNome,
             onConfirmed: async (pin) => {
               const token = getAccessToken()
               if (!token) return
@@ -596,7 +615,7 @@ export function AdminClientesTable({
 
       <AdminClienteContratoDeleteConfirmModal
         open={pendingContratoDelete !== null}
-        prefeitura={pendingContratoDelete?.prefeitura ?? ''}
+        entidadeNome={pendingContratoDelete?.entidadeNome ?? ''}
         contratoLabel={pendingContratoDelete?.contratoLabel ?? ''}
         onCancel={() => setPendingContratoDelete(null)}
         onConfirm={() => {
@@ -606,7 +625,7 @@ export function AdminClientesTable({
 
           requestPin({
             action: 'delete_contrato',
-            label: `${snapshot.prefeitura} · ${snapshot.contratoLabel}`,
+            label: `${snapshot.entidadeNome} · ${snapshot.contratoLabel}`,
             onConfirmed: async (pin) => {
               const token = getAccessToken()
               if (!token) return
@@ -638,7 +657,7 @@ export function AdminClientesTable({
       <AdminClienteContratoConfirmModal
         open={pendingAction !== null}
         action={pendingAction?.action ?? null}
-        prefeitura={pendingAction?.prefeitura ?? ''}
+        entidadeNome={pendingAction?.entidadeNome ?? ''}
         contratoLabel={pendingAction?.contratoLabel ?? ''}
         onCancel={() => setPendingAction(null)}
         onConfirm={confirmContratoAction}
@@ -646,79 +665,75 @@ export function AdminClientesTable({
 
       <AdminClienteEntidadeStatusModal
         open={pendingStatusChange !== null}
-        prefeitura={pendingStatusChange?.prefeitura ?? ''}
+        entidadeNome={pendingStatusChange?.prefeitura ?? ''}
         currentStatus={pendingStatusChange?.status ?? 'ativa'}
         onCancel={() => setPendingStatusChange(null)}
         onConfirm={confirmEntidadeStatusChange}
+      />
+
+      <AdminClienteEntidadeEditDrawer
+        open={editEntity !== null && !editEntityDrawerClosing}
+        closing={editEntityDrawerClosing}
+        cliente={editEntity}
+        onClose={() => setEditEntityDrawerClosing(true)}
+        onTransitionEnd={() => {
+          setEditEntity(null)
+          setEditEntityDrawerClosing(false)
+        }}
+        onSave={(clienteId, payload) => {
+          const cliente = editEntity
+          if (!cliente) return
+
+          requestPin({
+            action: 'save_entidade_cliente_edit',
+            label: cliente.prefeitura,
+            onConfirmed: async (pin) => {
+              const token = getAccessToken()
+              if (!token) return
+
+              try {
+                let latestRow = cliente
+
+                if (payload.brandingChanged) {
+                  latestRow = await updateClienteEntidade(token, clienteId, {
+                    pin,
+                    ...buildEntidadeBrandingUpdatePayload(cliente, payload.brandingChanges),
+                  })
+                }
+
+                if (payload.contactsChanged) {
+                  latestRow = await updateClienteEntidadeContacts(token, clienteId, {
+                    pin,
+                    gestor: payload.contacts.gestor,
+                    contatoContrato: payload.contacts.contrato,
+                    contatoTi: payload.contacts.ti,
+                    contatoSaude: payload.contacts.saude,
+                  })
+                }
+
+                onUpsertRow(latestRow)
+                if (viewEntity?.id === clienteId) {
+                  setViewEntity(latestRow)
+                }
+                await onReload()
+                setEditEntityDrawerClosing(true)
+                onToast('Cliente atualizado com sucesso.')
+              } catch (error) {
+                const message = isAdminClientesApiError(error)
+                  ? error.message
+                  : 'Não foi possível atualizar o cliente.'
+                onToast(message)
+                throw error
+              }
+            },
+          })
+        }}
       />
 
       <AdminClienteEntidadeDrawer
         open={viewEntity !== null && !viewEntityDrawerClosing}
         closing={viewEntityDrawerClosing}
         cliente={viewEntity}
-        onSaveCadastro={(clienteId, payload) => {
-          const cliente = viewEntity
-          if (!cliente) return
-
-          requestPin({
-            action: 'save_entidade_edit',
-            label: cliente.prefeitura,
-            onConfirmed: async (pin) => {
-              const token = getAccessToken()
-              if (!token) return
-
-              try {
-                const row = await updateClienteEntidade(token, clienteId, {
-                  pin,
-                  ...payload,
-                })
-                onUpsertRow(row)
-                setViewEntity(row)
-                await onReload()
-                onToast('Dados cadastrais atualizados com sucesso.')
-              } catch (error) {
-                const message = isAdminClientesApiError(error)
-                  ? error.message
-                  : 'Não foi possível atualizar os dados cadastrais.'
-                onToast(message)
-                throw error
-              }
-            },
-          })
-        }}
-        onSaveContacts={(clienteId, contacts) => {
-          const cliente = viewEntity
-          if (!cliente) return
-
-          requestPin({
-            action: 'save_entidade_contacts',
-            label: cliente.prefeitura,
-            onConfirmed: async (pin) => {
-              const token = getAccessToken()
-              if (!token) return
-
-              try {
-                const row = await updateClienteEntidadeContacts(token, clienteId, {
-                  pin,
-                  gestor: contacts.gestor,
-                  contatoContrato: contacts.contrato,
-                  contatoTi: contacts.ti,
-                  contatoSaude: contacts.saude,
-                })
-                onUpsertRow(row)
-                setViewEntity(row)
-                await onReload()
-                onToast('Contatos atualizados com sucesso.')
-              } catch (error) {
-                const message = isAdminClientesApiError(error)
-                  ? error.message
-                  : 'Não foi possível atualizar os contatos.'
-                onToast(message)
-                throw error
-              }
-            },
-          })
-        }}
         onClose={() => setViewEntityDrawerClosing(true)}
         onTransitionEnd={() => {
           if (viewEntityDrawerClosing) {

@@ -25,6 +25,8 @@ import type {
   SupportTicket,
 } from '../../data/suporteMock'
 import { brand } from '../../config/brand'
+import { usePlatformOperatorLabel } from '../../hooks/useEntidadeCopy'
+import { resolveSupportOperatorLabel } from '../../utils/entidadeExportHtml'
 import { getLoggedOperatorName } from '../../utils/sessionUser'
 import { SupportTicketCloseConfirmModal } from './SupportTicketCloseConfirmModal'
 import {
@@ -280,10 +282,12 @@ function getSupportAgentName() {
 
 function isOwnAgentMessage(message: SupportMessage, replyAsSupport: boolean) {
   if (replyAsSupport) {
+    const supportLabel = resolveSupportOperatorLabel()
     return (
       message.author === 'support' &&
       (message.authorName === getSupportAgentName() ||
-        message.authorName === 'Suporte Telefarmed')
+        message.authorName === 'Suporte Telefarmed' ||
+        message.authorName === supportLabel)
     )
   }
   return message.author === 'operator' && message.authorName === getLoggedOperatorName()
@@ -929,13 +933,14 @@ function SupportFavoritesPanel({
 }
 
 function TypingIndicator() {
+  const supportOperatorLabel = resolveSupportOperatorLabel()
   return (
     <article
       className="w-fit max-w-[min(100%,28rem)] rounded-2xl bg-gray-100 px-4 py-3 text-sm sm:max-w-[min(100%,34rem)]"
       aria-live="polite"
       aria-label="Suporte está digitando"
     >
-      <p className="text-xs font-semibold text-gray-600">Suporte Telefarmed</p>
+      <p className="text-xs font-semibold text-gray-600">{supportOperatorLabel}</p>
       <div className="mt-2.5 flex items-center gap-1.5">
         {[0, 1, 2].map((index) => (
           <span
@@ -968,6 +973,8 @@ export function SupportTicketDrawer({
   onTransitionEnd,
   tourLockClose = false,
 }: SupportTicketDrawerProps) {
+  const platformOperatorLabel = usePlatformOperatorLabel()
+  const supportOperatorLabel = resolveSupportOperatorLabel()
   const [entered, setEntered] = useState(false)
   const [ticketStatus, setTicketStatus] = useState<SupportTicket['status']>('em_andamento')
   const [closeConfirmOpen, setCloseConfirmOpen] = useState(false)
@@ -1621,7 +1628,7 @@ export function SupportTicketDrawer({
       const supportMessage: SupportMessage = {
         id: createMessageId(),
         author: 'support',
-        authorName: 'Suporte Telefarmed',
+        authorName: supportOperatorLabel,
         body: GENERIC_SUPPORT_REPLY,
         sentAt: formatMessageTime(new Date()),
       }
@@ -1664,7 +1671,7 @@ export function SupportTicketDrawer({
       id: createMessageId(),
       author: 'support',
       authorName: getSupportAgentName(),
-      body: 'Chamado encerrado pela equipe Telefarmed. Se precisar de novo suporte, abra um novo chamado na sua unidade.',
+      body: `Chamado encerrado pela equipe ${platformOperatorLabel}. Se precisar de novo suporte, abra um novo chamado na sua unidade.`,
       sentAt: closedAt,
     }
     const nextMessages = [...messages, closeMessage]
@@ -1873,7 +1880,8 @@ export function SupportTicketDrawer({
 
           {readOnly ? (
             <p className="shrink-0 border-b border-sky-100 bg-sky-50/80 px-5 py-2.5 text-center text-xs font-medium text-sky-800 sm:px-6">
-              Visualização somente leitura — conversa entre o suporte Telefarmed e a unidade.
+              Visualização somente leitura — conversa entre o suporte {platformOperatorLabel} e a
+              unidade.
             </p>
           ) : null}
           {showViewOnlyComposerNotice ? (

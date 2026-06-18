@@ -1,4 +1,10 @@
 import { brand } from '../../config/brand'
+import {
+  applyEntidadeCopyToExportText,
+  escapeExportHtml,
+  resolveEntidadeExportBranding,
+  resolveExportAssetUrl,
+} from '../entidadeExportHtml'
 import type { AgendaDoctorShiftRecord } from '../../data/agendaDoctorShiftMock'
 import { openAgendaFullReportView } from './agendaFullReportHtml'
 import type {
@@ -212,10 +218,12 @@ function buildClimateSection(climate: AgendaOperationalClimate) {
 }
 
 function buildPrintStyles() {
+  const branding = resolveEntidadeExportBranding()
+  const brandColor = branding.corPrimaria
   return `
     :root {
-      --brand: #ff6b00;
-      --brand-soft: #fff7ed;
+      --brand: ${brandColor};
+      --brand-soft: color-mix(in srgb, ${brandColor} 12%, white);
       --text: #111827;
       --muted: #6b7280;
       --border: #f3f4f6;
@@ -249,7 +257,7 @@ function buildPrintStyles() {
       padding: 14px 18px;
       border-radius: 14px;
       background: var(--brand-soft);
-      border: 1px solid rgba(255, 107, 0, 0.2);
+      border: 1px solid color-mix(in srgb, var(--brand) 20%, transparent);
     }
 
     .print-toolbar p {
@@ -272,7 +280,7 @@ function buildPrintStyles() {
     .btn-primary {
       background: var(--brand);
       color: #fff;
-      box-shadow: 0 4px 14px rgba(255, 107, 0, 0.35);
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--brand) 35%, transparent);
     }
 
     .btn-ghost {
@@ -427,8 +435,8 @@ function buildPrintStyles() {
     }
 
     .climate-slot--peak .climate-bar {
-      background: linear-gradient(to top, #e55f00, #ff6b00, #ff9a3d);
-      box-shadow: 0 0 12px rgba(255, 107, 0, 0.45);
+      background: linear-gradient(to top, color-mix(in srgb, var(--brand) 85%, black), var(--brand), color-mix(in srgb, var(--brand) 70%, white));
+      box-shadow: 0 0 12px color-mix(in srgb, var(--brand) 45%, transparent);
     }
 
     .climate-hour {
@@ -615,7 +623,8 @@ function buildDocumentHtml(options: OpenAgendaPrintOptions) {
     operationalClimate,
   } = options
 
-  const logoUrl = resolveAssetUrl(brand.logoUrl)
+  const branding = resolveEntidadeExportBranding()
+  const logoUrl = resolveExportAssetUrl(branding.logoUrl)
   const isReport = variant === 'report'
   const docTitle = isReport ? 'Relatório da agenda' : 'Agenda do dia'
 
@@ -637,7 +646,7 @@ function buildDocumentHtml(options: OpenAgendaPrintOptions) {
         }`
       : ''
 
-  return `<!DOCTYPE html>
+  return applyEntidadeCopyToExportText(`<!DOCTYPE html>
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
@@ -659,7 +668,7 @@ function buildDocumentHtml(options: OpenAgendaPrintOptions) {
 
       <header class="header">
         <div>
-          <img class="header-logo" src="${escapeHtml(logoUrl)}" alt="${escapeHtml(brand.appName)}" />
+          <img class="header-logo" src="${escapeHtml(logoUrl)}" alt="${escapeExportHtml(branding.brandName)}" />
         </div>
         <div class="header-right">
           <h1 class="doc-title">${escapeHtml(docTitle)}</h1>
@@ -700,7 +709,7 @@ function buildDocumentHtml(options: OpenAgendaPrintOptions) {
 
       <footer class="footer">
         <span>${escapeHtml(brand.copyright)}</span>
-        <span>${escapeHtml(brand.appName)} · Documento gerado automaticamente</span>
+        <span>${escapeExportHtml(branding.brandName)} · Documento gerado automaticamente</span>
       </footer>
     </main>
     <script>
@@ -709,7 +718,7 @@ function buildDocumentHtml(options: OpenAgendaPrintOptions) {
       });
     </script>
   </body>
-</html>`
+</html>`)
 }
 
 export function openAgendaPrintView(options: OpenAgendaPrintOptions) {

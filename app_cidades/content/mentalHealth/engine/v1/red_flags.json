@@ -1,0 +1,2264 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "evaluation_order": "severity_desc_then_priority_desc",
+  "global_policies": {
+    "block_micro_activity_plan": true,
+    "block_anamnesis_continue_if_immediate_risk": true,
+    "allow_check_in": true,
+    "allow_journal": false,
+    "suspend_hypothesis_primary_selection": true,
+    "always_log_event": true,
+    "require_staff_review_for_severity_gte": "S1",
+    "cooldown_before_retry_self_guided_hours": {
+      "S0": 24,
+      "S1": 48,
+      "S2": 72,
+      "S3": 168
+    },
+    "show_crisis_resources": true,
+    "deduplicate_alias_flags": true,
+    "alias_resolution": "prefer_highest_severity_then_highest_priority",
+    "never_show_to_user": [
+      "severity_code",
+      "red_flag_id",
+      "clinical_rationale",
+      "related_tracks",
+      "related_symptoms"
+    ]
+  },
+  "severity_levels": [
+    {
+      "id": "S0",
+      "label_internal": "Monitoramento elevado",
+      "priority_base": 700,
+      "description_internal": "Sinal de risco sem indicação estruturada de perigo imediato."
+    },
+    {
+      "id": "S1",
+      "label_internal": "Risco moderado",
+      "priority_base": 800,
+      "description_internal": "Sinal que exige interrupção do plano autoguiado e contato humano prioritário."
+    },
+    {
+      "id": "S2",
+      "label_internal": "Risco alto",
+      "priority_base": 900,
+      "description_internal": "Sinal importante de segurança que exige avaliação humana urgente."
+    },
+    {
+      "id": "S3",
+      "label_internal": "Risco imediato / emergência",
+      "priority_base": 990,
+      "description_internal": "Sinal compatível com possível perigo imediato e necessidade de rota emergencial."
+    }
+  ],
+  "response_routes": [
+    {
+      "id": "route_cvv",
+      "label_internal": "CVV — Centro de Valorização da Vida",
+      "type": "external_helpline",
+      "phone": "188",
+      "user_label": "Ligar para o CVV (188)",
+      "user_description": "Converse gratuitamente e com sigilo com uma pessoa preparada para oferecer apoio emocional.",
+      "available_24h": true,
+      "enabled": true
+    },
+    {
+      "id": "route_samu",
+      "label_internal": "SAMU 192",
+      "type": "emergency_service",
+      "phone": "192",
+      "user_label": "Ligar para o SAMU (192)",
+      "user_description": "Use esta opção quando houver perigo imediato à vida ou necessidade de atendimento urgente.",
+      "available_24h": true,
+      "enabled": true
+    },
+    {
+      "id": "route_police",
+      "label_internal": "Polícia Militar 190",
+      "type": "emergency_service",
+      "phone": "190",
+      "user_label": "Ligar para a emergência policial (190)",
+      "user_description": "Use esta opção quando uma situação de violência estiver acontecendo agora ou houver perigo imediato.",
+      "available_24h": true,
+      "enabled": true
+    },
+    {
+      "id": "route_human_clinical",
+      "label_internal": "Escalonamento para equipe clínica Telefarmed",
+      "type": "internal_escalation",
+      "user_label": "Pedir contato da equipe",
+      "user_description": "Nossa equipe receberá um alerta para avaliar o apoio mais adequado.",
+      "available_24h": false,
+      "enabled": true
+    },
+    {
+      "id": "route_emergency_contacts",
+      "label_internal": "Contatos de emergência cadastrados",
+      "type": "user_defined",
+      "user_label": "Chamar uma pessoa de confiança",
+      "user_description": "Entre em contato com alguém de confiança e, quando possível, permaneça acompanhado(a).",
+      "available_24h": true,
+      "enabled": true
+    },
+    {
+      "id": "route_crisis_chat",
+      "label_internal": "Atendimento humano por conversa",
+      "type": "internal_flow",
+      "user_label": "Conversar com uma pessoa",
+      "user_description": "Inicie uma conversa com a equipe quando o plantão humano estiver disponível.",
+      "available_24h": false,
+      "enabled": false
+    },
+    {
+      "id": "route_pause_self_guided",
+      "label_internal": "Pausa do fluxo autoguiado",
+      "type": "internal_flow",
+      "user_label": "Pausar e ver opções de apoio",
+      "user_description": "O plano será pausado para que você veja opções de apoio e segurança.",
+      "available_24h": true,
+      "enabled": true
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "suicidal_ideation_passive",
+      "label_internal": "Ideação passiva de morte",
+      "category": "suicide_self_harm",
+      "severity": "S0",
+      "priority": 740,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Relato de desejo passivo de não continuar vivo, sem evidência estruturada de plano ou intenção.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "trauma_related_disorders"
+      ],
+      "related_symptoms": [
+        "suicidal_ideation",
+        "suicidal_ideation_passive"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_cvv",
+        "routes_secondary": [
+          "route_pause_self_guided",
+          "route_human_clinical"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "normal",
+        "log_event": true,
+        "log_level": "warning",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": true
+      },
+      "user_facing": {
+        "screen_title": "Você não precisa passar por isso sozinho(a)",
+        "screen_message": "O que você compartilhou indica que apoio humano agora pode fazer diferença. Podemos ajudar a encontrar o próximo passo.",
+        "primary_cta": "Conversar com alguém",
+        "secondary_cta": "Ver opções de apoio",
+        "tone": "calm_supportive"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Ideação passiva de morte",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 240,
+        "requires_immediate_contact": false
+      },
+      "notes_internal": "Não inferir intenção a partir deste sinal isolado."
+    },
+    {
+      "id": "suicidal_ideation_active",
+      "label_internal": "Ideação suicida ativa",
+      "category": "suicide_self_harm",
+      "severity": "S1",
+      "priority": 850,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Relato de pensamentos ativos de tirar a própria vida, sem confirmação de plano ou intenção imediata.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "trauma_related_disorders"
+      ],
+      "related_symptoms": [
+        "suicidal_ideation",
+        "suicidal_ideation_active"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_cvv",
+        "routes_secondary": [
+          "route_human_clinical",
+          "route_emergency_contacts"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "high",
+        "log_event": true,
+        "log_level": "error",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Você não precisa passar por isso sozinho(a)",
+        "screen_message": "O que você compartilhou indica que apoio humano agora pode fazer diferença. Podemos ajudar a encontrar o próximo passo.",
+        "primary_cta": "Falar com alguém agora",
+        "secondary_cta": "Ver números de apoio",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Ideação suicida ativa",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 60,
+        "requires_immediate_contact": false
+      },
+      "notes_internal": ""
+    },
+    {
+      "id": "suicidal_plan_active",
+      "label_internal": "Ideação suicida com plano",
+      "category": "suicide_self_harm",
+      "severity": "S2",
+      "priority": 930,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Relato de plano relacionado a pensamentos de tirar a própria vida.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders"
+      ],
+      "related_symptoms": [
+        "suicidal_ideation",
+        "suicidal_plan"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_human_clinical",
+        "routes_secondary": [
+          "route_cvv",
+          "route_emergency_contacts",
+          "route_samu"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "urgent",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Você não precisa passar por isso sozinho(a)",
+        "screen_message": "O que você compartilhou indica que apoio humano agora pode fazer diferença. Podemos ajudar a encontrar o próximo passo.",
+        "primary_cta": "Pedir ajuda agora",
+        "secondary_cta": "Ver contatos de emergência",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Ideação suicida com plano",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 15,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": ""
+    },
+    {
+      "id": "suicidal_intent_active",
+      "label_internal": "Intenção suicida ativa",
+      "category": "suicide_self_harm",
+      "severity": "S3",
+      "priority": 999,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Conjunto de sinais compatível com intenção atual e possível perigo imediato.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "related_symptoms": [
+        "suicidal_ideation",
+        "suicidal_intent"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_samu",
+        "routes_secondary": [
+          "route_human_clinical",
+          "route_emergency_contacts",
+          "route_cvv"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "critical",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Você não precisa passar por isso sozinho(a)",
+        "screen_message": "O que você compartilhou indica que apoio humano agora pode fazer diferença. Podemos ajudar a encontrar o próximo passo.",
+        "primary_cta": "Ligar para emergência",
+        "secondary_cta": "Chamar uma pessoa de confiança",
+        "tone": "direct_calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Intenção suicida ativa",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 5,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": ""
+    },
+    {
+      "id": "recent_self_harm",
+      "label_internal": "Autolesão recente",
+      "category": "suicide_self_harm",
+      "severity": "S2",
+      "priority": 945,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Relato de autolesão recente, independentemente da pontuação de hipótese.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "depressive_disorders",
+        "personality_disorders",
+        "trauma_related_disorders"
+      ],
+      "related_symptoms": [
+        "self_harm_recent"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_human_clinical",
+        "routes_secondary": [
+          "route_cvv",
+          "route_emergency_contacts",
+          "route_samu"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "urgent",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Você não precisa passar por isso sozinho(a)",
+        "screen_message": "O que você compartilhou indica que apoio humano agora pode fazer diferença. Podemos ajudar a encontrar o próximo passo.",
+        "primary_cta": "Pedir ajuda agora",
+        "secondary_cta": "Ver contatos de emergência",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Autolesão recente",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 15,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": ""
+    },
+    {
+      "id": "self_harm_escalating",
+      "label_internal": "Escalada recente de autolesão",
+      "category": "suicide_self_harm",
+      "severity": "S3",
+      "priority": 998,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Autolesão recente associada a piora ou intensidade elevada.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "depressive_disorders",
+        "personality_disorders",
+        "trauma_related_disorders",
+        "substance_use_disorders"
+      ],
+      "related_symptoms": [
+        "self_harm_recent"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_samu",
+        "routes_secondary": [
+          "route_human_clinical",
+          "route_emergency_contacts"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "critical",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Você não precisa passar por isso sozinho(a)",
+        "screen_message": "O que você compartilhou indica que apoio humano agora pode fazer diferença. Podemos ajudar a encontrar o próximo passo.",
+        "primary_cta": "Ligar para emergência",
+        "secondary_cta": "Chamar uma pessoa de confiança",
+        "tone": "direct_calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Escalada recente de autolesão",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 5,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": "Flag derivada por combinação; a anamnese v1 não mede frequência diretamente."
+    },
+    {
+      "id": "psychotic_symptoms_acute",
+      "label_internal": "Alterações agudas de percepção ou realidade",
+      "category": "psychosis_mania",
+      "severity": "S2",
+      "priority": 940,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Alterações recentes de percepção, crenças ou teste de realidade que exigem avaliação humana.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "psychotic_disorders",
+        "bipolar_disorders",
+        "substance_use_disorders"
+      ],
+      "related_symptoms": [
+        "hallucinations",
+        "delusional_beliefs",
+        "impaired_reality_testing",
+        "disorganized_thinking"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_human_clinical",
+        "routes_secondary": [
+          "route_cvv",
+          "route_emergency_contacts",
+          "route_samu"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "urgent",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Vamos buscar apoio humano agora",
+        "screen_message": "As mudanças que você percebeu merecem atenção rápida. Tente ficar com alguém de confiança enquanto busca ajuda.",
+        "primary_cta": "Pedir ajuda agora",
+        "secondary_cta": "Ver contatos de emergência",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Alterações agudas de percepção ou realidade",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 15,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": ""
+    },
+    {
+      "id": "psychotic_symptoms_with_risk",
+      "label_internal": "Alterações de percepção associadas a risco",
+      "category": "psychosis_mania",
+      "severity": "S3",
+      "priority": 997,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Alterações agudas de percepção ou realidade associadas a outro marcador de segurança.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "psychotic_disorders",
+        "bipolar_disorders",
+        "substance_use_disorders",
+        "disruptive_impulse_control_disorders"
+      ],
+      "related_symptoms": [
+        "hallucinations",
+        "delusional_beliefs",
+        "impaired_reality_testing",
+        "violence_risk"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_samu",
+        "routes_secondary": [
+          "route_human_clinical",
+          "route_emergency_contacts"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "critical",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Vamos buscar apoio humano agora",
+        "screen_message": "As mudanças que você percebeu merecem atenção rápida. Tente ficar com alguém de confiança enquanto busca ajuda.",
+        "primary_cta": "Ligar para emergência",
+        "secondary_cta": "Chamar uma pessoa de confiança",
+        "tone": "direct_calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Alterações de percepção associadas a risco",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 5,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": ""
+    },
+    {
+      "id": "manic_episode_active",
+      "label_internal": "Ativação episódica importante",
+      "category": "psychosis_mania",
+      "severity": "S2",
+      "priority": 935,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Conjunto de energia incomum, redução da necessidade de sono e impulsividade.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "bipolar_disorders",
+        "substance_use_disorders",
+        "sleep_disorders"
+      ],
+      "related_symptoms": [
+        "decreased_need_for_sleep",
+        "impulsivity"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_human_clinical",
+        "routes_secondary": [
+          "route_cvv",
+          "route_emergency_contacts",
+          "route_samu"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "urgent",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Vamos buscar apoio humano agora",
+        "screen_message": "As mudanças que você percebeu merecem atenção rápida. Tente ficar com alguém de confiança enquanto busca ajuda.",
+        "primary_cta": "Pedir ajuda agora",
+        "secondary_cta": "Ver contatos de emergência",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Ativação episódica importante",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 15,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": ""
+    },
+    {
+      "id": "manic_episode_severe",
+      "label_internal": "Ativação episódica com comprometimento grave",
+      "category": "psychosis_mania",
+      "severity": "S3",
+      "priority": 996,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Ativação episódica associada a comprometimento funcional relevante.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "bipolar_disorders",
+        "psychotic_disorders",
+        "substance_use_disorders"
+      ],
+      "related_symptoms": [
+        "decreased_need_for_sleep",
+        "impulsivity"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_samu",
+        "routes_secondary": [
+          "route_human_clinical",
+          "route_emergency_contacts"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "critical",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Vamos buscar apoio humano agora",
+        "screen_message": "As mudanças que você percebeu merecem atenção rápida. Tente ficar com alguém de confiança enquanto busca ajuda.",
+        "primary_cta": "Ligar para emergência",
+        "secondary_cta": "Chamar uma pessoa de confiança",
+        "tone": "direct_calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Ativação episódica com comprometimento grave",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 5,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": ""
+    },
+    {
+      "id": "severe_disorganization",
+      "label_internal": "Desorganização grave",
+      "category": "psychosis_mania",
+      "severity": "S2",
+      "priority": 925,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Desorganização do pensamento associada a prejuízo funcional importante.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "psychotic_disorders",
+        "bipolar_disorders",
+        "substance_use_disorders"
+      ],
+      "related_symptoms": [
+        "disorganized_thinking"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_human_clinical",
+        "routes_secondary": [
+          "route_cvv",
+          "route_emergency_contacts",
+          "route_samu"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "urgent",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Vamos buscar apoio humano agora",
+        "screen_message": "As mudanças que você percebeu merecem atenção rápida. Tente ficar com alguém de confiança enquanto busca ajuda.",
+        "primary_cta": "Pedir ajuda agora",
+        "secondary_cta": "Ver contatos de emergência",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Desorganização grave",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 15,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": ""
+    },
+    {
+      "id": "abuse_current",
+      "label_internal": "Abuso, ameaça ou violência atual",
+      "category": "violence_abuse",
+      "severity": "S2",
+      "priority": 950,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Relato de situação atual de abuso, ameaça ou violência com impacto na segurança.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "trauma_related_disorders",
+        "anxiety_disorders",
+        "depressive_disorders"
+      ],
+      "related_symptoms": [
+        "ongoing_abuse_or_violence"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_human_clinical",
+        "routes_secondary": [
+          "route_police",
+          "route_emergency_contacts",
+          "route_samu"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "urgent",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Sua segurança é prioridade",
+        "screen_message": "O que você compartilhou indica que pode ser importante buscar proteção e apoio humano agora.",
+        "primary_cta": "Pedir ajuda agora",
+        "secondary_cta": "Ver contatos de emergência",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Abuso, ameaça ou violência atual",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 15,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": "Evitar solicitar detalhes desnecessários; priorizar segurança."
+    },
+    {
+      "id": "violence_risk_to_others",
+      "label_internal": "Risco de violência contra outras pessoas",
+      "category": "violence_abuse",
+      "severity": "S2",
+      "priority": 955,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Sinal estruturado de possível risco de agressão contra outra pessoa.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "disruptive_impulse_control_disorders",
+        "personality_disorders",
+        "substance_use_disorders",
+        "psychotic_disorders"
+      ],
+      "related_symptoms": [
+        "violence_risk"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_human_clinical",
+        "routes_secondary": [
+          "route_police",
+          "route_emergency_contacts",
+          "route_samu"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "urgent",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Sua segurança é prioridade",
+        "screen_message": "O que você compartilhou indica que pode ser importante buscar proteção e apoio humano agora.",
+        "primary_cta": "Pedir ajuda agora",
+        "secondary_cta": "Ver contatos de emergência",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Risco de violência contra outras pessoas",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 15,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": ""
+    },
+    {
+      "id": "violence_in_progress",
+      "label_internal": "Violência em andamento",
+      "category": "violence_abuse",
+      "severity": "S3",
+      "priority": 999,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Combinação de sinais compatível com situação de violência acontecendo agora.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "trauma_related_disorders",
+        "disruptive_impulse_control_disorders",
+        "personality_disorders"
+      ],
+      "related_symptoms": [
+        "ongoing_abuse_or_violence",
+        "violence_risk"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_police",
+        "routes_secondary": [
+          "route_samu",
+          "route_human_clinical",
+          "route_emergency_contacts"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "critical",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Sua segurança é prioridade",
+        "screen_message": "O que você compartilhou indica que pode ser importante buscar proteção e apoio humano agora.",
+        "primary_cta": "Ligar para emergência",
+        "secondary_cta": "Chamar uma pessoa de confiança",
+        "tone": "direct_calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Violência em andamento",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 5,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": ""
+    },
+    {
+      "id": "substance_overdose_risk",
+      "label_internal": "Risco agudo relacionado a substâncias",
+      "category": "substance_emergency",
+      "severity": "S3",
+      "priority": 998,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Uso de substâncias associado a marcador de risco imediato e perda de controle.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "substance_use_disorders",
+        "depressive_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders"
+      ],
+      "related_symptoms": [
+        "hazardous_use",
+        "loss_of_control_use"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_samu",
+        "routes_secondary": [
+          "route_human_clinical",
+          "route_emergency_contacts"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "critical",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "É importante buscar atendimento agora",
+        "screen_message": "Algumas respostas indicam que receber ajuda presencial ou emergencial pode ser o próximo passo mais seguro.",
+        "primary_cta": "Ligar para emergência",
+        "secondary_cta": "Chamar uma pessoa de confiança",
+        "tone": "direct_calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Risco agudo relacionado a substâncias",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 5,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": "Proxy conservador: a anamnese v1 não pergunta diretamente sobre intoxicação aguda."
+    },
+    {
+      "id": "substance_withdrawal_severe",
+      "label_internal": "Abstinência potencialmente grave",
+      "category": "substance_emergency",
+      "severity": "S3",
+      "priority": 997,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Sintomas de abstinência associados a intensidade e comprometimento funcional elevados.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "substance_use_disorders",
+        "anxiety_disorders",
+        "sleep_disorders"
+      ],
+      "related_symptoms": [
+        "withdrawal_symptoms"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_samu",
+        "routes_secondary": [
+          "route_human_clinical",
+          "route_emergency_contacts"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "critical",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "É importante buscar atendimento agora",
+        "screen_message": "Algumas respostas indicam que receber ajuda presencial ou emergencial pode ser o próximo passo mais seguro.",
+        "primary_cta": "Ligar para emergência",
+        "secondary_cta": "Chamar uma pessoa de confiança",
+        "tone": "direct_calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Abstinência potencialmente grave",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 5,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": ""
+    },
+    {
+      "id": "severe_self_neglect",
+      "label_internal": "Negligência grave de autocuidado",
+      "category": "severe_functional_collapse",
+      "severity": "S2",
+      "priority": 920,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Comprometimento importante de necessidades básicas e autocuidado.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "depressive_disorders",
+        "psychotic_disorders",
+        "eating_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "related_symptoms": [
+        "neglect_self_care_severe"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_human_clinical",
+        "routes_secondary": [
+          "route_cvv",
+          "route_emergency_contacts",
+          "route_samu"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "urgent",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Você merece apoio presencial",
+        "screen_message": "Parece que cuidar das necessidades básicas está especialmente difícil. Uma pessoa ou equipe pode ajudar agora.",
+        "primary_cta": "Pedir ajuda agora",
+        "secondary_cta": "Ver contatos de emergência",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Negligência grave de autocuidado",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 15,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": ""
+    },
+    {
+      "id": "immediate_safety_unknown",
+      "label_internal": "Segurança imediata não determinada",
+      "category": "other_immediate_risk",
+      "severity": "S3",
+      "priority": 991,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "Não foi possível determinar a segurança atual diante de outro sinal grave.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "depressive_disorders",
+        "psychotic_disorders",
+        "trauma_related_disorders",
+        "bipolar_disorders"
+      ],
+      "related_symptoms": [],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_samu",
+        "routes_secondary": [
+          "route_human_clinical",
+          "route_emergency_contacts"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "critical",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Você não precisa passar por isso sozinho(a)",
+        "screen_message": "O que você compartilhou indica que apoio humano agora pode fazer diferença. Podemos ajudar a encontrar o próximo passo.",
+        "primary_cta": "Ligar para emergência",
+        "secondary_cta": "Chamar uma pessoa de confiança",
+        "tone": "direct_calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Segurança imediata não determinada",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 5,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": "Não disparar apenas por preferência de não responder; requer outro marcador grave."
+    },
+    {
+      "id": "suicidal_ideation_detected",
+      "label_internal": "Ideação de morte detectada por regra agregada",
+      "category": "suicide_self_harm",
+      "severity": "S1",
+      "priority": 851,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "ID de compatibilidade para regra agregada que detecta ideação passiva ou ativa.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "trauma_related_disorders"
+      ],
+      "related_symptoms": [
+        "suicidal_ideation",
+        "suicidal_ideation_passive",
+        "suicidal_ideation_active"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_cvv",
+        "routes_secondary": [
+          "route_human_clinical",
+          "route_emergency_contacts"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "high",
+        "log_event": true,
+        "log_level": "error",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Você não precisa passar por isso sozinho(a)",
+        "screen_message": "O que você compartilhou indica que apoio humano agora pode fazer diferença. Podemos ajudar a encontrar o próximo passo.",
+        "primary_cta": "Falar com alguém agora",
+        "secondary_cta": "Ver números de apoio",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Ideação de morte detectada por regra agregada",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 60,
+        "requires_immediate_contact": false
+      },
+      "notes_internal": "Se apenas ideação passiva estiver presente, o resolvedor deve reduzir para suicidal_ideation_passive. Entrada de compatibilidade; deduplicar com o ID canônico no mesmo ciclo de avaliação.",
+      "canonical_red_flag_id": "suicidal_ideation_active"
+    },
+    {
+      "id": "suicidal_plan_or_intent_active",
+      "label_internal": "Plano ou intenção suicida detectados",
+      "category": "suicide_self_harm",
+      "severity": "S3",
+      "priority": 999,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "ID de compatibilidade para regra que agrega plano e intenção.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "depressive_disorders",
+        "bipolar_disorders",
+        "psychotic_disorders"
+      ],
+      "related_symptoms": [
+        "suicidal_plan",
+        "suicidal_intent"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_samu",
+        "routes_secondary": [
+          "route_human_clinical",
+          "route_emergency_contacts",
+          "route_cvv"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "critical",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Você não precisa passar por isso sozinho(a)",
+        "screen_message": "O que você compartilhou indica que apoio humano agora pode fazer diferença. Podemos ajudar a encontrar o próximo passo.",
+        "primary_cta": "Ligar para emergência",
+        "secondary_cta": "Chamar uma pessoa de confiança",
+        "tone": "direct_calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Plano ou intenção suicida detectados",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 5,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": "Entrada de compatibilidade; deduplicar com o ID canônico no mesmo ciclo de avaliação.",
+      "canonical_red_flag_id": "suicidal_intent_active"
+    },
+    {
+      "id": "acute_psychotic_symptoms",
+      "label_internal": "Alterações agudas de percepção detectadas",
+      "category": "psychosis_mania",
+      "severity": "S2",
+      "priority": 941,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "ID de compatibilidade emitido pelo scoring_rules.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "psychotic_disorders",
+        "bipolar_disorders",
+        "substance_use_disorders"
+      ],
+      "related_symptoms": [
+        "hallucinations",
+        "delusional_beliefs",
+        "impaired_reality_testing",
+        "disorganized_thinking"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_human_clinical",
+        "routes_secondary": [
+          "route_cvv",
+          "route_emergency_contacts",
+          "route_samu"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "urgent",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Vamos buscar apoio humano agora",
+        "screen_message": "As mudanças que você percebeu merecem atenção rápida. Tente ficar com alguém de confiança enquanto busca ajuda.",
+        "primary_cta": "Pedir ajuda agora",
+        "secondary_cta": "Ver contatos de emergência",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Alterações agudas de percepção detectadas",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 15,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": "Entrada de compatibilidade; deduplicar com o ID canônico no mesmo ciclo de avaliação.",
+      "canonical_red_flag_id": "psychotic_symptoms_acute"
+    },
+    {
+      "id": "manic_activation_active",
+      "label_internal": "Ativação episódica detectada",
+      "category": "psychosis_mania",
+      "severity": "S2",
+      "priority": 936,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "ID de compatibilidade emitido pelo scoring_rules.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "bipolar_disorders",
+        "substance_use_disorders",
+        "sleep_disorders"
+      ],
+      "related_symptoms": [
+        "decreased_need_for_sleep",
+        "impulsivity"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_human_clinical",
+        "routes_secondary": [
+          "route_cvv",
+          "route_emergency_contacts",
+          "route_samu"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "urgent",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Vamos buscar apoio humano agora",
+        "screen_message": "As mudanças que você percebeu merecem atenção rápida. Tente ficar com alguém de confiança enquanto busca ajuda.",
+        "primary_cta": "Pedir ajuda agora",
+        "secondary_cta": "Ver contatos de emergência",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Ativação episódica detectada",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 15,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": "Entrada de compatibilidade; deduplicar com o ID canônico no mesmo ciclo de avaliação.",
+      "canonical_red_flag_id": "manic_episode_active"
+    },
+    {
+      "id": "violence_risk_active",
+      "label_internal": "Risco de violência detectado",
+      "category": "violence_abuse",
+      "severity": "S2",
+      "priority": 956,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "ID de compatibilidade emitido pelo scoring_rules.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "disruptive_impulse_control_disorders",
+        "personality_disorders",
+        "substance_use_disorders",
+        "psychotic_disorders"
+      ],
+      "related_symptoms": [
+        "violence_risk"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_human_clinical",
+        "routes_secondary": [
+          "route_police",
+          "route_emergency_contacts",
+          "route_samu"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "urgent",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Sua segurança é prioridade",
+        "screen_message": "O que você compartilhou indica que pode ser importante buscar proteção e apoio humano agora.",
+        "primary_cta": "Pedir ajuda agora",
+        "secondary_cta": "Ver contatos de emergência",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Risco de violência detectado",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 15,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": "Entrada de compatibilidade; deduplicar com o ID canônico no mesmo ciclo de avaliação.",
+      "canonical_red_flag_id": "violence_risk_to_others"
+    },
+    {
+      "id": "current_abuse_or_violence",
+      "label_internal": "Abuso ou violência atual detectados",
+      "category": "violence_abuse",
+      "severity": "S2",
+      "priority": 951,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "ID de compatibilidade emitido pelo scoring_rules.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "trauma_related_disorders",
+        "anxiety_disorders",
+        "depressive_disorders"
+      ],
+      "related_symptoms": [
+        "ongoing_abuse_or_violence"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_human_clinical",
+        "routes_secondary": [
+          "route_police",
+          "route_emergency_contacts",
+          "route_samu"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "urgent",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Sua segurança é prioridade",
+        "screen_message": "O que você compartilhou indica que pode ser importante buscar proteção e apoio humano agora.",
+        "primary_cta": "Pedir ajuda agora",
+        "secondary_cta": "Ver contatos de emergência",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Abuso ou violência atual detectados",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 15,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": "Entrada de compatibilidade; deduplicar com o ID canônico no mesmo ciclo de avaliação.",
+      "canonical_red_flag_id": "abuse_current"
+    },
+    {
+      "id": "severe_self_care_neglect",
+      "label_internal": "Comprometimento grave de autocuidado detectado",
+      "category": "severe_functional_collapse",
+      "severity": "S2",
+      "priority": 921,
+      "enabled": true,
+      "clinical_sensitivity": "crisis",
+      "description_internal": "ID de compatibilidade emitido pelo scoring_rules.",
+      "trigger_sources": [
+        "anamnesis",
+        "check_in",
+        "scoring_rule",
+        "manual_staff"
+      ],
+      "related_tracks": [
+        "depressive_disorders",
+        "psychotic_disorders",
+        "eating_disorders",
+        "somatic_symptom_disorders"
+      ],
+      "related_symptoms": [
+        "neglect_self_care_severe"
+      ],
+      "actions": {
+        "block_micro_activity_plan": true,
+        "block_activity_ids": [
+          "*"
+        ],
+        "route_primary": "route_human_clinical",
+        "routes_secondary": [
+          "route_cvv",
+          "route_emergency_contacts",
+          "route_samu"
+        ],
+        "escalate_to_staff": true,
+        "staff_urgency": "urgent",
+        "log_event": true,
+        "log_level": "critical",
+        "pause_self_guided_flow": true,
+        "show_crisis_screen": true,
+        "allow_user_to_continue_after_acknowledgment": false
+      },
+      "user_facing": {
+        "screen_title": "Você merece apoio presencial",
+        "screen_message": "Parece que cuidar das necessidades básicas está especialmente difícil. Uma pessoa ou equipe pode ajudar agora.",
+        "primary_cta": "Pedir ajuda agora",
+        "secondary_cta": "Ver contatos de emergência",
+        "tone": "calm_urgent"
+      },
+      "staff_facing": {
+        "alert_title": "Red flag: Comprometimento grave de autocuidado detectado",
+        "alert_body_template": "Usuário {{user_id}} acionou {{red_flag_id}} em {{timestamp}}. Sintomas: {{symptoms}}. Ação principal: {{route_primary}}.",
+        "recommended_sla_minutes": 15,
+        "requires_immediate_contact": true
+      },
+      "notes_internal": "Entrada de compatibilidade; deduplicar com o ID canônico no mesmo ciclo de avaliação.",
+      "canonical_red_flag_id": "severe_self_neglect"
+    }
+  ],
+  "trigger_rules": [
+    {
+      "id": "trigger_suicidal_passive_anamnesis_01",
+      "red_flag_id": "suicidal_ideation_passive",
+      "priority": 740,
+      "enabled": true,
+      "when": {
+        "anamnesis_answer": {
+          "question_id": "q_core_02",
+          "answer_in": [
+            "yes"
+          ]
+        }
+      },
+      "unless": [],
+      "notes_internal": "Dispara independentemente do score depressivo."
+    },
+    {
+      "id": "trigger_suicidal_passive_symptom_02",
+      "red_flag_id": "suicidal_ideation_passive",
+      "priority": 741,
+      "enabled": true,
+      "when": {
+        "symptom": "suicidal_ideation_passive",
+        "eq": true
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_suicidal_active_anamnesis_01",
+      "red_flag_id": "suicidal_ideation_active",
+      "priority": 850,
+      "enabled": true,
+      "when": {
+        "anamnesis_answer": {
+          "question_id": "q_core_03",
+          "answer_in": [
+            "yes"
+          ]
+        }
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_suicidal_active_symptom_02",
+      "red_flag_id": "suicidal_ideation_active",
+      "priority": 851,
+      "enabled": true,
+      "when": {
+        "symptom": "suicidal_ideation_active",
+        "eq": true
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_suicidal_plan_symptom_01",
+      "red_flag_id": "suicidal_plan_active",
+      "priority": 930,
+      "enabled": true,
+      "when": {
+        "symptom": "suicidal_plan",
+        "eq": true
+      },
+      "unless": [
+        {
+          "symptom": "suicidal_intent",
+          "eq": true
+        }
+      ],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_suicidal_plan_anamnesis_02",
+      "red_flag_id": "suicidal_plan_active",
+      "priority": 931,
+      "enabled": true,
+      "when": {
+        "all": [
+          {
+            "anamnesis_answer": {
+              "question_id": "q_core_04",
+              "answer_in": [
+                "yes"
+              ]
+            }
+          },
+          {
+            "metric": "symptom_intensity_level",
+            "lt": 4
+          }
+        ]
+      },
+      "unless": [
+        {
+          "symptom": "suicidal_intent",
+          "eq": true
+        }
+      ],
+      "notes_internal": "A pergunta v1 agrega plano e intenção; esta regra só classifica S2 quando não há marcador adicional de intenção."
+    },
+    {
+      "id": "trigger_suicidal_intent_symptom_01",
+      "red_flag_id": "suicidal_intent_active",
+      "priority": 999,
+      "enabled": true,
+      "when": {
+        "symptom": "suicidal_intent",
+        "eq": true
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_suicidal_intent_combined_02",
+      "red_flag_id": "suicidal_intent_active",
+      "priority": 998,
+      "enabled": true,
+      "when": {
+        "all": [
+          {
+            "anamnesis_answer": {
+              "question_id": "q_core_04",
+              "answer_in": [
+                "yes"
+              ]
+            }
+          },
+          {
+            "metric": "symptom_intensity_level",
+            "gte": 4
+          }
+        ]
+      },
+      "unless": [],
+      "notes_internal": "Proxy conservador para gravidade imediata; requer validação humana."
+    },
+    {
+      "id": "trigger_recent_self_harm_anamnesis_01",
+      "red_flag_id": "recent_self_harm",
+      "priority": 945,
+      "enabled": true,
+      "when": {
+        "anamnesis_answer": {
+          "question_id": "q_core_05",
+          "answer_in": [
+            "yes"
+          ]
+        }
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_recent_self_harm_symptom_02",
+      "red_flag_id": "recent_self_harm",
+      "priority": 946,
+      "enabled": true,
+      "when": {
+        "symptom": "self_harm_recent",
+        "eq": true
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_self_harm_escalating_01",
+      "red_flag_id": "self_harm_escalating",
+      "priority": 998,
+      "enabled": true,
+      "when": {
+        "all": [
+          {
+            "symptom": "self_harm_recent",
+            "eq": true
+          },
+          {
+            "metric": "symptom_worsening_7d",
+            "eq": true
+          },
+          {
+            "metric": "symptom_intensity_level",
+            "gte": 4
+          }
+        ]
+      },
+      "unless": [],
+      "notes_internal": "Combinação derivada; não descreve frequência ou método."
+    },
+    {
+      "id": "trigger_psychotic_acute_anamnesis_01",
+      "red_flag_id": "psychotic_symptoms_acute",
+      "priority": 940,
+      "enabled": true,
+      "when": {
+        "anamnesis_answer": {
+          "question_id": "q_core_06",
+          "answer_in": [
+            "unshared_perceptions",
+            "unusual_fixed_beliefs",
+            "thought_interference"
+          ]
+        }
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_psychotic_acute_metric_02",
+      "red_flag_id": "psychotic_symptoms_acute",
+      "priority": 941,
+      "enabled": true,
+      "when": {
+        "metric": "psychotic_symptoms",
+        "eq": true
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_psychotic_with_risk_01",
+      "red_flag_id": "psychotic_symptoms_with_risk",
+      "priority": 997,
+      "enabled": true,
+      "when": {
+        "all": [
+          {
+            "metric": "psychotic_symptoms",
+            "eq": true
+          },
+          {
+            "any": [
+              {
+                "symptom": "violence_risk",
+                "eq": true
+              },
+              {
+                "metric": "safety_status_unknown",
+                "eq": true
+              },
+              {
+                "metric": "symptom_intensity_level",
+                "gte": 4
+              }
+            ]
+          }
+        ]
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_manic_active_anamnesis_01",
+      "red_flag_id": "manic_episode_active",
+      "priority": 935,
+      "enabled": true,
+      "when": {
+        "anamnesis_answer": {
+          "question_id": "q_core_07",
+          "answer_in": [
+            "yes"
+          ]
+        }
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_manic_active_metric_02",
+      "red_flag_id": "manic_episode_active",
+      "priority": 936,
+      "enabled": true,
+      "when": {
+        "metric": "manic_episode_signals",
+        "eq": true
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_manic_severe_01",
+      "red_flag_id": "manic_episode_severe",
+      "priority": 996,
+      "enabled": true,
+      "when": {
+        "all": [
+          {
+            "metric": "manic_episode_signals",
+            "eq": true
+          },
+          {
+            "symptom": "decreased_need_for_sleep",
+            "gte": 2
+          },
+          {
+            "metric": "functional_impairment_global",
+            "gte": 3
+          }
+        ]
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_severe_disorganization_01",
+      "red_flag_id": "severe_disorganization",
+      "priority": 925,
+      "enabled": true,
+      "when": {
+        "all": [
+          {
+            "symptom": "disorganized_thinking",
+            "gte": 3
+          },
+          {
+            "metric": "functional_impairment_global",
+            "gte": 3
+          }
+        ]
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_abuse_current_anamnesis_01",
+      "red_flag_id": "abuse_current",
+      "priority": 950,
+      "enabled": true,
+      "when": {
+        "anamnesis_answer": {
+          "question_id": "q_trauma_02",
+          "answer_in": [
+            "yes"
+          ]
+        }
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_abuse_current_symptom_02",
+      "red_flag_id": "abuse_current",
+      "priority": 951,
+      "enabled": true,
+      "when": {
+        "symptom": "ongoing_abuse_or_violence",
+        "eq": true
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_violence_risk_others_01",
+      "red_flag_id": "violence_risk_to_others",
+      "priority": 955,
+      "enabled": true,
+      "when": {
+        "symptom": "violence_risk",
+        "eq": true
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_violence_in_progress_01",
+      "red_flag_id": "violence_in_progress",
+      "priority": 999,
+      "enabled": true,
+      "when": {
+        "all": [
+          {
+            "any": [
+              {
+                "symptom": "violence_risk",
+                "eq": true
+              },
+              {
+                "symptom": "ongoing_abuse_or_violence",
+                "eq": true
+              }
+            ]
+          },
+          {
+            "metric": "symptom_intensity_level",
+            "gte": 4
+          }
+        ]
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_substance_overdose_proxy_01",
+      "red_flag_id": "substance_overdose_risk",
+      "priority": 998,
+      "enabled": true,
+      "when": {
+        "all": [
+          {
+            "anamnesis_answer": {
+              "question_id": "q_substance_07",
+              "answer_in": [
+                "yes"
+              ]
+            }
+          },
+          {
+            "symptom": "hazardous_use",
+            "eq": true
+          },
+          {
+            "symptom": "loss_of_control_use",
+            "gte": 2
+          }
+        ]
+      },
+      "unless": [],
+      "notes_internal": "Proxy conservador para risco agudo; a anamnese v1 não confirma intoxicação."
+    },
+    {
+      "id": "trigger_substance_withdrawal_severe_01",
+      "red_flag_id": "substance_withdrawal_severe",
+      "priority": 997,
+      "enabled": true,
+      "when": {
+        "all": [
+          {
+            "symptom": "withdrawal_symptoms",
+            "eq": true
+          },
+          {
+            "metric": "symptom_intensity_level",
+            "gte": 4
+          },
+          {
+            "metric": "functional_impairment_global",
+            "gte": 3
+          }
+        ]
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_severe_self_neglect_symptom_01",
+      "red_flag_id": "severe_self_neglect",
+      "priority": 920,
+      "enabled": true,
+      "when": {
+        "symptom": "neglect_self_care_severe",
+        "eq": true
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_severe_self_neglect_metric_02",
+      "red_flag_id": "severe_self_neglect",
+      "priority": 921,
+      "enabled": true,
+      "when": {
+        "all": [
+          {
+            "metric": "functional_impairment_self_care",
+            "gte": 3
+          },
+          {
+            "metric": "functional_impairment_global",
+            "gte": 3
+          }
+        ]
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_immediate_safety_unknown_01",
+      "red_flag_id": "immediate_safety_unknown",
+      "priority": 991,
+      "enabled": true,
+      "when": {
+        "all": [
+          {
+            "metric": "safety_status_unknown",
+            "eq": true
+          },
+          {
+            "any": [
+              {
+                "symptom": "suicidal_ideation_active",
+                "eq": true
+              },
+              {
+                "metric": "psychotic_symptoms",
+                "eq": true
+              },
+              {
+                "metric": "manic_episode_signals",
+                "eq": true
+              },
+              {
+                "symptom": "ongoing_abuse_or_violence",
+                "eq": true
+              }
+            ]
+          }
+        ]
+      },
+      "unless": [],
+      "notes_internal": "Não disparar apenas por resposta 'prefiro não responder'."
+    },
+    {
+      "id": "trigger_compat_suicidal_ideation_detected_01",
+      "red_flag_id": "suicidal_ideation_detected",
+      "priority": 852,
+      "enabled": true,
+      "when": {
+        "evidence_tag": "suicidal_ideation_passive_or_active"
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_compat_suicidal_plan_or_intent_01",
+      "red_flag_id": "suicidal_plan_or_intent_active",
+      "priority": 999,
+      "enabled": true,
+      "when": {
+        "evidence_tag": "suicidal_plan_or_intent_present"
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_compat_recent_self_harm_01",
+      "red_flag_id": "recent_self_harm",
+      "priority": 947,
+      "enabled": true,
+      "when": {
+        "evidence_tag": "recent_self_harm_present"
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_compat_acute_psychotic_01",
+      "red_flag_id": "acute_psychotic_symptoms",
+      "priority": 942,
+      "enabled": true,
+      "when": {
+        "evidence_tag": "acute_perception_or_reality_change"
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_compat_manic_activation_01",
+      "red_flag_id": "manic_activation_active",
+      "priority": 937,
+      "enabled": true,
+      "when": {
+        "evidence_tag": "acute_manic_activation_cluster"
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_compat_violence_risk_01",
+      "red_flag_id": "violence_risk_active",
+      "priority": 957,
+      "enabled": true,
+      "when": {
+        "evidence_tag": "current_violence_risk"
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_compat_current_abuse_01",
+      "red_flag_id": "current_abuse_or_violence",
+      "priority": 952,
+      "enabled": true,
+      "when": {
+        "evidence_tag": "ongoing_abuse_or_violence_present"
+      },
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "trigger_compat_severe_selfcare_01",
+      "red_flag_id": "severe_self_care_neglect",
+      "priority": 922,
+      "enabled": true,
+      "when": {
+        "evidence_tag": "severe_self_care_neglect_present"
+      },
+      "unless": [],
+      "notes_internal": ""
+    }
+  ],
+  "user_messaging": {
+    "crisis_screen_default": {
+      "title": "Estamos aqui com você",
+      "message": "Algumas respostas sugerem que falar com alguém agora é o melhor próximo passo.",
+      "disclaimer": "Este app não substitui atendimento de emergência."
+    },
+    "emergency_disclaimer_pt_br": "Se você estiver em perigo imediato, ligue 192 (SAMU) ou vá ao pronto-socorro mais próximo.",
+    "violence_emergency_message": "Se uma situação de violência estiver acontecendo agora, ligue 190 ou procure um local seguro quando isso puder ser feito sem aumentar o risco.",
+    "cvv_message": "O CVV (188) oferece apoio emocional gratuito, 24 horas por dia.",
+    "after_escalation_message": "Nossa equipe foi notificada e pode entrar em contato em breve.",
+    "privacy_message": "Compartilhamos com a equipe apenas as informações necessárias para organizar o apoio e registrar as ações de segurança."
+  },
+  "staff_alerting": {
+    "channels": [
+      "internal_dashboard",
+      "webhook_clinical_queue"
+    ],
+    "severity_routing": {
+      "S0": {
+        "notify": true,
+        "sla_minutes": 240,
+        "priority": "normal"
+      },
+      "S1": {
+        "notify": true,
+        "sla_minutes": 60,
+        "priority": "high"
+      },
+      "S2": {
+        "notify": true,
+        "sla_minutes": 15,
+        "priority": "urgent"
+      },
+      "S3": {
+        "notify": true,
+        "sla_minutes": 5,
+        "priority": "critical"
+      }
+    },
+    "event_payload_fields": [
+      "user_id",
+      "red_flag_id",
+      "canonical_red_flag_id",
+      "severity",
+      "trigger_rule_id",
+      "timestamp",
+      "symptoms_snapshot",
+      "anamnesis_question_ids",
+      "active_hypotheses_internal",
+      "routes_offered",
+      "app_version"
+    ],
+    "never_include_in_staff_alert": [
+      "full_free_text_optional_answers",
+      "unrelated_health_data",
+      "journal_full_text"
+    ]
+  },
+  "audit_log_schema": {
+    "event_type": "mental_health_red_flag_triggered",
+    "required_fields": {
+      "event_id": "uuid",
+      "user_id": "string",
+      "red_flag_id": "string",
+      "canonical_red_flag_id": "string|null",
+      "severity": "S0|S1|S2|S3",
+      "trigger_rule_id": "string",
+      "triggered_at": "ISO8601",
+      "source": "anamnesis|check_in|scoring_rule|manual",
+      "actions_taken": [
+        "block_micro_activity_plan",
+        "route_cvv",
+        "route_samu",
+        "route_police",
+        "route_human_clinical",
+        "staff_alert"
+      ],
+      "resolution_status": "open|acknowledged|contacted|resolved|false_positive",
+      "engine_version": "1.0.0"
+    },
+    "retention_days": 2555,
+    "access_policy_internal": "least_privilege_clinical_roles_only",
+    "lgpd_notes_internal": "Dados pessoais sensíveis; acesso restrito, finalidade definida, rastreabilidade e revisão periódica de retenção."
+  }
+}
