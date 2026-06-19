@@ -35,8 +35,14 @@ export type PlantaoAceitePublicoResult = {
   profissionalNome?: string
 }
 
+export type PlantaoAceiteDigestResult = {
+  totalVagas: number
+  plantoes: PlantaoAceitePublico[]
+}
+
 export type PlantaoAceiteConfirmPayload = {
   token: string
+  slotId?: string
   cpf: string
 }
 

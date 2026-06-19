@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { loadContratosBundleForEntidades } from '../admin-clientes/contratos.service.js'
 import { resolveSlotClockBoundsFromIso } from '../../lib/escalaDateTime.js'
 import { EscalaError } from './errors.js'
 import {
@@ -164,19 +165,63 @@ export async function validateSpecialtiesExist(specialtyIds: string[]): Promise<
 
 export async function validateContratoEntidade(contratoId: string | undefined): Promise<void> {
   if (!contratoId) return
+  await validateContratoEntidades([contratoId], [])
+}
+
+export async function validateContratoEntidades(
+  contratoIds: string[],
+  specialtyIds: string[],
+): Promise<void> {
+  const uniqueIds = [...new Set(contratoIds.map(String).filter(Boolean))]
+  if (uniqueIds.length === 0) {
+    throw new EscalaError('Selecione ao menos um contrato operacional.', 'INVALID_DATA', 400)
+  }
 
   const { data, error } = await supabaseAdmin
     .from('contratos_entidade')
-    .select('id, status')
-    .eq('id', contratoId)
-    .maybeSingle()
+    .select('id, status, entidade_contratante_id, numero')
+    .in('id', uniqueIds)
 
   if (error) throw error
-  if (!data) {
+  if ((data ?? []).length !== uniqueIds.length) {
     throw new EscalaError('Contrato operacional não encontrado.', 'NOT_FOUND', 404)
   }
-  if (!['ativo', 'implantacao'].includes(String(data.status))) {
-    throw new EscalaError('Contrato operacional não está ativo.', 'INVALID_DATA', 400)
+
+  const entidadeIds = [...new Set((data ?? []).map((row) => String(row.entidade_contratante_id)))]
+  const bundle = await loadContratosBundleForEntidades(entidadeIds)
+  const uniqueSpecialties = [...new Set(specialtyIds.map(String).filter(Boolean))]
+
+  for (const contratoId of uniqueIds) {
+    const row = (data ?? []).find((item) => String(item.id) === contratoId)
+    if (!row || !['ativo', 'implantacao'].includes(String(row.status))) {
+      throw new EscalaError('Contrato operacional não está ativo.', 'INVALID_DATA', 400)
+    }
+
+    const contratos = bundle.contratosByEntidade.get(String(row.entidade_contratante_id)) ?? []
+    const contrato = contratos.find((item) => item.id === contratoId)
+    if (!contrato) {
+      throw new EscalaError('Contrato operacional não encontrado.', 'NOT_FOUND', 404)
+    }
+  }
+
+  if (uniqueSpecialties.length > 0) {
+    for (const specialtyId of uniqueSpecialties) {
+      const authorizedInAny = uniqueIds.some((contratoId) => {
+        const contratoRow = (data ?? []).find((item) => String(item.id) === contratoId)
+        if (!contratoRow) return false
+        const contratos =
+          bundle.contratosByEntidade.get(String(contratoRow.entidade_contratante_id)) ?? []
+        const match = contratos.find((item) => item.id === contratoId)
+        return new Set(match?.detalhes?.especialidadesAutorizadas ?? []).has(specialtyId)
+      })
+      if (!authorizedInAny) {
+        throw new EscalaError(
+          'A especialidade selecionada não está autorizada em nenhum dos contratos vinculados.',
+          'INVALID_DATA',
+          400,
+        )
+      }
+    }
   }
 }
 
@@ -204,6 +249,7 @@ function buildSlotPayloadFields(
     prefeituraScope: unknown
     ubtScope: unknown
     contratoEntidadeId?: string
+    contratoEntidadeIds?: string[]
     publishedAt: string | null
   },
 ): Record<string, unknown> {
@@ -261,7 +307,8 @@ function buildSlotPayloadFields(
     fila_reserva: shift.backupDoctorIds ?? [],
     escopo_prefeitura: context.prefeituraScope,
     escopo_ubt: context.ubtScope,
-    contrato_entidade_id: context.contratoEntidadeId ?? null,
+    contrato_entidade_id: context.contratoEntidadeIds?.[0] ?? context.contratoEntidadeId ?? null,
+    contrato_entidade_ids: context.contratoEntidadeIds ?? [],
     unidade_nome: shift.unitName?.trim() || '',
     cidade: shift.city?.trim() || '',
     cidade_uf: shift.cityUf?.trim() || '',
@@ -281,6 +328,7 @@ export function buildSlotInsertRow(input: {
   prefeituraScope: unknown
   ubtScope: unknown
   contratoEntidadeId?: string
+  contratoEntidadeIds?: string[]
   publishedAt: string | null
 }): Record<string, unknown> {
   return buildSlotPayloadFields(input.shift, input)
@@ -294,6 +342,7 @@ export function buildSlotUpdateRow(input: {
   prefeituraScope: unknown
   ubtScope: unknown
   contratoEntidadeId?: string
+  contratoEntidadeIds?: string[]
   publishedAt: string | null
 }): Record<string, unknown> {
   return buildSlotPayloadFields(input.shift, input)

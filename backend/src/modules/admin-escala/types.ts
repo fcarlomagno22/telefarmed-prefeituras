@@ -38,6 +38,7 @@ export type SlotListagemRow = {
   escopo_prefeitura: unknown
   escopo_ubt: unknown
   contrato_entidade_id: string | null
+  contrato_entidade_ids: string[] | null
   unidade_nome: string
   cidade: string
   cidade_uf: string
@@ -61,6 +62,7 @@ export type AdminEscalaShiftDto = {
   id: string
   batchId?: string
   contratoEntidadeId?: string | null
+  contratoEntidadeIds?: string[]
   assignmentMode: 'assigned' | 'open'
   primaryDoctorId: string
   backupDoctorIds: string[]

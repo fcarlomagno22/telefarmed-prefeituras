@@ -6,7 +6,7 @@ import { normalizeCpf } from '../../lib/cpf.js'
 import { loadProfissionalEscalaContext } from '../profissional-escala/context.service.js'
 import { assertNoScheduleConflict } from '../profissional-escala/disponiveis.service.js'
 import { PublicPlantaoAceiteError } from './errors.js'
-import { resolveConviteByToken } from './convite.service.js'
+import { resolveAceiteSlotId } from './resolveAceiteSlot.js'
 import type { CandidatarReservaPlantaoAceiteResultDto } from './types.js'
 
 const MAX_RESERVE_QUEUE_SIZE = 10
@@ -69,9 +69,13 @@ async function countConfirmedTitulares(slotId: string): Promise<number> {
 
 export async function candidatarReservaPlantaoAceitePublico(input: {
   token: string
+  slotId?: string
   cpf: string
 }): Promise<CandidatarReservaPlantaoAceiteResultDto> {
-  const convite = await resolveConviteByToken(input.token)
+  const slotId = await resolveAceiteSlotId({
+    token: input.token,
+    slotId: input.slotId,
+  })
   const cpf = normalizeCpf(input.cpf)
 
   if (cpf.length !== 11) {
@@ -87,8 +91,7 @@ export async function candidatarReservaPlantaoAceitePublico(input: {
     )
   }
 
-  const slot = await loadSlotForReserve(convite.slot_id)
-  const slotId = String(slot.id)
+  const slot = await loadSlotForReserve(slotId)
 
   if (String(slot.status) !== 'publicada' || String(slot.modo_atribuicao) !== 'open') {
     throw new PublicPlantaoAceiteError(

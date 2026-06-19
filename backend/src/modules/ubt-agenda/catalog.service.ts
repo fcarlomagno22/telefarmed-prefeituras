@@ -1,5 +1,10 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { applyNestedEscalaSlotContratoOverlapFilter } from '../../lib/escalaContratoScope.js'
 import { loadContratosBundleForEntidades } from '../admin-clientes/contratos.service.js'
+import {
+  loadContratoSpecialtyContext,
+  slotAuthorizedForCliente,
+} from './contrato-specialty.service.js'
 import {
   formatScheduleDoctor,
   buildAgendaDaySummary,
@@ -67,7 +72,8 @@ async function loadEscalaRows(
   specialtyId?: string,
   profissionalId?: string,
 ): Promise<EscalaSlotCatalogRow[]> {
-  const contratoIds = await loadActiveContratoIds(scope.entidadeContratanteId)
+  const { contratoIds, index: contratoSpecialtyIndex } =
+    await loadContratoSpecialtyContext(scope.entidadeContratanteId)
   if (contratoIds.length === 0) return []
 
   let query = supabaseAdmin
@@ -87,6 +93,7 @@ async function loadEscalaRows(
         escopo_ubt,
         status,
         contrato_entidade_id,
+        contrato_entidade_ids,
         config_especialidades!inner ( id, nome )
       )
     `,
@@ -95,7 +102,8 @@ async function loadEscalaRows(
     .gte('escala_slots.data', dateFrom)
     .lte('escala_slots.data', dateTo)
     .eq('escala_slots.status', 'publicada')
-    .in('escala_slots.contrato_entidade_id', contratoIds)
+
+  query = applyNestedEscalaSlotContratoOverlapFilter(query, contratoIds)
 
   if (specialtyId) {
     query = query.eq('escala_slots.especialidade_id', specialtyId)
@@ -123,7 +131,21 @@ async function loadEscalaRows(
       especialidade_id: string
       modalidade: string
       escopo_ubt: unknown
+      contrato_entidade_id?: string | null
+      contrato_entidade_ids?: string[] | null
       config_especialidades?: { id: string; nome: string } | { id: string; nome: string }[] | null
+    }
+
+    if (
+      !slotAuthorizedForCliente({
+        slotContratoIds: slotObj.contrato_entidade_ids,
+        slotLegacyContratoId: slotObj.contrato_entidade_id,
+        specialtyId: String(slotObj.especialidade_id),
+        clientContratoIds: contratoIds,
+        index: contratoSpecialtyIndex,
+      })
+    ) {
+      continue
     }
 
     if (

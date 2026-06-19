@@ -1,4 +1,8 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import {
+  applyDirectEscalaSlotContratoOverlapFilter,
+  applyNestedEscalaSlotContratoOverlapFilter,
+} from '../../lib/escalaContratoScope.js'
 import { loadActiveContratoIds } from '../ubt-agenda/ownership.js'
 import { slotVisibleToUbt } from '../ubt-agenda/slot-utils.js'
 import { periodBounds } from '../prefeitura-consultas/period.js'
@@ -70,13 +74,16 @@ export async function loadPublishedSlotsInPeriod(
   const contratoIds = await loadActiveContratoIds(entidadeId)
   if (contratoIds.length === 0) return []
 
-  const { data, error } = await supabaseAdmin
+  let slotsQuery = supabaseAdmin
     .from('escala_slots')
     .select('id, data, hora_inicio, hora_fim, especialidade_id, vagas, escopo_ubt, modalidade, status')
-    .in('contrato_entidade_id', contratoIds)
     .gte('data', periodStart)
     .lte('data', periodEnd)
     .eq('status', 'publicada')
+
+  slotsQuery = applyDirectEscalaSlotContratoOverlapFilter(slotsQuery, contratoIds)
+
+  const { data, error } = await slotsQuery
 
   if (error) {
     if (isMissingRelationError(error)) return []
@@ -94,7 +101,7 @@ export async function loadPlantoesInPeriod(
   const contratoIds = await loadActiveContratoIds(entidadeId)
   if (contratoIds.length === 0) return []
 
-  const { data, error } = await supabaseAdmin
+  let plantoesQuery = supabaseAdmin
     .from('escala_plantoes_confirmados')
     .select(
       `
@@ -121,7 +128,10 @@ export async function loadPlantoesInPeriod(
     .gte('escala_slots.data', periodStart)
     .lte('escala_slots.data', periodEnd)
     .eq('escala_slots.status', 'publicada')
-    .in('escala_slots.contrato_entidade_id', contratoIds)
+
+  plantoesQuery = applyNestedEscalaSlotContratoOverlapFilter(plantoesQuery, contratoIds)
+
+  const { data, error } = await plantoesQuery
 
   if (error) {
     if (isMissingRelationError(error)) return []

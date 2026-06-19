@@ -2,6 +2,7 @@ import {
   formatLocalTimestampAsIso,
   resolveTurnFromTime,
 } from '../../lib/escalaDateTime.js'
+import { normalizeContratoEntidadeIds } from '../../lib/escalaContratoScope.js'
 import { parseRepasseRule } from './repasseRule.js'
 import type {
   AdminEscalaShiftDto,
@@ -80,10 +81,16 @@ export function formatSlotRow(
   const vacancies = assignmentMode === 'open' ? row.vagas_disponiveis : 0
   const timing = resolveTurnFromTime(row.hora_inicio)
 
+  const contratoEntidadeIds = normalizeContratoEntidadeIds(
+    row.contrato_entidade_ids,
+    row.contrato_entidade_id,
+  )
+
   return {
     id: row.id,
     batchId: row.lote_id ?? undefined,
-    contratoEntidadeId: row.contrato_entidade_id,
+    contratoEntidadeId: contratoEntidadeIds[0] ?? row.contrato_entidade_id,
+    contratoEntidadeIds,
     assignmentMode,
     primaryDoctorId: row.profissional_titular_id ?? '',
     backupDoctorIds: parseBackupIds(row.fila_reserva),

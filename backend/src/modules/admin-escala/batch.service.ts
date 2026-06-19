@@ -6,15 +6,36 @@ import {
   buildSlotUpdateRow,
   formatSavedSlots,
   validateAssignedDoctorsExist,
-  validateContratoEntidade,
+  validateContratoEntidades,
   validateSpecialtiesExist,
 } from './conflicts.service.js'
 import { revokeConvitesForSlotIds } from '../public-plantao-aceite/convite.service.js'
+import { revokeDigestsForSlotIds } from '../public-plantao-aceite/digest.service.js'
 import { enqueuePublishedOpenPlantaoNotifications } from '../public-plantao-aceite/notify.service.js'
 import { assertSlotsMutableForAdmin } from './execution.service.js'
 import { EscalaError } from './errors.js'
 import type { BatchSaveBody } from './schemas.js'
 import type { BatchSaveResultDto } from './types.js'
+
+function resolveContratoEntidadeIds(payload: BatchSaveBody): string[] {
+  if (payload.contratoEntidadeIds?.length) {
+    return [...new Set(payload.contratoEntidadeIds.map(String).filter(Boolean))]
+  }
+
+  const fromScope = payload.prefeituraScope.contratosPorPrefeitura
+    ? Object.values(payload.prefeituraScope.contratosPorPrefeitura).filter(Boolean)
+    : []
+
+  if (fromScope.length > 0) {
+    return [...new Set(fromScope.map(String))]
+  }
+
+  if (payload.contratoEntidadeId) {
+    return [payload.contratoEntidadeId]
+  }
+
+  return []
+}
 
 function resolveProgramacaoPeriod(shifts: BatchSaveBody['shifts']): {
   dataInicio: string
@@ -39,6 +60,7 @@ function resolveProgramacaoPeriod(shifts: BatchSaveBody['shifts']): {
 async function removeShiftsByIds(shiftIds: string[]): Promise<void> {
   if (shiftIds.length === 0) return
   await revokeConvitesForSlotIds(shiftIds)
+  await revokeDigestsForSlotIds(shiftIds)
   const { error } = await supabaseAdmin.from('escala_slots').delete().in('id', shiftIds)
   if (error) throw error
 }
@@ -54,6 +76,7 @@ async function removeShiftsByBatchId(batchId: string): Promise<string | null> {
   const slotIds = (slotRows ?? []).map((row) => String(row.id))
   if (slotIds.length > 0) {
     await revokeConvitesForSlotIds(slotIds)
+    await revokeDigestsForSlotIds(slotIds)
   }
 
   const programacaoId = slotRows?.[0]?.programacao_id
@@ -98,6 +121,7 @@ type SlotWriteContext = {
   prefeituraScope: BatchSaveBody['prefeituraScope']
   ubtScope: BatchSaveBody['ubtScope']
   contratoEntidadeId?: string
+  contratoEntidadeIds?: string[]
   publishedAt: string | null
 }
 
@@ -127,7 +151,8 @@ async function persistBatchSlots(
       status: context.status,
       prefeituraScope: context.prefeituraScope,
       ubtScope: context.ubtScope,
-      contratoEntidadeId: context.contratoEntidadeId,
+      contratoEntidadeId: context.contratoEntidadeIds?.[0] ?? context.contratoEntidadeId,
+      contratoEntidadeIds: context.contratoEntidadeIds,
       publishedAt: context.publishedAt,
     }
 
@@ -190,7 +215,10 @@ export async function saveEscalaBatch(
     throw new EscalaError('Selecione ao menos uma UBT para plantões presenciais ou híbridos.', 'INVALID_DATA', 400)
   }
 
-  await validateContratoEntidade(payload.contratoEntidadeId)
+  const contratoEntidadeIds = resolveContratoEntidadeIds(payload)
+  const specialtyIds = payload.shifts.map((shift) => shift.specialtyId)
+
+  await validateContratoEntidades(contratoEntidadeIds, specialtyIds)
   await validateSpecialtiesExist(payload.shifts.map((shift) => shift.specialtyId))
 
   const doctorIds = payload.shifts.flatMap((shift) => [
@@ -245,7 +273,8 @@ export async function saveEscalaBatch(
     escopo_ubt: payload.ubtScope,
     templates: [],
     status: payload.status,
-    contrato_entidade_id: payload.contratoEntidadeId ?? null,
+    contrato_entidade_id: contratoEntidadeIds[0] ?? null,
+    contrato_entidade_ids: contratoEntidadeIds,
     criado_por_admin_id: adminId,
     publicado_em: publishedAt,
     cancelado_em: null,
@@ -278,7 +307,8 @@ export async function saveEscalaBatch(
     status: payload.status,
     prefeituraScope: payload.prefeituraScope,
     ubtScope: payload.ubtScope,
-    contratoEntidadeId: payload.contratoEntidadeId,
+    contratoEntidadeId: contratoEntidadeIds[0],
+    contratoEntidadeIds,
     publishedAt,
   })
 

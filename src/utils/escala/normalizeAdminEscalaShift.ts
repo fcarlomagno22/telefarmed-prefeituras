@@ -34,6 +34,7 @@ export function normalizeAdminEscalaShift(raw: Partial<AdminEscalaShift> & Pick<
     id: raw.id,
     batchId: raw.batchId,
     contratoEntidadeId: raw.contratoEntidadeId ?? null,
+    contratoEntidadeIds: raw.contratoEntidadeIds ?? (raw.contratoEntidadeId ? [raw.contratoEntidadeId] : []),
     assignmentMode,
     primaryDoctorId: raw.primaryDoctorId ?? '',
     backupDoctorIds: raw.backupDoctorIds ?? [],

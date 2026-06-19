@@ -1,4 +1,9 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { applyNestedEscalaSlotContratoOverlapFilter } from '../../lib/escalaContratoScope.js'
+import {
+  loadContratoSpecialtyContext,
+  slotAuthorizedForCliente,
+} from '../ubt-agenda/contrato-specialty.service.js'
 import type { RedeUnitApi } from '../prefeitura-rede/types.js'
 import { loadActiveContratoIds } from '../ubt-agenda/ownership.js'
 import { parseTimeToMinutes, slotVisibleToUbt, todayIsoInBrazil } from '../ubt-agenda/slot-utils.js'
@@ -15,6 +20,8 @@ type EscalaSlotRow = {
   hora_fim: string
   status: string
   contrato_entidade_id: string
+  contrato_entidade_ids?: string[] | null
+  especialidade_id: string
   escopo_ubt: unknown
   modalidade: string
 }
@@ -137,6 +144,7 @@ export async function countOnlineHealthProfessionals(
   }
 
   const contratoIds = await loadActiveContratoIds(entidadeId)
+  const { index: contratoSpecialtyIndex } = await loadContratoSpecialtyContext(entidadeId)
 
   const [consultasResult, activeSessionsResult, plantoesResult] = await Promise.all([
     consultasQuery,
@@ -145,10 +153,11 @@ export async function countOnlineHealthProfessionals(
       .select('profissional_id, plantao_id')
       .is('ended_at', null),
     contratoIds.length > 0
-      ? supabaseAdmin
-          .from('escala_plantoes_confirmados')
-          .select(
-            `
+      ? applyNestedEscalaSlotContratoOverlapFilter(
+          supabaseAdmin
+            .from('escala_plantoes_confirmados')
+            .select(
+              `
             id,
             profissional_id,
             usuarios_profissionais!inner (
@@ -163,15 +172,18 @@ export async function countOnlineHealthProfessionals(
               hora_fim,
               status,
               contrato_entidade_id,
+              contrato_entidade_ids,
+              especialidade_id,
               escopo_ubt,
               modalidade
             )
           `,
-          )
-          .eq('status', 'confirmado')
-          .eq('escala_slots.data', today)
-          .eq('escala_slots.status', 'publicada')
-          .in('escala_slots.contrato_entidade_id', contratoIds)
+            )
+            .eq('status', 'confirmado')
+            .eq('escala_slots.data', today)
+            .eq('escala_slots.status', 'publicada'),
+          contratoIds,
+        )
       : Promise.resolve({ data: [], error: null }),
   ])
 
@@ -198,6 +210,17 @@ export async function countOnlineHealthProfessionals(
 
     if (!slot || !profissional) continue
     if (!isWithinShift(String(slot.hora_inicio), String(slot.hora_fim), nowMinutes)) continue
+    if (
+      !slotAuthorizedForCliente({
+        slotContratoIds: slot.contrato_entidade_ids,
+        slotLegacyContratoId: slot.contrato_entidade_id,
+        specialtyId: String(slot.especialidade_id),
+        clientContratoIds: contratoIds,
+        index: contratoSpecialtyIndex,
+      })
+    ) {
+      continue
+    }
     if (
       !slotMatchesScope(
         slot.escopo_ubt,

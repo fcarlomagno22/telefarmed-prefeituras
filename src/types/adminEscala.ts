@@ -132,6 +132,8 @@ export type AdminEscalaShift = {
   id: string
   batchId?: string
   contratoEntidadeId?: string | null
+  /** Contratos operacionais vinculados a este plantão. */
+  contratoEntidadeIds?: string[]
   assignmentMode: AdminEscalaAssignmentMode
   primaryDoctorId: string
   backupDoctorIds: string[]

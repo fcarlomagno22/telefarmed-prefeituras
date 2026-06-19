@@ -89,7 +89,8 @@ export type BatchSavePayload = {
   removeShiftIds?: string[]
   status: 'rascunho' | 'publicada'
   titulo?: string
-  contratoEntidadeId?: string
+    contratoEntidadeId?: string
+    contratoEntidadeIds?: string[]
   prefeituraScope: EscalaScopePrefeituraApi
   ubtScope: EscalaScopeUbtApi
   shifts: Array<{

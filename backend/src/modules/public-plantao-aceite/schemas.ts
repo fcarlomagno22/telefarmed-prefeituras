@@ -8,6 +8,7 @@ export const plantaoAceiteTokenParamSchema = z
 
 export const confirmarPlantaoAceiteBodySchema = z.object({
   token: plantaoAceiteTokenParamSchema,
+  slotId: z.string().trim().uuid('Plantão inválido.').optional(),
   cpf: z
     .string()
     .trim()

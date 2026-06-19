@@ -5,8 +5,9 @@ import { cpfDigits, isValidCpf } from '../../utils/cpf'
 
 type PlantaoAceiteCpfDialogProps = {
   open: boolean
-  specialty: string
-  mode?: 'titular' | 'reserva'
+  specialty?: string
+  description?: string
+  mode?: 'titular' | 'reserva' | 'batch'
   isSubmitting: boolean
   errorMessage: string | null
   onClose: () => void
@@ -16,6 +17,7 @@ type PlantaoAceiteCpfDialogProps = {
 export function PlantaoAceiteCpfDialog({
   open,
   specialty,
+  description,
   mode = 'titular',
   isSubmitting,
   errorMessage,
@@ -48,8 +50,21 @@ export function PlantaoAceiteCpfDialog({
   }
 
   const cpfInvalid = cpfDigits(cpf).length === 11 && !isValidCpf(cpf)
-  const submitLabel = mode === 'reserva' ? 'Candidatar-se como reserva' : 'Pegar plantão'
-  const submittingLabel = mode === 'reserva' ? 'Candidatando…' : 'Reservando…'
+  const submitLabel =
+    mode === 'batch'
+      ? 'Aceitar selecionados'
+      : mode === 'reserva'
+        ? 'Candidatar-se como reserva'
+        : 'Pegar plantão'
+  const submittingLabel =
+    mode === 'batch'
+      ? 'Aceitando…'
+      : mode === 'reserva'
+        ? 'Candidatando…'
+        : 'Reservando…'
+  const subtitle =
+    description ??
+    (specialty ? `Plantão de ${specialty}` : 'Confirme sua identidade para continuar.')
 
   return (
     <div
@@ -71,9 +86,7 @@ export function PlantaoAceiteCpfDialog({
             <h2 id={titleId} className="text-lg font-semibold text-gray-900">
               Confirme seu CPF
             </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Plantão de {specialty}
-            </p>
+            <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
           </div>
           <button
             type="button"

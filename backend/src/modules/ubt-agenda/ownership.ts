@@ -1,4 +1,9 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { applyNestedEscalaSlotContratoOverlapFilter } from '../../lib/escalaContratoScope.js'
+import {
+  loadContratoSpecialtyContext,
+  slotAuthorizedForCliente,
+} from './contrato-specialty.service.js'
 import { assertPacienteBelongsToEntity } from '../ubt-pacientes/ownership.js'
 import { UbtAgendaError } from './errors.js'
 import { slotVisibleToUbt } from './slot-utils.js'
@@ -32,12 +37,13 @@ export async function assertProfissionalOnUnitSchedule(
   data: string,
   especialidadeId: string,
 ): Promise<void> {
-  const contratoIds = await loadActiveContratoIds(scope.entidadeContratanteId)
+  const { contratoIds, index: contratoSpecialtyIndex } =
+    await loadContratoSpecialtyContext(scope.entidadeContratanteId)
   if (contratoIds.length === 0) {
     throw new UbtAgendaError('Nenhum contrato ativo para agendamento.', 'NO_CONTRACT', 409)
   }
 
-  const { data: plantoes, error } = await supabaseAdmin
+  let query = supabaseAdmin
     .from('escala_plantoes_confirmados')
     .select(
       `
@@ -49,7 +55,8 @@ export async function assertProfissionalOnUnitSchedule(
         status,
         modalidade,
         escopo_ubt,
-        contrato_entidade_id
+        contrato_entidade_id,
+        contrato_entidade_ids
       )
     `,
     )
@@ -58,7 +65,10 @@ export async function assertProfissionalOnUnitSchedule(
     .eq('escala_slots.data', data)
     .eq('escala_slots.especialidade_id', especialidadeId)
     .eq('escala_slots.status', 'publicada')
-    .in('escala_slots.contrato_entidade_id', contratoIds)
+
+  query = applyNestedEscalaSlotContratoOverlapFilter(query, contratoIds)
+
+  const { data: plantoes, error } = await query
 
   if (error) throw error
 
@@ -66,7 +76,24 @@ export async function assertProfissionalOnUnitSchedule(
     const slotRaw = row.escala_slots as unknown
     const slot = Array.isArray(slotRaw) ? slotRaw[0] : slotRaw
     if (!slot || typeof slot !== 'object') return false
-    const slotObj = slot as { modalidade?: string; escopo_ubt?: unknown }
+    const slotObj = slot as {
+      modalidade?: string
+      escopo_ubt?: unknown
+      contrato_entidade_id?: string | null
+      contrato_entidade_ids?: string[] | null
+      especialidade_id?: string
+    }
+    if (
+      !slotAuthorizedForCliente({
+        slotContratoIds: slotObj.contrato_entidade_ids,
+        slotLegacyContratoId: slotObj.contrato_entidade_id,
+        specialtyId: especialidadeId,
+        clientContratoIds: contratoIds,
+        index: contratoSpecialtyIndex,
+      })
+    ) {
+      return false
+    }
     return slotVisibleToUbt(
       slotObj.escopo_ubt,
       scope.unidadeUbtId,

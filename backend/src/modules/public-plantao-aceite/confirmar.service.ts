@@ -3,7 +3,7 @@ import { appPublicUrls } from '../../config/appUrls.js'
 import { normalizeCpf } from '../../lib/cpf.js'
 import { loadProfissionalEscalaContext } from '../profissional-escala/context.service.js'
 import { PublicPlantaoAceiteError } from './errors.js'
-import { resolveConviteByToken } from './convite.service.js'
+import { resolveAceiteSlotId } from './resolveAceiteSlot.js'
 import { inscreverProfissionalEscalaSlot } from '../profissional-escala/inscrever.service.js'
 import type { ConfirmarPlantaoAceiteResultDto } from './types.js'
 
@@ -30,9 +30,13 @@ async function findProfissionalByCpf(cpf: string): Promise<{
 
 export async function confirmarPlantaoAceitePublico(input: {
   token: string
+  slotId?: string
   cpf: string
 }): Promise<ConfirmarPlantaoAceiteResultDto> {
-  const convite = await resolveConviteByToken(input.token)
+  const slotId = await resolveAceiteSlotId({
+    token: input.token,
+    slotId: input.slotId,
+  })
   const cpf = normalizeCpf(input.cpf)
 
   if (cpf.length !== 11) {
@@ -49,7 +53,7 @@ export async function confirmarPlantaoAceitePublico(input: {
   }
 
   const ctx = await loadProfissionalEscalaContext(profissional.id)
-  const result = await inscreverProfissionalEscalaSlot(ctx, convite.slot_id)
+  const result = await inscreverProfissionalEscalaSlot(ctx, slotId)
 
   return {
     plantaoId: result.plantaoId,

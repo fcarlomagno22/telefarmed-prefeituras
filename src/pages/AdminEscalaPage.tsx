@@ -229,7 +229,8 @@ export function AdminEscalaPage() {
           replaceBatchId: options?.replaceBatchId,
           removeShiftIds: options?.removeShiftIds,
           status,
-          contratoEntidadeId: first.contratoEntidadeId ?? undefined,
+          contratoEntidadeId: first.contratoEntidadeIds?.[0] ?? first.contratoEntidadeId ?? undefined,
+          contratoEntidadeIds: first.contratoEntidadeIds ?? undefined,
           prefeituraScope: first.prefeituraScope,
           ubtScope: first.ubtScope,
           shifts: newShifts.map((shift) => ({

@@ -578,6 +578,43 @@ body {
   }
 }
 
+.plantao-cpf-placeholder-wave {
+  background-image: linear-gradient(
+    90deg,
+    #9ca3af 0%,
+    #9ca3af 30%,
+    var(--brand-primary) 46%,
+    #ffb366 54%,
+    var(--brand-primary) 62%,
+    #9ca3af 78%,
+    #9ca3af 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: plantao-cpf-placeholder-wave 2.2s ease-in-out infinite;
+}
+
+@keyframes plantao-cpf-placeholder-wave {
+  0% {
+    background-position: 120% center;
+  }
+  100% {
+    background-position: -120% center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plantao-cpf-placeholder-wave {
+    animation: none;
+    color: var(--brand-primary);
+    background-image: none;
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+  }
+}
+
 .triage-range-input {
   -webkit-appearance: none;
   appearance: none;

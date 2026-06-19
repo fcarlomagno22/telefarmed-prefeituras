@@ -65,6 +65,7 @@ export const batchSaveBodySchema = z.object({
   status: z.enum(['rascunho', 'publicada']),
   titulo: z.string().trim().optional(),
   contratoEntidadeId: z.string().uuid().optional(),
+  contratoEntidadeIds: z.array(z.string().uuid()).optional(),
   prefeituraScope: scopePrefeituraSchema,
   ubtScope: scopeUbtSchema,
   shifts: z.array(batchShiftSchema).min(1, 'Informe ao menos um plantão.'),

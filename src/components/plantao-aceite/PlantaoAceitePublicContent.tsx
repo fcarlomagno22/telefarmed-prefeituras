@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { brand } from '../../config/brand'
-import { PLANTAO_ACEITE_DEMO_ESGOTADO_TOKEN, PLANTAO_ACEITE_DEMO_TOKEN } from '../../config/publicRoutes'
+import { PLANTAO_ACEITE_DEMO_ESGOTADO_TOKEN, PLANTAO_ACEITE_DEMO_TOKEN, PLANTAO_ACEITE_DIGEST_DEMO_TOKEN } from '../../config/publicRoutes'
 import type {
   PlantaoAceiteConfirmResult,
   PlantaoAceitePublico,
@@ -166,7 +166,9 @@ export function PlantaoAceitePublicContent({
             </p>
           ) : null}
 
-          {token === PLANTAO_ACEITE_DEMO_TOKEN || token === PLANTAO_ACEITE_DEMO_ESGOTADO_TOKEN ? (
+          {token === PLANTAO_ACEITE_DEMO_TOKEN ||
+          token === PLANTAO_ACEITE_DEMO_ESGOTADO_TOKEN ||
+          token === PLANTAO_ACEITE_DIGEST_DEMO_TOKEN ? (
             <p className="mt-4 text-xs text-gray-400 sm:mx-6">
               Demo · CPF: 226.522.048-58
             </p>

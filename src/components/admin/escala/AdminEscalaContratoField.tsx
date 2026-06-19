@@ -80,7 +80,10 @@ export function AdminEscalaContratoField({
         onContractsLoadedRef.current?.(result.length, result)
 
         if (result.length === 1) {
-          onChangeRef.current(result[0].id, result[0])
+          const single = result[0]!
+          if (valueRef.current !== single.id) {
+            onChangeRef.current(single.id, single)
+          }
         } else if (
           valueRef.current &&
           !result.some((item) => item.id === valueRef.current)

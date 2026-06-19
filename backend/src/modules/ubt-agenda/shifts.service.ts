@@ -1,6 +1,10 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { applyNestedEscalaSlotContratoOverlapFilter } from '../../lib/escalaContratoScope.js'
 import { formatDoctorShift } from './formatters.js'
-import { loadActiveContratoIds } from './ownership.js'
+import {
+  loadContratoSpecialtyContext,
+  slotAuthorizedForCliente,
+} from './contrato-specialty.service.js'
 import { slotVisibleToUbt } from './slot-utils.js'
 import type { DoctorShiftDto, UbtScope } from './types.js'
 
@@ -8,10 +12,11 @@ export async function listUbtAgendaDoctorShifts(
   scope: UbtScope,
   date: string,
 ): Promise<DoctorShiftDto[]> {
-  const contratoIds = await loadActiveContratoIds(scope.entidadeContratanteId)
+  const { contratoIds, index: contratoSpecialtyIndex } =
+    await loadContratoSpecialtyContext(scope.entidadeContratanteId)
   if (contratoIds.length === 0) return []
 
-  const { data, error } = await supabaseAdmin
+  let query = supabaseAdmin
     .from('escala_plantoes_confirmados')
     .select(
       `
@@ -25,6 +30,8 @@ export async function listUbtAgendaDoctorShifts(
         escopo_ubt,
         status,
         contrato_entidade_id,
+        contrato_entidade_ids,
+        especialidade_id,
         config_especialidades!inner ( nome )
       )
     `,
@@ -32,7 +39,10 @@ export async function listUbtAgendaDoctorShifts(
     .in('status', ['confirmado', 'realizado'])
     .eq('escala_slots.data', date)
     .eq('escala_slots.status', 'publicada')
-    .in('escala_slots.contrato_entidade_id', contratoIds)
+
+  query = applyNestedEscalaSlotContratoOverlapFilter(query, contratoIds)
+
+  const { data, error } = await query
 
   if (error) throw error
 
@@ -65,7 +75,22 @@ export async function listUbtAgendaDoctorShifts(
       hora_fim: string
       modalidade: string
       escopo_ubt: unknown
+      especialidade_id: string
+      contrato_entidade_id?: string | null
+      contrato_entidade_ids?: string[] | null
       config_especialidades?: { nome: string } | { nome: string }[] | null
+    }
+
+    if (
+      !slotAuthorizedForCliente({
+        slotContratoIds: slotObj.contrato_entidade_ids,
+        slotLegacyContratoId: slotObj.contrato_entidade_id,
+        specialtyId: String(slotObj.especialidade_id),
+        clientContratoIds: contratoIds,
+        index: contratoSpecialtyIndex,
+      })
+    ) {
+      continue
     }
 
     if (

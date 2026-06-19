@@ -1,9 +1,14 @@
-import { PLANTAO_ACEITE_DEMO_ESGOTADO_TOKEN, PLANTAO_ACEITE_DEMO_TOKEN } from '../../../config/publicRoutes'
+import {
+  PLANTAO_ACEITE_DEMO_ESGOTADO_TOKEN,
+  PLANTAO_ACEITE_DEMO_TOKEN,
+  PLANTAO_ACEITE_DIGEST_DEMO_TOKEN,
+} from '../../../config/publicRoutes'
 import { isBackendApiEnabled } from '../../api/config'
 import * as api from '../../api/public/plantaoAceite'
 import {
   mockConfirmPlantaoAceitePublico,
   mockCandidatarReservaPlantaoAceitePublico,
+  mockFetchPlantaoAceiteDigest,
   mockFetchPlantaoAceitePublico,
   PlantaoAceitePublicoApiError as MockPlantaoAceitePublicoApiError,
   isPlantaoAceitePublicoApiError as mockIsPlantaoAceitePublicoApiError,
@@ -11,6 +16,7 @@ import {
 import type {
   PlantaoAceiteConfirmPayload,
   PlantaoAceiteConfirmResult,
+  PlantaoAceiteDigestResult,
   PlantaoAceitePublicoResult,
   PlantaoAceiteReserveResult,
 } from '../../../types/plantaoAceitePublico'
@@ -25,7 +31,8 @@ function isDemoPlantaoAceiteToken(token: string): boolean {
   const normalized = normalizePlantaoAceiteToken(token)
   return (
     normalized === PLANTAO_ACEITE_DEMO_TOKEN ||
-    normalized === PLANTAO_ACEITE_DEMO_ESGOTADO_TOKEN
+    normalized === PLANTAO_ACEITE_DEMO_ESGOTADO_TOKEN ||
+    normalized === PLANTAO_ACEITE_DIGEST_DEMO_TOKEN
   )
 }
 
@@ -36,6 +43,16 @@ export const PlantaoAceitePublicoApiError = useApi
 export const isPlantaoAceitePublicoApiError = useApi
   ? api.isPlantaoAceitePublicoApiError
   : mockIsPlantaoAceitePublicoApiError
+
+export async function fetchPlantaoAceiteDigest(
+  token: string,
+): Promise<PlantaoAceiteDigestResult> {
+  const normalizedToken = normalizePlantaoAceiteToken(token)
+  if (normalizedToken === PLANTAO_ACEITE_DIGEST_DEMO_TOKEN || !useApi) {
+    return mockFetchPlantaoAceiteDigest(normalizedToken)
+  }
+  return api.apiFetchPlantaoAceiteDigest(normalizedToken)
+}
 
 export async function fetchPlantaoAceitePublico(
   token: string,

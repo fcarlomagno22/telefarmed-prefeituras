@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAdminAuth } from '../../../contexts/AdminAuthContext'
 import { getAdminEscalaPrefeituras, getAdminEscalaSpecialties } from '../../../data/adminEscalaCatalog'
 import { getSpecialtyById } from '../../../data/specialties'
@@ -24,12 +24,12 @@ import {
 } from '../../../utils/adminEscala/specialtyOptionsFromContratos'
 import { shiftsToProgrammingSlots } from '../../../utils/adminEscala/shiftsToProgrammingSlots'
 import { resolveSingleScheduleWeekday } from '../../../utils/adminEscala/resolveSingleScheduleWeekday'
+import { resolveWeekdaysInDateRange } from '../../../utils/adminEscala/resolveWeekdaysInDateRange'
 import { findPresencialShiftMissingAddress } from '../../../utils/escala/validateAdminEscalaShifts'
 import { AdminEscalaComposeContratoColumn } from './AdminEscalaComposeContratoColumn'
 import { AdminEscalaComposePeriodStep } from './AdminEscalaComposePeriodStep'
 import { AdminEscalaComposePrefeituraList } from './AdminEscalaComposePrefeituraList'
 import {
-  AdminEscalaContratoField,
   validateAdminEscalaContratosPorPrefeitura,
   type AdminEscalaContratoLoadState,
 } from './AdminEscalaContratoField'
@@ -58,16 +58,36 @@ function getSelectedPrefeituraIds(scope: AdminEscalaPrefeituraScope): string[] {
   return scope.prefeituraIds
 }
 
+function resolveContratoEntidadeIds(
+  scope: AdminEscalaPrefeituraScope,
+  contratosPorPrefeitura: Record<string, string>,
+): string[] {
+  return [
+    ...new Set(
+      getSelectedPrefeituraIds(scope)
+        .map((prefeituraId) => contratosPorPrefeitura[prefeituraId])
+        .filter(Boolean),
+    ),
+  ] as string[]
+}
+
 function buildInitialContratosPorPrefeitura(
   scope: AdminEscalaPrefeituraScope,
+  contratoEntidadeIds?: string[] | null,
   contratoEntidadeId?: string | null,
 ): Record<string, string> {
   if (scope.contratosPorPrefeitura && Object.keys(scope.contratosPorPrefeitura).length > 0) {
     return scope.contratosPorPrefeitura
   }
-  const ids = getSelectedPrefeituraIds(scope)
-  if (contratoEntidadeId && ids.length === 1) {
-    return { [ids[0]!]: contratoEntidadeId }
+  const ids =
+    contratoEntidadeIds && contratoEntidadeIds.length > 0
+      ? contratoEntidadeIds
+      : contratoEntidadeId
+        ? [contratoEntidadeId]
+        : []
+  const prefeituraIds = getSelectedPrefeituraIds(scope)
+  if (ids.length === 1 && prefeituraIds.length === 1) {
+    return { [prefeituraIds[0]!]: ids[0]! }
   }
   return {}
 }
@@ -77,17 +97,6 @@ function buildPrefeituraScopeWithContratos(
   contratosPorPrefeitura: Record<string, string>,
 ): AdminEscalaPrefeituraScope {
   return { ...scope, contratosPorPrefeitura }
-}
-
-function resolvePrimaryContratoEntidadeId(
-  scope: AdminEscalaPrefeituraScope,
-  contratosPorPrefeitura: Record<string, string>,
-): string {
-  for (const id of getSelectedPrefeituraIds(scope)) {
-    const contratoId = contratosPorPrefeitura[id]
-    if (contratoId) return contratoId
-  }
-  return ''
 }
 
 function toDateInputValue(date: Date) {
@@ -117,7 +126,7 @@ function slotNeedsUbt(slot: AdminEscalaProgrammingSlot) {
 const stepHints: Record<AdminEscalaComposeStepId, { title: string; hint: string }> = {
   1: {
     title: 'Onde a escala será publicada',
-    hint: 'Selecione a prefeitura e o contrato operacional.',
+    hint: 'Selecione os clientes e contratos. Cada UBT só verá o médico se o contrato dela autorizar a especialidade do plantão.',
   },
   2: {
     title: 'Período da escala',
@@ -182,6 +191,7 @@ export function AdminEscalaComposeContent({
       ubtScope: editingBatch[0].ubtScope,
       contratosPorPrefeitura: buildInitialContratosPorPrefeitura(
         editScope,
+        editingBatch[0].contratoEntidadeIds,
         editingBatch[0].contratoEntidadeId,
       ),
       rangeStart: reconstructed.rangeStart || defaultRange.rangeStart,
@@ -215,6 +225,24 @@ export function AdminEscalaComposeContent({
   const [activePrefeituraId, setActivePrefeituraId] = useState<string | null>(
     initial.prefeituraScope.prefeituraIds[0] ?? null,
   )
+  const syncedPeriodWeekdaysKeyRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (activeStep !== 3) return
+    if (!isValidEscalaDateRange(rangeStart, rangeEnd)) return
+
+    const periodKey = `${rangeStart}|${rangeEnd}`
+    if (syncedPeriodWeekdaysKeyRef.current === periodKey) return
+    syncedPeriodWeekdaysKeyRef.current = periodKey
+
+    const weekdays = resolveWeekdaysInDateRange(rangeStart, rangeEnd)
+    if (weekdays.length === 0) return
+
+    setDraftSlot((current) => ({ ...current, weekdays }))
+    if (!isEdit || slots.length === 0) {
+      setSlots((current) => current.map((slot) => ({ ...slot, weekdays })))
+    }
+  }, [activeStep, rangeStart, rangeEnd, isEdit, slots.length])
 
   useEffect(() => {
     onActiveStepChange?.(activeStep === 1 ? 1 : 2)
@@ -245,21 +273,9 @@ export function AdminEscalaComposeContent({
     [prefeituraScope, contratosPorPrefeitura],
   )
 
-  const primaryContratoEntidadeId = useMemo(
-    () => resolvePrimaryContratoEntidadeId(prefeituraScope, contratosPorPrefeitura),
-    [prefeituraScope, contratosPorPrefeitura],
-  )
-
   const selectedContratoIds = useMemo(
-    () =>
-      [
-        ...new Set(
-          selectedPrefeituraIds
-            .map((prefeituraId) => contratosPorPrefeitura[prefeituraId])
-            .filter(Boolean),
-        ),
-      ] as string[],
-    [selectedPrefeituraIds, contratosPorPrefeitura],
+    () => resolveContratoEntidadeIds(prefeituraScope, contratosPorPrefeitura),
+    [prefeituraScope, contratosPorPrefeitura],
   )
 
   const singleDayPeriod = useMemo(
@@ -354,9 +370,10 @@ export function AdminEscalaComposeContent({
     () =>
       previewShifts.map((shift) => ({
         ...shift,
-        contratoEntidadeId: primaryContratoEntidadeId || null,
+        contratoEntidadeId: selectedContratoIds[0] ?? null,
+        contratoEntidadeIds: selectedContratoIds,
       })),
-    [previewShifts, primaryContratoEntidadeId],
+    [previewShifts, selectedContratoIds],
   )
 
   const handleContratosResolved = useCallback((contratos: EscalaContratoOptionApi[]) => {
@@ -369,11 +386,6 @@ export function AdminEscalaComposeContent({
       if (contrato) {
         setContratosById((current) => registerContratosById(current, [contrato]))
       }
-    setPrefeituraScope((current) => {
-      if (current.prefeituraIds.includes(prefeituraId)) return current
-      return { mode: 'selected', prefeituraIds: [...current.prefeituraIds, prefeituraId] }
-    })
-    setActivePrefeituraId(prefeituraId)
     },
     [],
   )
@@ -532,7 +544,7 @@ export function AdminEscalaComposeContent({
         const allowedSpecialtyIds = new Set(specialtyOptions.map((option) => option.value))
         for (const slot of slotsToCheck) {
           if (!allowedSpecialtyIds.has(slot.specialtyId)) {
-            return 'Uma ou mais especialidades não estão autorizadas no contrato selecionado.'
+            return 'A especialidade selecionada não está autorizada em nenhum dos contratos vinculados.'
           }
           const slotError = validateProgrammingSlot(slot, slotValidationOptions)
           if (slotError) return slotError
@@ -580,7 +592,7 @@ export function AdminEscalaComposeContent({
     const allowedSpecialtyIds = new Set(specialtyOptions.map((option) => option.value))
     for (const slot of slotsToValidate) {
       if (!allowedSpecialtyIds.has(slot.specialtyId)) {
-        return 'Uma ou mais especialidades não estão autorizadas no contrato selecionado.'
+        return 'A especialidade selecionada não está autorizada em nenhum dos contratos vinculados.'
       }
       const slotError = validateProgrammingSlot(slot, slotValidationOptions)
       if (slotError) return slotError
@@ -621,7 +633,8 @@ export function AdminEscalaComposeContent({
       status,
     }).map((shift) => ({
       ...shift,
-      contratoEntidadeId: primaryContratoEntidadeId || null,
+      contratoEntidadeId: selectedContratoIds[0] ?? null,
+      contratoEntidadeIds: selectedContratoIds,
       status,
     }))
     const doctorIds = [
@@ -700,7 +713,8 @@ export function AdminEscalaComposeContent({
       status,
     }).map((shift) => ({
       ...shift,
-      contratoEntidadeId: primaryContratoEntidadeId || null,
+      contratoEntidadeId: selectedContratoIds[0] ?? null,
+      contratoEntidadeIds: selectedContratoIds,
       status,
       updatedAt: new Date().toISOString(),
     }))
@@ -783,46 +797,17 @@ export function AdminEscalaComposeContent({
                 </div>
                 <div className="min-w-0 lg:pl-8">
                   <AdminEscalaComposeContratoColumn
-                    prefeituraId={activePrefeituraId}
-                    contratoId={
-                      activePrefeituraId
-                        ? (contratosPorPrefeitura[activePrefeituraId] ?? '')
-                        : ''
-                    }
+                    prefeituraIds={selectedPrefeituraIds}
+                    contratosPorPrefeitura={contratosPorPrefeitura}
                     specialtyIds={[...new Set(slots.map((s) => s.specialtyId))]}
-                    onContratoChange={(contratoId, contrato) => {
-                      if (!activePrefeituraId) return
-                      handleContratoChange(activePrefeituraId, contratoId, contrato)
-                    }}
-                    onLoadStateChange={(state) => {
-                      if (!activePrefeituraId) return
-                      handleContratoLoadStateChange(activePrefeituraId, state)
-                    }}
+                    onContratoChange={handleContratoChange}
+                    onLoadStateChange={handleContratoLoadStateChange}
                     onContractsResolved={handleContratosResolved}
                   />
-                  {selectedPrefeituraIds
-                    .filter((id) => id !== activePrefeituraId)
-                    .map((prefeituraId) => (
-                      <div key={`contrato-loader-${prefeituraId}`} className="hidden" aria-hidden>
-                        <AdminEscalaContratoField
-                          variant="flat"
-                          prefeituraScope={{ mode: 'selected', prefeituraIds: [prefeituraId] }}
-                          specialtyIds={[...new Set(slots.map((s) => s.specialtyId))]}
-                          value={contratosPorPrefeitura[prefeituraId] ?? ''}
-                          onChange={(contratoId, contrato) =>
-                            handleContratoChange(prefeituraId, contratoId, contrato)
-                          }
-                          onContractsLoaded={(count, contratos) => {
-                            handleContratoLoadStateChange(prefeituraId, { count, resolved: true })
-                            if (contratos?.length) handleContratosResolved(contratos)
-                          }}
-                        />
-                      </div>
-                    ))}
                   {selectedPrefeituraIds.length > 1 ? (
                     <p className="mt-4 text-xs text-gray-500">
-                      {selectedPrefeituraIds.length} prefeituras selecionadas — clique em cada uma
-                      à esquerda para definir o contrato.
+                      {selectedPrefeituraIds.length} clientes selecionados — as UBTs de todos os
+                      contratos escolhidos verão a agenda deste plantão.
                     </p>
                   ) : null}
                 </div>
@@ -860,8 +845,8 @@ export function AdminEscalaComposeContent({
                   <div className="min-w-0 space-y-4">
                     {specialtyOptions.length === 0 ? (
                       <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
-                        O contrato selecionado não possui especialidades autorizadas. Cadastre as
-                        especialidades em Admin → Clientes → contrato da entidade.
+                        Nenhum dos contratos selecionados possui especialidades autorizadas.
+                        Cadastre as especialidades em Admin → Clientes → contrato da entidade.
                       </div>
                     ) : (
                     <AdminEscalaPlantaoBlockCard

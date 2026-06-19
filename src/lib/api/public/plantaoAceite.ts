@@ -8,6 +8,7 @@ import { API_BASE_URL } from '../config'
 import type {
   PlantaoAceiteConfirmPayload,
   PlantaoAceiteConfirmResult,
+  PlantaoAceiteDigestResult,
   PlantaoAceitePublicoResult,
   PlantaoAceiteReserveResult,
 } from '../../../types/plantaoAceitePublico'
@@ -60,6 +61,19 @@ async function parseError(response: Response): Promise<PlantaoAceitePublicoApiEr
   }
 
   return new PlantaoAceitePublicoApiError(message, code, response.status)
+}
+
+export async function apiFetchPlantaoAceiteDigest(
+  token: string,
+): Promise<PlantaoAceiteDigestResult> {
+  const normalizedToken = normalizePlantaoAceiteToken(token)
+
+  const response = await fetch(
+    `${API_BASE_URL}/public/plantao-aceite/digest/${encodeURIComponent(normalizedToken)}`,
+  )
+
+  if (!response.ok) throw await parseError(response)
+  return (await response.json()) as PlantaoAceiteDigestResult
 }
 
 export async function apiFetchPlantaoAceitePublico(

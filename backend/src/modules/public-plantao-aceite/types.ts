@@ -34,6 +34,11 @@ export type PlantaoAceitePublicoResultDto = {
   plantao: PlantaoAceitePublicoDto
 }
 
+export type PlantaoAceiteDigestResultDto = {
+  totalVagas: number
+  plantoes: PlantaoAceitePublicoDto[]
+}
+
 export type ConfirmarPlantaoAceiteResultDto = {
   plantaoId: string
   profissionalNome: string

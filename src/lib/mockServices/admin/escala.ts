@@ -99,6 +99,7 @@ export type BatchSavePayload = {
   status: 'rascunho' | 'publicada'
   titulo?: string
   contratoEntidadeId?: string
+  contratoEntidadeIds?: string[]
   prefeituraScope: EscalaScopePrefeituraApi
   ubtScope: EscalaScopeUbtApi
   shifts: Array<{
@@ -355,10 +356,14 @@ export async function saveAdminEscalaBatch(
       'Especialidade'
     const existing = item.id ? existingById.get(item.id) : undefined
     const now = new Date().toISOString()
+    const contratoEntidadeIds =
+      payload.contratoEntidadeIds ??
+      (payload.contratoEntidadeId ? [payload.contratoEntidadeId] : [])
     return {
       id: existing?.id ?? item.id ?? `esc-${Date.now()}-${index}`,
       batchId: payload.batchId,
-      contratoEntidadeId: payload.contratoEntidadeId ?? null,
+      contratoEntidadeId: contratoEntidadeIds[0] ?? null,
+      contratoEntidadeIds,
       assignmentMode: item.assignmentMode,
       primaryDoctorId: item.primaryDoctorId ?? '',
       backupDoctorIds: item.backupDoctorIds ?? [],

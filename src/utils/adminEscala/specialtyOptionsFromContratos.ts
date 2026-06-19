@@ -1,6 +1,7 @@
 import { getAdminEscalaSpecialties } from '../../data/adminEscalaCatalog'
 import type { EscalaContratoOptionApi } from '../../lib/services/admin/escala'
 
+/** União das especialidades autorizadas nos contratos selecionados. */
 export function buildSpecialtyOptionsFromContratos(
   contratoIds: string[],
   contratosById: Record<string, EscalaContratoOptionApi>,

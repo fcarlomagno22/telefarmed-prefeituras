@@ -11,6 +11,11 @@ export const appPublicUrls = {
     return `${base}/plantao/aceitar/${encodeURIComponent(token)}`
   },
 
+  plantaoAceiteDigestUrl(token: string): string {
+    const base = resolvePublicAppUrl()
+    return `${base}/plantao/disponiveis/${encodeURIComponent(token)}`
+  },
+
   profissionalAgendaUrl(): string {
     const explicit = process.env.PROFISSIONAL_PORTAL_URL?.trim()
     if (explicit) return `${trimTrailingSlash(explicit)}/escala`

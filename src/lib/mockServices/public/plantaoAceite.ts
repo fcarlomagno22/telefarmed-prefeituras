@@ -1,6 +1,12 @@
-import { PLANTAO_ACEITE_DEMO_ESGOTADO_TOKEN, PLANTAO_ACEITE_DEMO_TOKEN } from '../../../config/publicRoutes'
+import {
+  PLANTAO_ACEITE_DEMO_ESGOTADO_TOKEN,
+  PLANTAO_ACEITE_DEMO_TOKEN,
+  PLANTAO_ACEITE_DIGEST_DEMO_TOKEN,
+} from '../../../config/publicRoutes'
 import { profissionalRoutes } from '../../../config/profissionalRoutes'
 import {
+  getPlantaoAceiteDigestDemoPlantao,
+  plantaoAceiteDigestDemo,
   plantaoAceitePublicoDemo,
   plantaoAceitePublicoDemoEsgotado,
 } from '../../../data/plantaoAceitePublicoMock'
@@ -8,6 +14,7 @@ import { profissionalLoggedProfile } from '../../../data/profissionalPerfilMock'
 import type {
   PlantaoAceiteConfirmPayload,
   PlantaoAceiteConfirmResult,
+  PlantaoAceiteDigestResult,
   PlantaoAceitePublicoResult,
   PlantaoAceiteReserveResult,
 } from '../../../types/plantaoAceitePublico'
@@ -39,6 +46,26 @@ export function isPlantaoAceitePublicoApiError(
   return error instanceof PlantaoAceitePublicoApiError
 }
 
+export async function mockFetchPlantaoAceiteDigest(
+  token: string,
+): Promise<PlantaoAceiteDigestResult> {
+  await delay(450)
+
+  if (!token.trim()) {
+    throw new PlantaoAceitePublicoApiError('Link inválido.', 'INVALID_TOKEN', 400)
+  }
+
+  if (token !== PLANTAO_ACEITE_DIGEST_DEMO_TOKEN) {
+    throw new PlantaoAceitePublicoApiError(
+      'Este link de vagas não foi encontrado ou já expirou.',
+      'NOT_FOUND',
+      404,
+    )
+  }
+
+  return plantaoAceiteDigestDemo
+}
+
 export async function mockFetchPlantaoAceitePublico(
   token: string,
 ): Promise<PlantaoAceitePublicoResult> {
@@ -68,7 +95,14 @@ export async function mockConfirmPlantaoAceitePublico(
 ): Promise<PlantaoAceiteConfirmResult> {
   await delay(MOCK_DELAY_MS)
 
-  if (payload.token !== PLANTAO_ACEITE_DEMO_TOKEN) {
+  const plantao =
+    payload.token === PLANTAO_ACEITE_DIGEST_DEMO_TOKEN
+      ? getPlantaoAceiteDigestDemoPlantao(payload.slotId ?? '')
+      : payload.token === PLANTAO_ACEITE_DEMO_TOKEN
+        ? plantaoAceitePublicoDemo
+        : null
+
+  if (!plantao) {
     throw new PlantaoAceitePublicoApiError(
       'Este link de aceite não foi encontrado ou já expirou.',
       'NOT_FOUND',
@@ -87,7 +121,7 @@ export async function mockConfirmPlantaoAceitePublico(
     )
   }
 
-  if (plantaoAceitePublicoDemo.status !== 'disponivel' || plantaoAceitePublicoDemo.vacancies <= 0) {
+  if (plantao.status !== 'disponivel' || plantao.vacancies <= 0) {
     throw new PlantaoAceitePublicoApiError(
       'Não foi possível reservar este plantão.',
       'SLOT_UNAVAILABLE',
@@ -96,7 +130,7 @@ export async function mockConfirmPlantaoAceitePublico(
   }
 
   return {
-    plantaoId: 'plantao-demo-001',
+    plantaoId: `plantao-demo-${plantao.slotId}`,
     profissionalNome: profissionalLoggedProfile.fullName,
     agendaUrl: profissionalRoutes.agenda,
   }
@@ -107,7 +141,14 @@ export async function mockCandidatarReservaPlantaoAceitePublico(
 ): Promise<PlantaoAceiteReserveResult> {
   await delay(MOCK_DELAY_MS)
 
-  if (payload.token !== PLANTAO_ACEITE_DEMO_ESGOTADO_TOKEN) {
+  const plantao =
+    payload.token === PLANTAO_ACEITE_DIGEST_DEMO_TOKEN
+      ? getPlantaoAceiteDigestDemoPlantao(payload.slotId ?? '')
+      : payload.token === PLANTAO_ACEITE_DEMO_ESGOTADO_TOKEN
+        ? plantaoAceitePublicoDemoEsgotado
+        : null
+
+  if (!plantao) {
     throw new PlantaoAceitePublicoApiError(
       'Este plantão ainda possui vaga disponível.',
       'SLOT_UNAVAILABLE',
@@ -126,9 +167,17 @@ export async function mockCandidatarReservaPlantaoAceitePublico(
     )
   }
 
+  if (plantao.status !== 'vagas_esgotadas' || !plantao.canApplyAsReserve) {
+    throw new PlantaoAceitePublicoApiError(
+      'Este plantão ainda possui vaga disponível.',
+      'SLOT_UNAVAILABLE',
+      409,
+    )
+  }
+
   return {
     profissionalNome: profissionalLoggedProfile.fullName,
-    reservePosition: plantaoAceitePublicoDemoEsgotado.reserveQueueCount + 1,
+    reservePosition: plantao.reserveQueueCount + 1,
     agendaUrl: profissionalRoutes.agenda,
   }
 }

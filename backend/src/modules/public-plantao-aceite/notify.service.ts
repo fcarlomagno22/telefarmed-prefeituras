@@ -1,26 +1,24 @@
 import { supabaseAdmin } from '../../db/supabase.js'
 import { appPublicUrls } from '../../config/appUrls.js'
+import type { PlantaoAceiteEmailSlotInput } from '../../lib/email/plantaoAceiteEmailFormatters.js'
 import {
-  buildPlantaoAceiteEmailSubject,
-  buildPlantaoAceiteEmailVariablesFromSlot,
-  type PlantaoAceiteEmailSlotInput,
-} from '../../lib/email/plantaoAceiteEmailFormatters.js'
+  buildPlantaoAceiteDigestEmailSubject,
+  buildPlantaoAceiteDigestEmailVariables,
+} from '../../lib/email/plantaoAceiteDigestEmailFormatters.js'
 import {
-  buildPlantaoAceiteEmailHtml,
-  buildPlantaoAceiteEmailText,
-} from '../../lib/email/plantaoAceiteEmailTemplate.js'
+  buildPlantaoAceiteDigestEmailHtml,
+  buildPlantaoAceiteDigestEmailText,
+} from '../../lib/email/plantaoAceiteDigestEmailTemplate.js'
 import { sendMail } from '../../lib/email/smtp.js'
 import { isPublicAppUrlLocalOnly } from '../../lib/codigoVerificacaoDocumento.js'
 import { resolveSlotTimestampIso } from '../../lib/escalaDateTime.js'
 import { slotMatchesProfissionalScope } from '../profissional-escala/context.service.js'
 import type { ProfissionalEscalaContext } from '../profissional-escala/types.js'
 import {
-  findConviteIdBySlotId,
-  issueFreshConviteForSlot,
-  markConviteNotificado,
-} from './convite.service.js'
-
-const APP_TIMEZONE = 'America/Sao_Paulo'
+  findDigestIdByProfissionalId,
+  issueDigestConvite,
+  markDigestNotificado,
+} from './digest.service.js'
 
 type OpenSlotNotifyRow = {
   id: string
@@ -42,14 +40,10 @@ type OpenSlotNotifyRow = {
   vagas_disponiveis: number
 }
 
-function formatPrazoAceiteLabel(data: string, horaInicio: string): string {
-  const instant = new Date(resolveSlotTimestampIso(data, horaInicio))
-  const formatted = new Intl.DateTimeFormat('pt-BR', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-    timeZone: APP_TIMEZONE,
-  }).format(instant)
-  return `${formatted} (início do plantão)`
+type EligibleProfessional = {
+  id: string
+  nome: string
+  email: string
 }
 
 async function loadOpenSlotsForNotify(slotIds: string[]): Promise<OpenSlotNotifyRow[]> {
@@ -124,12 +118,16 @@ async function loadOpenSlotsForNotify(slotIds: string[]): Promise<OpenSlotNotify
     })
   }
 
-  return rows
+  return rows.sort((a, b) => {
+    const startA = new Date(resolveSlotTimestampIso(a.data, a.hora_inicio)).getTime()
+    const startB = new Date(resolveSlotTimestampIso(b.data, b.hora_inicio)).getTime()
+    return startA - startB
+  })
 }
 
 async function listEligibleProfessionals(
   slot: Pick<OpenSlotNotifyRow, 'especialidade_id' | 'escopo_prefeitura'>,
-): Promise<Array<{ id: string; nome: string; email: string }>> {
+): Promise<EligibleProfessional[]> {
   const { data, error } = await supabaseAdmin
     .from('usuarios_profissionais')
     .select('id, nome, email, especialidade_id, alocacao, entidade_contratante_id')
@@ -139,7 +137,7 @@ async function listEligibleProfessionals(
 
   if (error) throw error
 
-  const eligible: Array<{ id: string; nome: string; email: string }> = []
+  const eligible: EligibleProfessional[] = []
 
   for (const row of data ?? []) {
     const email = row.email ? String(row.email).trim() : ''
@@ -174,17 +172,8 @@ async function listEligibleProfessionals(
   return eligible
 }
 
-async function notifyOpenSlot(slot: OpenSlotNotifyRow): Promise<void> {
-  const token = await issueFreshConviteForSlot({
-    id: slot.id,
-    data: slot.data,
-    hora_inicio: slot.hora_inicio,
-  })
-
-  const professionals = await listEligibleProfessionals(slot)
-  if (professionals.length === 0) return
-
-  const emailSlot: PlantaoAceiteEmailSlotInput = {
+function toEmailSlot(slot: OpenSlotNotifyRow): PlantaoAceiteEmailSlotInput {
+  return {
     especialidade: slot.especialidade_nome,
     data: slot.data,
     hora_inicio: slot.hora_inicio,
@@ -199,58 +188,99 @@ async function notifyOpenSlot(slot: OpenSlotNotifyRow): Promise<void> {
     repasse_regra: slot.repasse_regra,
     publicado_em: slot.publicado_em,
   }
+}
 
-  const linkAceite = appPublicUrls.plantaoAceiteUrl(token)
+async function buildProfessionalSlotMap(
+  slots: OpenSlotNotifyRow[],
+): Promise<Map<string, { prof: EligibleProfessional; slots: OpenSlotNotifyRow[] }>> {
+  const byEmail = new Map<string, { prof: EligibleProfessional; slots: OpenSlotNotifyRow[] }>()
+
+  for (const slot of slots) {
+    const professionals = await listEligibleProfessionals(slot)
+    for (const prof of professionals) {
+      const key = prof.email.toLowerCase()
+      const existing = byEmail.get(key)
+      if (existing) {
+        if (!existing.slots.some((item) => item.id === slot.id)) {
+          existing.slots.push(slot)
+        }
+        continue
+      }
+      byEmail.set(key, { prof, slots: [slot] })
+    }
+  }
+
+  for (const entry of byEmail.values()) {
+    entry.slots.sort((a, b) => {
+      const startA = new Date(resolveSlotTimestampIso(a.data, a.hora_inicio)).getTime()
+      const startB = new Date(resolveSlotTimestampIso(b.data, b.hora_inicio)).getTime()
+      return startA - startB
+    })
+  }
+
+  return byEmail
+}
+
+async function notifyProfessionalDigest(input: {
+  prof: EligibleProfessional
+  slots: OpenSlotNotifyRow[]
+}): Promise<void> {
+  const digestToken = await issueDigestConvite({
+    profissionalId: input.prof.id,
+    slotIds: input.slots.map((slot) => slot.id),
+    slotsForExpiry: input.slots.map((slot) => ({
+      data: slot.data,
+      hora_inicio: slot.hora_inicio,
+    })),
+  })
+
+  const linkVagas = appPublicUrls.plantaoAceiteDigestUrl(digestToken)
   if (isPublicAppUrlLocalOnly()) {
     console.warn(
       '[plantao-aceite-notify] PUBLIC_APP_URL aponta para localhost — links do e-mail não abrem no celular. ' +
         'Defina PUBLIC_APP_LAN_URL=http://SEU_IP:5173 no backend/.env (ex.: http://192.168.1.103:5173).',
     )
   }
-  const variables = buildPlantaoAceiteEmailVariablesFromSlot(emailSlot, {
-    link_aceite: linkAceite,
-    prazo_aceite: formatPrazoAceiteLabel(slot.data, slot.hora_inicio),
-    link_escala: appPublicUrls.profissionalAgendaUrl(),
-  })
 
-  const subject = buildPlantaoAceiteEmailSubject(variables)
-  const html = buildPlantaoAceiteEmailHtml(variables)
-  const text = buildPlantaoAceiteEmailText(variables)
-
-  const results = await Promise.allSettled(
-    professionals.map((prof) =>
-      sendMail({
-        to: prof.email,
-        subject,
-        html,
-        text,
-      }),
-    ),
+  const variables = buildPlantaoAceiteDigestEmailVariables(
+    input.slots.map(toEmailSlot),
+    {
+      link_vagas: linkVagas,
+      link_escala: appPublicUrls.profissionalAgendaUrl(),
+    },
   )
 
-  const sentCount = results.filter((result) => result.status === 'fulfilled').length
-  if (sentCount === 0) {
-    for (const result of results) {
-      if (result.status === 'rejected') {
-        console.error('[plantao-aceite-notify] falha ao enviar e-mail:', result.reason)
-      }
-    }
-    return
-  }
+  const subject = buildPlantaoAceiteDigestEmailSubject(variables)
+  const html = buildPlantaoAceiteDigestEmailHtml(variables)
+  const text = buildPlantaoAceiteDigestEmailText(variables)
 
-  const conviteId = await findConviteIdBySlotId(slot.id)
-  if (conviteId) {
-    await markConviteNotificado(conviteId)
+  await sendMail({
+    to: input.prof.email,
+    subject,
+    html,
+    text,
+  })
+
+  const digestId = await findDigestIdByProfissionalId(input.prof.id)
+  if (digestId) {
+    await markDigestNotificado(digestId)
   }
 }
 
 export async function notifyPublishedOpenPlantaoSlots(slotIds: string[]): Promise<void> {
   const slots = await loadOpenSlotsForNotify(slotIds)
-  for (const slot of slots) {
+  if (slots.length === 0) return
+
+  const professionalMap = await buildProfessionalSlotMap(slots)
+
+  for (const entry of professionalMap.values()) {
     try {
-      await notifyOpenSlot(slot)
+      await notifyProfessionalDigest(entry)
     } catch (error) {
-      console.error(`[plantao-aceite-notify] falha no slot ${slot.id}:`, error)
+      console.error(
+        `[plantao-aceite-notify] falha ao notificar ${entry.prof.email}:`,
+        error,
+      )
     }
   }
 }

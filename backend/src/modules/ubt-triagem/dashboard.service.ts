@@ -1,7 +1,11 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { applyNestedEscalaSlotContratoOverlapFilter } from '../../lib/escalaContratoScope.js'
 import { isMissingSupabaseResource } from '../../lib/supabaseErrors.js'
+import {
+  loadContratoSpecialtyContext,
+  slotAuthorizedForCliente,
+} from '../ubt-agenda/contrato-specialty.service.js'
 import { slotVisibleToUbt, todayIsoInBrazil } from '../ubt-agenda/slot-utils.js'
-import { loadActiveContratoIds } from '../ubt-agenda/ownership.js'
 import type { UbtScope } from './types.js'
 
 export type UbtTriagemDashboardDto = {
@@ -54,10 +58,11 @@ function progressFromCount(count: number, max: number): number {
 }
 
 async function countDoctorsOnShiftToday(scope: UbtScope, date: string): Promise<number> {
-  const contratoIds = await loadActiveContratoIds(scope.entidadeContratanteId)
+  const { contratoIds, index: contratoSpecialtyIndex } =
+    await loadContratoSpecialtyContext(scope.entidadeContratanteId)
   if (contratoIds.length === 0) return 0
 
-  const { data, error } = await supabaseAdmin
+  let query = supabaseAdmin
     .from('escala_plantoes_confirmados')
     .select(
       `
@@ -67,6 +72,8 @@ async function countDoctorsOnShiftToday(scope: UbtScope, date: string): Promise<
         escopo_ubt,
         status,
         contrato_entidade_id,
+        contrato_entidade_ids,
+        especialidade_id,
         data
       )
     `,
@@ -74,7 +81,10 @@ async function countDoctorsOnShiftToday(scope: UbtScope, date: string): Promise<
     .in('status', ['confirmado', 'realizado'])
     .eq('escala_slots.data', date)
     .eq('escala_slots.status', 'publicada')
-    .in('escala_slots.contrato_entidade_id', contratoIds)
+
+  query = applyNestedEscalaSlotContratoOverlapFilter(query, contratoIds)
+
+  const { data, error } = await query
 
   if (error) throw error
 
@@ -84,8 +94,22 @@ async function countDoctorsOnShiftToday(scope: UbtScope, date: string): Promise<
     const slot = (Array.isArray(slotRaw) ? slotRaw[0] : slotRaw) as {
       modalidade: string
       escopo_ubt: unknown
+      contrato_entidade_id?: string | null
+      contrato_entidade_ids?: string[] | null
+      especialidade_id: string
     } | null
     if (!slot) continue
+    if (
+      !slotAuthorizedForCliente({
+        slotContratoIds: slot.contrato_entidade_ids,
+        slotLegacyContratoId: slot.contrato_entidade_id,
+        specialtyId: String(slot.especialidade_id),
+        clientContratoIds: contratoIds,
+        index: contratoSpecialtyIndex,
+      })
+    ) {
+      continue
+    }
     if (!slotVisibleToUbt(slot.escopo_ubt, scope.unidadeUbtId, slot.modalidade)) continue
     profissionais.add(String(row.profissional_id))
   }

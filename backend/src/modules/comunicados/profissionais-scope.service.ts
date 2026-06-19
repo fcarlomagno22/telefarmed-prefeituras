@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { applyNestedEscalaSlotContratoOverlapFilter } from '../../lib/escalaContratoScope.js'
 import { ComunicadosError } from './errors.js'
 import type { DestinatarioInsert } from './types.js'
 
@@ -77,11 +78,14 @@ export async function listProfissionaisForEntidade(
   }
 
   if (contratoIds.length > 0) {
-    const { data: plantaoRows, error: plantaoError } = await supabaseAdmin
+    let plantaoQuery = supabaseAdmin
       .from('escala_plantoes_confirmados')
       .select('profissional_id, escala_slots!inner(contrato_entidade_id)')
       .in('status', ['confirmado', 'realizado'])
-      .in('escala_slots.contrato_entidade_id', contratoIds)
+
+    plantaoQuery = applyNestedEscalaSlotContratoOverlapFilter(plantaoQuery, contratoIds)
+
+    const { data: plantaoRows, error: plantaoError } = await plantaoQuery
 
     if (plantaoError) throw plantaoError
     for (const row of plantaoRows ?? []) {
@@ -157,11 +161,14 @@ export async function listProfissionaisForUbt(
   }
 
   if (contratoIds.length > 0) {
-    const { data: plantaoRows, error: plantaoError } = await supabaseAdmin
+    let plantaoQuery = supabaseAdmin
       .from('escala_plantoes_confirmados')
       .select('profissional_id, escala_slots!inner(contrato_entidade_id, escopo_ubt, modalidade)')
       .in('status', ['confirmado', 'realizado'])
-      .in('escala_slots.contrato_entidade_id', contratoIds)
+
+    plantaoQuery = applyNestedEscalaSlotContratoOverlapFilter(plantaoQuery, contratoIds)
+
+    const { data: plantaoRows, error: plantaoError } = await plantaoQuery
 
     if (plantaoError) throw plantaoError
 

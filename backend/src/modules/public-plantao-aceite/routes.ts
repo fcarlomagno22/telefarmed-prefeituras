@@ -9,6 +9,7 @@ import {
   plantaoAceiteIcsQuerySchema,
   plantaoAceiteTokenParamSchema,
 } from './schemas.js'
+import { getPlantaoAceiteDigestByToken } from './digest-query.service.js'
 import { getPlantaoAceitePublicoByToken } from './query.service.js'
 import { confirmarPlantaoAceitePublico } from './confirmar.service.js'
 import { candidatarReservaPlantaoAceitePublico } from './reserva.service.js'
@@ -29,6 +30,30 @@ const PUBLIC_PLANTAO_ACEITE_CONFIRM_RATE_LIMIT = {
 } as const
 
 export async function registerPublicPlantaoAceiteRoutes(app: FastifyInstance): Promise<void> {
+  app.get(
+    '/digest/:token',
+    { config: PUBLIC_PLANTAO_ACEITE_RATE_LIMIT },
+    async (request, reply) => {
+      const parsed = plantaoAceiteTokenParamSchema.safeParse(
+        (request.params as { token?: string }).token,
+      )
+      if (!parsed.success) {
+        return reply
+          .status(400)
+          .send({ error: formatPublicPlantaoAceiteValidationError(parsed.error) })
+      }
+
+      try {
+        const result = await getPlantaoAceiteDigestByToken(parsed.data)
+        reply.header('Cache-Control', 'private, no-store')
+        return reply.send(result)
+      } catch (error) {
+        const mapped = mapPublicPlantaoAceiteError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  )
+
   app.get('/:token', { config: PUBLIC_PLANTAO_ACEITE_RATE_LIMIT }, async (request, reply) => {
     const parsed = plantaoAceiteTokenParamSchema.safeParse(
       (request.params as { token?: string }).token,
