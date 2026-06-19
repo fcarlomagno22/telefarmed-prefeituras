@@ -10,6 +10,7 @@ import {
 import { ProfissionalAtendimentosError } from './errors.js'
 import {
   formatDoctorCrm,
+  formatPatientAddress,
   formatPatientCity,
   mapHistoricoProntuario,
   mapSexoToGender,
@@ -63,6 +64,7 @@ export async function getProfissionalConsultaSessao(
     status: String(row.status),
     patientName: String(row.paciente_nome ?? '—'),
     patientBirthDateIso: birthIso,
+    patientAddress: formatPatientAddress(row.paciente_endereco),
     patientCity: formatPatientCity(row.paciente_endereco),
     patientCpfMasked: maskCpfPartial(String(row.paciente_cpf ?? '')),
     patientPhotoUrl: row.paciente_foto_url?.trim() || '',

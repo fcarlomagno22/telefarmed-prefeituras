@@ -15,6 +15,7 @@ export function buildEntidadeIdentityFields(cliente: AdminClienteRow) {
 }
 
 export type EntidadeBrandingEditChanges = {
+  slug?: string
   logoDataUrl?: string
   loginBackgroundDataUrl?: string
   faviconDataUrl?: string
@@ -27,6 +28,7 @@ export function buildEntidadeBrandingUpdatePayload(
 ): Omit<UpdateEntidadePayload, 'pin'> {
   return {
     ...buildEntidadeIdentityFields(cliente),
+    ...(changes.slug ? { slug: changes.slug } : {}),
     ...(changes.corPrimaria ? { corPrimaria: changes.corPrimaria } : {}),
     ...(changes.logoDataUrl ? { logoDataUrl: changes.logoDataUrl } : {}),
     ...(changes.loginBackgroundDataUrl

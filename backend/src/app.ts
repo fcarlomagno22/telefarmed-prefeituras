@@ -65,6 +65,8 @@ import {
 } from './modules/pos-consulta/routes.js'
 import { registerInternalCronRoutes } from './modules/internal-cron/routes.js'
 import { registerPublicTenantRoutes } from './modules/public-tenant/routes.js'
+import { registerPublicDemoRoutes } from './modules/public-demo/routes.js'
+import { registerIcdReferenceRoutes } from './modules/icd-reference/routes.js'
 import { resolveCorsOrigin } from './lib/corsOrigins.js'
 
 export async function buildApp() {
@@ -314,6 +316,20 @@ export async function buildApp() {
       await registerPublicLiveShareRoutes(publicLiveShare)
     },
     { prefix: '/api/v1/public/live-share' },
+  )
+
+  await app.register(
+    async (publicDemo) => {
+      await registerPublicDemoRoutes(publicDemo)
+    },
+    { prefix: '/api/v1/public/demo' },
+  )
+
+  await app.register(
+    async (icdReference) => {
+      await registerIcdReferenceRoutes(icdReference)
+    },
+    { prefix: '/api/v1/reference/icd' },
   )
 
   await app.register(

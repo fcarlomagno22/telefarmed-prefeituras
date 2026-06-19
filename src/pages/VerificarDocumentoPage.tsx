@@ -123,6 +123,16 @@ function formatTipo(tipo: string) {
       return 'Pedido de exames'
     case 'atestado':
       return 'Atestado médico'
+    case 'encaminhamento':
+      return 'Encaminhamento médico'
+    case 'relatorio':
+      return 'Relatório médico'
+    case 'laudo':
+      return 'Laudo médico'
+    case 'avaliacao_presencial':
+      return 'Avaliação presencial'
+    case 'internacao':
+      return 'Internação'
     default:
       return tipo
   }

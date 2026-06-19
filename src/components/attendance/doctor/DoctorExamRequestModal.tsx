@@ -29,20 +29,40 @@ export type DoctorExamRequestDoctorInfo = {
   crm: string
 }
 
+type ExamPriority = 'routine' | 'urgent'
+
+export type DoctorExamRequestSignedPayload = {
+  selectedExams: ExamCatalogItem[]
+  clinicalIndication: string
+  customExamNames: string[]
+  priority: ExamPriority
+}
+
 type DoctorExamRequestModalProps = {
   open: boolean
   onClose: () => void
-  onSigned?: (payload: {
-    selectedExams: ExamCatalogItem[]
-    clinicalIndication: string
-    customExamNames: string[]
-  }) => void | Promise<void>
+  onSigned?: (payload: DoctorExamRequestSignedPayload) => void | Promise<void>
   patient: DoctorExamRequestPatientInfo
   doctor: DoctorExamRequestDoctorInfo
   examCatalog?: ExamCatalogItem[]
 }
 
-type ExamPriority = 'routine' | 'urgent'
+type CategoryFilterId = 'all' | string
+
+function normalizeSearchText(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+}
+
+function matchesExamSearch(item: ExamCatalogItem, query: string) {
+  if (!query) return true
+
+  const haystack = normalizeSearchText(`${item.name} ${item.category}`)
+  return haystack.includes(query)
+}
 
 function groupExamsByCategory(items: ExamCatalogItem[]) {
   const groups = new Map<string, ExamCatalogItem[]>()
@@ -79,6 +99,7 @@ export function DoctorExamRequestModal({
   examCatalog,
 }: DoctorExamRequestModalProps) {
   const [catalogSearch, setCatalogSearch] = useState('')
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState<CategoryFilterId>('all')
   const [customExamDraft, setCustomExamDraft] = useState('')
   const [customExams, setCustomExams] = useState<ExamCatalogItem[]>([])
   const [clinicalIndication, setClinicalIndication] = useState('')
@@ -117,6 +138,7 @@ export function DoctorExamRequestModal({
     if (open) return
 
     setCatalogSearch('')
+    setActiveCategoryFilter('all')
     setCustomExamDraft('')
     setCustomExams([])
     setClinicalIndication('')
@@ -126,18 +148,73 @@ export function DoctorExamRequestModal({
     setValidationHint(null)
   }, [open])
 
+  const searchQuery = useMemo(() => normalizeSearchText(catalogSearch), [catalogSearch])
+
   const filteredCatalog = useMemo(() => {
-    const query = catalogSearch.trim().toLowerCase()
-    if (!query) return allExams
+    if (!searchQuery) return allExams
+    return allExams.filter((item) => matchesExamSearch(item, searchQuery))
+  }, [allExams, searchQuery])
 
-    return allExams.filter(
-      (item) =>
-        item.name.toLowerCase().includes(query) ||
-        item.category.toLowerCase().includes(query),
+  const categoryFilters = useMemo(() => {
+    const counts = new Map<string, number>()
+
+    for (const item of filteredCatalog) {
+      counts.set(item.category, (counts.get(item.category) ?? 0) + 1)
+    }
+
+    const ordered = EXAM_REQUEST_CATEGORIES.map((category) => ({
+      id: category,
+      label: category,
+      count: counts.get(category) ?? 0,
+    })).filter((item) => item.count > 0)
+
+    const unknownCategories = [...counts.keys()].filter(
+      (category) => !EXAM_REQUEST_CATEGORIES.includes(category as (typeof EXAM_REQUEST_CATEGORIES)[number]),
     )
-  }, [allExams, catalogSearch])
 
-  const groupedCatalog = useMemo(() => groupExamsByCategory(filteredCatalog), [filteredCatalog])
+    for (const category of unknownCategories) {
+      ordered.push({
+        id: category,
+        label: category,
+        count: counts.get(category) ?? 0,
+      })
+    }
+
+    return ordered
+  }, [filteredCatalog])
+
+  const selectedCountByCategory = useMemo(() => {
+    const counts = new Map<string, number>()
+
+    for (const examId of selectedExamIds) {
+      const exam = allExams.find((item) => item.id === examId)
+      if (!exam) continue
+      counts.set(exam.category, (counts.get(exam.category) ?? 0) + 1)
+    }
+
+    return counts
+  }, [allExams, selectedExamIds])
+
+  const displayedCatalog = useMemo(() => {
+    if (activeCategoryFilter === 'all') return filteredCatalog
+    return filteredCatalog.filter((item) => item.category === activeCategoryFilter)
+  }, [activeCategoryFilter, filteredCatalog])
+
+  useEffect(() => {
+    if (activeCategoryFilter === 'all') return
+    const stillVisible = categoryFilters.some((item) => item.id === activeCategoryFilter)
+    if (!stillVisible) setActiveCategoryFilter('all')
+  }, [activeCategoryFilter, categoryFilters])
+
+  const groupedCatalog = useMemo(() => {
+    if (displayedCatalog.length === 0) return []
+
+    if (activeCategoryFilter !== 'all') {
+      return [{ category: activeCategoryFilter, items: displayedCatalog }]
+    }
+
+    return groupExamsByCategory(displayedCatalog)
+  }, [activeCategoryFilter, displayedCatalog])
 
   const selectedExams = useMemo(
     () =>
@@ -159,6 +236,33 @@ export function DoctorExamRequestModal({
     setValidationHint(null)
     setSelectedExamIds((current) =>
       current.includes(examId) ? current.filter((id) => id !== examId) : [...current, examId],
+    )
+  }
+
+  function toggleCategorySelection(category: string) {
+    const categoryExamIds = displayedCatalog
+      .filter((item) => item.category === category)
+      .map((item) => item.id)
+    if (categoryExamIds.length === 0) return
+
+    const allSelected = categoryExamIds.every((id) => selectedExamIds.includes(id))
+    setValidationHint(null)
+
+    if (allSelected) {
+      setSelectedExamIds((current) => current.filter((id) => !categoryExamIds.includes(id)))
+      return
+    }
+
+    setSelectedExamIds((current) => [...new Set([...current, ...categoryExamIds])])
+  }
+
+  function isCategoryFullySelected(category: string) {
+    const categoryExamIds = displayedCatalog
+      .filter((item) => item.category === category)
+      .map((item) => item.id)
+    return (
+      categoryExamIds.length > 0 &&
+      categoryExamIds.every((id) => selectedExamIds.includes(id))
     )
   }
 
@@ -210,6 +314,7 @@ export function DoctorExamRequestModal({
           selectedExams,
           clinicalIndication: clinicalIndication.trim(),
           customExamNames: customExams.map((item) => item.name),
+          priority,
         }),
       )
       onClose()
@@ -225,6 +330,7 @@ export function DoctorExamRequestModal({
       message="Pedido de exames assinado e disponível para o paciente"
       visible={successToastVisible}
       variant="success"
+      durationMs={2000}
       onClose={() => setSuccessToastVisible(false)}
     />
   )
@@ -392,7 +498,7 @@ export function DoctorExamRequestModal({
                 <div>
                   <h3 className="text-sm font-bold text-gray-900">Catálogo de exames</h3>
                   <p className="mt-0.5 text-xs text-gray-500">
-                    Busque na lista ou cadastre um exame que não esteja no catálogo.
+                    Filtre por categoria ou busque pelo nome do exame.
                   </p>
                 </div>
 
@@ -406,10 +512,79 @@ export function DoctorExamRequestModal({
                     type="search"
                     value={catalogSearch}
                     onChange={(event) => setCatalogSearch(event.target.value)}
-                    placeholder="Buscar por nome ou categoria…"
+                    placeholder="Buscar por nome do exame…"
                     className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3.5 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"
                   />
                 </div>
+
+                {categoryFilters.length > 0 ? (
+                  <div>
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                      Categorias
+                    </p>
+                    <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+                      <button
+                        type="button"
+                        onClick={() => setActiveCategoryFilter('all')}
+                        className={[
+                          'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition',
+                          activeCategoryFilter === 'all'
+                            ? 'border-sky-300 bg-sky-600 text-white shadow-sm'
+                            : 'border-gray-200 bg-white text-gray-600 hover:border-sky-200 hover:text-sky-700',
+                        ].join(' ')}
+                      >
+                        Todos
+                        <span
+                          className={[
+                            'rounded-full px-1.5 py-0.5 text-[10px] font-bold',
+                            activeCategoryFilter === 'all' ? 'bg-white/20' : 'bg-gray-100',
+                          ].join(' ')}
+                        >
+                          {filteredCatalog.length}
+                        </span>
+                      </button>
+
+                      {categoryFilters.map((category) => {
+                        const isActive = activeCategoryFilter === category.id
+                        const selectedInCategory = selectedCountByCategory.get(category.id) ?? 0
+
+                        return (
+                          <button
+                            key={category.id}
+                            type="button"
+                            onClick={() => setActiveCategoryFilter(category.id)}
+                            className={[
+                              'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition',
+                              isActive
+                                ? 'border-sky-300 bg-sky-600 text-white shadow-sm'
+                                : 'border-gray-200 bg-white text-gray-600 hover:border-sky-200 hover:text-sky-700',
+                            ].join(' ')}
+                          >
+                            {category.label}
+                            <span
+                              className={[
+                                'rounded-full px-1.5 py-0.5 text-[10px] font-bold',
+                                isActive ? 'bg-white/20' : 'bg-gray-100',
+                              ].join(' ')}
+                            >
+                              {category.count}
+                            </span>
+                            {selectedInCategory > 0 ? (
+                              <span
+                                className={[
+                                  'rounded-full px-1.5 py-0.5 text-[10px] font-bold',
+                                  isActive ? 'bg-white text-sky-700' : 'bg-sky-100 text-sky-700',
+                                ].join(' ')}
+                              >
+                                {selectedInCategory} ✓
+                              </span>
+                            ) : null}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="rounded-xl border border-sky-100 bg-sky-50/50 p-3">
                   <label
@@ -457,11 +632,25 @@ export function DoctorExamRequestModal({
               <div className="mt-4 min-h-0 flex-1 overflow-y-auto rounded-xl border border-gray-100 bg-gray-50/40 p-3">
                 {groupedCatalog.length > 0 ? (
                   <div className="space-y-4">
-                    {groupedCatalog.map(({ category, items }) => (
+                    {groupedCatalog.map(({ category, items }) => {
+                      const categoryFullySelected = isCategoryFullySelected(category)
+
+                      return (
                       <section key={category}>
-                        <h4 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-                          {category}
-                        </h4>
+                        <div className="mb-2 flex items-center justify-between gap-2 px-1">
+                          <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                            {category}
+                          </h4>
+                          {items.length > 1 ? (
+                            <button
+                              type="button"
+                              onClick={() => toggleCategorySelection(category)}
+                              className="text-[11px] font-semibold text-sky-700 transition hover:underline"
+                            >
+                              {categoryFullySelected ? 'Desmarcar todos' : 'Selecionar todos'}
+                            </button>
+                          ) : null}
+                        </div>
                         <ul className="space-y-1.5">
                           {items.map((exam) => {
                             const isSelected = selectedExamIds.includes(exam.id)
@@ -500,13 +689,28 @@ export function DoctorExamRequestModal({
                           })}
                         </ul>
                       </section>
-                    ))}
+                      )
+                    })}
                   </div>
                 ) : (
                   <div className="flex h-full min-h-[12rem] flex-col items-center justify-center gap-3 px-4 text-center">
                     <p className="text-sm text-gray-500">
-                      Nenhum exame encontrado para &quot;{catalogSearch.trim()}&quot;.
+                      {catalogSearch.trim() || activeCategoryFilter !== 'all'
+                        ? `Nenhum exame encontrado${catalogSearch.trim() ? ` para "${catalogSearch.trim()}"` : ''}${activeCategoryFilter !== 'all' ? ` em ${activeCategoryFilter}` : ''}.`
+                        : 'Nenhum exame disponível no catálogo.'}
                     </p>
+                    {(catalogSearch.trim() || activeCategoryFilter !== 'all') ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCatalogSearch('')
+                          setActiveCategoryFilter('all')
+                        }}
+                        className="text-xs font-semibold text-sky-700 hover:underline"
+                      >
+                        Limpar filtros
+                      </button>
+                    ) : null}
                     {catalogSearch.trim() ? (
                       <button
                         type="button"

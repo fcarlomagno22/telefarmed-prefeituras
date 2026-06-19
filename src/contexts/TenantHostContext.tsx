@@ -15,6 +15,7 @@ import {
 } from '../config/portalHost'
 import { fetchPublicTenant } from '../lib/api/public/tenant'
 import { useTenantFavicon } from '../hooks/useTenantFavicon'
+import { useFallbackDocumentTitle } from '../hooks/useAppDocumentTitle'
 import type { PublicTenantResponse, TenantHostStatus } from '../types/tenantHost'
 import type { EntidadeBrandingFields } from '../types/entidadeBranding'
 
@@ -47,6 +48,7 @@ function mapPublicBrandingToFields(
 }
 
 function TenantHostDocumentHead({ faviconUrl }: { faviconUrl: string | null | undefined }) {
+  useFallbackDocumentTitle()
   useTenantFavicon(faviconUrl)
   return null
 }

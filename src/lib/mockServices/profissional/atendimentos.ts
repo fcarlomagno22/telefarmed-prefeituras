@@ -44,6 +44,7 @@ export type ProfissionalConsultaSessao = {
   status: string
   patientName: string
   patientBirthDateIso: string
+  patientAddress: string
   patientCity: string
   patientCpfMasked: string
   patientPhotoUrl: string
@@ -124,6 +125,7 @@ function buildDefaultSession(codigo: string): ProfissionalConsultaSessao {
     status: 'aguardando_medico',
     patientName: isHistoricoDemo ? 'Maria Souza Lima' : 'Patricia Souza Lima',
     patientBirthDateIso: '1991-08-14',
+    patientAddress: 'Rua Augusta, 210 · Consolação · São Paulo, SP · CEP 01305-000',
     patientCity: 'São Paulo, SP',
     patientCpfMasked: '901.234.567-**',
     patientPhotoUrl: isHistoricoDemo
@@ -345,17 +347,123 @@ export async function emitirProfissionalPedidoExameMock(
 export async function emitirProfissionalAtestadoMock(
   _accessToken: string,
   consultaId: string,
-  body: { diasAfastamento: number },
+  body: { tipo?: 'afastamento' | 'comparecimento'; diasAfastamento?: number },
 ) {
+  const isComparecimento = body.tipo === 'comparecimento'
   const doc = {
     id: `anexo-mock-at-${Date.now()}`,
-    kind: 'atestado',
-    title: `Atestado médico (${body.diasAfastamento} dia(s))`,
-    meta: `${body.diasAfastamento} dia(s) de afastamento`,
-    fileName: 'atestado-medico.pdf',
+    kind: 'atestado' as const,
+    title: isComparecimento
+      ? 'Atestado de comparecimento'
+      : `Atestado médico (${body.diasAfastamento ?? 1} dia(s))`,
+    meta: isComparecimento
+      ? 'Comparecimento em consulta'
+      : `${body.diasAfastamento ?? 1} dia(s) de afastamento`,
+    fileName: isComparecimento ? 'atestado-comparecimento.pdf' : 'atestado-medico.pdf',
     signedAtLabel: 'agora',
     downloadUrl: '#',
     codigoVerificacao: 'MOCKATST12',
+  }
+  appendMockDocument(consultaId, doc)
+  return mockDelay({ documento: doc })
+}
+
+export async function emitirProfissionalEncaminhamentoMock(
+  _accessToken: string,
+  consultaId: string,
+  body: { specialtyLabel: string; prioridade?: 'eletivo' | 'prioritario' | 'urgente' },
+) {
+  const urgent = body.prioridade === 'urgente'
+  const doc = {
+    id: `anexo-mock-enc-${Date.now()}`,
+    kind: 'encaminhamento' as const,
+    title: urgent ? 'Encaminhamento médico (urgente)' : 'Encaminhamento médico',
+    meta: body.specialtyLabel,
+    fileName: 'encaminhamento-medico.pdf',
+    signedAtLabel: 'agora',
+    downloadUrl: '#',
+    codigoVerificacao: 'MOCKENC123',
+  }
+  appendMockDocument(consultaId, doc)
+  return mockDelay({ documento: doc })
+}
+
+export async function emitirProfissionalRelatorioMock(
+  _accessToken: string,
+  consultaId: string,
+  body: { finalidade?: string },
+) {
+  const doc = {
+    id: `anexo-mock-rel-${Date.now()}`,
+    kind: 'relatorio' as const,
+    title: 'Relatório médico',
+    meta:
+      body.finalidade === 'contrarreferencia'
+        ? 'Contrarreferência'
+        : body.finalidade === 'referencia'
+          ? 'Referência'
+          : 'Resumo clínico',
+    fileName: 'relatorio-medico.pdf',
+    signedAtLabel: 'agora',
+    downloadUrl: '#',
+    codigoVerificacao: 'MOCKREL456',
+  }
+  appendMockDocument(consultaId, doc)
+  return mockDelay({ documento: doc })
+}
+
+export async function emitirProfissionalLaudoMock(
+  _accessToken: string,
+  consultaId: string,
+  body: { objetoLaudo: string },
+) {
+  const doc = {
+    id: `anexo-mock-lau-${Date.now()}`,
+    kind: 'laudo' as const,
+    title: 'Laudo médico',
+    meta: body.objetoLaudo,
+    fileName: 'laudo-medico.pdf',
+    signedAtLabel: 'agora',
+    downloadUrl: '#',
+    codigoVerificacao: 'MOCKLAUD78',
+  }
+  appendMockDocument(consultaId, doc)
+  return mockDelay({ documento: doc })
+}
+
+export async function emitirProfissionalAvaliacaoPresencialMock(
+  _accessToken: string,
+  consultaId: string,
+  body: { servicoDestino: string },
+) {
+  const doc = {
+    id: `anexo-mock-avp-${Date.now()}`,
+    kind: 'avaliacao_presencial' as const,
+    title: 'Avaliação presencial',
+    meta: body.servicoDestino,
+    fileName: 'avaliacao-presencial.pdf',
+    signedAtLabel: 'agora',
+    downloadUrl: '#',
+    codigoVerificacao: 'MOCKAVP901',
+  }
+  appendMockDocument(consultaId, doc)
+  return mockDelay({ documento: doc })
+}
+
+export async function emitirProfissionalInternacaoMock(
+  _accessToken: string,
+  consultaId: string,
+  body: { unidadeDestino: string },
+) {
+  const doc = {
+    id: `anexo-mock-int-${Date.now()}`,
+    kind: 'internacao' as const,
+    title: 'Internação',
+    meta: body.unidadeDestino,
+    fileName: 'solicitacao-internacao.pdf',
+    signedAtLabel: 'agora',
+    downloadUrl: '#',
+    codigoVerificacao: 'MOCKINT234',
   }
   appendMockDocument(consultaId, doc)
   return mockDelay({ documento: doc })
@@ -537,6 +645,7 @@ export function mapProfissionalSessaoToAttendanceSession(
     id: sessao.codigoAtendimento,
     patientName: sessao.patientName,
     patientBirthDateIso: sessao.patientBirthDateIso,
+    patientAddress: sessao.patientAddress || sessao.patientCity,
     patientCity: sessao.patientCity,
     patientCpfMasked: sessao.patientCpfMasked,
     patientPhotoUrl: sessao.patientPhotoUrl || DEFAULT_PATIENT_PHOTO,

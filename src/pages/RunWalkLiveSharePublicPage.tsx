@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   RunWalkLiveShareViewerContent,
@@ -39,13 +39,6 @@ export function RunWalkLiveSharePublicPage() {
     normalizedToken,
     fetchSession,
   )
-
-  useEffect(() => {
-    document.title = `${brand.appName} — Acompanhar ao vivo`
-    return () => {
-      document.title = brand.appName
-    }
-  }, [])
 
   if (!hasValidToken) {
     return (

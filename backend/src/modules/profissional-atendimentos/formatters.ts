@@ -106,6 +106,36 @@ export function formatPatientCity(endereco: Record<string, unknown> | null): str
   return city || '—'
 }
 
+export function formatPatientBirthDateLabel(birthIso: string | null | undefined): string {
+  if (!birthIso) return '—'
+  const iso = String(birthIso).slice(0, 10)
+  const parts = iso.split('-')
+  if (parts.length !== 3) return '—'
+  return `${parts[2]}/${parts[1]}/${parts[0]}`
+}
+
+export function formatPatientAddress(endereco: Record<string, unknown> | null): string {
+  const street = readEnderecoField(endereco, 'logradouro') || readEnderecoField(endereco, 'rua')
+  const number = readEnderecoField(endereco, 'numero')
+  const complement = readEnderecoField(endereco, 'complemento')
+  const neighborhood = readEnderecoField(endereco, 'bairro')
+  const city = readEnderecoField(endereco, 'cidade')
+  const uf = readEnderecoField(endereco, 'uf') || readEnderecoField(endereco, 'estado')
+  const cep = readEnderecoField(endereco, 'cep')
+
+  const streetLine = [street, number].filter(Boolean).join(', ')
+  const streetWithComplement = complement && streetLine ? `${streetLine} — ${complement}` : streetLine
+  const cityUf = city && uf ? `${city}, ${uf}` : city || uf
+  const parts = [
+    streetWithComplement,
+    neighborhood,
+    cityUf,
+    cep ? `CEP ${cep}` : '',
+  ].filter(Boolean)
+
+  return parts.join(' · ') || '—'
+}
+
 export function computeDurationMinutes(row: ConsultaOperacionalFullRow): number {
   if (typeof row.duracao_minutos === 'number' && row.duracao_minutos >= 0) {
     return row.duracao_minutos
@@ -179,6 +209,10 @@ function isValidAnexoKind(
     'orientacao',
     'atestado',
     'encaminhamento',
+    'relatorio',
+    'laudo',
+    'avaliacao_presencial',
+    'internacao',
   ].includes(value)
 }
 

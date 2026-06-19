@@ -58,13 +58,6 @@ export function PlantaoAceiteDisponiveisPublicPage() {
   )
 
   useEffect(() => {
-    document.title = `${brand.appName} — Vagas de plantão`
-    return () => {
-      document.title = brand.appName
-    }
-  }, [])
-
-  useEffect(() => {
     let cancelled = false
     const normalizedToken = token.trim()
 

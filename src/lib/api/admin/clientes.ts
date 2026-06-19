@@ -132,6 +132,7 @@ export type UpdateEntidadePayload = {
   cnpj: string
   municipio: string
   uf: string
+  slug?: string
   tipoEntidade?: TipoEntidade
   logoHue?: number
   logoDataUrl?: string

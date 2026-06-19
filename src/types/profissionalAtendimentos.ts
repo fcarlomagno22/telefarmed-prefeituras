@@ -11,6 +11,8 @@ export type ProfissionalIssuedDocumentKind =
   | 'orientacao'
   | 'atestado'
   | 'encaminhamento'
+  | 'relatorio'
+  | 'laudo'
 
 export type ProfissionalIssuedDocument = {
   id: string

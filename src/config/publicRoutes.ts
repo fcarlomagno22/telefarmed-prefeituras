@@ -21,6 +21,9 @@ export const publicRoutes = {
   get liveShareDemo() {
     return `/${LIVE_SHARE_DEMO_TOKEN}`
   },
+  get doctorConsultationDemo() {
+    return '/demo/sala-atendimento'
+  },
   /** @deprecated Links antigos em prefeitura.telefarmed.com.br/acompanhar/… */
   liveShareLegacyAcompanhar: (token: string) =>
     `/acompanhar/${encodeURIComponent(token)}`,

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && cp -R src/lib/documentos-clinicos/assets dist/lib/documentos-clinicos/",
     "seed:admin-master": "tsx scripts/seed-admin-master.ts",
     "setup:supabase-env": "tsx scripts/setup-supabase-env.ts"
   },

@@ -124,6 +124,7 @@ export type UpdateEntidadePayload = {
   cnpj: string
   municipio: string
   uf: string
+  slug?: string
   tipoEntidade?: TipoEntidade
   logoHue?: number
   logoDataUrl?: string
@@ -425,6 +426,20 @@ export async function updateClienteEntidade(
   row.cnpj = normalizedCnpj
   row.municipio = payload.municipio.trim()
   row.uf = payload.uf.trim().toUpperCase()
+  if (payload.slug) {
+    const normalizedSlug = payload.slug.trim().toLowerCase()
+    const duplicateSlug = entidadesState.find(
+      (item) => item.id !== entidadeId && item.slug?.trim().toLowerCase() === normalizedSlug,
+    )
+    if (duplicateSlug) {
+      throw new AdminClientesApiError(
+        'Este endereço já está em uso por outro cliente.',
+        409,
+        'DUPLICATE_SLUG',
+      )
+    }
+    row.slug = normalizedSlug
+  }
   if (payload.logoHue != null) row.logoHue = payload.logoHue
   if (payload.logoDataUrl) row.logoUrl = payload.logoDataUrl
   return mockDelay(clone(row), 70)

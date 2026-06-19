@@ -1044,7 +1044,7 @@ export function AdminEntidadeCadastroDrawer({
                     urlKind="gestao"
                     checkAvailability={checkSlugAvailability}
                     onAvailabilityChange={handleSlugAvailabilityChange}
-                    hint="Use letras minúsculas, números e hífens. O endereço não pode ser alterado depois que o portal entrar em uso."
+                    hint="Use letras minúsculas, números e hífens."
                   />
                 </div>
               </section>

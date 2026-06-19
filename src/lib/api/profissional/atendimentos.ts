@@ -7,6 +7,7 @@ import type {
   ProfissionalAttendanceRecord,
   ProfissionalAtendimentosFilters,
 } from '../../../types/profissionalAtendimentos'
+import type { AtestadoPdfData } from '../../../types/clinicalDocument'
 import { apiFetch, ApiError } from '../http'
 import type { ConsultaVideoTokenResponse } from '../consultaVideoToken'
 
@@ -41,6 +42,7 @@ export type ProfissionalConsultaSessao = {
   status: string
   patientName: string
   patientBirthDateIso: string
+  patientAddress: string
   patientCity: string
   patientCpfMasked: string
   patientPhotoUrl: string
@@ -335,6 +337,7 @@ export async function emitirProfissionalPedidoExame(
   body: {
     exames: Array<{ exameId?: string; name: string; observacoes?: string }>
     indicacaoClinica?: string
+    urgent?: boolean
   },
 ) {
   try {
@@ -350,13 +353,7 @@ export async function emitirProfissionalPedidoExame(
 export async function emitirProfissionalAtestado(
   accessToken: string,
   consultaId: string,
-  body: {
-    diasAfastamento: number
-    dataInicio: string
-    cid?: string
-    motivo: string
-    observacoes?: string
-  },
+  body: AtestadoPdfData,
 ) {
   try {
     return await apiFetch<{ documento: ProfissionalConsultaSessao['issuedDocuments'][number] }>(
@@ -365,6 +362,185 @@ export async function emitirProfissionalAtestado(
     )
   } catch (error) {
     throw mapApiError(error, 'Não foi possível emitir o atestado.')
+  }
+}
+
+export async function emitirProfissionalEncaminhamento(
+  accessToken: string,
+  consultaId: string,
+  body: {
+    specialtyLabel: string
+    tipoSolicitacao:
+      | 'consulta_especializada'
+      | 'retorno'
+      | 'procedimento'
+      | 'avaliacao_cirurgica'
+      | 'segunda_opiniao'
+    prioridade: 'eletivo' | 'prioritario' | 'urgente'
+    motivoEncaminhamento: string
+    historiaClinica: string
+    exameFisico: string
+    hipoteseDiagnostica: string
+    cid?: string
+    cidDescricao?: string
+    tratamentosEMedicacoes: string
+    examesRealizados?: string
+    observacoes?: string
+  },
+) {
+  try {
+    return await apiFetch<{ documento: ProfissionalConsultaSessao['issuedDocuments'][number] }>(
+      `/profissional/atendimentos/${consultaId}/encaminhamentos/emitir`,
+      { method: 'POST', accessToken, json: body },
+    )
+  } catch (error) {
+    throw mapApiError(error, 'Não foi possível emitir o encaminhamento.')
+  }
+}
+
+export async function emitirProfissionalRelatorio(
+  accessToken: string,
+  consultaId: string,
+  body: {
+    finalidade:
+      | 'referencia'
+      | 'resumo_atendimento'
+      | 'contrarreferencia'
+      | 'parecer'
+      | 'administrativo'
+    destinatario?: string
+    motivoRelatorio: string
+    queixaPrincipal: string
+    historiaDoencaAtual: string
+    antecedentesRelevantes?: string
+    medicacoesEmUso?: string
+    exameFisico: string
+    examesComplementares?: string
+    hipoteseDiagnostica: string
+    cid?: string
+    cidDescricao?: string
+    condutaAdotada: string
+    tratamentoEOrientacoes?: string
+    evolucaoPrognostico?: string
+    conclusaoParecer: string
+    recomendacoes?: string
+    observacoes?: string
+  },
+) {
+  try {
+    return await apiFetch<{ documento: ProfissionalConsultaSessao['issuedDocuments'][number] }>(
+      `/profissional/atendimentos/${consultaId}/relatorios/emitir`,
+      { method: 'POST', accessToken, json: body },
+    )
+  } catch (error) {
+    throw mapApiError(error, 'Não foi possível emitir o relatório médico.')
+  }
+}
+
+export async function emitirProfissionalLaudo(
+  accessToken: string,
+  consultaId: string,
+  body: {
+    tipoLaudo:
+      | 'exame_complementar'
+      | 'condicao_clinica'
+      | 'procedimento'
+      | 'aptidao_inaptidao'
+      | 'pericia_administrativa'
+    destinatario?: string
+    objetoLaudo: string
+    solicitacaoOrigem?: string
+    descricaoAchados: string
+    correlacaoClinica: string
+    discussaoInterpretacao?: string
+    conclusaoLaudo: string
+    cid?: string
+    cidDescricao?: string
+    recomendacoes?: string
+    limitacoesExame?: string
+    observacoes?: string
+  },
+) {
+  try {
+    return await apiFetch<{ documento: ProfissionalConsultaSessao['issuedDocuments'][number] }>(
+      `/profissional/atendimentos/${consultaId}/laudos/emitir`,
+      { method: 'POST', accessToken, json: body },
+    )
+  } catch (error) {
+    throw mapApiError(error, 'Não foi possível emitir o laudo médico.')
+  }
+}
+
+export async function emitirProfissionalAvaliacaoPresencial(
+  accessToken: string,
+  consultaId: string,
+  body: {
+    tipoAvaliacao:
+      | 'retorno_presencial'
+      | 'avaliacao_especializada'
+      | 'reavaliacao_clinica'
+      | 'procedimento_presencial'
+      | 'urgencia_presencial'
+    prioridade: 'eletivo' | 'prioritario' | 'urgente'
+    servicoDestino: string
+    motivoAvaliacao: string
+    justificativaPresencial: string
+    historiaClinica: string
+    exameFisicoRemoto: string
+    hipoteseDiagnostica: string
+    cid?: string
+    cidDescricao?: string
+    examesRealizados?: string
+    condutaAdotada?: string
+    expectativaAvaliacao: string
+    observacoes?: string
+  },
+) {
+  try {
+    return await apiFetch<{ documento: ProfissionalConsultaSessao['issuedDocuments'][number] }>(
+      `/profissional/atendimentos/${consultaId}/avaliacoes-presenciais/emitir`,
+      { method: 'POST', accessToken, json: body },
+    )
+  } catch (error) {
+    throw mapApiError(error, 'Não foi possível emitir a avaliação presencial.')
+  }
+}
+
+export async function emitirProfissionalInternacao(
+  accessToken: string,
+  consultaId: string,
+  body: {
+    tipoInternacao:
+      | 'clinica'
+      | 'cirurgica'
+      | 'obstetrica'
+      | 'pediatrica'
+      | 'psiquiatrica'
+      | 'uti'
+    caraterInternacao: 'eletiva' | 'urgencia' | 'emergencia'
+    unidadeDestino: string
+    motivoInternacao: string
+    justificativaClinica: string
+    historiaClinica: string
+    exameFisico: string
+    hipoteseDiagnostica: string
+    cid?: string
+    cidDescricao?: string
+    examesComplementares?: string
+    tratamentosEMedicacoes: string
+    condutaAdotada?: string
+    procedimentoPrincipalPrevisto?: string
+    tempoEstimadoInternacao?: string
+    observacoes?: string
+  },
+) {
+  try {
+    return await apiFetch<{ documento: ProfissionalConsultaSessao['issuedDocuments'][number] }>(
+      `/profissional/atendimentos/${consultaId}/internacoes/emitir`,
+      { method: 'POST', accessToken, json: body },
+    )
+  } catch (error) {
+    throw mapApiError(error, 'Não foi possível emitir a solicitação de internação.')
   }
 }
 
@@ -528,6 +704,7 @@ export function mapProfissionalSessaoToAttendanceSession(
     id: sessao.codigoAtendimento,
     patientName: sessao.patientName,
     patientBirthDateIso: sessao.patientBirthDateIso,
+    patientAddress: sessao.patientAddress || sessao.patientCity,
     patientCity: sessao.patientCity,
     patientCpfMasked: sessao.patientCpfMasked,
     patientPhotoUrl: sessao.patientPhotoUrl || DEFAULT_PATIENT_PHOTO,

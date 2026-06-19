@@ -1,5 +1,5 @@
-import { Palette, Users, X } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { Globe, Palette, Users, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { maskPhone } from '../../../utils/masks'
 import type { AdminClienteContact, AdminClienteRow } from '../../../types/adminClientes'
@@ -9,11 +9,24 @@ import {
   EntidadeLoginBackgroundCropCard,
   EntidadeLogoCropCard,
 } from './cadastro/EntidadeLogoCropCard'
+import { TenantSlugField } from '../../tenant/TenantSlugField'
+import { EntidadeGestaoLoginPreview } from './EntidadeGestaoLoginPreview'
+import { useAdminAuth } from '../../../contexts/AdminAuthContext'
+import { checkClienteSlugAvailability } from '../../../lib/api/admin/clientes'
+import {
+  createIdleSlugAvailability,
+  isSlugAvailabilityConfirmed,
+  normalizeTenantSlugInput,
+  validateTenantSlug,
+  type TenantSlugAvailabilityState,
+} from '../../../utils/tenantSlug'
 
 export type AdminClienteEntidadeEditSavePayload = {
   brandingChanged: boolean
   contactsChanged: boolean
+  slugChanged: boolean
   brandingChanges: {
+    slug?: string
     logoDataUrl?: string
     loginBackgroundDataUrl?: string
     faviconDataUrl?: string
@@ -129,7 +142,12 @@ export function AdminClienteEntidadeEditDrawer({
   const [entered, setEntered] = useState(false)
   const [brandingDraft, setBrandingDraft] = useState<BrandingDraft | null>(null)
   const [contactDrafts, setContactDrafts] = useState<ContactDraft[]>([])
+  const [slugDraft, setSlugDraft] = useState('')
+  const [slugAvailability, setSlugAvailability] = useState<TenantSlugAvailabilityState>(
+    createIdleSlugAvailability,
+  )
   const [saveError, setSaveError] = useState<string | null>(null)
+  const { getAccessToken } = useAdminAuth()
 
   const isActive = open || closing
   const panelVisible = isActive && entered && !closing
@@ -139,6 +157,8 @@ export function AdminClienteEntidadeEditDrawer({
       setEntered(false)
       setBrandingDraft(null)
       setContactDrafts([])
+      setSlugDraft('')
+      setSlugAvailability(createIdleSlugAvailability())
       setSaveError(null)
       return
     }
@@ -150,8 +170,55 @@ export function AdminClienteEntidadeEditDrawer({
     if (!open || !cliente) return
     setBrandingDraft(buildBrandingDraft(cliente))
     setContactDrafts(buildContactDrafts(cliente))
+    setSlugDraft(cliente.slug?.trim() ?? '')
+    setSlugAvailability(createIdleSlugAvailability())
     setSaveError(null)
   }, [open, cliente])
+
+  const checkSlugAvailability = useMemo(
+    () => async (slug: string) => {
+      const token = getAccessToken()
+      if (!token) {
+        return { value: slug, available: false, reason: 'Sessão expirada. Faça login novamente.' }
+      }
+      return checkClienteSlugAvailability(token, slug, {
+        excludeEntidadeId: cliente?.id,
+      })
+    },
+    [cliente?.id, getAccessToken],
+  )
+
+  const handleSlugAvailabilityChange = useCallback(
+    (state: {
+      available: boolean
+      reason: string | null
+      checkedValue: string
+      checking: boolean
+    }) => {
+      setSlugAvailability((prev) => {
+        const next: TenantSlugAvailabilityState = {
+          status: state.checking
+            ? 'checking'
+            : state.available
+              ? 'available'
+              : state.checkedValue
+                ? 'unavailable'
+                : 'idle',
+          reason: state.reason,
+          checkedValue: state.checkedValue,
+        }
+        if (
+          prev.status === next.status &&
+          prev.reason === next.reason &&
+          prev.checkedValue === next.checkedValue
+        ) {
+          return prev
+        }
+        return next
+      })
+    },
+    [],
+  )
 
   useEffect(() => {
     if (!isActive) return
@@ -184,6 +251,10 @@ export function AdminClienteEntidadeEditDrawer({
     () => (cliente ? buildContactDrafts(cliente) : []),
     [cliente],
   )
+  const initialSlug = useMemo(
+    () => normalizeTenantSlugInput(cliente?.slug ?? ''),
+    [cliente?.slug],
+  )
 
   if (!isActive || !cliente) return null
 
@@ -204,7 +275,9 @@ export function AdminClienteEntidadeEditDrawer({
     return initial ? !contactsEqual(row.value, initial.value) : true
   })
 
-  const hasChanges = brandingChanged || contactsChanged
+  const slugChanged = normalizeTenantSlugInput(slugDraft) !== initialSlug
+
+  const hasChanges = brandingChanged || contactsChanged || slugChanged
 
   function updateBranding(patch: Partial<BrandingDraft>) {
     setBrandingDraft((current) => {
@@ -236,17 +309,32 @@ export function AdminClienteEntidadeEditDrawer({
       return
     }
 
+    if (slugChanged) {
+      const slugError = validateTenantSlug(slugDraft)
+      if (slugError) {
+        setSaveError(slugError)
+        return
+      }
+      if (!isSlugAvailabilityConfirmed(slugDraft, slugAvailability)) {
+        setSaveError('Confirme a disponibilidade do endereço público antes de salvar.')
+        return
+      }
+    }
+
     if (!hasChanges) {
       setSaveError('Nenhuma alteração para salvar.')
       return
     }
 
     const map = new Map(rows.map((item) => [item.key, item.value]))
+    const normalizedSlug = normalizeTenantSlugInput(slugDraft)
 
     onSave(cliente.id, {
       brandingChanged,
       contactsChanged,
+      slugChanged,
       brandingChanges: {
+        ...(slugChanged ? { slug: normalizedSlug } : {}),
         ...(branding.logoChanged && branding.logoPreview
           ? { logoDataUrl: branding.logoPreview }
           : {}),
@@ -309,7 +397,7 @@ export function AdminClienteEntidadeEditDrawer({
                 {cliente.prefeitura}
               </h2>
               <p className="mt-0.5 text-xs text-gray-600">
-                Responsáveis, logo, fundo do login, favicon e cor primária.
+                Endereço público, responsáveis, logo, fundo do login, favicon e cor primária.
               </p>
             </div>
 
@@ -327,6 +415,37 @@ export function AdminClienteEntidadeEditDrawer({
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-slate-50/70 px-5 py-4 sm:px-6">
           <section className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
             <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-gray-500">
+              <Globe className="h-3.5 w-3.5" />
+              Endereço público
+            </h3>
+            <p className={sectionHintClass}>
+              Slug único do portal de gestão em{' '}
+              <span className="font-mono text-gray-700">https://{'{slug}'}.telefarmed.com.br</span>.
+            </p>
+
+            <div className="mt-4">
+              {cliente.slugLocked ? (
+                <p className="mb-3 text-xs text-amber-800">
+                  Este portal já está publicado. Se alterar o slug, faça o deploy novamente para o novo
+                  endereço entrar em vigor.
+                </p>
+              ) : null}
+              <TenantSlugField
+                value={slugDraft}
+                onChange={(slug) => {
+                  setSlugDraft(slug)
+                  setSaveError(null)
+                }}
+                urlKind="gestao"
+                checkAvailability={checkSlugAvailability}
+                onAvailabilityChange={handleSlugAvailabilityChange}
+                hint="Use letras minúsculas, números e hífens."
+              />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
+            <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-gray-500">
               <Palette className="h-3.5 w-3.5" />
               Marca
             </h3>
@@ -334,7 +453,8 @@ export function AdminClienteEntidadeEditDrawer({
               Identidade visual exibida nos portais de gestão e UBT desta entidade.
             </p>
 
-            <div className="mt-4 space-y-4">
+            <div className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,24rem)]">
+              <div className="min-w-0 space-y-4">
               <EntidadeLogoCropCard
                 value={branding?.logoPreview ?? null}
                 entityName={cliente.prefeitura}
@@ -408,6 +528,16 @@ export function AdminClienteEntidadeEditDrawer({
                   />
                 </div>
               </div>
+              </div>
+
+              <EntidadeGestaoLoginPreview
+                className="lg:sticky lg:top-0 lg:self-start"
+                slug={slugDraft}
+                displayName={cliente.prefeitura}
+                logoUrl={branding?.logoPreview ?? null}
+                loginBackgroundUrl={branding?.loginBackgroundPreview ?? null}
+                corPrimaria={branding?.corPrimaria ?? '#ff6b00'}
+              />
             </div>
           </section>
 

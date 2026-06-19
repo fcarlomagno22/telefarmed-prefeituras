@@ -23,7 +23,7 @@ import {
   entidadeExportBrandingFromFields,
   setEntidadeExportBranding,
 } from '../utils/entidadeExportHtml'
-import { useDedicatedPortalDocumentTitle } from '../hooks/useDedicatedPortalDocumentTitle'
+import { useEntidadeDocumentTitle } from '../hooks/useAppDocumentTitle'
 import { useTenantFavicon } from '../hooks/useTenantFavicon'
 import type { PortalId } from '../config/portalHost'
 import { useOptionalTenantHost } from './TenantHostContext'
@@ -54,7 +54,7 @@ function EntidadeBrandingDocumentHead({
   displayName: string
   faviconUrl: string | null | undefined
 }) {
-  useDedicatedPortalDocumentTitle(portal, displayName)
+  useEntidadeDocumentTitle(displayName)
   useTenantFavicon(faviconUrl)
   return null
 }

@@ -1,4 +1,4 @@
-import { brand } from './brand'
+import { resolveDocumentTitle } from './documentTitle'
 import { extractTenantSlugFromHostname } from './tenantHost'
 import type { PublicTenantPortalKind, TenantHostKind } from '../types/tenantHost'
 
@@ -15,19 +15,12 @@ const PLATFORM_HOST_PORTALS: Record<string, PortalId> = {
   'ubt.telefarmed.com.br': 'ubt',
 }
 
-const PORTAL_TITLE_SUFFIX: Record<PortalId, string> = {
-  prefeitura: 'Gestão Administrativa',
-  ubt: 'Atendimento',
-  profissional: 'Painel Profissional',
-  admin: 'Painel Admin',
-}
-
-/** Títulos padrão com marca da plataforma (env). */
+/** @deprecated Títulos legados por portal; use `resolveDocumentTitle`. */
 export const PORTAL_DOCUMENT_TITLES: Record<PortalId, string> = {
-  prefeitura: `${brand.appName} | ${PORTAL_TITLE_SUFFIX.prefeitura}`,
-  ubt: `${brand.appName} | ${PORTAL_TITLE_SUFFIX.ubt}`,
-  profissional: `${brand.appName} | ${PORTAL_TITLE_SUFFIX.profissional}`,
-  admin: `${brand.appName} | ${PORTAL_TITLE_SUFFIX.admin}`,
+  prefeitura: resolveDocumentTitle(),
+  ubt: resolveDocumentTitle(),
+  profissional: resolveDocumentTitle(),
+  admin: resolveDocumentTitle(),
 }
 
 export type PortalHostContextInput = {
@@ -143,15 +136,14 @@ export function resolveFromTenantContext(
 }
 
 export function resolvePortalDocumentTitle(
-  portal: PortalId,
+  _portal: PortalId,
   entityDisplayName?: string | null,
 ): string {
-  const appName = entityDisplayName?.trim() || brand.appName
-  return `${appName} | ${PORTAL_TITLE_SUFFIX[portal]}`
+  return resolveDocumentTitle(entityDisplayName)
 }
 
-export function getPortalDocumentTitle(portal: PortalId): string {
-  return PORTAL_DOCUMENT_TITLES[portal]
+export function getPortalDocumentTitle(_portal: PortalId): string {
+  return resolveDocumentTitle()
 }
 
 export function isLiveShareDedicatedHost(hostname: string): boolean {

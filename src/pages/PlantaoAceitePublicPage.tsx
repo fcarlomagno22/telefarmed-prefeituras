@@ -32,13 +32,6 @@ export function PlantaoAceitePublicPage() {
   const [reserveSuccess, setReserveSuccess] = useState<PlantaoAceiteReserveResult | null>(null)
 
   useEffect(() => {
-    document.title = `${brand.appName} — Aceitar plantão`
-    return () => {
-      document.title = brand.appName
-    }
-  }, [])
-
-  useEffect(() => {
     let cancelled = false
     const normalizedToken = token.trim()
 

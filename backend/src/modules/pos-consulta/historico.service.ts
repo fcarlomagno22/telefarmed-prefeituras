@@ -55,6 +55,10 @@ function mapAnexoKind(tipo: string): string {
     'orientacao',
     'atestado',
     'encaminhamento',
+    'relatorio',
+    'laudo',
+    'avaliacao_presencial',
+    'internacao',
   ]
   return allowed.includes(tipo) ? tipo : 'orientacao'
 }

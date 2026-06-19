@@ -254,7 +254,7 @@ export async function updateClienteEntidade(
 
   const { data: existing, error: existingError } = await supabaseAdmin
     .from('entidades_contratantes')
-    .select('slug, slug_locked_at')
+    .select('slug')
     .eq('id', entidadeId)
     .maybeSingle()
 
@@ -264,13 +264,6 @@ export async function updateClienteEntidade(
   }
 
   if (input.slug && input.slug !== existing.slug) {
-    if (existing.slug_locked_at) {
-      throw new ClientesError(
-        'O endereço público não pode ser alterado após a publicação.',
-        'INVALID_DATA',
-        400,
-      )
-    }
     await assertEntidadeSlugAvailable(input.slug, entidadeId)
   }
 

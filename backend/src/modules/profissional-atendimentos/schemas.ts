@@ -71,14 +71,146 @@ export const emitirPedidoExameBodySchema = z.object({
     .min(1)
     .max(40),
   indicacaoClinica: z.string().trim().max(2000).optional(),
+  urgent: z.boolean().optional(),
 })
 
-export const emitirAtestadoBodySchema = z.object({
-  diasAfastamento: z.number().int().min(1).max(365),
-  dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+export const emitirAtestadoBodySchema = z.discriminatedUnion('tipo', [
+  z.object({
+    tipo: z.literal('afastamento'),
+    diasAfastamento: z.number().int().min(1).max(365),
+    dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    cid: z.string().trim().max(20).optional(),
+    cidDescricao: z.string().trim().max(500).optional(),
+    motivo: z.string().trim().min(1).max(1000),
+    observacoes: z.string().trim().max(2000).optional(),
+  }),
+  z.object({
+    tipo: z.literal('comparecimento'),
+    dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    cid: z.string().trim().max(20).optional(),
+    cidDescricao: z.string().trim().max(500).optional(),
+    motivo: z.string().trim().max(1000).optional(),
+    observacoes: z.string().trim().max(2000).optional(),
+  }),
+])
+
+export const emitirEncaminhamentoBodySchema = z.object({
+  specialtyLabel: z.string().trim().min(1).max(200),
+  tipoSolicitacao: z.enum([
+    'consulta_especializada',
+    'retorno',
+    'procedimento',
+    'avaliacao_cirurgica',
+    'segunda_opiniao',
+  ]),
+  prioridade: z.enum(['eletivo', 'prioritario', 'urgente']),
+  motivoEncaminhamento: z.string().trim().min(1).max(4000),
+  historiaClinica: z.string().trim().min(1).max(8000),
+  exameFisico: z.string().trim().min(1).max(4000),
+  hipoteseDiagnostica: z.string().trim().min(1).max(1000),
   cid: z.string().trim().max(20).optional(),
-  motivo: z.string().trim().min(1).max(1000),
-  observacoes: z.string().trim().max(2000).optional(),
+  cidDescricao: z.string().trim().max(500).optional(),
+  tratamentosEMedicacoes: z.string().trim().min(1).max(4000),
+  examesRealizados: z.string().trim().max(4000).optional(),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+export const emitirRelatorioBodySchema = z.object({
+  finalidade: z.enum([
+    'referencia',
+    'resumo_atendimento',
+    'contrarreferencia',
+    'parecer',
+    'administrativo',
+  ]),
+  destinatario: z.string().trim().max(200).optional(),
+  motivoRelatorio: z.string().trim().min(1).max(4000),
+  queixaPrincipal: z.string().trim().min(1).max(500),
+  historiaDoencaAtual: z.string().trim().min(1).max(8000),
+  antecedentesRelevantes: z.string().trim().max(4000).optional(),
+  medicacoesEmUso: z.string().trim().max(4000).optional(),
+  exameFisico: z.string().trim().min(1).max(4000),
+  examesComplementares: z.string().trim().max(4000).optional(),
+  hipoteseDiagnostica: z.string().trim().min(1).max(1000),
+  cid: z.string().trim().max(20).optional(),
+  cidDescricao: z.string().trim().max(500).optional(),
+  condutaAdotada: z.string().trim().min(1).max(4000),
+  tratamentoEOrientacoes: z.string().trim().max(4000).optional(),
+  evolucaoPrognostico: z.string().trim().max(4000).optional(),
+  conclusaoParecer: z.string().trim().min(1).max(4000),
+  recomendacoes: z.string().trim().max(4000).optional(),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+export const emitirLaudoBodySchema = z.object({
+  tipoLaudo: z.enum([
+    'exame_complementar',
+    'condicao_clinica',
+    'procedimento',
+    'aptidao_inaptidao',
+    'pericia_administrativa',
+  ]),
+  destinatario: z.string().trim().max(200).optional(),
+  objetoLaudo: z.string().trim().min(1).max(500),
+  solicitacaoOrigem: z.string().trim().max(500).optional(),
+  descricaoAchados: z.string().trim().min(1).max(8000),
+  correlacaoClinica: z.string().trim().min(1).max(4000),
+  discussaoInterpretacao: z.string().trim().max(4000).optional(),
+  conclusaoLaudo: z.string().trim().min(1).max(4000),
+  cid: z.string().trim().max(20).optional(),
+  cidDescricao: z.string().trim().max(500).optional(),
+  recomendacoes: z.string().trim().max(4000).optional(),
+  limitacoesExame: z.string().trim().max(2000).optional(),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+export const emitirAvaliacaoPresencialBodySchema = z.object({
+  tipoAvaliacao: z.enum([
+    'retorno_presencial',
+    'avaliacao_especializada',
+    'reavaliacao_clinica',
+    'procedimento_presencial',
+    'urgencia_presencial',
+  ]),
+  prioridade: z.enum(['eletivo', 'prioritario', 'urgente']),
+  servicoDestino: z.string().trim().min(1).max(200),
+  motivoAvaliacao: z.string().trim().min(1).max(4000),
+  justificativaPresencial: z.string().trim().min(1).max(4000),
+  historiaClinica: z.string().trim().min(1).max(8000),
+  exameFisicoRemoto: z.string().trim().min(1).max(4000),
+  hipoteseDiagnostica: z.string().trim().min(1).max(1000),
+  cid: z.string().trim().max(20).optional(),
+  cidDescricao: z.string().trim().max(500).optional(),
+  examesRealizados: z.string().trim().max(4000).optional(),
+  condutaAdotada: z.string().trim().max(4000).optional(),
+  expectativaAvaliacao: z.string().trim().min(1).max(4000),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+export const emitirInternacaoBodySchema = z.object({
+  tipoInternacao: z.enum([
+    'clinica',
+    'cirurgica',
+    'obstetrica',
+    'pediatrica',
+    'psiquiatrica',
+    'uti',
+  ]),
+  caraterInternacao: z.enum(['eletiva', 'urgencia', 'emergencia']),
+  unidadeDestino: z.string().trim().min(1).max(200),
+  motivoInternacao: z.string().trim().min(1).max(4000),
+  justificativaClinica: z.string().trim().min(1).max(4000),
+  historiaClinica: z.string().trim().min(1).max(8000),
+  exameFisico: z.string().trim().min(1).max(4000),
+  hipoteseDiagnostica: z.string().trim().min(1).max(1000),
+  cid: z.string().trim().max(20).optional(),
+  cidDescricao: z.string().trim().max(500).optional(),
+  examesComplementares: z.string().trim().max(4000).optional(),
+  tratamentosEMedicacoes: z.string().trim().min(1).max(4000),
+  condutaAdotada: z.string().trim().max(4000).optional(),
+  procedimentoPrincipalPrevisto: z.string().trim().max(500).optional(),
+  tempoEstimadoInternacao: z.string().trim().max(200).optional(),
+  observacoes: z.string().trim().max(4000).optional(),
 })
 
 export const registrarPrescricaoBodySchema = z.object({
@@ -104,6 +236,10 @@ export const registrarAnexoBodySchema = z.object({
     'orientacao',
     'atestado',
     'encaminhamento',
+    'relatorio',
+    'laudo',
+    'avaliacao_presencial',
+    'internacao',
     'outro',
   ]),
   titulo: z.string().trim().min(1).max(300),
@@ -156,6 +292,10 @@ export type ProfissionalIssuedDocumentApi = {
     | 'orientacao'
     | 'atestado'
     | 'encaminhamento'
+    | 'relatorio'
+    | 'laudo'
+    | 'avaliacao_presencial'
+    | 'internacao'
   title: string
   meta: string
   fileName: string
@@ -230,6 +370,7 @@ export type ProfissionalConsultaSessaoApi = {
   status: string
   patientName: string
   patientBirthDateIso: string
+  patientAddress: string
   patientCity: string
   patientCpfMasked: string
   patientPhotoUrl: string

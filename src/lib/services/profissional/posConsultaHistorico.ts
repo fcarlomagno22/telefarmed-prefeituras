@@ -1,5 +1,6 @@
 import { isBackendApiEnabled } from '../../api/config'
 import * as api from '../../api/profissional/posConsultaHistorico'
+import { isDoctorConsultationPublicDemoToken } from '../../../data/doctorConsultationDemo'
 import {
   fetchProfissionalPacienteHistoricoEspecialidade as mockFetchProfissionalPacienteHistoricoEspecialidade,
   isProfissionalHistoricoApiError as mockIsProfissionalHistoricoApiError,
@@ -27,6 +28,10 @@ export async function fetchProfissionalPacienteHistoricoEspecialidade(
   accessToken: string,
   params: { pacienteId?: string; patientName?: string; specialty: string },
 ) {
+  if (isDoctorConsultationPublicDemoToken(accessToken)) {
+    return mockFetchProfissionalPacienteHistoricoEspecialidade(accessToken, params)
+  }
+
   if (useApi) {
     if (!params.pacienteId) {
       return {

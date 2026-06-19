@@ -1,8 +1,10 @@
 import { config } from 'dotenv'
-import { resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { z } from 'zod'
 
-config({ path: resolve(process.cwd(), '.env') })
+const backendRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
+config({ path: resolve(backendRoot, '.env') })
 
 function envValue(key: string): string | undefined {
   const raw = process.env[key]
@@ -47,6 +49,9 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((v) => v !== 'false' && v !== '0'),
+  /** Credenciais OAuth da API ICD da OMS (https://icd.who.int/icdapi). */
+  WHO_ICD_CLIENT_ID: z.string().trim().min(1).optional(),
+  WHO_ICD_CLIENT_SECRET: z.string().trim().min(1).optional(),
 })
 
 export type Env = z.infer<typeof envSchema> & {
@@ -74,6 +79,8 @@ const parsedEnv = envSchema.parse({
   CRON_SECRET: envValue('CRON_SECRET'),
   PUBLIC_ROOT_DOMAIN: envValue('PUBLIC_ROOT_DOMAIN'),
   CORS_ALLOW_TENANT_ORIGINS: envValue('CORS_ALLOW_TENANT_ORIGINS'),
+  WHO_ICD_CLIENT_ID: envValue('WHO_ICD_CLIENT_ID'),
+  WHO_ICD_CLIENT_SECRET: envValue('WHO_ICD_CLIENT_SECRET'),
 })
 
 export const env: Env = {

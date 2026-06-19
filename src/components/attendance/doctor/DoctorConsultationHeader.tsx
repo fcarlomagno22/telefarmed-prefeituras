@@ -1,12 +1,12 @@
-import { ClipboardList, FileText, History, PhoneOff, Pill } from 'lucide-react'
+import { History, PhoneOff } from 'lucide-react'
+import { DoctorIssueDocumentMegamenu } from './DoctorIssueDocumentMegamenu'
+import type { DoctorClinicalDocumentKind } from './doctorClinicalDocumentTypes'
 
 type DoctorConsultationHeaderProps = {
   elapsed: string
   startedAtLabel: string
   onFinishConsultation?: () => void
-  onRequestExam?: () => void
-  onIssuePrescription?: () => void
-  onIssueAtestado?: () => void
+  onIssueDocument?: (kind: DoctorClinicalDocumentKind) => void
   onViewPreviousConsultations?: () => void
 }
 
@@ -14,9 +14,7 @@ export function DoctorConsultationHeader({
   elapsed,
   startedAtLabel,
   onFinishConsultation,
-  onRequestExam,
-  onIssuePrescription,
-  onIssueAtestado,
+  onIssueDocument,
   onViewPreviousConsultations,
 }: DoctorConsultationHeaderProps) {
   return (
@@ -50,30 +48,7 @@ export function DoctorConsultationHeader({
                 Consultas anteriores
               </button>
             ) : null}
-            <button
-              type="button"
-              onClick={onRequestExam}
-              className="btn-exam-gradient inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold sm:text-sm"
-            >
-              <ClipboardList className="h-4 w-4" strokeWidth={2} />
-              Solicitar exame
-            </button>
-            <button
-              type="button"
-              onClick={onIssuePrescription}
-              className="btn-prescription-gradient inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold sm:text-sm"
-            >
-              <Pill className="h-4 w-4" strokeWidth={2} />
-              Emitir receita
-            </button>
-            <button
-              type="button"
-              onClick={onIssueAtestado}
-              className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100 sm:text-sm"
-            >
-              <FileText className="h-4 w-4" strokeWidth={2} />
-              Emitir atestado
-            </button>
+            {onIssueDocument ? <DoctorIssueDocumentMegamenu onSelect={onIssueDocument} /> : null}
             <button
               type="button"
               onClick={onFinishConsultation}

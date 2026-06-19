@@ -144,6 +144,61 @@ export async function emitirProfissionalAtestado(
   return api.emitirProfissionalAtestado(accessToken, consultaId, payload)
 }
 
+export async function emitirProfissionalEncaminhamento(
+  accessToken: string,
+  consultaId: string,
+  payload: Parameters<typeof api.emitirProfissionalEncaminhamento>[2],
+) {
+  if (useMockForSession(consultaId)) {
+    return mock.emitirProfissionalEncaminhamentoMock(accessToken, consultaId, payload)
+  }
+  return api.emitirProfissionalEncaminhamento(accessToken, consultaId, payload)
+}
+
+export async function emitirProfissionalRelatorio(
+  accessToken: string,
+  consultaId: string,
+  payload: Parameters<typeof api.emitirProfissionalRelatorio>[2],
+) {
+  if (useMockForSession(consultaId)) {
+    return mock.emitirProfissionalRelatorioMock(accessToken, consultaId, payload)
+  }
+  return api.emitirProfissionalRelatorio(accessToken, consultaId, payload)
+}
+
+export async function emitirProfissionalLaudo(
+  accessToken: string,
+  consultaId: string,
+  payload: Parameters<typeof api.emitirProfissionalLaudo>[2],
+) {
+  if (useMockForSession(consultaId)) {
+    return mock.emitirProfissionalLaudoMock(accessToken, consultaId, payload)
+  }
+  return api.emitirProfissionalLaudo(accessToken, consultaId, payload)
+}
+
+export async function emitirProfissionalAvaliacaoPresencial(
+  accessToken: string,
+  consultaId: string,
+  payload: Parameters<typeof api.emitirProfissionalAvaliacaoPresencial>[2],
+) {
+  if (useMockForSession(consultaId)) {
+    return mock.emitirProfissionalAvaliacaoPresencialMock(accessToken, consultaId, payload)
+  }
+  return api.emitirProfissionalAvaliacaoPresencial(accessToken, consultaId, payload)
+}
+
+export async function emitirProfissionalInternacao(
+  accessToken: string,
+  consultaId: string,
+  payload: Parameters<typeof api.emitirProfissionalInternacao>[2],
+) {
+  if (useMockForSession(consultaId)) {
+    return mock.emitirProfissionalInternacaoMock(accessToken, consultaId, payload)
+  }
+  return api.emitirProfissionalInternacao(accessToken, consultaId, payload)
+}
+
 export async function fetchProfissionalDocumentoDownloadUrl(
   accessToken: string,
   consultaId: string,

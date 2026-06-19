@@ -5,6 +5,7 @@ export type AttendanceSession = {
   id: string
   patientName: string
   patientBirthDateIso: string
+  patientAddress: string
   patientCity: string
   patientCpfMasked: string
   patientPhotoUrl: string
@@ -44,6 +45,7 @@ export function readAttendanceSession(id: string): AttendanceSession | null {
     const parsed = JSON.parse(raw) as AttendanceSession
     return {
       ...parsed,
+      patientAddress: parsed.patientAddress ?? parsed.patientCity ?? '',
       consultationDocuments: parsed.consultationDocuments ?? [],
     }
   } catch {
@@ -79,6 +81,7 @@ export function buildAttendanceSessionFromWaitingRoom(
     id,
     patientName,
     patientBirthDateIso: '1998-03-15',
+    patientAddress: 'Rua das Flores, 120 · Centro · Campinas, SP · CEP 13010-000',
     patientCity: 'Campinas, SP',
     patientCpfMasked: '123.456.789-**',
     patientPhotoUrl: PATIENT_PHOTO,

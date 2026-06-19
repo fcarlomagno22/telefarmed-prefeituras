@@ -12,8 +12,13 @@ import {
 } from './anexos.service.js'
 import {
   emitirProfissionalAtestadoPdf,
+  emitirProfissionalEncaminhamentoPdf,
   emitirProfissionalPedidoExamePdf,
   emitirProfissionalReceitaPdf,
+  emitirProfissionalRelatorioPdf,
+  emitirProfissionalLaudoPdf,
+  emitirProfissionalAvaliacaoPresencialPdf,
+  emitirProfissionalInternacaoPdf,
   resolveDocumentoDownloadUrlForConsulta,
 } from './documentos-clinicos.service.js'
 import { getProfissionalAtendimentoDetail } from './detail.service.js'
@@ -34,6 +39,11 @@ import {
   codigoAtendimentoParamSchema,
   consultaIdParamSchema,
   emitirAtestadoBodySchema,
+  emitirEncaminhamentoBodySchema,
+  emitirLaudoBodySchema,
+  emitirAvaliacaoPresencialBodySchema,
+  emitirInternacaoBodySchema,
+  emitirRelatorioBodySchema,
   emitirPedidoExameBodySchema,
   emitirReceitaBodySchema,
   enviarMensagemBodySchema,
@@ -446,6 +456,144 @@ export async function registerProfissionalAtendimentosRoutes(app: FastifyInstanc
 
     try {
       const result = await emitirProfissionalAtestadoPdf(
+        profissionalId(request),
+        params.data.consultaId,
+        parsed.data,
+      )
+      return reply.status(201).send(result)
+    } catch (error) {
+      const mapped = mapProfissionalAtendimentosError(error)
+      return reply.status(mapped.statusCode).send(mapped.body)
+    }
+  })
+
+  app.post(
+    '/:consultaId/encaminhamentos/emitir',
+    { preHandler: canEditQueue },
+    async (request, reply) => {
+      const params = consultaIdParamSchema.safeParse(request.params)
+      if (!params.success) {
+        return reply.status(400).send({ error: 'Identificador inválido.' })
+      }
+
+      const parsed = emitirEncaminhamentoBodySchema.safeParse(request.body ?? {})
+      if (!parsed.success) {
+        return reply
+          .status(400)
+          .send({ error: formatProfissionalAtendimentosValidationError(parsed.error) })
+      }
+
+      try {
+        const result = await emitirProfissionalEncaminhamentoPdf(
+          profissionalId(request),
+          params.data.consultaId,
+          parsed.data,
+        )
+        return reply.status(201).send(result)
+      } catch (error) {
+        const mapped = mapProfissionalAtendimentosError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  )
+
+  app.post('/:consultaId/relatorios/emitir', { preHandler: canEditQueue }, async (request, reply) => {
+    const params = consultaIdParamSchema.safeParse(request.params)
+    if (!params.success) {
+      return reply.status(400).send({ error: 'Identificador inválido.' })
+    }
+
+    const parsed = emitirRelatorioBodySchema.safeParse(request.body ?? {})
+    if (!parsed.success) {
+      return reply
+        .status(400)
+        .send({ error: formatProfissionalAtendimentosValidationError(parsed.error) })
+    }
+
+    try {
+      const result = await emitirProfissionalRelatorioPdf(
+        profissionalId(request),
+        params.data.consultaId,
+        parsed.data,
+      )
+      return reply.status(201).send(result)
+    } catch (error) {
+      const mapped = mapProfissionalAtendimentosError(error)
+      return reply.status(mapped.statusCode).send(mapped.body)
+    }
+  })
+
+  app.post('/:consultaId/laudos/emitir', { preHandler: canEditQueue }, async (request, reply) => {
+    const params = consultaIdParamSchema.safeParse(request.params)
+    if (!params.success) {
+      return reply.status(400).send({ error: 'Identificador inválido.' })
+    }
+
+    const parsed = emitirLaudoBodySchema.safeParse(request.body ?? {})
+    if (!parsed.success) {
+      return reply
+        .status(400)
+        .send({ error: formatProfissionalAtendimentosValidationError(parsed.error) })
+    }
+
+    try {
+      const result = await emitirProfissionalLaudoPdf(
+        profissionalId(request),
+        params.data.consultaId,
+        parsed.data,
+      )
+      return reply.status(201).send(result)
+    } catch (error) {
+      const mapped = mapProfissionalAtendimentosError(error)
+      return reply.status(mapped.statusCode).send(mapped.body)
+    }
+  })
+
+  app.post(
+    '/:consultaId/avaliacoes-presenciais/emitir',
+    { preHandler: canEditQueue },
+    async (request, reply) => {
+      const params = consultaIdParamSchema.safeParse(request.params)
+      if (!params.success) {
+        return reply.status(400).send({ error: 'Identificador inválido.' })
+      }
+
+      const parsed = emitirAvaliacaoPresencialBodySchema.safeParse(request.body ?? {})
+      if (!parsed.success) {
+        return reply
+          .status(400)
+          .send({ error: formatProfissionalAtendimentosValidationError(parsed.error) })
+      }
+
+      try {
+        const result = await emitirProfissionalAvaliacaoPresencialPdf(
+          profissionalId(request),
+          params.data.consultaId,
+          parsed.data,
+        )
+        return reply.status(201).send(result)
+      } catch (error) {
+        const mapped = mapProfissionalAtendimentosError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  )
+
+  app.post('/:consultaId/internacoes/emitir', { preHandler: canEditQueue }, async (request, reply) => {
+    const params = consultaIdParamSchema.safeParse(request.params)
+    if (!params.success) {
+      return reply.status(400).send({ error: 'Identificador inválido.' })
+    }
+
+    const parsed = emitirInternacaoBodySchema.safeParse(request.body ?? {})
+    if (!parsed.success) {
+      return reply
+        .status(400)
+        .send({ error: formatProfissionalAtendimentosValidationError(parsed.error) })
+    }
+
+    try {
+      const result = await emitirProfissionalInternacaoPdf(
         profissionalId(request),
         params.data.consultaId,
         parsed.data,

@@ -1,9 +1,9 @@
 import { supabaseAdmin } from '../../db/supabase.js'
-import { calcAgeFromBirthDate } from '../../lib/patientAge.js'
 import { resolveLogoUrlsByEntityId } from '../admin-clientes/logo.service.js'
 import {
   formatDoctorCrm,
-  formatPatientCity,
+  formatPatientAddress,
+  formatPatientBirthDateLabel,
   maskCpfPartial,
 } from './formatters.js'
 import type { ConsultaOperacionalFullRow } from './types.js'
@@ -12,6 +12,7 @@ import type { ClinicalDocumentContext } from '../../lib/documentos-clinicos/type
 export type DocumentContextRow = ConsultaOperacionalFullRow & {
   entidade_contratante_id?: string
   entidade_nome?: string | null
+  entidade_slug?: string | null
 }
 
 const OPERACIONAL_DOCUMENTO_SELECT = `
@@ -54,17 +55,21 @@ export async function loadDocumentContextRow(consultaId: string): Promise<Docume
 
   const entidadeId = String((consulta as { entidade_contratante_id?: string }).entidade_contratante_id ?? '')
   let entidadeNome = 'Telemedicina Municipal'
+  let entidadeSlug = ''
 
   if (entidadeId) {
     const { data: entidade, error: entidadeError } = await supabaseAdmin
       .from('entidades_contratantes')
-      .select('id, nome_exibicao, logo_storage_path')
+      .select('id, nome_exibicao, logo_storage_path, slug')
       .eq('id', entidadeId)
       .maybeSingle()
 
     if (entidadeError) throw entidadeError
     if (entidade?.nome_exibicao?.trim()) {
       entidadeNome = String(entidade.nome_exibicao).trim()
+    }
+    if (entidade?.slug?.trim()) {
+      entidadeSlug = String(entidade.slug).trim()
     }
   }
 
@@ -86,6 +91,7 @@ export async function loadDocumentContextRow(consultaId: string): Promise<Docume
     ...(consulta as ConsultaOperacionalFullRow),
     entidade_contratante_id: entidadeId,
     entidade_nome: entidadeNome,
+    entidade_slug: entidadeSlug,
     profissional_rqe: doctorRqe,
   } as DocumentContextRow & { profissional_rqe?: string }
 }
@@ -94,8 +100,6 @@ export async function buildClinicalDocumentContext(
   row: DocumentContextRow & { profissional_rqe?: string },
   emitidoEm = new Date(),
 ): Promise<ClinicalDocumentContext> {
-  const age = calcAgeFromBirthDate(row.paciente_data_nascimento)
-  const gender = String(row.paciente_sexo ?? '') === 'feminino' ? 'Feminino' : 'Masculino'
   const entidadeId = row.entidade_contratante_id?.trim() || undefined
   const entidadeLogoBuffer = entidadeId ? await loadEntidadeLogoBuffer(entidadeId) : null
 
@@ -105,8 +109,8 @@ export async function buildClinicalDocumentContext(
     specialty: String(row.especialidade_nome ?? '—'),
     patientName: String(row.paciente_nome ?? '—'),
     patientCpfMasked: maskCpfPartial(String(row.paciente_cpf ?? '')),
-    patientAgeLabel: age > 0 ? `${age} anos · ${gender}` : gender,
-    patientCity: formatPatientCity(row.paciente_endereco),
+    patientBirthDateLabel: formatPatientBirthDateLabel(row.paciente_data_nascimento),
+    patientAddress: formatPatientAddress(row.paciente_endereco),
     doctorName: row.profissional_nome?.trim() || 'Profissional',
     doctorSpecialty: String(row.especialidade_nome ?? '—'),
     doctorCrm: formatDoctorCrm(row),
@@ -121,6 +125,7 @@ export async function buildClinicalDocumentContext(
       hour12: false,
     }).format(emitidoEm),
     entidadeLogoBuffer,
+    entidadeSlug: row.entidade_slug?.trim() || undefined,
   }
 }
 

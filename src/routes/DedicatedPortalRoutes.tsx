@@ -86,6 +86,7 @@ import { AtendimentoMedicoPage } from '../pages/AtendimentoMedicoPage'
 import { VerificarDocumentoPage } from '../pages/VerificarDocumentoPage'
 import { PlantaoAceitePublicPage } from '../pages/PlantaoAceitePublicPage'
 import { PlantaoAceiteDisponiveisPublicPage } from '../pages/PlantaoAceiteDisponiveisPublicPage'
+import { DoctorConsultationDemoPage } from '../pages/DoctorConsultationDemoPage'
 import { RunWalkLiveSharePublicPage } from '../pages/RunWalkLiveSharePublicPage'
 import {
   PROFISSIONAL_HISTORICO_DEMO_ATENDIMENTO_CODIGO_LEGACY,
@@ -139,6 +140,7 @@ function SharedPublicRoutes() {
       <Route path="/plantao/aceitar/:token" element={<PlantaoAceitePublicPage />} />
       <Route path="/plantao/disponiveis/:token" element={<PlantaoAceiteDisponiveisPublicPage />} />
       <Route path="/acompanhar/:token" element={<RunWalkLiveSharePublicPage />} />
+      <Route path="/demo/sala-atendimento" element={<DoctorConsultationDemoPage />} />
     </>
   )
 }

@@ -262,6 +262,7 @@ export function DoctorPrescriptionModal({
       message="Receita médica assinada e disponível para o paciente"
       visible={successToastVisible}
       variant="success"
+      durationMs={2000}
       onClose={() => setSuccessToastVisible(false)}
     />
   )

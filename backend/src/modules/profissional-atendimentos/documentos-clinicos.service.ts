@@ -9,12 +9,23 @@ import {
   hashDocumentBuffer,
   renderClinicalDocumentPdf,
 } from '../../lib/documentos-clinicos/pdf-generator.js'
+import { buildAtestadoDeclarationLines } from '../../lib/documentos-clinicos/atestado-lines.js'
+import { buildAvaliacaoPresencialSections } from '../../lib/documentos-clinicos/avaliacao-presencial-lines.js'
+import { buildEncaminhamentoSections } from '../../lib/documentos-clinicos/encaminhamento-lines.js'
+import { buildInternacaoSections } from '../../lib/documentos-clinicos/internacao-lines.js'
+import { buildLaudoSections } from '../../lib/documentos-clinicos/laudo-lines.js'
+import { buildRelatorioSections } from '../../lib/documentos-clinicos/relatorio-lines.js'
 import type {
   AtestadoPdfData,
+  AvaliacaoPresencialPdfData,
   ClinicalDocumentKind,
   ClinicalDocumentPayload,
+  EncaminhamentoPdfData,
   ExamePdfItem,
+  InternacaoPdfData,
+  LaudoPdfData,
   PrescricaoPdfItem,
+  RelatorioPdfData,
 } from '../../lib/documentos-clinicos/types.js'
 import { ANEXO_BUCKET, createAnexoSignedUrl } from './clinical-data.service.js'
 import {
@@ -199,7 +210,7 @@ export async function emitirProfissionalReceitaPdf(
   const emitidoEm = new Date()
   const context = await buildClinicalDocumentContext(contextRow, emitidoEm)
   const codigoVerificacao = generateCodigoVerificacaoDocumento()
-  const verificationUrl = buildDocumentoVerificacaoUrl(codigoVerificacao)
+  const verificationUrl = buildDocumentoVerificacaoUrl(codigoVerificacao, context.entidadeSlug)
 
   const prescricaoIds: string[] = []
 
@@ -263,6 +274,7 @@ export async function emitirProfissionalPedidoExamePdf(
   input: {
     exames: ExamePdfItem[]
     indicacaoClinica?: string
+    urgent?: boolean
   },
 ): Promise<EmitDocumentResult> {
   if (input.exames.length === 0) {
@@ -277,7 +289,7 @@ export async function emitirProfissionalPedidoExamePdf(
   const emitidoEm = new Date()
   const context = await buildClinicalDocumentContext(contextRow, emitidoEm)
   const codigoVerificacao = generateCodigoVerificacaoDocumento()
-  const verificationUrl = buildDocumentoVerificacaoUrl(codigoVerificacao)
+  const verificationUrl = buildDocumentoVerificacaoUrl(codigoVerificacao, context.entidadeSlug)
 
   const solicitacaoIds: string[] = []
   const customExams: string[] = []
@@ -320,14 +332,15 @@ export async function emitirProfissionalPedidoExamePdf(
     kind: 'pedido_exame',
     context,
     sections,
+    urgent: input.urgent === true,
     codigoVerificacao,
     verificationUrl,
   }
 
   return emitPdfDocument(profissionalId, consultaId, payload, {
-    titulo: 'Pedido de exames',
+    titulo: input.urgent ? 'Pedido de exames (urgente)' : 'Pedido de exames',
     fileName: 'pedido-exames.pdf',
-    metadata: { solicitacaoIds, customExams, indicacaoClinica: input.indicacaoClinica ?? '' },
+    metadata: { solicitacaoIds, customExams, indicacaoClinica: input.indicacaoClinica ?? '', urgent: input.urgent === true },
     metaLabel:
       input.exames.length === 1 ? input.exames[0].name : `${input.exames.length} exames solicitados`,
   })
@@ -346,18 +359,20 @@ export async function emitirProfissionalAtestadoPdf(
   const emitidoEm = new Date()
   const context = await buildClinicalDocumentContext(contextRow, emitidoEm)
   const codigoVerificacao = generateCodigoVerificacaoDocumento()
-  const verificationUrl = buildDocumentoVerificacaoUrl(codigoVerificacao)
-
-  const dataFim = addDaysToIsoDate(input.dataInicio, input.diasAfastamento)
+  const verificationUrl = buildDocumentoVerificacaoUrl(codigoVerificacao, context.entidadeSlug)
 
   const { data: atestado, error: atestadoError } = await supabaseAdmin
     .from('consulta_atestados')
     .insert({
       consulta_id: consultaId,
-      dias_afastamento: input.diasAfastamento,
+      tipo: input.tipo,
+      dias_afastamento: input.tipo === 'comparecimento' ? 0 : (input.diasAfastamento ?? 1),
       data_inicio: input.dataInicio,
       cid: input.cid?.trim() ?? '',
-      motivo: input.motivo.trim(),
+      cid_descricao: input.cidDescricao?.trim() ?? '',
+      motivo:
+        input.motivo?.trim()
+        || (input.tipo === 'comparecimento' ? 'Comparecimento em consulta médica' : ''),
       observacoes: input.observacoes?.trim() ?? '',
     })
     .select('id')
@@ -365,18 +380,12 @@ export async function emitirProfissionalAtestadoPdf(
 
   if (atestadoError) throw atestadoError
 
-  const lines = [
-    `Atesto, para os devidos fins, que o(a) paciente ${context.patientName} necessita de afastamento de suas atividades por ${input.diasAfastamento} dia(s).`,
-    `Período: ${formatBrazilianDateLabel(input.dataInicio)} a ${formatBrazilianDateLabel(dataFim)}.`,
-    `Motivo: ${input.motivo.trim()}`,
-  ]
-
-  if (input.cid?.trim()) {
-    lines.push(`CID: ${input.cid.trim()}`)
-  }
-  if (input.observacoes?.trim()) {
-    lines.push(`Observações: ${input.observacoes.trim()}`)
-  }
+  const lines = buildAtestadoDeclarationLines(
+    context.patientName,
+    input,
+    formatBrazilianDateLabel,
+    addDaysToIsoDate,
+  )
 
   const payload: ClinicalDocumentPayload = {
     kind: 'atestado',
@@ -386,11 +395,388 @@ export async function emitirProfissionalAtestadoPdf(
     verificationUrl,
   }
 
+  const documentMeta =
+    input.tipo === 'comparecimento'
+      ? {
+          titulo: 'Atestado de comparecimento',
+          fileName: 'atestado-comparecimento.pdf',
+          metaLabel: `Comparecimento em ${formatBrazilianDateLabel(input.dataInicio)}`,
+        }
+      : {
+          titulo: `Atestado médico (${input.diasAfastamento} dia(s))`,
+          fileName: 'atestado-medico.pdf',
+          metaLabel: `${input.diasAfastamento} dia(s) de afastamento`,
+        }
+
   return emitPdfDocument(profissionalId, consultaId, payload, {
-    titulo: `Atestado médico (${input.diasAfastamento} dia(s))`,
-    fileName: 'atestado-medico.pdf',
-    metadata: { atestadoId: String(atestado.id) },
-    metaLabel: `${input.diasAfastamento} dia(s) de afastamento`,
+    ...documentMeta,
+    metadata: { atestadoId: String(atestado.id), tipo: input.tipo },
+  })
+}
+
+export async function emitirProfissionalEncaminhamentoPdf(
+  profissionalId: string,
+  consultaId: string,
+  input: EncaminhamentoPdfData,
+): Promise<EmitDocumentResult> {
+  if (!input.specialtyLabel.trim()) {
+    throw new ProfissionalAtendimentosError('Informe a especialidade de destino.', 'INVALID_DATA', 400)
+  }
+  if (!input.motivoEncaminhamento.trim()) {
+    throw new ProfissionalAtendimentosError('Informe o motivo do encaminhamento.', 'INVALID_DATA', 400)
+  }
+  if (!input.historiaClinica.trim()) {
+    throw new ProfissionalAtendimentosError('Informe a história clínica.', 'INVALID_DATA', 400)
+  }
+  if (!input.exameFisico.trim()) {
+    throw new ProfissionalAtendimentosError('Informe o exame físico.', 'INVALID_DATA', 400)
+  }
+  if (!input.hipoteseDiagnostica.trim()) {
+    throw new ProfissionalAtendimentosError('Informe a hipótese diagnóstica.', 'INVALID_DATA', 400)
+  }
+  if (!input.tratamentosEMedicacoes.trim()) {
+    throw new ProfissionalAtendimentosError(
+      'Informe os tratamentos e medicações em uso.',
+      'INVALID_DATA',
+      400,
+    )
+  }
+
+  const contextRow = await loadDocumentContextRow(consultaId)
+  if (!contextRow) {
+    throw new ProfissionalAtendimentosError('Consulta não encontrada.', 'NOT_FOUND', 404)
+  }
+
+  const emitidoEm = new Date()
+  const context = await buildClinicalDocumentContext(contextRow, emitidoEm)
+  const codigoVerificacao = generateCodigoVerificacaoDocumento()
+  const verificationUrl = buildDocumentoVerificacaoUrl(codigoVerificacao, context.entidadeSlug)
+  const urgent = input.prioridade === 'urgente'
+
+  const payload: ClinicalDocumentPayload = {
+    kind: 'encaminhamento',
+    context,
+    sections: buildEncaminhamentoSections(input),
+    urgent,
+    codigoVerificacao,
+    verificationUrl,
+  }
+
+  const titulo = urgent ? 'Encaminhamento médico (urgente)' : 'Encaminhamento médico'
+
+  return emitPdfDocument(profissionalId, consultaId, payload, {
+    titulo,
+    fileName: 'encaminhamento-medico.pdf',
+    metadata: {
+      specialtyLabel: input.specialtyLabel.trim(),
+      tipoSolicitacao: input.tipoSolicitacao,
+      prioridade: input.prioridade,
+      cid: input.cid?.trim() ?? '',
+    },
+    metaLabel: input.specialtyLabel.trim(),
+  })
+}
+
+const RELATORIO_FINALIDADE_LABELS: Record<RelatorioPdfData['finalidade'], string> = {
+  referencia: 'Referência',
+  resumo_atendimento: 'Resumo de atendimento',
+  contrarreferencia: 'Contrarreferência',
+  parecer: 'Parecer técnico',
+  administrativo: 'Fins administrativos',
+}
+
+export async function emitirProfissionalRelatorioPdf(
+  profissionalId: string,
+  consultaId: string,
+  input: RelatorioPdfData,
+): Promise<EmitDocumentResult> {
+  if (!input.motivoRelatorio.trim()) {
+    throw new ProfissionalAtendimentosError('Informe o motivo do relatório.', 'INVALID_DATA', 400)
+  }
+  if (!input.queixaPrincipal.trim()) {
+    throw new ProfissionalAtendimentosError('Informe a queixa principal.', 'INVALID_DATA', 400)
+  }
+  if (!input.historiaDoencaAtual.trim()) {
+    throw new ProfissionalAtendimentosError('Informe a história da doença atual.', 'INVALID_DATA', 400)
+  }
+  if (!input.exameFisico.trim()) {
+    throw new ProfissionalAtendimentosError('Informe o exame físico.', 'INVALID_DATA', 400)
+  }
+  if (!input.hipoteseDiagnostica.trim()) {
+    throw new ProfissionalAtendimentosError('Informe a hipótese diagnóstica.', 'INVALID_DATA', 400)
+  }
+  if (!input.condutaAdotada.trim()) {
+    throw new ProfissionalAtendimentosError('Informe a conduta adotada.', 'INVALID_DATA', 400)
+  }
+  if (!input.conclusaoParecer.trim()) {
+    throw new ProfissionalAtendimentosError('Informe o parecer / conclusão.', 'INVALID_DATA', 400)
+  }
+
+  const contextRow = await loadDocumentContextRow(consultaId)
+  if (!contextRow) {
+    throw new ProfissionalAtendimentosError('Consulta não encontrada.', 'NOT_FOUND', 404)
+  }
+
+  const emitidoEm = new Date()
+  const context = await buildClinicalDocumentContext(contextRow, emitidoEm)
+  const codigoVerificacao = generateCodigoVerificacaoDocumento()
+  const verificationUrl = buildDocumentoVerificacaoUrl(codigoVerificacao, context.entidadeSlug)
+
+  const payload: ClinicalDocumentPayload = {
+    kind: 'relatorio',
+    context,
+    sections: buildRelatorioSections(input),
+    codigoVerificacao,
+    verificationUrl,
+  }
+
+  return emitPdfDocument(profissionalId, consultaId, payload, {
+    titulo: 'Relatório médico',
+    fileName: 'relatorio-medico.pdf',
+    metadata: {
+      finalidade: input.finalidade,
+      destinatario: input.destinatario?.trim() ?? '',
+      cid: input.cid?.trim() ?? '',
+    },
+    metaLabel: RELATORIO_FINALIDADE_LABELS[input.finalidade],
+  })
+}
+
+const LAUDO_TIPO_LABELS: Record<LaudoPdfData['tipoLaudo'], string> = {
+  exame_complementar: 'Exame complementar',
+  condicao_clinica: 'Condição clínica',
+  procedimento: 'Procedimento',
+  aptidao_inaptidao: 'Aptidão / inaptidão',
+  pericia_administrativa: 'Perícia administrativa',
+}
+
+export async function emitirProfissionalLaudoPdf(
+  profissionalId: string,
+  consultaId: string,
+  input: LaudoPdfData,
+): Promise<EmitDocumentResult> {
+  if (!input.objetoLaudo.trim()) {
+    throw new ProfissionalAtendimentosError('Informe o objeto do laudo.', 'INVALID_DATA', 400)
+  }
+  if (!input.descricaoAchados.trim()) {
+    throw new ProfissionalAtendimentosError('Informe a descrição dos achados.', 'INVALID_DATA', 400)
+  }
+  if (!input.correlacaoClinica.trim()) {
+    throw new ProfissionalAtendimentosError('Informe a correlação clínica.', 'INVALID_DATA', 400)
+  }
+  if (!input.conclusaoLaudo.trim()) {
+    throw new ProfissionalAtendimentosError('Informe a conclusão do laudo.', 'INVALID_DATA', 400)
+  }
+
+  const contextRow = await loadDocumentContextRow(consultaId)
+  if (!contextRow) {
+    throw new ProfissionalAtendimentosError('Consulta não encontrada.', 'NOT_FOUND', 404)
+  }
+
+  const emitidoEm = new Date()
+  const context = await buildClinicalDocumentContext(contextRow, emitidoEm)
+  const codigoVerificacao = generateCodigoVerificacaoDocumento()
+  const verificationUrl = buildDocumentoVerificacaoUrl(codigoVerificacao, context.entidadeSlug)
+
+  const payload: ClinicalDocumentPayload = {
+    kind: 'laudo',
+    context,
+    sections: buildLaudoSections(input),
+    codigoVerificacao,
+    verificationUrl,
+  }
+
+  return emitPdfDocument(profissionalId, consultaId, payload, {
+    titulo: 'Laudo médico',
+    fileName: 'laudo-medico.pdf',
+    metadata: {
+      tipoLaudo: input.tipoLaudo,
+      objetoLaudo: input.objetoLaudo.trim(),
+      cid: input.cid?.trim() ?? '',
+    },
+    metaLabel: LAUDO_TIPO_LABELS[input.tipoLaudo],
+  })
+}
+
+const AVALIACAO_TIPO_LABELS: Record<AvaliacaoPresencialPdfData['tipoAvaliacao'], string> = {
+  retorno_presencial: 'Retorno presencial',
+  avaliacao_especializada: 'Avaliação especializada',
+  reavaliacao_clinica: 'Reavaliação clínica',
+  procedimento_presencial: 'Procedimento presencial',
+  urgencia_presencial: 'Urgência presencial',
+}
+
+export async function emitirProfissionalAvaliacaoPresencialPdf(
+  profissionalId: string,
+  consultaId: string,
+  input: AvaliacaoPresencialPdfData,
+): Promise<EmitDocumentResult> {
+  if (!input.servicoDestino.trim()) {
+    throw new ProfissionalAtendimentosError(
+      'Informe o serviço ou unidade de destino.',
+      'INVALID_DATA',
+      400,
+    )
+  }
+  if (!input.motivoAvaliacao.trim()) {
+    throw new ProfissionalAtendimentosError(
+      'Informe o motivo da avaliação presencial.',
+      'INVALID_DATA',
+      400,
+    )
+  }
+  if (!input.justificativaPresencial.trim()) {
+    throw new ProfissionalAtendimentosError(
+      'Informe a justificativa para avaliação presencial.',
+      'INVALID_DATA',
+      400,
+    )
+  }
+  if (!input.historiaClinica.trim()) {
+    throw new ProfissionalAtendimentosError('Informe a história clínica.', 'INVALID_DATA', 400)
+  }
+  if (!input.exameFisicoRemoto.trim()) {
+    throw new ProfissionalAtendimentosError(
+      'Informe os achados da avaliação remota.',
+      'INVALID_DATA',
+      400,
+    )
+  }
+  if (!input.hipoteseDiagnostica.trim()) {
+    throw new ProfissionalAtendimentosError('Informe a hipótese diagnóstica.', 'INVALID_DATA', 400)
+  }
+  if (!input.expectativaAvaliacao.trim()) {
+    throw new ProfissionalAtendimentosError(
+      'Informe a expectativa da avaliação presencial.',
+      'INVALID_DATA',
+      400,
+    )
+  }
+
+  const contextRow = await loadDocumentContextRow(consultaId)
+  if (!contextRow) {
+    throw new ProfissionalAtendimentosError('Consulta não encontrada.', 'NOT_FOUND', 404)
+  }
+
+  const emitidoEm = new Date()
+  const context = await buildClinicalDocumentContext(contextRow, emitidoEm)
+  const codigoVerificacao = generateCodigoVerificacaoDocumento()
+  const verificationUrl = buildDocumentoVerificacaoUrl(codigoVerificacao, context.entidadeSlug)
+  const urgent = input.prioridade === 'urgente'
+
+  const payload: ClinicalDocumentPayload = {
+    kind: 'avaliacao_presencial',
+    context,
+    sections: buildAvaliacaoPresencialSections(input),
+    urgent,
+    codigoVerificacao,
+    verificationUrl,
+  }
+
+  const titulo = urgent ? 'Avaliação presencial (urgente)' : 'Avaliação presencial'
+
+  return emitPdfDocument(profissionalId, consultaId, payload, {
+    titulo,
+    fileName: 'avaliacao-presencial.pdf',
+    metadata: {
+      tipoAvaliacao: input.tipoAvaliacao,
+      prioridade: input.prioridade,
+      servicoDestino: input.servicoDestino.trim(),
+      cid: input.cid?.trim() ?? '',
+    },
+    metaLabel: input.servicoDestino.trim() || AVALIACAO_TIPO_LABELS[input.tipoAvaliacao],
+  })
+}
+
+const INTERNACAO_TIPO_LABELS: Record<InternacaoPdfData['tipoInternacao'], string> = {
+  clinica: 'Internação clínica',
+  cirurgica: 'Internação cirúrgica',
+  obstetrica: 'Internação obstétrica',
+  pediatrica: 'Internação pediátrica',
+  psiquiatrica: 'Internação psiquiátrica',
+  uti: 'Internação em UTI',
+}
+
+const INTERNACAO_CARATER_LABELS: Record<InternacaoPdfData['caraterInternacao'], string> = {
+  eletiva: 'Eletiva',
+  urgencia: 'Urgência',
+  emergencia: 'Emergência',
+}
+
+export async function emitirProfissionalInternacaoPdf(
+  profissionalId: string,
+  consultaId: string,
+  input: InternacaoPdfData,
+): Promise<EmitDocumentResult> {
+  if (!input.unidadeDestino.trim()) {
+    throw new ProfissionalAtendimentosError(
+      'Informe a unidade hospitalar de destino.',
+      'INVALID_DATA',
+      400,
+    )
+  }
+  if (!input.motivoInternacao.trim()) {
+    throw new ProfissionalAtendimentosError('Informe o motivo da internação.', 'INVALID_DATA', 400)
+  }
+  if (!input.justificativaClinica.trim()) {
+    throw new ProfissionalAtendimentosError(
+      'Informe a justificativa clínica da internação.',
+      'INVALID_DATA',
+      400,
+    )
+  }
+  if (!input.historiaClinica.trim()) {
+    throw new ProfissionalAtendimentosError('Informe a história clínica.', 'INVALID_DATA', 400)
+  }
+  if (!input.exameFisico.trim()) {
+    throw new ProfissionalAtendimentosError('Informe o exame físico.', 'INVALID_DATA', 400)
+  }
+  if (!input.hipoteseDiagnostica.trim()) {
+    throw new ProfissionalAtendimentosError('Informe a hipótese diagnóstica.', 'INVALID_DATA', 400)
+  }
+  if (!input.tratamentosEMedicacoes.trim()) {
+    throw new ProfissionalAtendimentosError(
+      'Informe os tratamentos e medicações em uso.',
+      'INVALID_DATA',
+      400,
+    )
+  }
+
+  const contextRow = await loadDocumentContextRow(consultaId)
+  if (!contextRow) {
+    throw new ProfissionalAtendimentosError('Consulta não encontrada.', 'NOT_FOUND', 404)
+  }
+
+  const emitidoEm = new Date()
+  const context = await buildClinicalDocumentContext(contextRow, emitidoEm)
+  const codigoVerificacao = generateCodigoVerificacaoDocumento()
+  const verificationUrl = buildDocumentoVerificacaoUrl(codigoVerificacao, context.entidadeSlug)
+  const urgent =
+    input.caraterInternacao === 'urgencia' || input.caraterInternacao === 'emergencia'
+
+  const payload: ClinicalDocumentPayload = {
+    kind: 'internacao',
+    context,
+    sections: buildInternacaoSections(input),
+    urgent,
+    codigoVerificacao,
+    verificationUrl,
+  }
+
+  const titulo = urgent
+    ? `Internação (${INTERNACAO_CARATER_LABELS[input.caraterInternacao].toLowerCase()})`
+    : 'Internação'
+
+  return emitPdfDocument(profissionalId, consultaId, payload, {
+    titulo,
+    fileName: 'solicitacao-internacao.pdf',
+    metadata: {
+      tipoInternacao: input.tipoInternacao,
+      caraterInternacao: input.caraterInternacao,
+      unidadeDestino: input.unidadeDestino.trim(),
+      cid: input.cid?.trim() ?? '',
+    },
+    metaLabel: input.unidadeDestino.trim() || INTERNACAO_TIPO_LABELS[input.tipoInternacao],
   })
 }
 

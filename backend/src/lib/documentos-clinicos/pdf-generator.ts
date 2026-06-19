@@ -4,11 +4,13 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import PDFDocument from 'pdfkit'
 import QRCode from 'qrcode'
+import { PDF_FONT, registerClinicalDocumentFonts } from './pdf-fonts.js'
 import type {
   ClinicalDocumentContext,
   ClinicalDocumentKind,
   ClinicalDocumentPayload,
 } from './types.js'
+import { formatClinicalDocumentVerificationLabel } from './verification-url.js'
 
 type PdfDoc = InstanceType<typeof PDFDocument>
 
@@ -20,20 +22,34 @@ const INK_FAINT = '#94a3b8'
 const LINE = '#e2e8f0'
 const PANEL = '#f8fafc'
 
-const MARGIN = 52
+const MARGIN = 60
 const FOOTER_HEIGHT = 118
+const POWERED_BY_HEIGHT = 28
 
 const DOCUMENT_TITLES: Record<ClinicalDocumentKind, string> = {
   receita: 'Receita Médica',
   pedido_exame: 'Pedido de Exames',
   atestado: 'Atestado Médico',
+  encaminhamento: 'Encaminhamento Médico',
+  relatorio: 'Relatório Médico',
+  laudo: 'Laudo Médico',
+  avaliacao_presencial: 'Avaliação Presencial',
+  internacao: 'Solicitação de Internação',
 }
 
 const DOCUMENT_SUBTITLES: Record<ClinicalDocumentKind, string> = {
-  receita: 'Documento de prescrição eletrônica',
+  receita: 'Prescrição eletrônica',
   pedido_exame: 'Solicitação de exames complementares',
-  atestado: 'Declaração de afastamento / comparecimento',
+  atestado: 'Declaração de afastamento ou comparecimento',
+  encaminhamento: 'Referência para continuidade do cuidado',
+  relatorio: 'Resumo clínico para referência ou contrarreferência',
+  laudo: 'Parecer técnico sobre exame ou condição clínica',
+  avaliacao_presencial: 'Solicitação de retorno ou avaliação no serviço de saúde',
+  internacao: 'Solicitação de internação hospitalar para regulação de leitos',
 }
+
+const URGENT_BG = '#DC2626'
+const URGENT_TEXT = '#FFFFFF'
 
 let telefarmedLogoCache: Buffer | null | undefined
 
@@ -53,6 +69,7 @@ function loadTelefarmedLogo(): Buffer | null {
 export async function renderClinicalDocumentPdf(payload: ClinicalDocumentPayload): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margin: MARGIN, bufferPages: true })
+    registerClinicalDocumentFonts(doc)
     const chunks: Buffer[] = []
 
     doc.on('data', (chunk: Buffer) => chunks.push(chunk))
@@ -70,43 +87,98 @@ export function hashDocumentBuffer(buffer: Buffer): string {
 async function drawDocument(doc: PdfDoc, payload: ClinicalDocumentPayload): Promise<void> {
   const { context, kind, sections, verificationUrl, codigoVerificacao } = payload
   const pageWidth = doc.page.width - MARGIN * 2
-  const contentBottom = doc.page.height - MARGIN - FOOTER_HEIGHT - 12
+  const contentBottom = getContentBottom(doc)
+  const layout: ContentLayout = {
+    context,
+    kind,
+    pageWidth,
+    codigoVerificacao,
+    urgent: payload.urgent,
+    contentBottom,
+  }
 
-  drawPageHeader(doc, context, kind, pageWidth, codigoVerificacao)
+  doc.y = MARGIN
+  drawPageHeader(doc, context, kind, pageWidth, codigoVerificacao, payload.urgent)
   drawPatientPanel(doc, context, pageWidth)
 
-  doc.moveDown(0.55)
+  doc.moveDown(0.7)
 
   for (const section of sections) {
-    ensureSpace(doc, contentBottom, 72)
-    drawSection(doc, section.title, section.lines, pageWidth)
-    doc.moveDown(0.45)
+    drawSection(doc, section.title, section.lines, layout)
+    doc.moveDown(0.5)
   }
 
   if (payload.footerNote?.trim()) {
-    ensureSpace(doc, contentBottom, 48)
-    drawNotePanel(doc, payload.footerNote.trim(), pageWidth)
+    drawNotePanel(doc, payload.footerNote.trim(), layout)
     doc.moveDown(0.45)
   }
 
   const range = doc.bufferedPageRange()
   for (let pageIndex = range.start; pageIndex < range.start + range.count; pageIndex += 1) {
     doc.switchToPage(pageIndex)
+    drawPageHeaderPagination(doc, {
+      context,
+      pageWidth,
+      pageNumber: pageIndex - range.start + 1,
+      pageCount: range.count,
+    })
     await drawPageFooter(doc, {
       context,
       verificationUrl,
       codigoVerificacao,
       pageWidth,
-      pageNumber: pageIndex - range.start + 1,
-      pageCount: range.count,
     })
+    drawPoweredByStrip(doc, pageWidth)
   }
 }
 
-function ensureSpace(doc: PdfDoc, contentBottom: number, needed: number) {
-  if (doc.y + needed <= contentBottom) return
+type ContentLayout = {
+  context: ClinicalDocumentContext
+  kind: ClinicalDocumentKind
+  pageWidth: number
+  codigoVerificacao: string
+  urgent?: boolean
+  contentBottom: number
+}
+
+function getContentBottom(doc: PdfDoc) {
+  return doc.page.height - MARGIN - FOOTER_HEIGHT - POWERED_BY_HEIGHT - 16
+}
+
+function ensureContentSpace(doc: PdfDoc, layout: ContentLayout, needed: number) {
+  if (doc.y + needed <= layout.contentBottom) return
+
   doc.addPage()
   doc.y = MARGIN
+  drawPageHeader(
+    doc,
+    layout.context,
+    layout.kind,
+    layout.pageWidth,
+    layout.codigoVerificacao,
+    layout.urgent,
+  )
+}
+
+function drawUrgentBadge(doc: PdfDoc, pageWidth: number, titleTop: number) {
+  const label = 'URGENTE'
+  const padX = 10
+  const fontSize = 10.5
+  const badgeHeight = 24
+  doc.font(PDF_FONT.semiBold).fontSize(fontSize)
+  const textWidth = doc.widthOfString(label)
+  const badgeWidth = textWidth + padX * 2
+  const badgeX = MARGIN + pageWidth - badgeWidth
+  const badgeY = titleTop + 1
+  const textY = badgeY + (badgeHeight - fontSize) / 2 - 1.5
+
+  doc.roundedRect(badgeX, badgeY, badgeWidth, badgeHeight, 6).fillColor(URGENT_BG).fill()
+
+  doc
+    .font(PDF_FONT.semiBold)
+    .fontSize(fontSize)
+    .fillColor(URGENT_TEXT)
+    .text(label, badgeX + padX, textY)
 }
 
 function drawPageHeader(
@@ -115,105 +187,139 @@ function drawPageHeader(
   kind: ClinicalDocumentKind,
   pageWidth: number,
   codigoVerificacao: string,
+  urgent?: boolean,
 ) {
   const top = doc.y
-  const logo = loadTelefarmedLogo()
-  const entityLogoSize = context.entidadeLogoBuffer ? 44 : 0
-  const metaWidth = pageWidth - 150 - (entityLogoSize > 0 ? entityLogoSize + 10 : 0)
+  const entityName = sanitizeDisplayName(context.entidadeNome || 'Telemedicina Municipal')
+  const headerMetaRight = MARGIN + pageWidth
 
-  if (logo) {
-    doc.image(logo, MARGIN, top, { fit: [128, 32] })
-  } else {
-    doc.font('Helvetica-Bold').fontSize(14).fillColor(BRAND_ORANGE).text('TELEFARMED', MARGIN, top + 6)
-  }
-
-  const metaX = MARGIN + pageWidth - metaWidth - entityLogoSize - (entityLogoSize > 0 ? 10 : 0)
-
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(9.5)
-    .fillColor(INK)
-    .text(sanitizeDisplayName(context.entidadeNome || 'Telemedicina Municipal'), metaX, top, {
-      width: metaWidth,
-      align: 'right',
-    })
-
-  doc
-    .font('Helvetica')
-    .fontSize(8)
-    .fillColor(INK_MUTED)
-    .text([context.unitName, context.specialty].filter(Boolean).join(' · '), metaX, top + 13, {
-      width: metaWidth,
-      align: 'right',
-    })
-
-  doc
-    .font('Helvetica')
-    .fontSize(7.5)
-    .fillColor(INK_FAINT)
-    .text(`Protocolo ${codigoVerificacao}`, metaX, top + 25, {
-      width: metaWidth,
-      align: 'right',
-    })
+  let headerBottom = top
+  let hasEntityLogo = false
+  const LOGO_MAX_HEIGHT = 56
 
   if (context.entidadeLogoBuffer) {
     try {
-      doc.image(context.entidadeLogoBuffer, MARGIN + pageWidth - entityLogoSize, top - 2, {
-        fit: [entityLogoSize, entityLogoSize],
-      })
+      doc.image(context.entidadeLogoBuffer, MARGIN, top, { fit: [200, LOGO_MAX_HEIGHT] })
+      hasEntityLogo = true
+      headerBottom = top + LOGO_MAX_HEIGHT + 8
     } catch {
-      // logo da entidade indisponível
+      drawEntityNameFallback(doc, entityName, top)
+      headerBottom = top + 28
     }
+  } else {
+    drawEntityNameFallback(doc, entityName, top)
+    headerBottom = top + 28
   }
 
-  const ruleY = top + 40
+  const unitLine = [context.unitName, context.specialty].filter(Boolean).join(' · ')
+  const metaRightWidth = 220
+
+  if (unitLine) {
+    doc
+      .font(PDF_FONT.regular)
+      .fontSize(hasEntityLogo ? 7.5 : 8)
+      .fillColor(hasEntityLogo ? INK_FAINT : INK_MUTED)
+      .text(unitLine, headerMetaRight - metaRightWidth, top + 2, {
+        width: metaRightWidth,
+        align: 'right',
+      })
+  }
+
+  doc
+    .font(PDF_FONT.regular)
+    .fontSize(7.5)
+    .fillColor(INK_FAINT)
+    .text(`Protocolo ${codigoVerificacao}`, headerMetaRight - metaRightWidth, top + (unitLine ? 14 : 2), {
+      width: metaRightWidth,
+      align: 'right',
+    })
+
+  const emissaoY = top + (unitLine ? 28 : hasEntityLogo ? 14 : 28)
+  const emissaoPrefix = 'Emissão: '
+  doc.font(PDF_FONT.regular).fontSize(8).fillColor(INK_MUTED)
+  const emissaoPrefixWidth = doc.widthOfString(emissaoPrefix)
+  doc.font(PDF_FONT.semiBold).fillColor(INK)
+  const emissaoValueWidth = doc.widthOfString(context.emitidoEmLabel)
+  const emissaoX = headerMetaRight - emissaoPrefixWidth - emissaoValueWidth
+
+  doc.font(PDF_FONT.regular).fontSize(8).fillColor(INK_MUTED).text(emissaoPrefix, emissaoX, emissaoY)
+  doc.font(PDF_FONT.semiBold).fillColor(INK).text(context.emitidoEmLabel, emissaoX + emissaoPrefixWidth, emissaoY)
+
+  const ruleY = Math.max(headerBottom, emissaoY + 22) + 6
   doc
     .moveTo(MARGIN, ruleY)
     .lineTo(MARGIN + pageWidth, ruleY)
     .strokeColor(LINE)
-    .lineWidth(0.75)
+    .lineWidth(0.25)
     .stroke()
 
-  const titleTop = ruleY + 22
+  const titleTop = ruleY + 20
   doc
-    .font('Helvetica-Bold')
-    .fontSize(22)
+    .font(PDF_FONT.semiBold)
+    .fontSize(18)
     .fillColor(INK)
-    .text(DOCUMENT_TITLES[kind], MARGIN, titleTop, { width: pageWidth * 0.68 })
+    .text(DOCUMENT_TITLES[kind], MARGIN, titleTop, { width: pageWidth * 0.72 })
+
+  if (
+    (kind === 'pedido_exame' ||
+      kind === 'encaminhamento' ||
+      kind === 'avaliacao_presencial' ||
+      kind === 'internacao') &&
+    urgent
+  ) {
+    drawUrgentBadge(doc, pageWidth, titleTop)
+  }
 
   doc
-    .font('Helvetica')
+    .font(PDF_FONT.regular)
     .fontSize(9)
     .fillColor(INK_MUTED)
-    .text(DOCUMENT_SUBTITLES[kind], MARGIN, titleTop + 28, { width: pageWidth * 0.68 })
+    .text(DOCUMENT_SUBTITLES[kind], MARGIN, titleTop + 24, { width: pageWidth * 0.72 })
+
+  const accentY = titleTop + 44
+  doc
+    .moveTo(MARGIN, accentY)
+    .lineTo(MARGIN + pageWidth, accentY)
+    .strokeColor(LINE)
+    .lineWidth(0.25)
+    .stroke()
+
+  doc.y = accentY + 20
+}
+
+function drawPageHeaderPagination(
+  doc: PdfDoc,
+  input: {
+    context: ClinicalDocumentContext
+    pageWidth: number
+    pageNumber: number
+    pageCount: number
+  },
+) {
+  if (input.pageCount <= 1) return
+
+  const top = MARGIN
+  const headerMetaRight = MARGIN + input.pageWidth
+  const metaRightWidth = 220
+  const hasEntityLogo = !!input.context.entidadeLogoBuffer
+  const unitLine = [input.context.unitName, input.context.specialty].filter(Boolean).join(' · ')
+  const emissaoY = top + (unitLine ? 28 : hasEntityLogo ? 14 : 28)
+  const paginationY = emissaoY + 11
 
   doc
-    .font('Helvetica')
-    .fontSize(8)
-    .fillColor(INK_LIGHT)
-    .text('Emissão', MARGIN + pageWidth - 108, titleTop + 4, { width: 108, align: 'right' })
-
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(9)
-    .fillColor(INK)
-    .text(context.emitidoEmLabel, MARGIN + pageWidth - 108, titleTop + 16, {
-      width: 108,
+    .font(PDF_FONT.regular)
+    .fontSize(7)
+    .fillColor(INK_FAINT)
+    .text(`Página ${input.pageNumber} de ${input.pageCount}`, headerMetaRight - metaRightWidth, paginationY, {
+      width: metaRightWidth,
       align: 'right',
     })
+}
 
-  const accentY = titleTop + 48
-  doc.save()
-  doc.rect(MARGIN, accentY, 48, 2).fill(BRAND_ORANGE)
-  doc
-    .moveTo(MARGIN + 48, accentY + 1)
-    .lineTo(MARGIN + pageWidth, accentY + 1)
-    .strokeColor(LINE)
-    .lineWidth(0.5)
-    .stroke()
-  doc.restore()
-
-  doc.y = accentY + 18
+function drawEntityNameFallback(doc: PdfDoc, entityName: string, top: number) {
+  doc.font(PDF_FONT.semiBold).fontSize(14).fillColor(INK).text(entityName, MARGIN, top + 4, {
+    width: 280,
+  })
 }
 
 function sanitizeDisplayName(value: string): string {
@@ -222,138 +328,144 @@ function sanitizeDisplayName(value: string): string {
 
 function drawPatientPanel(doc: PdfDoc, context: ClinicalDocumentContext, pageWidth: number) {
   const panelTop = doc.y
-  const colGap = 20
+  const colGap = 24
   const colWidth = (pageWidth - colGap) / 2
-  const leftX = MARGIN
-  const rightX = MARGIN + colWidth + colGap
-  const panelHeight = 72
+  const leftX = MARGIN + 2
+  const rightX = MARGIN + colWidth + colGap + 2
+  const birthDateLabel = context.patientBirthDateLabel || context.patientAgeLabel || '—'
+  const addressLabel = context.patientAddress || context.patientCity || '—'
+
+  doc.font(PDF_FONT.regular).fontSize(9.5)
+  const addressHeight = doc.heightOfString(addressLabel, { width: colWidth - 8, lineGap: 1 })
+  const row2Top = panelTop + 40
+  const panelHeight = Math.max(88, row2Top - panelTop + Math.max(18, addressHeight) + 14)
 
   doc.save()
-  doc.roundedRect(MARGIN, panelTop, pageWidth, panelHeight, 6).fill(PANEL)
-  doc
-    .moveTo(MARGIN, panelTop + panelHeight)
-    .lineTo(MARGIN + pageWidth, panelTop + panelHeight)
-    .strokeColor(LINE)
-    .lineWidth(0.5)
-    .stroke()
+  doc.roundedRect(MARGIN, panelTop, pageWidth, panelHeight, 8).fill(PANEL)
   doc.restore()
 
+  doc.font(PDF_FONT.medium).fontSize(7).fillColor(INK_FAINT).text('NOME', leftX, panelTop + 12)
   doc
-    .font('Helvetica-Bold')
-    .fontSize(7.5)
-    .fillColor(INK_LIGHT)
-    .text('PACIENTE', leftX + 14, panelTop + 12)
-
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(10.5)
+    .font(PDF_FONT.semiBold)
+    .fontSize(10)
     .fillColor(INK)
-    .text(context.patientName, leftX + 14, panelTop + 24, { width: colWidth - 28 })
+    .text(context.patientName, leftX, panelTop + 22, { width: colWidth - 8 })
 
-  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(INK_LIGHT).text('CPF', rightX + 14, panelTop + 12)
+  doc.font(PDF_FONT.medium).fontSize(7).fillColor(INK_FAINT).text('CPF', rightX, panelTop + 12)
+  doc
+    .font(PDF_FONT.regular)
+    .fontSize(10)
+    .fillColor(INK)
+    .text(context.patientCpfMasked, rightX, panelTop + 22, { width: colWidth - 8 })
 
   doc
-    .font('Helvetica')
-    .fontSize(10.5)
+    .font(PDF_FONT.medium)
+    .fontSize(7)
+    .fillColor(INK_FAINT)
+    .text('DATA DE NASCIMENTO', leftX, row2Top)
+  doc
+    .font(PDF_FONT.regular)
+    .fontSize(9.5)
     .fillColor(INK)
-    .text(context.patientCpfMasked, rightX + 14, panelTop + 24, { width: colWidth - 28 })
+    .text(birthDateLabel, leftX, row2Top + 10, { width: colWidth - 8 })
 
-  const row2Top = panelTop + 44
+  doc.font(PDF_FONT.medium).fontSize(7).fillColor(INK_FAINT).text('ENDEREÇO', rightX, row2Top)
+  doc
+    .font(PDF_FONT.regular)
+    .fontSize(9.5)
+    .fillColor(INK)
+    .text(addressLabel, rightX, row2Top + 10, { width: colWidth - 8, lineGap: 1 })
 
-  if (context.patientAgeLabel) {
-    doc.font('Helvetica-Bold').fontSize(7.5).fillColor(INK_LIGHT).text('IDADE / SEXO', leftX + 14, row2Top)
-    doc
-      .font('Helvetica')
-      .fontSize(10)
-      .fillColor(INK)
-      .text(context.patientAgeLabel, leftX + 14, row2Top + 12, { width: colWidth - 28 })
-  }
-
-  if (context.patientCity) {
-    doc.font('Helvetica-Bold').fontSize(7.5).fillColor(INK_LIGHT).text('CIDADE', rightX + 14, row2Top)
-    doc
-      .font('Helvetica')
-      .fontSize(10)
-      .fillColor(INK)
-      .text(context.patientCity, rightX + 14, row2Top + 12, { width: colWidth - 28 })
-  }
-
-  doc.y = panelTop + panelHeight + 22
+  doc.y = panelTop + panelHeight + 20
 }
 
-function drawSection(doc: PdfDoc, title: string, lines: string[], pageWidth: number) {
-  const sectionTop = doc.y
-  const contentX = MARGIN + 2
-  const contentWidth = pageWidth - 4
+function drawSection(doc: PdfDoc, title: string, lines: string[], layout: ContentLayout) {
+  const { pageWidth, contentBottom } = layout
+  const contentWidth = pageWidth
   const isNumberedList = lines.length > 0 && /^\d+\.\s/.test(lines[0] ?? '')
+  let titleDrawn = false
 
-  doc.save()
-  doc.rect(MARGIN, sectionTop + 2, 3, 12).fill(BRAND_ORANGE)
-  doc.restore()
+  doc.font(PDF_FONT.regular).fontSize(10).fillColor(INK)
 
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(8.5)
-    .fillColor(INK_MUTED)
-    .text(title.toUpperCase(), MARGIN + 10, sectionTop)
-
-  doc
-    .moveTo(MARGIN, sectionTop + 18)
-    .lineTo(MARGIN + pageWidth, sectionTop + 18)
-    .strokeColor(LINE)
-    .lineWidth(0.5)
-    .stroke()
-
-  doc.font('Helvetica').fontSize(10.5).fillColor(INK)
-
-  let y = sectionTop + 28
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index]!
-    const lineHeight = doc.heightOfString(line, { width: contentWidth, lineGap: 1 }) + 8
+    const lineHeight = doc.heightOfString(line, { width: contentWidth, lineGap: 2 }) + 6
+    const dividerHeight = isNumberedList && index < lines.length - 1 ? 4 : 0
+    const titleBlockHeight = titleDrawn ? 0 : 34
 
-    doc.text(line, contentX, y, {
+    ensureContentSpace(doc, layout, lineHeight + titleBlockHeight + dividerHeight)
+
+    if (!titleDrawn) {
+      const sectionTop = doc.y
+
+      doc
+        .font(PDF_FONT.medium)
+        .fontSize(7.5)
+        .fillColor(INK_LIGHT)
+        .text(title.toUpperCase(), MARGIN, sectionTop)
+
+      doc
+        .moveTo(MARGIN, sectionTop + 12)
+        .lineTo(MARGIN + pageWidth, sectionTop + 12)
+        .strokeColor(LINE)
+        .lineWidth(0.5)
+        .stroke()
+
+      doc.y = sectionTop + 22
+      doc.font(PDF_FONT.regular).fontSize(10).fillColor(INK)
+      titleDrawn = true
+    }
+
+    const y = doc.y
+    doc.text(line, MARGIN, y, {
       width: contentWidth,
-      lineGap: 1,
+      lineGap: 2,
     })
 
-    y += lineHeight
+    doc.y = y + lineHeight
 
     if (isNumberedList && index < lines.length - 1) {
       doc
-        .moveTo(MARGIN + 8, y - 2)
-        .lineTo(MARGIN + pageWidth - 8, y - 2)
+        .moveTo(MARGIN, doc.y)
+        .lineTo(MARGIN + pageWidth, doc.y)
         .strokeColor('#f1f5f9')
         .lineWidth(0.5)
         .stroke()
+      doc.y += 4
     }
   }
 
-  doc.y = y + 16
+  doc.y += 12
 }
 
-function drawNotePanel(doc: PdfDoc, note: string, pageWidth: number) {
+function drawNotePanel(doc: PdfDoc, note: string, layout: ContentLayout) {
+  const { pageWidth } = layout
+  doc.font(PDF_FONT.regular).fontSize(9.5)
+  const noteHeight = doc.heightOfString(note, { width: pageWidth, lineGap: 2 })
+  ensureContentSpace(doc, layout, 34 + noteHeight + 10)
+
   const top = doc.y
 
   doc
-    .font('Helvetica-Bold')
-    .fontSize(8.5)
-    .fillColor(INK_MUTED)
+    .font(PDF_FONT.medium)
+    .fontSize(7.5)
+    .fillColor(INK_LIGHT)
     .text('OBSERVAÇÕES', MARGIN, top)
 
   doc
-    .moveTo(MARGIN, top + 14)
-    .lineTo(MARGIN + pageWidth, top + 14)
+    .moveTo(MARGIN, top + 12)
+    .lineTo(MARGIN + pageWidth, top + 12)
     .strokeColor(LINE)
     .lineWidth(0.5)
     .stroke()
 
   doc
-    .font('Helvetica')
-    .fontSize(10)
-    .fillColor(INK)
-    .text(note, MARGIN, top + 22, { width: pageWidth, lineGap: 2 })
+    .font(PDF_FONT.regular)
+    .fontSize(9.5)
+    .fillColor(INK_MUTED)
+    .text(note, MARGIN, top + 20, { width: pageWidth, lineGap: 2 })
 
-  doc.y = top + 22 + doc.heightOfString(note, { width: pageWidth, lineGap: 2 }) + 12
+  doc.y = top + 20 + doc.heightOfString(note, { width: pageWidth, lineGap: 2 }) + 10
 }
 
 async function drawPageFooter(
@@ -363,51 +475,42 @@ async function drawPageFooter(
     verificationUrl: string
     codigoVerificacao: string
     pageWidth: number
-    pageNumber: number
-    pageCount: number
   },
 ) {
-  const footerTop = doc.page.height - MARGIN - FOOTER_HEIGHT
+  const footerTop = doc.page.height - MARGIN - FOOTER_HEIGHT - POWERED_BY_HEIGHT
   const footerWidth = input.pageWidth
-  const qrSize = 64
-  const leftWidth = footerWidth * 0.46
-  const rightX = MARGIN + leftWidth + 14
-  const rightWidth = footerWidth - leftWidth - 14
-
-  doc.save()
-  doc
-    .roundedRect(MARGIN, footerTop, footerWidth, FOOTER_HEIGHT, 10)
-    .fillAndStroke('#ffffff', LINE)
-  doc.restore()
+  const leftWidth = footerWidth * 0.4
+  const rightX = MARGIN + leftWidth + 12
+  const rightWidth = footerWidth - leftWidth - 12
 
   doc
-    .moveTo(MARGIN + leftWidth + 7, footerTop + 12)
-    .lineTo(MARGIN + leftWidth + 7, footerTop + FOOTER_HEIGHT - 12)
+    .moveTo(MARGIN, footerTop)
+    .lineTo(MARGIN + footerWidth, footerTop)
     .strokeColor(LINE)
-    .lineWidth(1)
+    .lineWidth(0.75)
     .stroke()
 
-  const signatureX = MARGIN + 18
-  const signatureY = footerTop + 16
+  const signatureX = MARGIN
+  const signatureY = footerTop + 14
 
   doc
-    .font('Helvetica-Bold')
-    .fontSize(8)
-    .fillColor(INK_MUTED)
-    .text('ASSINATURA DO PROFISSIONAL', signatureX, signatureY, { width: leftWidth - 36 })
+    .font(PDF_FONT.medium)
+    .fontSize(7)
+    .fillColor(INK_FAINT)
+    .text('ASSINATURA DO PROFISSIONAL', signatureX, signatureY, { width: leftWidth - 12 })
 
   doc
-    .moveTo(signatureX, signatureY + 34)
-    .lineTo(signatureX + leftWidth - 36, signatureY + 34)
+    .moveTo(signatureX, signatureY + 28)
+    .lineTo(signatureX + leftWidth - 24, signatureY + 28)
     .strokeColor(INK)
-    .lineWidth(0.8)
+    .lineWidth(0.6)
     .stroke()
 
   doc
-    .font('Helvetica-Bold')
-    .fontSize(11)
+    .font(PDF_FONT.semiBold)
+    .fontSize(10.5)
     .fillColor(INK)
-    .text(input.context.doctorName, signatureX, signatureY + 42, { width: leftWidth - 36 })
+    .text(input.context.doctorName, signatureX, signatureY + 36, { width: leftWidth - 12 })
 
   const credLines = [
     input.context.doctorCrm,
@@ -416,88 +519,139 @@ async function drawPageFooter(
   ].filter(Boolean)
 
   doc
-    .font('Helvetica')
-    .fontSize(8.5)
+    .font(PDF_FONT.regular)
+    .fontSize(8)
     .fillColor(INK_MUTED)
-    .text(credLines.join(' · '), signatureX, signatureY + 58, {
-      width: leftWidth - 36,
+    .text(credLines.join(' · '), signatureX, signatureY + 52, {
+      width: leftWidth - 12,
       lineGap: 1,
     })
 
   doc
-    .font('Helvetica-Oblique')
-    .fontSize(7.5)
+    .font(PDF_FONT.regular)
+    .fontSize(7)
     .fillColor(INK_FAINT)
-    .text(
-      'Documento emitido eletronicamente via plataforma Telefarmed.',
-      signatureX,
-      footerTop + FOOTER_HEIGHT - 22,
-      { width: leftWidth - 36 },
-    )
+    .text('Documento emitido eletronicamente.', signatureX, footerTop + FOOTER_HEIGHT - 18, {
+      width: leftWidth - 12,
+    })
 
   const qrPng = await QRCode.toBuffer(input.verificationUrl, {
     type: 'png',
-    margin: 0,
-    width: 220,
+    margin: 1,
+    width: 240,
     errorCorrectionLevel: 'M',
   })
 
-  const qrY = footerTop + 16
+  const panelX = rightX - 4
+  const panelY = footerTop + 10
+  const panelWidth = rightWidth + 8
+  const panelHeight = FOOTER_HEIGHT - 12
+  const panelPadding = 12
+
   doc.save()
-  doc.roundedRect(rightX, qrY, qrSize + 8, qrSize + 8, 6).fillAndStroke(PANEL, LINE)
+  doc.roundedRect(panelX, panelY, panelWidth, panelHeight, 8).fillAndStroke(PANEL, LINE)
   doc.restore()
-  doc.image(qrPng, rightX + 4, qrY + 4, { width: qrSize, height: qrSize })
 
-  const verifyTextX = rightX + qrSize + 18
-  const verifyTextWidth = rightWidth - qrSize - 22
+  const qrSize = 52
+  const qrInsetX = panelX + 12
+  const qrInsetY = panelY + 12
 
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(8)
-    .fillColor(BRAND_ORANGE)
-    .text('VERIFICAÇÃO DE AUTENTICIDADE', verifyTextX, qrY + 2, { width: verifyTextWidth })
+  doc.save()
+  doc.roundedRect(qrInsetX - 2, qrInsetY - 2, qrSize + 4, qrSize + 4, 6).fillAndStroke('#ffffff', LINE)
+  doc.restore()
+  doc.image(qrPng, qrInsetX, qrInsetY, { width: qrSize, height: qrSize })
 
-  doc
-    .font('Helvetica-Bold')
-    .fontSize(9.5)
-    .fillColor(INK)
-    .text(`Código ${input.codigoVerificacao}`, verifyTextX, qrY + 16, { width: verifyTextWidth })
+  const verifyTextX = qrInsetX + qrSize + 14
+  const verifyTextWidth = panelX + panelWidth - verifyTextX - 12
+  let verifyCursorY = qrInsetY + 2
 
   doc
-    .font('Helvetica')
+    .font(PDF_FONT.semiBold)
     .fontSize(7.5)
-    .fillColor(INK_MUTED)
-    .text(
-      'Escaneie o QR Code ou acesse o link abaixo para validar este documento.',
-      verifyTextX,
-      qrY + 32,
-      { width: verifyTextWidth, lineGap: 1 },
-    )
+    .fillColor(INK)
+    .text('Verificação de autenticidade', verifyTextX, verifyCursorY, { width: verifyTextWidth })
+
+  verifyCursorY += 16
 
   doc
-    .font('Helvetica')
+    .font(PDF_FONT.medium)
+    .fontSize(6.5)
+    .fillColor(INK_FAINT)
+    .text('CÓDIGO', verifyTextX, verifyCursorY, { width: verifyTextWidth })
+
+  verifyCursorY += 10
+
+  doc
+    .font(PDF_FONT.semiBold)
+    .fontSize(10)
+    .fillColor(INK)
+    .text(input.codigoVerificacao, verifyTextX, verifyCursorY, {
+      width: verifyTextWidth,
+      characterSpacing: 0.6,
+    })
+
+  verifyCursorY += 16
+
+  const instruction = 'Escaneie o QR Code ou acesse o link abaixo.'
+  doc
+    .font(PDF_FONT.regular)
     .fontSize(7)
-    .fillColor(BRAND_ORANGE)
-    .text(formatVerificationUrl(input.verificationUrl), verifyTextX, qrY + 52, {
+    .fillColor(INK_MUTED)
+    .text(instruction, verifyTextX, verifyCursorY, {
       width: verifyTextWidth,
       lineGap: 1,
     })
 
+  verifyCursorY +=
+    doc.heightOfString(instruction, { width: verifyTextWidth, lineGap: 1 }) + 6
+
+  const linkLabel = formatClinicalDocumentVerificationLabel(
+    input.verificationUrl,
+    input.codigoVerificacao,
+    input.context.entidadeSlug,
+  )
+  const linkX = panelX + panelPadding
+  const linkWidth = panelWidth - panelPadding * 2
+  doc.font(PDF_FONT.medium).fontSize(6.5).fillColor(INK_LIGHT)
+  const linkTextHeight = doc.heightOfString(linkLabel, { width: linkWidth - 16, lineGap: 1 })
+  const linkHeight = Math.max(22, linkTextHeight + 12)
+  const linkTop = panelY + panelHeight - panelPadding - linkHeight
+
+  doc.save()
+  doc.roundedRect(linkX, linkTop, linkWidth, linkHeight, 4).fillAndStroke('#ffffff', LINE)
+  doc.restore()
+
   doc
-    .font('Helvetica')
-    .fontSize(7)
-    .fillColor(INK_FAINT)
-    .text(`Página ${input.pageNumber} de ${input.pageCount}`, MARGIN, footerTop + FOOTER_HEIGHT + 8, {
-      width: footerWidth,
-      align: 'center',
-    })
+    .font(PDF_FONT.medium)
+    .fontSize(6.5)
+    .fillColor(INK_LIGHT)
+    .text(linkLabel, linkX + 8, linkTop + 6, { width: linkWidth - 16, lineGap: 1 })
 }
 
-function formatVerificationUrl(url: string): string {
-  try {
-    const parsed = new URL(url)
-    return `${parsed.host}${parsed.pathname}`
-  } catch {
-    return url.replace(/^https?:\/\//, '')
+function drawPoweredByStrip(doc: PdfDoc, pageWidth: number) {
+  const telefarmedLogo = loadTelefarmedLogo()
+  const stripTop = doc.page.height - MARGIN - POWERED_BY_HEIGHT + 4
+  const rightEdge = MARGIN + pageWidth
+  const logoWidth = 72
+  const logoHeight = 18
+  const gap = 6
+  const label = 'Powered by'
+
+  doc.font(PDF_FONT.regular).fontSize(7).fillColor(INK_FAINT)
+  const labelWidth = doc.widthOfString(label)
+
+  let cursorX = rightEdge
+
+  if (telefarmedLogo) {
+    cursorX -= logoWidth
+    try {
+      doc.image(telefarmedLogo, cursorX, stripTop + 4, { fit: [logoWidth, logoHeight] })
+    } catch {
+      doc.font(PDF_FONT.medium).fontSize(7).fillColor(BRAND_ORANGE).text('Telefarmed', cursorX, stripTop + 8)
+    }
+    cursorX -= gap
   }
+
+  cursorX -= labelWidth
+  doc.font(PDF_FONT.regular).fontSize(7).fillColor(INK_FAINT).text(label, cursorX, stripTop + 8)
 }

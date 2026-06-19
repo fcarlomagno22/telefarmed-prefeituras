@@ -92,8 +92,7 @@ import { vidaPlusRoutes } from './config/vidaPlusRoutes'
 import { adminRoutes } from './config/adminRoutes'
 import { prefeituraRoutes } from './config/prefeituraRoutes'
 import { dedicatedPortalRoutes, LiveShareDedicatedRoutes, SharedPublicRoutes } from './routes/DedicatedPortalRoutes'
-import { useDedicatedPortalDocumentTitle } from './hooks/useDedicatedPortalDocumentTitle'
-import { getDedicatedPortal, isLiveShareDedicatedHost, type PortalId } from './config/portalHost'
+import { getDedicatedPortal, isLiveShareDedicatedHost } from './config/portalHost'
 import { TenantHostProvider, useTenantHost } from './contexts/TenantHostContext'
 import { TenantHostLoadingPage } from './components/tenant/TenantHostLoadingPage'
 import { TenantHostNotFoundPage } from './components/tenant/TenantHostNotFoundPage'
@@ -121,11 +120,6 @@ function LegacyAtendimentoRedirect() {
     return <Navigate to={profissionalAtendimentoSessaoPath(attendanceId)} replace />
   }
   return <Navigate to={ubtAtendimentoPath(attendanceId)} replace />
-}
-
-function DedicatedPortalDocumentTitle({ portal }: { portal: PortalId }) {
-  useDedicatedPortalDocumentTitle(portal)
-  return null
 }
 
 function App() {
@@ -162,9 +156,6 @@ function AppRoutes() {
 
   return (
     <>
-      {dedicatedPortal === 'admin' || dedicatedPortal === 'profissional' ? (
-        <DedicatedPortalDocumentTitle portal={dedicatedPortal} />
-      ) : null}
       <Routes>
         {!liveShareHost ? SharedPublicRoutes() : null}
         {liveShareHost ? (

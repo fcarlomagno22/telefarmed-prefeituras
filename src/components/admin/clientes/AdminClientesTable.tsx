@@ -694,7 +694,7 @@ export function AdminClientesTable({
               try {
                 let latestRow = cliente
 
-                if (payload.brandingChanged) {
+                if (payload.brandingChanged || payload.slugChanged) {
                   latestRow = await updateClienteEntidade(token, clienteId, {
                     pin,
                     ...buildEntidadeBrandingUpdatePayload(cliente, payload.brandingChanges),

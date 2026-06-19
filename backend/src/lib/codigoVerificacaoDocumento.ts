@@ -2,6 +2,8 @@ import { randomBytes } from 'node:crypto'
 
 const CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
+import { buildClinicalDocumentVerificationUrl } from './documentos-clinicos/verification-url.js'
+
 /** Código curto para verificação pública de documentos clínicos (12 chars). */
 export function generateCodigoVerificacaoDocumento(length = 12): string {
   const safeLength = Math.min(24, Math.max(10, length))
@@ -9,9 +11,11 @@ export function generateCodigoVerificacaoDocumento(length = 12): string {
   return Array.from(bytes, (byte) => CHARSET[byte % CHARSET.length]).join('')
 }
 
-export function buildDocumentoVerificacaoUrl(codigoVerificacao: string): string {
-  const base = resolvePublicAppUrl()
-  return `${base}/verificar/${encodeURIComponent(codigoVerificacao)}`
+export function buildDocumentoVerificacaoUrl(
+  codigoVerificacao: string,
+  entidadeSlug?: string,
+): string {
+  return buildClinicalDocumentVerificationUrl(codigoVerificacao, entidadeSlug)
 }
 
 export function resolvePublicAppUrl(): string {
