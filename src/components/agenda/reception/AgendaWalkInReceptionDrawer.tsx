@@ -19,7 +19,9 @@ import { PatientAddressStep } from '../../dashboard/PatientAddressStep'
 import { PatientContactsStep } from '../../dashboard/PatientContactsStep'
 import { PatientPhotoStep } from '../../dashboard/PatientPhotoStep'
 import { PatientRegistrationConfirmStep } from '../../dashboard/PatientRegistrationConfirmStep'
+import { PatientRegistrationConsentStep } from '../../dashboard/PatientRegistrationConsentStep'
 import { PatientRegistrationForm } from '../../dashboard/PatientRegistrationForm'
+import { usePatientRegistrationOperator } from '../../../hooks/usePatientRegistrationOperator'
 import { SpecialtySelectionStep } from '../../dashboard/SpecialtySelectionStep'
 import { WalkInDoctorTimeStep } from './WalkInDoctorTimeStep'
 import { AgendaWalkInReceptionFlowStepper } from './AgendaWalkInReceptionFlowStepper'
@@ -55,8 +57,10 @@ export function AgendaWalkInReceptionDrawer({
 }: AgendaWalkInReceptionDrawerProps) {
   const { lookupByCpf, registerCompletedPatient: persistPatient } = useUbtPatientRegistration()
   const territoryPolicy = useUbtPatientTerritoryPolicy(open)
+  const registrationOperator = usePatientRegistrationOperator()
   const [entered, setEntered] = useState(false)
   const [step, setStep] = useState<AgendaWalkInReceptionStep>('specialty')
+  const [consentBackStep, setConsentBackStep] = useState<'photo' | 'confirm_registration'>('photo')
   const [registration, setRegistration] = useState(emptyPatientRegistration)
   const [session, setSession] = useState(emptyAttendanceSession)
   const [selectedDoctorId, setSelectedDoctorId] = useState('')
@@ -126,20 +130,21 @@ export function AgendaWalkInReceptionDrawer({
     return () => window.clearTimeout(fallback)
   }, [closing, onTransitionEnd])
 
-  async function finishReception() {
+  async function finishReception(nextRegistration: PatientRegistration) {
     if (isSubmitting) return
     setIsSubmitting(true)
     try {
-      const saved = await persistPatient(registration, existingPatientId)
+      const saved = await persistPatient(nextRegistration, existingPatientId)
       const appointment = await onRegisterWalkIn({
         pacienteId: saved.id,
         especialidadeId: session.specialtyId,
         profissionalId: selectedDoctorId,
         hora: selectedTime,
-        telefoneContato: registration.phone,
+        telefoneContato: nextRegistration.phone,
       })
       setCompletedAppointment(appointment)
-      onCompleted(appointment, registration)
+      onCompleted(appointment, nextRegistration)
+      setRegistration(nextRegistration)
       setStep('success')
     } catch {
       // falha silenciosa — operador pode tentar novamente
@@ -194,8 +199,7 @@ export function AgendaWalkInReceptionDrawer({
                   Recepção presencial (encaixe)
                 </h2>
                 <p className="mt-0.5 text-sm text-gray-500">
-                  1. Especialidade com plantão agora · 2. Médico e horário de hoje · 3. CPF e
-                  cadastro · 4. Foto e fila
+                  1. Especialidade e horário · 2. CPF e cadastro · 3. Foto e fila
                 </p>
               </div>
               <button
@@ -297,12 +301,17 @@ export function AgendaWalkInReceptionDrawer({
 
             {step === 'confirm_registration' && (
               <PatientRegistrationConfirmStep
+                embedded
                 data={registration}
+                ageGroup={session.ageGroup ?? inferAgeGroupFromBirthDate(registration.birthDate) ?? 'adult'}
                 onChange={setRegistration}
-                onSubmit={() => setStep('photo')}
+                onSubmit={() => {
+                  setConsentBackStep('confirm_registration')
+                  setStep('registration_consent')
+                }}
                 onBack={() => setStep('cpf_lookup')}
                 onOpenPhotoCapture={() => setPhotoCaptureOpen(true)}
-                continueLabel="Continuar para foto"
+                continueLabel="Continuar para confirmação final"
               />
             )}
 
@@ -360,7 +369,10 @@ export function AgendaWalkInReceptionDrawer({
                 photoDataUrl={registration.photoDataUrl}
                 description="Foto para identificação no Terminal. Após confirmar, o paciente entra na fila da triagem — sem abrir sala de espera virtual aqui."
                 onOpenCapture={() => setPhotoCaptureOpen(true)}
-                onContinue={finishReception}
+                onContinue={() => {
+                  setConsentBackStep('photo')
+                  setStep('registration_consent')
+                }}
                 onBack={() =>
                   setStep(
                     session.ageGroup && registration.fullName
@@ -371,6 +383,20 @@ export function AgendaWalkInReceptionDrawer({
                 isSubmitting={isSubmitting}
                 continueLabel="Finalizar recepção"
                 submittingLabel="Finalizando recepção…"
+              />
+            )}
+
+            {step === 'registration_consent' && (
+              <PatientRegistrationConsentStep
+                embedded
+                data={registration}
+                ageGroup={session.ageGroup ?? inferAgeGroupFromBirthDate(registration.birthDate) ?? 'adult'}
+                operator={registrationOperator}
+                onChange={setRegistration}
+                onSubmit={(nextRegistration) => void finishReception(nextRegistration)}
+                onBack={() => setStep(consentBackStep)}
+                continueLabel="Finalizar recepção"
+                continueLoading={isSubmitting}
               />
             )}
 

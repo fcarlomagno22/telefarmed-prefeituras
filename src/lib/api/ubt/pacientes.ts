@@ -4,6 +4,7 @@ import type { PatientLookupContext, PatientLookupResult } from '../../../types/p
 import type { PatientRegistration } from '../../../types/attendance'
 import { normalizePatientRegistration } from '../../../types/attendance'
 import { maskCep, maskCpf } from '../../../utils/masks'
+import { maskCns } from '../../../utils/cns'
 import type {
   ListUbtPacientesParams,
   UbtPacienteAnnotation,
@@ -70,6 +71,8 @@ function normalizeLookupPatient(patient: PatientRegistration): PatientRegistrati
   return normalizePatientRegistration({
     ...patient,
     cpf: patient.cpf.includes('.') ? patient.cpf : maskCpf(patient.cpf),
+    cns: patient.cns ? maskCns(patient.cns) : '',
+    cnsPendente: patient.cnsPendente ?? false,
     guardianCpf: patient.guardianCpf ? maskCpf(patient.guardianCpf) : '',
     zipCode: patient.zipCode ? maskCep(patient.zipCode) : '',
     contacts: (patient.contacts ?? []).map((contact, index) => ({
@@ -233,23 +236,7 @@ export async function apiRegisterUbtCompletedPatient(
     })
   }
 
-  try {
-    return await apiCreateUbtPaciente(accessToken, registration)
-  } catch (error) {
-    if (
-      error instanceof UbtPacientesApiError &&
-      error.status === 409 &&
-      error.code === 'DUPLICATE_CPF'
-    ) {
-      const lookup = await apiLookupUbtPatient(accessToken, registration.cpf)
-      if (lookup.patientId) {
-        return apiUpdateUbtPaciente(accessToken, lookup.patientId, registration, {
-          completeRegistration: true,
-        })
-      }
-    }
-    throw error
-  }
+  return apiCreateUbtPaciente(accessToken, registration)
 }
 
 export function isUbtPacientesApiError(error: unknown): error is UbtPacientesApiError {

@@ -1,7 +1,8 @@
 import type { LucideIcon } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
+import { isSidebarNavItemActive, resolveSidebarNavTo } from '../../utils/sidebarNavPath'
 
 export type SidebarNavItemProps = {
   to: string
@@ -131,6 +132,9 @@ export function SidebarNavItem({
   badgeCount = 0,
   badgeDescription,
 }: SidebarNavItemProps) {
+  const location = useLocation()
+  const resolvedTo = resolveSidebarNavTo(to, location.pathname)
+
   if (comingSoon) {
     return <SidebarComingSoonNavItem label={label} icon={Icon} />
   }
@@ -145,7 +149,7 @@ export function SidebarNavItem({
 
   return (
     <NavLink
-      to={to}
+      to={resolvedTo}
       end={end}
       title={linkTitle}
       aria-label={
@@ -155,37 +159,36 @@ export function SidebarNavItem({
             ? `${label}, ${badgeCount} ${badgeLabel}`
             : label
       }
-      className={({ isActive }) =>
-        [
-          'group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition',
-          isActive
-            ? 'bg-brand-gradient text-white shadow-brand-sm'
-            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+      className={() => {
+        const active = isSidebarNavItemActive(location.pathname, to, end)
+        return [
+          'group flex w-full items-center gap-3 rounded-xl border-l-4 px-4 py-3 text-sm font-medium transition',
+          active
+            ? 'border-l-[var(--brand-primary)] bg-[var(--brand-primary-muted)] font-semibold text-[var(--brand-primary)] shadow-[inset_0_0_0_1px_var(--brand-primary-border)]'
+            : 'border-l-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900',
         ].join(' ')
-      }
+      }}
     >
-      {({ isActive }) => (
+      {() => {
+        const active = isSidebarNavItemActive(location.pathname, to, end)
+        return (
         <>
           <SidebarNavIconWithAlertDot
             icon={Icon}
             showAlertDot={showAlertDot}
-            isActive={isActive}
+            isActive={active}
           />
           <span className="min-w-0 flex-1 truncate">{label}</span>
           {hasBadge ? (
             <span
-              className={[
-                'ml-auto inline-flex min-h-[1.125rem] min-w-[1.125rem] shrink-0 items-center justify-center rounded-full px-1.5 text-[10px] font-bold tabular-nums leading-none',
-                isActive
-                  ? 'bg-white/25 text-white'
-                  : 'bg-[var(--brand-primary)] text-white',
-              ].join(' ')}
+              className="ml-auto inline-flex min-h-[1.125rem] min-w-[1.125rem] shrink-0 items-center justify-center rounded-full bg-[var(--brand-primary)] px-1.5 text-[10px] font-bold tabular-nums leading-none text-white"
             >
               {badgeCount > 99 ? '99+' : badgeCount}
             </span>
           ) : null}
         </>
-      )}
+        )
+      }}
     </NavLink>
   )
 }

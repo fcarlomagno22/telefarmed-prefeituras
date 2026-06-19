@@ -1,7 +1,9 @@
 import { z } from 'zod'
 import {
-  createPacienteBodySchema,
-  updatePacienteBodySchema,
+  createPacienteBodyObjectSchema,
+  refinePacienteRegistrationOnCreate,
+  refinePacienteRegistrationOnUpdate,
+  updatePacienteBodyObjectSchema,
 } from '../admin-pacientes/schemas.js'
 
 function parseStringArray(value: unknown): string[] | undefined {
@@ -69,15 +71,19 @@ export const listUbtPacientesQuerySchema = z.object({
   pageSize: z.coerce.number().int().positive().max(100).optional(),
 })
 
-export const createUbtPacienteBodySchema = createPacienteBodySchema.omit({
-  entidadeContratanteId: true,
-  unidadeUbtId: true,
-  status: true,
-})
+export const createUbtPacienteBodySchema = createPacienteBodyObjectSchema
+  .omit({
+    entidadeContratanteId: true,
+    unidadeUbtId: true,
+    status: true,
+  })
+  .superRefine(refinePacienteRegistrationOnCreate)
 
-export const updateUbtPacienteBodySchema = updatePacienteBodySchema.extend({
-  completeRegistration: z.boolean().optional(),
-})
+export const updateUbtPacienteBodySchema = updatePacienteBodyObjectSchema
+  .extend({
+    completeRegistration: z.boolean().optional(),
+  })
+  .superRefine(refinePacienteRegistrationOnUpdate)
 
 export const createAnotacaoBodySchema = z.object({
   text: z.string().trim().min(1).max(4000),

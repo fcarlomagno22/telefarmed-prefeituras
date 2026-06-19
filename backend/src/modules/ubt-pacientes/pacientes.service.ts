@@ -250,16 +250,6 @@ export async function createUbtPaciente(
 ): Promise<UbtPacienteDto> {
   await assertEntityContractActive(scope.entidadeContratanteId)
 
-  const cpf = normalizeCpf(input.cpf)
-  const existing = await findPacienteByCpf(cpf, scope.entidadeContratanteId)
-  if (existing) {
-    throw new UbtPacientesError(
-      'Já existe um paciente com este CPF nesta entidade contratante.',
-      'DUPLICATE_CPF',
-      409,
-    )
-  }
-
   const detail = await createPaciente({
     ...input,
     entidadeContratanteId: scope.entidadeContratanteId,
@@ -267,7 +257,11 @@ export async function createUbtPaciente(
     status: 'ativo',
   })
 
-  await concludePreCadastrosForPatient(scope.entidadeContratanteId, cpf, detail.id)
+  await concludePreCadastrosForPatient(
+    scope.entidadeContratanteId,
+    normalizeCpf(input.cpf),
+    detail.id,
+  )
   return mapAdminPatientToUbtPatient(detail)
 }
 

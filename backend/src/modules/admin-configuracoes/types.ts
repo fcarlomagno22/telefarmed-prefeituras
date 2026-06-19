@@ -138,3 +138,21 @@ export type UpdateLegalDocumentInput = {
   updatedAtLabel: string
   portals: LegalDocumentPortal[]
 }
+
+export type PatientRegistrationConsentTermKey =
+  | 'dataReviewed'
+  | 'teleconsultationAuthorized'
+  | 'dataUsageAcknowledged'
+  | 'notificationsAllowed'
+
+export type PatientRegistrationConsentTermDto = {
+  id: string
+  title: string
+  content: string
+  version: string
+  updatedAtLabel: string
+}
+
+export type PatientRegistrationConsentTermsDto = {
+  terms: Record<PatientRegistrationConsentTermKey, PatientRegistrationConsentTermDto>
+}

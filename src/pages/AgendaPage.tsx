@@ -55,6 +55,7 @@ export function AgendaPage() {
     hasAppointmentsOnDate,
     cancelAppointment,
     markNoShowAppointment,
+    changeAppointmentStatus,
     confirmArrival,
     updatingAppointmentId,
     addAppointment,
@@ -213,6 +214,9 @@ export function AgendaPage() {
                   onRescheduleAppointment={handleRescheduleAppointment}
                   onCancelAppointment={(appointment) => void cancelAppointment(appointment)}
                   onMarkNoShowAppointment={(appointment) => void markNoShowAppointment(appointment)}
+                  onChangeAppointmentStatus={(appointment, status) =>
+                    void changeAppointmentStatus(appointment, status)
+                  }
                   onOpenReception={receptionDrawer.openReception}
                   hasAppointmentsOnDate={hasAppointmentsOnDate}
                   onMonthChange={handleMonthChange}

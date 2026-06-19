@@ -174,6 +174,7 @@ export function PatientAddressStep({
           neighborhood: '',
           city: address.city,
           state: address.state,
+          residenceMunicipalityIbgeCode: address.ibgeMunicipalityCode,
         })
         return
       }
@@ -185,6 +186,8 @@ export function PatientAddressStep({
         city: address.city || data.city,
         state: address.state || data.state,
         complement: address.complement || data.complement,
+        residenceMunicipalityIbgeCode:
+          address.ibgeMunicipalityCode || data.residenceMunicipalityIbgeCode,
       })
       setCepMessage('Endereço preenchido automaticamente.')
     } catch {

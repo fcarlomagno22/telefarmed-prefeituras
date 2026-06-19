@@ -40,7 +40,12 @@ import { PatientContactsStep } from './PatientContactsStep'
 import { FaceCaptureModal } from './FaceCaptureModal'
 import { PatientPhotoStep } from './PatientPhotoStep'
 import { PatientRegistrationConfirmStep } from './PatientRegistrationConfirmStep'
-import { PatientRegistrationForm } from './PatientRegistrationForm'
+import { PatientRegistrationConsentStep } from './PatientRegistrationConsentStep'
+import {
+  getRegistrationValidationMessages,
+  isRegistrationStepReady,
+} from './registrationStepValidation'
+import { usePatientRegistrationOperator } from '../../hooks/usePatientRegistrationOperator'
 import { SpecialtySelectionStep } from './SpecialtySelectionStep'
 import { WaitingRoomPanel } from './WaitingRoomPanel'
 import { TriageAnamnesisStep } from '../triage/TriageAnamnesisStep'
@@ -89,6 +94,10 @@ const statusLabels: Record<StationStatus, { label: string; className: string }> 
     label: 'Foto de cadastro',
     className: 'bg-pink-50 text-pink-700 ring-pink-200',
   },
+  registration_consent: {
+    label: 'Confirmação final',
+    className: 'bg-orange-50 text-orange-700 ring-orange-200',
+  },
   clinical_triage: {
     label: 'Triagem clínica',
     className: 'bg-rose-50 text-rose-700 ring-rose-200',
@@ -117,6 +126,7 @@ const flowSteps: StationStatus[] = [
   'contacts',
   'address',
   'photo',
+  'registration_consent',
   'clinical_triage',
   'waiting_room',
 ]
@@ -137,7 +147,7 @@ function cardBackgroundImage(status: StationStatus): string {
   if (status === 'address') {
     return brand.dashboardAddressImageUrl
   }
-  if (status === 'photo' || status === 'clinical_triage') {
+  if (status === 'photo' || status === 'registration_consent' || status === 'clinical_triage') {
     return brand.dashboardPhotoImageUrl
   }
   if (status === 'waiting_room') {
@@ -272,6 +282,7 @@ export function AttendanceStationCard({
     reload: reloadCatalog,
   } = useUbtWalkInSpecialtyAvailability(triagemCatalogEnabled, triagemDate)
   const territoryPolicy = useUbtPatientTerritoryPolicy(true)
+  const registrationOperator = usePatientRegistrationOperator()
   const [session, setSession] = useState<AttendanceSession>(emptyAttendanceSession())
   const [registration, setRegistration] = useState<PatientRegistration>(
     emptyPatientRegistration(),
@@ -280,7 +291,6 @@ export function AttendanceStationCard({
   const [photoCaptureOpen, setPhotoCaptureOpen] = useState(false)
   const [pendingFirstVisit, setPendingFirstVisit] = useState(false)
   const [isLoadingFromQueue, setIsLoadingFromQueue] = useState(false)
-  const [calledFromQueueName, setCalledFromQueueName] = useState<string | null>(null)
   const [activeFilaEntryId, setActiveFilaEntryId] = useState<string | null>(null)
   const [registeredPatientId, setRegisteredPatientId] = useState<string | null>(null)
   const [enteringWaitingRoom, setEnteringWaitingRoom] = useState(false)
@@ -289,8 +299,8 @@ export function AttendanceStationCard({
   const [clinicalData, setClinicalData] = useState(emptyTriageClinicalData)
   const [triagemResumo, setTriagemResumo] = useState('')
   const [clinicalTriageBackStep, setClinicalTriageBackStep] = useState<
-    'photo' | 'confirm_registration'
-  >('photo')
+    'photo' | 'confirm_registration' | 'registration_consent'
+  >('registration_consent')
 
   const patchFilaStatus = useCallback(
     (filaId: string, nextStatus: 'em_atendimento' | 'finalizado' | 'desistiu') => {
@@ -336,7 +346,6 @@ export function AttendanceStationCard({
 
     let cancelled = false
     setIsLoadingFromQueue(true)
-    setCalledFromQueueName(target.patientName)
     setActiveFilaEntryId(target.id)
     setRegisteredPatientId(target.pacienteId ?? null)
     setFlowError(null)
@@ -365,7 +374,6 @@ export function AttendanceStationCard({
           setClinicalData(emptyTriageClinicalData())
           setTriagemResumo('')
           setStatus('clinical_triage')
-          patchFilaStatus(target.id, 'em_atendimento')
         } else {
           setStatus(start.initialStatus)
         }
@@ -398,6 +406,9 @@ export function AttendanceStationCard({
 
   const statusInfo = statusLabels[status]
   const isFlowStep = flowSteps.includes(status)
+  const showSelectedSpecialtyHint =
+    Boolean(session.specialtyName.trim()) && status !== 'idle' && status !== 'specialty'
+  const showFlowStepper = isFlowStepStatus(status) && status !== 'clinical_triage'
   const backgroundLayer = useMemo<BackgroundLayer>(
     () => ({
       src: cardBackgroundImage(status),
@@ -423,7 +434,6 @@ export function AttendanceStationCard({
     writeConsultationLockToStorage(false)
     setPhotoCaptureOpen(false)
     setPendingFirstVisit(false)
-    setCalledFromQueueName(null)
     setFlowError(null)
     setIsSavingForWaitingRoom(false)
     setClinicalData(emptyTriageClinicalData())
@@ -449,6 +459,14 @@ export function AttendanceStationCard({
     setIsSavingForWaitingRoom(true)
     setFlowError(null)
     try {
+      const ageGroup = session.ageGroup ?? inferAgeGroupFromBirthDate(registrationData.birthDate) ?? 'adult'
+      if (!isRegistrationStepReady(registrationData, ageGroup, true)) {
+        const messages = getRegistrationValidationMessages(registrationData, ageGroup, true)
+        setFlowError(messages[0] ?? 'Complete o cadastro do paciente antes de continuar.')
+        setIsSavingForWaitingRoom(false)
+        return
+      }
+
       const saved = await persistPatient(registrationData, registeredPatientId ?? undefined)
       setRegisteredPatientId(saved.id)
       if (pendingFirstVisit) {
@@ -536,6 +554,12 @@ export function AttendanceStationCard({
           <span className="mt-1 block text-lg font-bold text-gray-900 sm:text-xl">
             {brand.dashboardStationTitle}
           </span>
+          {showSelectedSpecialtyHint ? (
+            <span className="mt-1 block text-sm text-gray-500">
+              Consulta em{' '}
+              <span className="font-medium text-gray-700">{session.specialtyName}</span>
+            </span>
+          ) : null}
         </span>
         {!flowSteps.includes(status) ? (
           <span
@@ -547,16 +571,7 @@ export function AttendanceStationCard({
         ) : null}
       </header>
 
-      {isFlowStepStatus(status) ? <AttendanceFlowStepper status={status} /> : null}
-
-      {calledFromQueueName && isFlowStep && !isLoadingFromQueue ? (
-        <p className="relative z-10 mt-3 rounded-xl border border-[var(--brand-primary-border)] bg-[var(--brand-primary-muted)]/90 px-4 py-2.5 text-sm text-[var(--brand-primary)]/90">
-          <strong className="font-semibold">{calledFromQueueName}</strong> chamado(a) da
-          fila — especialidade{' '}
-          <strong className="font-semibold">{session.specialtyName}</strong>. Dados
-          carregados automaticamente.
-        </p>
-      ) : null}
+      {showFlowStepper ? <AttendanceFlowStepper status={status} /> : null}
 
       {flowError ? (
         <p
@@ -674,12 +689,11 @@ export function AttendanceStationCard({
       {!isLoadingFromQueue && status === 'confirm_registration' && (
         <PatientRegistrationConfirmStep
           data={registration}
+          ageGroup={session.ageGroup ?? inferAgeGroupFromBirthDate(registration.birthDate) ?? 'adult'}
           onChange={setRegistration}
           onSubmit={() => {
-            setClinicalTriageBackStep('confirm_registration')
-            setClinicalData(emptyTriageClinicalData())
-            setTriagemResumo('')
-            setStatus('clinical_triage')
+            setClinicalTriageBackStep('registration_consent')
+            setStatus('registration_consent')
           }}
           onBack={() => setStatus('cpf_lookup')}
           onOpenPhotoCapture={() => setPhotoCaptureOpen(true)}
@@ -753,11 +767,29 @@ export function AttendanceStationCard({
           onOpenCapture={() => setPhotoCaptureOpen(true)}
           onContinue={() => {
             setClinicalTriageBackStep('photo')
+            setStatus('registration_consent')
+          }}
+          onBack={() => setStatus('address')}
+        />
+      )}
+
+      {!isLoadingFromQueue && status === 'registration_consent' && (
+        <PatientRegistrationConsentStep
+          data={registration}
+          ageGroup={session.ageGroup ?? inferAgeGroupFromBirthDate(registration.birthDate) ?? 'adult'}
+          operator={registrationOperator}
+          onChange={setRegistration}
+          onSubmit={(nextRegistration) => {
+            setRegistration(nextRegistration)
+            setClinicalTriageBackStep('registration_consent')
             setClinicalData(emptyTriageClinicalData())
             setTriagemResumo('')
             setStatus('clinical_triage')
           }}
-          onBack={() => setStatus('address')}
+          onBack={() =>
+            setStatus(clinicalTriageBackStep === 'photo' ? 'photo' : 'confirm_registration')
+          }
+          continueLabel="Continuar para triagem"
         />
       )}
 

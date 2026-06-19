@@ -11,6 +11,7 @@ export type ScheduleAppointmentStep =
   | 'registration'
   | 'contacts'
   | 'address'
+  | 'registration_consent'
   | 'specialty'
   | 'schedule_datetime'
   | 'success'
@@ -42,29 +43,27 @@ export type ScheduleAppointmentInitialState = {
 }
 
 export const scheduleFlowSteps = [
-  { id: 'patient', label: 'Paciente' },
-  { id: 'registration', label: 'Cadastro' },
+  { id: 'registration', label: 'CPF e cadastro' },
   { id: 'specialty', label: 'Especialidade' },
   { id: 'schedule', label: 'Data e hora' },
-  { id: 'done', label: 'Confirmado' },
 ] as const
 
 export function resolveScheduleStepIndex(step: ScheduleAppointmentStep): number {
   switch (step) {
     case 'cpf_lookup':
-      return 0
     case 'confirm_registration':
     case 'age_group':
     case 'registration':
     case 'contacts':
     case 'address':
-      return 1
+    case 'registration_consent':
+      return 0
     case 'specialty':
-      return 2
+      return 1
     case 'schedule_datetime':
-      return 3
+      return 2
     case 'success':
-      return 4
+      return 3
     default:
       return 0
   }

@@ -1,4 +1,9 @@
-import type { AdminMunicipalPatientDetailDto, AdminMunicipalPatientDto } from '../admin-pacientes/types.js'
+import type {
+  AdminMunicipalPatientDetailDto,
+  AdminMunicipalPatientDto,
+  PreCadastroRegistrationInput,
+  UpdatePacienteInput,
+} from '../admin-pacientes/types.js'
 
 export type PrefeituraMunicipalPatientDto = Omit<
   AdminMunicipalPatientDto,
@@ -48,32 +53,14 @@ export type ListPrefeituraPacientesQuery = {
   pageSize?: number
 }
 
-export type CreatePrefeituraPacienteInput = {
-  unidadeUbtId?: string
-  fullName: string
-  socialName?: string
-  cpf: string
-  birthDate: string
-  gender: string
-  phone?: string
-  email?: string
-  guardianName?: string
-  guardianCpf?: string
-  contacts?: Array<{ id?: string; name: string; phone: string; relationship?: string }>
-  zipCode?: string
-  street?: string
-  number?: string
-  complement?: string
-  neighborhood?: string
-  city?: string
-  state?: string
-  photoDataUrl?: string
+export type CreatePrefeituraPacienteInput = Omit<
+  PreCadastroRegistrationInput,
+  'entidadeContratanteId' | 'concluirImmediately'
+> & {
   status?: 'ativo' | 'inativo' | 'pre_cadastro' | 'suspenso'
 }
 
-export type UpdatePrefeituraPacienteInput = Partial<
-  Omit<CreatePrefeituraPacienteInput, 'cpf' | 'status'>
->
+export type UpdatePrefeituraPacienteInput = UpdatePacienteInput
 
 export type PrefeituraMunicipalPatientDetailDto = PrefeituraMunicipalPatientDto &
   Pick<AdminMunicipalPatientDetailDto, 'ubts' | 'consultations' | 'profile'>

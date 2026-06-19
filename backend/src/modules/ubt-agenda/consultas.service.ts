@@ -1,5 +1,7 @@
 import { supabaseAdmin } from '../../db/supabase.js'
 import { formatAgendaConsultaRow, formatAgendaConsultaRows } from './formatters.js'
+import { checkInUbtFila, syncFilaWithAgendaStatus } from '../ubt-triagem/fila.service.js'
+import { UbtTriagemError } from '../ubt-triagem/errors.js'
 import { UbtAgendaError } from './errors.js'
 import {
   assertConsultaBelongsToUnit,
@@ -88,6 +90,8 @@ export async function createUbtAgendaWalkIn(
   )
   await assertSlotAvailable(scope, body.profissionalId, today, body.hora)
 
+  const recepcionadoEm = new Date().toISOString()
+
   const { data, error } = await supabaseAdmin
     .from('agenda_consultas')
     .insert({
@@ -98,12 +102,14 @@ export async function createUbtAgendaWalkIn(
       especialidade_id: body.especialidadeId,
       tipo: 'encaixe',
       origem: 'espontaneo',
-      status: 'agendado',
+      status: 'aguardando',
       data: today,
       hora: `${body.hora}:00`,
       telefone_contato: body.telefoneContato?.trim() ?? '',
       observacoes: body.observacoes?.trim() ?? '',
       criado_por_usuario_ubt_id: scope.operadorId,
+      recepcionado_em: recepcionadoEm,
+      recepcionado_por_usuario_ubt_id: scope.operadorId,
     })
     .select('id')
     .single()
@@ -111,7 +117,16 @@ export async function createUbtAgendaWalkIn(
   if (error) throw error
   if (!data) throw new UbtAgendaError('Falha ao registrar encaixe.', 'CREATE_FAILED', 500)
 
-  return loadConsultaDto(scope, String(data.id))
+  const consultaId = String(data.id)
+  try {
+    await checkInUbtFila(scope, consultaId)
+  } catch (checkInError) {
+    if (!(checkInError instanceof UbtTriagemError && checkInError.code === 'PACIENTE_JA_NA_FILA')) {
+      throw checkInError
+    }
+  }
+
+  return loadConsultaDto(scope, consultaId)
 }
 
 export async function updateUbtAgendaConsulta(
@@ -164,7 +179,13 @@ export async function updateUbtAgendaConsulta(
   if (body.hora) patch.hora = `${body.hora}:00`
   if (body.telefoneContato !== undefined) patch.telefone_contato = body.telefoneContato.trim()
   if (body.observacoes !== undefined) patch.observacoes = body.observacoes.trim()
-  if (body.status) patch.status = body.status
+  if (body.status) {
+    patch.status = body.status
+    if (body.status === 'aguardando' && !current.recepcionado_em) {
+      patch.recepcionado_em = new Date().toISOString()
+      patch.recepcionado_por_usuario_ubt_id = scope.operadorId
+    }
+  }
 
   const { error } = await supabaseAdmin
     .from('agenda_consultas')
@@ -173,6 +194,11 @@ export async function updateUbtAgendaConsulta(
     .eq('unidade_ubt_id', scope.unidadeUbtId)
 
   if (error) throw error
+
+  if (body.status) {
+    await syncFilaWithAgendaStatus(scope, consultaId, body.status)
+  }
+
   return loadConsultaDto(scope, consultaId)
 }
 
@@ -231,6 +257,15 @@ export async function confirmUbtAgendaRecepcao(
     .eq('unidade_ubt_id', scope.unidadeUbtId)
 
   if (error) throw error
+
+  try {
+    await checkInUbtFila(scope, consultaId)
+  } catch (checkInError) {
+    if (!(checkInError instanceof UbtTriagemError && checkInError.code === 'PACIENTE_JA_NA_FILA')) {
+      throw checkInError
+    }
+  }
+
   return loadConsultaDto(scope, consultaId)
 }
 
@@ -251,5 +286,6 @@ export async function markUbtAgendaFalta(
     .eq('unidade_ubt_id', scope.unidadeUbtId)
 
   if (error) throw error
+  await syncFilaWithAgendaStatus(scope, consultaId, 'faltou')
   return loadConsultaDto(scope, consultaId)
 }

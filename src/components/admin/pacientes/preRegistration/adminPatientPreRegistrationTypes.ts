@@ -9,6 +9,7 @@ export type AdminPatientPreRegistrationStep =
   | 'registration'
   | 'contacts'
   | 'address'
+  | 'registration_consent'
   | 'success'
 
 export type AdminPatientPreRegistrationDraft = {
@@ -20,7 +21,6 @@ export type AdminPatientPreRegistrationDraft = {
 
 export const adminPatientPreRegistrationFlowSteps = [
   { id: 'entity', label: 'Entidade' },
-  { id: 'patient', label: 'Paciente' },
   { id: 'registration', label: 'Cadastro' },
   { id: 'done', label: 'Confirmado' },
 ] as const
@@ -33,14 +33,14 @@ export function resolveAdminPatientPreRegistrationStepIndex(
       return 0
     case 'cpf_lookup':
     case 'existing_registration_choice':
-      return 1
     case 'age_group':
     case 'registration':
     case 'contacts':
     case 'address':
-      return 2
+    case 'registration_consent':
+      return 1
     case 'success':
-      return 3
+      return 2
     default:
       return 0
   }

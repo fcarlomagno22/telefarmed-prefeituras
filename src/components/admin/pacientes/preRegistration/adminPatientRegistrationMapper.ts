@@ -58,6 +58,9 @@ function ageFromBirthDateIso(iso: string) {
 
 function missingFieldsForRegistration(registration: PatientRegistration) {
   const missing: string[] = []
+  if (registration.cnsPendente || !registration.cns?.trim()) missing.push('CNS')
+  if (!registration.nationality) missing.push('nacionalidade')
+  if (!registration.raceColor) missing.push('raça/cor')
   if (!registration.phone?.trim()) missing.push('telefone')
   if (!registration.email?.trim()) missing.push('e-mail')
   if (
@@ -79,8 +82,15 @@ export function adminPatientToRegistration(patient: AdminMunicipalPatient): Pati
     gender: 'nao_informado',
     phone: patient.phone,
     email: '',
-    guardianName: '',
-    guardianCpf: '',
+  guardianName: '',
+  guardianCpf: '',
+  guardianRelationship: '',
+  guardianPhone: '',
+  guardianAttendanceAuthorized: false,
+  nationality: '',
+  raceColor: '',
+  cns: '',
+    cnsPendente: false,
     contacts: [{ id: `contact-${patient.id}`, name: '', phone: '', relationship: '' }],
     zipCode: '',
     street: '',
@@ -168,6 +178,36 @@ function currentRegistrationMonthLabel(): AdminMunicipalPatient['registrationMon
   return labels[month] ?? 'Mai'
 }
 
+function mapRegistrationConsentPayload(
+  registration: PatientRegistration,
+): PreCadastroRegistrationPayload['registrationConsent'] {
+  if (!registration.registrationConsent) return undefined
+  return {
+    dataReviewed: true,
+    teleconsultationAuthorized: true,
+    dataUsageAcknowledged: true,
+    notificationsAllowed: true,
+    operatorName: registration.registrationConsent.operatorName,
+    registeredAt: registration.registrationConsent.registeredAt,
+    registrationUnitId: registration.registrationConsent.registrationUnitId || undefined,
+    registrationUnitName: registration.registrationConsent.registrationUnitName,
+    operatorUserId: registration.registrationConsent.operatorUserId,
+    operatorAdminId: registration.registrationConsent.operatorAdminId,
+  }
+}
+
+function mapRegistrationCoreFields(registration: PatientRegistration) {
+  return {
+    nationality: registration.nationality,
+    raceColor: registration.raceColor,
+    guardianRelationship: registration.guardianRelationship.trim() || undefined,
+    guardianPhone: registration.guardianPhone.trim() || undefined,
+    guardianAttendanceAuthorized: registration.guardianAttendanceAuthorized || undefined,
+    residenceMunicipalityIbgeCode: registration.residenceMunicipalityIbgeCode.trim() || undefined,
+    registrationConsent: mapRegistrationConsentPayload(registration),
+  }
+}
+
 export function registrationToPreCadastroPayload(
   registration: PatientRegistration,
   contractingEntity: AdminPatientContractingEntity,
@@ -183,10 +223,13 @@ export function registrationToPreCadastroPayload(
     cpf: registration.cpf,
     birthDate: birthDateIso,
     gender: registration.gender,
+    ...mapRegistrationCoreFields(registration),
     phone: registration.phone.trim() || undefined,
     email: registration.email.trim() || undefined,
     guardianName: registration.guardianName.trim() || undefined,
     guardianCpf: registration.guardianCpf.trim() || undefined,
+    cns: registration.cns.trim() || undefined,
+    cnsPendente: registration.cnsPendente,
     contacts: registration.contacts.map((contact) => ({
       id: contact.id,
       name: contact.name,
@@ -216,10 +259,13 @@ export function registrationToUpdatePayload(
     socialName: registration.socialName.trim() || undefined,
     birthDate: birthDateIso,
     gender: registration.gender,
+    ...mapRegistrationCoreFields(registration),
     phone: registration.phone.trim() || undefined,
     email: registration.email.trim() || undefined,
     guardianName: registration.guardianName.trim() || undefined,
     guardianCpf: registration.guardianCpf.trim() || undefined,
+    cns: registration.cns.trim() || undefined,
+    cnsPendente: registration.cnsPendente,
     contacts: registration.contacts.map((contact) => ({
       id: contact.id,
       name: contact.name,

@@ -10,6 +10,8 @@ import { readUbtMockSession } from '../../mockAuth/ubtAuthMock'
 import type { PatientLookupContext, PatientLookupResult } from '../../../types/patientLookup'
 import { normalizePatientRegistration, type PatientRegistration } from '../../../types/attendance'
 import { maskCpf } from '../../../utils/masks'
+import { cnsDigits } from '../../../utils/cns'
+import { cpfDigits } from '../../../utils/cpf'
 import { clearLgpdMaskedRegistrationField } from '../../../utils/lgpdMaskedValue'
 import { mockDelay } from '../delay'
 import { resolveAceitaPacientesOutrosMunicipios } from '../../../config/adminEntidadeTipo'
@@ -131,6 +133,8 @@ function ensureDetail(id: string): UbtPacienteRegistrationDetail | null {
     email: profile.email === '—' ? '' : profile.email,
     guardianName: profile.guardianName,
     guardianCpf: profile.guardianCpf,
+    cns: '',
+    cnsPendente: false,
     contacts: profile.contacts ?? [],
     zipCode: profile.zipCode,
     street: profile.street,
@@ -260,6 +264,13 @@ export function mapUbtDetailToPatientRegistration(
     email: clearLgpdMaskedRegistrationField(detail.email),
     guardianName: detail.guardianName,
     guardianCpf: clearLgpdMaskedRegistrationField(detail.guardianCpf),
+    guardianRelationship: detail.guardianRelationship ?? '',
+    guardianPhone: clearLgpdMaskedRegistrationField(detail.guardianPhone),
+    guardianAttendanceAuthorized: detail.guardianAttendanceAuthorized ?? false,
+    nationality: detail.nationality ?? '',
+    raceColor: detail.raceColor ?? '',
+    cns: detail.cns ? detail.cns : '',
+    cnsPendente: detail.cnsPendente ?? false,
     contacts: detail.contacts,
     zipCode: clearLgpdMaskedRegistrationField(detail.zipCode),
     street: clearLgpdMaskedRegistrationField(detail.street),
@@ -268,6 +279,7 @@ export function mapUbtDetailToPatientRegistration(
     neighborhood: clearLgpdMaskedRegistrationField(detail.neighborhood),
     city: detail.city,
     state: detail.state,
+    residenceMunicipalityIbgeCode: detail.residenceMunicipalityIbgeCode ?? '',
     photoDataUrl: detail.photoDataUrl,
   })
 }
@@ -292,10 +304,17 @@ export function mapPatientRegistrationToUbtPayload(
     cpf: registration.cpf,
     birthDate: registration.birthDate,
     gender: registration.gender,
+    nationality: registration.nationality,
+    raceColor: registration.raceColor,
     phone: registration.phone,
     email: registration.email,
     guardianName: registration.guardianName,
     guardianCpf: registration.guardianCpf,
+    guardianRelationship: registration.guardianRelationship,
+    guardianPhone: registration.guardianPhone,
+    guardianAttendanceAuthorized: registration.guardianAttendanceAuthorized,
+    cns: registration.cns,
+    cnsPendente: registration.cnsPendente,
     ...(cleanedContacts.length > 0 ? { contacts: cleanedContacts } : {}),
     zipCode: registration.zipCode,
     street: registration.street,
@@ -304,6 +323,21 @@ export function mapPatientRegistrationToUbtPayload(
     neighborhood: registration.neighborhood,
     city: registration.city,
     state: registration.state,
+    residenceMunicipalityIbgeCode: registration.residenceMunicipalityIbgeCode || undefined,
+    registrationConsent: registration.registrationConsent
+      ? {
+          dataReviewed: true as const,
+          teleconsultationAuthorized: true as const,
+          dataUsageAcknowledged: true as const,
+          notificationsAllowed: true as const,
+          operatorName: registration.registrationConsent.operatorName,
+          registeredAt: registration.registrationConsent.registeredAt,
+          registrationUnitId: registration.registrationConsent.registrationUnitId || undefined,
+          registrationUnitName: registration.registrationConsent.registrationUnitName,
+          operatorUserId: registration.registrationConsent.operatorUserId,
+          operatorAdminId: registration.registrationConsent.operatorAdminId,
+        }
+      : undefined,
     photoDataUrl: registration.photoDataUrl || undefined,
   }
 
@@ -478,6 +512,31 @@ export async function createUbtPacienteApi(
   _accessToken: string,
   registration: PatientRegistration,
 ): Promise<NetworkUser> {
+  const normalizedCpf = cpfDigits(registration.cpf)
+  const duplicateCpf = usersState.find((item) => cpfDigits(item.cpf) === normalizedCpf)
+  if (duplicateCpf) {
+    throw new UbtPacientesApiError(
+      'Já existe um paciente com este CPF nesta entidade contratante.',
+      409,
+      'DUPLICATE_CPF',
+    )
+  }
+
+  if (!registration.cnsPendente) {
+    const normalizedCns = cnsDigits(registration.cns)
+    if (normalizedCns) {
+      for (const detail of detailsState.values()) {
+        if (!detail.cnsPendente && cnsDigits(detail.cns) === normalizedCns) {
+          throw new UbtPacientesApiError(
+            'Já existe um paciente com este CNS nesta entidade contratante.',
+            409,
+            'DUPLICATE_CNS',
+          )
+        }
+      }
+    }
+  }
+
   const id = `mock-paciente-${nextId++}`
   const row: NetworkUser = {
     id,

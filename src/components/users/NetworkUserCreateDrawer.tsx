@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { PatientRegistrationForm } from '../dashboard/PatientRegistrationForm'
 import { Toast } from '../ui/Toast'
 import { useUbtPatientRegistration } from '../../hooks/useUbtPatientRegistration'
+import { isUbtPacientesApiError } from '../../lib/services/ubt/pacientes'
 import { emptyPatientRegistration, inferAgeGroupFromBirthDate, type PatientRegistration } from '../../types/attendance'
 import { isRegistrationStepReady } from '../dashboard/registrationStepValidation'
 
@@ -34,8 +35,11 @@ export function NetworkUserCreateDrawer({ open, onClose, onCreated }: NetworkUse
       setRegistration(emptyPatientRegistration())
       onCreated()
       onClose()
-    } catch {
-      setToast('Não foi possível cadastrar o paciente.')
+    } catch (error) {
+      const message = isUbtPacientesApiError(error)
+        ? error.message
+        : 'Não foi possível cadastrar o paciente.'
+      setToast(message)
     } finally {
       setIsSubmitting(false)
     }

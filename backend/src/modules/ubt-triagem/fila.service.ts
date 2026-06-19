@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '../../db/supabase.js'
 import { getUbtTriagemSpecialtyCatalog } from '../ubt-agenda/catalog.service.js'
 import { assertConsultaBelongsToUnit } from '../ubt-agenda/ownership.js'
+import { todayIsoInBrazil } from '../ubt-agenda/slot-utils.js'
 import { UbtTriagemError } from './errors.js'
 import { formatFilaEntryFromView } from './formatters.js'
 import { assertFilaBelongsToUnit } from './ownership.js'
@@ -96,7 +97,138 @@ function computePriorityCount(entries: WaitingQueueEntryDto[], now: Date): numbe
   ).length
 }
 
+async function findActiveFilaForConsulta(agendaConsultaId: string) {
+  const { data, error } = await supabaseAdmin
+    .from('fila_espera')
+    .select('id, status')
+    .eq('agenda_consulta_id', agendaConsultaId)
+    .in('status', [...ACTIVE_FILA_STATUSES])
+    .maybeSingle()
+
+  if (error) throw error
+  return data as { id: string; status: string } | null
+}
+
+async function closeActiveFilaForConsulta(
+  agendaConsultaId: string,
+  unidadeUbtId: string,
+): Promise<void> {
+  const now = new Date().toISOString()
+  const { error } = await supabaseAdmin
+    .from('fila_espera')
+    .update({
+      status: 'desistiu',
+      encerrado_em: now,
+      atualizado_em: now,
+    })
+    .eq('agenda_consulta_id', agendaConsultaId)
+    .eq('unidade_ubt_id', unidadeUbtId)
+    .in('status', ['aguardando', 'chamado', 'em_atendimento'])
+
+  if (error) throw error
+}
+
+/** Garante entrada na fila para consultas do dia já marcadas como aguardando na agenda. */
+async function ensureFilaForAguardandoConsultas(scope: UbtScope): Promise<void> {
+  const today = todayIsoInBrazil()
+
+  const { data: consultas, error } = await supabaseAdmin
+    .from('agenda_consultas')
+    .select('id')
+    .eq('unidade_ubt_id', scope.unidadeUbtId)
+    .eq('entidade_contratante_id', scope.entidadeContratanteId)
+    .eq('data', today)
+    .eq('status', 'aguardando')
+
+  if (error) throw error
+
+  for (const consulta of consultas ?? []) {
+    const consultaId = String(consulta.id)
+    const activeFila = await findActiveFilaForConsulta(consultaId)
+    if (activeFila) continue
+
+    try {
+      await checkInUbtFila(scope, consultaId)
+    } catch (error) {
+      if (error instanceof UbtTriagemError && error.code === 'PACIENTE_JA_NA_FILA') {
+        continue
+      }
+      throw error
+    }
+  }
+}
+
+export async function syncFilaWithAgendaStatus(
+  scope: UbtScope,
+  agendaConsultaId: string,
+  agendaStatus: string,
+): Promise<void> {
+  const activeFila = await findActiveFilaForConsulta(agendaConsultaId)
+
+  if (agendaStatus === 'aguardando') {
+    if (activeFila) {
+      if (activeFila.status === 'chamado' || activeFila.status === 'em_atendimento') {
+        const now = new Date().toISOString()
+        const { error } = await supabaseAdmin
+          .from('fila_espera')
+          .update({
+            status: 'aguardando',
+            chamado_em: null,
+            chamado_por_usuario_ubt_id: null,
+            atendimento_inicio_em: null,
+            atualizado_em: now,
+          })
+          .eq('id', activeFila.id)
+          .eq('unidade_ubt_id', scope.unidadeUbtId)
+
+        if (error) throw error
+      }
+      return
+    }
+
+    try {
+      await checkInUbtFila(scope, agendaConsultaId)
+    } catch (error) {
+      if (!(error instanceof UbtTriagemError && error.code === 'PACIENTE_JA_NA_FILA')) {
+        throw error
+      }
+    }
+    return
+  }
+
+  if (!activeFila) {
+    if (agendaStatus === 'em_atendimento') {
+      const entry = await checkInUbtFila(scope, agendaConsultaId)
+      await updateFilaStatus(scope, entry.id, 'em_atendimento')
+    }
+    return
+  }
+
+  if (agendaStatus === 'em_atendimento') {
+    if (activeFila.status !== 'em_atendimento') {
+      await updateFilaStatus(scope, activeFila.id, 'em_atendimento')
+    }
+    return
+  }
+
+  if (agendaStatus === 'realizado') {
+    await updateFilaStatus(scope, activeFila.id, 'finalizado')
+    return
+  }
+
+  if (agendaStatus === 'faltou' || agendaStatus === 'cancelado') {
+    await updateFilaStatus(scope, activeFila.id, 'desistiu')
+    return
+  }
+
+  if (agendaStatus === 'agendado') {
+    await closeActiveFilaForConsulta(agendaConsultaId, scope.unidadeUbtId)
+  }
+}
+
 export async function getFilaLive(scope: UbtScope): Promise<FilaLiveResponseDto> {
+  await ensureFilaForAguardandoConsultas(scope)
+
   const serverTime = new Date().toISOString()
 
   const { data, error } = await supabaseAdmin

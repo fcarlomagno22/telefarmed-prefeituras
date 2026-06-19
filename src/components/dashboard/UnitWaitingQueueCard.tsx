@@ -75,6 +75,11 @@ function QueueRow({ entry, position, canCall, now, callDisabled, onCall }: Queue
                 Prioridade
               </span>
             ) : null}
+            {entry.status === 'chamado' ? (
+              <span className="inline-flex shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800 ring-1 ring-amber-100">
+                Chamado
+              </span>
+            ) : null}
           </div>
 
           <p className="mt-1.5 text-xs leading-relaxed text-gray-600">{meta.primary}</p>
@@ -173,8 +178,8 @@ export function UnitWaitingQueueCard({
 
         <p className="mt-1.5 text-sm font-semibold text-gray-800">Ordem automática</p>
         <p className="mt-0.5 text-xs leading-relaxed text-gray-600">
-          Apenas pacientes com situação Aguardando. Agendados: horário, especialidade e
-          atraso; encaixes: horário de chegada.
+          Pacientes com situação Aguardando na agenda (inclui os já chamados ao terminal).
+          Agendados: horário, especialidade e atraso; encaixes: horário de chegada.
         </p>
 
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600">

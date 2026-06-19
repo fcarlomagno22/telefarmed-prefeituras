@@ -1,15 +1,47 @@
 import type { PatientAgeGroup, PatientRegistration } from '../../types/attendance'
-import { isValidCpf } from '../../utils/cpf'
+import { isValidCns, cnsDigits } from '../../utils/cns'
+import { cpfDigits, isValidCpf } from '../../utils/cpf'
+import { clearLgpdMaskedRegistrationField } from '../../utils/lgpdMaskedValue'
+import { isPatientRegistrationConsentReady } from '../../utils/patientRegistrationConsent'
+import {
+  requiresGuardianValidation,
+  resolvedGuardianCpf,
+  resolvedGuardianPhone,
+} from '../../utils/patientRegistrationValidation'
 
 export type RegistrationFieldKey =
   | 'fullName'
   | 'cpf'
   | 'birthDate'
   | 'gender'
+  | 'nationality'
+  | 'raceColor'
   | 'phone'
   | 'email'
   | 'guardianName'
   | 'guardianCpf'
+  | 'guardianRelationship'
+  | 'guardianPhone'
+  | 'guardianAttendanceAuthorized'
+  | 'cns'
+
+const REGISTRATION_FIELD_MESSAGES: Record<RegistrationFieldKey, string> = {
+  fullName: 'Informe o nome completo.',
+  cpf: 'Informe um CPF válido.',
+  birthDate: 'Informe a data de nascimento.',
+  gender: 'Selecione o gênero.',
+  nationality: 'Selecione a nacionalidade.',
+  raceColor: 'Selecione a raça/cor.',
+  phone: 'Informe o celular do paciente.',
+  email: 'Informe o e-mail do paciente.',
+  guardianName: 'Informe o nome do responsável.',
+  guardianCpf: 'Informe o CPF do responsável.',
+  guardianRelationship: 'Informe o grau de parentesco do responsável.',
+  guardianPhone: 'Informe o telefone do responsável.',
+  guardianAttendanceAuthorized:
+    'Confirme a autorização/ciência do responsável pelo atendimento.',
+  cns: 'Informe o CNS/Cartão SUS ou marque como pendência.',
+}
 
 export function getRegistrationMissingFields(
   data: PatientRegistration,
@@ -22,19 +54,73 @@ export function getRegistrationMissingFields(
   if (!cpfLocked && !isValidCpf(data.cpf)) missing.push('cpf')
   if (!data.birthDate) missing.push('birthDate')
   if (!data.gender) missing.push('gender')
-  if (data.phone.replace(/\D/g, '').length < 10) missing.push('phone')
-  if (!data.email.trim()) missing.push('email')
+  if (!data.nationality) missing.push('nationality')
+  if (!data.raceColor) missing.push('raceColor')
+  if (clearLgpdMaskedRegistrationField(data.phone).replace(/\D/g, '').length < 10) {
+    missing.push('phone')
+  }
+  if (!clearLgpdMaskedRegistrationField(data.email).trim()) missing.push('email')
 
-  if (ageGroup === 'minor') {
-    if (!data.guardianName.trim()) missing.push('guardianName')
-    if (!isValidCpf(data.guardianCpf)) missing.push('guardianCpf')
+  if (data.cnsPendente) {
+    // pendência explícita — não exige número
+  } else if (!isValidCns(data.cns)) {
+    missing.push('cns')
   }
 
-  if (ageGroup === 'elderly' && data.guardianCpf.trim() && !isValidCpf(data.guardianCpf)) {
-    missing.push('guardianCpf')
+  if (requiresGuardianValidation(ageGroup, data)) {
+    if (!data.guardianName.trim()) missing.push('guardianName')
+    if (!isValidCpf(resolvedGuardianCpf(data))) missing.push('guardianCpf')
+    if (!data.guardianRelationship.trim()) missing.push('guardianRelationship')
+    if (resolvedGuardianPhone(data).replace(/\D/g, '').length < 10) {
+      missing.push('guardianPhone')
+    }
+    if (!data.guardianAttendanceAuthorized) missing.push('guardianAttendanceAuthorized')
   }
 
   return missing
+}
+
+export function getRegistrationFieldErrorMessage(
+  field: RegistrationFieldKey,
+  data: PatientRegistration,
+  ageGroup: PatientAgeGroup,
+  cpfLocked: boolean,
+): string | null {
+  const missing = getRegistrationMissingFields(data, ageGroup, cpfLocked)
+  if (!missing.includes(field)) return null
+
+  if (field === 'cpf') {
+    return cpfDigits(data.cpf).length < 11
+      ? 'Informe um CPF completo com 11 dígitos.'
+      : 'CPF inválido. Verifique os números digitados.'
+  }
+
+  if (field === 'guardianCpf') {
+    return cpfDigits(resolvedGuardianCpf(data)).length === 0
+      ? 'Informe o CPF do responsável.'
+      : 'CPF do responsável inválido.'
+  }
+
+  if (field === 'cns' && !data.cnsPendente) {
+    return cnsDigits(data.cns).length < 15
+      ? 'Informe um CNS/Cartão SUS completo com 15 dígitos.'
+      : 'CNS/Cartão SUS inválido. Verifique os números digitados.'
+  }
+
+  return REGISTRATION_FIELD_MESSAGES[field]
+}
+
+export function getRegistrationValidationMessages(
+  data: PatientRegistration,
+  ageGroup: PatientAgeGroup,
+  cpfLocked: boolean,
+): string[] {
+  const missing = getRegistrationMissingFields(data, ageGroup, cpfLocked)
+  const messages = missing
+    .map((field) => getRegistrationFieldErrorMessage(field, data, ageGroup, cpfLocked))
+    .filter((message): message is string => Boolean(message))
+
+  return [...new Set(messages)]
 }
 
 export function isRegistrationStepReady(
@@ -55,10 +141,14 @@ export type AddressFieldKey =
 
 export function getAddressMissingFields(data: PatientRegistration): AddressFieldKey[] {
   const missing: AddressFieldKey[] = []
-  if (data.zipCode.replace(/\D/g, '').length !== 8) missing.push('zipCode')
-  if (!data.street.trim()) missing.push('street')
-  if (!data.number.trim()) missing.push('number')
-  if (!data.neighborhood.trim()) missing.push('neighborhood')
+  if (clearLgpdMaskedRegistrationField(data.zipCode).replace(/\D/g, '').length !== 8) {
+    missing.push('zipCode')
+  }
+  if (!clearLgpdMaskedRegistrationField(data.street).trim()) missing.push('street')
+  if (!clearLgpdMaskedRegistrationField(data.number).trim()) missing.push('number')
+  if (!clearLgpdMaskedRegistrationField(data.neighborhood).trim()) {
+    missing.push('neighborhood')
+  }
   if (!data.city.trim()) missing.push('city')
   if (!data.state.trim()) missing.push('state')
   return missing
@@ -66,4 +156,15 @@ export function getAddressMissingFields(data: PatientRegistration): AddressField
 
 export function isAddressStepReady(data: PatientRegistration) {
   return getAddressMissingFields(data).length === 0
+}
+
+export function isRegistrationConsentStepReady(
+  data: PatientRegistration,
+  ageGroup: PatientAgeGroup,
+  cpfLocked = true,
+) {
+  return (
+    isPatientRegistrationConsentReady(data.registrationConsent) &&
+    isRegistrationStepReady(data, ageGroup, cpfLocked)
+  )
 }

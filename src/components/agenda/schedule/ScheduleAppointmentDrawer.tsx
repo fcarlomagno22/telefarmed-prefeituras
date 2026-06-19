@@ -14,7 +14,9 @@ import { CpfLookupStep } from '../../dashboard/CpfLookupStep'
 import { PatientAddressStep } from '../../dashboard/PatientAddressStep'
 import { PatientContactsStep } from '../../dashboard/PatientContactsStep'
 import { PatientRegistrationConfirmStep } from '../../dashboard/PatientRegistrationConfirmStep'
+import { PatientRegistrationConsentStep } from '../../dashboard/PatientRegistrationConsentStep'
 import { PatientRegistrationForm } from '../../dashboard/PatientRegistrationForm'
+import { usePatientRegistrationOperator } from '../../../hooks/usePatientRegistrationOperator'
 import { SpecialtySelectionStep } from '../../dashboard/SpecialtySelectionStep'
 import { useUbtTriagemEspecialidadeCatalog } from '../../../hooks/useUbtTriagemEspecialidadeCatalog'
 import { ScheduleAppointmentFlowStepper } from './ScheduleAppointmentFlowStepper'
@@ -78,6 +80,8 @@ export function ScheduleAppointmentDrawer({
   const [isReturningPatient, setIsReturningPatient] = useState(false)
   const [existingPatientId, setExistingPatientId] = useState<string | undefined>()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [consentBackStep, setConsentBackStep] = useState<ScheduleAppointmentStep>('address')
+  const operator = usePatientRegistrationOperator()
 
   const catalogEnabled = open && step === 'specialty'
   const {
@@ -98,6 +102,7 @@ export function ScheduleAppointmentDrawer({
     setIsReturningPatient(false)
     setExistingPatientId(undefined)
     setIsSubmitting(false)
+    setConsentBackStep('address')
   }, [initialDate])
 
   const applyInitialFlow = useCallback((flow: ScheduleAppointmentInitialState) => {
@@ -303,10 +308,27 @@ export function ScheduleAppointmentDrawer({
             <PatientRegistrationConfirmStep
               hidePhoto
               data={registration}
+              ageGroup={session.ageGroup ?? inferAgeGroupFromBirthDate(registration.birthDate) ?? 'adult'}
               onChange={setRegistration}
-              onSubmit={goToSpecialty}
+              onSubmit={() => {
+                setConsentBackStep('confirm_registration')
+                setStep('registration_consent')
+              }}
               onBack={() => setStep('cpf_lookup')}
               onOpenPhotoCapture={() => {}}
+            />
+          )}
+
+          {step === 'registration_consent' && (
+            <PatientRegistrationConsentStep
+              embedded
+              data={registration}
+              ageGroup={session.ageGroup ?? inferAgeGroupFromBirthDate(registration.birthDate) ?? 'adult'}
+              operator={operator}
+              onChange={setRegistration}
+              onSubmit={() => setStep('specialty')}
+              onBack={() => setStep(consentBackStep)}
+              continueLabel="Continuar para especialidade"
             />
           )}
 
@@ -348,7 +370,10 @@ export function ScheduleAppointmentDrawer({
             <PatientAddressStep
               data={registration}
               onChange={setRegistration}
-              onSubmit={goToSpecialty}
+              onSubmit={() => {
+                setConsentBackStep('address')
+                setStep('registration_consent')
+              }}
               onBack={() => setStep('contacts')}
               requiredTerritory={territoryPolicy.requiredTerritory}
               contractAllowsOtherMunicipalities={territoryPolicy.allowsOtherMunicipalities}
@@ -379,11 +404,7 @@ export function ScheduleAppointmentDrawer({
                   onClose()
                   return
                 }
-                if (isReturningPatient) {
-                  setStep('confirm_registration')
-                } else {
-                  setStep('address')
-                }
+                setStep('registration_consent')
               }}
               onContinue={goToScheduleDateTime}
             />

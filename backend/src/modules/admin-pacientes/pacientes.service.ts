@@ -1,4 +1,5 @@
 import { normalizeCpf } from '../../lib/cpf.js'
+import { isValidCns, normalizeCns } from '../../lib/cns.js'
 import { parseTipoEntidade } from '../../lib/entidadeBranding/terminology.js'
 import {
   resolveAceitaPacientesOutrosMunicipios,
@@ -13,6 +14,7 @@ import { resolvePacienteFotoPublicUrl, hydratePatientAvatarUrls } from '../../li
 import { PacientesError } from './errors.js'
 import {
   buildContactsFromInput,
+  buildConsentimentoFromInput,
   buildEnderecoFromInput,
   buildResponsavelFromInput,
   escapeIlikeTerm,
@@ -210,6 +212,85 @@ export async function findPacienteByCpf(
   return patient
 }
 
+export async function findPacienteByCns(
+  cns: string,
+  entidadeContratanteId?: string,
+): Promise<AdminMunicipalPatientDto | null> {
+  const normalized = normalizeCns(cns)
+  if (!normalized) return null
+
+  let query = supabaseAdmin
+    .from('vw_admin_pacientes_listagem')
+    .select('*')
+    .eq('cns', normalized)
+    .limit(1)
+
+  if (entidadeContratanteId) {
+    query = query.eq('entidade_contratante_id', entidadeContratanteId)
+  }
+
+  const { data, error } = await query.maybeSingle()
+  if (error) throw error
+  if (!data) return null
+
+  const row = data as ListagemRow
+  const statsMap = await loadConsultationStats([row.id])
+  const [patient] = await hydratePatientAvatarUrls(
+    [row],
+    [mapListagemToPatient(row, statsMap.get(row.id))],
+  )
+  return patient
+}
+
+async function assertNoDuplicatePaciente(
+  entidadeContratanteId: string,
+  cpf: string,
+  cns: string | null | undefined,
+  excludePacienteId?: string,
+): Promise<void> {
+  const existingCpf = await findPacienteByCpf(cpf, entidadeContratanteId)
+  if (existingCpf && existingCpf.id !== excludePacienteId) {
+    throw new PacientesError(
+      'Já existe um paciente com este CPF nesta entidade contratante.',
+      'DUPLICATE_CPF',
+      409,
+    )
+  }
+
+  const normalizedCns = cns ? normalizeCns(cns) : ''
+  if (!normalizedCns) return
+
+  const existingCns = await findPacienteByCns(normalizedCns, entidadeContratanteId)
+  if (existingCns && existingCns.id !== excludePacienteId) {
+    throw new PacientesError(
+      'Já existe um paciente com este CNS nesta entidade contratante.',
+      'DUPLICATE_CNS',
+      409,
+    )
+  }
+}
+
+function resolveCnsFields(input: { cns?: string; cnsPendente?: boolean }) {
+  if (input.cnsPendente) {
+    return { cns: null, cns_pendente: true }
+  }
+
+  const normalized = normalizeCns(input.cns ?? '')
+  if (!normalized) {
+    throw new PacientesError(
+      'Informe o CNS/Cartão SUS ou marque como pendência.',
+      'INVALID_DATA',
+      400,
+    )
+  }
+
+  if (!isValidCns(normalized)) {
+    throw new PacientesError('CNS/Cartão SUS inválido.', 'INVALID_DATA', 400)
+  }
+
+  return { cns: normalized, cns_pendente: false }
+}
+
 export async function listContractingEntities(): Promise<AdminPatientContractingEntityDto[]> {
   const { data: entidades, error: entidadesError } = await supabaseAdmin
     .from('entidades_contratantes')
@@ -324,6 +405,7 @@ function assertPatientAddressInEntityTerritory(
 function buildPacienteInsertRow(input: CreatePacienteInput) {
   const cpf = normalizeCpf(input.cpf)
   const birthDate = parseBirthDateToIso(input.birthDate)
+  const cnsFields = resolveCnsFields(input)
 
   return {
     cpf,
@@ -331,11 +413,16 @@ function buildPacienteInsertRow(input: CreatePacienteInput) {
     nome_social: input.socialName?.trim() || null,
     data_nascimento: birthDate,
     sexo: genderToSexo(input.gender),
+    nacionalidade: input.nationality,
+    raca_cor: input.raceColor,
+    cns: cnsFields.cns,
+    cns_pendente: cnsFields.cns_pendente,
     telefone: input.phone?.trim() || null,
     email: input.email?.trim() || null,
     endereco: buildEnderecoFromInput(input),
     contato_emergencia: buildContactsFromInput(input.contacts),
     responsavel: buildResponsavelFromInput(input),
+    consentimento_cadastro: buildConsentimentoFromInput(input.registrationConsent),
     foto_url: input.photoDataUrl?.trim() || null,
     entidade_contratante_id: input.entidadeContratanteId,
     status: input.status ?? 'ativo',
@@ -367,6 +454,11 @@ export async function createPaciente(input: CreatePacienteInput): Promise<AdminM
   }
 
   const insertRow = buildPacienteInsertRow(input)
+  await assertNoDuplicatePaciente(
+    input.entidadeContratanteId,
+    insertRow.cpf,
+    insertRow.cns,
+  )
 
   const { data, error } = await supabaseAdmin
     .from('pacientes')
@@ -392,9 +484,26 @@ export async function updatePaciente(
   if (input.socialName !== undefined) patch.nome_social = input.socialName.trim() || null
   if (input.birthDate) patch.data_nascimento = parseBirthDateToIso(input.birthDate)
   if (input.gender) patch.sexo = genderToSexo(input.gender)
+  if (input.nationality) patch.nacionalidade = input.nationality
+  if (input.raceColor) patch.raca_cor = input.raceColor
   if (input.phone !== undefined) patch.telefone = input.phone.trim() || null
   if (input.email !== undefined) patch.email = input.email.trim() || null
   if (input.photoDataUrl !== undefined) patch.foto_url = input.photoDataUrl.trim() || null
+
+  if (input.cns !== undefined || input.cnsPendente !== undefined) {
+    const cnsFields = resolveCnsFields({
+      cns: input.cns,
+      cnsPendente: input.cnsPendente,
+    })
+    patch.cns = cnsFields.cns
+    patch.cns_pendente = cnsFields.cns_pendente
+    await assertNoDuplicatePaciente(
+      current.entidade_contratante_id,
+      current.cpf,
+      cnsFields.cns,
+      id,
+    )
+  }
 
   const endereco = {
     ...(current.endereco ?? {}),
@@ -406,11 +515,39 @@ export async function updatePaciente(
     patch.contato_emergencia = buildContactsFromInput(input.contacts)
   }
 
-  if (input.guardianName !== undefined || input.guardianCpf !== undefined) {
+  if (
+    input.guardianName !== undefined ||
+    input.guardianCpf !== undefined ||
+    input.guardianRelationship !== undefined ||
+    input.guardianPhone !== undefined ||
+    input.guardianAttendanceAuthorized !== undefined
+  ) {
+    const existingResponsavel = (current.responsavel ?? {}) as Record<string, unknown>
     patch.responsavel = buildResponsavelFromInput({
-      guardianName: input.guardianName,
-      guardianCpf: input.guardianCpf,
+      guardianName:
+        input.guardianName ??
+        String(existingResponsavel.name ?? existingResponsavel.nome ?? '').trim(),
+      guardianCpf:
+        input.guardianCpf ?? String(existingResponsavel.cpf ?? '').trim(),
+      guardianRelationship:
+        input.guardianRelationship ??
+        String(
+          existingResponsavel.parentesco ?? existingResponsavel.relationship ?? '',
+        ).trim(),
+      guardianPhone:
+        input.guardianPhone ??
+        String(existingResponsavel.telefone ?? existingResponsavel.phone ?? '').trim(),
+      guardianAttendanceAuthorized:
+        input.guardianAttendanceAuthorized ??
+        Boolean(
+          existingResponsavel.autorizacao_atendimento ??
+            existingResponsavel.attendanceAuthorized,
+        ),
     })
+  }
+
+  if (input.registrationConsent) {
+    patch.consentimento_cadastro = buildConsentimentoFromInput(input.registrationConsent)
   }
 
   if (input.city !== undefined || input.state !== undefined) {

@@ -14,6 +14,10 @@ export const PRESET_LEGAL_DOCUMENT_IDS = [
   'privacidade',
   'consentimento_informado',
   'lgpd',
+  'cadastro_conferencia_dados',
+  'cadastro_autorizacao_teleconsulta',
+  'cadastro_ciencia_dados',
+  'cadastro_permissao_notificacoes',
 ] as const
 
 const DOCUMENT_COLUMNS =

@@ -1,3 +1,11 @@
+import type {
+  PatientNationality,
+  PatientRaceColor,
+} from '../utils/patientRegistrationOptions'
+import type { PatientRegistrationConsent } from '../utils/patientRegistrationConsent'
+
+export type { PatientRegistrationConsent } from '../utils/patientRegistrationConsent'
+
 export type StationStatus =
   | 'idle'
   | 'specialty'
@@ -8,6 +16,7 @@ export type StationStatus =
   | 'contacts'
   | 'address'
   | 'photo'
+  | 'registration_consent'
   | 'clinical_triage'
   | 'waiting_room'
   | 'waiting_doctor'
@@ -40,10 +49,17 @@ export type PatientRegistration = {
   cpf: string
   birthDate: string
   gender: string
+  nationality: PatientNationality | ''
+  raceColor: PatientRaceColor | ''
   phone: string
   email: string
   guardianName: string
   guardianCpf: string
+  guardianRelationship: string
+  guardianPhone: string
+  guardianAttendanceAuthorized: boolean
+  cns: string
+  cnsPendente: boolean
   contacts: PatientContact[]
   zipCode: string
   street: string
@@ -52,7 +68,9 @@ export type PatientRegistration = {
   neighborhood: string
   city: string
   state: string
+  residenceMunicipalityIbgeCode: string
   photoDataUrl: string
+  registrationConsent: PatientRegistrationConsent | null
 }
 
 export const emptyPatientRegistration = (): PatientRegistration => ({
@@ -61,10 +79,17 @@ export const emptyPatientRegistration = (): PatientRegistration => ({
   cpf: '',
   birthDate: '',
   gender: '',
+  nationality: '',
+  raceColor: '',
   phone: '',
   email: '',
   guardianName: '',
   guardianCpf: '',
+  guardianRelationship: '',
+  guardianPhone: '',
+  guardianAttendanceAuthorized: false,
+  cns: '',
+  cnsPendente: false,
   contacts: [emptyPatientContact()],
   zipCode: '',
   street: '',
@@ -73,7 +98,9 @@ export const emptyPatientRegistration = (): PatientRegistration => ({
   neighborhood: '',
   city: '',
   state: '',
+  residenceMunicipalityIbgeCode: '',
   photoDataUrl: '',
+  registrationConsent: null,
 })
 
 export type AttendanceSession = {
@@ -123,10 +150,17 @@ export function normalizePatientRegistration(
     socialName: data.socialName ?? '',
     birthDate: data.birthDate ?? '',
     gender: data.gender ?? '',
+    nationality: data.nationality ?? '',
+    raceColor: data.raceColor ?? '',
     phone: data.phone ?? '',
     email: data.email ?? '',
     guardianName: data.guardianName ?? '',
     guardianCpf: data.guardianCpf ?? '',
+    guardianRelationship: data.guardianRelationship ?? '',
+    guardianPhone: data.guardianPhone ?? '',
+    guardianAttendanceAuthorized: data.guardianAttendanceAuthorized ?? false,
+    cns: data.cns ?? '',
+    cnsPendente: data.cnsPendente ?? false,
     zipCode: data.zipCode ?? '',
     street: data.street ?? '',
     number: data.number ?? '',
@@ -134,7 +168,9 @@ export function normalizePatientRegistration(
     neighborhood: data.neighborhood ?? '',
     city: data.city ?? '',
     state: data.state ?? '',
+    residenceMunicipalityIbgeCode: data.residenceMunicipalityIbgeCode ?? '',
     photoDataUrl: data.photoDataUrl ?? '',
+    registrationConsent: data.registrationConsent ?? null,
     contacts,
   }
 }

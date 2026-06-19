@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useLayoutEffect } from 'react'
 import { brand } from '../config/brand'
 import { useOptionalEntidadeBranding } from '../contexts/EntidadeBrandingContext'
 import { applyBrandCssVariables } from '../utils/brandColor'
@@ -10,7 +10,7 @@ export function useBrandTheme(primaryColor?: string | null) {
     entidadeBranding?.corPrimaria ||
     brand.primaryColor
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     applyBrandCssVariables(resolved)
   }, [resolved])
 }

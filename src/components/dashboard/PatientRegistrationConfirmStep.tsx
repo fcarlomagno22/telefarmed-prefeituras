@@ -1,18 +1,29 @@
 import { Camera, Loader2, UserRound } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import {
   getPatientPreferredName,
+  type PatientAgeGroup,
   type PatientRegistration,
 } from '../../types/attendance'
 import { CustomSelect } from '../ui/CustomSelect'
 import { maskCep, maskPhone } from '../../utils/masks'
+import { patientHasGuardianSection } from '../../utils/patientRegistrationConsent'
+import { requiresGuardianValidation } from '../../utils/patientRegistrationValidation'
+import { fetchAddressByCep } from '../../utils/viacep'
 import { AttendanceStepFooter } from './AttendanceStepFooter'
 import { AttendanceStepShell } from './AttendanceStepShell'
+import { PatientGuardianFieldsSection } from './PatientGuardianFieldsSection'
 import { PatientSocialNameFields } from './PatientSocialNameFields'
+import {
+  getRegistrationMissingFields,
+  getRegistrationValidationMessages,
+  isRegistrationStepReady,
+} from './registrationStepValidation'
 
 type PatientRegistrationConfirmStepProps = {
   data: PatientRegistration
+  ageGroup: PatientAgeGroup
   onChange: (data: PatientRegistration) => void
   onSubmit: () => void
   onBack: () => void
@@ -34,16 +45,12 @@ const brazilianStates = [
   'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
 ]
 
-type ViaCepResponse = {
-  erro?: boolean
-  logradouro?: string
-  bairro?: string
-  localidade?: string
-  uf?: string
-}
+const inputErrorClass =
+  'w-full rounded-xl border border-red-300 bg-white py-3 px-4 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-red-400 focus:ring-2 focus:ring-red-200/60'
 
 export function PatientRegistrationConfirmStep({
   data,
+  ageGroup,
   onChange,
   onSubmit,
   onBack,
@@ -55,6 +62,19 @@ export function PatientRegistrationConfirmStep({
 }: PatientRegistrationConfirmStepProps) {
   const [isLoadingCep, setIsLoadingCep] = useState(false)
   const [cepMessage, setCepMessage] = useState<string | null>(null)
+  const [showHints, setShowHints] = useState(false)
+  const [guardianCpfTouched, setGuardianCpfTouched] = useState(false)
+
+  const missingFields = useMemo(
+    () => getRegistrationMissingFields(data, ageGroup, true),
+    [data, ageGroup],
+  )
+  const validationMessages = useMemo(
+    () => getRegistrationValidationMessages(data, ageGroup, true),
+    [data, ageGroup],
+  )
+  const continueReady = isRegistrationStepReady(data, ageGroup, true)
+  const showGuardian = patientHasGuardianSection(ageGroup, data)
 
   function patch(field: keyof PatientRegistration, value: string) {
     onChange({ ...data, [field]: value })
@@ -68,20 +88,21 @@ export function PatientRegistrationConfirmStep({
     setCepMessage(null)
 
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`)
-      const result = (await response.json()) as ViaCepResponse
+      const address = await fetchAddressByCep(data.zipCode)
 
-      if (result.erro) {
+      if (!address) {
         setCepMessage('CEP não encontrado. Preencha o endereço manualmente.')
         return
       }
 
       onChange({
         ...data,
-        street: result.logradouro ?? data.street,
-        neighborhood: result.bairro ?? data.neighborhood,
-        city: result.localidade ?? data.city,
-        state: result.uf ?? data.state,
+        street: address.street || data.street,
+        neighborhood: address.neighborhood || data.neighborhood,
+        city: address.city || data.city,
+        state: address.state || data.state,
+        residenceMunicipalityIbgeCode:
+          address.ibgeMunicipalityCode || data.residenceMunicipalityIbgeCode,
       })
       setCepMessage('Endereço atualizado automaticamente.')
     } catch {
@@ -94,7 +115,17 @@ export function PatientRegistrationConfirmStep({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (continueLoading) return
+    if (requiresGuardianValidation(ageGroup, data)) setGuardianCpfTouched(true)
+    if (!continueReady) {
+      setShowHints(true)
+      return
+    }
     onSubmit()
+  }
+
+  function handleContinueBlocked() {
+    if (requiresGuardianValidation(ageGroup, data)) setGuardianCpfTouched(true)
+    setShowHints(true)
   }
 
   return (
@@ -103,8 +134,8 @@ export function PatientRegistrationConfirmStep({
       title="Confirme seu cadastro"
       description={
         hidePhoto
-          ? 'Você já possui cadastro. Revise telefone, e-mail e endereço e confirme se os dados estão atualizados.'
-          : 'Você já possui cadastro. Revise telefone, e-mail, endereço e foto se desejar — todos os campos abaixo são opcionais.'
+          ? 'Você já possui cadastro. Revise telefone, e-mail, endereço e dados do responsável (quando aplicável) antes de continuar.'
+          : 'Você já possui cadastro. Revise telefone, e-mail, endereço, responsável (quando aplicável) e foto antes de continuar.'
       }
       footer={
         <AttendanceStepFooter
@@ -112,8 +143,9 @@ export function PatientRegistrationConfirmStep({
           continueLabel={continueLabel}
           continueType="submit"
           formId="patient-confirm-registration-form"
-          continueReady
+          continueReady={continueReady}
           continueLoading={continueLoading}
+          onContinueBlocked={handleContinueBlocked}
         />
       }
     >
@@ -122,6 +154,20 @@ export function PatientRegistrationConfirmStep({
         onSubmit={handleSubmit}
         className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto no-scrollbar"
       >
+        {showHints && validationMessages.length > 0 ? (
+          <div
+            role="alert"
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          >
+            <p className="font-semibold">Corrija os dados abaixo antes de continuar:</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
+              {validationMessages.map((message) => (
+                <li key={message}>{message}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
         <section className="shrink-0 rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
           <div className="overflow-visible rounded-t-2xl bg-gradient-to-r from-[var(--brand-primary-light)] via-[var(--brand-primary-muted)]/90 to-gray-50 px-5 py-3.5 sm:px-6 sm:py-4">
             <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-5">
@@ -342,6 +388,24 @@ export function PatientRegistrationConfirmStep({
             </div>
           </div>
         </section>
+
+        {showGuardian ? (
+          <section className="shrink-0">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <PatientGuardianFieldsSection
+                data={data}
+                ageGroup={ageGroup}
+                onChange={onChange}
+                showHints={showHints}
+                missingFields={missingFields}
+                guardianCpfTouched={guardianCpfTouched}
+                onGuardianCpfBlur={() => setGuardianCpfTouched(true)}
+                inputClass={inputClass}
+                inputErrorClass={inputErrorClass}
+              />
+            </div>
+          </section>
+        ) : null}
 
       </form>
     </AttendanceStepShell>

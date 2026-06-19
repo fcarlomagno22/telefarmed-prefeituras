@@ -33,11 +33,29 @@ function prioritySortKey(entry: WaitingQueueEntry, now: Date): number {
   return slotMs + 1_000_000_000
 }
 
+function triagemDisplaySortKey(entry: WaitingQueueEntry, now: Date): number {
+  if (entry.status === 'chamado') return -2
+  if (
+    entry.scheduledTime &&
+    isAppointmentSlotPriority(entry.scheduledTime, now)
+  ) {
+    return -1
+  }
+  return 0
+}
+
+/** Ordenação da fila na triagem: chamados primeiro, depois prioridade de horário. */
 export function sortWaitingQueue(
   entries: WaitingQueueEntry[],
   now: Date = new Date(),
 ): WaitingQueueEntry[] {
   return [...entries].sort((a, b) => {
+    const aDisplay = triagemDisplaySortKey(a, now)
+    const bDisplay = triagemDisplaySortKey(b, now)
+    if (aDisplay !== bDisplay) {
+      return aDisplay - bDisplay
+    }
+
     const aPriority = a.scheduledTime
       ? isAppointmentSlotPriority(a.scheduledTime, now)
       : false

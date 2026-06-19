@@ -79,19 +79,6 @@ export async function buildAttendanceStartFromQueueEntry(
     phone: entry.patientPhone ?? '',
   })
 
-  if (entry.pacienteId && options.loadByPacienteId) {
-    const loaded = await options.loadByPacienteId(entry.pacienteId)
-    if (loaded) {
-      return buildResult(
-        loaded,
-        buildSession(entry, loaded),
-        'confirm_registration',
-        false,
-        entry.pacienteId,
-      )
-    }
-  }
-
   const lookup = await options.lookupByCpf(entry.patientCpf)
 
   if (lookup.status === 'found_pending_first_visit') {
@@ -117,6 +104,19 @@ export async function buildAttendanceStartFromQueueEntry(
       false,
       lookup.patientId,
     )
+  }
+
+  if (entry.pacienteId && options.loadByPacienteId) {
+    const loaded = await options.loadByPacienteId(entry.pacienteId)
+    if (loaded) {
+      return buildResult(
+        loaded,
+        buildSession(entry, loaded),
+        'confirm_registration',
+        false,
+        entry.pacienteId,
+      )
+    }
   }
 
   return buildResult(

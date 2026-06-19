@@ -34,9 +34,9 @@ const statusConfig: Record<
   },
   aguardando: {
     label: 'Aguardando',
-    text: 'text-orange-700',
-    accent: 'bg-[var(--brand-primary-gradient)]',
-    lineGlow: 'shadow-[var(--brand-primary-shadow-sm)]',
+    text: 'text-amber-700',
+    accent: 'bg-gradient-to-r from-yellow-300 via-amber-400 to-amber-500',
+    lineGlow: 'shadow-[0_2px_10px_rgba(245,158,11,0.45)]',
   },
   agendado: {
     label: 'Agendado',
@@ -57,7 +57,7 @@ function rowBackground(status: AppointmentStatus) {
     case 'em_atendimento':
       return 'bg-sky-50/70'
     case 'aguardando':
-      return 'bg-[var(--brand-primary-muted)]/60'
+      return 'bg-amber-50/80'
     case 'faltou':
       return 'bg-red-50/50'
     default:
@@ -70,7 +70,7 @@ function timeColor(status: AppointmentStatus) {
     case 'em_atendimento':
       return 'text-sky-600'
     case 'aguardando':
-      return 'text-orange-600'
+      return 'text-amber-600'
     case 'faltou':
       return 'text-red-600'
     default:

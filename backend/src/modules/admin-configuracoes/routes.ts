@@ -30,6 +30,7 @@ import {
   setLegalDocumentPublished,
   updateLegalDocument,
 } from './legal.service.js'
+import { getPatientRegistrationConsentTerms } from './patient-registration-consent-terms.service.js'
 import { mapConfiguracoesError } from './errors.js'
 import {
   createContractTypeBodySchema,
@@ -135,6 +136,17 @@ export async function registerPublicConfiguracoesRoutes(app: FastifyInstance): P
       })
       setPublicCatalogCacheHeaders(reply)
       return reply.send(catalog)
+    } catch (error) {
+      const mapped = mapConfiguracoesError(error)
+      return reply.status(mapped.statusCode).send(mapped.body)
+    }
+  })
+
+  app.get('/cadastro-paciente/termos', async (_request, reply) => {
+    try {
+      const terms = await getPatientRegistrationConsentTerms()
+      setPublicCatalogCacheHeaders(reply)
+      return reply.send(terms)
     } catch (error) {
       const mapped = mapConfiguracoesError(error)
       return reply.status(mapped.statusCode).send(mapped.body)

@@ -70,6 +70,10 @@ export const PRESET_LEGAL_DOCUMENT_IDS = [
   'privacidade',
   'consentimento_informado',
   'lgpd',
+  'cadastro_conferencia_dados',
+  'cadastro_autorizacao_teleconsulta',
+  'cadastro_ciencia_dados',
+  'cadastro_permissao_notificacoes',
 ] as const
 
 export type PresetLegalDocumentId = (typeof PRESET_LEGAL_DOCUMENT_IDS)[number]

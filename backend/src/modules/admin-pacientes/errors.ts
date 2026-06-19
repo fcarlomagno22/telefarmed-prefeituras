@@ -17,6 +17,7 @@ export class PacientesError extends Error {
       | 'NOT_FOUND'
       | 'INVALID_DATA'
       | 'DUPLICATE_CPF'
+      | 'DUPLICATE_CNS'
       | 'FORBIDDEN'
       | 'CONFLICT'
       | 'PRE_CADASTRO_INVALID'
@@ -53,6 +54,13 @@ export function mapPacientesError(error: unknown): {
     }
   }
 
+  if (error instanceof Error && error.message === 'CNS inválido') {
+    return {
+      statusCode: 400,
+      body: { error: 'CNS/Cartão SUS inválido.', code: 'INVALID_DATA' },
+    }
+  }
+
   const pgCode =
     typeof error === 'object' &&
     error !== null &&
@@ -69,6 +77,24 @@ export function mapPacientesError(error: unknown): {
   }
 
   if (pgCode === '23505') {
+    const constraint =
+      typeof error === 'object' &&
+      error !== null &&
+      'constraint' in error &&
+      typeof (error as { constraint: unknown }).constraint === 'string'
+        ? (error as { constraint: string }).constraint
+        : ''
+
+    if (constraint.includes('cns')) {
+      return {
+        statusCode: 409,
+        body: {
+          error: 'Já existe um paciente com este CNS nesta entidade contratante.',
+          code: 'DUPLICATE_CNS',
+        },
+      }
+    }
+
     return {
       statusCode: 409,
       body: {

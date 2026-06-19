@@ -4,6 +4,7 @@ export type ViaCepAddress = {
   city: string
   state: string
   complement: string
+  ibgeMunicipalityCode: string
 }
 
 type ViaCepResponse = {
@@ -13,6 +14,7 @@ type ViaCepResponse = {
   localidade?: string
   uf?: string
   complemento?: string
+  ibge?: string
 }
 
 export async function fetchAddressByCep(cep: string): Promise<ViaCepAddress | null> {
@@ -32,6 +34,7 @@ export async function fetchAddressByCep(cep: string): Promise<ViaCepAddress | nu
       city: data.localidade?.trim() ?? '',
       state: data.uf?.trim() ?? '',
       complement: data.complemento?.trim() ?? '',
+      ibgeMunicipalityCode: data.ibge?.trim() ?? '',
     }
   } catch {
     return null

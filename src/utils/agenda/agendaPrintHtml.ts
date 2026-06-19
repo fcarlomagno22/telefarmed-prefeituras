@@ -49,10 +49,10 @@ const statusPrintConfig: Record<
   },
   aguardando: {
     label: 'Aguardando',
-    textColor: '#c2410c',
-    rowBg: 'rgba(255, 247, 237, 0.9)',
-    lineGradient: 'linear-gradient(to right, #fbbf24, #f97316, #ff6b00)',
-    lineGlow: '0 2px 10px rgba(255, 107, 0, 0.55)',
+    textColor: '#b45309',
+    rowBg: 'rgba(255, 251, 235, 0.9)',
+    lineGradient: 'linear-gradient(to right, #fde047, #fbbf24, #f59e0b)',
+    lineGlow: '0 2px 10px rgba(245, 158, 11, 0.45)',
   },
   agendado: {
     label: 'Agendado',
@@ -73,7 +73,7 @@ const statusPrintConfig: Record<
 const timeColorByStatus: Record<AppointmentStatus, string> = {
   realizado: '#111827',
   em_atendimento: '#0284c7',
-  aguardando: '#ea580c',
+  aguardando: '#d97706',
   agendado: '#111827',
   faltou: '#dc2626',
 }

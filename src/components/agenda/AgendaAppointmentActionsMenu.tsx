@@ -1,4 +1,4 @@
-import { CalendarClock, DoorOpen, Eye, MoreVertical, Trash2, UserX } from 'lucide-react'
+import { CalendarClock, DoorOpen, Eye, MoreVertical, RefreshCw, Trash2, UserX } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { AppointmentStatus, DayAppointment } from '../../data/agendaMock'
@@ -15,13 +15,14 @@ type AgendaAppointmentActionsMenuProps = {
   onCancel: () => void
   onMarkNoShow: () => void
   onConfirmArrival: () => void
+  onChangeStatus: () => void
 }
 
 const menuItemClass =
   'flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40'
 
 const MENU_MIN_WIDTH_PX = 220
-const MENU_ESTIMATED_HEIGHT_PX = 220
+const MENU_ESTIMATED_HEIGHT_PX = 280
 const MENU_GAP_PX = 6
 
 type MenuPosition = {
@@ -53,6 +54,7 @@ export function AgendaAppointmentActionsMenu({
   onCancel,
   onMarkNoShow,
   onConfirmArrival,
+  onChangeStatus,
 }: AgendaAppointmentActionsMenuProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -154,6 +156,15 @@ export function AgendaAppointmentActionsMenu({
             <button type="button" role="menuitem" className={menuItemClass} onClick={onViewDetails}>
               <Eye className="h-4 w-4 shrink-0 text-gray-500" strokeWidth={2} />
               Ver detalhes
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className={menuItemClass}
+              onClick={onChangeStatus}
+            >
+              <RefreshCw className="h-4 w-4 shrink-0 text-gray-500" strokeWidth={2} />
+              Alterar situação
             </button>
             <button
               type="button"

@@ -62,10 +62,17 @@ export function mapDetailToRegistrationPayload(
     cpf: detail.cpf.includes('.') ? detail.cpf : formatCpfDisplay(detail.cpf.replace(/\D/g, '')),
     birthDate: parseBirthDateToIso(detail.birthDate),
     gender,
+    nationality: profile?.nationality ?? '',
+    raceColor: profile?.raceColor ?? '',
     phone: detail.phone?.trim() ?? '',
     email: profile?.email ?? '',
     guardianName: profile?.guardianName ?? '',
     guardianCpf: formatGuardianCpf(profile?.guardianCpf),
+    guardianRelationship: profile?.guardianRelationship ?? '',
+    guardianPhone: profile?.guardianPhone ?? '',
+    guardianAttendanceAuthorized: profile?.guardianAttendanceAuthorized ?? false,
+    cns: profile?.cns ?? '',
+    cnsPendente: profile?.cnsPendente ?? false,
     contacts: normalizeRegistrationContacts(profile?.contacts),
     zipCode: formatZipCode(profile?.zipCode),
     street: profile?.street ?? '',
@@ -74,6 +81,7 @@ export function mapDetailToRegistrationPayload(
     neighborhood: profile?.neighborhood || detail.bairro,
     city: profile?.city ?? '',
     state: profile?.state ?? '',
+    residenceMunicipalityIbgeCode: profile?.residenceMunicipalityIbgeCode ?? '',
     photoDataUrl: detail.avatarUrl ?? '',
   }
 }
@@ -90,10 +98,17 @@ export function preCadastroDadosToRegistrationPayload(
     cpf: formatCpfDisplay(cpf),
     birthDate: String(dados.birthDate ?? '').trim(),
     gender: genderValue === 'nao_informado' ? 'nao_informar' : genderValue,
+    nationality: String(dados.nationality ?? '').trim(),
+    raceColor: String(dados.raceColor ?? '').trim(),
     phone: String(dados.phone ?? '').trim(),
     email: String(dados.email ?? '').trim(),
     guardianName: String(dados.guardianName ?? '').trim(),
     guardianCpf: formatGuardianCpf(String(dados.guardianCpf ?? '')),
+    guardianRelationship: String(dados.guardianRelationship ?? '').trim(),
+    guardianPhone: String(dados.guardianPhone ?? '').trim(),
+    guardianAttendanceAuthorized: Boolean(dados.guardianAttendanceAuthorized),
+    cns: String(dados.cns ?? '').trim(),
+    cnsPendente: Boolean(dados.cnsPendente),
     contacts: normalizeRegistrationContacts(
       Array.isArray(dados.contacts)
         ? (dados.contacts as UbtPatientRegistrationPayload['contacts'])
@@ -106,6 +121,7 @@ export function preCadastroDadosToRegistrationPayload(
     neighborhood: String(dados.neighborhood ?? '').trim(),
     city: String(dados.city ?? '').trim(),
     state: String(dados.state ?? '').trim(),
+    residenceMunicipalityIbgeCode: String(dados.residenceMunicipalityIbgeCode ?? '').trim(),
     photoDataUrl: String(dados.photoDataUrl ?? '').trim(),
   }
 }

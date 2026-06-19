@@ -9,6 +9,7 @@ import {
 import { AgendaAppointmentActionsMenu } from './AgendaAppointmentActionsMenu'
 import { AgendaUpdatingStatusBadge } from './AgendaUpdatingIndicator'
 import { AgendaCancelAppointmentModal } from './AgendaCancelAppointmentModal'
+import { AgendaChangeStatusModal } from './AgendaChangeStatusModal'
 import { AgendaMarkNoShowModal } from './AgendaMarkNoShowModal'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -44,10 +45,9 @@ const statusConfig: Record<
   },
   aguardando: {
     label: 'Aguardando',
-    text: 'text-[var(--brand-primary)]',
-    accent:
-      'bg-gradient-to-r from-[var(--brand-primary-gradient-start)] via-[var(--brand-primary)] to-[var(--brand-primary-gradient-end)]',
-    lineGlow: 'shadow-[var(--brand-primary-shadow-sm)]',
+    text: 'text-amber-700',
+    accent: 'bg-gradient-to-r from-yellow-300 via-amber-400 to-amber-500',
+    lineGlow: 'shadow-[0_2px_10px_rgba(245,158,11,0.45)]',
   },
   agendado: {
     label: 'Agendado',
@@ -68,7 +68,7 @@ function rowBackground(status: AppointmentStatus) {
     case 'em_atendimento':
       return 'bg-sky-50/70'
     case 'aguardando':
-      return 'bg-[var(--brand-primary-muted)]/60'
+      return 'bg-amber-50/80'
     case 'faltou':
       return 'bg-red-50/50'
     default:
@@ -81,7 +81,7 @@ function timeColor(status: AppointmentStatus) {
     case 'em_atendimento':
       return 'text-sky-600'
     case 'aguardando':
-      return 'text-[var(--brand-primary)]'
+      return 'text-amber-600'
     case 'faltou':
       return 'text-red-600'
     default:
@@ -172,6 +172,7 @@ type AppointmentRowProps = {
   onCancel: (appointment: DayAppointment) => void
   onMarkNoShow: (appointment: DayAppointment) => void
   onConfirmArrival: (appointment: DayAppointment) => void
+  onChangeStatus: (appointment: DayAppointment) => void
 }
 
 function AppointmentRow({
@@ -188,6 +189,7 @@ function AppointmentRow({
   onCancel,
   onMarkNoShow,
   onConfirmArrival,
+  onChangeStatus,
 }: AppointmentRowProps) {
   const patient = findNetworkUserForAppointment(appointment)
 
@@ -272,6 +274,10 @@ function AppointmentRow({
             onCloseActions()
             onConfirmArrival(appointment)
           }}
+          onChangeStatus={() => {
+            onCloseActions()
+            onChangeStatus(appointment)
+          }}
         />
       </td>
     </tr>
@@ -291,6 +297,7 @@ type AgendaAppointmentsTableProps = {
   onCancel: (appointment: DayAppointment) => void
   onMarkNoShow: (appointment: DayAppointment) => void
   onConfirmArrival: (appointment: DayAppointment) => void
+  onChangeStatus: (appointment: DayAppointment) => void
   openActionsId: string | null
   onToggleActions: (appointmentId: string) => void
   onCloseActions: () => void
@@ -313,6 +320,7 @@ function AgendaAppointmentsTable({
   onCancel,
   onMarkNoShow,
   onConfirmArrival,
+  onChangeStatus,
   openActionsId,
   onToggleActions,
   onCloseActions,
@@ -389,6 +397,7 @@ function AgendaAppointmentsTable({
               onCancel={onCancel}
               onMarkNoShow={onMarkNoShow}
               onConfirmArrival={onConfirmArrival}
+              onChangeStatus={onChangeStatus}
             />
           ))
         )}
@@ -415,6 +424,7 @@ type AgendaDaySchedulePanelProps = {
   onCancel: (appointment: DayAppointment) => void
   onMarkNoShow: (appointment: DayAppointment) => void
   onConfirmArrival: (appointment: DayAppointment) => void
+  onChangeStatus: (appointment: DayAppointment) => void
   openActionsId: string | null
   onToggleActions: (appointmentId: string) => void
   onCloseActions: () => void
@@ -453,6 +463,7 @@ function AgendaDaySchedulePanel({
   onCancel,
   onMarkNoShow,
   onConfirmArrival,
+  onChangeStatus,
   openActionsId,
   onToggleActions,
   onCloseActions,
@@ -601,6 +612,7 @@ function AgendaDaySchedulePanel({
             onCancel={onCancel}
             onMarkNoShow={onMarkNoShow}
             onConfirmArrival={onConfirmArrival}
+            onChangeStatus={onChangeStatus}
             openActionsId={openActionsId}
             onToggleActions={onToggleActions}
             onCloseActions={onCloseActions}
@@ -633,6 +645,7 @@ type AgendaMainPanelProps = {
   onRescheduleAppointment: (appointment: DayAppointment) => void
   onCancelAppointment: (appointment: DayAppointment) => void
   onMarkNoShowAppointment: (appointment: DayAppointment) => void
+  onChangeAppointmentStatus: (appointment: DayAppointment, status: AppointmentStatus) => void
   onOpenReception: (appointment: DayAppointment) => void
   hasAppointmentsOnDate?: (date: Date) => boolean
   onMonthChange?: (year: number, month: number) => void
@@ -646,6 +659,7 @@ export function AgendaMainPanel({
   onRescheduleAppointment,
   onCancelAppointment,
   onMarkNoShowAppointment,
+  onChangeAppointmentStatus,
   onOpenReception,
   hasAppointmentsOnDate,
   onMonthChange,
@@ -664,6 +678,7 @@ export function AgendaMainPanel({
   const [openActionsId, setOpenActionsId] = useState<string | null>(null)
   const [cancelTarget, setCancelTarget] = useState<DayAppointment | null>(null)
   const [noShowTarget, setNoShowTarget] = useState<DayAppointment | null>(null)
+  const [statusTarget, setStatusTarget] = useState<DayAppointment | null>(null)
 
   const filteredAppointments = useMemo(() => {
     const filtered = filterAppointmentsByName(search, appointments)
@@ -737,6 +752,12 @@ export function AgendaMainPanel({
     setNoShowTarget(null)
   }
 
+  function handleConfirmStatusChange(status: AppointmentStatus) {
+    if (!statusTarget) return
+    onChangeAppointmentStatus(statusTarget, status)
+    setStatusTarget(null)
+  }
+
   const schedulePanelProps = {
     search,
     onSearchChange: setSearch,
@@ -753,6 +774,7 @@ export function AgendaMainPanel({
     onCancel: setCancelTarget,
     onMarkNoShow: setNoShowTarget,
     onConfirmArrival: onOpenReception,
+    onChangeStatus: setStatusTarget,
     openActionsId,
     onToggleActions: handleToggleActions,
     onCloseActions: () => setOpenActionsId(null),
@@ -817,6 +839,14 @@ export function AgendaMainPanel({
         appointment={noShowTarget}
         onClose={() => setNoShowTarget(null)}
         onConfirm={handleConfirmNoShow}
+      />
+
+      <AgendaChangeStatusModal
+        open={statusTarget !== null}
+        appointment={statusTarget}
+        isSubmitting={Boolean(statusTarget && updatingAppointmentId === statusTarget.id)}
+        onClose={() => setStatusTarget(null)}
+        onConfirm={handleConfirmStatusChange}
       />
 
       {drawerLayer}

@@ -8,13 +8,22 @@ import {
 import { CustomSelect } from '../ui/CustomSelect'
 import { formatDatePtBr, parseBirthDateInput } from '../../utils/calendar'
 import { cpfDigits, isValidCpf } from '../../utils/cpf'
+import { maskCns } from '../../utils/cns'
 import { maskBirthDate, maskCpf, maskPhone } from '../../utils/masks'
+import {
+  patientNationalityOptions,
+  patientRaceColorOptions,
+} from '../../utils/patientRegistrationOptions'
+import { patientHasGuardianSection } from '../../utils/patientRegistrationConsent'
+import { requiresGuardianValidation } from '../../utils/patientRegistrationValidation'
 import { AttendanceFieldHighlight } from './AttendanceFieldHighlight'
 import { AttendanceStepFooter } from './AttendanceStepFooter'
 import { AttendanceStepShell } from './AttendanceStepShell'
+import { PatientGuardianFieldsSection } from './PatientGuardianFieldsSection'
 import { PatientSocialNameFields } from './PatientSocialNameFields'
 import {
   getRegistrationMissingFields,
+  getRegistrationFieldErrorMessage,
   isRegistrationStepReady,
   type RegistrationFieldKey,
 } from './registrationStepValidation'
@@ -59,6 +68,7 @@ export function PatientRegistrationForm({
 }: PatientRegistrationFormProps) {
   const [cpfTouched, setCpfTouched] = useState(false)
   const [guardianCpfTouched, setGuardianCpfTouched] = useState(false)
+  const [cnsTouched, setCnsTouched] = useState(false)
   const [showHints, setShowHints] = useState(false)
   const [birthDateDisplay, setBirthDateDisplay] = useState(() =>
     data.birthDate ? formatDatePtBr(data.birthDate) : '',
@@ -75,8 +85,7 @@ export function PatientRegistrationForm({
   const continueReady = isRegistrationStepReady(data, ageGroup, cpfLocked)
   const highlight = (field: RegistrationFieldKey) => showHints && missingFields.includes(field)
 
-  const showGuardian = ageGroup === 'minor' || ageGroup === 'elderly'
-  const guardianRequired = ageGroup === 'minor'
+  const showGuardian = patientHasGuardianSection(ageGroup, data)
 
   const cpfDigitsCount = cpfDigits(data.cpf).length
   const showCpfError =
@@ -86,18 +95,23 @@ export function PatientRegistrationForm({
       ? 'Informe um CPF completo com 11 dígitos.'
       : 'CPF inválido. Verifique os números digitados.'
 
-  const guardianCpfDigits = cpfDigits(data.guardianCpf).length
-  const showGuardianCpfError =
-    guardianCpfTouched &&
-    guardianCpfDigits > 0 &&
-    !isValidCpf(data.guardianCpf)
+  const showCnsError =
+    !data.cnsPendente &&
+    (cnsTouched || showHints) &&
+    missingFields.includes('cns')
+  const cnsErrorMessage =
+    getRegistrationFieldErrorMessage('cns', data, ageGroup, cpfLocked) ??
+    'CNS/Cartão SUS inválido. Verifique os números digitados.'
+
+  function markValidationTouched() {
+    if (!cpfLocked) setCpfTouched(true)
+    if (requiresGuardianValidation(ageGroup, data)) setGuardianCpfTouched(true)
+    if (!data.cnsPendente) setCnsTouched(true)
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!cpfLocked) setCpfTouched(true)
-    if (guardianRequired || (ageGroup === 'elderly' && data.guardianCpf.trim())) {
-      setGuardianCpfTouched(true)
-    }
+    markValidationTouched()
     if (!continueReady) {
       setShowHints(true)
       return
@@ -106,15 +120,21 @@ export function PatientRegistrationForm({
   }
 
   function handleContinueBlocked() {
-    if (!cpfLocked) setCpfTouched(true)
-    if (guardianRequired || (ageGroup === 'elderly' && data.guardianCpf.trim())) {
-      setGuardianCpfTouched(true)
-    }
+    markValidationTouched()
     setShowHints(true)
   }
 
-  function patch(field: keyof PatientRegistration, value: string) {
+  function patch(field: keyof PatientRegistration, value: string | boolean) {
     onChange({ ...data, [field]: value })
+  }
+
+  function handleCnsPendenteChange(checked: boolean) {
+    onChange({
+      ...data,
+      cnsPendente: checked,
+      cns: checked ? '' : data.cns,
+    })
+    if (checked) setCnsTouched(false)
   }
 
   return (
@@ -187,6 +207,72 @@ export function PatientRegistrationForm({
             </label>
           </AttendanceFieldHighlight>
 
+          <AttendanceFieldHighlight highlight={highlight('cns')} className="block sm:col-span-2">
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-medium text-gray-700">
+                CNS / Cartão SUS
+              </span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={data.cns}
+                disabled={data.cnsPendente}
+                onChange={(e) => {
+                  patch('cns', maskCns(e.target.value))
+                  if (data.cnsPendente) patch('cnsPendente', false)
+                }}
+                onBlur={() => setCnsTouched(true)}
+                placeholder="000 0000 0000 0000"
+                maxLength={18}
+                className={
+                  data.cnsPendente
+                    ? inputDisabledClass
+                    : showCnsError || (showHints && missingFields.includes('cns'))
+                      ? inputErrorClass
+                      : inputClass
+                }
+              />
+              {showCnsError ? (
+                <p className="mt-1.5 text-xs text-red-600">{cnsErrorMessage}</p>
+              ) : null}
+            </label>
+            <label className="mt-2 flex cursor-pointer items-start gap-2">
+              <input
+                type="checkbox"
+                checked={data.cnsPendente}
+                onChange={(e) => handleCnsPendenteChange(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[var(--brand-primary)] focus:ring-[var(--brand-primary)]"
+              />
+              <span className="text-xs text-gray-600">
+                Paciente não possui CNS — marcar como pendência
+              </span>
+            </label>
+          </AttendanceFieldHighlight>
+
+          <AttendanceFieldHighlight highlight={highlight('nationality')} className="block">
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-medium text-gray-700">Nacionalidade</span>
+              <CustomSelect
+                value={data.nationality}
+                onChange={(value) => patch('nationality', value)}
+                options={patientNationalityOptions}
+                placeholder="Selecione"
+              />
+            </label>
+          </AttendanceFieldHighlight>
+
+          <AttendanceFieldHighlight highlight={highlight('raceColor')} className="block">
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-medium text-gray-700">Raça/cor</span>
+              <CustomSelect
+                value={data.raceColor}
+                onChange={(value) => patch('raceColor', value)}
+                options={patientRaceColorOptions}
+                placeholder="Selecione"
+              />
+            </label>
+          </AttendanceFieldHighlight>
+
           <AttendanceFieldHighlight highlight={highlight('birthDate')} className="block">
             <label className="block">
               <span className="mb-1.5 block text-xs font-medium text-gray-700">
@@ -249,57 +335,17 @@ export function PatientRegistrationForm({
           </AttendanceFieldHighlight>
 
           {showGuardian ? (
-            <>
-              <div className="sm:col-span-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  {ageGroup === 'minor' ? 'Responsável legal' : 'Cuidador (opcional)'}
-                </p>
-              </div>
-
-              <AttendanceFieldHighlight
-                highlight={highlight('guardianName')}
-                className="block sm:col-span-2"
-              >
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-medium text-gray-700">
-                    Nome do responsável
-                  </span>
-                  <input
-                    type="text"
-                    value={data.guardianName}
-                    onChange={(e) => patch('guardianName', e.target.value)}
-                    placeholder="Nome completo do responsável"
-                    className={inputClass}
-                  />
-                </label>
-              </AttendanceFieldHighlight>
-
-              <AttendanceFieldHighlight
-                highlight={highlight('guardianCpf')}
-                className="block sm:col-span-2"
-              >
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-medium text-gray-700">
-                    CPF do responsável
-                  </span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={data.guardianCpf}
-                    onChange={(e) => patch('guardianCpf', maskCpf(e.target.value))}
-                    onBlur={() => setGuardianCpfTouched(true)}
-                    placeholder="000.000.000-00"
-                    maxLength={14}
-                    className={showGuardianCpfError ? inputErrorClass : inputClass}
-                  />
-                  {showGuardianCpfError ? (
-                    <p className="mt-1.5 text-xs text-red-600">
-                      CPF do responsável inválido.
-                    </p>
-                  ) : null}
-                </label>
-              </AttendanceFieldHighlight>
-            </>
+            <PatientGuardianFieldsSection
+              data={data}
+              ageGroup={ageGroup}
+              onChange={onChange}
+              showHints={showHints}
+              missingFields={missingFields}
+              guardianCpfTouched={guardianCpfTouched}
+              onGuardianCpfBlur={() => setGuardianCpfTouched(true)}
+              inputClass={inputClass}
+              inputErrorClass={inputErrorClass}
+            />
           ) : null}
         </div>
       </form>

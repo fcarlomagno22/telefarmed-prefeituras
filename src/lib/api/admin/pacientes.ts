@@ -41,10 +41,17 @@ export type PreCadastroRegistrationPayload = {
   cpf: string
   birthDate: string
   gender: string
+  nationality: string
+  raceColor: string
   phone?: string
   email?: string
   guardianName?: string
   guardianCpf?: string
+  guardianRelationship?: string
+  guardianPhone?: string
+  guardianAttendanceAuthorized?: boolean
+  cns?: string
+  cnsPendente?: boolean
   contacts?: { id?: string; name: string; phone: string; relationship?: string }[]
   zipCode?: string
   street?: string
@@ -53,7 +60,20 @@ export type PreCadastroRegistrationPayload = {
   neighborhood?: string
   city?: string
   state?: string
+  residenceMunicipalityIbgeCode?: string
   photoDataUrl?: string
+  registrationConsent?: {
+    dataReviewed: true
+    teleconsultationAuthorized: true
+    dataUsageAcknowledged: true
+    notificationsAllowed: true
+    operatorName: string
+    registeredAt: string
+    registrationUnitId?: string
+    registrationUnitName: string
+    operatorUserId?: string
+    operatorAdminId?: string
+  }
   concluirImmediately?: boolean
 }
 
@@ -80,10 +100,17 @@ export type UpdatePacientePayload = {
   socialName?: string
   birthDate?: string
   gender?: string
+  nationality?: string
+  raceColor?: string
   phone?: string
   email?: string
   guardianName?: string
   guardianCpf?: string
+  guardianRelationship?: string
+  guardianPhone?: string
+  guardianAttendanceAuthorized?: boolean
+  cns?: string
+  cnsPendente?: boolean
   contacts?: { id?: string; name: string; phone: string; relationship?: string }[]
   zipCode?: string
   street?: string
@@ -92,7 +119,9 @@ export type UpdatePacientePayload = {
   neighborhood?: string
   city?: string
   state?: string
+  residenceMunicipalityIbgeCode?: string
   photoDataUrl?: string
+  registrationConsent?: PreCadastroRegistrationPayload['registrationConsent']
 }
 
 function buildQuery(params: ListPacientesParams = {}) {

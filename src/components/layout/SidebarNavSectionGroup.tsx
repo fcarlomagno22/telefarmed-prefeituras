@@ -1,6 +1,7 @@
 import { ChevronDown } from 'lucide-react'
 import { useCallback, useEffect, useId, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import { isSidebarNavItemActive } from '../../utils/sidebarNavPath'
 import { SidebarNavItem, type SidebarNavSection } from './SidebarNavItem'
 
 export const PREFEITURA_SIDEBAR_COLLAPSED_STORAGE_KEY =
@@ -29,8 +30,7 @@ function writeCollapsedSectionIds(storageKey: string, collapsed: Set<string>) {
 }
 
 function isNavItemActive(pathname: string, to: string, end?: boolean) {
-  if (end) return pathname === to
-  return pathname === to || pathname.startsWith(`${to}/`)
+  return isSidebarNavItemActive(pathname, to, end)
 }
 
 function sectionHasActiveItem(pathname: string, section: SidebarNavSection) {

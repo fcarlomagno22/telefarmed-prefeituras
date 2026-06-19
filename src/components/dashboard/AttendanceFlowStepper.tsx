@@ -3,24 +3,47 @@ import type { StationStatus } from '../../types/attendance'
 
 const flowSteps = [
   { id: 'specialty', label: 'Especialidade' },
-  { id: 'cpf_lookup', label: 'CPF' },
-  { id: 'confirm_registration', label: 'Confirmar cadastro' },
-  { id: 'age_group', label: 'Faixa etária' },
   { id: 'registration', label: 'Cadastro' },
-  { id: 'contacts', label: 'Contatos' },
-  { id: 'address', label: 'Endereço' },
-  { id: 'photo', label: 'Foto' },
-  { id: 'clinical_triage', label: 'Triagem' },
-  { id: 'waiting_room', label: 'Sala de espera' },
+  { id: 'triage', label: 'Triagem' },
 ] as const
+
+const flowStepStatuses: StationStatus[] = [
+  'specialty',
+  'cpf_lookup',
+  'confirm_registration',
+  'age_group',
+  'registration',
+  'contacts',
+  'address',
+  'photo',
+  'registration_consent',
+  'clinical_triage',
+  'waiting_room',
+]
 
 function resolveActiveIndex(status: StationStatus): number {
   if (status === 'waiting_doctor' || status === 'in_consultation') {
     return flowSteps.length
   }
 
-  const index = flowSteps.findIndex((step) => step.id === status)
-  return index >= 0 ? index : -1
+  switch (status) {
+    case 'specialty':
+      return 0
+    case 'cpf_lookup':
+    case 'confirm_registration':
+    case 'age_group':
+    case 'registration':
+    case 'contacts':
+    case 'address':
+    case 'photo':
+    case 'registration_consent':
+      return 1
+    case 'clinical_triage':
+    case 'waiting_room':
+      return 2
+    default:
+      return -1
+  }
 }
 
 type AttendanceFlowStepperProps = {
@@ -74,7 +97,7 @@ export function AttendanceFlowStepper({ status }: AttendanceFlowStepperProps) {
       aria-label="Progresso do atendimento"
       className="relative z-10 mt-4 shrink-0 rounded-xl border border-gray-200 bg-white/95 px-4 py-3 shadow-sm sm:mt-5 sm:px-5"
     >
-            <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="mb-3 flex items-center justify-between gap-3">
         <p className="text-xs font-medium tracking-wide text-gray-500">
           Passo{' '}
           <span className="tabular-nums text-gray-800">{stepNumber}</span>
@@ -107,7 +130,7 @@ export function AttendanceFlowStepper({ status }: AttendanceFlowStepperProps) {
           return (
             <div key={step.id} className="min-w-0 flex-1">
               <div className="h-1.5 overflow-hidden rounded-full bg-gray-200">
-                                                <div
+                <div
                   className="attendance-flow-segment-fill h-full w-full origin-left rounded-full motion-reduce:transition-none"
                   style={{
                     transform: `scaleX(${segmentFill})`,
@@ -125,7 +148,7 @@ export function AttendanceFlowStepper({ status }: AttendanceFlowStepperProps) {
 
 export function isFlowStepStatus(status: StationStatus): boolean {
   return (
-    flowSteps.some((step) => step.id === status) ||
+    flowStepStatuses.includes(status) ||
     status === 'waiting_doctor' ||
     status === 'in_consultation'
   )

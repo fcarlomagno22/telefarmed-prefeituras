@@ -18,7 +18,9 @@ import { CpfLookupStep } from '../../../dashboard/CpfLookupStep'
 import { PatientAddressStep } from '../../../dashboard/PatientAddressStep'
 import { shouldEnforcePatientMunicipalityTerritory } from '../../../../utils/entidadeTerritoryPolicy'
 import { PatientContactsStep } from '../../../dashboard/PatientContactsStep'
+import { PatientRegistrationConsentStep } from '../../../dashboard/PatientRegistrationConsentStep'
 import { PatientRegistrationForm } from '../../../dashboard/PatientRegistrationForm'
+import { usePatientRegistrationOperator } from '../../../../hooks/usePatientRegistrationOperator'
 import { AdminPatientContractingEntityStep } from './AdminPatientContractingEntityStep'
 import { AdminPatientExistingRegistrationStep } from './AdminPatientExistingRegistrationStep'
 import { AdminPatientPreRegistrationFlowStepper } from './AdminPatientPreRegistrationFlowStepper'
@@ -100,6 +102,10 @@ export function AdminPatientPreRegistrationDrawer({
     null,
   )
   const [selectedEntity, setSelectedEntity] = useState<AdminPatientContractingEntity | null>(null)
+  const [consentFinalizeAction, setConsentFinalizeAction] = useState<
+    'complete' | 'createDirect' | null
+  >(null)
+  const registrationOperator = usePatientRegistrationOperator()
 
   const resolveDefaultEntity = useCallback(() => {
     if (!defaultEntityId) return contractingEntities[0] ?? null
@@ -116,6 +122,7 @@ export function AdminPatientPreRegistrationDrawer({
     setPreCadastroId(null)
     setDraftNotice(null)
     setSubmitError(null)
+    setConsentFinalizeAction(null)
   }, [resolveDefaultEntity])
 
   useEffect(() => {
@@ -190,10 +197,10 @@ export function AdminPatientPreRegistrationDrawer({
 
       if (matchedExistingPatient && onUpdateExisting) {
         patient = await onUpdateExisting(matchedExistingPatient.id, nextRegistration)
-      } else if (preCadastroId && onConcludeDraft) {
-        patient = await onConcludeDraft(preCadastroId)
       } else if (onFinalize) {
         patient = await onFinalize(nextRegistration, selectedEntity)
+      } else if (preCadastroId && onConcludeDraft) {
+        patient = await onConcludeDraft(preCadastroId)
       } else {
         patient = registrationToAdminMunicipalPatient(nextRegistration, {
           contractingEntity: selectedEntity,
@@ -508,9 +515,12 @@ export function AdminPatientPreRegistrationDrawer({
             <PatientAddressStep
               data={registration}
               onChange={setRegistration}
-              onSubmit={() => void completePreRegistration(registration)}
+              onSubmit={() => {
+                setConsentFinalizeAction('complete')
+                setStep('registration_consent')
+              }}
               onBack={() => setStep('contacts')}
-              continueLabel="Concluir pré-cadastro"
+              continueLabel="Continuar para confirmação"
               extraActions={[
                 ...(onSaveDraft
                   ? [
@@ -526,7 +536,10 @@ export function AdminPatientPreRegistrationDrawer({
                   ? [
                       {
                         label: 'Cadastro direto (ativo)',
-                        onClick: () => void createDirectRegistration(registration),
+                        onClick: () => {
+                          setConsentFinalizeAction('createDirect')
+                          setStep('registration_consent')
+                        },
                         loading: creatingDirect,
                         disabled: submitting || savingDraft,
                       },
@@ -576,6 +589,30 @@ export function AdminPatientPreRegistrationDrawer({
               entidadeTipo={selectedEntity.tipoEntidade}
             />
           ) : null}
+
+          {step === 'registration_consent' && (
+            <PatientRegistrationConsentStep
+              embedded
+              data={registration}
+              ageGroup={session.ageGroup ?? inferAgeGroupFromBirthDate(registration.birthDate) ?? 'adult'}
+              operator={registrationOperator}
+              onChange={setRegistration}
+              onSubmit={(nextRegistration) => {
+                if (consentFinalizeAction === 'createDirect') {
+                  void createDirectRegistration(nextRegistration)
+                  return
+                }
+                void completePreRegistration(nextRegistration)
+              }}
+              onBack={() => setStep('address')}
+              continueLabel={
+                consentFinalizeAction === 'createDirect'
+                  ? 'Confirmar cadastro direto'
+                  : 'Concluir pré-cadastro'
+              }
+              continueLoading={submitting || creatingDirect}
+            />
+          )}
 
           {step === 'success' && selectedEntity ? (
             <AdminPatientPreRegistrationSuccess

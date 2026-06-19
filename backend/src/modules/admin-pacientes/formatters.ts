@@ -1,4 +1,5 @@
 import { formatCpfDisplay, initialsFromName, avatarClassForId } from '../admin-credenciais/formatters.js'
+import { formatCnsDisplay } from '../../lib/cns.js'
 import type {
   AdminContractStatus,
   AdminMunicipalPatientDetailDto,
@@ -19,6 +20,11 @@ export type ListagemRow = {
   nome_social: string | null
   data_nascimento: string
   sexo: string
+  cns: string | null
+  cns_pendente: boolean
+  nacionalidade: string | null
+  raca_cor: string | null
+  consentimento_cadastro: Record<string, unknown> | null
   telefone: string | null
   email: string | null
   endereco: Record<string, unknown> | null
@@ -137,6 +143,9 @@ function readContacts(contatoEmergencia: unknown): AdminPatientDetailProfileDto[
 
 function computeMissingFields(row: ListagemRow): string[] {
   const missing: string[] = []
+  if (row.cns_pendente || !row.cns?.trim()) missing.push('CNS')
+  if (!row.nacionalidade?.trim()) missing.push('nacionalidade')
+  if (!row.raca_cor?.trim()) missing.push('raça/cor')
   if (!row.telefone?.trim()) missing.push('telefone')
   if (!row.email?.trim()) missing.push('e-mail')
   const contacts = readContacts(row.contato_emergencia)
@@ -210,8 +219,20 @@ export function buildProfile(
     email: row.email?.trim() ?? '',
     socialName: row.nome_social?.trim() ?? '',
     genderLabel: sexoToGenderLabel(row.sexo),
+    nationality: row.nacionalidade?.trim() ?? '',
+    raceColor: row.raca_cor?.trim() ?? '',
     guardianName: String(responsavel.name ?? responsavel.nome ?? '').trim(),
     guardianCpf: String(responsavel.cpf ?? '').trim(),
+    guardianRelationship: String(
+      responsavel.parentesco ?? responsavel.relationship ?? '',
+    ).trim(),
+    guardianPhone: String(responsavel.telefone ?? responsavel.phone ?? '').trim(),
+    guardianAttendanceAuthorized: Boolean(
+      responsavel.autorizacao_atendimento ?? responsavel.attendanceAuthorized,
+    ),
+    residenceMunicipalityIbgeCode: readEnderecoField(endereco, 'codigo_ibge_municipio'),
+    cns: row.cns?.trim() ? formatCnsDisplay(row.cns) : '',
+    cnsPendente: Boolean(row.cns_pendente),
     zipCode: readEnderecoField(endereco, 'cep'),
     street: readEnderecoField(endereco, 'logradouro') || readEnderecoField(endereco, 'rua'),
     number: readEnderecoField(endereco, 'numero'),
@@ -300,6 +321,7 @@ export function buildEnderecoFromInput(input: {
   neighborhood?: string
   city?: string
   state?: string
+  residenceMunicipalityIbgeCode?: string
 }): Record<string, string> {
   const endereco: Record<string, string> = {}
   if (input.zipCode?.trim()) endereco.cep = input.zipCode.trim()
@@ -309,19 +331,52 @@ export function buildEnderecoFromInput(input: {
   if (input.neighborhood?.trim()) endereco.bairro = input.neighborhood.trim()
   if (input.city?.trim()) endereco.cidade = input.city.trim()
   if (input.state?.trim()) endereco.uf = input.state.trim()
+  if (input.residenceMunicipalityIbgeCode?.trim()) {
+    endereco.codigo_ibge_municipio = input.residenceMunicipalityIbgeCode.trim()
+  }
   return endereco
 }
 
 export function buildResponsavelFromInput(input: {
   guardianName?: string
   guardianCpf?: string
-}): Record<string, string> | null {
+  guardianRelationship?: string
+  guardianPhone?: string
+  guardianAttendanceAuthorized?: boolean
+}): Record<string, string | boolean> | null {
   const name = input.guardianName?.trim()
   const cpf = input.guardianCpf?.replace(/\D/g, '')
-  if (!name && !cpf) return null
+  const relationship = input.guardianRelationship?.trim()
+  const phone = input.guardianPhone?.replace(/\D/g, '')
+  const authorized = input.guardianAttendanceAuthorized === true
+
+  if (!name && !cpf && !relationship && !phone && !authorized) return null
+
   return {
     ...(name ? { name } : {}),
     ...(cpf ? { cpf } : {}),
+    ...(relationship ? { parentesco: relationship } : {}),
+    ...(phone ? { telefone: phone } : {}),
+    ...(authorized ? { autorizacao_atendimento: true } : {}),
+  }
+}
+
+export function buildConsentimentoFromInput(
+  consent?: PreCadastroRegistrationInput['registrationConsent'],
+): Record<string, unknown> | null {
+  if (!consent) return null
+
+  return {
+    dados_conferidos: consent.dataReviewed,
+    autorizacao_teleconsulta: consent.teleconsultationAuthorized,
+    ciencia_dados: consent.dataUsageAcknowledged,
+    permissao_notificacoes: consent.notificationsAllowed,
+    operador_nome: consent.operatorName.trim(),
+    cadastrado_em: consent.registeredAt,
+    ...(consent.registrationUnitId ? { unidade_ubt_id: consent.registrationUnitId } : {}),
+    unidade_ubt_nome: consent.registrationUnitName.trim(),
+    ...(consent.operatorUserId ? { operador_usuario_ubt_id: consent.operatorUserId } : {}),
+    ...(consent.operatorAdminId ? { operador_admin_id: consent.operatorAdminId } : {}),
   }
 }
 

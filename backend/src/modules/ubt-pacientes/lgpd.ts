@@ -34,7 +34,7 @@ export function maskUbtPatientRegistrationDetail(
     cpf: maskCpfForLgpd(detail.cpf),
     phone: detail.phone ? maskPhoneForLgpd(detail.phone) : detail.phone,
     email: detail.email ? maskEmailForLgpd(detail.email) : detail.email,
-    guardianCpf: detail.guardianCpf ? maskCpfForLgpd(detail.guardianCpf) : detail.guardianCpf,
+    // Responsável: mantém dados para fluxos operacionais de cadastro/triagem no terminal.
     zipCode: detail.zipCode ? '*****-***' : detail.zipCode,
     street: detail.street ? '••••••••' : detail.street,
     number: detail.number ? '•••' : detail.number,

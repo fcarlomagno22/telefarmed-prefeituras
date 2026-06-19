@@ -14,10 +14,17 @@ export { assertPacienteBelongsToEntity }
 export async function assertConsultaBelongsToUnit(
   scope: UbtScope,
   consultaId: string,
-): Promise<{ id: string; status: string; paciente_id: string; data: string; hora: string }> {
+): Promise<{
+  id: string
+  status: string
+  paciente_id: string
+  data: string
+  hora: string
+  recepcionado_em: string | null
+}> {
   const { data, error } = await supabaseAdmin
     .from('agenda_consultas')
-    .select('id, status, paciente_id, data, hora')
+    .select('id, status, paciente_id, data, hora, recepcionado_em')
     .eq('id', consultaId)
     .eq('unidade_ubt_id', scope.unidadeUbtId)
     .eq('entidade_contratante_id', scope.entidadeContratanteId)

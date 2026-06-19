@@ -343,14 +343,24 @@ export async function createUbtAgendaWalkIn(
   },
 ) {
   const dateKey = toDateKey(agendaToday)
-  return createUbtAgendaConsulta('', {
+  const day = ensureDay(dateKey)
+  const doctor = getDoctorById(payload.profissionalId)
+  const appointment: DayAppointmentApi = {
+    id: `mock-agenda-${nextAppointmentId++}`,
+    time: payload.hora,
+    patientName: `Paciente ${payload.pacienteId}`,
+    patientCpf: '000.000.000-00',
+    patientPhone: payload.telefoneContato ?? '(11) 90000-0000',
+    serviceType: doctor?.specialtyName ?? 'Consulta',
+    specialtyId: payload.especialidadeId,
+    status: 'aguardando',
     pacienteId: payload.pacienteId,
     profissionalId: payload.profissionalId,
     especialidadeId: payload.especialidadeId,
-    data: dateKey,
-    hora: payload.hora,
-    telefoneContato: payload.telefoneContato,
-    observacoes: payload.observacoes,
-    tipo: 'consulta',
-  })
+    escalaSlotId: null,
+  }
+  day.appointments.push(appointment)
+  appointmentDateById.set(appointment.id, dateKey)
+  recalcDay(dateKey)
+  return mockDelay(clone(appointment))
 }

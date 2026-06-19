@@ -76,10 +76,15 @@ export type UbtPatientRegistrationPayload = {
   cpf: string
   birthDate: string
   gender: string
+  nationality: string
+  raceColor: string
   phone?: string
   email?: string
   guardianName?: string
   guardianCpf?: string
+  guardianRelationship?: string
+  guardianPhone?: string
+  guardianAttendanceAuthorized?: boolean
   contacts?: Array<{ id?: string; name: string; phone: string; relationship?: string }>
   zipCode?: string
   street?: string
@@ -88,7 +93,22 @@ export type UbtPatientRegistrationPayload = {
   neighborhood?: string
   city?: string
   state?: string
+  residenceMunicipalityIbgeCode?: string
   photoDataUrl?: string
+  cns?: string
+  cnsPendente?: boolean
+  registrationConsent?: {
+    dataReviewed: true
+    teleconsultationAuthorized: true
+    dataUsageAcknowledged: true
+    notificationsAllowed: true
+    operatorName: string
+    registeredAt: string
+    registrationUnitId?: string
+    registrationUnitName: string
+    operatorUserId?: string
+    operatorAdminId?: string
+  }
 }
 
 export type UbtPatientLookupResult =

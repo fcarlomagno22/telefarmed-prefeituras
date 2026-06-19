@@ -55,7 +55,7 @@ export function useWaitingQueue() {
   }, [isAuthenticated, isBootstrapping, refresh])
 
   const waitingEntries = useMemo(
-    () => entries.filter((entry) => entry.status === 'aguardando'),
+    () => entries.filter((entry) => entry.status === 'aguardando' || entry.status === 'chamado'),
     [entries],
   )
 

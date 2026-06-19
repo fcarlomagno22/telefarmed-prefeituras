@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useUbtAuth } from '../contexts/UbtAuthContext'
-import type { AgendaDaySummary, DayAppointment } from '../data/agendaMock'
+import type { AgendaDaySummary, AppointmentStatus, DayAppointment } from '../data/agendaMock'
 import type { AgendaDoctorShiftRecord } from '../data/agendaDoctorShiftMock'
 import { checkInUbtFila } from '../lib/services/ubt/triagem'
 import {
@@ -12,6 +12,7 @@ import {
   fetchUbtAgendaMonthIndicators,
   isUbtAgendaApiError,
   markUbtAgendaFalta,
+  updateUbtAgendaConsulta,
   type UbtAgendaDoctorShiftApi,
 } from '../lib/services/ubt/agenda'
 import { toDateKey } from '../utils/agendaDate'
@@ -221,6 +222,18 @@ export function useUbtAgendaPage(selectedDate: Date) {
     [getAccessToken, runMutation],
   )
 
+  const changeAppointmentStatus = useCallback(
+    async (appointment: DayAppointment, status: AppointmentStatus) => {
+      const token = getAccessToken()
+      if (!token) return
+
+      await runMutation(appointment.id, async () => {
+        await updateUbtAgendaConsulta(token, appointment.id, { status })
+      })
+    },
+    [getAccessToken, runMutation],
+  )
+
   const unitLabel = useMemo(
     () => user?.unidadeUbtNome?.split('—')[0]?.trim() ?? user?.unidadeUbtNome ?? 'Unidade UBT',
     [user?.unidadeUbtNome],
@@ -247,6 +260,7 @@ export function useUbtAgendaPage(selectedDate: Date) {
     patchAppointment,
     addAppointment,
     confirmArrival,
+    changeAppointmentStatus,
     checkInToFila,
   }
 }
