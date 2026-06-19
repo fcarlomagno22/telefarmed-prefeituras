@@ -31,13 +31,73 @@ function buildDocumentItem(input: {
   signedAtLabel: string
   downloadUrl: string
 }): ConsultationDocumentItem {
+  const downloadLabels: Partial<Record<ClinicalDocumentKind, string>> = {
+    receita: 'Baixar receita médica',
+    pedido_exame: 'Baixar pedido de exames',
+    encaminhamento: 'Baixar encaminhamento médico',
+    relatorio: 'Baixar relatório médico',
+    laudo: 'Baixar laudo médico',
+    avaliacao_presencial: 'Baixar avaliação presencial',
+    internacao: 'Baixar solicitação de internação',
+    atestado: 'Baixar atestado médico',
+    atestado_psicologico: 'Baixar atestado psicológico',
+    relatorio_psicologico: 'Baixar relatório psicológico',
+    relatorio_multiprofissional: 'Baixar relatório multiprofissional',
+    laudo_psicologico: 'Baixar laudo psicológico',
+    parecer_psicologico: 'Baixar parecer psicológico',
+    encaminhamento_psicologico: 'Baixar encaminhamento psicológico',
+    plano_alimentar: 'Baixar plano alimentar',
+    prescricao_dietetica: 'Baixar prescrição dietética',
+    prescricao_suplementos: 'Baixar prescrição de suplementos',
+    pedido_exame_nutricional: 'Baixar pedido de exames',
+    relatorio_nutricional: 'Baixar relatório nutricional',
+    parecer_nutricional: 'Baixar parecer nutricional',
+    laudo_nutricional: 'Baixar laudo nutricional',
+    declaracao_comparecimento_nutricional: 'Baixar declaração de comparecimento',
+    declaracao_comparecimento_fonoaudiologico: 'Baixar declaração de comparecimento',
+    relatorio_fonoaudiologico: 'Baixar relatório fonoaudiológico',
+    laudo_fonoaudiologico: 'Baixar laudo fonoaudiológico',
+    parecer_fonoaudiologico: 'Baixar parecer fonoaudiológico',
+    atestado_fonoaudiologico: 'Baixar atestado fonoaudiológico',
+    plano_terapeutico_fonoaudiologico: 'Baixar plano terapêutico fonoaudiológico',
+    resultado_avaliacao_fonoaudiologico: 'Baixar resultado de avaliação/exame',
+    encaminhamento_fonoaudiologico: 'Baixar encaminhamento fonoaudiológico',
+  }
+
+  const iconClasses: Partial<Record<ClinicalDocumentKind, string>> = {
+    receita: 'bg-red-50 text-red-500',
+    pedido_exame: 'bg-sky-50 text-sky-600',
+    encaminhamento: 'bg-violet-50 text-violet-600',
+    relatorio: 'bg-indigo-50 text-indigo-600',
+    laudo: 'bg-blue-50 text-blue-600',
+    avaliacao_presencial: 'bg-teal-50 text-teal-600',
+    internacao: 'bg-rose-50 text-rose-600',
+    atestado: 'bg-amber-50 text-amber-600',
+    atestado_psicologico: 'bg-amber-50 text-amber-600',
+    relatorio_psicologico: 'bg-indigo-50 text-indigo-600',
+    relatorio_multiprofissional: 'bg-teal-50 text-teal-600',
+    laudo_psicologico: 'bg-blue-50 text-blue-600',
+    parecer_psicologico: 'bg-fuchsia-50 text-fuchsia-600',
+    encaminhamento_psicologico: 'bg-violet-50 text-violet-600',
+    plano_alimentar: 'bg-lime-50 text-lime-700',
+    prescricao_dietetica: 'bg-teal-50 text-teal-600',
+    prescricao_suplementos: 'bg-amber-50 text-amber-600',
+    pedido_exame_nutricional: 'bg-sky-50 text-sky-600',
+    relatorio_nutricional: 'bg-indigo-50 text-indigo-600',
+    parecer_nutricional: 'bg-fuchsia-50 text-fuchsia-600',
+    laudo_nutricional: 'bg-blue-50 text-blue-600',
+    declaracao_comparecimento_nutricional: 'bg-emerald-50 text-emerald-600',
+    declaracao_comparecimento_fonoaudiologico: 'bg-emerald-50 text-emerald-600',
+    relatorio_fonoaudiologico: 'bg-indigo-50 text-indigo-600',
+    laudo_fonoaudiologico: 'bg-blue-50 text-blue-600',
+    parecer_fonoaudiologico: 'bg-fuchsia-50 text-fuchsia-600',
+    atestado_fonoaudiologico: 'bg-amber-50 text-amber-600',
+    plano_terapeutico_fonoaudiologico: 'bg-teal-50 text-teal-600',
+    resultado_avaliacao_fonoaudiologico: 'bg-sky-50 text-sky-600',
+    encaminhamento_fonoaudiologico: 'bg-violet-50 text-violet-600',
+  }
+
   const isPrescription = input.kind === 'receita'
-  const isExam = input.kind === 'pedido_exame'
-  const isEncaminhamento = input.kind === 'encaminhamento'
-  const isRelatorio = input.kind === 'relatorio'
-  const isLaudo = input.kind === 'laudo'
-  const isAvaliacaoPresencial = input.kind === 'avaliacao_presencial'
-  const isInternacao = input.kind === 'internacao'
   const signedPrefix = isPrescription ? 'Assinada' : 'Assinado'
 
   return {
@@ -45,36 +105,8 @@ function buildDocumentItem(input: {
     title: input.titulo,
     meta: `PDF • ${signedPrefix} às ${input.signedAtLabel}`,
     downloadUrl: input.downloadUrl,
-    downloadLabel: isPrescription
-      ? 'Baixar receita médica'
-      : isExam
-        ? 'Baixar pedido de exames'
-        : isEncaminhamento
-          ? 'Baixar encaminhamento médico'
-          : isRelatorio
-            ? 'Baixar relatório médico'
-            : isLaudo
-              ? 'Baixar laudo médico'
-              : isAvaliacaoPresencial
-                ? 'Baixar avaliação presencial'
-                : isInternacao
-                  ? 'Baixar solicitação de internação'
-                  : 'Baixar atestado médico',
-    iconClass: isPrescription
-      ? 'bg-red-50 text-red-500'
-      : isExam
-        ? 'bg-sky-50 text-sky-600'
-        : isEncaminhamento
-          ? 'bg-violet-50 text-violet-600'
-          : isRelatorio
-            ? 'bg-indigo-50 text-indigo-600'
-            : isLaudo
-              ? 'bg-blue-50 text-blue-600'
-              : isAvaliacaoPresencial
-                ? 'bg-teal-50 text-teal-600'
-                : isInternacao
-                  ? 'bg-rose-50 text-rose-600'
-                  : 'bg-amber-50 text-amber-600',
+    downloadLabel: downloadLabels[input.kind] ?? 'Baixar documento',
+    iconClass: iconClasses[input.kind] ?? 'bg-slate-50 text-slate-600',
   }
 }
 

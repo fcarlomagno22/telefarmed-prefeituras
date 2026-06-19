@@ -6,8 +6,29 @@ import { DoctorClinicalTriageDrawer } from '../components/attendance/doctor/Doct
 import { DoctorConsultationChatPanel } from '../components/attendance/doctor/DoctorConsultationChatPanel'
 import { DoctorConsultationDemoVideoStage } from '../components/attendance/doctor/DoctorConsultationDemoVideoStage'
 import { DoctorConsultationEndConfirmModal } from '../components/attendance/doctor/DoctorConsultationEndConfirmModal'
-import { DoctorConsultationHeader } from '../components/attendance/doctor/DoctorConsultationHeader'
+import { DemoConsultationHeader } from '../components/attendance/doctor/demo/DemoConsultationHeader'
 import type { DoctorClinicalDocumentKind } from '../components/attendance/doctor/doctorClinicalDocumentTypes'
+import { PsychologistAtestadoModal } from '../components/attendance/doctor/demo/psicologo/PsychologistAtestadoModal'
+import { PsychologistRelatorioModal } from '../components/attendance/doctor/demo/psicologo/PsychologistRelatorioModal'
+import { PsychologistRelatorioMultiprofissionalModal } from '../components/attendance/doctor/demo/psicologo/PsychologistRelatorioMultiprofissionalModal'
+import { PsychologistLaudoModal } from '../components/attendance/doctor/demo/psicologo/PsychologistLaudoModal'
+import { PsychologistParecerModal } from '../components/attendance/doctor/demo/psicologo/PsychologistParecerModal'
+import { PsychologistEncaminhamentoModal } from '../components/attendance/doctor/demo/psicologo/PsychologistEncaminhamentoModal'
+import { NutritionistPlanoAlimentarModal } from '../components/attendance/doctor/demo/nutricionista/NutritionistPlanoAlimentarModal'
+import { NutritionistPrescricaoDieteticaModal } from '../components/attendance/doctor/demo/nutricionista/NutritionistPrescricaoDieteticaModal'
+import { NutritionistPrescricaoSuplementosModal } from '../components/attendance/doctor/demo/nutricionista/NutritionistPrescricaoSuplementosModal'
+import { NutritionistRelatorioModal } from '../components/attendance/doctor/demo/nutricionista/NutritionistRelatorioModal'
+import { NutritionistParecerModal } from '../components/attendance/doctor/demo/nutricionista/NutritionistParecerModal'
+import { NutritionistLaudoModal } from '../components/attendance/doctor/demo/nutricionista/NutritionistLaudoModal'
+import { NutritionistDeclaracaoComparecimentoModal } from '../components/attendance/doctor/demo/nutricionista/NutritionistDeclaracaoComparecimentoModal'
+import { FonoaudiologoDeclaracaoComparecimentoModal } from '../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoDeclaracaoComparecimentoModal'
+import { FonoaudiologoRelatorioModal } from '../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoRelatorioModal'
+import { FonoaudiologoLaudoModal } from '../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoLaudoModal'
+import { FonoaudiologoParecerModal } from '../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoParecerModal'
+import { FonoaudiologoAtestadoModal } from '../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoAtestadoModal'
+import { FonoaudiologoPlanoTerapeuticoModal } from '../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoPlanoTerapeuticoModal'
+import { FonoaudiologoResultadoAvaliacaoModal } from '../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoResultadoAvaliacaoModal'
+import { FonoaudiologoEncaminhamentoModal } from '../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoEncaminhamentoModal'
 import { DoctorConsultationStatusFooter } from '../components/attendance/doctor/DoctorConsultationStatusFooter'
 import { DoctorAtestadoModal } from '../components/attendance/doctor/DoctorAtestadoModal'
 import { DoctorEncaminhamentoModal } from '../components/attendance/doctor/DoctorEncaminhamentoModal'
@@ -33,6 +54,14 @@ import {
   buildDoctorConsultationDemoSnapshot,
   DOCTOR_CONSULTATION_PUBLIC_DEMO_TOKEN,
 } from '../data/doctorConsultationDemo'
+import {
+  getDemoProfessionProfile,
+  isDemoFonoaudiologoDocumentKind,
+  isDemoNutritionistDocumentKind,
+  isDemoPsychologistDocumentKind,
+  type DemoClinicalDocumentKind,
+  type DemoConsultationProfession,
+} from '../data/demoConsultationProfessions'
 import { EXAM_REQUEST_CATALOG, type ExamCatalogItem } from '../data/doctorExamRequestMock'
 import { useBrandTheme } from '../hooks/useBrandTheme'
 import {
@@ -51,6 +80,7 @@ import {
   buildAvaliacaoPresencialClinicalDocumentPayload,
   buildInternacaoClinicalDocumentPayload,
   mapExamModalToPdfItems,
+  mapExamModalToNutritionistPedidoExame,
   mapPrescriptionModalToPdfItems,
 } from '../utils/clinicalDocuments/buildClinicalDocumentPayload'
 import { mapEncaminhamentoModalToPdfData } from '../utils/clinicalDocuments/encaminhamentoLines'
@@ -58,9 +88,39 @@ import { mapRelatorioModalToPdfData } from '../utils/clinicalDocuments/relatorio
 import { mapLaudoModalToPdfData } from '../utils/clinicalDocuments/laudoLines'
 import { mapAvaliacaoPresencialModalToPdfData } from '../utils/clinicalDocuments/avaliacaoPresencialLines'
 import { mapInternacaoModalToPdfData } from '../utils/clinicalDocuments/internacaoLines'
+import {
+  buildPsychologistAtestadoClinicalDocumentPayload,
+  buildPsychologistEncaminhamentoClinicalDocumentPayload,
+  buildPsychologistLaudoClinicalDocumentPayload,
+  buildPsychologistParecerClinicalDocumentPayload,
+  buildPsychologistRelatorioClinicalDocumentPayload,
+  buildPsychologistRelatorioMultiprofissionalClinicalDocumentPayload,
+} from '../utils/clinicalDocuments/buildPsychologistDocumentPayload'
+import {
+  buildNutritionistDeclaracaoComparecimentoClinicalDocumentPayload,
+  buildNutritionistLaudoClinicalDocumentPayload,
+  buildNutritionistParecerClinicalDocumentPayload,
+  buildNutritionistPedidoExameClinicalDocumentPayload,
+  buildNutritionistPlanoAlimentarClinicalDocumentPayload,
+  buildNutritionistPrescricaoDieteticaClinicalDocumentPayload,
+  buildNutritionistPrescricaoSuplementosClinicalDocumentPayload,
+  buildNutritionistRelatorioClinicalDocumentPayload,
+} from '../utils/clinicalDocuments/buildNutritionistDocumentPayload'
+import {
+  buildFonoaudiologoAtestadoClinicalDocumentPayload,
+  buildFonoaudiologoDeclaracaoComparecimentoClinicalDocumentPayload,
+  buildFonoaudiologoEncaminhamentoClinicalDocumentPayload,
+  buildFonoaudiologoLaudoClinicalDocumentPayload,
+  buildFonoaudiologoParecerClinicalDocumentPayload,
+  buildFonoaudiologoPlanoTerapeuticoClinicalDocumentPayload,
+  buildFonoaudiologoRelatorioClinicalDocumentPayload,
+  buildFonoaudiologoResultadoAvaliacaoClinicalDocumentPayload,
+} from '../utils/clinicalDocuments/buildFonoaudiologoDocumentPayload'
 import { openClinicalDocumentPdf } from '../utils/clinicalDocuments/generateClinicalDocumentPdf'
 
 const DEMO_TOAST_MESSAGE = 'Demonstração — ação simulada, nada foi salvo.'
+
+type DemoExamRequestTargetKind = 'pedido_exame' | 'pedido_exame_nutricional'
 
 function formatStartedAtLabel(startedAtIso: string) {
   const started = new Date(startedAtIso)
@@ -91,12 +151,29 @@ export function DoctorConsultationDemoPage() {
   const { slug: tenantSlug } = useTenantHost()
 
   const snapshot = useMemo(() => buildDoctorConsultationDemoSnapshot(), [])
-  const attendanceSession = snapshot.attendanceSession
+  const [demoProfession, setDemoProfession] = useState<DemoConsultationProfession>('medico')
+  const professionProfile = useMemo(
+    () => getDemoProfessionProfile(demoProfession),
+    [demoProfession],
+  )
+
+  const attendanceSession = useMemo(
+    () => ({
+      ...snapshot.attendanceSession,
+      doctorName: professionProfile.doctorName,
+      doctorSpecialty: professionProfile.doctorSpecialty,
+      doctorCrm: professionProfile.doctorCouncilRegistration,
+      specialty: professionProfile.doctorSpecialty,
+    }),
+    [professionProfile, snapshot.attendanceSession],
+  )
 
   const [messages, setMessages] = useState<ConsultationChatMessage[]>(snapshot.messages)
   const [documents, setDocuments] = useState<ConsultationDocumentItem[]>(snapshot.documents)
 
   const [examRequestOpen, setExamRequestOpen] = useState(false)
+  const [examRequestTargetKind, setExamRequestTargetKind] =
+    useState<DemoExamRequestTargetKind>('pedido_exame')
   const [prescriptionOpen, setPrescriptionOpen] = useState(false)
   const [atestadoOpen, setAtestadoOpen] = useState(false)
   const [encaminhamentoOpen, setEncaminhamentoOpen] = useState(false)
@@ -104,6 +181,33 @@ export function DoctorConsultationDemoPage() {
   const [laudoOpen, setLaudoOpen] = useState(false)
   const [avaliacaoPresencialOpen, setAvaliacaoPresencialOpen] = useState(false)
   const [internacaoOpen, setInternacaoOpen] = useState(false)
+  const [psychologistAtestadoOpen, setPsychologistAtestadoOpen] = useState(false)
+  const [psychologistRelatorioOpen, setPsychologistRelatorioOpen] = useState(false)
+  const [psychologistRelatorioMultiprofissionalOpen, setPsychologistRelatorioMultiprofissionalOpen] =
+    useState(false)
+  const [psychologistLaudoOpen, setPsychologistLaudoOpen] = useState(false)
+  const [psychologistParecerOpen, setPsychologistParecerOpen] = useState(false)
+  const [psychologistEncaminhamentoOpen, setPsychologistEncaminhamentoOpen] = useState(false)
+  const [nutritionistPlanoAlimentarOpen, setNutritionistPlanoAlimentarOpen] = useState(false)
+  const [nutritionistPrescricaoDieteticaOpen, setNutritionistPrescricaoDieteticaOpen] =
+    useState(false)
+  const [nutritionistPrescricaoSuplementosOpen, setNutritionistPrescricaoSuplementosOpen] =
+    useState(false)
+  const [nutritionistRelatorioOpen, setNutritionistRelatorioOpen] = useState(false)
+  const [nutritionistParecerOpen, setNutritionistParecerOpen] = useState(false)
+  const [nutritionistLaudoOpen, setNutritionistLaudoOpen] = useState(false)
+  const [nutritionistDeclaracaoComparecimentoOpen, setNutritionistDeclaracaoComparecimentoOpen] =
+    useState(false)
+  const [fonoaudiologoDeclaracaoComparecimentoOpen, setFonoaudiologoDeclaracaoComparecimentoOpen] =
+    useState(false)
+  const [fonoaudiologoRelatorioOpen, setFonoaudiologoRelatorioOpen] = useState(false)
+  const [fonoaudiologoLaudoOpen, setFonoaudiologoLaudoOpen] = useState(false)
+  const [fonoaudiologoParecerOpen, setFonoaudiologoParecerOpen] = useState(false)
+  const [fonoaudiologoAtestadoOpen, setFonoaudiologoAtestadoOpen] = useState(false)
+  const [fonoaudiologoPlanoTerapeuticoOpen, setFonoaudiologoPlanoTerapeuticoOpen] = useState(false)
+  const [fonoaudiologoResultadoAvaliacaoOpen, setFonoaudiologoResultadoAvaliacaoOpen] =
+    useState(false)
+  const [fonoaudiologoEncaminhamentoOpen, setFonoaudiologoEncaminhamentoOpen] = useState(false)
   const [finishConfirmOpen, setFinishConfirmOpen] = useState(false)
   const [triageDrawerOpen, setTriageDrawerOpen] = useState(false)
   const [historicoDrawerOpen, setHistoricoDrawerOpen] = useState(false)
@@ -145,8 +249,108 @@ export function DoctorConsultationDemoPage() {
   }, [])
 
   const handleIssueDocument = useCallback(
-    (kind: DoctorClinicalDocumentKind) => {
-      if (kind === 'pedido_exame') {
+    (kind: DemoClinicalDocumentKind) => {
+      if (isDemoPsychologistDocumentKind(kind)) {
+        if (kind === 'atestado_psicologico') {
+          setPsychologistAtestadoOpen(true)
+          return
+        }
+        if (kind === 'relatorio_psicologico') {
+          setPsychologistRelatorioOpen(true)
+          return
+        }
+        if (kind === 'relatorio_multiprofissional') {
+          setPsychologistRelatorioMultiprofissionalOpen(true)
+          return
+        }
+        if (kind === 'laudo_psicologico') {
+          setPsychologistLaudoOpen(true)
+          return
+        }
+        if (kind === 'parecer_psicologico') {
+          setPsychologistParecerOpen(true)
+          return
+        }
+        if (kind === 'encaminhamento_psicologico') {
+          setPsychologistEncaminhamentoOpen(true)
+          return
+        }
+      }
+
+      if (isDemoNutritionistDocumentKind(kind)) {
+        if (kind === 'plano_alimentar') {
+          setNutritionistPlanoAlimentarOpen(true)
+          return
+        }
+        if (kind === 'prescricao_dietetica') {
+          setNutritionistPrescricaoDieteticaOpen(true)
+          return
+        }
+        if (kind === 'prescricao_suplementos') {
+          setNutritionistPrescricaoSuplementosOpen(true)
+          return
+        }
+        if (kind === 'pedido_exame_nutricional') {
+          setExamRequestTargetKind('pedido_exame_nutricional')
+          setExamRequestOpen(true)
+          return
+        }
+        if (kind === 'relatorio_nutricional') {
+          setNutritionistRelatorioOpen(true)
+          return
+        }
+        if (kind === 'parecer_nutricional') {
+          setNutritionistParecerOpen(true)
+          return
+        }
+        if (kind === 'laudo_nutricional') {
+          setNutritionistLaudoOpen(true)
+          return
+        }
+        if (kind === 'declaracao_comparecimento_nutricional') {
+          setNutritionistDeclaracaoComparecimentoOpen(true)
+          return
+        }
+      }
+
+      if (isDemoFonoaudiologoDocumentKind(kind)) {
+        if (kind === 'declaracao_comparecimento_fonoaudiologico') {
+          setFonoaudiologoDeclaracaoComparecimentoOpen(true)
+          return
+        }
+        if (kind === 'relatorio_fonoaudiologico') {
+          setFonoaudiologoRelatorioOpen(true)
+          return
+        }
+        if (kind === 'laudo_fonoaudiologico') {
+          setFonoaudiologoLaudoOpen(true)
+          return
+        }
+        if (kind === 'parecer_fonoaudiologico') {
+          setFonoaudiologoParecerOpen(true)
+          return
+        }
+        if (kind === 'atestado_fonoaudiologico') {
+          setFonoaudiologoAtestadoOpen(true)
+          return
+        }
+        if (kind === 'plano_terapeutico_fonoaudiologico') {
+          setFonoaudiologoPlanoTerapeuticoOpen(true)
+          return
+        }
+        if (kind === 'resultado_avaliacao_fonoaudiologico') {
+          setFonoaudiologoResultadoAvaliacaoOpen(true)
+          return
+        }
+        if (kind === 'encaminhamento_fonoaudiologico') {
+          setFonoaudiologoEncaminhamentoOpen(true)
+          return
+        }
+      }
+
+      const medicalKind = kind as DoctorClinicalDocumentKind
+      if (medicalKind === 'pedido_exame') {
+        setExamRequestTargetKind('pedido_exame')
         setExamRequestOpen(true)
         return
       }
@@ -414,6 +618,28 @@ export function DoctorConsultationDemoPage() {
       setEmittingDocument(true)
       setErrorToastMessage(null)
       try {
+        if (examRequestTargetKind === 'pedido_exame_nutricional') {
+          const pedidoExameNutricional = mapExamModalToNutritionistPedidoExame(payload)
+          const urgent = pedidoExameNutricional.urgent === true
+          const fallbackPayload = buildNutritionistPedidoExameClinicalDocumentPayload({
+            context: documentContext,
+            pedidoExameNutricional,
+          })
+          const result = await emitDemoClinicalDocument({
+            apiBody: {
+              kind: 'pedido_exame_nutricional',
+              context: buildDemoClinicalDocumentContext(documentContext),
+              pedidoExameNutricional,
+            },
+            fallbackPayload,
+            titulo: urgent ? 'Pedido de exames (urgente)' : 'Pedido de exames',
+            fileName: 'pedido-exames.pdf',
+          })
+          appendGeneratedDocument(result.document, result.blobUrl)
+          setExamRequestOpen(false)
+          return
+        }
+
         const exames = mapExamModalToPdfItems(payload)
         const urgent = payload.priority === 'urgent'
         const fallbackPayload = buildPedidoExameClinicalDocumentPayload({
@@ -444,7 +670,7 @@ export function DoctorConsultationDemoPage() {
         setEmittingDocument(false)
       }
     },
-    [appendGeneratedDocument, documentContext],
+    [appendGeneratedDocument, documentContext, examRequestTargetKind],
   )
 
   const handlePrescriptionSigned = useCallback(
@@ -538,6 +764,758 @@ export function DoctorConsultationDemoPage() {
     [appendGeneratedDocument, documentContext],
   )
 
+  const psychologistPatient = {
+    name: attendanceSession.patientName,
+    cpfMasked: attendanceSession.patientCpfMasked,
+    ageGenderLabel: snapshot.patientAgeGender,
+  }
+
+  const psychologistProfessional = {
+    name: professionProfile.doctorName,
+    specialty: professionProfile.doctorSpecialty,
+    councilLabel: professionProfile.doctorCouncilLabel,
+    councilRegistration: professionProfile.doctorCouncilRegistration,
+  }
+
+  const handlePsychologistAtestadoSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/psicologo/PsychologistAtestadoModal').PsychologistAtestadoSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildPsychologistAtestadoClinicalDocumentPayload({
+          context: documentContext,
+          atestado: payload,
+        })
+        const documentMeta =
+          payload.tipo === 'comparecimento'
+            ? {
+                titulo: 'Atestado psicológico de comparecimento',
+                fileName: 'atestado-psicologico-comparecimento.pdf',
+              }
+            : {
+                titulo: `Atestado psicológico (${payload.diasAfastamento} dia(s))`,
+                fileName: 'atestado-psicologico.pdf',
+              }
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'atestado_psicologico',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            atestadoPsicologico: payload,
+          },
+          fallbackPayload,
+          titulo: documentMeta.titulo,
+          fileName: documentMeta.fileName,
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setPsychologistAtestadoOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error ? error.message : 'Não foi possível gerar o atestado psicológico.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handlePsychologistRelatorioSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/psicologo/PsychologistRelatorioModal').PsychologistRelatorioSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildPsychologistRelatorioClinicalDocumentPayload({
+          context: documentContext,
+          relatorio: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'relatorio_psicologico',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            relatorioPsicologico: payload,
+          },
+          fallbackPayload,
+          titulo: 'Relatório psicológico',
+          fileName: 'relatorio-psicologico.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setPsychologistRelatorioOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error ? error.message : 'Não foi possível gerar o relatório psicológico.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handlePsychologistRelatorioMultiprofissionalSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/psicologo/PsychologistRelatorioMultiprofissionalModal').PsychologistRelatorioMultiprofissionalSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildPsychologistRelatorioMultiprofissionalClinicalDocumentPayload({
+          context: documentContext,
+          relatorio: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'relatorio_multiprofissional',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            relatorioMultiprofissional: payload,
+          },
+          fallbackPayload,
+          titulo: 'Relatório multiprofissional',
+          fileName: 'relatorio-multiprofissional.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setPsychologistRelatorioMultiprofissionalOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível gerar o relatório multiprofissional.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handlePsychologistLaudoSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/psicologo/PsychologistLaudoModal').PsychologistLaudoSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildPsychologistLaudoClinicalDocumentPayload({
+          context: documentContext,
+          laudo: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'laudo_psicologico',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            laudoPsicologico: payload,
+          },
+          fallbackPayload,
+          titulo: 'Laudo psicológico',
+          fileName: 'laudo-psicologico.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setPsychologistLaudoOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error ? error.message : 'Não foi possível gerar o laudo psicológico.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handlePsychologistParecerSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/psicologo/PsychologistParecerModal').PsychologistParecerSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildPsychologistParecerClinicalDocumentPayload({
+          context: documentContext,
+          parecer: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'parecer_psicologico',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            parecerPsicologico: payload,
+          },
+          fallbackPayload,
+          titulo: 'Parecer psicológico',
+          fileName: 'parecer-psicologico.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setPsychologistParecerOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error ? error.message : 'Não foi possível gerar o parecer psicológico.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handlePsychologistEncaminhamentoSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/psicologo/PsychologistEncaminhamentoModal').PsychologistEncaminhamentoSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildPsychologistEncaminhamentoClinicalDocumentPayload({
+          context: documentContext,
+          encaminhamento: payload,
+        })
+        const urgent = payload.prioridade === 'urgente'
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'encaminhamento_psicologico',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            encaminhamentoPsicologico: payload,
+          },
+          fallbackPayload,
+          titulo: urgent ? 'Encaminhamento psicológico (urgente)' : 'Encaminhamento psicológico',
+          fileName: 'encaminhamento-psicologico.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setPsychologistEncaminhamentoOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error ? error.message : 'Não foi possível gerar o encaminhamento psicológico.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleNutritionistPlanoAlimentarSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/nutricionista/NutritionistPlanoAlimentarModal').NutritionistPlanoAlimentarSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildNutritionistPlanoAlimentarClinicalDocumentPayload({
+          context: documentContext,
+          planoAlimentar: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'plano_alimentar',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            planoAlimentar: payload,
+          },
+          fallbackPayload,
+          titulo: 'Plano alimentar',
+          fileName: 'plano-alimentar.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setNutritionistPlanoAlimentarOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error ? error.message : 'Não foi possível gerar o plano alimentar.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleNutritionistPrescricaoDieteticaSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/nutricionista/NutritionistPrescricaoDieteticaModal').NutritionistPrescricaoDieteticaSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildNutritionistPrescricaoDieteticaClinicalDocumentPayload({
+          context: documentContext,
+          prescricaoDietetica: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'prescricao_dietetica',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            prescricaoDietetica: payload,
+          },
+          fallbackPayload,
+          titulo: 'Prescrição dietética',
+          fileName: 'prescricao-dietetica.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setNutritionistPrescricaoDieteticaOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error ? error.message : 'Não foi possível gerar a prescrição dietética.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleNutritionistPrescricaoSuplementosSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/nutricionista/NutritionistPrescricaoSuplementosModal').NutritionistPrescricaoSuplementosSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildNutritionistPrescricaoSuplementosClinicalDocumentPayload({
+          context: documentContext,
+          prescricaoSuplementos: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'prescricao_suplementos',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            prescricaoSuplementos: payload,
+          },
+          fallbackPayload,
+          titulo: 'Prescrição de suplementos',
+          fileName: 'prescricao-suplementos.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setNutritionistPrescricaoSuplementosOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível gerar a prescrição de suplementos.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleNutritionistRelatorioSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/nutricionista/NutritionistRelatorioModal').NutritionistRelatorioSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildNutritionistRelatorioClinicalDocumentPayload({
+          context: documentContext,
+          relatorioNutricional: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'relatorio_nutricional',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            relatorioNutricional: payload,
+          },
+          fallbackPayload,
+          titulo: 'Relatório nutricional',
+          fileName: 'relatorio-nutricional.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setNutritionistRelatorioOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error ? error.message : 'Não foi possível gerar o relatório nutricional.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleNutritionistParecerSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/nutricionista/NutritionistParecerModal').NutritionistParecerSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildNutritionistParecerClinicalDocumentPayload({
+          context: documentContext,
+          parecerNutricional: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'parecer_nutricional',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            parecerNutricional: payload,
+          },
+          fallbackPayload,
+          titulo: 'Parecer nutricional',
+          fileName: 'parecer-nutricional.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setNutritionistParecerOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error ? error.message : 'Não foi possível gerar o parecer nutricional.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleNutritionistLaudoSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/nutricionista/NutritionistLaudoModal').NutritionistLaudoSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildNutritionistLaudoClinicalDocumentPayload({
+          context: documentContext,
+          laudoNutricional: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'laudo_nutricional',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            laudoNutricional: payload,
+          },
+          fallbackPayload,
+          titulo: 'Laudo / avaliação nutricional',
+          fileName: 'laudo-nutricional.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setNutritionistLaudoOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error ? error.message : 'Não foi possível gerar o laudo nutricional.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleNutritionistDeclaracaoComparecimentoSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/nutricionista/NutritionistDeclaracaoComparecimentoModal').NutritionistDeclaracaoComparecimentoSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildNutritionistDeclaracaoComparecimentoClinicalDocumentPayload({
+          context: documentContext,
+          declaracaoComparecimentoNutricional: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'declaracao_comparecimento_nutricional',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            declaracaoComparecimentoNutricional: payload,
+          },
+          fallbackPayload,
+          titulo: 'Declaração de comparecimento',
+          fileName: 'declaracao-comparecimento-nutricional.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setNutritionistDeclaracaoComparecimentoOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível gerar a declaração de comparecimento.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleFonoaudiologoDeclaracaoComparecimentoSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoDeclaracaoComparecimentoModal').FonoaudiologoDeclaracaoComparecimentoSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildFonoaudiologoDeclaracaoComparecimentoClinicalDocumentPayload({
+          context: documentContext,
+          declaracaoComparecimentoFonoaudiologico: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'declaracao_comparecimento_fonoaudiologico',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            declaracaoComparecimentoFonoaudiologico: payload,
+          },
+          fallbackPayload,
+          titulo: 'Declaração de comparecimento',
+          fileName: 'declaracao-comparecimento-fonoaudiologico.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setFonoaudiologoDeclaracaoComparecimentoOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível gerar a declaração de comparecimento.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleFonoaudiologoRelatorioSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoRelatorioModal').FonoaudiologoRelatorioSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildFonoaudiologoRelatorioClinicalDocumentPayload({
+          context: documentContext,
+          relatorioFonoaudiologico: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'relatorio_fonoaudiologico',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            relatorioFonoaudiologico: payload,
+          },
+          fallbackPayload,
+          titulo: 'Relatório fonoaudiológico',
+          fileName: 'relatorio-fonoaudiologico.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setFonoaudiologoRelatorioOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error ? error.message : 'Não foi possível gerar o relatório fonoaudiológico.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleFonoaudiologoLaudoSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoLaudoModal').FonoaudiologoLaudoSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildFonoaudiologoLaudoClinicalDocumentPayload({
+          context: documentContext,
+          laudoFonoaudiologico: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'laudo_fonoaudiologico',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            laudoFonoaudiologico: payload,
+          },
+          fallbackPayload,
+          titulo: 'Laudo fonoaudiológico',
+          fileName: 'laudo-fonoaudiologico.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setFonoaudiologoLaudoOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error ? error.message : 'Não foi possível gerar o laudo fonoaudiológico.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleFonoaudiologoParecerSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoParecerModal').FonoaudiologoParecerSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildFonoaudiologoParecerClinicalDocumentPayload({
+          context: documentContext,
+          parecerFonoaudiologico: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'parecer_fonoaudiologico',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            parecerFonoaudiologico: payload,
+          },
+          fallbackPayload,
+          titulo: 'Parecer fonoaudiológico',
+          fileName: 'parecer-fonoaudiologico.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setFonoaudiologoParecerOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error ? error.message : 'Não foi possível gerar o parecer fonoaudiológico.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleFonoaudiologoAtestadoSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoAtestadoModal').FonoaudiologoAtestadoSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildFonoaudiologoAtestadoClinicalDocumentPayload({
+          context: documentContext,
+          atestadoFonoaudiologico: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'atestado_fonoaudiologico',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            atestadoFonoaudiologico: payload,
+          },
+          fallbackPayload,
+          titulo: 'Atestado fonoaudiológico',
+          fileName: 'atestado-fonoaudiologico.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setFonoaudiologoAtestadoOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error ? error.message : 'Não foi possível gerar o atestado fonoaudiológico.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleFonoaudiologoPlanoTerapeuticoSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoPlanoTerapeuticoModal').FonoaudiologoPlanoTerapeuticoSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildFonoaudiologoPlanoTerapeuticoClinicalDocumentPayload({
+          context: documentContext,
+          planoTerapeuticoFonoaudiologico: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'plano_terapeutico_fonoaudiologico',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            planoTerapeuticoFonoaudiologico: payload,
+          },
+          fallbackPayload,
+          titulo: 'Plano terapêutico fonoaudiológico',
+          fileName: 'plano-terapeutico-fonoaudiologico.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setFonoaudiologoPlanoTerapeuticoOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível gerar o plano terapêutico fonoaudiológico.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleFonoaudiologoResultadoAvaliacaoSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoResultadoAvaliacaoModal').FonoaudiologoResultadoAvaliacaoSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildFonoaudiologoResultadoAvaliacaoClinicalDocumentPayload({
+          context: documentContext,
+          resultadoAvaliacaoFonoaudiologico: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'resultado_avaliacao_fonoaudiologico',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            resultadoAvaliacaoFonoaudiologico: payload,
+          },
+          fallbackPayload,
+          titulo: 'Resultado de avaliação / exame fonoaudiológico',
+          fileName: 'resultado-avaliacao-fonoaudiologico.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setFonoaudiologoResultadoAvaliacaoOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível gerar o resultado de avaliação/exame.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
+  const handleFonoaudiologoEncaminhamentoSigned = useCallback(
+    async (
+      payload: import('../components/attendance/doctor/demo/fonoaudiologo/FonoaudiologoEncaminhamentoModal').FonoaudiologoEncaminhamentoSignedPayload,
+    ) => {
+      setEmittingDocument(true)
+      setErrorToastMessage(null)
+      try {
+        const fallbackPayload = buildFonoaudiologoEncaminhamentoClinicalDocumentPayload({
+          context: documentContext,
+          encaminhamentoFonoaudiologico: payload,
+        })
+        const result = await emitDemoClinicalDocument({
+          apiBody: {
+            kind: 'encaminhamento_fonoaudiologico',
+            context: buildDemoClinicalDocumentContext(documentContext),
+            encaminhamentoFonoaudiologico: payload,
+          },
+          fallbackPayload,
+          titulo: 'Encaminhamento fonoaudiológico',
+          fileName: 'encaminhamento-fonoaudiologico.pdf',
+        })
+        appendGeneratedDocument(result.document, result.blobUrl)
+        setFonoaudiologoEncaminhamentoOpen(false)
+      } catch (error) {
+        setErrorToastMessage(
+          error instanceof Error
+            ? error.message
+            : 'Não foi possível gerar o encaminhamento fonoaudiológico.',
+        )
+      } finally {
+        setEmittingDocument(false)
+      }
+    },
+    [appendGeneratedDocument, documentContext],
+  )
+
   const handleDownloadConsultationDocument = useCallback(
     async (document: ConsultationDocumentItem) => {
       if (!document.downloadUrl) {
@@ -588,14 +1566,17 @@ export function DoctorConsultationDemoPage() {
     >
       <div className="shrink-0 border-b border-amber-200/80 bg-amber-50 px-4 py-2 text-center text-xs text-amber-950 sm:text-sm">
         <span className="font-semibold">Demonstração</span> — sala de atendimento do profissional
-        (teleconsulta em andamento com paciente fictício). Receitas, exames e atestados geram PDF
-        real para visualização.
+        (teleconsulta em andamento com paciente fictício). Use o seletor de profissão para visualizar
+        os documentos de cada categoria. PDFs reais são gerados para visualização.
       </div>
 
       <div className="mx-auto flex h-full min-h-0 w-full max-w-[1600px] flex-col px-3 sm:px-5">
-        <DoctorConsultationHeader
+        <DemoConsultationHeader
           elapsed={elapsed}
           startedAtLabel={formatStartedAtLabel(snapshot.startedAtIso)}
+          headerTitle={professionProfile.headerTitle}
+          profession={demoProfession}
+          onProfessionChange={setDemoProfession}
           onFinishConsultation={() => setFinishConfirmOpen(true)}
           onIssueDocument={handleIssueDocument}
         />
@@ -719,13 +1700,181 @@ export function DoctorConsultationDemoPage() {
         doctor={doctorCard}
       />
 
+      <PsychologistAtestadoModal
+        open={psychologistAtestadoOpen}
+        onClose={() => setPsychologistAtestadoOpen(false)}
+        onSigned={handlePsychologistAtestadoSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <PsychologistRelatorioModal
+        open={psychologistRelatorioOpen}
+        onClose={() => setPsychologistRelatorioOpen(false)}
+        onSigned={handlePsychologistRelatorioSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <PsychologistRelatorioMultiprofissionalModal
+        open={psychologistRelatorioMultiprofissionalOpen}
+        onClose={() => setPsychologistRelatorioMultiprofissionalOpen(false)}
+        onSigned={handlePsychologistRelatorioMultiprofissionalSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <PsychologistLaudoModal
+        open={psychologistLaudoOpen}
+        onClose={() => setPsychologistLaudoOpen(false)}
+        onSigned={handlePsychologistLaudoSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <PsychologistParecerModal
+        open={psychologistParecerOpen}
+        onClose={() => setPsychologistParecerOpen(false)}
+        onSigned={handlePsychologistParecerSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <PsychologistEncaminhamentoModal
+        open={psychologistEncaminhamentoOpen}
+        onClose={() => setPsychologistEncaminhamentoOpen(false)}
+        onSigned={handlePsychologistEncaminhamentoSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <NutritionistPlanoAlimentarModal
+        open={nutritionistPlanoAlimentarOpen}
+        onClose={() => setNutritionistPlanoAlimentarOpen(false)}
+        onSigned={handleNutritionistPlanoAlimentarSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <NutritionistPrescricaoDieteticaModal
+        open={nutritionistPrescricaoDieteticaOpen}
+        onClose={() => setNutritionistPrescricaoDieteticaOpen(false)}
+        onSigned={handleNutritionistPrescricaoDieteticaSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <NutritionistPrescricaoSuplementosModal
+        open={nutritionistPrescricaoSuplementosOpen}
+        onClose={() => setNutritionistPrescricaoSuplementosOpen(false)}
+        onSigned={handleNutritionistPrescricaoSuplementosSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <NutritionistRelatorioModal
+        open={nutritionistRelatorioOpen}
+        onClose={() => setNutritionistRelatorioOpen(false)}
+        onSigned={handleNutritionistRelatorioSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <NutritionistParecerModal
+        open={nutritionistParecerOpen}
+        onClose={() => setNutritionistParecerOpen(false)}
+        onSigned={handleNutritionistParecerSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <NutritionistLaudoModal
+        open={nutritionistLaudoOpen}
+        onClose={() => setNutritionistLaudoOpen(false)}
+        onSigned={handleNutritionistLaudoSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <NutritionistDeclaracaoComparecimentoModal
+        open={nutritionistDeclaracaoComparecimentoOpen}
+        onClose={() => setNutritionistDeclaracaoComparecimentoOpen(false)}
+        onSigned={handleNutritionistDeclaracaoComparecimentoSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <FonoaudiologoDeclaracaoComparecimentoModal
+        open={fonoaudiologoDeclaracaoComparecimentoOpen}
+        onClose={() => setFonoaudiologoDeclaracaoComparecimentoOpen(false)}
+        onSigned={handleFonoaudiologoDeclaracaoComparecimentoSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <FonoaudiologoRelatorioModal
+        open={fonoaudiologoRelatorioOpen}
+        onClose={() => setFonoaudiologoRelatorioOpen(false)}
+        onSigned={handleFonoaudiologoRelatorioSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <FonoaudiologoLaudoModal
+        open={fonoaudiologoLaudoOpen}
+        onClose={() => setFonoaudiologoLaudoOpen(false)}
+        onSigned={handleFonoaudiologoLaudoSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <FonoaudiologoParecerModal
+        open={fonoaudiologoParecerOpen}
+        onClose={() => setFonoaudiologoParecerOpen(false)}
+        onSigned={handleFonoaudiologoParecerSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <FonoaudiologoAtestadoModal
+        open={fonoaudiologoAtestadoOpen}
+        onClose={() => setFonoaudiologoAtestadoOpen(false)}
+        onSigned={handleFonoaudiologoAtestadoSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <FonoaudiologoPlanoTerapeuticoModal
+        open={fonoaudiologoPlanoTerapeuticoOpen}
+        onClose={() => setFonoaudiologoPlanoTerapeuticoOpen(false)}
+        onSigned={handleFonoaudiologoPlanoTerapeuticoSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <FonoaudiologoResultadoAvaliacaoModal
+        open={fonoaudiologoResultadoAvaliacaoOpen}
+        onClose={() => setFonoaudiologoResultadoAvaliacaoOpen(false)}
+        onSigned={handleFonoaudiologoResultadoAvaliacaoSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
+      <FonoaudiologoEncaminhamentoModal
+        open={fonoaudiologoEncaminhamentoOpen}
+        onClose={() => setFonoaudiologoEncaminhamentoOpen(false)}
+        onSigned={handleFonoaudiologoEncaminhamentoSigned}
+        patient={psychologistPatient}
+        professional={psychologistProfessional}
+      />
+
       <DoctorClinicalTriageDrawer
         open={triageDrawerOpen}
         onClose={() => setTriageDrawerOpen(false)}
         patientName={attendanceSession.patientName}
         patientAgeGender={snapshot.patientAgeGender}
         unitName={attendanceSession.unitName}
-        triageSummary={snapshot.triageSummary}
+        triageSummary={professionProfile.triageSummary}
       />
 
       <ProfissionalPacienteHistoricoDrawer

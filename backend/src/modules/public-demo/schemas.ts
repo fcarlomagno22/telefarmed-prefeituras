@@ -173,6 +173,309 @@ const internacaoSchema = z.object({
   observacoes: z.string().trim().max(4000).optional(),
 })
 
+const psychologistAtestadoSchema = z.discriminatedUnion('tipo', [
+  z.object({
+    tipo: z.literal('afastamento'),
+    diasAfastamento: z.number().int().min(1).max(365),
+    dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    motivo: z.string().trim().min(1).max(500),
+    observacoes: z.string().trim().max(500).optional(),
+  }),
+  z.object({
+    tipo: z.literal('comparecimento'),
+    dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    observacoes: z.string().trim().max(500).optional(),
+  }),
+])
+
+const psychologistRelatorioSchema = z.object({
+  finalidade: z.enum([
+    'acompanhamento',
+    'encaminhamento',
+    'escolar',
+    'trabalhista',
+    'judicial',
+    'outro',
+  ]),
+  destinatario: z.string().trim().max(200).optional(),
+  motivoRelatorio: z.string().trim().min(1).max(4000),
+  demandaPsicologica: z.string().trim().min(1).max(4000),
+  historiaPsicologica: z.string().trim().min(1).max(8000),
+  instrumentosAplicados: z.string().trim().max(4000).optional(),
+  avaliacaoPsicologica: z.string().trim().min(1).max(8000),
+  hipotesePsicologica: z.string().trim().min(1).max(1000),
+  intervencoesRealizadas: z.string().trim().min(1).max(4000),
+  evolucao: z.string().trim().max(4000).optional(),
+  conclusao: z.string().trim().min(1).max(4000),
+  recomendacoes: z.string().trim().max(4000).optional(),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+const psychologistRelatorioMultiprofissionalSchema = z.object({
+  destinatario: z.string().trim().max(200).optional(),
+  motivoRelatorio: z.string().trim().min(1).max(4000),
+  equipeEnvolvida: z.string().trim().min(1).max(4000),
+  demandaCompartilhada: z.string().trim().min(1).max(4000),
+  contribuicoesProfissionais: z.string().trim().min(1).max(8000),
+  sinteseClinica: z.string().trim().min(1).max(4000),
+  condutaIntegrada: z.string().trim().min(1).max(4000),
+  conclusaoMultiprofissional: z.string().trim().min(1).max(4000),
+  recomendacoes: z.string().trim().max(4000).optional(),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+const psychologistLaudoSchema = z.object({
+  tipoLaudo: z.enum(['avaliacao_psicologica', 'pericia', 'aptidao', 'acompanhamento', 'outro']),
+  destinatario: z.string().trim().max(200).optional(),
+  objetoLaudo: z.string().trim().min(1).max(500),
+  metodologiaInstrumentos: z.string().trim().min(1).max(4000),
+  descricaoAchados: z.string().trim().min(1).max(8000),
+  analiseInterpretacao: z.string().trim().min(1).max(4000),
+  conclusaoLaudo: z.string().trim().min(1).max(4000),
+  recomendacoes: z.string().trim().max(4000).optional(),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+const psychologistParecerSchema = z.object({
+  destinatario: z.string().trim().max(200).optional(),
+  questaoApresentada: z.string().trim().min(1).max(4000),
+  contextoAvaliacao: z.string().trim().min(1).max(4000),
+  analiseTecnica: z.string().trim().min(1).max(8000),
+  parecerConclusivo: z.string().trim().min(1).max(4000),
+  recomendacoes: z.string().trim().max(4000).optional(),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+const psychologistEncaminhamentoSchema = z.object({
+  profissionalDestino: z.enum(['medico', 'psiquiatra', 'outro_profissional']),
+  destinoLabel: z.string().trim().min(1).max(200),
+  prioridade: z.enum(['eletivo', 'prioritario', 'urgente']),
+  motivoEncaminhamento: z.string().trim().min(1).max(4000),
+  resumoAtendimento: z.string().trim().min(1).max(8000),
+  hipotesePsicologica: z.string().trim().min(1).max(1000),
+  condutaRealizada: z.string().trim().min(1).max(4000),
+  expectativaEncaminhamento: z.string().trim().min(1).max(4000),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+const suplementoItemSchema = z.object({
+  nome: z.string().trim().min(1).max(300),
+  dosagem: z.string().trim().max(200).optional(),
+  frequencia: z.string().trim().max(300).optional(),
+  duracao: z.string().trim().max(120).optional(),
+  observacoes: z.string().trim().max(500).optional(),
+})
+
+const nutritionistPlanoAlimentarRefeicaoItemSchema = z.object({
+  alimento: z.string().trim().min(1).max(200),
+  quantidade: z.string().trim().min(1).max(200),
+})
+
+const nutritionistPlanoAlimentarRefeicaoSchema = z.object({
+  tipo: z.enum(['cafe_manha', 'lanche_manha', 'almoco', 'lanche_tarde', 'jantar', 'ceia']),
+  label: z.string().trim().min(1).max(100),
+  itens: z.array(nutritionistPlanoAlimentarRefeicaoItemSchema).min(1).max(30),
+})
+
+const nutritionistPlanoAlimentarSchema = z
+  .object({
+    objetivo: z.string().trim().min(1).max(1000),
+    restricoesAlimentares: z.string().trim().max(2000).optional(),
+    planoRefeicoes: z.string().trim().max(12000).optional(),
+    refeicoes: z.array(nutritionistPlanoAlimentarRefeicaoSchema).min(1).max(6).optional(),
+    orientacoesGerais: z.string().trim().max(4000).optional(),
+    duracaoPlano: z.string().trim().max(200).optional(),
+    observacoes: z.string().trim().max(2000).optional(),
+  })
+  .refine(
+    (data) => Boolean(data.planoRefeicoes?.trim()) || Boolean(data.refeicoes?.length),
+    { message: 'Informe ao menos uma refeição do plano alimentar.' },
+  )
+
+const nutritionistPrescricaoDieteticaSchema = z.object({
+  indicacaoClinica: z.string().trim().min(1).max(4000),
+  prescricao: z.string().trim().min(1).max(12000),
+  restricoes: z.string().trim().max(4000).optional(),
+  observacoes: z.string().trim().max(2000).optional(),
+})
+
+const nutritionistPrescricaoSuplementosSchema = z.object({
+  indicacaoClinica: z.string().trim().min(1).max(4000),
+  suplementos: z.array(suplementoItemSchema).min(1).max(30),
+  observacoesGerais: z.string().trim().max(2000).optional(),
+})
+
+const nutritionistPedidoExameSchema = z.object({
+  indicacaoClinica: z.string().trim().max(4000).optional(),
+  exames: z.array(exameItemSchema).min(1).max(50),
+  urgent: z.boolean().optional(),
+})
+
+const nutritionistRelatorioSchema = z.object({
+  finalidade: z.enum([
+    'acompanhamento',
+    'encaminhamento',
+    'escolar',
+    'trabalhista',
+    'judicial',
+    'outro',
+  ]),
+  destinatario: z.string().trim().max(200).optional(),
+  motivoRelatorio: z.string().trim().min(1).max(4000),
+  anamneseNutricional: z.string().trim().min(1).max(8000),
+  avaliacaoAntropometrica: z.string().trim().min(1).max(4000),
+  avaliacaoDietetica: z.string().trim().min(1).max(4000),
+  diagnosticoNutricional: z.string().trim().min(1).max(1000),
+  intervencaoProposta: z.string().trim().min(1).max(4000),
+  conclusao: z.string().trim().min(1).max(4000),
+  recomendacoes: z.string().trim().max(4000).optional(),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+const nutritionistParecerSchema = z.object({
+  destinatario: z.string().trim().max(200).optional(),
+  questaoApresentada: z.string().trim().min(1).max(4000),
+  contextoAvaliacao: z.string().trim().min(1).max(4000),
+  analiseTecnica: z.string().trim().min(1).max(8000),
+  parecerConclusivo: z.string().trim().min(1).max(4000),
+  recomendacoes: z.string().trim().max(4000).optional(),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+const nutritionistLaudoSchema = z.object({
+  tipoLaudo: z.enum(['avaliacao_nutricional', 'antropometrica', 'dietoterapia', 'pericia', 'outro']),
+  destinatario: z.string().trim().max(200).optional(),
+  objetoLaudo: z.string().trim().min(1).max(500),
+  metodologiaAvaliacao: z.string().trim().min(1).max(4000),
+  achados: z.string().trim().min(1).max(8000),
+  interpretacao: z.string().trim().min(1).max(4000),
+  conclusao: z.string().trim().min(1).max(4000),
+  recomendacoes: z.string().trim().max(4000).optional(),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+const nutritionistDeclaracaoComparecimentoSchema = z.object({
+  dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  observacoes: z.string().trim().max(500).optional(),
+})
+
+const fonoaudiologoAtestadoSchema = z.discriminatedUnion('tipo', [
+  z.object({
+    tipo: z.literal('afastamento'),
+    diasAfastamento: z.number().int().min(1).max(365),
+    dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    motivo: z.string().trim().min(1).max(500),
+    observacoes: z.string().trim().max(500).optional(),
+  }),
+  z.object({
+    tipo: z.literal('comparecimento'),
+    dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    observacoes: z.string().trim().max(500).optional(),
+  }),
+])
+
+const fonoaudiologoDeclaracaoComparecimentoSchema = z.object({
+  dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  observacoes: z.string().trim().max(500).optional(),
+})
+
+const fonoaudiologoRelatorioSchema = z.object({
+  finalidade: z.enum([
+    'acompanhamento',
+    'encaminhamento',
+    'escolar',
+    'trabalhista',
+    'judicial',
+    'outro',
+  ]),
+  destinatario: z.string().trim().max(200).optional(),
+  motivoRelatorio: z.string().trim().min(1).max(4000),
+  demandaFonoaudiologica: z.string().trim().min(1).max(4000),
+  historiaFonoaudiologica: z.string().trim().min(1).max(8000),
+  avaliacaoFonoaudiologica: z.string().trim().min(1).max(8000),
+  hipoteseFonoaudiologica: z.string().trim().min(1).max(1000),
+  intervencoesRealizadas: z.string().trim().min(1).max(4000),
+  evolucao: z.string().trim().max(4000).optional(),
+  conclusao: z.string().trim().min(1).max(4000),
+  recomendacoes: z.string().trim().max(4000).optional(),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+const fonoaudiologoLaudoSchema = z.object({
+  tipoLaudo: z.enum([
+    'avaliacao_fonoaudiologica',
+    'linguagem',
+    'audicao',
+    'voz',
+    'degluticao',
+    'motricidade_orofacial',
+    'pericia',
+    'outro',
+  ]),
+  destinatario: z.string().trim().max(200).optional(),
+  objetoLaudo: z.string().trim().min(1).max(500),
+  metodologiaInstrumentos: z.string().trim().min(1).max(4000),
+  descricaoAchados: z.string().trim().min(1).max(8000),
+  analiseInterpretacao: z.string().trim().min(1).max(4000),
+  conclusaoLaudo: z.string().trim().min(1).max(4000),
+  recomendacoes: z.string().trim().max(4000).optional(),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+const fonoaudiologoParecerSchema = z.object({
+  destinatario: z.string().trim().max(200).optional(),
+  questaoApresentada: z.string().trim().min(1).max(4000),
+  contextoAvaliacao: z.string().trim().min(1).max(4000),
+  analiseTecnica: z.string().trim().min(1).max(8000),
+  parecerConclusivo: z.string().trim().min(1).max(4000),
+  recomendacoes: z.string().trim().max(4000).optional(),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
+const fonoaudiologoPlanoTerapeuticoSchema = z.object({
+  objetivo: z.string().trim().min(1).max(1000),
+  diagnosticoFonoaudiologico: z.string().trim().min(1).max(4000),
+  metasTerapeuticas: z.string().trim().min(1).max(8000),
+  procedimentosOrientacoes: z.string().trim().min(1).max(8000),
+  frequenciaDuracao: z.string().trim().max(200).optional(),
+  orientacoesGerais: z.string().trim().max(4000).optional(),
+  observacoes: z.string().trim().max(2000).optional(),
+})
+
+const fonoaudiologoResultadoAvaliacaoSchema = z.object({
+  tipoAvaliacao: z.enum([
+    'audiologica',
+    'linguagem',
+    'voz',
+    'degluticao',
+    'motricidade_orofacial',
+    'outro',
+  ]),
+  nomeExameAvaliacao: z.string().trim().min(1).max(500),
+  metodologia: z.string().trim().min(1).max(8000),
+  resultados: z.string().trim().min(1).max(8000),
+  interpretacao: z.string().trim().min(1).max(4000),
+  conclusao: z.string().trim().min(1).max(4000),
+  observacoes: z.string().trim().max(2000).optional(),
+})
+
+const fonoaudiologoEncaminhamentoSchema = z.object({
+  profissionalDestino: z.enum([
+    'medico',
+    'otorrinolaringologista',
+    'neurologista',
+    'outro_profissional',
+  ]),
+  destinoLabel: z.string().trim().min(1).max(200),
+  prioridade: z.enum(['eletivo', 'prioritario', 'urgente']),
+  motivoEncaminhamento: z.string().trim().min(1).max(4000),
+  resumoAtendimento: z.string().trim().min(1).max(8000),
+  hipoteseFonoaudiologica: z.string().trim().min(1).max(1000),
+  condutaRealizada: z.string().trim().min(1).max(4000),
+  expectativaEncaminhamento: z.string().trim().min(1).max(4000),
+  observacoes: z.string().trim().max(4000).optional(),
+})
+
 export const emitDemoClinicalDocumentBodySchema = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('receita'),
@@ -216,6 +519,116 @@ export const emitDemoClinicalDocumentBodySchema = z.discriminatedUnion('kind', [
     kind: z.literal('internacao'),
     context: clinicalDocumentContextSchema,
     internacao: internacaoSchema,
+  }),
+  z.object({
+    kind: z.literal('atestado_psicologico'),
+    context: clinicalDocumentContextSchema,
+    atestadoPsicologico: psychologistAtestadoSchema,
+  }),
+  z.object({
+    kind: z.literal('relatorio_psicologico'),
+    context: clinicalDocumentContextSchema,
+    relatorioPsicologico: psychologistRelatorioSchema,
+  }),
+  z.object({
+    kind: z.literal('relatorio_multiprofissional'),
+    context: clinicalDocumentContextSchema,
+    relatorioMultiprofissional: psychologistRelatorioMultiprofissionalSchema,
+  }),
+  z.object({
+    kind: z.literal('laudo_psicologico'),
+    context: clinicalDocumentContextSchema,
+    laudoPsicologico: psychologistLaudoSchema,
+  }),
+  z.object({
+    kind: z.literal('parecer_psicologico'),
+    context: clinicalDocumentContextSchema,
+    parecerPsicologico: psychologistParecerSchema,
+  }),
+  z.object({
+    kind: z.literal('encaminhamento_psicologico'),
+    context: clinicalDocumentContextSchema,
+    encaminhamentoPsicologico: psychologistEncaminhamentoSchema,
+  }),
+  z.object({
+    kind: z.literal('plano_alimentar'),
+    context: clinicalDocumentContextSchema,
+    planoAlimentar: nutritionistPlanoAlimentarSchema,
+  }),
+  z.object({
+    kind: z.literal('prescricao_dietetica'),
+    context: clinicalDocumentContextSchema,
+    prescricaoDietetica: nutritionistPrescricaoDieteticaSchema,
+  }),
+  z.object({
+    kind: z.literal('prescricao_suplementos'),
+    context: clinicalDocumentContextSchema,
+    prescricaoSuplementos: nutritionistPrescricaoSuplementosSchema,
+  }),
+  z.object({
+    kind: z.literal('pedido_exame_nutricional'),
+    context: clinicalDocumentContextSchema,
+    pedidoExameNutricional: nutritionistPedidoExameSchema,
+  }),
+  z.object({
+    kind: z.literal('relatorio_nutricional'),
+    context: clinicalDocumentContextSchema,
+    relatorioNutricional: nutritionistRelatorioSchema,
+  }),
+  z.object({
+    kind: z.literal('parecer_nutricional'),
+    context: clinicalDocumentContextSchema,
+    parecerNutricional: nutritionistParecerSchema,
+  }),
+  z.object({
+    kind: z.literal('laudo_nutricional'),
+    context: clinicalDocumentContextSchema,
+    laudoNutricional: nutritionistLaudoSchema,
+  }),
+  z.object({
+    kind: z.literal('declaracao_comparecimento_nutricional'),
+    context: clinicalDocumentContextSchema,
+    declaracaoComparecimentoNutricional: nutritionistDeclaracaoComparecimentoSchema,
+  }),
+  z.object({
+    kind: z.literal('atestado_fonoaudiologico'),
+    context: clinicalDocumentContextSchema,
+    atestadoFonoaudiologico: fonoaudiologoAtestadoSchema,
+  }),
+  z.object({
+    kind: z.literal('declaracao_comparecimento_fonoaudiologico'),
+    context: clinicalDocumentContextSchema,
+    declaracaoComparecimentoFonoaudiologico: fonoaudiologoDeclaracaoComparecimentoSchema,
+  }),
+  z.object({
+    kind: z.literal('relatorio_fonoaudiologico'),
+    context: clinicalDocumentContextSchema,
+    relatorioFonoaudiologico: fonoaudiologoRelatorioSchema,
+  }),
+  z.object({
+    kind: z.literal('laudo_fonoaudiologico'),
+    context: clinicalDocumentContextSchema,
+    laudoFonoaudiologico: fonoaudiologoLaudoSchema,
+  }),
+  z.object({
+    kind: z.literal('parecer_fonoaudiologico'),
+    context: clinicalDocumentContextSchema,
+    parecerFonoaudiologico: fonoaudiologoParecerSchema,
+  }),
+  z.object({
+    kind: z.literal('plano_terapeutico_fonoaudiologico'),
+    context: clinicalDocumentContextSchema,
+    planoTerapeuticoFonoaudiologico: fonoaudiologoPlanoTerapeuticoSchema,
+  }),
+  z.object({
+    kind: z.literal('resultado_avaliacao_fonoaudiologico'),
+    context: clinicalDocumentContextSchema,
+    resultadoAvaliacaoFonoaudiologico: fonoaudiologoResultadoAvaliacaoSchema,
+  }),
+  z.object({
+    kind: z.literal('encaminhamento_fonoaudiologico'),
+    context: clinicalDocumentContextSchema,
+    encaminhamentoFonoaudiologico: fonoaudiologoEncaminhamentoSchema,
   }),
 ])
 

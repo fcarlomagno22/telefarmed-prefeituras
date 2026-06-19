@@ -35,6 +35,28 @@ const DOCUMENT_TITLES: Record<ClinicalDocumentKind, string> = {
   laudo: 'Laudo Médico',
   avaliacao_presencial: 'Avaliação Presencial',
   internacao: 'Solicitação de Internação',
+  atestado_psicologico: 'Atestado Psicológico',
+  relatorio_psicologico: 'Relatório Psicológico',
+  relatorio_multiprofissional: 'Relatório Multiprofissional',
+  laudo_psicologico: 'Laudo Psicológico',
+  parecer_psicologico: 'Parecer Psicológico',
+  encaminhamento_psicologico: 'Encaminhamento Psicológico',
+  plano_alimentar: 'Plano Alimentar',
+  prescricao_dietetica: 'Prescrição Dietética',
+  prescricao_suplementos: 'Prescrição de Suplementos',
+  pedido_exame_nutricional: 'Pedido de Exames Laboratoriais',
+  relatorio_nutricional: 'Relatório Nutricional',
+  parecer_nutricional: 'Parecer Nutricional',
+  laudo_nutricional: 'Laudo / Avaliação Nutricional',
+  declaracao_comparecimento_nutricional: 'Declaração de Comparecimento',
+  declaracao_comparecimento_fonoaudiologico: 'Declaração de Comparecimento',
+  relatorio_fonoaudiologico: 'Relatório Fonoaudiológico',
+  laudo_fonoaudiologico: 'Laudo Fonoaudiológico',
+  parecer_fonoaudiologico: 'Parecer Fonoaudiológico',
+  atestado_fonoaudiologico: 'Atestado Fonoaudiológico',
+  plano_terapeutico_fonoaudiologico: 'Plano Terapêutico Fonoaudiológico',
+  resultado_avaliacao_fonoaudiologico: 'Resultado de Avaliação / Exame Fonoaudiológico',
+  encaminhamento_fonoaudiologico: 'Encaminhamento Fonoaudiológico',
 }
 
 const DOCUMENT_SUBTITLES: Record<ClinicalDocumentKind, string> = {
@@ -46,6 +68,29 @@ const DOCUMENT_SUBTITLES: Record<ClinicalDocumentKind, string> = {
   laudo: 'Parecer técnico sobre exame ou condição clínica',
   avaliacao_presencial: 'Solicitação de retorno ou avaliação no serviço de saúde',
   internacao: 'Solicitação de internação hospitalar para regulação de leitos',
+  atestado_psicologico: 'Declaração de comparecimento ou afastamento por motivos psicológicos',
+  relatorio_psicologico: 'Síntese do acompanhamento e avaliação psicológica',
+  relatorio_multiprofissional: 'Documento integrado com contribuições de diferentes profissionais',
+  laudo_psicologico: 'Laudo técnico com achados, interpretação e conclusão',
+  parecer_psicologico: 'Resposta técnica formal a questão específica',
+  encaminhamento_psicologico: 'Encaminhamento para médico, psiquiatra ou outro profissional',
+  plano_alimentar: 'Orientação alimentar individualizada e distribuição das refeições',
+  prescricao_dietetica: 'Prescrição de dieta com indicação clínica',
+  prescricao_suplementos: 'Suplementos permitidos para o acompanhamento nutricional',
+  pedido_exame_nutricional: 'Exames laboratoriais vinculados ao acompanhamento dietoterápico',
+  relatorio_nutricional: 'Síntese da avaliação e conduta nutricional',
+  parecer_nutricional: 'Resposta técnica formal em nutrição',
+  laudo_nutricional: 'Laudo ou avaliação nutricional detalhada',
+  declaracao_comparecimento_nutricional: 'Declaração de comparecimento à consulta nutricional',
+  declaracao_comparecimento_fonoaudiologico:
+    'Declaração de comparecimento à consulta fonoaudiológica',
+  relatorio_fonoaudiologico: 'Síntese da avaliação e conduta fonoaudiológica',
+  laudo_fonoaudiologico: 'Laudo técnico com achados, interpretação e conclusão',
+  parecer_fonoaudiologico: 'Resposta técnica formal em fonoaudiologia',
+  atestado_fonoaudiologico: 'Declaração de comparecimento ou afastamento fonoaudiológico',
+  plano_terapeutico_fonoaudiologico: 'Plano terapêutico com objetivos, frequência e condutas',
+  resultado_avaliacao_fonoaudiologico: 'Resultado formal de avaliação ou exame fonoaudiológico',
+  encaminhamento_fonoaudiologico: 'Encaminhamento para continuidade do cuidado especializado',
 }
 
 const URGENT_BG: [number, number, number] = [220, 38, 38]
@@ -255,6 +300,7 @@ function drawPageHeader(
   if (
     (kind === 'pedido_exame' ||
       kind === 'encaminhamento' ||
+      kind === 'encaminhamento_fonoaudiologico' ||
       kind === 'avaliacao_presencial' ||
       kind === 'internacao') &&
     urgent

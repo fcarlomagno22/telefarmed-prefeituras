@@ -8,6 +8,7 @@ import type {
   ExamePdfItem,
   InternacaoPdfData,
   LaudoPdfData,
+  NutritionistPedidoExamePdfData,
   PrescricaoPdfItem,
   RelatorioPdfData,
 } from '../../types/clinicalDocument'
@@ -121,13 +122,10 @@ export function buildReceitaClinicalDocumentPayload(input: {
   }
 }
 
-export function buildPedidoExameClinicalDocumentPayload(input: {
-  context: ClinicalDocumentContext
+export function buildPedidoExameDocumentSections(input: {
   exames: ExamePdfItem[]
   indicacaoClinica?: string
-  urgent?: boolean
-}): ClinicalDocumentPayload {
-  const codigoVerificacao = generateCodigoVerificacaoDocumento()
+}): ClinicalDocumentPayload['sections'] {
   const indicacaoClinica = input.indicacaoClinica?.trim() ?? ''
   const examLines = input.exames.map((exam, index) => {
     const obs = exam.observacoes?.trim() ?? ''
@@ -135,13 +133,27 @@ export function buildPedidoExameClinicalDocumentPayload(input: {
     return `${index + 1}. ${exam.name}${suffix}`
   })
 
+  return [
+    ...(indicacaoClinica ? [{ title: 'Indicação clínica', lines: [indicacaoClinica] }] : []),
+    { title: 'Exames solicitados', lines: examLines },
+  ]
+}
+
+export function buildPedidoExameClinicalDocumentPayload(input: {
+  context: ClinicalDocumentContext
+  exames: ExamePdfItem[]
+  indicacaoClinica?: string
+  urgent?: boolean
+}): ClinicalDocumentPayload {
+  const codigoVerificacao = generateCodigoVerificacaoDocumento()
+
   return {
     kind: 'pedido_exame',
     context: input.context,
-    sections: [
-      ...(indicacaoClinica ? [{ title: 'Indicação clínica', lines: [indicacaoClinica] }] : []),
-      { title: 'Exames solicitados', lines: examLines },
-    ],
+    sections: buildPedidoExameDocumentSections({
+      exames: input.exames,
+      indicacaoClinica: input.indicacaoClinica,
+    }),
     urgent: input.urgent === true,
     codigoVerificacao,
     verificationUrl: buildDocumentoVerificacaoUrl(codigoVerificacao, input.context.entidadeSlug),
@@ -321,4 +333,17 @@ export function mapExamModalToPdfItems(input: {
     name: exam.name,
     observacoes: indicacaoClinica,
   }))
+}
+
+export function mapExamModalToNutritionistPedidoExame(input: {
+  selectedExams: ExamCatalogItem[]
+  clinicalIndication: string
+  customExamNames: string[]
+  priority: 'routine' | 'urgent'
+}): NutritionistPedidoExamePdfData {
+  return {
+    indicacaoClinica: input.clinicalIndication.trim(),
+    exames: mapExamModalToPdfItems(input),
+    urgent: input.priority === 'urgent',
+  }
 }
