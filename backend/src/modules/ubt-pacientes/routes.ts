@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify'
+import { stripLgpdMaskedPatientPatchFields } from '../../lib/lgpdMaskedValue.js'
 import {
   requireAnyUbtPagePermission,
   requireUbtAuth,
@@ -301,7 +302,9 @@ export async function registerUbtPacientesRoutes(app: FastifyInstance): Promise<
       return reply.status(400).send({ error: 'ID inv?lido.' })
     }
 
-    const body = updateUbtPacienteBodySchema.safeParse(request.body)
+    const body = updateUbtPacienteBodySchema.safeParse(
+      stripLgpdMaskedPatientPatchFields(request.body),
+    )
     if (!body.success) {
       return reply.status(400).send({
         error: formatUbtPacientesValidationError(body.error),

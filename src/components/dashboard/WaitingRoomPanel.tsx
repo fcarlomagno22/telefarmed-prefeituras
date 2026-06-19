@@ -50,7 +50,7 @@ export function WaitingRoomPanel({
             type="button"
             onClick={onAccessWaitingRoom}
             disabled={loading}
-            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-[var(--brand-primary)] px-8 py-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
+            className="mt-8 inline-flex items-center gap-2 rounded-xl bg-[var(--brand-primary)] px-8 py-3.5 text-sm font-semibold text-white shadow-[var(--brand-primary-shadow-sm)] transition hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} />

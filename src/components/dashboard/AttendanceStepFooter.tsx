@@ -67,7 +67,7 @@ export function AttendanceStepFooter({
           disabled={continueLoading}
           className={
             continueReady
-              ? `${buttonSizeClass} bg-[var(--brand-primary)] text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50`
+              ? `${buttonSizeClass} bg-[var(--brand-primary)] text-white shadow-[var(--brand-primary-shadow-sm)] hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50`
               : `${buttonSizeClass} border border-gray-200 bg-transparent text-gray-400 hover:border-amber-300 hover:bg-amber-50/50 hover:text-amber-800 disabled:cursor-not-allowed disabled:opacity-50`
           }
         >

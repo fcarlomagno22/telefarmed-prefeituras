@@ -158,7 +158,7 @@ export function AgendaAppointmentActionsMenu({
             <button
               type="button"
               role="menuitem"
-              className={`${menuItemClass} text-[var(--brand-primary)] hover:bg-orange-50`}
+              className={`${menuItemClass} text-[var(--brand-primary)] hover:bg-[var(--brand-primary-muted)]`}
               onClick={onConfirmArrival}
               disabled={!canArrival}
               title={

@@ -44,9 +44,10 @@ const statusConfig: Record<
   },
   aguardando: {
     label: 'Aguardando',
-    text: 'text-orange-700',
-    accent: 'bg-gradient-to-r from-amber-400 via-orange-500 to-[#ff6b00]',
-    lineGlow: 'shadow-[0_2px_10px_rgba(255,107,0,0.55)]',
+    text: 'text-[var(--brand-primary)]',
+    accent:
+      'bg-gradient-to-r from-[var(--brand-primary-gradient-start)] via-[var(--brand-primary)] to-[var(--brand-primary-gradient-end)]',
+    lineGlow: 'shadow-[var(--brand-primary-shadow-sm)]',
   },
   agendado: {
     label: 'Agendado',
@@ -67,7 +68,7 @@ function rowBackground(status: AppointmentStatus) {
     case 'em_atendimento':
       return 'bg-sky-50/70'
     case 'aguardando':
-      return 'bg-orange-50/60'
+      return 'bg-[var(--brand-primary-muted)]/60'
     case 'faltou':
       return 'bg-red-50/50'
     default:
@@ -80,7 +81,7 @@ function timeColor(status: AppointmentStatus) {
     case 'em_atendimento':
       return 'text-sky-600'
     case 'aguardando':
-      return 'text-orange-600'
+      return 'text-[var(--brand-primary)]'
     case 'faltou':
       return 'text-red-600'
     default:
@@ -488,7 +489,7 @@ function AgendaDaySchedulePanel({
             className={[
               'rounded-lg border px-3 py-2 text-xs font-medium transition',
               isToday
-                ? 'cursor-default border-[var(--brand-primary)]/30 bg-orange-50 text-[var(--brand-primary)]'
+                ? 'cursor-default border-[var(--brand-primary)]/30 bg-[var(--brand-primary-muted)] text-[var(--brand-primary)]'
                 : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50',
             ].join(' ')}
           >
@@ -522,7 +523,7 @@ function AgendaDaySchedulePanel({
             onClick={onToggleFullscreen}
             aria-label={isFullscreen ? 'Sair da tela cheia' : 'Expandir lista em tela cheia'}
             title={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:border-[var(--brand-primary)]/30 hover:bg-orange-50 hover:text-[var(--brand-primary)]"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition hover:border-[var(--brand-primary)]/30 hover:bg-[var(--brand-primary-muted)] hover:text-[var(--brand-primary)]"
           >
             {isFullscreen ? (
               <Minimize2 className="h-4 w-4" strokeWidth={2} />

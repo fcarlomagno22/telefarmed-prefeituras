@@ -10,7 +10,7 @@ import {
   buildPlantaoAceiteDigestEmailText,
 } from '../../lib/email/plantaoAceiteDigestEmailTemplate.js'
 import { sendMail } from '../../lib/email/smtp.js'
-import { isPublicAppUrlLocalOnly } from '../../lib/codigoVerificacaoDocumento.js'
+import { isProfissionalPortalUrlLocalOnly } from '../../config/appUrls.js'
 import { resolveSlotTimestampIso } from '../../lib/escalaDateTime.js'
 import { slotMatchesProfissionalScope } from '../profissional-escala/context.service.js'
 import type { ProfissionalEscalaContext } from '../profissional-escala/types.js'
@@ -235,10 +235,10 @@ async function notifyProfessionalDigest(input: {
   })
 
   const linkVagas = appPublicUrls.plantaoAceiteDigestUrl(digestToken)
-  if (isPublicAppUrlLocalOnly()) {
+  if (isProfissionalPortalUrlLocalOnly()) {
     console.warn(
-      '[plantao-aceite-notify] PUBLIC_APP_URL aponta para localhost — links do e-mail não abrem no celular. ' +
-        'Defina PUBLIC_APP_LAN_URL=http://SEU_IP:5173 no backend/.env (ex.: http://192.168.1.103:5173).',
+      '[plantao-aceite-notify] PROFISSIONAL_PORTAL_URL aponta para localhost — links do e-mail não abrem fora da máquina. ' +
+        'Defina PROFISSIONAL_PORTAL_URL=https://profissional.telefarmed.com.br no backend/.env.',
     )
   }
 

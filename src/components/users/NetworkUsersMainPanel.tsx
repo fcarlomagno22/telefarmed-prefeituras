@@ -78,7 +78,7 @@ function buildKpiCards(summary: typeof networkUsersSummary) {
       icon: UserPlus,
       iconGradient: 'from-orange-500 via-amber-500 to-orange-600',
       iconShadow: 'shadow-[0_8px_20px_rgba(249,115,22,0.35)]',
-      iconRing: 'ring-orange-100/80',
+      iconRing: 'ring-[var(--brand-primary-border)]/80',
       topBar: 'from-orange-400 to-amber-500',
     },
     {

@@ -318,9 +318,10 @@ export function ConsultasSidebarPanel({
       label: 'Total de consultas',
       value: summary.total,
       icon: Stethoscope,
-      iconClass: 'bg-gradient-to-br from-orange-500 to-amber-500 text-white',
+      iconClass:
+        'bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-primary-gradient-end)] text-white',
       valueClass:
-        'bg-gradient-to-r from-[var(--brand-primary)] to-[#ff9a3d] bg-clip-text text-transparent',
+        'bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-primary-gradient-end)] bg-clip-text text-transparent',
     },
     {
       label: 'Concluídas',

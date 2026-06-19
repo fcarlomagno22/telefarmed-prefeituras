@@ -274,7 +274,7 @@ export function TriageAnamnesisStep({
     subStep === 'review'
       ? isSubmitting
         ? 'Salvando…'
-        : 'Confirmar e ir para sala de espera'
+        : 'Acessar sala de espera'
       : 'Continuar'
 
   function patchMedication(id: string, field: keyof TriageMedication, value: string) {

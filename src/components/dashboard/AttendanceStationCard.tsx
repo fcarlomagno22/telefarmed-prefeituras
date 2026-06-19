@@ -71,7 +71,7 @@ const statusLabels: Record<StationStatus, { label: string; className: string }> 
   },
   confirm_registration: {
     label: 'Confirmar cadastro',
-    className: 'bg-orange-50 text-orange-800 ring-orange-200',
+    className: 'bg-[var(--brand-primary-muted)] text-[var(--brand-primary)] ring-[var(--brand-primary-border)]',
   },
   registration: {
     label: 'Cadastro do paciente',
@@ -104,7 +104,7 @@ const statusLabels: Record<StationStatus, { label: string; className: string }> 
   in_consultation: {
     label: 'Em atendimento',
     className:
-      'bg-[var(--brand-primary-light)] text-[var(--brand-primary)] ring-orange-200',
+      'bg-[var(--brand-primary-light)] text-[var(--brand-primary)] ring-[var(--brand-primary-border)]',
   },
 }
 
@@ -550,7 +550,7 @@ export function AttendanceStationCard({
       {isFlowStepStatus(status) ? <AttendanceFlowStepper status={status} /> : null}
 
       {calledFromQueueName && isFlowStep && !isLoadingFromQueue ? (
-        <p className="relative z-10 mt-3 rounded-xl border border-orange-200/90 bg-orange-50/90 px-4 py-2.5 text-sm text-orange-900/90">
+        <p className="relative z-10 mt-3 rounded-xl border border-[var(--brand-primary-border)] bg-[var(--brand-primary-muted)]/90 px-4 py-2.5 text-sm text-[var(--brand-primary)]/90">
           <strong className="font-semibold">{calledFromQueueName}</strong> chamado(a) da
           fila — especialidade{' '}
           <strong className="font-semibold">{session.specialtyName}</strong>. Dados
@@ -568,7 +568,7 @@ export function AttendanceStationCard({
       ) : null}
 
       {isLoadingFromQueue ? (
-        <div className="relative z-10 mt-6 flex min-h-0 flex-1 flex-col items-center justify-center gap-3 rounded-2xl border border-orange-100 bg-orange-50/50 px-6 py-12">
+        <div className="relative z-10 mt-6 flex min-h-0 flex-1 flex-col items-center justify-center gap-3 rounded-2xl border border-[var(--brand-primary-border)] bg-[var(--brand-primary-muted)]/50 px-6 py-12">
           <Loader2 className="h-8 w-8 animate-spin text-[var(--brand-primary)]" />
           <p className="text-sm font-medium text-gray-700">Carregando dados do paciente…</p>
         </div>
@@ -594,7 +594,7 @@ export function AttendanceStationCard({
               setFlowError(null)
               setStatus('specialty')
             }}
-            className="mt-8 rounded-xl bg-[var(--brand-primary)] px-10 py-4 text-base font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)] sm:px-12"
+            className="mt-8 rounded-xl bg-[var(--brand-primary)] px-10 py-4 text-base font-semibold text-white shadow-[var(--brand-primary-shadow-sm)] transition hover:bg-[var(--brand-primary-hover)] sm:px-12"
           >
             Iniciar atendimento do paciente
           </button>

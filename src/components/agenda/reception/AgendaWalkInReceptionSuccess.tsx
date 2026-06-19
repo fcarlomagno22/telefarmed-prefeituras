@@ -19,7 +19,7 @@ export function AgendaWalkInReceptionSuccess({
       <h3 className="mt-6 text-xl font-bold text-gray-900">Encaixe presencial registrado</h3>
       <p className="mt-2 max-w-md text-sm leading-relaxed text-gray-500">
         <strong className="text-gray-800">{appointment.patientName}</strong> foi incluído na
-        agenda do dia como <strong className="text-orange-700">Aguardando</strong> e na fila de
+        agenda do dia como <strong className="text-[var(--brand-primary)]">Aguardando</strong> e na fila de
         espera da triagem (tipo Presencial).
       </p>
 
@@ -50,7 +50,7 @@ export function AgendaWalkInReceptionSuccess({
       <button
         type="button"
         onClick={onClose}
-        className="mt-8 rounded-xl bg-[var(--brand-primary)] px-8 py-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
+        className="mt-8 rounded-xl bg-[var(--brand-primary)] px-8 py-3.5 text-sm font-semibold text-white shadow-[var(--brand-primary-shadow-sm)] transition hover:bg-[var(--brand-primary-hover)]"
       >
         Fechar
       </button>

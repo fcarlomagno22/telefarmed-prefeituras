@@ -158,7 +158,7 @@ export function ConsultasFiltersMegamenu({
         role="region"
         aria-label="Filtros de busca de consultas"
         style={panelStyle}
-        className="pointer-events-auto flex flex-col overflow-hidden rounded-xl border-2 border-[var(--brand-primary)] bg-white shadow-[0_6px_24px_rgba(255,107,0,0.1)]"
+        className="pointer-events-auto flex flex-col overflow-hidden rounded-xl border-2 border-[var(--brand-primary)] bg-white shadow-[var(--brand-primary-shadow-sm)]"
       >
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-3 sm:p-4">
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-3 lg:gap-0 lg:divide-x lg:divide-gray-100">
@@ -255,7 +255,7 @@ export function ConsultasFiltersMegamenu({
             <button
               type="button"
               onClick={handleApply}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[var(--brand-primary)] px-3 py-1.5 text-xs font-semibold text-white shadow-[0_2px_10px_rgba(255,107,0,0.3)] transition hover:bg-[var(--brand-primary-hover)] sm:flex-none"
+              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[var(--brand-primary)] px-3 py-1.5 text-xs font-semibold text-white shadow-[var(--brand-primary-shadow-sm)] transition hover:bg-[var(--brand-primary-hover)] sm:flex-none"
             >
               <Search className="h-3.5 w-3.5" strokeWidth={2} />
               Aplicar filtros

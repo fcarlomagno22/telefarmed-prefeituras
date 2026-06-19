@@ -38,7 +38,7 @@ function QueueRow({ entry, position, canCall, now, callDisabled, onCall }: Queue
       className={[
         'rounded-xl border px-3 py-2.5 transition',
         priority
-          ? 'border-orange-200/90 bg-orange-50/80'
+          ? 'border-[var(--brand-primary-border)] bg-[var(--brand-primary-muted)]/80'
           : canCall
             ? 'border-[var(--brand-primary)]/25 bg-[var(--brand-primary-light)]/35 shadow-sm'
             : 'border-gray-100 bg-white',
@@ -160,9 +160,9 @@ export function UnitWaitingQueueCard({
   }
 
   return (
-    <aside className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-orange-100/80 bg-gradient-to-b from-[var(--brand-primary-light)]/40 via-white to-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
-      <header className="shrink-0 border-b border-orange-100/60 px-4 py-4 sm:px-5">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-primary)] ring-1 ring-orange-100">
+    <aside className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-[var(--brand-primary-border)] bg-gradient-to-b from-[var(--brand-primary-light)]/40 via-white to-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
+      <header className="shrink-0 border-b border-[var(--brand-primary-border)] px-4 py-4 sm:px-5">
+        <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--brand-primary)] ring-1 ring-[var(--brand-primary-border)]">
           <ListOrdered className="h-3.5 w-3.5" strokeWidth={2} />
           Fila de espera
         </span>
@@ -178,19 +178,19 @@ export function UnitWaitingQueueCard({
         </p>
 
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-2.5 py-1 ring-1 ring-orange-100">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-2.5 py-1 ring-1 ring-[var(--brand-primary-border)]">
             <Clock3 className="h-3.5 w-3.5 shrink-0 text-[var(--brand-primary)]" strokeWidth={2} />
             <span>
               Agora:{' '}
               <strong className="tabular-nums text-gray-900">{localClock}</strong>
             </span>
           </span>
-          <span className="inline-flex rounded-full bg-white/80 px-2.5 py-1 ring-1 ring-orange-100">
+          <span className="inline-flex rounded-full bg-white/80 px-2.5 py-1 ring-1 ring-[var(--brand-primary-border)]">
             <strong className="tabular-nums text-gray-900">{ordered.length}</strong>
             <span className="ml-1">na fila</span>
           </span>
           {priorityCount > 0 ? (
-            <span className="inline-flex rounded-full bg-orange-100/80 px-2.5 py-1 font-medium text-orange-800 ring-1 ring-orange-200">
+            <span className="inline-flex rounded-full bg-[var(--brand-primary-light)] px-2.5 py-1 font-medium text-[var(--brand-primary)] ring-1 ring-[var(--brand-primary-border)]">
               <strong className="tabular-nums">{priorityCount}</strong>
               <span className="ml-1">prioritário{priorityCount === 1 ? '' : 's'}</span>
             </span>
@@ -216,7 +216,7 @@ export function UnitWaitingQueueCard({
           </div>
         ) : ordered.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-2 py-10 text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-gray-400 ring-1 ring-orange-100">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-gray-400 ring-1 ring-[var(--brand-primary-border)]">
               <UserRound className="h-6 w-6" strokeWidth={1.75} />
             </span>
             <p className="text-sm font-medium text-gray-700">Nenhum paciente aguardando</p>
@@ -242,7 +242,7 @@ export function UnitWaitingQueueCard({
         )}
       </div>
 
-      <footer className="shrink-0 border-t border-orange-100/60 px-4 py-3 sm:px-5">
+      <footer className="shrink-0 border-t border-[var(--brand-primary-border)] px-4 py-3 sm:px-5">
         {ordered.length > 0 ? (
           <button
             type="button"

@@ -425,7 +425,7 @@ function drawPatientPanel(doc: PdfDoc, context: ClinicalDocumentContext, pageWid
 }
 
 function drawSection(doc: PdfDoc, title: string, lines: string[], layout: ContentLayout) {
-  const { pageWidth, contentBottom } = layout
+  const { pageWidth } = layout
   const contentWidth = pageWidth
   const isNumberedList = lines.length > 0 && /^\d+\.\s/.test(lines[0] ?? '')
   let titleDrawn = false

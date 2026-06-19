@@ -476,7 +476,7 @@ export function NewSupportTicketDrawer({
             <button
               type="submit"
               disabled={!canSubmit}
-              className="rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-[var(--brand-primary-shadow-sm)] transition hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? 'Enviando…' : 'Enviar chamado'}
             </button>

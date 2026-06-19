@@ -89,7 +89,7 @@ export function AgendaReceptionModal({
             <X className="h-4 w-4" strokeWidth={2.5} />
           </button>
 
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[var(--brand-primary)] shadow-[0_4px_16px_rgba(255,107,0,0.22)] ring-1 ring-orange-100">
+          <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[var(--brand-primary)] shadow-[var(--brand-primary-shadow-sm)] ring-1 ring-[var(--brand-primary-border)]">
             {step === 'success' ? (
               <CheckCircle2 className="h-6 w-6 text-emerald-500" strokeWidth={2} />
             ) : (
@@ -108,7 +108,7 @@ export function AgendaReceptionModal({
           ) : (
             <p className="mt-2 text-sm leading-relaxed text-gray-600">
               <strong className="font-semibold text-gray-800">{appointment.patientName}</strong>{' '}
-              está na fila da triagem e como <strong className="text-orange-700">Aguardando</strong>{' '}
+              está na fila da triagem e como <strong className="text-[var(--brand-primary)]">Aguardando</strong>{' '}
               na agenda.
             </p>
           )}
@@ -119,7 +119,7 @@ export function AgendaReceptionModal({
             <div className="space-y-4">
               <div className="rounded-xl border border-gray-200 bg-gray-50/70 px-4 py-3.5">
                 <div className="flex items-start gap-3">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-[var(--brand-primary)] ring-1 ring-orange-100">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-[var(--brand-primary)] ring-1 ring-[var(--brand-primary-border)]">
                     <UserRound className="h-5 w-5" strokeWidth={2} />
                   </span>
                   <div className="min-w-0">
@@ -143,13 +143,13 @@ export function AgendaReceptionModal({
                 </div>
               </div>
 
-              <div className="flex items-start gap-2.5 rounded-xl border border-orange-200/90 bg-orange-50/90 px-3.5 py-3">
+              <div className="flex items-start gap-2.5 rounded-xl border border-[var(--brand-primary-border)] bg-[var(--brand-primary-muted)]/90 px-3.5 py-3">
                 <MapPin
                   className="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand-primary)]"
                   strokeWidth={2}
                   aria-hidden
                 />
-                <p className="text-xs leading-relaxed text-orange-900/90">
+                <p className="text-xs leading-relaxed text-[var(--brand-primary)]/90">
                   O paciente já foi identificado no agendamento telefônico. A recepção apenas
                   registra a presença na unidade e coloca na{' '}
                   <strong className="font-semibold">fila de espera da triagem</strong>.
@@ -171,7 +171,7 @@ export function AgendaReceptionModal({
               <button
                 type="button"
                 onClick={confirmArrival}
-                className="w-full rounded-xl bg-gradient-to-r from-[var(--brand-primary)] to-[#ff8c33] px-4 py-3.5 text-sm font-semibold text-white shadow-[0_6px_20px_rgba(255,107,0,0.38)] transition hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-primary)]"
+                className="w-full rounded-xl bg-gradient-to-r from-[var(--brand-primary)] to-[#ff8c33] px-4 py-3.5 text-sm font-semibold text-white shadow-[var(--brand-primary-shadow-md)] transition hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-primary)]"
               >
                 Confirmar chegada na unidade
               </button>
@@ -192,7 +192,7 @@ export function AgendaReceptionModal({
               <button
                 type="button"
                 onClick={handleClose}
-                className="w-full rounded-xl bg-[var(--brand-primary)] px-4 py-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
+                className="w-full rounded-xl bg-[var(--brand-primary)] px-4 py-3.5 text-sm font-semibold text-white shadow-[var(--brand-primary-shadow-sm)] transition hover:bg-[var(--brand-primary-hover)]"
               >
                 Fechar
               </button>

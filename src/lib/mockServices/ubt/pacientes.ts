@@ -10,6 +10,7 @@ import { readUbtMockSession } from '../../mockAuth/ubtAuthMock'
 import type { PatientLookupContext, PatientLookupResult } from '../../../types/patientLookup'
 import { normalizePatientRegistration, type PatientRegistration } from '../../../types/attendance'
 import { maskCpf } from '../../../utils/masks'
+import { clearLgpdMaskedRegistrationField } from '../../../utils/lgpdMaskedValue'
 import { mockDelay } from '../delay'
 import { resolveAceitaPacientesOutrosMunicipios } from '../../../config/adminEntidadeTipo'
 import type { TipoEntidade } from '../../../types/entidadeBranding'
@@ -255,16 +256,16 @@ export function mapUbtDetailToPatientRegistration(
     cpf: detail.cpf.includes('.') ? detail.cpf : maskCpf(detail.cpf),
     birthDate: birthDateIso,
     gender: detail.gender,
-    phone: detail.phone,
-    email: detail.email,
+    phone: clearLgpdMaskedRegistrationField(detail.phone),
+    email: clearLgpdMaskedRegistrationField(detail.email),
     guardianName: detail.guardianName,
-    guardianCpf: detail.guardianCpf,
+    guardianCpf: clearLgpdMaskedRegistrationField(detail.guardianCpf),
     contacts: detail.contacts,
-    zipCode: detail.zipCode,
-    street: detail.street,
-    number: detail.number,
-    complement: detail.complement,
-    neighborhood: detail.neighborhood,
+    zipCode: clearLgpdMaskedRegistrationField(detail.zipCode),
+    street: clearLgpdMaskedRegistrationField(detail.street),
+    number: clearLgpdMaskedRegistrationField(detail.number),
+    complement: clearLgpdMaskedRegistrationField(detail.complement),
+    neighborhood: clearLgpdMaskedRegistrationField(detail.neighborhood),
     city: detail.city,
     state: detail.state,
     photoDataUrl: detail.photoDataUrl,
@@ -280,12 +281,12 @@ function birthDateBrToIso(birthDate: string): string {
 
 export function mapPatientRegistrationToUbtPayload(
   registration: PatientRegistration,
-): Omit<PatientRegistration, 'photoDataUrl'> & { photoDataUrl?: string } {
+): Partial<Omit<PatientRegistration, 'photoDataUrl'>> & { photoDataUrl?: string } {
   const cleanedContacts = (registration.contacts ?? []).filter(
     (contact) => contact.name.trim() && contact.phone.replace(/\D/g, '').length >= 10,
   )
 
-  return {
+  const payload: Partial<Omit<PatientRegistration, 'photoDataUrl'>> & { photoDataUrl?: string } = {
     fullName: registration.fullName,
     socialName: registration.socialName,
     cpf: registration.cpf,
@@ -304,7 +305,25 @@ export function mapPatientRegistrationToUbtPayload(
     city: registration.city,
     state: registration.state,
     photoDataUrl: registration.photoDataUrl || undefined,
-  } as Omit<PatientRegistration, 'photoDataUrl'> & { photoDataUrl?: string }
+  }
+
+  if (clearLgpdMaskedRegistrationField(payload.phone) === '') delete payload.phone
+  if (clearLgpdMaskedRegistrationField(payload.email) === '') delete payload.email
+  if (clearLgpdMaskedRegistrationField(payload.guardianCpf) === '') delete payload.guardianCpf
+  if (clearLgpdMaskedRegistrationField(payload.zipCode) === '') delete payload.zipCode
+  if (clearLgpdMaskedRegistrationField(payload.street) === '') delete payload.street
+  if (clearLgpdMaskedRegistrationField(payload.number) === '') delete payload.number
+  if (clearLgpdMaskedRegistrationField(payload.complement) === '') delete payload.complement
+  if (clearLgpdMaskedRegistrationField(payload.neighborhood) === '') delete payload.neighborhood
+
+  if (payload.contacts?.length) {
+    payload.contacts = payload.contacts.filter(
+      (contact) => clearLgpdMaskedRegistrationField(contact.phone) !== '',
+    )
+    if (payload.contacts.length === 0) delete payload.contacts
+  }
+
+  return payload
 }
 
 export async function fetchUbtPacientesSummary(

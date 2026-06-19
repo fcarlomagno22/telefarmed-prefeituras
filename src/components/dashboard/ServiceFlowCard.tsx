@@ -7,7 +7,7 @@ const flowIcons = [Users, Clock, CheckCircle2, Phone]
 
 const barColors = {
   orange:
-    'bg-gradient-to-r from-orange-300 via-[var(--brand-primary)] to-orange-600',
+    'bg-gradient-to-r from-[var(--brand-primary-gradient-start)] via-[var(--brand-primary)] to-[var(--brand-primary-gradient-end)]',
   green: 'bg-gradient-to-r from-emerald-300 via-emerald-500 to-emerald-700',
   red: 'bg-gradient-to-r from-red-300 via-red-500 to-red-700',
 }

@@ -48,7 +48,7 @@ export function ScheduleAppointmentSuccess({ draft, onClose }: ScheduleAppointme
       <button
         type="button"
         onClick={onClose}
-        className="mt-8 rounded-xl bg-[var(--brand-primary)] px-8 py-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
+        className="mt-8 rounded-xl bg-[var(--brand-primary)] px-8 py-3.5 text-sm font-semibold text-white shadow-[var(--brand-primary-shadow-sm)] transition hover:bg-[var(--brand-primary-hover)]"
       >
         Fechar
       </button>

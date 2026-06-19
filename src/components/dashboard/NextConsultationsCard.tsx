@@ -147,7 +147,7 @@ export function NextConsultationsCard({
 
       <Link
         to={ubtRoutes.agenda}
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] py-3 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] py-3 text-sm font-semibold text-white shadow-[var(--brand-primary-shadow-sm)] transition hover:bg-[var(--brand-primary-hover)]"
       >
         <Calendar className="h-4 w-4" strokeWidth={2} />
         Ver agenda completa

@@ -88,7 +88,7 @@ export function PatientPhotoStep({
           type="button"
           onClick={onOpenCapture}
           disabled={isSubmitting}
-          className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-6 py-3.5 text-sm font-semibold text-white shadow-[var(--brand-primary-shadow-sm)] transition hover:bg-[var(--brand-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Camera className="h-4 w-4" strokeWidth={2} />
           Tirar foto

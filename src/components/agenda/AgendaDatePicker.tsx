@@ -133,8 +133,8 @@ export function AgendaDatePicker({
         className={[
           'inline-flex h-9 w-9 items-center justify-center rounded-lg border transition',
           open
-            ? 'border-[var(--brand-primary)]/40 bg-orange-50 text-[var(--brand-primary)] shadow-[0_0_0_3px_rgba(255,107,0,0.12)]'
-            : 'border-gray-200 bg-white text-gray-600 hover:border-[var(--brand-primary)]/30 hover:bg-orange-50 hover:text-[var(--brand-primary)]',
+            ? 'border-[var(--brand-primary)]/40 bg-[var(--brand-primary-muted)] text-[var(--brand-primary)] shadow-[var(--brand-primary-focus-ring)]'
+            : 'border-gray-200 bg-white text-gray-600 hover:border-[var(--brand-primary)]/30 hover:bg-[var(--brand-primary-muted)] hover:text-[var(--brand-primary)]',
         ].join(' ')}
       >
         <Calendar className="h-4 w-4" strokeWidth={2} />
@@ -195,9 +195,9 @@ export function AgendaDatePicker({
                     className={[
                       'relative flex h-9 flex-col items-center justify-center rounded-lg text-sm font-medium transition',
                       !inCurrentMonth && 'text-gray-300',
-                      inCurrentMonth && !selected && 'text-gray-700 hover:bg-orange-50',
+                      inCurrentMonth && !selected && 'text-gray-700 hover:bg-[var(--brand-primary-muted)]',
                       selected &&
-                        'bg-gradient-to-br from-[var(--brand-primary)] to-[#ff8c33] text-white shadow-[0_4px_12px_rgba(255,107,0,0.35)]',
+                        'bg-gradient-to-br from-[var(--brand-primary)] to-[#ff8c33] text-white shadow-[var(--brand-primary-shadow-sm)]',
                       today && !selected && 'ring-2 ring-[var(--brand-primary)]/25 ring-offset-1',
                     ]
                       .filter(Boolean)
@@ -236,7 +236,7 @@ export function AgendaDatePicker({
               <button
                 type="button"
                 onClick={() => handleSelectDay(new Date(todayRef))}
-                className="rounded-lg bg-gray-50 px-2.5 py-1.5 text-xs font-semibold text-[var(--brand-primary)] transition hover:bg-orange-50"
+                className="rounded-lg bg-gray-50 px-2.5 py-1.5 text-xs font-semibold text-[var(--brand-primary)] transition hover:bg-[var(--brand-primary-muted)]"
               >
                 Hoje
               </button>

@@ -252,7 +252,7 @@ export function WalkInDoctorTimeStep({
                                   className={[
                                     'flex h-11 w-full items-center justify-center rounded-xl border text-sm font-semibold tabular-nums transition',
                                     isSelected
-                                      ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)]'
+                                      ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white shadow-[var(--brand-primary-shadow-sm)]'
                                       : 'border-gray-200 bg-white text-gray-800 hover:border-[var(--brand-primary)]/40 hover:bg-[var(--brand-primary-light)]/40',
                                   ].join(' ')}
                                 >

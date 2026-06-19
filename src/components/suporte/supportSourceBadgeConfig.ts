@@ -17,7 +17,7 @@ export const supportSourceBadgeConfig: Record<SupportTicketSource, SituationStat
   },
   profissional: {
     label: 'Profissional',
-    text: 'text-orange-700',
+    text: 'text-[var(--brand-primary)]',
     accent: 'bg-gradient-to-r from-orange-400 via-[var(--brand-primary)] to-amber-500',
     lineGlow: 'shadow-[0_2px_10px_rgba(255,107,0,0.55)]',
   },

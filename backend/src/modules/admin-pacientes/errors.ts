@@ -4,6 +4,9 @@ import type { ZodError } from 'zod'
 export function formatPacientesValidationError(error: ZodError): string {
   const issue = error.issues[0]
   if (!issue) return 'Dados inválidos.'
+  if (typeof issue.message === 'string' && issue.message.trim()) {
+    return issue.message
+  }
   return 'Dados inválidos.'
 }
 

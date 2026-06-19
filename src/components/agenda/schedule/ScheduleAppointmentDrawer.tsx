@@ -238,7 +238,7 @@ export function ScheduleAppointmentDrawer({
       >
         <header className="shrink-0 border-b border-gray-200 bg-gradient-to-b from-[var(--brand-primary-light)]/60 to-white px-5 pb-4 pt-4 sm:px-6">
           <div className="flex items-start gap-4">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand-primary)] text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)]">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--brand-primary)] text-white shadow-[var(--brand-primary-shadow-sm)]">
               <CalendarPlus className="h-6 w-6" strokeWidth={2} />
             </span>
             <div className="min-w-0 flex-1">

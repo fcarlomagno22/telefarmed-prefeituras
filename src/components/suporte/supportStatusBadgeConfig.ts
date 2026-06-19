@@ -14,7 +14,7 @@ export const supportTicketStatusBadgeConfig: Record<
   },
   aguardando_resposta: {
     label: 'Aguardando resposta',
-    text: 'text-orange-700',
+    text: 'text-[var(--brand-primary)]',
     accent: 'bg-gradient-to-r from-amber-400 via-orange-500 to-[#ff6b00]',
     lineGlow: 'shadow-[0_2px_10px_rgba(255,107,0,0.55)]',
   },

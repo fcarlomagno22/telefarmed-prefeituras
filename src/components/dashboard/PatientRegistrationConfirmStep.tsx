@@ -123,7 +123,7 @@ export function PatientRegistrationConfirmStep({
         className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto no-scrollbar"
       >
         <section className="shrink-0 rounded-2xl border border-gray-200 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_10px_rgba(0,0,0,0.05)]">
-          <div className="overflow-visible rounded-t-2xl bg-gradient-to-r from-[var(--brand-primary-light)] via-orange-50/90 to-gray-50 px-5 py-3.5 sm:px-6 sm:py-4">
+          <div className="overflow-visible rounded-t-2xl bg-gradient-to-r from-[var(--brand-primary-light)] via-[var(--brand-primary-muted)]/90 to-gray-50 px-5 py-3.5 sm:px-6 sm:py-4">
             <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-5">
               <div className="relative shrink-0">
                 {data.photoDataUrl ? (
@@ -170,7 +170,7 @@ export function PatientRegistrationConfirmStep({
                 <button
                   type="button"
                   onClick={onOpenPhotoCapture}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-[var(--brand-primary-shadow-sm)] transition hover:bg-[var(--brand-primary-hover)]"
                 >
                   <Camera className="h-4 w-4 shrink-0" strokeWidth={2} />
                   {data.photoDataUrl ? 'Atualizar foto' : 'Tirar foto'}

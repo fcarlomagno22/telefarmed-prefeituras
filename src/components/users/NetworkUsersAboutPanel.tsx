@@ -148,7 +148,7 @@ function AgeBars({ slices }: { slices: NetworkUsersAgeSlice[] }) {
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-gray-100">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[var(--brand-primary)] to-[#ff9a3d]"
+              className="h-full rounded-full bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-primary-gradient-end)]"
               style={{
                 width: animate ? `${(slice.percent / maxPercent) * 100}%` : '0%',
                 transition: `width 0.9s ${CHART_EASE} ${index * 0.12}s`,

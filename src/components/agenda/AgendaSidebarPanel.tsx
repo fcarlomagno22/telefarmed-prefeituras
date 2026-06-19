@@ -66,7 +66,7 @@ export function AgendaSidebarPanel({
           <button
             type="button"
             onClick={onScheduleAppointment}
-            className="flex w-full items-center gap-3 rounded-xl bg-[var(--brand-primary)] px-4 py-3.5 text-left shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
+            className="flex w-full items-center gap-3 rounded-xl bg-[var(--brand-primary)] px-4 py-3.5 text-left shadow-[var(--brand-primary-shadow-sm)] transition hover:bg-[var(--brand-primary-hover)]"
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/20">
               <Plus className="h-5 w-5 text-white" strokeWidth={2.5} />

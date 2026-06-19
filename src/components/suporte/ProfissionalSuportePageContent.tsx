@@ -134,7 +134,7 @@ export function ProfissionalSuportePageContent() {
                   <button
                     type="button"
                     onClick={() => tour.startTour({ replay: true })}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50/80 px-3 py-2 text-xs font-semibold text-[var(--brand-primary)] transition hover:bg-orange-100"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-orange-200 bg-[var(--brand-primary-muted)]/80 px-3 py-2 text-xs font-semibold text-[var(--brand-primary)] transition hover:bg-orange-100"
                   >
                     Ver tour guiado
                   </button>

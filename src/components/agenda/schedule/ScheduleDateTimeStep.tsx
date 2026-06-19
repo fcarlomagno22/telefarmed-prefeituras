@@ -368,7 +368,7 @@ export function ScheduleDateTimeStep({
           disabled
             ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300'
             : selected
-              ? 'border-[var(--brand-primary)] bg-[var(--brand-primary-light)] text-[var(--brand-primary)] shadow-[0_4px_14px_rgba(255,107,0,0.2)] ring-2 ring-[var(--brand-primary)]/15'
+              ? 'border-[var(--brand-primary)] bg-[var(--brand-primary-light)] text-[var(--brand-primary)] shadow-[var(--brand-primary-shadow-sm)] ring-2 ring-[var(--brand-primary)]/15'
               : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50',
         ].join(' ')}
       >
@@ -533,7 +533,7 @@ export function ScheduleDateTimeStep({
                       disabled
                         ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300 line-through'
                         : isSelected
-                          ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)]'
+                          ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white shadow-[var(--brand-primary-shadow-sm)]'
                           : 'border-gray-200 bg-white text-gray-800 hover:border-[var(--brand-primary)]/40 hover:bg-[var(--brand-primary-light)]/40',
                     ].join(' ')}
                   >

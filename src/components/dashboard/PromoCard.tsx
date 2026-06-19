@@ -4,7 +4,7 @@ export function PromoCard() {
   const hasImage = brand.dashboardPromoImageUrl.trim() !== ''
 
   return (
-    <aside className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--brand-primary)] to-[#ff9a3d] p-6 text-white shadow-[0_8px_24px_rgba(255,107,0,0.25)]">
+    <aside className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--brand-primary)] to-[var(--brand-primary-gradient-end)] p-6 text-white shadow-[var(--brand-primary-shadow-md)]">
       <p className="relative z-10 max-w-[220px] text-sm font-medium leading-relaxed">
         {brand.dashboardPromoText}
       </p>

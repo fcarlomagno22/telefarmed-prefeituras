@@ -52,7 +52,7 @@ export function PatientPanel({
         <button
           type="button"
           onClick={primaryAction.onClick}
-          className="inline-flex items-center gap-2 rounded-xl bg-[var(--brand-primary)] px-5 py-3 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(255,107,0,0.35)] transition hover:bg-[var(--brand-primary-hover)]"
+          className="inline-flex items-center gap-2 rounded-xl bg-[var(--brand-primary)] px-5 py-3 text-sm font-semibold text-white shadow-[var(--brand-primary-shadow-sm)] transition hover:bg-[var(--brand-primary-hover)]"
         >
           <Video className="h-4 w-4" strokeWidth={2} />
           {primaryAction.label}

@@ -136,7 +136,7 @@ function getInitials(name: string) {
 }
 
 const avatarPalette = [
-  'bg-orange-100 text-orange-700',
+  'bg-orange-100 text-[var(--brand-primary)]',
   'bg-sky-100 text-sky-700',
   'bg-violet-100 text-violet-700',
   'bg-emerald-100 text-emerald-700',
