@@ -1,74 +1,59 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import { usePrefeituraAuth } from '../contexts/PrefeituraAuthContext'
 import type { KpiStatCardItem } from '../components/ui/KpiStatCards'
 import type { DonutSlice } from '../components/credenciais/CredentialDonutChart'
 import type { PrefeituraRedeUnit } from '../data/prefeituraRedeMock'
 import {
-  fetchPrefeituraRedeOverview,
   fetchPrefeituraRedeUnitDetail,
-  fetchPrefeituraRedeUnits,
-  isPrefeituraRedeApiError,
   mapApiUnitToRedeUnit,
   mapOverviewDonutSlices,
   mapOverviewKpisToCards,
   type PrefeituraRedeUnitDetailApi,
 } from '../lib/services/prefeitura/rede'
+import {
+  getPrefeituraRedeQueryErrorMessage,
+  useInvalidatePrefeituraRedeQueries,
+  usePrefeituraRedeOverviewQuery,
+  usePrefeituraRedeUnitsQuery,
+} from '../lib/query/prefeituraRedeQueries'
 
 export function usePrefeituraRedePage() {
-  const { getAccessToken, isAuthenticated, isBootstrapping } = usePrefeituraAuth()
-  const [units, setUnits] = useState<PrefeituraRedeUnit[]>([])
-  const [kpiCards, setKpiCards] = useState<KpiStatCardItem[]>([])
-  const [regionSlices, setRegionSlices] = useState<DonutSlice[]>([])
-  const [stationStatusSlices, setStationStatusSlices] = useState<DonutSlice[]>([])
-  const [regionFilterOptions, setRegionFilterOptions] = useState<
-    Array<{ value: string; label: string }>
-  >([{ value: 'todas', label: 'Todas as regiões' }])
-  const [statusFilterOptions, setStatusFilterOptions] = useState<
-    Array<{ value: string; label: string }>
-  >([{ value: 'todas', label: 'Todos os status' }])
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState<string | null>(null)
+  const { getAccessToken, isBootstrapping } = usePrefeituraAuth()
+  const unitsQuery = usePrefeituraRedeUnitsQuery()
+  const overviewQuery = usePrefeituraRedeOverviewQuery()
+  const invalidateRedeQueries = useInvalidatePrefeituraRedeQueries()
+
+  const units: PrefeituraRedeUnit[] = (unitsQuery.data ?? []).map(mapApiUnitToRedeUnit)
+  const overview = overviewQuery.data
+
+  const kpiCards: KpiStatCardItem[] = overview
+    ? mapOverviewKpisToCards(overview.kpis)
+    : []
+  const regionSlices: DonutSlice[] = overview
+    ? mapOverviewDonutSlices(overview.regionSlices)
+    : []
+  const stationStatusSlices: DonutSlice[] = overview
+    ? mapOverviewDonutSlices(overview.stationStatusSlices)
+    : []
+  const regionFilterOptions = overview?.filterOptions.regions ?? [
+    { value: 'todas', label: 'Todas as regiões' },
+  ]
+  const statusFilterOptions = overview?.filterOptions.statuses ?? [
+    { value: 'todas', label: 'Todos os status' },
+  ]
+
+  const isLoading =
+    isBootstrapping || unitsQuery.isPending || overviewQuery.isPending
+  const loadError =
+    unitsQuery.isError
+      ? getPrefeituraRedeQueryErrorMessage(unitsQuery.error)
+      : overviewQuery.isError
+        ? getPrefeituraRedeQueryErrorMessage(overviewQuery.error)
+        : null
 
   const reload = useCallback(async () => {
-    const token = getAccessToken()
-    if (!token) {
-      setIsLoading(false)
-      return
-    }
-
-    setIsLoading(true)
-    setLoadError(null)
-
-    try {
-      const [overview, unitRows] = await Promise.all([
-        fetchPrefeituraRedeOverview(token),
-        fetchPrefeituraRedeUnits(token),
-      ])
-
-      setKpiCards(mapOverviewKpisToCards(overview.kpis))
-      setRegionSlices(mapOverviewDonutSlices(overview.regionSlices))
-      setStationStatusSlices(mapOverviewDonutSlices(overview.stationStatusSlices))
-      setRegionFilterOptions(overview.filterOptions.regions)
-      setStatusFilterOptions(overview.filterOptions.statuses)
-      setUnits(unitRows.map(mapApiUnitToRedeUnit))
-    } catch (error) {
-      const message = isPrefeituraRedeApiError(error)
-        ? error.message
-        : 'Não foi possível carregar a rede de UBTs.'
-      setLoadError(message)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [getAccessToken])
-
-  useEffect(() => {
-    if (isBootstrapping) return
-    if (!isAuthenticated) {
-      setIsLoading(false)
-      return
-    }
-    void reload()
-  }, [isAuthenticated, isBootstrapping, reload])
+    invalidateRedeQueries()
+  }, [invalidateRedeQueries])
 
   const loadUnitDetail = useCallback(
     async (unitId: string): Promise<PrefeituraRedeUnitDetailApi | null> => {

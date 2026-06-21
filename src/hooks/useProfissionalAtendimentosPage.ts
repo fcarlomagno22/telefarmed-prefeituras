@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useProfissionalAuth } from '../contexts/ProfissionalAuthContext'
 import {
   fetchProfissionalAtendimentosList,
@@ -10,31 +10,10 @@ import type {
 } from '../types/profissionalAtendimentos'
 import { defaultProfissionalAtendimentosFilters } from '../utils/profissional/filterProfissionalAtendimentos'
 import { getDefaultProfissionalAtendimentosPeriod } from '../utils/consultasPeriod'
-import {
-  readPortalPageCache,
-  writePortalPageCache,
-} from '../utils/portal/portalPageCache'
-import { shouldBlockPortalPageWithCache } from '../utils/portal/portalPageLoading'
+import { queryKeys } from '../lib/query/keys'
+import { PORTAL_PAGE_GC_MS, PORTAL_PAGE_STALE_MS } from '../lib/query/timings'
 
 const defaultPeriod = getDefaultProfissionalAtendimentosPeriod()
-
-type AtendimentosPageCache = {
-  records: ProfissionalAttendanceRecord[]
-  pagination: {
-    page: number
-    pageSize: number
-    total: number
-    totalPages: number
-  }
-}
-
-function atendimentosCacheKey(
-  filters: ProfissionalAtendimentosFilters,
-  page: number,
-  pageSize: number,
-) {
-  return `profissional:atendimentos:${JSON.stringify({ filters, page, pageSize })}`
-}
 
 export function useProfissionalAtendimentosPage(
   filters: ProfissionalAtendimentosFilters,
@@ -42,60 +21,37 @@ export function useProfissionalAtendimentosPage(
   pageSize = 10,
 ) {
   const { getAccessToken, isAuthenticated, isBootstrapping } = useProfissionalAuth()
-  const cacheKey = atendimentosCacheKey(filters, page, pageSize)
-  const cached = readPortalPageCache<AtendimentosPageCache>(cacheKey)
 
-  const [records, setRecords] = useState<ProfissionalAttendanceRecord[]>(cached?.records ?? [])
-  const [pagination, setPagination] = useState(
-    cached?.pagination ?? {
+  const query = useQuery({
+    queryKey: queryKeys.profissionalAtendimentos(filters, page, pageSize),
+    queryFn: async () => {
+      const token = getAccessToken()
+      if (!token) throw new Error('Sessão expirada.')
+      return fetchProfissionalAtendimentosList(token, filters, page, pageSize)
+    },
+    enabled: isAuthenticated && !isBootstrapping,
+    staleTime: PORTAL_PAGE_STALE_MS,
+    gcTime: PORTAL_PAGE_GC_MS,
+  })
+
+  return {
+    records: query.data?.records ?? [],
+    pagination: query.data?.pagination ?? {
       page: 1,
       pageSize,
       total: 0,
       totalPages: 1,
     },
-  )
-  const [isLoading, setIsLoading] = useState(shouldBlockPortalPageWithCache(cacheKey))
-  const [loadError, setLoadError] = useState<string | null>(null)
-
-  const reload = useCallback(async () => {
-    const token = getAccessToken()
-    if (!token) {
-      setIsLoading(false)
-      return
-    }
-
-    if (shouldBlockPortalPageWithCache(cacheKey)) {
-      setIsLoading(true)
-    }
-    setLoadError(null)
-    try {
-      const result = await fetchProfissionalAtendimentosList(token, filters, page, pageSize)
-      setRecords(result.records)
-      setPagination(result.pagination)
-      writePortalPageCache(cacheKey, {
-        records: result.records,
-        pagination: result.pagination,
-      })
-    } catch (error) {
-      const message = isProfissionalAtendimentosApiError(error)
-        ? error.message
+    isLoading: query.isPending,
+    loadError: query.isError
+      ? isProfissionalAtendimentosApiError(query.error)
+        ? query.error.message
         : 'Não foi possível carregar os atendimentos.'
-      setLoadError(message)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [cacheKey, filters, getAccessToken, page, pageSize])
-
-  useEffect(() => {
-    if (isBootstrapping) return
-    if (!isAuthenticated) {
-      setIsLoading(false)
-      return
-    }
-    void reload()
-  }, [isAuthenticated, isBootstrapping, reload])
-
-  return { records, pagination, isLoading, loadError, reload }
+      : null,
+    reload: async () => {
+      await query.refetch()
+    },
+  }
 }
 
 export function createDefaultProfissionalAtendimentosFilters(): ProfissionalAtendimentosFilters {

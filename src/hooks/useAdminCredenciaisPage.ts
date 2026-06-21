@@ -4,15 +4,14 @@ import type { KpiStatCardItem } from '../components/ui/KpiStatCards'
 import type { AdminInternoCredentialUser } from '../config/adminCredenciaisConfig'
 import type { PrefeituraCredentialUser } from '../config/prefeituraCredenciaisConfig'
 import { useAdminAuth } from '../contexts/AdminAuthContext'
+import { useAdminUbtOptionsQuery } from '../lib/query/ubtOptionsQueries'
 import type { AdminOperatorRow } from '../data/adminOperadoresMock'
-import type { PrefeituraCredentialUbtOption } from '../data/prefeituraAccessCredentialsMock'
 import {
   fetchContractingEntities,
   fetchCredenciaisKpis,
   fetchInternoCredentials,
   fetchPortalCredentials,
   fetchPrefeituraCredentials,
-  fetchUbtOptions,
   isCredenciaisApiError,
   type CredenciaisKpis,
 } from '../lib/services/admin/credenciais'
@@ -70,11 +69,15 @@ export function useAdminCredenciaisPage() {
   const { getAccessToken, isAuthenticated, isBootstrapping } = useAdminAuth()
   const getAccessTokenRef = useRef(getAccessToken)
   getAccessTokenRef.current = getAccessToken
+  const ubtOptionsQuery = useAdminUbtOptionsQuery(
+    () => getAccessTokenRef.current(),
+    isAuthenticated && !isBootstrapping,
+  )
 
   const [internoRows, setInternoRows] = useState<AdminInternoCredentialUser[]>([])
   const [prefeituraRows, setPrefeituraRows] = useState<PrefeituraCredentialUser[]>([])
   const [operatorRows, setOperatorRows] = useState<AdminOperatorRow[]>([])
-  const [ubtOptions, setUbtOptions] = useState<PrefeituraCredentialUbtOption[]>([])
+  const ubtOptions = ubtOptionsQuery.data ?? []
   const [contractingEntityOptions, setContractingEntityOptions] = useState<
     Array<{ value: string; label: string }>
   >([])
@@ -94,19 +97,18 @@ export function useAdminCredenciaisPage() {
     setLoadError(null)
 
     try {
-      const [kpis, internos, prefeitura, ubt, ubts, entities] = await Promise.all([
+      const [kpis, internos, prefeitura, ubt, entities] = await Promise.all([
         fetchCredenciaisKpis(token),
         fetchInternoCredentials(token),
         fetchPrefeituraCredentials(token),
         fetchPortalCredentials(token, 'UBT'),
-        fetchUbtOptions(token),
         fetchContractingEntities(token),
       ])
 
       setInternoRows(internos)
       setPrefeituraRows(prefeitura)
       setOperatorRows(ubt)
-      setUbtOptions(ubts)
+      await ubtOptionsQuery.refetch()
       setContractingEntityOptions(
         entities.map((entity) => ({ value: entity.id, label: entity.label })),
       )
@@ -122,7 +124,7 @@ export function useAdminCredenciaisPage() {
         setIsLoading(false)
       }
     }
-  }, [])
+  }, [ubtOptionsQuery])
 
   useEffect(() => {
     if (isBootstrapping) return
@@ -160,8 +162,10 @@ export function useAdminCredenciaisPage() {
       ubtOptions,
       contractingEntityOptions,
       kpiCards,
-      isLoading: isLoading || isBootstrapping,
-      loadError,
+      isLoading: isLoading || isBootstrapping || ubtOptionsQuery.isPending,
+      loadError:
+        loadError ??
+        (ubtOptionsQuery.isError ? 'Não foi possível carregar as unidades UBT.' : null),
       reload,
       refreshKpis,
       afterMutation,
@@ -176,6 +180,8 @@ export function useAdminCredenciaisPage() {
       kpiCards,
       isLoading,
       isBootstrapping,
+      ubtOptionsQuery.isPending,
+      ubtOptionsQuery.isError,
       loadError,
       reload,
       refreshKpis,

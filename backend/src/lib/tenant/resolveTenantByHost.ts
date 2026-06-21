@@ -1,3 +1,4 @@
+import { withCatalogCache } from '../cache/catalogCache.js'
 import { getEntidadeBrandingById } from '../entidadeBranding/branding.service.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { buildPlatformTenantBranding, toTenantBranding } from './branding.js'
@@ -57,6 +58,10 @@ export async function resolveTenantBySlug(slugInput: string): Promise<ResolvedTe
     return resolveTenantBySlug(redirectSlug)
   }
 
+  return withCatalogCache('tenant', slug, () => resolveTenantBySlugFromDb(slug))
+}
+
+async function resolveTenantBySlugFromDb(slug: string): Promise<ResolvedTenant | null> {
   const { data: entidade, error: entidadeError } = await supabaseAdmin
     .from('entidades_contratantes')
     .select('id, slug')

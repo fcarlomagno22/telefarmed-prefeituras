@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useProfissionalAuth } from '../contexts/ProfissionalAuthContext'
 import type { ProfissionalPerfil } from '../types/profissionalPerfil'
 import {
@@ -6,54 +7,25 @@ import {
   isProfissionalPerfilApiError,
   patchProfissionalPerfil,
 } from '../lib/services/profissional/perfil'
-import {
-  readPortalPageCache,
-  writePortalPageCache,
-} from '../utils/portal/portalPageCache'
-import { shouldBlockPortalPageWithCache } from '../utils/portal/portalPageLoading'
-
-const PERFIL_CACHE_KEY = 'profissional:perfil'
+import { queryKeys } from '../lib/query/keys'
+import { PORTAL_PAGE_GC_MS, PORTAL_PAGE_STALE_MS } from '../lib/query/timings'
 
 export function useProfissionalPerfilPage() {
   const { getAccessToken, isAuthenticated, isBootstrapping } = useProfissionalAuth()
-  const [profile, setProfile] = useState<ProfissionalPerfil | null>(() => {
-    return readPortalPageCache<ProfissionalPerfil>(PERFIL_CACHE_KEY) ?? null
-  })
-  const [isLoading, setIsLoading] = useState(shouldBlockPortalPageWithCache(PERFIL_CACHE_KEY))
-  const [loadError, setLoadError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
   const [isSaving, setIsSaving] = useState(false)
 
-  const reload = useCallback(async () => {
-    const token = getAccessToken()
-    if (!token) return
-
-    if (shouldBlockPortalPageWithCache(PERFIL_CACHE_KEY)) {
-      setIsLoading(true)
-    }
-    setLoadError(null)
-
-    try {
-      const data = await fetchProfissionalPerfil(token)
-      setProfile(data)
-      writePortalPageCache(PERFIL_CACHE_KEY, data)
-    } catch (error) {
-      const message = isProfissionalPerfilApiError(error)
-        ? error.message
-        : 'Não foi possível carregar seu perfil.'
-      setLoadError(message)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [getAccessToken])
-
-  useEffect(() => {
-    if (isBootstrapping) return
-    if (!isAuthenticated) {
-      setIsLoading(false)
-      return
-    }
-    void reload()
-  }, [isAuthenticated, isBootstrapping, reload])
+  const query = useQuery({
+    queryKey: queryKeys.profissionalPerfil(),
+    queryFn: async () => {
+      const token = getAccessToken()
+      if (!token) throw new Error('Sessão expirada.')
+      return fetchProfissionalPerfil(token)
+    },
+    enabled: isAuthenticated && !isBootstrapping,
+    staleTime: PORTAL_PAGE_STALE_MS,
+    gcTime: PORTAL_PAGE_GC_MS,
+  })
 
   const saveProfile = useCallback(
     async (payload: Record<string, unknown>) => {
@@ -63,22 +35,27 @@ export function useProfissionalPerfilPage() {
       setIsSaving(true)
       try {
         const updated = await patchProfissionalPerfil(token, payload)
-        setProfile(updated)
-        writePortalPageCache(PERFIL_CACHE_KEY, updated)
+        queryClient.setQueryData<ProfissionalPerfil>(queryKeys.profissionalPerfil(), updated)
         return updated
       } finally {
         setIsSaving(false)
       }
     },
-    [getAccessToken],
+    [getAccessToken, queryClient],
   )
 
   return {
-    profile,
-    isLoading,
-    loadError,
+    profile: query.data ?? null,
+    isLoading: query.isPending,
+    loadError: query.isError
+      ? isProfissionalPerfilApiError(query.error)
+        ? query.error.message
+        : 'Não foi possível carregar seu perfil.'
+      : null,
     isSaving,
-    reload,
+    reload: async () => {
+      await query.refetch()
+    },
     saveProfile,
   }
 }

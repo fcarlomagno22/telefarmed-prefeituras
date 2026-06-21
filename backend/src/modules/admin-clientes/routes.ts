@@ -46,23 +46,18 @@ import {
   deleteRedeUnit,
   updateRedeUnit,
 } from '../prefeitura-rede/units.service.js'
+import { setPrivateCatalogCacheHeaders } from '../../lib/cache/httpCacheHeaders.js'
 
 const canView = requireAdminPagePermission('clientes', 'visualizar')
 const canInsert = requireAdminPagePermission('clientes', 'inserir')
 const canEdit = requireAdminPagePermission('clientes', 'editar')
 const canDelete = requireAdminPagePermission('clientes', 'excluir')
 
-const CATALOG_CACHE_MAX_AGE_SECONDS = 60
-
 function invalidBodyReply(
   reply: { status: (code: number) => { send: (body: { error: string }) => unknown } },
   result: { success: false; error: import('zod').ZodError },
 ) {
   return reply.status(400).send({ error: formatClientesValidationError(result.error) })
-}
-
-function setCatalogCacheHeaders(reply: { header: (name: string, value: string) => void }) {
-  reply.header('Cache-Control', `private, max-age=${CATALOG_CACHE_MAX_AGE_SECONDS}`)
 }
 
 export async function registerAdminClientesRoutes(app: FastifyInstance): Promise<void> {
@@ -379,7 +374,7 @@ export async function registerAdminClientesRoutes(app: FastifyInstance): Promise
 
     try {
       const catalog = await getClientesClinicoCatalog({ activeOnly: parsed.data.activeOnly })
-      setCatalogCacheHeaders(reply)
+      setPrivateCatalogCacheHeaders(reply)
       return reply.send(catalog)
     } catch (error) {
       const mapped = mapClientesError(error)
@@ -390,7 +385,7 @@ export async function registerAdminClientesRoutes(app: FastifyInstance): Promise
   app.get('/catalog/contratos', { preHandler: canView }, async (_request, reply) => {
     try {
       const catalog = await getClientesContratoCatalog()
-      setCatalogCacheHeaders(reply)
+      setPrivateCatalogCacheHeaders(reply)
       return reply.send(catalog)
     } catch (error) {
       const mapped = mapClientesError(error)

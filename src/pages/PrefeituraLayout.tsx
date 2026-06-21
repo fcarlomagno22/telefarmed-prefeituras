@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { PortalCatalogPrefetch } from '../components/query/PortalCatalogPrefetch'
 import { PrefeituraPagePermissionGuard } from '../components/auth/PrefeituraPagePermissionGuard'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
 import { brand } from '../config/brand'
@@ -56,6 +57,7 @@ function PrefeituraLayoutShell() {
         role: user?.funcao?.trim() || user?.accessLevel || brand.prefeituraOperatorRole,
       }}
     >
+      <PortalCatalogPrefetch portal="prefeitura" />
       <PrefeituraPagePermissionGuard />
     </DashboardLayout>
   )

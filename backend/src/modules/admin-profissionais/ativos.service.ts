@@ -1,3 +1,4 @@
+import { invalidateAuthSessionCache } from '../../lib/cache/authSessionCache.js'
 import { normalizeCpf } from '../../lib/cpf.js'
 import {
   resolveEspecialidadeIdByName,
@@ -203,6 +204,8 @@ export async function updateProfissionalAtivo(id: string, payload: UpdateAtivoBo
   const { error } = await supabaseAdmin.from('usuarios_profissionais').update(updates).eq('id', id)
 
   if (error) throw error
+
+  invalidateAuthSessionCache('profissional', id)
   return getProfissionalAtivoDetail(id)
 }
 

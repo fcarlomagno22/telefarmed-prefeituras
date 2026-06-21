@@ -1,3 +1,4 @@
+import { invalidateAuthSessionCache } from '../../lib/cache/authSessionCache.js'
 import { createHash } from 'node:crypto'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { normalizeCpf } from '../../lib/cpf.js'
@@ -341,6 +342,7 @@ export async function updateUbtCredential(
     await demoteOtherResponsibles(ubtId, id)
   }
 
+  invalidateAuthSessionCache('ubt', id)
   return getUbtCredentialById(id)
 }
 
@@ -355,6 +357,7 @@ export async function activateUbtCredential(id: string): Promise<AdminPortalUser
 export async function deleteUbtCredential(id: string): Promise<void> {
   const { error } = await supabaseAdmin.from('usuarios_ubt').delete().eq('id', id)
   if (error) throw error
+  invalidateAuthSessionCache('ubt', id)
 }
 
 export async function transferUbtCredentialUbt(

@@ -1,3 +1,4 @@
+import { invalidateAuthSessionCache } from '../../lib/cache/authSessionCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { normalizeCpf } from '../../lib/cpf.js'
 import { hashPassword } from '../../lib/password.js'
@@ -257,6 +258,7 @@ export async function updatePrefeituraCredential(
     throw error
   }
 
+  invalidateAuthSessionCache('prefeitura', id)
   return getPrefeituraCredentialById(id)
 }
 
@@ -271,4 +273,5 @@ export async function activatePrefeituraCredential(id: string): Promise<AdminPor
 export async function deletePrefeituraCredential(id: string): Promise<void> {
   const { error } = await supabaseAdmin.from('usuarios_prefeitura').delete().eq('id', id)
   if (error) throw error
+  invalidateAuthSessionCache('prefeitura', id)
 }

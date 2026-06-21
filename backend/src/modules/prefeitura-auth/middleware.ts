@@ -1,4 +1,5 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
+import { getCachedAuthSession } from '../../lib/cache/authSessionCache.js'
 import { verifyPrefeituraAccessToken } from '../../lib/jwt.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import {
@@ -73,7 +74,9 @@ export async function requirePrefeituraAuth(
 
   try {
     const claims = await verifyPrefeituraAccessToken(token)
-    const user = await loadPrefeituraSession(claims.sub)
+    const user = await getCachedAuthSession('prefeitura', claims.sub, () =>
+      loadPrefeituraSession(claims.sub),
+    )
 
     if (user.cpf !== claims.cpf) {
       return reply.status(401).send({ error: 'Sessão inválida ou expirada.' })

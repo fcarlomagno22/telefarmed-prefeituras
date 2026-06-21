@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useAdminAuth } from '../contexts/AdminAuthContext'
 import type { AdminClienteContratoTipo } from '../types/adminClientes'
 import {
-  fetchClientesContratoCatalog,
-  isAdminClientesApiError,
-} from '../lib/services/admin/clientes'
+  getAdminContratoCatalogErrorMessage,
+  useAdminContratoCatalogQuery,
+} from '../lib/query/adminCatalogQueries'
 
 export type ClienteContratoTipoOption = {
   id: string
@@ -15,38 +15,10 @@ export type ClienteContratoTipoOption = {
 
 export function useAdminClientesContratoCatalog() {
   const { getAccessToken, isAuthenticated, isBootstrapping } = useAdminAuth()
-  const [contractTypes, setContractTypes] = useState<ClienteContratoTipoOption[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  const reload = useCallback(async () => {
-    const token = getAccessToken()
-    if (!token) return
+  const query = useAdminContratoCatalogQuery(getAccessToken, isAuthenticated && !isBootstrapping)
 
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const data = await fetchClientesContratoCatalog(token)
-      setContractTypes(data.contractTypes)
-    } catch (err) {
-      const message = isAdminClientesApiError(err)
-        ? err.message
-        : 'Não foi possível carregar os tipos de contrato.'
-      setError(message)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [getAccessToken])
-
-  useEffect(() => {
-    if (isBootstrapping) return
-    if (!isAuthenticated) {
-      setIsLoading(false)
-      return
-    }
-    void reload()
-  }, [isAuthenticated, isBootstrapping, reload])
+  const contractTypes = query.data?.contractTypes ?? []
 
   const labelById = useMemo(
     () => Object.fromEntries(contractTypes.map((item) => [item.id, item.label])),
@@ -56,9 +28,11 @@ export function useAdminClientesContratoCatalog() {
   return {
     contractTypes,
     labelById,
-    isLoading: isLoading || isBootstrapping,
-    error,
-    reload,
+    isLoading: query.isPending || isBootstrapping,
+    error: query.isError ? getAdminContratoCatalogErrorMessage(query.error) : null,
+    reload: async () => {
+      await query.refetch()
+    },
   }
 }
 

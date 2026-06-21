@@ -1,3 +1,7 @@
+import {
+  invalidateConsultaCatalogCache,
+  withCatalogCache,
+} from '../../lib/cache/catalogCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { ConfiguracoesError } from './errors.js'
 import type {
@@ -60,7 +64,7 @@ async function assertExamCategoryExists(categoryId: string): Promise<void> {
   }
 }
 
-export async function getConsultaCatalog(options?: {
+async function loadConsultaCatalogFromDb(options?: {
   activeOnly?: boolean
 }): Promise<ConsultaCatalogDto> {
   let categoriesQuery = supabaseAdmin
@@ -89,6 +93,13 @@ export async function getConsultaCatalog(options?: {
     examCategories: ((categoriesResult.data ?? []) as ExamCategoryRow[]).map(mapExamCategoryRow),
     examItems: ((itemsResult.data ?? []) as ExamItemRow[]).map(mapExamItemRow),
   }
+}
+
+export async function getConsultaCatalog(options?: {
+  activeOnly?: boolean
+}): Promise<ConsultaCatalogDto> {
+  const cacheKey = options?.activeOnly ? 'active' : 'all'
+  return withCatalogCache('consulta', cacheKey, () => loadConsultaCatalogFromDb(options))
 }
 
 export async function createExamCategory(input: CreateExamCategoryInput): Promise<ExamCategoryDto> {
@@ -120,6 +131,7 @@ export async function createExamCategory(input: CreateExamCategoryInput): Promis
     throw error
   }
 
+  invalidateConsultaCatalogCache()
   return mapExamCategoryRow(data as ExamCategoryRow)
 }
 
@@ -156,6 +168,7 @@ export async function updateExamCategory(
     throw error
   }
 
+  invalidateConsultaCatalogCache()
   return mapExamCategoryRow(data as ExamCategoryRow)
 }
 
@@ -172,6 +185,7 @@ export async function setExamCategoryStatus(id: string, active: boolean): Promis
     throw new ConfiguracoesError('Categoria de exame não encontrada.', 'NOT_FOUND', 404)
   }
 
+  invalidateConsultaCatalogCache()
   return mapExamCategoryRow(data as ExamCategoryRow)
 }
 
@@ -187,6 +201,8 @@ export async function deleteExamCategory(id: string): Promise<void> {
   if (!data) {
     throw new ConfiguracoesError('Categoria de exame não encontrada.', 'NOT_FOUND', 404)
   }
+
+  invalidateConsultaCatalogCache()
 }
 
 export async function createExamItem(input: CreateExamItemInput): Promise<ExamItemDto> {
@@ -222,6 +238,7 @@ export async function createExamItem(input: CreateExamItemInput): Promise<ExamIt
     throw error
   }
 
+  invalidateConsultaCatalogCache()
   return mapExamItemRow(data as ExamItemRow)
 }
 
@@ -260,6 +277,7 @@ export async function updateExamItem(id: string, input: UpdateExamItemInput): Pr
     throw error
   }
 
+  invalidateConsultaCatalogCache()
   return mapExamItemRow(data as ExamItemRow)
 }
 
@@ -276,6 +294,7 @@ export async function setExamItemStatus(id: string, active: boolean): Promise<Ex
     throw new ConfiguracoesError('Exame não encontrado.', 'NOT_FOUND', 404)
   }
 
+  invalidateConsultaCatalogCache()
   return mapExamItemRow(data as ExamItemRow)
 }
 
@@ -291,6 +310,8 @@ export async function deleteExamItem(id: string): Promise<void> {
   if (!data) {
     throw new ConfiguracoesError('Exame não encontrado.', 'NOT_FOUND', 404)
   }
+
+  invalidateConsultaCatalogCache()
 }
 
 const BULK_MAX_ITEMS = 200
@@ -337,6 +358,7 @@ export async function createExamCategoriesBulk(
     throw error
   }
 
+  invalidateConsultaCatalogCache()
   return ((data ?? []) as ExamCategoryRow[]).map(mapExamCategoryRow)
 }
 
@@ -404,6 +426,7 @@ export async function createExamItemsBulk(inputs: CreateExamItemInput[]): Promis
     throw error
   }
 
+  invalidateConsultaCatalogCache()
   return ((data ?? []) as ExamItemRow[]).map(mapExamItemRow)
 }
 
@@ -431,6 +454,7 @@ export async function deleteExamItemsBulk(
     if (error) throw error
 
     const deletedIds = ((data ?? []) as { id: string }[]).map((row) => row.id)
+    invalidateConsultaCatalogCache()
     return { deletedCount: deletedIds.length, deletedIds }
   }
 
@@ -452,5 +476,6 @@ export async function deleteExamItemsBulk(
   if (error) throw error
 
   const deletedIds = ((data ?? []) as { id: string }[]).map((row) => row.id)
+  invalidateConsultaCatalogCache()
   return { deletedCount: deletedIds.length, deletedIds }
 }

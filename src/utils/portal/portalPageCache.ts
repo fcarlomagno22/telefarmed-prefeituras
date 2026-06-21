@@ -1,31 +1,31 @@
-const store = new Map<string, unknown>()
+/**
+ * @deprecated Cache de sessão migrado para React Query (`src/lib/query`).
+ * Mantido apenas para compatibilidade durante a transição.
+ */
+import { queryClient } from '../../lib/query/client'
+import { clearPortalSessionQueries } from '../../lib/query/portalSession'
 
-export function readPortalPageCache<T>(key: string): T | undefined {
-  return store.get(key) as T | undefined
+/** @deprecated */
+export function readPortalPageCache<T>(_key: string): T | undefined {
+  return undefined
 }
 
-export function writePortalPageCache<T>(key: string, value: T): void {
-  store.set(key, value)
+/** @deprecated */
+export function writePortalPageCache<T>(_key: string, _value: T): void {
+  // no-op — dados persistidos via React Query
 }
 
-export function hasPortalPageCache(key: string): boolean {
-  return store.has(key)
+/** @deprecated */
+export function hasPortalPageCache(_key: string): boolean {
+  return false
 }
 
-export function clearPortalPageCaches(prefix?: string): void {
-  if (!prefix) {
-    store.clear()
-    return
-  }
-
-  for (const key of store.keys()) {
-    if (key.startsWith(prefix)) {
-      store.delete(key)
-    }
-  }
+/** @deprecated */
+export function clearPortalPageCaches(_prefix?: string): void {
+  queryClient.clear()
 }
 
+/** @deprecated Use `clearPortalSessionQueries(queryClient, 'profissional')`. */
 export function clearProfissionalPortalPageCaches(): void {
-  clearPortalPageCaches('profissional:')
-  clearPortalPageCaches('portal:suporte:profissional')
+  clearPortalSessionQueries(queryClient, 'profissional')
 }

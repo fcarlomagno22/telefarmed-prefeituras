@@ -1,3 +1,7 @@
+import {
+  invalidateContratosCatalogCache,
+  withCatalogCache,
+} from '../../lib/cache/catalogCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { ConfiguracoesError } from './errors.js'
 import type {
@@ -28,6 +32,9 @@ type CommercialRulesRow = {
   exige_especialidades_autorizadas: boolean
   bloquear_consulta_pacote_esgotado: boolean
 }
+
+const COMMERCIAL_RULES_COLUMNS =
+  'id, permite_ultrapassar_pacote_padrao, valor_avulso_padrao_brl, min_meses_contrato, dias_implantacao_padrao, exige_especialidades_autorizadas, bloquear_consulta_pacote_esgotado'
 
 function formatBrl(value: number | string): string {
   const numeric = typeof value === 'number' ? value : Number.parseFloat(String(value))
@@ -65,7 +72,7 @@ function mapCommercialRulesRow(row: CommercialRulesRow): CommercialRulesDto {
   }
 }
 
-export async function getContratosCatalog(options?: {
+async function loadContratosCatalogFromDb(options?: {
   activeOnly?: boolean
 }): Promise<ContratosCatalogDto> {
   let contractTypesQuery = supabaseAdmin
@@ -80,7 +87,11 @@ export async function getContratosCatalog(options?: {
 
   const [contractTypesResult, commercialRulesResult] = await Promise.all([
     contractTypesQuery,
-    supabaseAdmin.from('config_regras_comerciais').select('*').eq('id', 'global').maybeSingle(),
+    supabaseAdmin
+      .from('config_regras_comerciais')
+      .select(COMMERCIAL_RULES_COLUMNS)
+      .eq('id', 'global')
+      .maybeSingle(),
   ])
 
   if (contractTypesResult.error) throw contractTypesResult.error
@@ -98,6 +109,13 @@ export async function getContratosCatalog(options?: {
     contractTypes: ((contractTypesResult.data ?? []) as ContractTypeRow[]).map(mapContractTypeRow),
     commercialRules: mapCommercialRulesRow(commercialRulesResult.data as CommercialRulesRow),
   }
+}
+
+export async function getContratosCatalog(options?: {
+  activeOnly?: boolean
+}): Promise<ContratosCatalogDto> {
+  const cacheKey = options?.activeOnly ? 'active' : 'all'
+  return withCatalogCache('contratos', cacheKey, () => loadContratosCatalogFromDb(options))
 }
 
 export async function createContractType(input: CreateContractTypeInput): Promise<ContractTypeDto> {
@@ -130,6 +148,7 @@ export async function createContractType(input: CreateContractTypeInput): Promis
     throw error
   }
 
+  invalidateContratosCatalogCache()
   return mapContractTypeRow(data as ContractTypeRow)
 }
 
@@ -169,6 +188,7 @@ export async function updateContractType(
     throw error
   }
 
+  invalidateContratosCatalogCache()
   return mapContractTypeRow(data as ContractTypeRow)
 }
 
@@ -185,6 +205,7 @@ export async function setContractTypeStatus(id: string, active: boolean): Promis
     throw new ConfiguracoesError('Tipo de contrato não encontrado.', 'NOT_FOUND', 404)
   }
 
+  invalidateContratosCatalogCache()
   return mapContractTypeRow(data as ContractTypeRow)
 }
 
@@ -208,6 +229,8 @@ export async function deleteContractType(id: string): Promise<void> {
   if (!data) {
     throw new ConfiguracoesError('Tipo de contrato não encontrado.', 'NOT_FOUND', 404)
   }
+
+  invalidateContratosCatalogCache()
 }
 
 export async function saveCommercialRules(
@@ -226,10 +249,11 @@ export async function saveCommercialRules(
       bloquear_consulta_pacote_esgotado: input.blockConsultWhenPackageExceeded,
     })
     .eq('id', 'global')
-    .select('*')
+    .select(COMMERCIAL_RULES_COLUMNS)
     .single()
 
   if (error) throw error
 
+  invalidateContratosCatalogCache()
   return mapCommercialRulesRow(data as CommercialRulesRow)
 }

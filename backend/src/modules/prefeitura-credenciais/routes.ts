@@ -37,6 +37,7 @@ import {
   updateOperadorBodySchema,
   verifyOperadorPinBodySchema,
 } from './schemas.js'
+import { setUnitsCacheHeaders } from '../../lib/cache/httpCacheHeaders.js'
 
 const canView = requirePrefeituraPagePermission('credenciais', 'visualizar')
 const canInsert = requirePrefeituraPagePermission('credenciais', 'inserir')
@@ -68,7 +69,7 @@ export async function registerPrefeituraCredenciaisRoutes(app: FastifyInstance):
   app.get('/unidades-ubt', { preHandler: canView }, async (request, reply) => {
     try {
       const options = await listPrefeituraUbtOptions(entidadeId(request))
-      reply.header('Cache-Control', 'private, max-age=60')
+      setUnitsCacheHeaders(reply)
       return reply.send({ options })
     } catch (error) {
       const mapped = mapCredenciaisError(error)

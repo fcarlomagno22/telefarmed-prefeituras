@@ -6,6 +6,7 @@ import {
   hasAdminPagePermission,
   sanitizeAdminPagePermissions,
 } from '../../lib/adminPermissions.js'
+import { getCachedAuthSession } from '../../lib/cache/authSessionCache.js'
 import { verifyAccessToken } from '../../lib/jwt.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { AuthError } from './service.js'
@@ -80,7 +81,9 @@ export async function requireAdminAuthWithToken(
 
   try {
     const claims = await verifyAccessToken(token)
-    const admin = await loadAdminSession(claims.sub)
+    const admin = await getCachedAuthSession('admin', claims.sub, () =>
+      loadAdminSession(claims.sub),
+    )
 
     if (admin.cpf !== claims.cpf) {
       return reply.status(401).send({ error: 'Sessão inválida ou expirada.' })

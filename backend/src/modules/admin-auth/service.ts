@@ -1,3 +1,4 @@
+import { invalidateAuthSessionCache } from '../../lib/cache/authSessionCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { normalizeCpf } from '../../lib/cpf.js'
 import {
@@ -270,6 +271,15 @@ export async function logoutAdmin(refreshToken: string | undefined): Promise<voi
   if (!refreshToken) return
 
   const tokenHash = hashOpaqueToken(refreshToken)
+  const { data: sessionRow, error: sessionError } = await supabaseAdmin
+    .from('sessoes_refresh_admin')
+    .select('usuario_id')
+    .eq('hash_token', tokenHash)
+    .is('revogado_em', null)
+    .maybeSingle()
+
+  if (sessionError) throw sessionError
+
   const { error } = await supabaseAdmin
     .from('sessoes_refresh_admin')
     .update({ revogado_em: new Date().toISOString() })
@@ -277,6 +287,10 @@ export async function logoutAdmin(refreshToken: string | undefined): Promise<voi
     .is('revogado_em', null)
 
   if (error) throw error
+
+  if (sessionRow?.usuario_id) {
+    invalidateAuthSessionCache('admin', String(sessionRow.usuario_id))
+  }
 }
 
 export async function verifyAdminAuthorizationPin(adminId: string, pin: string): Promise<void> {

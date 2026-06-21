@@ -1,3 +1,4 @@
+import { invalidateAuthSessionCache } from '../../lib/cache/authSessionCache.js'
 import { randomInt } from 'node:crypto'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { normalizeCpf } from '../../lib/cpf.js'
@@ -433,6 +434,7 @@ export async function completeUbtPasswordRecovery(input: {
 
   if (revokeSessionsError) throw revokeSessionsError
 
+  invalidateAuthSessionCache('ubt', String(recovery.usuario_ubt_id))
   await revokeUbtLgpdUnlocks(recovery.usuario_ubt_id)
 }
 

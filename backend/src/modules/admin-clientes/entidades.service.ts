@@ -1,4 +1,5 @@
 import { verifyAdminAuthorizationPin } from '../admin-auth/service.js'
+import { invalidateTenantCatalogCache } from '../../lib/cache/catalogCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { loadContratosBundleForEntidades, loadContratosForEntidade } from './contratos.service.js'
 import { ClientesError } from './errors.js'
@@ -194,6 +195,7 @@ export async function createClienteEntidade(
       await uploadEntidadeFavicon(row.id, input.faviconDataUrl)
     }
 
+    invalidateTenantCatalogCache()
     return getClienteEntidade(row.id)
   } catch (error) {
     if (entidadeId) {
@@ -306,6 +308,7 @@ export async function updateClienteEntidade(
     await uploadEntidadeFavicon(entidadeId, input.faviconDataUrl)
   }
 
+  invalidateTenantCatalogCache()
   return getClienteEntidade(entidadeId)
 }
 

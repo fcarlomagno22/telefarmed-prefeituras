@@ -1,3 +1,4 @@
+import { invalidateAuthSessionCache } from '../../lib/cache/authSessionCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { attachEntidadeBranding } from '../../lib/entidadeBranding/branding.service.js'
 import { normalizeCpf } from '../../lib/cpf.js'
@@ -304,6 +305,15 @@ export async function logoutPrefeitura(refreshToken: string | undefined): Promis
   if (!refreshToken) return
 
   const tokenHash = hashOpaqueToken(refreshToken)
+  const { data: sessionRow, error: sessionError } = await supabaseAdmin
+    .from('sessoes_refresh_prefeitura')
+    .select('usuario_id')
+    .eq('hash_token', tokenHash)
+    .is('revogado_em', null)
+    .maybeSingle()
+
+  if (sessionError) throw sessionError
+
   const { error } = await supabaseAdmin
     .from('sessoes_refresh_prefeitura')
     .update({ revogado_em: new Date().toISOString() })
@@ -311,6 +321,10 @@ export async function logoutPrefeitura(refreshToken: string | undefined): Promis
     .is('revogado_em', null)
 
   if (error) throw error
+
+  if (sessionRow?.usuario_id) {
+    invalidateAuthSessionCache('prefeitura', String(sessionRow.usuario_id))
+  }
 }
 
 export async function verifyPrefeituraAuthorizationPin(

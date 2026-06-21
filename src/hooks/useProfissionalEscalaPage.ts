@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useProfissionalAuth } from '../contexts/ProfissionalAuthContext'
 import type { ProfissionalEscalaDisponivel } from '../types/profissionalEscalaDisponivel'
 import type { ProfissionalEscalaFilters } from '../types/profissionalEscalaDisponivel'
@@ -14,22 +15,13 @@ import {
 } from '../lib/services/profissional/escala'
 import { normalizeProfissionalEscalaShifts } from '../utils/profissional/normalizeProfissionalEscalaShift'
 import { filterPlantoesAtivosParaProfissional } from '../utils/profissional/profissionalPlantaoEncerrado'
-import {
-  readPortalPageCache,
-  writePortalPageCache,
-} from '../utils/portal/portalPageCache'
-import { shouldBlockPortalPageWithCache } from '../utils/portal/portalPageLoading'
-
-const ESCALA_CACHE_KEY = 'profissional:escala'
+import { queryKeys } from '../lib/query/keys'
+import { PORTAL_PAGE_GC_MS, PORTAL_PAGE_STALE_MS } from '../lib/query/timings'
 
 type EscalaPageCache = {
   availableShifts: ProfissionalEscalaDisponivel[]
   reservedShifts: ProfissionalEscalaDisponivel[]
   summary: ProfissionalEscalaSummaryApi | null
-}
-
-function escalaCacheKey(dateFrom?: string, dateTo?: string) {
-  return `${ESCALA_CACHE_KEY}:${dateFrom ?? ''}:${dateTo ?? ''}`
 }
 
 type EscalaDateFilters = Pick<ProfissionalEscalaFilters, 'dateFrom' | 'dateTo'>
@@ -40,84 +32,56 @@ function resolveEscalaDateQuery(filters?: EscalaDateFilters) {
   return { dateFrom, dateTo }
 }
 
+async function fetchEscalaPage(
+  token: string,
+  dateFrom?: string,
+  dateTo?: string,
+): Promise<EscalaPageCache> {
+  const [disponiveis, plantoes, summaryData] = await Promise.all([
+    fetchProfissionalEscalaDisponiveis(token, { dateFrom, dateTo }),
+    fetchProfissionalMeusPlantoes(token),
+    fetchProfissionalEscalaSummary(token),
+  ])
+
+  const nextReserved = plantoes.map((plantao) => ({
+    ...plantao,
+    status: 'reservado_mim' as const,
+  }))
+
+  const activeDisponiveis = filterPlantoesAtivosParaProfissional(disponiveis)
+  const activeReserved = filterPlantoesAtivosParaProfissional(nextReserved)
+
+  return {
+    availableShifts: normalizeProfissionalEscalaShifts(activeDisponiveis),
+    reservedShifts: normalizeProfissionalEscalaShifts(activeReserved),
+    summary: summaryData,
+  }
+}
+
 export function useProfissionalEscalaPage(dateFilters?: EscalaDateFilters) {
   const { getAccessToken, isAuthenticated, isBootstrapping, user } = useProfissionalAuth()
-  const [availableShifts, setAvailableShifts] = useState<ProfissionalEscalaDisponivel[]>(() => {
-    return readPortalPageCache<EscalaPageCache>(escalaCacheKey())?.availableShifts ?? []
-  })
-  const [reservedShifts, setReservedShifts] = useState<ProfissionalEscalaDisponivel[]>(() => {
-    return readPortalPageCache<EscalaPageCache>(escalaCacheKey())?.reservedShifts ?? []
-  })
-  const [summary, setSummary] = useState<ProfissionalEscalaSummaryApi | null>(() => {
-    return readPortalPageCache<EscalaPageCache>(escalaCacheKey())?.summary ?? null
-  })
-  const [isLoading, setIsLoading] = useState(() => shouldBlockPortalPageWithCache(escalaCacheKey()))
-  const [loadError, setLoadError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
   const [isClaiming, setIsClaiming] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
 
   const profileSpecialty = user?.specialty ?? ''
   const { dateFrom, dateTo } = resolveEscalaDateQuery(dateFilters)
 
+  const query = useQuery({
+    queryKey: queryKeys.profissionalEscala(dateFrom, dateTo),
+    queryFn: async () => {
+      const token = getAccessToken()
+      if (!token) throw new Error('Sessão expirada.')
+      return fetchEscalaPage(token, dateFrom, dateTo)
+    },
+    enabled: isAuthenticated && !isBootstrapping,
+    staleTime: PORTAL_PAGE_STALE_MS,
+    gcTime: PORTAL_PAGE_GC_MS,
+  })
+
   const reload = useCallback(async () => {
-    const token = getAccessToken()
-    if (!token) return
-
-    const cacheKey = escalaCacheKey(dateFrom, dateTo)
-    const cached = readPortalPageCache<EscalaPageCache>(cacheKey)
-
-    if (cached) {
-      setAvailableShifts(cached.availableShifts)
-      setReservedShifts(cached.reservedShifts)
-      setSummary(cached.summary)
-    }
-
-    if (shouldBlockPortalPageWithCache(cacheKey)) {
-      setIsLoading(true)
-    }
-    setLoadError(null)
-
-    try {
-      const [disponiveis, plantoes, summaryData] = await Promise.all([
-        fetchProfissionalEscalaDisponiveis(token, { dateFrom, dateTo }),
-        fetchProfissionalMeusPlantoes(token),
-        fetchProfissionalEscalaSummary(token),
-      ])
-
-      const nextReserved = plantoes.map((plantao) => ({
-        ...plantao,
-        status: 'reservado_mim' as const,
-      }))
-
-      const activeDisponiveis = filterPlantoesAtivosParaProfissional(disponiveis)
-      const activeReserved = filterPlantoesAtivosParaProfissional(nextReserved)
-
-      setAvailableShifts(normalizeProfissionalEscalaShifts(activeDisponiveis))
-      setReservedShifts(normalizeProfissionalEscalaShifts(activeReserved))
-      setSummary(summaryData)
-      writePortalPageCache(cacheKey, {
-        availableShifts: normalizeProfissionalEscalaShifts(activeDisponiveis),
-        reservedShifts: normalizeProfissionalEscalaShifts(activeReserved),
-        summary: summaryData,
-      })
-    } catch (error) {
-      const message = isProfissionalEscalaApiError(error)
-        ? error.message
-        : 'Não foi possível carregar os plantões.'
-      setLoadError(message)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [dateFrom, dateTo, getAccessToken])
-
-  useEffect(() => {
-    if (isBootstrapping) return
-    if (!isAuthenticated) {
-      setIsLoading(false)
-      return
-    }
-    void reload()
-  }, [isAuthenticated, isBootstrapping, reload])
+    await query.refetch()
+  }, [query])
 
   const claimShift = useCallback(
     async (slotId: string) => {
@@ -127,13 +91,13 @@ export function useProfissionalEscalaPage(dateFilters?: EscalaDateFilters) {
       setIsClaiming(true)
       try {
         await inscreverProfissionalEscalaSlot(token, slotId)
-        await reload()
+        await queryClient.invalidateQueries({ queryKey: queryKeys.profissionalEscala() })
         return true
       } finally {
         setIsClaiming(false)
       }
     },
-    [getAccessToken, reload],
+    [getAccessToken, queryClient],
   )
 
   const cancelShift = useCallback(
@@ -150,14 +114,18 @@ export function useProfissionalEscalaPage(dateFilters?: EscalaDateFilters) {
         } else {
           throw new Error('Não foi possível identificar a reserva para cancelamento.')
         }
-        await reload()
+        await queryClient.invalidateQueries({ queryKey: queryKeys.profissionalEscala() })
         return true
       } finally {
         setIsCancelling(false)
       }
     },
-    [getAccessToken, reload],
+    [getAccessToken, queryClient],
   )
+
+  const availableShifts = query.data?.availableShifts ?? []
+  const reservedShifts = query.data?.reservedShifts ?? []
+  const summary = query.data?.summary ?? null
 
   const allShiftsForKpi = useMemo(
     () => [...availableShifts, ...reservedShifts],
@@ -171,8 +139,12 @@ export function useProfissionalEscalaPage(dateFilters?: EscalaDateFilters) {
     reservedShifts,
     allShiftsForKpi,
     summary,
-    isLoading,
-    loadError,
+    isLoading: query.isPending,
+    loadError: query.isError
+      ? isProfissionalEscalaApiError(query.error)
+        ? query.error.message
+        : 'Não foi possível carregar os plantões.'
+      : null,
     isClaiming,
     isCancelling,
     reload,

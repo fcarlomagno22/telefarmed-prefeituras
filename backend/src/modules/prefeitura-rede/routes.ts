@@ -23,6 +23,7 @@ import {
   listRedeUnits,
   updateRedeUnit,
 } from './units.service.js'
+import { setUnitsCacheHeaders } from '../../lib/cache/httpCacheHeaders.js'
 
 const canView = requirePrefeituraPagePermission('rede', 'visualizar')
 const canInsert = requirePrefeituraPagePermission('rede', 'inserir')
@@ -39,7 +40,7 @@ export async function registerPrefeituraRedeRoutes(app: FastifyInstance): Promis
   app.get('/overview', { preHandler: canView }, async (request, reply) => {
     try {
       const overview = await getRedeOverview(entidadeId(request))
-      reply.header('Cache-Control', 'private, max-age=15')
+      setUnitsCacheHeaders(reply)
       return reply.send(overview)
     } catch (error) {
       const mapped = mapPrefeituraRedeError(error)
@@ -50,7 +51,7 @@ export async function registerPrefeituraRedeRoutes(app: FastifyInstance): Promis
   app.get('/units', { preHandler: canView }, async (request, reply) => {
     try {
       const units = await listRedeUnits(entidadeId(request))
-      reply.header('Cache-Control', 'private, max-age=15')
+      setUnitsCacheHeaders(reply)
       return reply.send({ units })
     } catch (error) {
       const mapped = mapPrefeituraRedeError(error)

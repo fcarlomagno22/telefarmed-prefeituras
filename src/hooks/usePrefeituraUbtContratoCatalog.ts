@@ -1,83 +1,49 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { filterCatalogByContratoEspecialidades } from '../components/prefeitura/rede/newUbt/newUbtCatalogUtils'
 import { usePrefeituraAuth } from '../contexts/PrefeituraAuthContext'
+import { usePublicClinicoCatalogQuery } from '../lib/query/clinicoCatalogQuery'
 import {
-  fetchPrefeituraActiveContratoEspecialidadeIds,
-  isPrefeituraContratoApiError,
-} from '../lib/services/prefeitura/contrato'
-import { usePrefeituraClinicoCatalog } from './usePrefeituraClinicoCatalog'
+  getPrefeituraContratoSpecialtyIdsErrorMessage,
+  usePrefeituraContratoSpecialtyIdsQuery,
+} from '../lib/query/prefeituraContratoQueries'
 
 export function usePrefeituraUbtContratoCatalog(enabled = true) {
   const { getAccessToken } = usePrefeituraAuth()
-  const {
-    professions: catalogProfessions,
-    specialties: catalogSpecialties,
-    isLoading: catalogLoading,
-    error: catalogError,
-    reload: reloadCatalog,
-  } = usePrefeituraClinicoCatalog()
+  const catalogQuery = usePublicClinicoCatalogQuery(true)
+  const contractQuery = usePrefeituraContratoSpecialtyIdsQuery(getAccessToken, enabled)
 
-  const [contractLoading, setContractLoading] = useState(true)
-  const [contractError, setContractError] = useState<string | null>(null)
-  const [contractedSpecialtyIds, setContractedSpecialtyIds] = useState<string[]>([])
-
-  const reloadContracts = useCallback(async () => {
-    const token = getAccessToken()
-    if (!token) {
-      setContractedSpecialtyIds([])
-      setContractError('Sessão expirada. Faça login novamente.')
-      setContractLoading(false)
-      return
-    }
-
-    setContractLoading(true)
-    setContractError(null)
-
-    try {
-      const ids = await fetchPrefeituraActiveContratoEspecialidadeIds(token)
-      setContractedSpecialtyIds(ids)
-      if (ids.length === 0) {
-        setContractError('Nenhuma especialidade encontrada nos contratos ativos da entidade.')
-      }
-    } catch (error) {
-      const message = isPrefeituraContratoApiError(error)
-        ? error.message
-        : 'Não foi possível carregar as especialidades contratadas.'
-      setContractedSpecialtyIds([])
-      setContractError(message)
-    } finally {
-      setContractLoading(false)
-    }
-  }, [getAccessToken])
-
-  useEffect(() => {
-    if (!enabled) {
-      setContractLoading(false)
-      return
-    }
-    void reloadContracts()
-  }, [enabled, reloadContracts])
+  const contractedSpecialtyIds = contractQuery.data ?? []
 
   const filtered = useMemo(
     () =>
       filterCatalogByContratoEspecialidades(
-        catalogProfessions,
-        catalogSpecialties,
+        catalogQuery.data?.professions ?? [],
+        catalogQuery.data?.specialties ?? [],
         contractedSpecialtyIds,
       ),
-    [catalogProfessions, catalogSpecialties, contractedSpecialtyIds],
+    [catalogQuery.data?.professions, catalogQuery.data?.specialties, contractedSpecialtyIds],
   )
 
-  const reload = useCallback(async () => {
-    await Promise.all([reloadCatalog(), reloadContracts()])
-  }, [reloadCatalog, reloadContracts])
+  const contractError =
+    contractQuery.isError
+      ? getPrefeituraContratoSpecialtyIdsErrorMessage(contractQuery.error)
+      : contractedSpecialtyIds.length === 0 && contractQuery.isSuccess
+        ? 'Nenhuma especialidade encontrada nos contratos ativos da entidade.'
+        : null
+
+  const reload = async () => {
+    await Promise.all([catalogQuery.refetch(), contractQuery.refetch()])
+  }
 
   return {
     professions: filtered.professions,
     specialties: filtered.specialties,
     contractedSpecialtyIds,
-    isLoading: catalogLoading || contractLoading,
-    error: catalogError ?? contractError,
+    isLoading: enabled && (catalogQuery.isPending || contractQuery.isPending),
+    error:
+      (catalogQuery.isError
+        ? 'Não foi possível carregar profissões e especialidades.'
+        : null) ?? contractError,
     reload,
   }
 }

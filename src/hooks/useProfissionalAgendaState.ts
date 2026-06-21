@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
   computeShiftStatsFromQueue,
   endProfissionalShift,
@@ -15,7 +16,6 @@ import {
   enterProfissionalAgendaPlantao,
   fetchProfissionalAgendaOverview,
   isProfissionalAgendaApiError,
-  type ProfissionalAgendaOverviewApi,
   type ProfissionalAgendaPlantaoApi,
 } from '../lib/services/profissional/agenda'
 import { isBackendApiEnabled } from '../lib/api/config'
@@ -27,23 +27,8 @@ import {
   mapPlantoesApiToProfissionalShifts,
 } from '../utils/profissional/mapProfissionalAgendaApi'
 import { canEnterProfissionalShift } from '../utils/profissional/profissionalShiftTiming'
-import {
-  readPortalPageCache,
-  writePortalPageCache,
-} from '../utils/portal/portalPageCache'
-import { shouldBlockPortalPageWithCache } from '../utils/portal/portalPageLoading'
-
-const AGENDA_CACHE_PREFIX = 'profissional:agenda'
-
-type AgendaOverviewCache = {
-  plantoes: ProfissionalAgendaPlantaoApi[]
-  shiftCountByDate: Record<string, number>
-  notices: ProfissionalAgendaNotice[]
-}
-
-function agendaCacheKey(dateFrom: string, dateTo: string) {
-  return `${AGENDA_CACHE_PREFIX}:${dateFrom}:${dateTo}`
-}
+import { queryKeys } from '../lib/query/keys'
+import { PORTAL_PAGE_GC_MS, PORTAL_PAGE_STALE_MS } from '../lib/query/timings'
 
 export type ProfissionalAgendaTab = 'dia' | 'fila'
 
@@ -85,15 +70,58 @@ function buildOverviewRange(calendarViewMonth: Date): { dateFrom: string; dateTo
   }
 }
 
-function readAgendaOverviewCache(calendarViewMonth: Date): AgendaOverviewCache | null {
-  const { dateFrom, dateTo } = buildOverviewRange(calendarViewMonth)
-  return readPortalPageCache<AgendaOverviewCache>(agendaCacheKey(dateFrom, dateTo)) ?? null
-}
-
 function enrichShiftStats(shift: ProfissionalShift): ProfissionalShift {
   const queue = getProfissionalQueue(shift.id)
   if (queue.length === 0) return shift
   return { ...shift, stats: computeShiftStatsFromQueue(queue) }
+}
+
+type ActiveAgendaSession = {
+  shiftId: string
+  plantaoId: string
+  enteredAt: string
+  endedAt?: string
+}
+
+function readActiveSessionFromOverview(
+  overview: Awaited<ReturnType<typeof fetchProfissionalAgendaOverview>>,
+): ActiveAgendaSession | null {
+  if (!('activeSession' in overview)) return null
+  return (overview as { activeSession?: ActiveAgendaSession | null }).activeSession ?? null
+}
+
+function applyAgendaOverviewSideEffects(
+  overview: Awaited<ReturnType<typeof fetchProfissionalAgendaOverview>>,
+) {
+  syncAllProfissionalQueuesFromApi(
+    overview.consultas.map((consulta) => mapConsultaApiToQueuePatient(consulta)),
+    overview.plantoes.map((plantao) => plantao.shiftId),
+  )
+
+  if (!isBackendApiEnabled()) return
+
+  const activeSession = readActiveSessionFromOverview(overview)
+  const local = readActiveShiftSession()
+  if (activeSession && !activeSession.endedAt) {
+    writeActiveShiftSession({
+      shiftId: activeSession.shiftId,
+      plantaoId: activeSession.plantaoId,
+      enteredAt: activeSession.enteredAt,
+    })
+  } else if (local && !local.endedAt) {
+    const plantaoId = local.plantaoId ?? local.shiftId
+    const plantao = overview.plantoes.find((item) => item.plantaoId === plantaoId)
+    endProfissionalShift({
+      atendidos: plantao?.stats.atendidos ?? 0,
+      naoCompareceu: 0,
+      desistiu: 0,
+      tempoMedioMin: plantao?.stats.tempoMedioMin ?? 0,
+      duracaoPlantaoMin: Math.max(
+        1,
+        Math.round((Date.now() - new Date(local.enteredAt).getTime()) / 60_000),
+      ),
+    })
+  }
 }
 
 export function useProfissionalAgendaState() {
@@ -102,104 +130,37 @@ export function useProfissionalAgendaState() {
   const [calendarViewMonth, setCalendarViewMonth] = useState(() => startOfMonth(new Date()))
   const [agendaTab, setAgendaTab] = useState<ProfissionalAgendaTab>('dia')
   const [revision, setRevision] = useState(0)
-  const [plantoesApi, setPlantoesApi] = useState<ProfissionalAgendaPlantaoApi[]>(() => {
-    return readAgendaOverviewCache(startOfMonth(new Date()))?.plantoes ?? []
+
+  const { dateFrom, dateTo } = buildOverviewRange(calendarViewMonth)
+
+  const query = useQuery({
+    queryKey: queryKeys.profissionalAgenda(dateFrom, dateTo),
+    queryFn: async () => {
+      const token = getAccessToken()
+      if (!token) throw new Error('Sessão expirada.')
+      return fetchProfissionalAgendaOverview(token, { dateFrom, dateTo })
+    },
+    enabled: isAuthenticated && !isBootstrapping,
+    staleTime: PORTAL_PAGE_STALE_MS,
+    gcTime: PORTAL_PAGE_GC_MS,
   })
-  const [shiftCountByDateApi, setShiftCountByDateApi] = useState<Record<string, number>>(() => {
-    return readAgendaOverviewCache(startOfMonth(new Date()))?.shiftCountByDate ?? {}
-  })
-  const [notices, setNotices] = useState<ProfissionalAgendaNotice[]>(() => {
-    return readAgendaOverviewCache(startOfMonth(new Date()))?.notices ?? []
-  })
-  const [isLoading, setIsLoading] = useState(() => {
-    const { dateFrom, dateTo } = buildOverviewRange(startOfMonth(new Date()))
-    return shouldBlockPortalPageWithCache(agendaCacheKey(dateFrom, dateTo))
-  })
-  const [loadError, setLoadError] = useState<string | null>(null)
-  const [activeSessionApi, setActiveSessionApi] = useState<
-    ProfissionalAgendaOverviewApi['activeSession']
-  >(null)
+
+  const plantoesApi = query.data?.plantoes ?? []
+  const shiftCountByDateApi = query.data?.shiftCountByDate ?? {}
+  const notices = query.data?.notices ?? []
+  const activeSessionApi = query.data ? readActiveSessionFromOverview(query.data) : null
 
   const refresh = useCallback(() => setRevision((value) => value + 1), [])
 
   const reload = useCallback(async () => {
-    const token = getAccessToken()
-    if (!token) return
-
-    const { dateFrom, dateTo } = buildOverviewRange(calendarViewMonth)
-    const cacheKey = agendaCacheKey(dateFrom, dateTo)
-    const cached = readPortalPageCache<AgendaOverviewCache>(cacheKey)
-
-    if (cached) {
-      setPlantoesApi(cached.plantoes)
-      setShiftCountByDateApi(cached.shiftCountByDate)
-      setNotices(cached.notices)
-    }
-
-    if (shouldBlockPortalPageWithCache(cacheKey)) {
-      setIsLoading(true)
-    }
-    setLoadError(null)
-
-    try {
-      const overview = await fetchProfissionalAgendaOverview(token, { dateFrom, dateTo })
-      setPlantoesApi(overview.plantoes)
-      setShiftCountByDateApi(overview.shiftCountByDate)
-      setNotices(overview.notices ?? [])
-      setActiveSessionApi(overview.activeSession)
-      writePortalPageCache(cacheKey, {
-        plantoes: overview.plantoes,
-        shiftCountByDate: overview.shiftCountByDate,
-        notices: overview.notices ?? [],
-      })
-      syncAllProfissionalQueuesFromApi(
-        overview.consultas.map((consulta) => mapConsultaApiToQueuePatient(consulta)),
-        overview.plantoes.map((plantao) => plantao.shiftId),
-      )
-
-      if (isBackendApiEnabled()) {
-        const local = readActiveShiftSession()
-        if (overview.activeSession && !overview.activeSession.endedAt) {
-          writeActiveShiftSession({
-            shiftId: overview.activeSession.shiftId,
-            plantaoId: overview.activeSession.plantaoId,
-            enteredAt: overview.activeSession.enteredAt,
-          })
-        } else if (local && !local.endedAt) {
-          const plantaoId = local.plantaoId ?? local.shiftId
-          const plantao = overview.plantoes.find((item) => item.plantaoId === plantaoId)
-          endProfissionalShift({
-            atendidos: plantao?.stats.atendidos ?? 0,
-            naoCompareceu: 0,
-            desistiu: 0,
-            tempoMedioMin: plantao?.stats.tempoMedioMin ?? 0,
-            duracaoPlantaoMin: Math.max(
-              1,
-              Math.round((Date.now() - new Date(local.enteredAt).getTime()) / 60_000),
-            ),
-          })
-        }
-      }
-
-      refresh()
-    } catch (error) {
-      const message = isProfissionalAgendaApiError(error)
-        ? error.message
-        : 'Não foi possível carregar a agenda.'
-      setLoadError(message)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [calendarViewMonth, getAccessToken, refresh])
+    await query.refetch()
+  }, [query])
 
   useEffect(() => {
-    if (isBootstrapping) return
-    if (!isAuthenticated) {
-      setIsLoading(false)
-      return
-    }
-    void reload()
-  }, [isAuthenticated, isBootstrapping, reload])
+    if (!query.data) return
+    applyAgendaOverviewSideEffects(query.data)
+    refresh()
+  }, [query.data, refresh])
 
   useEffect(() => {
     function handleUpdate() {
@@ -226,7 +187,7 @@ export function useProfissionalAgendaState() {
   const endedShiftIds = useMemo(() => getEndedShiftIds(), [revision])
 
   const shifts = useMemo(() => {
-    const base = mapPlantoesApiToProfissionalShifts(plantoesApi, {
+    const base = mapPlantoesApiToProfissionalShifts(plantoesApi as ProfissionalAgendaPlantaoApi[], {
       activeShiftId,
       endedShiftIds,
     })
@@ -372,7 +333,11 @@ export function useProfissionalAgendaState() {
     handleEnterShift,
     refresh,
     reload,
-    isLoading,
-    loadError,
+    isLoading: query.isPending,
+    loadError: query.isError
+      ? isProfissionalAgendaApiError(query.error)
+        ? query.error.message
+        : 'Não foi possível carregar a agenda.'
+      : null,
   }
 }

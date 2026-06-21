@@ -60,6 +60,7 @@ import {
   iniciarProfissionalConsultaPorCodigo,
 } from './sessao.service.js'
 import { getProfissionalConsultaVideoToken } from './video-token.service.js'
+import { setPrivateCatalogCacheHeaders } from '../../lib/cache/httpCacheHeaders.js'
 
 const MAX_ANEXO_BYTES = 10 * 1024 * 1024
 
@@ -121,7 +122,7 @@ export async function registerProfissionalAtendimentosRoutes(app: FastifyInstanc
   app.get('/catalogo/exames', { preHandler: canViewQueue }, async (_request, reply) => {
     try {
       const catalog = await listProfissionalExamCatalog()
-      reply.header('Cache-Control', 'private, max-age=300')
+      setPrivateCatalogCacheHeaders(reply)
       return reply.send({ catalog })
     } catch (error) {
       const mapped = mapProfissionalAtendimentosError(error)

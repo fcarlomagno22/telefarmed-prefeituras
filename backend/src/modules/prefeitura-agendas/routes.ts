@@ -9,6 +9,7 @@ import { mapPrefeituraAgendasError } from './errors.js'
 import { getPrefeituraAgendaFuture } from './future.service.js'
 import { dayQuerySchema, futureQuerySchema, weekQuerySchema } from './schemas.js'
 import { getPrefeituraAgendaWeek } from './week.service.js'
+import { setUnitsCacheHeaders } from '../../lib/cache/httpCacheHeaders.js'
 
 const canView = requirePrefeituraPagePermission('agendas', 'visualizar')
 
@@ -22,7 +23,7 @@ export async function registerPrefeituraAgendasRoutes(app: FastifyInstance): Pro
   app.get('/catalog', { preHandler: canView }, async (request, reply) => {
     try {
       const catalog = await getPrefeituraAgendaCatalog(entidadeId(request))
-      reply.header('Cache-Control', 'private, max-age=60')
+      setUnitsCacheHeaders(reply)
       return reply.send(catalog)
     } catch (error) {
       const mapped = mapPrefeituraAgendasError(error)

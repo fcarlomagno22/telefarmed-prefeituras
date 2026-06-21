@@ -17,9 +17,15 @@ type LatestUpdateRow = {
   atualizado_em: string
 }
 
+const CLIENTES_SUMMARY_COLUMNS =
+  'total_cadastrados, ativas, implantacao, prospects, suspensas, sem_contrato'
+
 export async function getClientesSummary(): Promise<ClientesSummaryDto> {
   const [summaryResult, latestResult] = await Promise.all([
-    supabaseAdmin.from('vw_admin_clientes_summary').select('*').maybeSingle(),
+    supabaseAdmin
+      .from('vw_admin_clientes_summary')
+      .select(CLIENTES_SUMMARY_COLUMNS)
+      .maybeSingle(),
     supabaseAdmin
       .from('entidades_contratantes')
       .select('municipio, uf, atualizado_em')

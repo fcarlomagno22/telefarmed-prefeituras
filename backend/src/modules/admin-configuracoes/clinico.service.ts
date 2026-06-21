@@ -1,3 +1,4 @@
+import { invalidateClinicoCatalogCache, withCatalogCache } from '../../lib/cache/catalogCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { ConfiguracoesError } from './errors.js'
 import type {
@@ -73,7 +74,7 @@ function mapSpecialtyRow(row: SpecialtyViewRow): ClinicoSpecialtyDto {
   }
 }
 
-export async function getClinicoCatalog(options?: {
+async function loadClinicoCatalogFromDb(options?: {
   activeOnly?: boolean
 }): Promise<ClinicoCatalogDto> {
   let professionsQuery = supabaseAdmin
@@ -93,14 +94,32 @@ export async function getClinicoCatalog(options?: {
     specialtiesQuery = specialtiesQuery.eq('ativo', true)
   }
 
-  const [professionsResult, specialtiesResult, linksResult] = await Promise.all([
+  const [professionsResult, specialtiesResult] = await Promise.all([
     professionsQuery,
     specialtiesQuery,
-    supabaseAdmin.from('config_especialidade_profissao').select('especialidade_id, profissao_id'),
   ])
 
   if (professionsResult.error) throw professionsResult.error
   if (specialtiesResult.error) throw specialtiesResult.error
+
+  const professionIds = ((professionsResult.data ?? []) as ProfessionRow[]).map((row) => row.id)
+
+  let linksQuery = supabaseAdmin
+    .from('config_especialidade_profissao')
+    .select('especialidade_id, profissao_id')
+
+  if (options?.activeOnly && professionIds.length > 0) {
+    linksQuery = linksQuery.in('profissao_id', professionIds)
+  } else if (options?.activeOnly) {
+    const specialtyIdsByProfession = new Map<string, string[]>()
+    const professions = ((professionsResult.data ?? []) as ProfessionRow[]).map((row) =>
+      mapProfessionRow(row, specialtyIdsByProfession),
+    )
+    const specialties = ((specialtiesResult.data ?? []) as SpecialtyViewRow[]).map(mapSpecialtyRow)
+    return { professions, specialties }
+  }
+
+  const linksResult = await linksQuery
   if (linksResult.error) throw linksResult.error
 
   const specialtyIdsByProfession = buildSpecialtyIdsByProfession(
@@ -114,6 +133,13 @@ export async function getClinicoCatalog(options?: {
   const specialties = ((specialtiesResult.data ?? []) as SpecialtyViewRow[]).map(mapSpecialtyRow)
 
   return { professions, specialties }
+}
+
+export async function getClinicoCatalog(options?: {
+  activeOnly?: boolean
+}): Promise<ClinicoCatalogDto> {
+  const cacheKey = options?.activeOnly ? 'active' : 'all'
+  return withCatalogCache('clinico', cacheKey, () => loadClinicoCatalogFromDb(options))
 }
 
 export async function saveClinicoCatalog(input: SaveClinicoCatalogInput): Promise<ClinicoCatalogDto> {
@@ -150,5 +176,6 @@ export async function saveClinicoCatalog(input: SaveClinicoCatalogInput): Promis
     throw error
   }
 
+  invalidateClinicoCatalogCache()
   return getClinicoCatalog()
 }

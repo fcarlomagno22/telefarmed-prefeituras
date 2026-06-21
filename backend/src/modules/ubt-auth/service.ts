@@ -1,3 +1,4 @@
+import { invalidateAuthSessionCache } from '../../lib/cache/authSessionCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { attachEntidadeBranding } from '../../lib/entidadeBranding/branding.service.js'
 import { normalizeCpf } from '../../lib/cpf.js'
@@ -329,8 +330,10 @@ export async function logoutUbt(refreshToken: string | undefined): Promise<void>
   if (error) throw error
 
   if (sessionRow?.usuario_ubt_id) {
+    const userId = String(sessionRow.usuario_ubt_id)
+    invalidateAuthSessionCache('ubt', userId)
     const { revokeUbtLgpdUnlocks } = await import('./lgpd.service.js')
-    await revokeUbtLgpdUnlocks(String(sessionRow.usuario_ubt_id))
+    await revokeUbtLgpdUnlocks(userId)
   }
 }
 

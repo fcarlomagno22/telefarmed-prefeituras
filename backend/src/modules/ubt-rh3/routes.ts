@@ -18,6 +18,10 @@ import { encerrarRh3MtConsultaForUbt } from './elegibilidad.service.js'
 import { scheduleRh3AppointmentForUbt } from './schedule.service.js'
 import { isoDateSchema } from '../ubt-triagem/schemas.js'
 import { z } from 'zod'
+import {
+  setDaySpecialtiesCacheHeaders,
+  setScheduleSpecialtiesCacheHeaders,
+} from '../../lib/cache/httpCacheHeaders.js'
 
 const canView = requireAnyUbtPagePermission(['triagem', 'agenda'], 'visualizar')
 const canInsert = requireAnyUbtPagePermission(['triagem', 'agenda'], 'inserir')
@@ -52,7 +56,7 @@ export async function registerUbtRh3Routes(app: FastifyInstance): Promise<void> 
     try {
       if (parsed.success && parsed.data.scope === 'schedule') {
         const specialties = await listRh3MtSpecialtiesForSchedule(scope(request))
-        reply.header('Cache-Control', 'private, max-age=60')
+        setScheduleSpecialtiesCacheHeaders(reply)
         return reply.send({ specialties })
       }
 
@@ -67,7 +71,7 @@ export async function registerUbtRh3Routes(app: FastifyInstance): Promise<void> 
             }).format(new Date())
 
       const specialties = await listRh3MtSpecialtiesForUbt(scope(request), date)
-      reply.header('Cache-Control', 'private, max-age=20')
+      setDaySpecialtiesCacheHeaders(reply)
       return reply.send({ date, specialties })
     } catch (error) {
       const mapped = mapUbtRh3Error(error)

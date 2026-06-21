@@ -55,24 +55,13 @@ import {
   updateExamItemBodySchema,
   updateLegalDocumentBodySchema,
 } from './schemas.js'
-
-const PUBLIC_CACHE_MAX_AGE_SECONDS = 60
-const PUBLIC_CACHE_STALE_SECONDS = 300
+import {
+  setAdminCatalogNoCacheHeaders,
+  setPublicCatalogCacheHeaders,
+} from '../../lib/cache/httpCacheHeaders.js'
 
 const canView = requireAdminPagePermission('configuracoes', 'visualizar')
 const canEdit = requireAdminPagePermission('configuracoes', 'editar')
-
-function setPublicCatalogCacheHeaders(reply: { header: (name: string, value: string) => void }) {
-  reply.header(
-    'Cache-Control',
-    `public, max-age=${PUBLIC_CACHE_MAX_AGE_SECONDS}, stale-while-revalidate=${PUBLIC_CACHE_STALE_SECONDS}`,
-  )
-}
-
-function setAdminCatalogNoCacheHeaders(reply: { header: (name: string, value: string) => void }) {
-  reply.header('Cache-Control', 'no-store, no-cache, must-revalidate')
-  reply.header('Pragma', 'no-cache')
-}
 
 export async function registerPublicConfiguracoesRoutes(app: FastifyInstance): Promise<void> {
   app.get('/clinico', async (request, reply) => {

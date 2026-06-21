@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { mapSupportKpisForSidebar } from '../components/admin/suporte/adminSuporteUi'
 import type { SupportTicket, SupportTicketStatus } from '../data/suporteMock'
 import {
@@ -14,11 +15,8 @@ import {
   type CreatePortalSupportTicketInput,
   type PortalSuporteVariant,
 } from '../lib/services/portal/suporte'
-import {
-  readPortalPageCache,
-  writePortalPageCache,
-} from '../utils/portal/portalPageCache'
-import { shouldBlockPortalPageWithCache } from '../utils/portal/portalPageLoading'
+import { queryKeys } from '../lib/query/keys'
+import { PORTAL_PAGE_GC_MS, PORTAL_PAGE_STALE_MS } from '../lib/query/timings'
 
 const PAGE_SIZE = 10
 
@@ -26,22 +24,6 @@ type SuporteTicketsCache = {
   tickets: SupportTicket[]
   total: number
   totalPages: number
-}
-
-function suporteKpisCacheKey(variant: PortalSuporteVariant) {
-  return `portal:suporte:${variant}:kpis`
-}
-
-function suporteTicketsCacheKey(
-  variant: PortalSuporteVariant,
-  query: {
-    search: string
-    status: SupportTicketStatus | ''
-    openOnly: boolean
-    page: number
-  },
-) {
-  return `portal:suporte:${variant}:tickets:${JSON.stringify(query)}`
 }
 
 const DEFAULT_TICKETS_QUERY = {
@@ -79,39 +61,26 @@ export function usePortalSuportePage({
   readOnlyForTicket,
   enabled = true,
 }: UsePortalSuportePageOptions) {
-  const kpisCacheKey = suporteKpisCacheKey(variant)
-  const defaultTicketsCacheKey = suporteTicketsCacheKey(variant, DEFAULT_TICKETS_QUERY)
-
-  const [tickets, setTickets] = useState<SupportTicket[]>(() => {
-    return readPortalPageCache<SuporteTicketsCache>(defaultTicketsCacheKey)?.tickets ?? []
-  })
-  const [total, setTotal] = useState(() => {
-    return readPortalPageCache<SuporteTicketsCache>(defaultTicketsCacheKey)?.total ?? 0
-  })
-  const [totalPages, setTotalPages] = useState(() => {
-    return readPortalPageCache<SuporteTicketsCache>(defaultTicketsCacheKey)?.totalPages ?? 1
-  })
+  const queryClient = useQueryClient()
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize] = useState(PAGE_SIZE)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<SupportTicketStatus | ''>('')
   const [openOnly, setOpenOnly] = useState(true)
-  const [isLoadingTickets, setIsLoadingTickets] = useState(() =>
-    shouldBlockPortalPageWithCache(defaultTicketsCacheKey),
-  )
-  const [isLoadingKpis, setIsLoadingKpis] = useState(() =>
-    shouldBlockPortalPageWithCache(kpisCacheKey),
-  )
-  const [sidebarData, setSidebarData] = useState(() => {
-    return (
-      readPortalPageCache<ReturnType<typeof mapSupportKpisForSidebar>>(kpisCacheKey) ??
-      emptySuporteSidebar()
-    )
-  })
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null)
   const [isLoadingTicket, setIsLoadingTicket] = useState(false)
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null)
+
+  const ticketsQueryParams = useMemo(
+    () => ({
+      search: debouncedSearch,
+      status: statusFilter,
+      openOnly,
+      page: currentPage,
+    }),
+    [currentPage, debouncedSearch, openOnly, statusFilter],
+  )
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSearch(search), 300)
@@ -122,67 +91,25 @@ export function usePortalSuportePage({
     setToast({ message, variant: 'error' })
   }, [])
 
-  const loadKpis = useCallback(async () => {
-    const token = getAccessToken()
-    if (!token) {
-      setIsLoadingKpis(false)
-      return
-    }
-
-    const cacheKey = suporteKpisCacheKey(variant)
-    const cached = readPortalPageCache<ReturnType<typeof mapSupportKpisForSidebar>>(cacheKey)
-    if (cached) {
-      setSidebarData(cached)
-    }
-
-    if (shouldBlockPortalPageWithCache(cacheKey)) {
-      setIsLoadingKpis(true)
-    }
-
-    try {
+  const kpisQuery = useQuery({
+    queryKey: queryKeys.portalSuporteKpis(variant),
+    queryFn: async () => {
+      const token = getAccessToken()
+      if (!token) throw new Error('Sessão expirada.')
       const kpis = await fetchPortalSupportKpis(variant, token)
-      const mapped = mapSupportKpisForSidebar(kpis)
-      setSidebarData(mapped)
-      writePortalPageCache(cacheKey, mapped)
-    } catch (error) {
-      if (isPortalSuporteApiError(error) && error.status === 403) {
-        setSidebarData(emptySuporteSidebar())
-        return
-      }
-      const message = isPortalSuporteApiError(error)
-        ? error.message
-        : 'Não foi possível carregar o resumo.'
-      notifyError(message)
-    } finally {
-      setIsLoadingKpis(false)
-    }
-  }, [getAccessToken, notifyError, variant])
+      return mapSupportKpisForSidebar(kpis)
+    },
+    enabled,
+    staleTime: PORTAL_PAGE_STALE_MS,
+    gcTime: PORTAL_PAGE_GC_MS,
+    retry: (_, error) => !(isPortalSuporteApiError(error) && error.status === 403),
+  })
 
-  const loadTickets = useCallback(async () => {
-    const token = getAccessToken()
-    if (!token) {
-      setIsLoadingTickets(false)
-      return
-    }
-
-    const cacheKey = suporteTicketsCacheKey(variant, {
-      search: debouncedSearch,
-      status: statusFilter,
-      openOnly,
-      page: currentPage,
-    })
-    const cached = readPortalPageCache<SuporteTicketsCache>(cacheKey)
-    if (cached) {
-      setTickets(cached.tickets)
-      setTotal(cached.total)
-      setTotalPages(cached.totalPages)
-    }
-
-    if (shouldBlockPortalPageWithCache(cacheKey)) {
-      setIsLoadingTickets(true)
-    }
-
-    try {
+  const ticketsQuery = useQuery({
+    queryKey: queryKeys.portalSuporteTickets(variant, ticketsQueryParams),
+    queryFn: async (): Promise<SuporteTicketsCache> => {
+      const token = getAccessToken()
+      if (!token) throw new Error('Sessão expirada.')
       const result = await fetchPortalSupportTickets(variant, token, {
         search: debouncedSearch,
         status: statusFilter || undefined,
@@ -190,45 +117,69 @@ export function usePortalSuportePage({
         page: currentPage,
         pageSize: PAGE_SIZE,
       })
-      setTickets(result.tickets)
-      setTotal(result.total)
-      setTotalPages(result.totalPages)
-      writePortalPageCache(cacheKey, {
+      return {
         tickets: result.tickets,
         total: result.total,
         totalPages: result.totalPages,
-      })
-    } catch (error) {
-      if (isPortalSuporteApiError(error) && error.status === 403) {
-        setTickets([])
-        setTotal(0)
-        setTotalPages(1)
-        return
       }
-      const message = isPortalSuporteApiError(error)
-        ? error.message
-        : 'Não foi possível carregar os chamados.'
-      notifyError(message)
-    } finally {
-      setIsLoadingTickets(false)
+    },
+    enabled,
+    staleTime: PORTAL_PAGE_STALE_MS,
+    gcTime: PORTAL_PAGE_GC_MS,
+    retry: (_, error) => !(isPortalSuporteApiError(error) && error.status === 403),
+  })
+
+  useEffect(() => {
+    if (!enabled) return
+    if (kpisQuery.isError && isPortalSuporteApiError(kpisQuery.error) && kpisQuery.error.status === 403) {
+      queryClient.setQueryData(queryKeys.portalSuporteKpis(variant), emptySuporteSidebar())
     }
-  }, [currentPage, debouncedSearch, getAccessToken, notifyError, openOnly, statusFilter, variant])
+  }, [enabled, kpisQuery.error, kpisQuery.isError, queryClient, variant])
 
   useEffect(() => {
     if (!enabled) return
-    void loadKpis()
-  }, [enabled, loadKpis])
+    if (
+      ticketsQuery.isError &&
+      isPortalSuporteApiError(ticketsQuery.error) &&
+      ticketsQuery.error.status === 403
+    ) {
+      queryClient.setQueryData(queryKeys.portalSuporteTickets(variant, ticketsQueryParams), {
+        tickets: [],
+        total: 0,
+        totalPages: 1,
+      })
+    }
+  }, [enabled, queryClient, ticketsQuery.error, ticketsQuery.isError, ticketsQueryParams, variant])
 
   useEffect(() => {
-    if (!enabled) return
-    void loadTickets()
-  }, [enabled, loadTickets])
+    if (kpisQuery.isError && !isPortalSuporteApiError(kpisQuery.error)) {
+      notifyError('Não foi possível carregar o resumo.')
+    } else if (
+      kpisQuery.isError &&
+      isPortalSuporteApiError(kpisQuery.error) &&
+      kpisQuery.error.status !== 403
+    ) {
+      notifyError(kpisQuery.error.message)
+    }
+  }, [kpisQuery.error, kpisQuery.isError, notifyError])
+
+  useEffect(() => {
+    if (ticketsQuery.isError && !isPortalSuporteApiError(ticketsQuery.error)) {
+      notifyError('Não foi possível carregar os chamados.')
+    } else if (
+      ticketsQuery.isError &&
+      isPortalSuporteApiError(ticketsQuery.error) &&
+      ticketsQuery.error.status !== 403
+    ) {
+      notifyError(ticketsQuery.error.message)
+    }
+  }, [notifyError, ticketsQuery.error, ticketsQuery.isError])
 
   useEffect(() => {
     if (!enabled) return
 
     const refreshCounts = () => {
-      void loadKpis()
+      void kpisQuery.refetch()
     }
 
     const intervalId = window.setInterval(refreshCounts, 60_000)
@@ -241,18 +192,30 @@ export function usePortalSuportePage({
       window.clearInterval(intervalId)
       window.removeEventListener('focus', refreshCounts)
     }
-  }, [enabled, loadKpis])
+  }, [enabled, kpisQuery])
 
   const refreshAll = useCallback(async () => {
-    await Promise.all([loadTickets(), loadKpis()])
-  }, [loadKpis, loadTickets])
+    await Promise.all([ticketsQuery.refetch(), kpisQuery.refetch()])
+  }, [kpisQuery, ticketsQuery])
 
-  const applyTicketUpdate = useCallback((updated: SupportTicket) => {
-    setTickets((current) =>
-      current.map((ticket) => (ticket.id === updated.id ? { ...ticket, ...updated } : ticket)),
-    )
-    setSelectedTicket((current) => (current?.id === updated.id ? updated : current))
-  }, [])
+  const applyTicketUpdate = useCallback(
+    (updated: SupportTicket) => {
+      queryClient.setQueriesData<SuporteTicketsCache>(
+        { queryKey: ['portal', 'suporte', variant, 'tickets'] },
+        (current) => {
+          if (!current) return current
+          return {
+            ...current,
+            tickets: current.tickets.map((ticket) =>
+              ticket.id === updated.id ? { ...ticket, ...updated } : ticket,
+            ),
+          }
+        },
+      )
+      setSelectedTicket((current) => (current?.id === updated.id ? updated : current))
+    },
+    [queryClient, variant],
+  )
 
   const openTicket = useCallback(
     async (ticket: SupportTicket) => {
@@ -265,7 +228,7 @@ export function usePortalSuportePage({
         const detail = await fetchPortalSupportTicket(variant, token, ticket.id)
         setSelectedTicket(detail)
         applyTicketUpdate(detail)
-        void loadKpis()
+        void kpisQuery.refetch()
       } catch (error) {
         const message = isPortalSuporteApiError(error)
           ? error.message
@@ -275,7 +238,7 @@ export function usePortalSuportePage({
         setIsLoadingTicket(false)
       }
     },
-    [applyTicketUpdate, getAccessToken, loadKpis, notifyError, variant],
+    [applyTicketUpdate, getAccessToken, kpisQuery, notifyError, variant],
   )
 
   const createTicket = useCallback(
@@ -341,6 +304,11 @@ export function usePortalSuportePage({
 
   const dismissToast = useCallback(() => setToast(null), [])
 
+  const sidebarData = kpisQuery.data ?? emptySuporteSidebar()
+  const tickets = ticketsQuery.data?.tickets ?? []
+  const total = ticketsQuery.data?.total ?? 0
+  const totalPages = ticketsQuery.data?.totalPages ?? 1
+
   return {
     tickets,
     total,
@@ -354,8 +322,8 @@ export function usePortalSuportePage({
     openOnly,
     setOpenOnly,
     setCurrentPage,
-    isLoadingTickets,
-    isLoadingKpis,
+    isLoadingTickets: ticketsQuery.isPending,
+    isLoadingKpis: kpisQuery.isPending,
     sidebarData,
     awaitingOperatorReplyCount: sidebarData.awaitingCount ?? 0,
     unreadSupportMessagesCount: sidebarData.unreadSupportMessagesCount ?? 0,

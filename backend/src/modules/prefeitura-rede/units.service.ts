@@ -1,3 +1,7 @@
+import {
+  invalidateRedeUnitsForEntidade,
+  withCatalogCache,
+} from '../../lib/cache/catalogCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { normalizeCpf } from '../../lib/cpf.js'
 import { parseTipoEntidade } from '../../lib/entidadeBranding/terminology.js'
@@ -257,6 +261,10 @@ async function assertUbtSlugAvailable(slug: string, excludeUbtId?: string): Prom
 }
 
 export async function listRedeUnits(entidadeId: string) {
+  return withCatalogCache('rede-units', entidadeId, () => loadRedeUnitsFromDb(entidadeId))
+}
+
+async function loadRedeUnitsFromDb(entidadeId: string) {
   const { data, error } = await supabaseAdmin
     .from('unidades_ubt')
     .select(UNIT_SELECT)
@@ -363,6 +371,7 @@ export async function createRedeUnit(entidadeId: string, body: CreateUnitBody): 
 
   if (error) throw error
 
+  invalidateRedeUnitsForEntidade(entidadeId)
   return getRedeUnitDetail(entidadeId, String(data.id))
 }
 
@@ -435,6 +444,7 @@ export async function updateRedeUnit(
     await upsertUnitResponsible(entidadeId, unitId, body.responsible)
   }
 
+  invalidateRedeUnitsForEntidade(entidadeId)
   return getRedeUnitDetail(entidadeId, unitId)
 }
 
@@ -448,6 +458,8 @@ export async function deleteRedeUnit(entidadeId: string, unitId: string): Promis
     .eq('entidade_contratante_id', entidadeId)
 
   if (error) throw error
+
+  invalidateRedeUnitsForEntidade(entidadeId)
 }
 
 export async function loadRedeUnitRows(entidadeId: string): Promise<UnidadeUbtRow[]> {

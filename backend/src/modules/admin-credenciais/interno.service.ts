@@ -1,3 +1,4 @@
+import { invalidateAuthSessionCache } from '../../lib/cache/authSessionCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { normalizeCpf } from '../../lib/cpf.js'
 import { hashPassword } from '../../lib/password.js'
@@ -215,6 +216,7 @@ export async function updateInternoCredential(
     throw error
   }
 
+  invalidateAuthSessionCache('admin', id)
   return getInternoCredentialById(id)
 }
 
@@ -239,4 +241,6 @@ export async function deleteInternoCredential(id: string): Promise<void> {
     }
     throw error
   }
+
+  invalidateAuthSessionCache('admin', id)
 }

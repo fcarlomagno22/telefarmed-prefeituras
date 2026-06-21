@@ -1,3 +1,4 @@
+import { withCatalogCache } from '../../lib/cache/catalogCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import {
   isRh3Configured,
@@ -94,17 +95,25 @@ async function countRh3AvailabilityForDate(
   return response.data.available_appointments.length
 }
 
+function ubtSpecialtiesCacheKey(scope: UbtScope, suffix: string): string {
+  return `${scope.entidadeContratanteId}:${scope.unidadeUbtId}:${suffix}`
+}
+
 export async function listRh3MtSpecialtiesForSchedule(
   scope: UbtScope,
 ): Promise<Rh3MtSpecialtyCatalogItem[]> {
-  return buildRh3MtSpecialtyCatalog(scope)
+  return withCatalogCache('ubt-specialties', ubtSpecialtiesCacheKey(scope, 'rh3-schedule'), () =>
+    buildRh3MtSpecialtyCatalog(scope),
+  )
 }
 
 export async function listRh3MtSpecialtiesForUbt(
   scope: UbtScope,
   date: string,
 ): Promise<Rh3MtSpecialtyCatalogItem[]> {
-  return buildRh3MtSpecialtyCatalog(scope, date)
+  return withCatalogCache('ubt-specialties', ubtSpecialtiesCacheKey(scope, `rh3:${date}`), () =>
+    buildRh3MtSpecialtyCatalog(scope, date),
+  )
 }
 
 async function buildRh3MtSpecialtyCatalog(

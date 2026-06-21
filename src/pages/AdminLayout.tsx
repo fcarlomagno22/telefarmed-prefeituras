@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { PortalCatalogPrefetch } from '../components/query/PortalCatalogPrefetch'
 import { AdminPagePermissionGuard } from '../components/auth/AdminPagePermissionGuard'
 import { RouteErrorBoundary } from '../components/ui/RouteErrorBoundary'
 import { ADMIN_SIDEBAR_COLLAPSED_STORAGE_KEY } from '../components/layout/SidebarNavSectionGroup'
@@ -56,6 +57,7 @@ function AdminLayoutShell() {
               : brand.adminOperatorRole,
       }}
     >
+      <PortalCatalogPrefetch portal="admin" />
       <RouteErrorBoundary key={location.pathname} title="Erro no painel admin">
         <AdminPagePermissionGuard />
       </RouteErrorBoundary>

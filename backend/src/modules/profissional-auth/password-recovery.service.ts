@@ -1,3 +1,4 @@
+import { invalidateAuthSessionCache } from '../../lib/cache/authSessionCache.js'
 import { randomInt } from 'node:crypto'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { normalizeCpf } from '../../lib/cpf.js'
@@ -426,6 +427,8 @@ export async function completeProfissionalPasswordRecovery(input: {
     .is('revogado_em', null)
 
   if (revokeSessionsError) throw revokeSessionsError
+
+  invalidateAuthSessionCache('profissional', String(recovery.usuario_profissional_id))
 }
 
 export function mapProfissionalPasswordRecoveryError(error: unknown): {

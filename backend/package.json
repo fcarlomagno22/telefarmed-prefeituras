@@ -12,6 +12,7 @@
     "backfill:registro-sus": "tsx scripts/backfill-registro-sus.ts",
     "setup:supabase-env": "tsx scripts/setup-supabase-env.ts",
     "test:bpa": "node --import tsx --test src/lib/faturamento/bpa/bpaTeleconsulta.test.ts",
+    "test:cache": "node --import tsx --test src/lib/cache/catalogCache.test.ts src/lib/cache/authSessionCache.test.ts src/lib/cache/httpCacheHeaders.test.ts",
     "seed:bpa-export-demo": "tsx scripts/seed-bpa-export-demo.ts",
     "reopen:fechamento-demo": "tsx scripts/reopen-fechamento-demo.ts"
   },

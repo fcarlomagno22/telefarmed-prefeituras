@@ -10,21 +10,14 @@ import {
 import { lookupTenantSlugRedirect } from '../../lib/tenant/slugRedirect.js'
 import { gestaoPublicUrl, ubtPublicUrl } from '../../lib/tenant/publicUrls.js'
 import { mapTenantToPortalKind, type PublicTenantPayload } from './serializer.js'
+import { setTenantCacheHeaders } from '../../lib/cache/httpCacheHeaders.js'
 
-const PUBLIC_TENANT_CACHE_MAX_AGE_SECONDS = 60
 const PUBLIC_TENANT_RATE_LIMIT_MAX = 60
 
 const tenantQuerySchema = z.object({
   host: z.string().trim().optional(),
   slug: z.string().trim().optional(),
 })
-
-function setPublicTenantCacheHeaders(reply: { header: (name: string, value: string) => void }) {
-  reply.header(
-    'Cache-Control',
-    `public, max-age=${PUBLIC_TENANT_CACHE_MAX_AGE_SECONDS}, s-maxage=${PUBLIC_TENANT_CACHE_MAX_AGE_SECONDS}, stale-while-revalidate=120`,
-  )
-}
 
 function publicUrlForTenant(tenant: NonNullable<Awaited<ReturnType<typeof resolveTenantByHost>>>): string {
   if (tenant.kind === 'platform') {
@@ -131,7 +124,7 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
         return reply.status(404).send({ message: 'Endereço não encontrado.' })
       }
 
-      setPublicTenantCacheHeaders(reply)
+      setTenantCacheHeaders(reply)
       return reply.send(toPublicTenantPayload(tenant))
     },
   )

@@ -28,6 +28,7 @@ import {
   mapUbtAgendaError,
 } from './errors.js'
 import { listUbtAgendaDoctorShifts } from './shifts.service.js'
+import { setDaySpecialtiesCacheHeaders } from '../../lib/cache/httpCacheHeaders.js'
 import {
   consultaIdParamsSchema,
   createConsultaBodySchema,
@@ -228,7 +229,7 @@ export async function registerUbtAgendaRoutes(app: FastifyInstance): Promise<voi
         scope(request),
         parsed.data.date,
       )
-      reply.header('Cache-Control', 'private, max-age=20')
+      setDaySpecialtiesCacheHeaders(reply)
       return reply.send({ specialties })
     } catch (error) {
       const mapped = mapUbtAgendaError(error)
@@ -249,7 +250,7 @@ export async function registerUbtAgendaRoutes(app: FastifyInstance): Promise<voi
         params.data.id,
         parsed.data.date,
       )
-      reply.header('Cache-Control', 'private, max-age=15')
+      setDaySpecialtiesCacheHeaders(reply)
       return reply.send({ count })
     } catch (error) {
       const mapped = mapUbtAgendaError(error)

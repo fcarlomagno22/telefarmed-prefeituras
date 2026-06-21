@@ -4,12 +4,12 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type Dispatch,
   type ReactNode,
   type SetStateAction,
 } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { isPrefeituraNotificationUnread } from '../components/prefeitura/notificacoes/prefeituraNotificacoesUi'
 import { useProfissionalAuth } from './ProfissionalAuthContext'
 import type { PrefeituraNotification } from '../data/prefeituraNotificacoesMock'
@@ -22,13 +22,8 @@ import {
   type ProfissionalNotificationKpisResponse,
 } from '../lib/services/profissional/notificacoes'
 import { emptyPortalNotificationKpis } from '../utils/notificacoes/portalNotificacoesKpiCards'
-import {
-  readPortalPageCache,
-  writePortalPageCache,
-} from '../utils/portal/portalPageCache'
-import { shouldBlockPortalPageWithCache } from '../utils/portal/portalPageLoading'
-
-const NOTIFICACOES_CACHE_KEY = 'profissional:notificacoes'
+import { queryKeys } from '../lib/query/keys'
+import { PORTAL_PAGE_GC_MS, PORTAL_PAGE_STALE_MS } from '../lib/query/timings'
 
 export type ProfissionalNotificacoesListFilters = {
   origin?: string
@@ -41,11 +36,6 @@ export type ProfissionalNotificacoesListFilters = {
 const DEFAULT_LIST_FILTERS: ProfissionalNotificacoesListFilters = {
   page: 1,
   pageSize: 100,
-}
-
-type NotificacoesCache = {
-  notifications: PrefeituraNotification[]
-  kpis: ProfissionalNotificationKpisResponse
 }
 
 function toApiListParams(filters: ProfissionalNotificacoesListFilters) {
@@ -94,103 +84,69 @@ const ProfissionalNotificacoesContext = createContext<ProfissionalNotificacoesCo
 
 export function ProfissionalNotificacoesProvider({ children }: { children: ReactNode }) {
   const { getAccessToken, isAuthenticated, isBootstrapping } = useProfissionalAuth()
-  const [notifications, setNotifications] = useState<PrefeituraNotification[]>(() => {
-    return readPortalPageCache<NotificacoesCache>(NOTIFICACOES_CACHE_KEY)?.notifications ?? []
-  })
-  const [kpis, setKpis] = useState<ProfissionalNotificationKpisResponse>(() => {
-    return (
-      readPortalPageCache<NotificacoesCache>(NOTIFICACOES_CACHE_KEY)?.kpis ?? {
-        ...emptyPortalNotificationKpis,
-      }
-    )
-  })
-  const [isLoading, setIsLoading] = useState(shouldBlockPortalPageWithCache(NOTIFICACOES_CACHE_KEY))
-  const [isListLoading, setIsListLoading] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
-  const [listTotal, setListTotal] = useState(0)
-  const listFiltersRef = useRef<ProfissionalNotificacoesListFilters>(DEFAULT_LIST_FILTERS)
+  const [listFilters, setListFilters] = useState(DEFAULT_LIST_FILTERS)
+  const [optimisticNotifications, setOptimisticNotifications] = useState<
+    PrefeituraNotification[] | null
+  >(null)
+  const [optimisticKpis, setOptimisticKpis] = useState<ProfissionalNotificationKpisResponse | null>(
+    null,
+  )
 
-  const fetchList = useCallback(
-    async (
-      filters: ProfissionalNotificacoesListFilters,
-      options?: { withKpis?: boolean; initial?: boolean },
-    ) => {
+  const kpisQuery = useQuery({
+    queryKey: queryKeys.profissionalNotificacoesKpis(),
+    queryFn: async () => {
       const token = getAccessToken()
-      if (!token) {
-        setIsLoading(false)
-        setIsListLoading(false)
-        return
-      }
-
-      const withKpis = options?.withKpis ?? false
-      const initial = options?.initial ?? false
-
-      if (initial && shouldBlockPortalPageWithCache(NOTIFICACOES_CACHE_KEY)) {
-        setIsLoading(true)
-      } else if (!withKpis) {
-        setIsListLoading(true)
-      }
-
-      setLoadError(null)
-
-      try {
-        const [listResult, kpisResult] = await Promise.all([
-          fetchProfissionalNotifications(token, toApiListParams(filters)),
-          withKpis ? fetchProfissionalNotificationKpis(token) : Promise.resolve(null),
-        ])
-
-        setNotifications(listResult.notifications)
-        setListTotal(listResult.total)
-
-        if (kpisResult) {
-          setKpis(kpisResult)
-        }
-
-        if (isDefaultListFilters(filters) && kpisResult) {
-          writePortalPageCache(NOTIFICACOES_CACHE_KEY, {
-            notifications: listResult.notifications,
-            kpis: kpisResult,
-          })
-        }
-      } catch (error) {
-        setLoadError(getLoadErrorMessage(error))
-        if (!isProfissionalNotificacoesApiError(error)) {
-          console.error(error)
-        }
-      } finally {
-        setIsLoading(false)
-        setIsListLoading(false)
-      }
+      if (!token) throw new Error('Sessão expirada.')
+      return fetchProfissionalNotificationKpis(token)
     },
-    [getAccessToken],
-  )
+    enabled: isAuthenticated && !isBootstrapping,
+    staleTime: PORTAL_PAGE_STALE_MS,
+    gcTime: PORTAL_PAGE_GC_MS,
+  })
 
-  const applyListFilters = useCallback(
-    async (filters: ProfissionalNotificacoesListFilters) => {
-      const next = { ...DEFAULT_LIST_FILTERS, ...filters }
-      listFiltersRef.current = next
-      await fetchList(next)
+  const listQuery = useQuery({
+    queryKey: queryKeys.profissionalNotificacoes(listFilters),
+    queryFn: async () => {
+      const token = getAccessToken()
+      if (!token) throw new Error('Sessão expirada.')
+      return fetchProfissionalNotifications(token, toApiListParams(listFilters))
     },
-    [fetchList],
-  )
-
-  const reload = useCallback(async () => {
-    await fetchList(listFiltersRef.current, { withKpis: true, initial: true })
-  }, [fetchList])
+    enabled: isAuthenticated && !isBootstrapping,
+    staleTime: PORTAL_PAGE_STALE_MS,
+    gcTime: PORTAL_PAGE_GC_MS,
+  })
 
   useEffect(() => {
-    if (isBootstrapping) return
     if (!isAuthenticated) {
-      setNotifications([])
-      setKpis({ ...emptyPortalNotificationKpis })
-      setListTotal(0)
-      setLoadError(null)
-      setIsLoading(false)
-      listFiltersRef.current = DEFAULT_LIST_FILTERS
-      return
+      setListFilters(DEFAULT_LIST_FILTERS)
+      setOptimisticNotifications(null)
+      setOptimisticKpis(null)
     }
-    void fetchList(DEFAULT_LIST_FILTERS, { withKpis: true, initial: true })
-  }, [isAuthenticated, isBootstrapping, fetchList])
+  }, [isAuthenticated])
+
+  const notifications = optimisticNotifications ?? listQuery.data?.notifications ?? []
+  const kpis = optimisticKpis ?? kpisQuery.data ?? { ...emptyPortalNotificationKpis }
+  const listTotal = listQuery.data?.total ?? 0
+
+  const setNotifications = useCallback((action: SetStateAction<PrefeituraNotification[]>) => {
+    setOptimisticNotifications((current) => {
+      const base = current ?? []
+      return typeof action === 'function' ? action(base) : action
+    })
+  }, [])
+
+  const reload = useCallback(async () => {
+    setOptimisticNotifications(null)
+    setOptimisticKpis(null)
+    setListFilters(DEFAULT_LIST_FILTERS)
+    await Promise.all([listQuery.refetch(), kpisQuery.refetch()])
+  }, [kpisQuery, listQuery])
+
+  const applyListFilters = useCallback(async (filters: ProfissionalNotificacoesListFilters) => {
+    setOptimisticNotifications(null)
+    const next = { ...DEFAULT_LIST_FILTERS, ...filters }
+    setListFilters(next)
+  }, [])
 
   const markAsRead = useCallback(
     async (id: string) => {
@@ -209,10 +165,13 @@ export function ProfissionalNotificacoesProvider({ children }: { children: React
       )
 
       if (wasUnread) {
-        setKpis((current) => ({
-          ...current,
-          unreadCount: Math.max(0, current.unreadCount - 1),
-        }))
+        setOptimisticKpis((current) => {
+          const base = current ?? kpisQuery.data ?? { ...emptyPortalNotificationKpis }
+          return {
+            ...base,
+            unreadCount: Math.max(0, base.unreadCount - 1),
+          }
+        })
       }
 
       if (token) {
@@ -223,7 +182,7 @@ export function ProfissionalNotificacoesProvider({ children }: { children: React
         }
       }
     },
-    [getAccessToken, reload],
+    [getAccessToken, kpisQuery.data, reload, setNotifications],
   )
 
   const markAllInboxRead = useCallback(async () => {
@@ -236,12 +195,18 @@ export function ProfissionalNotificacoesProvider({ children }: { children: React
         item.direction === 'inbox' && item.readAt === null ? { ...item, readAt: now } : item,
       ),
     )
-    setKpis((current) => ({ ...current, unreadCount: 0 }))
+    setOptimisticKpis((current) => {
+      const base = current ?? kpisQuery.data ?? { ...emptyPortalNotificationKpis }
+      return { ...base, unreadCount: 0 }
+    })
 
     if (token) {
       try {
         const result = await markAllProfissionalNotificationsRead(token)
-        setKpis((current) => ({ ...current, unreadCount: 0 }))
+        setOptimisticKpis((current) => {
+          const base = current ?? kpisQuery.data ?? { ...emptyPortalNotificationKpis }
+          return { ...base, unreadCount: 0 }
+        })
         return result.count
       } catch {
         void reload()
@@ -249,12 +214,23 @@ export function ProfissionalNotificacoesProvider({ children }: { children: React
     }
 
     return unreadCount
-  }, [getAccessToken, kpis.unreadCount, reload])
+  }, [getAccessToken, kpis.unreadCount, kpisQuery.data, reload, setNotifications])
 
   const hasProfissionalUnreadInbox = useMemo(
     () => kpis.unreadCount > 0 || notifications.some(isPrefeituraNotificationUnread),
     [kpis.unreadCount, notifications],
   )
+
+  const isLoading =
+    isDefaultListFilters(listFilters) &&
+    ((kpisQuery.isPending && !kpisQuery.data) || (listQuery.isPending && !listQuery.data))
+
+  const isListLoading = listQuery.isFetching && !listQuery.isPending
+
+  const loadError =
+    listQuery.isError || kpisQuery.isError
+      ? getLoadErrorMessage(listQuery.error ?? kpisQuery.error)
+      : null
 
   const value = useMemo(
     () => ({
@@ -283,6 +259,7 @@ export function ProfissionalNotificacoesProvider({ children }: { children: React
       applyListFilters,
       markAsRead,
       markAllInboxRead,
+      setNotifications,
     ],
   )
 

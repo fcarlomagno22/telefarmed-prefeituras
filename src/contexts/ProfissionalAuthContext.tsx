@@ -29,7 +29,8 @@ import {
   type ProfissionalAuthUser,
 } from '../lib/services/profissional/auth'
 import { useAuthSessionGuard } from '../hooks/useAuthSessionGuard'
-import { clearProfissionalPortalPageCaches } from '../utils/portal/portalPageCache'
+import { queryClient } from '../lib/query/client'
+import { clearPortalSessionQueries } from '../lib/query/portalSession'
 import { setSessionUserDisplayName } from '../utils/sessionUser'
 
 function normalizeProfissionalUser(user: ProfissionalAuthUser): ProfissionalAuthUser {
@@ -81,7 +82,7 @@ export function ProfissionalAuthProvider({ children }: { children: ReactNode }) 
   const clearSession = useCallback(() => {
     accessTokenRef.current = null
     userIdRef.current = null
-    clearProfissionalPortalPageCaches()
+    clearPortalSessionQueries(queryClient, 'profissional')
     setAccessToken(null)
     setUser(null)
     setSessionUserDisplayName(null)

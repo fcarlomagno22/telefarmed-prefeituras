@@ -1,28 +1,32 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { usePrefeituraAuth } from '../contexts/PrefeituraAuthContext'
+import { usePrefeituraUbtOptionsQuery } from '../lib/query/ubtOptionsQueries'
 import { buildGestaoUrl } from '../config/tenantHost'
 import type { AdminOperatorRow } from '../data/adminOperadoresMock'
-import type { PrefeituraCredentialUbtOption } from '../data/prefeituraAccessCredentialsMock'
 import type { PrefeituraCredentialUser } from '../config/prefeituraCredenciaisConfig'
 import {
   fetchPrefeituraEntitySummary,
   fetchPrefeituraGestorCredentials,
   fetchPrefeituraPortalCredentials,
-  fetchPrefeituraUbtOptions,
   isPrefeituraCredenciaisApiError,
 } from '../lib/services/prefeitura/credenciais'
 
 export function usePrefeituraAccessCredentialsPage() {
   const { getAccessToken, isAuthenticated, isBootstrapping } = usePrefeituraAuth()
+  const ubtOptionsQuery = usePrefeituraUbtOptionsQuery(
+    getAccessToken,
+    isAuthenticated && !isBootstrapping,
+  )
   const [operatorRows, setOperatorRows] = useState<AdminOperatorRow[]>([])
   const [gestorRows, setGestorRows] = useState<PrefeituraCredentialUser[]>([])
-  const [ubtOptions, setUbtOptions] = useState<PrefeituraCredentialUbtOption[]>([])
   const [contractingEntityOptions, setContractingEntityOptions] = useState<
     Array<{ value: string; label: string }>
   >([])
   const [entitySlug, setEntitySlug] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+
+  const ubtOptions = ubtOptionsQuery.data ?? []
 
   const reload = useCallback(async () => {
     const token = getAccessToken()
@@ -32,18 +36,17 @@ export function usePrefeituraAccessCredentialsPage() {
     setLoadError(null)
 
     try {
-      const [users, gestores, options, entity] = await Promise.all([
+      const [users, gestores, entity] = await Promise.all([
         fetchPrefeituraPortalCredentials(token),
         fetchPrefeituraGestorCredentials(token),
-        fetchPrefeituraUbtOptions(token),
         fetchPrefeituraEntitySummary(token),
       ])
 
       setOperatorRows(users)
       setGestorRows(gestores)
-      setUbtOptions(options)
       setContractingEntityOptions([{ value: entity.id, label: entity.label }])
       setEntitySlug(entity.slug ?? '')
+      await ubtOptionsQuery.refetch()
     } catch (error) {
       const message = isPrefeituraCredenciaisApiError(error)
         ? error.message
@@ -52,7 +55,7 @@ export function usePrefeituraAccessCredentialsPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [getAccessToken])
+  }, [getAccessToken, ubtOptionsQuery])
 
   useEffect(() => {
     if (isBootstrapping) return
@@ -62,6 +65,11 @@ export function usePrefeituraAccessCredentialsPage() {
     }
     void reload()
   }, [isAuthenticated, isBootstrapping, reload])
+
+  const pageLoading = isLoading || isBootstrapping || ubtOptionsQuery.isPending
+  const pageError =
+    loadError ??
+    (ubtOptionsQuery.isError ? 'Não foi possível carregar as unidades UBT.' : null)
 
   const afterMutation = useCallback(async () => {
     await reload()
@@ -81,8 +89,8 @@ export function usePrefeituraAccessCredentialsPage() {
       ubtOptions,
       contractingEntityOptions,
       gestorPortalLoginUrl,
-      isLoading: isLoading || isBootstrapping,
-      loadError,
+      isLoading: pageLoading,
+      loadError: pageError,
       reload,
       afterMutation,
       getAccessToken,
@@ -93,9 +101,8 @@ export function usePrefeituraAccessCredentialsPage() {
       ubtOptions,
       contractingEntityOptions,
       gestorPortalLoginUrl,
-      isLoading,
-      isBootstrapping,
-      loadError,
+      pageLoading,
+      pageError,
       reload,
       afterMutation,
       getAccessToken,

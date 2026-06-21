@@ -38,6 +38,7 @@ import {
   updatePortalBodySchema,
   verifyPortalPinBodySchema,
 } from './schemas.js'
+import { setUnitsCacheHeaders } from '../../lib/cache/httpCacheHeaders.js'
 
 const canView = requireAdminPagePermission('credenciais', 'visualizar')
 const canInsert = requireAdminPagePermission('credenciais', 'inserir')
@@ -78,6 +79,7 @@ export async function registerAdminCredenciaisRoutes(app: FastifyInstance): Prom
 
       try {
         const options = await listUbtOptionsByEntity(parsed.data.id)
+        setUnitsCacheHeaders(reply)
         return reply.send({ options })
       } catch (error) {
         const mapped = mapCredenciaisError(error)
@@ -89,6 +91,7 @@ export async function registerAdminCredenciaisRoutes(app: FastifyInstance): Prom
   app.get('/unidades-ubt', { preHandler: canView }, async (_request, reply) => {
     try {
       const options = await listAllActiveUbtOptions()
+      setUnitsCacheHeaders(reply)
       return reply.send({ options })
     } catch (error) {
       const mapped = mapCredenciaisError(error)

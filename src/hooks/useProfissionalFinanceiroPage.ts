@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useProfissionalAuth } from '../contexts/ProfissionalAuthContext'
 import type {
   ProfissionalCompetenceClosure,
@@ -32,13 +33,9 @@ import {
   statsFromBillingShifts,
 } from '../utils/profissional/mapProfissionalFinanceiroApi'
 import { competenceKeyFromDate } from '../utils/profissional/profissionalCompetence'
-import {
-  readPortalPageCache,
-  writePortalPageCache,
-} from '../utils/portal/portalPageCache'
-import { shouldBlockPortalPageWithCache } from '../utils/portal/portalPageLoading'
-
-const FINANCEIRO_BASE_CACHE_KEY = 'profissional:financeiro:base'
+import { queryClient as globalQueryClient } from '../lib/query/client'
+import { queryKeys } from '../lib/query/keys'
+import { PORTAL_PAGE_GC_MS, PORTAL_PAGE_STALE_MS } from '../lib/query/timings'
 
 type FinanceiroBaseCache = {
   summary: ProfissionalFinanceiroSummary
@@ -46,11 +43,10 @@ type FinanceiroBaseCache = {
   empresa: ProfissionalPrestadorEmpresa
 }
 
-type FinanceiroDetailCache = Record<string, ProfissionalFinanceiroRepasseDetail>
-
 export function readDefaultProfissionalFinanceiroCompetenceKey(): string {
   const repasses =
-    readPortalPageCache<FinanceiroBaseCache>(FINANCEIRO_BASE_CACHE_KEY)?.repasses ?? []
+    globalQueryClient.getQueryData<FinanceiroBaseCache>(queryKeys.profissionalFinanceiroBase())
+      ?.repasses ?? []
   if (repasses.length === 0) return ''
 
   const current = competenceKeyFromDate(new Date())
@@ -63,29 +59,49 @@ export function readDefaultProfissionalFinanceiroCompetenceKey(): string {
 
 export function useProfissionalFinanceiroPage(competenceKey: string) {
   const { getAccessToken, isAuthenticated, isBootstrapping } = useProfissionalAuth()
-
-  const [summary, setSummary] = useState<ProfissionalFinanceiroSummary | null>(() => {
-    return readPortalPageCache<FinanceiroBaseCache>(FINANCEIRO_BASE_CACHE_KEY)?.summary ?? null
-  })
-  const [repasses, setRepasses] = useState<ProfissionalFinanceiroRepasse[]>(() => {
-    return readPortalPageCache<FinanceiroBaseCache>(FINANCEIRO_BASE_CACHE_KEY)?.repasses ?? []
-  })
-  const [detail, setDetail] = useState<ProfissionalFinanceiroRepasseDetail | null>(() => {
-    if (!competenceKey) return null
-    const details =
-      readPortalPageCache<FinanceiroDetailCache>('profissional:financeiro:details') ?? {}
-    return details[competenceKey] ?? null
-  })
-  const [empresa, setEmpresa] = useState<ProfissionalPrestadorEmpresa | null>(() => {
-    return readPortalPageCache<FinanceiroBaseCache>(FINANCEIRO_BASE_CACHE_KEY)?.empresa ?? null
-  })
-  const [isLoading, setIsLoading] = useState(
-    shouldBlockPortalPageWithCache(FINANCEIRO_BASE_CACHE_KEY),
-  )
-  const [isDetailLoading, setIsDetailLoading] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
   const [isSavingPagamento, setIsSavingPagamento] = useState(false)
   const [isSavingFechamento, setIsSavingFechamento] = useState(false)
+
+  const baseQuery = useQuery({
+    queryKey: queryKeys.profissionalFinanceiroBase(),
+    queryFn: async (): Promise<FinanceiroBaseCache> => {
+      const token = getAccessToken()
+      if (!token) throw new Error('Sessão expirada.')
+
+      const [summaryData, repassesData, dadosPagamento] = await Promise.all([
+        fetchProfissionalFinanceiroSummary(token),
+        fetchProfissionalFinanceiroRepasses(token, { limit: 120 }),
+        fetchProfissionalFinanceiroDadosPagamento(token),
+      ])
+
+      return {
+        summary: summaryData,
+        repasses: repassesData,
+        empresa: dadosPagamentoToEmpresa(dadosPagamento),
+      }
+    },
+    enabled: isAuthenticated && !isBootstrapping,
+    staleTime: PORTAL_PAGE_STALE_MS,
+    gcTime: PORTAL_PAGE_GC_MS,
+  })
+
+  const detailQuery = useQuery({
+    queryKey: queryKeys.profissionalFinanceiroDetail(competenceKey),
+    queryFn: async () => {
+      const token = getAccessToken()
+      if (!token) throw new Error('Sessão expirada.')
+      return fetchProfissionalFinanceiroRepasseDetail(token, competenceKey)
+    },
+    enabled: isAuthenticated && !isBootstrapping && Boolean(competenceKey),
+    staleTime: PORTAL_PAGE_STALE_MS,
+    gcTime: PORTAL_PAGE_GC_MS,
+  })
+
+  const summary = baseQuery.data?.summary ?? null
+  const repasses = baseQuery.data?.repasses ?? []
+  const empresa = baseQuery.data?.empresa ?? null
+  const detail = detailQuery.data ?? null
 
   const competenceBounds = useMemo(() => resolveCompetenceBounds(repasses), [repasses])
 
@@ -131,86 +147,12 @@ export function useProfissionalFinanceiroPage(competenceKey: string) {
   const forecastRows = useMemo(() => forecastRowsFromRepasses(repasses), [repasses])
 
   const reloadBase = useCallback(async () => {
-    const token = getAccessToken()
-    if (!token) return
-
-    if (shouldBlockPortalPageWithCache(FINANCEIRO_BASE_CACHE_KEY)) {
-      setIsLoading(true)
-    }
-    setLoadError(null)
-
-    try {
-      const [summaryData, repassesData, dadosPagamento] = await Promise.all([
-        fetchProfissionalFinanceiroSummary(token),
-        fetchProfissionalFinanceiroRepasses(token, { limit: 120 }),
-        fetchProfissionalFinanceiroDadosPagamento(token),
-      ])
-
-      const nextEmpresa = dadosPagamentoToEmpresa(dadosPagamento)
-      setSummary(summaryData)
-      setRepasses(repassesData)
-      setEmpresa(nextEmpresa)
-      writePortalPageCache(FINANCEIRO_BASE_CACHE_KEY, {
-        summary: summaryData,
-        repasses: repassesData,
-        empresa: nextEmpresa,
-      })
-    } catch (error) {
-      const message = isProfissionalFinanceiroApiError(error)
-        ? error.message
-        : 'Não foi possível carregar o financeiro.'
-      setLoadError(message)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [getAccessToken])
+    await baseQuery.refetch()
+  }, [baseQuery])
 
   const reloadDetail = useCallback(async () => {
-    const token = getAccessToken()
-    if (!token || !competenceKey) return
-
-    const cachedDetail = readPortalPageCache<FinanceiroDetailCache>(
-      'profissional:financeiro:details',
-    )?.[competenceKey]
-
-    if (cachedDetail) {
-      setDetail(cachedDetail)
-    } else {
-      setIsDetailLoading(true)
-    }
-
-    try {
-      const detailData = await fetchProfissionalFinanceiroRepasseDetail(token, competenceKey)
-      setDetail(detailData)
-      const details =
-        readPortalPageCache<FinanceiroDetailCache>('profissional:financeiro:details') ?? {}
-      writePortalPageCache('profissional:financeiro:details', {
-        ...details,
-        [competenceKey]: detailData,
-      })
-    } catch (error) {
-      const message = isProfissionalFinanceiroApiError(error)
-        ? error.message
-        : 'Não foi possível carregar a competência.'
-      setLoadError(message)
-    } finally {
-      setIsDetailLoading(false)
-    }
-  }, [competenceKey, getAccessToken])
-
-  useEffect(() => {
-    if (isBootstrapping) return
-    if (!isAuthenticated) {
-      setIsLoading(false)
-      return
-    }
-    void reloadBase()
-  }, [isAuthenticated, isBootstrapping, reloadBase])
-
-  useEffect(() => {
-    if (isBootstrapping || !isAuthenticated) return
-    void reloadDetail()
-  }, [competenceKey, isAuthenticated, isBootstrapping, reloadDetail])
+    await detailQuery.refetch()
+  }, [detailQuery])
 
   const saveDadosPagamento = useCallback(
     async (payload: UpdateProfissionalFinanceiroDadosPagamentoInput) => {
@@ -220,13 +162,24 @@ export function useProfissionalFinanceiroPage(competenceKey: string) {
       setIsSavingPagamento(true)
       try {
         const dados = await updateProfissionalFinanceiroDadosPagamento(token, payload)
-        setEmpresa(dadosPagamentoToEmpresa(dados))
+        const nextEmpresa = dadosPagamentoToEmpresa(dados)
+        queryClient.setQueryData<FinanceiroBaseCache>(
+          queryKeys.profissionalFinanceiroBase(),
+          (current) =>
+            current
+              ? { ...current, empresa: nextEmpresa }
+              : {
+                  summary: {} as ProfissionalFinanceiroSummary,
+                  repasses: [],
+                  empresa: nextEmpresa,
+                },
+        )
         return dados
       } finally {
         setIsSavingPagamento(false)
       }
     },
-    [getAccessToken],
+    [getAccessToken, queryClient],
   )
 
   const submitFechamento = useCallback(
@@ -246,55 +199,35 @@ export function useProfissionalFinanceiroPage(competenceKey: string) {
       try {
         const fechamento = await submitProfissionalFinanceiroFechamento(token, competencia, payload)
 
-        setRepasses((prev) =>
-          prev.map((repasse) =>
-            repasse.competencia === competencia
-              ? { ...repasse, status: 'processando' as const }
-              : repasse,
-          ),
+        queryClient.setQueryData<FinanceiroBaseCache>(
+          queryKeys.profissionalFinanceiroBase(),
+          (current) =>
+            current
+              ? {
+                  ...current,
+                  repasses: current.repasses.map((repasse) =>
+                    repasse.competencia === competencia
+                      ? { ...repasse, status: 'processando' as const }
+                      : repasse,
+                  ),
+                }
+              : current,
         )
 
-        setDetail((prev) => {
-          if (!prev || prev.competencia !== competencia) return prev
-          return {
-            ...prev,
-            status: 'processando',
-            fechamento,
-          }
-        })
-
-        const baseCache = readPortalPageCache<FinanceiroBaseCache>(FINANCEIRO_BASE_CACHE_KEY)
-        if (baseCache) {
-          writePortalPageCache(FINANCEIRO_BASE_CACHE_KEY, {
-            ...baseCache,
-            repasses: baseCache.repasses.map((repasse) =>
-              repasse.competencia === competencia
-                ? { ...repasse, status: 'processando' as const }
-                : repasse,
-            ),
-          })
-        }
-
-        const details =
-          readPortalPageCache<FinanceiroDetailCache>('profissional:financeiro:details') ?? {}
-        const cachedDetail = details[competencia]
-        if (cachedDetail) {
-          writePortalPageCache('profissional:financeiro:details', {
-            ...details,
-            [competencia]: {
-              ...cachedDetail,
-              status: 'processando',
-              fechamento,
-            },
-          })
-        }
+        queryClient.setQueryData<ProfissionalFinanceiroRepasseDetail>(
+          queryKeys.profissionalFinanceiroDetail(competencia),
+          (current) =>
+            current && current.competencia === competencia
+              ? { ...current, status: 'processando', fechamento }
+              : current,
+        )
 
         return fechamentoApiToClosure(fechamento)
       } finally {
         setIsSavingFechamento(false)
       }
     },
-    [getAccessToken],
+    [getAccessToken, queryClient],
   )
 
   const handleClosureChange = useCallback((_updated: ProfissionalCompetenceClosure) => {
@@ -309,6 +242,16 @@ export function useProfissionalFinanceiroPage(competenceKey: string) {
     return current
   }, [competenceBounds])
 
+  const loadError = baseQuery.isError
+    ? isProfissionalFinanceiroApiError(baseQuery.error)
+      ? baseQuery.error.message
+      : 'Não foi possível carregar o financeiro.'
+    : detailQuery.isError
+      ? isProfissionalFinanceiroApiError(detailQuery.error)
+        ? detailQuery.error.message
+        : 'Não foi possível carregar a competência.'
+      : null
+
   return {
     summary,
     repasses,
@@ -320,8 +263,8 @@ export function useProfissionalFinanceiroPage(competenceKey: string) {
     monthShifts,
     stats,
     forecastRows,
-    isLoading,
-    isDetailLoading,
+    isLoading: baseQuery.isPending,
+    isDetailLoading: detailQuery.isPending && !detail,
     loadError,
     isSavingPagamento,
     isSavingFechamento,

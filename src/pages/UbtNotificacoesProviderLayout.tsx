@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom'
+import { PortalCatalogPrefetch } from '../components/query/PortalCatalogPrefetch'
 import { UbtLgpdProvider } from '../contexts/UbtLgpdContext'
 import { UbtNotificacoesProvider } from '../contexts/UbtNotificacoesContext'
 import { UbtSuporteProvider } from '../contexts/UbtSuporteContext'
@@ -9,6 +10,7 @@ export function UbtNotificacoesProviderLayout() {
     <UbtLgpdProvider>
       <UbtNotificacoesProvider>
         <UbtSuporteProvider>
+          <PortalCatalogPrefetch portal="ubt" />
           <Outlet />
         </UbtSuporteProvider>
       </UbtNotificacoesProvider>

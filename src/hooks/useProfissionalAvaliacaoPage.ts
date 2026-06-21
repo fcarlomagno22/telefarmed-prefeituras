@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useProfissionalAuth } from '../contexts/ProfissionalAuthContext'
 import type {
   ProfissionalAvaliacoesFilters,
@@ -15,11 +16,8 @@ import {
   mapApiReviewToPatientReview,
   mapSummaryToAvaliacoesStats,
 } from '../utils/profissional/mapProfissionalAvaliacoesApi'
-import {
-  readPortalPageCache,
-  writePortalPageCache,
-} from '../utils/portal/portalPageCache'
-import { shouldBlockPortalPageWithCache } from '../utils/portal/portalPageLoading'
+import { queryKeys } from '../lib/query/keys'
+import { PORTAL_PAGE_GC_MS, PORTAL_PAGE_STALE_MS } from '../lib/query/timings'
 
 function buildApiQuery(filters: ProfissionalAvaliacoesFilters) {
   return {
@@ -30,11 +28,7 @@ function buildApiQuery(filters: ProfissionalAvaliacoesFilters) {
   }
 }
 
-function avaliacaoCacheKey(query: ReturnType<typeof buildApiQuery>) {
-  return `profissional:avaliacao:${JSON.stringify(query)}`
-}
-
-type AvaliacaoPageCache = {
+type AvaliacaoPageData = {
   summary: ProfissionalAvaliacoesApiSummary
   reviews: ProfissionalPatientReview[]
   totalReviews: number
@@ -44,73 +38,47 @@ export function useProfissionalAvaliacaoPage(filters: ProfissionalAvaliacoesFilt
   const { getAccessToken, isAuthenticated, isBootstrapping } = useProfissionalAuth()
 
   const apiQuery = useMemo(() => buildApiQuery(filters), [filters])
-  const cacheKey = avaliacaoCacheKey(apiQuery)
-  const cached = readPortalPageCache<AvaliacaoPageCache>(cacheKey)
 
-  const [summary, setSummary] = useState<ProfissionalAvaliacoesApiSummary | null>(
-    cached?.summary ?? null,
-  )
-  const [reviews, setReviews] = useState<ProfissionalPatientReview[]>(cached?.reviews ?? [])
-  const [totalReviews, setTotalReviews] = useState(cached?.totalReviews ?? 0)
-  const [isLoading, setIsLoading] = useState(shouldBlockPortalPageWithCache(cacheKey))
+  const query = useQuery({
+    queryKey: queryKeys.profissionalAvaliacao(apiQuery),
+    queryFn: async (): Promise<AvaliacaoPageData> => {
+      const token = getAccessToken()
+      if (!token) throw new Error('Sessão expirada.')
 
-  const [loadError, setLoadError] = useState<string | null>(null)
-
-  const stats = useMemo((): ProfissionalAvaliacoesStats | null => {
-    if (!summary) return null
-    return mapSummaryToAvaliacoesStats(summary)
-  }, [summary])
-
-  const reload = useCallback(async () => {
-    const token = getAccessToken()
-    if (!token) return
-
-    if (shouldBlockPortalPageWithCache(cacheKey)) {
-      setIsLoading(true)
-    }
-    setLoadError(null)
-
-    try {
       const [summaryData, listData] = await Promise.all([
         fetchProfissionalAvaliacoesSummary(token, apiQuery),
         fetchProfissionalAvaliacoesList(token, apiQuery),
       ])
 
-      const nextReviews = listData.reviews.map(mapApiReviewToPatientReview)
-      setSummary(summaryData)
-      setReviews(nextReviews)
-      setTotalReviews(listData.total)
-      writePortalPageCache(cacheKey, {
+      return {
         summary: summaryData,
-        reviews: nextReviews,
+        reviews: listData.reviews.map(mapApiReviewToPatientReview),
         totalReviews: listData.total,
-      })
-    } catch (error) {
-      const message = isProfissionalAvaliacoesApiError(error)
-        ? error.message
-        : 'Não foi possível carregar as avaliações.'
-      setLoadError(message)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [apiQuery, cacheKey, getAccessToken])
+      }
+    },
+    enabled: isAuthenticated && !isBootstrapping,
+    staleTime: PORTAL_PAGE_STALE_MS,
+    gcTime: PORTAL_PAGE_GC_MS,
+  })
 
-  useEffect(() => {
-    if (isBootstrapping) return
-    if (!isAuthenticated) {
-      setIsLoading(false)
-      return
-    }
-    void reload()
-  }, [isAuthenticated, isBootstrapping, reload])
+  const stats = useMemo((): ProfissionalAvaliacoesStats | null => {
+    if (!query.data?.summary) return null
+    return mapSummaryToAvaliacoesStats(query.data.summary)
+  }, [query.data?.summary])
 
   return {
-    summary,
+    summary: query.data?.summary ?? null,
     stats,
-    reviews,
-    totalReviews,
-    isLoading,
-    loadError,
-    reload,
+    reviews: query.data?.reviews ?? [],
+    totalReviews: query.data?.totalReviews ?? 0,
+    isLoading: query.isPending,
+    loadError: query.isError
+      ? isProfissionalAvaliacoesApiError(query.error)
+        ? query.error.message
+        : 'Não foi possível carregar as avaliações.'
+      : null,
+    reload: async () => {
+      await query.refetch()
+    },
   }
 }

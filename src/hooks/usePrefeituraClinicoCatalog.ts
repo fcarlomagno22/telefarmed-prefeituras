@@ -1,36 +1,19 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import type { ConfigProfession, ConfigSpecialty } from '../types/adminConfiguracoes'
-import { fetchPublicClinicoCatalog } from '../lib/services/configuracoes'
-import type { ClinicoCatalogResponse } from '../lib/services/configuracoes'
+import { usePublicClinicoCatalogQuery } from '../lib/query/clinicoCatalogQuery'
 
 export function usePrefeituraClinicoCatalog() {
-  const [catalog, setCatalog] = useState<ClinicoCatalogResponse | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const reload = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const data = await fetchPublicClinicoCatalog(true)
-      setCatalog(data)
-    } catch {
-      setError('Não foi possível carregar profissões e especialidades.')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    void reload()
-  }, [reload])
+  const queryClient = useQueryClient()
+  const query = usePublicClinicoCatalogQuery(true)
 
   return {
-    professions: catalog?.professions ?? [],
-    specialties: catalog?.specialties ?? [],
-    isLoading,
-    error,
-    reload,
+    professions: query.data?.professions ?? [],
+    specialties: query.data?.specialties ?? [],
+    isLoading: query.isPending,
+    error: query.isError ? 'Não foi possível carregar profissões e especialidades.' : null,
+    reload: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['clinico-catalog'] })
+    },
   }
 }
 

@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react'
 import lottie from 'lottie-web'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { brand } from '../config/brand'
 import { getDedicatedPortal, isTenantGestaoHost } from '../config/portalHost'
@@ -16,6 +17,12 @@ import { resolveDefaultUbtHomePath } from '../config/ubtPageAccess'
 import { resolveDefaultProfissionalHomePath } from '../config/profissionalPageAccess'
 import { useEntidadeBrandTheme } from '../hooks/useEntidadeBrandTheme'
 import { useEntidadeBranding } from '../contexts/EntidadeBrandingContext'
+import {
+  prefetchAdminCatalogs,
+  prefetchPrefeituraCatalogs,
+  prefetchProfissionalCatalogs,
+  prefetchUbtCatalogs,
+} from '../lib/query/prefetchCatalogs'
 
 const ubtTransitionLottiePath = `${import.meta.env.BASE_URL}online_doctor.json`
 const prefeituraTransitionLottiePath = `${import.meta.env.BASE_URL}data_lottie.json`
@@ -49,6 +56,7 @@ export function LoginTransitionPage() {
   const prefeituraAuth = useOptionalPrefeituraAuth()
   const ubtAuth = useOptionalUbtAuth()
   const profissionalAuth = useOptionalProfissionalAuth()
+  const queryClient = useQueryClient()
   const lottieRef = useRef<HTMLDivElement>(null)
   const [activeStep, setActiveStep] = useState(0)
   const [progress, setProgress] = useState(0)
@@ -116,6 +124,33 @@ export function LoginTransitionPage() {
       container.innerHTML = ''
     }
   }, [transitionLottiePath])
+
+  useEffect(() => {
+    if (portal === 'admin') {
+      const token = adminAuth?.getAccessToken?.()
+      if (token) void prefetchAdminCatalogs(queryClient, token)
+      return
+    }
+    if (portal === 'prefeitura') {
+      const token = prefeituraAuth?.getAccessToken?.()
+      if (token) void prefetchPrefeituraCatalogs(queryClient, token)
+      return
+    }
+    if (portal === 'ubt') {
+      void prefetchUbtCatalogs(queryClient)
+      return
+    }
+    if (portal === 'profissional') {
+      const token = profissionalAuth?.getAccessToken?.()
+      if (token) void prefetchProfissionalCatalogs(queryClient, token)
+    }
+  }, [
+    adminAuth,
+    portal,
+    prefeituraAuth,
+    profissionalAuth,
+    queryClient,
+  ])
 
   useEffect(() => {
     const startedAt = performance.now()

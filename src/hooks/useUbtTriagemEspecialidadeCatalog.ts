@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { getTriagemEspecialidadesForDate } from '../data/triagemEspecialidadesMock'
 import { useOptionalUbtAuth } from '../contexts/UbtAuthContext'
 import {
@@ -7,15 +8,12 @@ import {
   type UbtTriagemEspecialidadeCatalog,
 } from '../lib/services/ubt/triagem'
 import { parseDateKey, toDateKey } from '../utils/agendaDate'
+import { queryKeys } from '../lib/query/keys'
+import { DAY_CATALOG_GC_MS, DAY_CATALOG_STALE_MS } from '../lib/query/timings'
 
 export function useUbtTriagemEspecialidadeCatalog(enabled = true, selectedDate?: Date) {
   const ubtAuth = useOptionalUbtAuth()
-  const [catalog, setCatalog] = useState<UbtTriagemEspecialidadeCatalog | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
-
   const resolvedDate = selectedDate ?? new Date()
-
   const dateKey = useMemo(() => toDateKey(resolvedDate), [resolvedDate])
 
   const fallbackSpecialties = useMemo(
@@ -23,29 +21,18 @@ export function useUbtTriagemEspecialidadeCatalog(enabled = true, selectedDate?:
     [dateKey],
   )
 
-  const reload = useCallback(async () => {
-    setIsLoading(true)
-    try {
+  const query = useQuery({
+    queryKey: queryKeys.ubtTriagemSpecialties(dateKey),
+    queryFn: async (): Promise<UbtTriagemEspecialidadeCatalog> => {
       const token = ubtAuth?.getAccessToken() ?? 'mock-demo-token'
-      const next = await fetchUbtTriagemEspecialidadeCatalog(token, dateKey)
-      setCatalog(next)
-      setLoadError(null)
-    } catch (error) {
-      const message = isUbtTriagemApiError(error)
-        ? error.message
-        : 'Não foi possível carregar as especialidades do contrato.'
-      setCatalog(null)
-      setLoadError(message)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [dateKey, ubtAuth])
+      return fetchUbtTriagemEspecialidadeCatalog(token, dateKey)
+    },
+    enabled: enabled && !ubtAuth?.isBootstrapping,
+    staleTime: DAY_CATALOG_STALE_MS,
+    gcTime: DAY_CATALOG_GC_MS,
+  })
 
-  useEffect(() => {
-    if (!enabled || ubtAuth?.isBootstrapping) return
-    void reload()
-  }, [enabled, ubtAuth?.isBootstrapping, reload])
-
+  const catalog = query.data ?? null
   const specialties =
     catalog?.specialties && catalog.specialties.length > 0
       ? catalog.specialties
@@ -55,8 +42,14 @@ export function useUbtTriagemEspecialidadeCatalog(enabled = true, selectedDate?:
     catalog,
     specialties,
     dateKey: catalog?.date ?? dateKey,
-    isLoading,
-    loadError,
-    reload,
+    isLoading: query.isPending,
+    loadError: query.isError
+      ? isUbtTriagemApiError(query.error)
+        ? query.error.message
+        : 'Não foi possível carregar as especialidades do contrato.'
+      : null,
+    reload: async () => {
+      await query.refetch()
+    },
   }
 }

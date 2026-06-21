@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { supabaseAdmin } from '../../db/supabase.js'
+import { getCachedAuthSession } from '../../lib/cache/authSessionCache.js'
 import { verifyProfissionalAccessToken } from '../../lib/jwt.js'
 import {
   resolveProfissionalPagePermissions,
@@ -63,7 +64,9 @@ export async function requireProfissionalAuth(
 
   try {
     const claims = await verifyProfissionalAccessToken(token)
-    const user = await loadProfissionalSession(claims.sub)
+    const user = await getCachedAuthSession('profissional', claims.sub, () =>
+      loadProfissionalSession(claims.sub),
+    )
 
     if (user.cpf !== claims.cpf) {
       return reply.status(401).send({ error: 'Sessão inválida ou expirada.' })

@@ -1,3 +1,7 @@
+import {
+  invalidateLegalCatalogCache,
+  withCatalogCache,
+} from '../../lib/cache/catalogCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { ConfiguracoesError } from './errors.js'
 import type {
@@ -59,7 +63,7 @@ function mapLegalDocumentRow(row: LegalDocumentRow): LegalDocumentDto {
   }
 }
 
-export async function getLegalCatalog(options?: {
+async function loadLegalCatalogFromDb(options?: {
   publishedOnly?: boolean
   portal?: LegalDocumentPortal
 }): Promise<LegalCatalogDto> {
@@ -84,6 +88,18 @@ export async function getLegalCatalog(options?: {
   return {
     documents: ((data ?? []) as LegalDocumentRow[]).map(mapLegalDocumentRow),
   }
+}
+
+export async function getLegalCatalog(options?: {
+  publishedOnly?: boolean
+  portal?: LegalDocumentPortal
+}): Promise<LegalCatalogDto> {
+  const cacheKey = [
+    options?.publishedOnly ? 'published' : 'all',
+    options?.portal ?? 'any',
+  ].join(':')
+
+  return withCatalogCache('legal', cacheKey, () => loadLegalCatalogFromDb(options))
 }
 
 export async function createLegalDocument(input: CreateLegalDocumentInput): Promise<LegalDocumentDto> {
@@ -129,6 +145,7 @@ export async function createLegalDocument(input: CreateLegalDocumentInput): Prom
     throw error
   }
 
+  invalidateLegalCatalogCache()
   return mapLegalDocumentRow(data as LegalDocumentRow)
 }
 
@@ -164,6 +181,7 @@ export async function updateLegalDocument(
 
   if (error) throw error
 
+  invalidateLegalCatalogCache()
   return mapLegalDocumentRow(data as LegalDocumentRow)
 }
 
@@ -183,6 +201,7 @@ export async function setLegalDocumentPublished(
     throw new ConfiguracoesError('Documento legal não encontrado.', 'NOT_FOUND', 404)
   }
 
+  invalidateLegalCatalogCache()
   return mapLegalDocumentRow(data as LegalDocumentRow)
 }
 
@@ -206,4 +225,6 @@ export async function deleteLegalDocument(id: string): Promise<void> {
   if (!data) {
     throw new ConfiguracoesError('Documento legal não encontrado.', 'NOT_FOUND', 404)
   }
+
+  invalidateLegalCatalogCache()
 }

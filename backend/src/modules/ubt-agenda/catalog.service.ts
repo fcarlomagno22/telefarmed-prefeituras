@@ -1,3 +1,4 @@
+import { withCatalogCache } from '../../lib/cache/catalogCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { applyNestedEscalaSlotContratoOverlapFilter } from '../../lib/escalaContratoScope.js'
 import { loadContratosBundleForEntidades } from '../admin-clientes/contratos.service.js'
@@ -515,6 +516,27 @@ export async function assertSlotAvailable(
 }
 
 export async function getUbtTriagemSpecialtyCatalog(
+  scope: UbtScope,
+  date: string,
+): Promise<{
+  contratoId: string | null
+  date: string
+  specialties: Array<{
+    id: string
+    name: string
+    availableSlots: number
+    available: boolean
+    origemAtendimento: 'mp' | 'mt'
+    rh3EspecialidadId?: number
+  }>
+}> {
+  const cacheKey = `${scope.entidadeContratanteId}:${scope.unidadeUbtId}:triagem:${date}`
+  return withCatalogCache('ubt-specialties', cacheKey, () =>
+    loadUbtTriagemSpecialtyCatalogFromDb(scope, date),
+  )
+}
+
+async function loadUbtTriagemSpecialtyCatalogFromDb(
   scope: UbtScope,
   date: string,
 ): Promise<{

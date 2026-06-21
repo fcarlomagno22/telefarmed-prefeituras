@@ -1,8 +1,15 @@
+import { withCatalogCache } from '../../lib/cache/catalogCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import type { ContractingEntityOptionDto, CredenciaisKpisDto, UbtOptionDto } from './types.js'
 
+const CREDENCIAIS_KPIS_COLUMNS =
+  'internos_total, prefeitura_total, ubt_total, ativos_rede_total'
+
 export async function getCredenciaisKpis(): Promise<CredenciaisKpisDto> {
-  const { data, error } = await supabaseAdmin.from('vw_credenciais_kpis').select('*').single()
+  const { data, error } = await supabaseAdmin
+    .from('vw_credenciais_kpis')
+    .select(CREDENCIAIS_KPIS_COLUMNS)
+    .single()
   if (error) throw error
 
   return {
@@ -32,6 +39,12 @@ export async function listContractingEntities(): Promise<ContractingEntityOption
 }
 
 export async function listUbtOptionsByEntity(entityId: string): Promise<UbtOptionDto[]> {
+  return withCatalogCache('rede-units', `ubt-options:${entityId}`, () =>
+    loadUbtOptionsByEntityFromDb(entityId),
+  )
+}
+
+async function loadUbtOptionsByEntityFromDb(entityId: string): Promise<UbtOptionDto[]> {
   const { data, error } = await supabaseAdmin
     .from('unidades_ubt')
     .select('id, nome, slug, ra_chave, ra_rotulo, entidade_contratante_id')

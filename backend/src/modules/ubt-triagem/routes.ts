@@ -24,6 +24,7 @@ import {
   isoDateSchema,
 } from './schemas.js'
 import { z } from 'zod'
+import { setDaySpecialtiesCacheHeaders } from '../../lib/cache/httpCacheHeaders.js'
 
 const canView = requireAnyUbtPagePermission(['triagem', 'agenda'], 'visualizar')
 const canInsert = requireAnyUbtPagePermission(['triagem', 'agenda'], 'inserir')
@@ -63,7 +64,7 @@ export async function registerUbtTriagemRoutes(app: FastifyInstance): Promise<vo
 
     try {
       const catalog = await getTriagemEspecialidadeCatalog(scope(request), date)
-      reply.header('Cache-Control', 'private, max-age=20')
+      setDaySpecialtiesCacheHeaders(reply)
       return reply.send(catalog)
     } catch (error) {
       const mapped = mapUbtTriagemError(error)

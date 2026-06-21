@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { PortalCatalogPrefetch } from '../components/query/PortalCatalogPrefetch'
 import { ProfissionalPagePermissionGuard } from '../components/auth/ProfissionalPagePermissionGuard'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
 import { brand } from '../config/brand'
@@ -63,6 +64,7 @@ export function ProfissionalLayout() {
   return (
     <ProfissionalNotificacoesProvider>
       <ProfissionalSuporteProvider>
+        <PortalCatalogPrefetch portal="profissional" />
         <ProfissionalLayoutShell />
       </ProfissionalSuporteProvider>
     </ProfissionalNotificacoesProvider>

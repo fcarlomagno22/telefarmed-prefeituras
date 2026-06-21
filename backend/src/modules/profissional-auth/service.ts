@@ -1,3 +1,4 @@
+import { invalidateAuthSessionCache } from '../../lib/cache/authSessionCache.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { normalizeCpf } from '../../lib/cpf.js'
 import { signProfissionalAccessToken } from '../../lib/jwt.js'
@@ -279,6 +280,15 @@ export async function logoutProfissional(refreshToken: string | undefined): Prom
   if (!refreshToken) return
 
   const tokenHash = hashOpaqueToken(refreshToken)
+  const { data: sessionRow, error: sessionError } = await supabaseAdmin
+    .from('sessoes_refresh_profissional')
+    .select('usuario_id')
+    .eq('hash_token', tokenHash)
+    .is('revogado_em', null)
+    .maybeSingle()
+
+  if (sessionError) throw sessionError
+
   const { error } = await supabaseAdmin
     .from('sessoes_refresh_profissional')
     .update({ revogado_em: new Date().toISOString() })
@@ -286,6 +296,10 @@ export async function logoutProfissional(refreshToken: string | undefined): Prom
     .is('revogado_em', null)
 
   if (error) throw error
+
+  if (sessionRow?.usuario_id) {
+    invalidateAuthSessionCache('profissional', String(sessionRow.usuario_id))
+  }
 }
 
 export async function getProfissionalUserById(id: string): Promise<ProfissionalUserPublic> {

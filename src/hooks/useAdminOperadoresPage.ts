@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAdminAuth } from '../contexts/AdminAuthContext'
+import { useAdminUbtOptionsQuery } from '../lib/query/ubtOptionsQueries'
 import type { AdminOperatorRow } from '../data/adminOperadoresMock'
-import type { PrefeituraCredentialUbtOption } from '../data/prefeituraAccessCredentialsMock'
 import {
   fetchContractingEntities,
   fetchPortalCredentials,
-  fetchUbtOptions,
   isCredenciaisApiError,
 } from '../lib/services/admin/credenciais'
 
@@ -13,8 +12,12 @@ const SEARCH_DEBOUNCE_MS = 300
 
 export function useAdminOperadoresPage() {
   const { getAccessToken, isAuthenticated, isBootstrapping } = useAdminAuth()
+  const ubtOptionsQuery = useAdminUbtOptionsQuery(
+    getAccessToken,
+    isAuthenticated && !isBootstrapping,
+  )
   const [operatorRows, setOperatorRows] = useState<AdminOperatorRow[]>([])
-  const [ubtOptions, setUbtOptions] = useState<PrefeituraCredentialUbtOption[]>([])
+  const ubtOptions = ubtOptionsQuery.data ?? []
   const [contractingEntityOptions, setContractingEntityOptions] = useState<
     Array<{ value: string; label: string }>
   >([])
@@ -43,14 +46,13 @@ export function useAdminOperadoresPage() {
         search: debouncedSearch || undefined,
         profile: profileFilter || undefined,
       }
-      const [ubt, ubts, entities] = await Promise.all([
+      const [ubt, entities] = await Promise.all([
         fetchPortalCredentials(token, 'UBT', listParams),
-        fetchUbtOptions(token),
         fetchContractingEntities(token),
       ])
 
       setOperatorRows(ubt)
-      setUbtOptions(ubts)
+      await ubtOptionsQuery.refetch()
       setContractingEntityOptions(
         entities.map((entity) => ({ value: entity.id, label: entity.label })),
       )
@@ -62,7 +64,7 @@ export function useAdminOperadoresPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [debouncedSearch, getAccessToken, profileFilter])
+  }, [debouncedSearch, getAccessToken, profileFilter, ubtOptionsQuery])
 
   useEffect(() => {
     if (isBootstrapping) return

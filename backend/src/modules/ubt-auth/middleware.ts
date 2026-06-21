@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { supabaseAdmin } from '../../db/supabase.js'
+import { getCachedAuthSession } from '../../lib/cache/authSessionCache.js'
 import { verifyUbtAccessToken } from '../../lib/jwt.js'
 import {
   hasUbtPagePermission,
@@ -75,7 +76,7 @@ export async function requireUbtAuth(
 
   try {
     const claims = await verifyUbtAccessToken(token)
-    const user = await loadUbtSession(claims.sub)
+    const user = await getCachedAuthSession('ubt', claims.sub, () => loadUbtSession(claims.sub))
 
     if (user.cpf !== claims.cpf) {
       return reply.status(401).send({ error: 'Sessão inválida ou expirada.' })
