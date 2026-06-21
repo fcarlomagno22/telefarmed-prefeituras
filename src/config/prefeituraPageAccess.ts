@@ -3,16 +3,10 @@ import { prefeituraPortalPages } from './prefeituraCredenciaisConfig'
 import type { PermissionAction } from './accessCredentials'
 import type { PrefeituraAuthUser } from '../lib/mockAuth/prefeituraAuthMock'
 import { prefeituraRoutes } from './prefeituraRoutes'
-import { isDedicatedPortal } from './portalHost'
-
-const PREFEITURA_LEGACY_PREFIX = '/prefeitura'
+import { stripPortalPrefix } from '../utils/sidebarNavPath'
 
 function normalizePrefeituraPathname(pathname: string): string {
-  if (isDedicatedPortal('prefeitura')) return pathname
-  if (pathname.startsWith(PREFEITURA_LEGACY_PREFIX)) {
-    return pathname.slice(PREFEITURA_LEGACY_PREFIX.length) || '/'
-  }
-  return pathname
+  return stripPortalPrefix(pathname)
 }
 
 export function resolvePrefeituraPageIdFromPath(pathname: string): PrefeituraPortalPageId | null {

@@ -3,16 +3,10 @@ import { systemPages } from './accessCredentials'
 import type { PermissionAction } from './accessCredentials'
 import type { UbtAuthUser } from '../lib/mockAuth/ubtAuthMock'
 import { ubtRoutes } from './ubtRoutes'
-import { isDedicatedPortal } from './portalHost'
-
-const UBT_LEGACY_PREFIX = '/ubt'
+import { stripPortalPrefix } from '../utils/sidebarNavPath'
 
 function normalizeUbtPathname(pathname: string): string {
-  if (isDedicatedPortal('ubt')) return pathname
-  if (pathname.startsWith(UBT_LEGACY_PREFIX)) {
-    return pathname.slice(UBT_LEGACY_PREFIX.length) || '/'
-  }
-  return pathname
+  return stripPortalPrefix(pathname)
 }
 
 export function resolveUbtPageIdFromPath(pathname: string): SystemPageId | null {

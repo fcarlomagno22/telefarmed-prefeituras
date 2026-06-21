@@ -1,6 +1,11 @@
 import type { ReactNode } from 'react'
 import type { ClienteSpecialtyOption } from '../../../hooks/useAdminClientesClinicoCatalog'
 import {
+  isMedicoProfession,
+} from '../../../config/adminContratoOrigemAtendimento'
+import type { ContratoOrigemAtendimento } from '../../../config/adminContratoOrigemAtendimento'
+import { ContratoOrigemAtendimentoToggle } from './ContratoOrigemAtendimentoToggle'
+import {
   filterSpecialtiesByProfessions,
   sortClienteCatalogItems,
   areAllSpecialtiesSelected,
@@ -23,6 +28,8 @@ type AdminClienteContratoEspecialidadesPanelProps = {
   specialtyIds: Set<string>
   precosProfissao: Record<string, string>
   precosEspecialidade: Record<string, string>
+  origemAtendimentoProfissao: Record<string, ContratoOrigemAtendimento>
+  origemAtendimentoEspecialidade: Record<string, ContratoOrigemAtendimento>
   onToggleProfession: (professionId: string) => void
   onToggleSpecialty: (specialtyId: string) => void
   onToggleAllSpecialtiesForProfession?: (
@@ -32,6 +39,8 @@ type AdminClienteContratoEspecialidadesPanelProps = {
   ) => void
   onPrecoProfissaoChange: (professionId: string, value: string) => void
   onPrecoChange: (specialtyId: string, value: string) => void
+  onOrigemProfissaoChange: (professionId: string, origem: ContratoOrigemAtendimento) => void
+  onOrigemEspecialidadeChange: (specialtyId: string, origem: ContratoOrigemAtendimento) => void
   inputClass: string
   labelClass: string
   batchControls?: ReactNode
@@ -47,11 +56,15 @@ export function AdminClienteContratoEspecialidadesPanel({
   specialtyIds,
   precosProfissao,
   precosEspecialidade,
+  origemAtendimentoProfissao,
+  origemAtendimentoEspecialidade,
   onToggleProfession,
   onToggleSpecialty,
   onToggleAllSpecialtiesForProfession,
   onPrecoProfissaoChange,
   onPrecoChange,
+  onOrigemProfissaoChange,
+  onOrigemEspecialidadeChange,
   inputClass,
   labelClass,
   batchControls,
@@ -72,7 +85,8 @@ export function AdminClienteContratoEspecialidadesPanel({
         <p className="text-sm font-semibold text-gray-900">1. Profissões e valores padrão</p>
         <p className="mt-1 text-xs leading-relaxed text-gray-500">
           Selecione as profissões autorizadas e informe o valor padrão de consulta de cada uma.
-          Especialidades podem ter valor próprio na etapa seguinte.
+          Especialidades podem ter valor próprio na etapa seguinte. Use MP (próprios) ou MT
+          (terceirizados) conforme a origem do atendimento.
         </p>
         {sortedProfessions.length === 0 ? (
           <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
@@ -83,6 +97,7 @@ export function AdminClienteContratoEspecialidadesPanel({
             {sortedProfessions.map((profession) => {
               const checked = professionIds.has(profession.id)
               const preco = precosProfissao[profession.id] ?? ''
+              const showOrigemToggle = checked && !isMedicoProfession(profession)
               return (
                 <li key={profession.id}>
                   <div
@@ -93,22 +108,30 @@ export function AdminClienteContratoEspecialidadesPanel({
                         : 'border-gray-200 bg-slate-50/60',
                     ].join(' ')}
                   >
-                    <label className="flex cursor-pointer items-start gap-2">
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => onToggleProfession(profession.id)}
-                        className="mt-0.5"
-                      />
-                      <span className="min-w-0">
-                        <span className="block text-sm font-medium text-gray-800">
-                          {profession.name}
+                    <div className="flex items-start justify-between gap-2">
+                      <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-2">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => onToggleProfession(profession.id)}
+                          className="mt-0.5"
+                        />
+                        <span className="min-w-0">
+                          <span className="block text-sm font-medium text-gray-800">
+                            {profession.name}
+                          </span>
+                          <span className="mt-0.5 block text-[11px] text-gray-500">
+                            Conselho: {profession.councilAcronym}
+                          </span>
                         </span>
-                        <span className="mt-0.5 block text-[11px] text-gray-500">
-                          Conselho: {profession.councilAcronym}
-                        </span>
-                      </span>
-                    </label>
+                      </label>
+                      {showOrigemToggle ? (
+                        <ContratoOrigemAtendimentoToggle
+                          value={origemAtendimentoProfissao[profession.id] ?? 'mp'}
+                          onChange={(origem) => onOrigemProfissaoChange(profession.id, origem)}
+                        />
+                      ) : null}
+                    </div>
                     <label className="mt-2 block">
                       <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">
                         Valor padrão
@@ -164,6 +187,7 @@ export function AdminClienteContratoEspecialidadesPanel({
                   const groupSpecialtyIds = groupSpecialties.map((item) => item.id)
                   const allGroupSelected = areAllSpecialtiesSelected(specialtyIds, groupSpecialtyIds)
                   const someGroupSelected = groupSpecialtyIds.some((id) => specialtyIds.has(id))
+                  const isMedicoGroup = isMedicoProfession(profession)
 
                   return (
                   <div key={profession.id} className="rounded-lg border border-gray-100 bg-slate-50/40 p-3">
@@ -241,16 +265,26 @@ export function AdminClienteContratoEspecialidadesPanel({
                                 : 'border-gray-200 bg-white',
                             ].join(' ')}
                           >
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() => onToggleSpecialty(specialty.id)}
-                              />
-                              <span className="text-sm font-medium text-gray-800">
-                                {specialty.name}
-                              </span>
-                            </label>
+                            <div className="flex items-center justify-between gap-2">
+                              <label className="flex min-w-0 flex-1 items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => onToggleSpecialty(specialty.id)}
+                                />
+                                <span className="text-sm font-medium text-gray-800">
+                                  {specialty.name}
+                                </span>
+                              </label>
+                              {checked && isMedicoGroup ? (
+                                <ContratoOrigemAtendimentoToggle
+                                  value={origemAtendimentoEspecialidade[specialty.id] ?? 'mp'}
+                                  onChange={(origem) =>
+                                    onOrigemEspecialidadeChange(specialty.id, origem)
+                                  }
+                                />
+                              ) : null}
+                            </div>
                             <label className="mt-2 block">
                               <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">
                                 {specialtyPriceLabel}

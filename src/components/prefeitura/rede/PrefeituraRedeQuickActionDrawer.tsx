@@ -18,6 +18,7 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
+import { prefeituraRoutes } from '../../../config/prefeituraRoutes'
 import { usePrefeituraAuth } from '../../../contexts/PrefeituraAuthContext'
 import {
   countPrefeituraRedeTerminalsInMaintenance,
@@ -1106,7 +1107,7 @@ function ReportDrawerContent({ units }: { units: PrefeituraRedeUnit[] }) {
             </p>
           </div>
           <Link
-            to="/prefeitura/relatorios"
+            to={prefeituraRoutes.relatorios}
             className="btn-brand-gradient inline-flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold"
           >
             <BarChart3 className="h-4 w-4" strokeWidth={2} />

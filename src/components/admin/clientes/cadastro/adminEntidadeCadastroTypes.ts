@@ -3,6 +3,7 @@ import type {
   AdminClienteContratoTipo,
   AdminClienteStatus,
 } from '../../../../types/adminClientes'
+import type { ContratoOrigemAtendimento } from '../../../../config/adminContratoOrigemAtendimento'
 import type { TipoEntidade } from '../../../../types/entidadeBranding'
 import { isPrefeituraEntidadeTipo } from '../../../../config/adminEntidadeTipo'
 import {
@@ -142,6 +143,8 @@ export type AdminEntidadeCadastroFormState = {
   excedentePrecosProfissao: AdminEntidadePrecosEspecialidadeForm
   excedentePrecosEspecialidade: AdminEntidadePrecosEspecialidadeForm
   specialtyIds: Set<string>
+  origemAtendimentoProfissao: Record<string, ContratoOrigemAtendimento>
+  origemAtendimentoEspecialidade: Record<string, ContratoOrigemAtendimento>
 }
 
 export function createEmptyAdminEntidadeCadastroForm(): AdminEntidadeCadastroFormState {
@@ -190,6 +193,8 @@ export function createEmptyAdminEntidadeCadastroForm(): AdminEntidadeCadastroFor
     excedentePrecosProfissao: {},
     excedentePrecosEspecialidade: {},
     specialtyIds: new Set(),
+    origemAtendimentoProfissao: {},
+    origemAtendimentoEspecialidade: {},
   }
 }
 

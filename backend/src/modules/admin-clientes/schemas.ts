@@ -75,6 +75,18 @@ const precoEspecialidadeSchema = z.object({
   valorConsulta: z.number().positive(),
 })
 
+const origemAtendimentoSchema = z.enum(['mp', 'mt'])
+
+const origemAtendimentoEspecialidadeSchema = z.object({
+  specialtyId: z.string().trim().min(1),
+  origem: origemAtendimentoSchema,
+})
+
+const origemAtendimentoProfissaoSchema = z.object({
+  professionId: z.string().trim().min(1),
+  origem: origemAtendimentoSchema,
+})
+
 export const idParamSchema = z.object({
   id: z.string().uuid(),
 })
@@ -172,6 +184,8 @@ export const createContratoBodySchema = z.object({
   excedentePrecosPorProfissao: z.array(precoProfissaoSchema).nullable().optional(),
   excedentePrecosPorEspecialidade: z.array(precoEspecialidadeSchema).nullable().optional(),
   especialidadesAutorizadas: z.array(z.string().trim().min(1)),
+  origemAtendimentoEspecialidades: z.array(origemAtendimentoEspecialidadeSchema).optional().default([]),
+  origemAtendimentoProfissoes: z.array(origemAtendimentoProfissaoSchema).optional().default([]),
   contatoContrato: contactSchema.optional(),
 })
 

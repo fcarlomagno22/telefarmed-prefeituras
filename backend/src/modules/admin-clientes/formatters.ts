@@ -13,7 +13,9 @@ import type {
   AdminClientePrecoProfissaoDto,
   AdminClienteRowDto,
   AdminClienteStatus,
+  ContratoOrigemAtendimento,
 } from './types.js'
+import { normalizeContratoOrigemAtendimento } from './contratoOrigemAtendimento.js'
 
 export type EntidadeRow = {
   id: string
@@ -59,6 +61,7 @@ export type ContratoRow = {
 export type EspecialidadeAutorizadaRow = {
   contrato_id: string
   especialidade_id: string
+  origem_atendimento?: 'mp' | 'mt'
 }
 
 export type PrecoProfissaoRow = {
@@ -66,6 +69,7 @@ export type PrecoProfissaoRow = {
   profissao_id: string
   tipo: 'contratado' | 'excedente'
   valor_consulta_centavos: number
+  origem_atendimento?: 'mp' | 'mt'
 }
 
 export type PrecoEspecialidadeRow = {
@@ -160,17 +164,31 @@ function mapPrecosProfissao(rows: PrecoProfissaoRow[], tipo: 'contratado' | 'exc
       (row): AdminClientePrecoProfissaoDto => ({
         professionId: row.profissao_id,
         valorConsulta: centavosToBrl(row.valor_consulta_centavos),
+        ...(tipo === 'contratado'
+          ? { origemAtendimento: normalizeContratoOrigemAtendimento(row.origem_atendimento) }
+          : {}),
       }),
     )
 }
 
-function mapPrecosEspecialidade(rows: PrecoEspecialidadeRow[], tipo: 'contratado' | 'excedente') {
+function mapPrecosEspecialidade(
+  rows: PrecoEspecialidadeRow[],
+  tipo: 'contratado' | 'excedente',
+  origemBySpecialty: Map<string, ContratoOrigemAtendimento>,
+) {
   return rows
     .filter((row) => row.tipo === tipo)
     .map(
       (row): AdminClientePrecoEspecialidadeDto => ({
         specialtyId: row.especialidade_id,
         valorConsulta: centavosToBrl(row.valor_consulta_centavos),
+        ...(tipo === 'contratado'
+          ? {
+              origemAtendimento:
+                origemBySpecialty.get(row.especialidade_id) ??
+                normalizeContratoOrigemAtendimento(undefined),
+            }
+          : {}),
       }),
     )
 }
@@ -182,7 +200,13 @@ export function buildContratoDetalhes(
   precosEspecialidade: PrecoEspecialidadeRow[],
 ): AdminClienteContratoDetalhesDto {
   const excedenteProfissao = mapPrecosProfissao(precosProfissao, 'excedente')
-  const excedenteEspecialidade = mapPrecosEspecialidade(precosEspecialidade, 'excedente')
+  const excedenteEspecialidade = mapPrecosEspecialidade(precosEspecialidade, 'excedente', new Map())
+  const origemBySpecialty = new Map(
+    especialidades.map((row) => [
+      row.especialidade_id,
+      normalizeContratoOrigemAtendimento(row.origem_atendimento),
+    ]),
+  )
 
   return {
     consultasContratadas: contrato.consultas_contratadas,
@@ -190,7 +214,11 @@ export function buildContratoDetalhes(
     permiteUltrapassar: contrato.permite_ultrapassar,
     aceitaPacientesOutrosMunicipios: contrato.aceita_pacientes_outros_municipios,
     precosPorProfissao: mapPrecosProfissao(precosProfissao, 'contratado'),
-    precosPorEspecialidade: mapPrecosEspecialidade(precosEspecialidade, 'contratado'),
+    precosPorEspecialidade: mapPrecosEspecialidade(
+      precosEspecialidade,
+      'contratado',
+      origemBySpecialty,
+    ),
     excedentePrecosPorProfissao: excedenteProfissao.length > 0 ? excedenteProfissao : null,
     excedentePrecosPorEspecialidade:
       excedenteEspecialidade.length > 0 ? excedenteEspecialidade : null,

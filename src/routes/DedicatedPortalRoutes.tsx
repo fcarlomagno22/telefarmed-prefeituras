@@ -244,6 +244,97 @@ export const prefeituraDedicatedRoutes = (
     </>
 )
 
+const prefeituraPortalRoutes = (
+  <>
+    <Route path="login" element={<PrefeituraLoginPage />} />
+    <Route element={<PrefeituraProtectedRoute />}>
+      <Route path="entrando" element={<LoginTransitionPage />} />
+      <Route path="relatorios/compilado" element={<PrefeituraRelatoriosCompiledView />} />
+      <Route path="relatorios/gerar/:reportId" element={<PrefeituraRelatorioViewPage />} />
+      <Route element={<PrefeituraLayout />}>
+        <Route index element={<PrefeituraHomeRedirect />} />
+        <Route path="dashboard" element={<PrefeituraDashboardPage />} />
+        <Route path="rede" element={<PrefeituraRedePage />} />
+        <Route path="monitor" element={<PrefeituraMonitorPage />} />
+        <Route path="consultas" element={<PrefeituraConsultasPage />} />
+        <Route path="agendas" element={<PrefeituraAgendasPage />} />
+        <Route path="agenda" element={<Navigate to={prefeituraRoutes.agendas} replace />} />
+        <Route path="usuarios" element={<PrefeituraUsuariosPage />} />
+        <Route path="auditoria" element={<PrefeituraAuditLogsPage />} />
+        <Route path="suporte" element={<PrefeituraSuportePage />} />
+        <Route path="credenciais" element={<PrefeituraAccessCredentialsPage />} />
+        <Route path="faturamento" element={<PrefeituraFaturamentoPage />} />
+        <Route path="contrato" element={<PrefeituraContratoPage />} />
+        <Route path="relatorios" element={<PrefeituraRelatoriosPage />} />
+        <Route path="relatorios/:categoryId" element={<PrefeituraRelatoriosCategoryPage />} />
+        <Route path="notificacoes" element={<PrefeituraNotificacoesPage />} />
+        <Route path="alertas" element={<Navigate to={prefeituraRoutes.notificacoes} replace />} />
+        <Route path="*" element={<PrefeituraHomeRedirect />} />
+      </Route>
+    </Route>
+  </>
+)
+
+const ubtPortalRoutes = (
+  <>
+    <Route path="login" element={<UbtLoginPage />} />
+    <Route path="acompanhamento/:checkinToken" element={<EvolucaoCheckinPage />} />
+    <Route element={<UbtProtectedRoute />}>
+      <Route path="entrando" element={<LoginTransitionPage />} />
+      <Route element={<UbtPagePermissionGuard />}>
+        <Route path="sala-de-espera" element={<SalaDeEsperaPage />} />
+        <Route path="atendimento/:attendanceId/avaliacao" element={<AtendimentoAvaliacaoPage />} />
+        <Route path="atendimento/:attendanceId" element={<AtendimentoPacientePage />} />
+        <Route element={<UbtNotificacoesProviderLayout />}>
+          <Route index element={<UbtHomeRedirect />} />
+          <Route path="triagem" element={<HomePage />} />
+          <Route path="home" element={<Navigate to="triagem" replace />} />
+          <Route path="agenda" element={<AgendaPage />} />
+          <Route path="consultas" element={<ConsultasPage />} />
+          <Route path="usuarios" element={<NetworkUsersPage />} />
+          <Route path="relatorios" element={<Navigate to="triagem" replace />} />
+          <Route path="relatorios/*" element={<Navigate to="triagem" replace />} />
+          <Route path="notificacoes" element={<UbtNotificacoesPage />} />
+          <Route path="suporte" element={<SuportePage />} />
+          <Route path="credenciais" element={<AccessCredentialsPage />} />
+          <Route path="auditoria" element={<AuditLogsPage />} />
+          <Route path="dashboard" element={<Navigate to="triagem" replace />} />
+          <Route path="*" element={<UbtHomeRedirect />} />
+        </Route>
+      </Route>
+    </Route>
+  </>
+)
+
+/** Host de entidade gestora: gestão em `/admin/*`, terminal UBT em `/ubt/*`. */
+export const tenantGestaoHostRoutes = (
+  <>
+    <Route path="/" element={<Navigate to="/admin/login" replace />} />
+    <Route path="/prefeitura/*" element={<PrefixedLegacyRedirect portal="prefeitura" />} />
+    <Route path="/login" element={<Navigate to="/admin/login" replace />} />
+    <Route path="/entrando" element={<Navigate to="/admin/entrando" replace />} />
+    <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+    <Route path="/rede" element={<Navigate to="/admin/rede" replace />} />
+    <Route path="/monitor" element={<Navigate to="/admin/monitor" replace />} />
+    <Route path="/consultas" element={<Navigate to="/admin/consultas" replace />} />
+    <Route path="/agendas" element={<Navigate to="/admin/agendas" replace />} />
+    <Route path="/agenda" element={<Navigate to="/admin/agendas" replace />} />
+    <Route path="/usuarios" element={<Navigate to="/admin/usuarios" replace />} />
+    <Route path="/auditoria" element={<Navigate to="/admin/auditoria" replace />} />
+    <Route path="/suporte" element={<Navigate to="/admin/suporte" replace />} />
+    <Route path="/credenciais" element={<Navigate to="/admin/credenciais" replace />} />
+    <Route path="/faturamento" element={<Navigate to="/admin/faturamento" replace />} />
+    <Route path="/contrato" element={<Navigate to="/admin/contrato" replace />} />
+    <Route path="/relatorios/*" element={<Navigate to="/admin/relatorios" replace />} />
+    <Route path="/relatorios" element={<Navigate to="/admin/relatorios" replace />} />
+    <Route path="/notificacoes" element={<Navigate to="/admin/notificacoes" replace />} />
+    <Route path="/alertas" element={<Navigate to="/admin/notificacoes" replace />} />
+    <Route path="/admin" element={<PrefeituraRoutesShell />}>{prefeituraPortalRoutes}</Route>
+    <Route path="/ubt" element={<UbtRoutesShell />}>{ubtPortalRoutes}</Route>
+    <Route path="*" element={<Navigate to="/admin/login" replace />} />
+  </>
+)
+
 export const profissionalDedicatedRoutes = (
   <>
       <Route path="/" element={<Navigate to="/login" replace />} />

@@ -1,4 +1,5 @@
 import type { TipoEntidade } from './entidadeBranding'
+import type { ContratoOrigemAtendimento } from '../config/adminContratoOrigemAtendimento'
 
 export type AdminClienteStatus =
   | 'ativa'
@@ -23,11 +24,13 @@ export type AdminClienteContact = {
 export type AdminClientePrecoEspecialidade = {
   specialtyId: string
   valorConsulta: number
+  origemAtendimento?: ContratoOrigemAtendimento
 }
 
 export type AdminClientePrecoProfissao = {
   professionId: string
   valorConsulta: number
+  origemAtendimento?: ContratoOrigemAtendimento
 }
 
 export type AdminClienteContratoDetalhes = {

@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { PrefeituraPagePermissionGuard } from '../components/auth/PrefeituraPagePermissionGuard'
 import { DashboardLayout } from '../components/layout/DashboardLayout'
 import { brand } from '../config/brand'
-import { filterPrefeituraSidebarSections } from '../config/prefeituraPageAccess'
-import { prefeituraSidebarSections } from '../config/prefeituraSidebarNav'
+import { filterPrefeituraSidebarSections, resolvePrefeituraPageIdFromPath } from '../config/prefeituraPageAccess'
+import { getPrefeituraSidebarSections } from '../config/prefeituraSidebarNav'
 import { portals } from '../config/portals'
 import {
   PrefeituraNotificacoesProvider,
@@ -15,9 +15,6 @@ import { usePrefeituraAuth } from '../contexts/PrefeituraAuthContext'
 import { useEntidadeBrandTheme } from '../hooks/useEntidadeBrandTheme'
 import { useAuditNavigation } from '../hooks/useAuditNavigation'
 
-const PREFEITURA_NOTIFICACOES_PATH = '/prefeitura/notificacoes'
-const PREFEITURA_SUPORTE_PATH = '/prefeitura/suporte'
-
 function PrefeituraLayoutShell() {
   const navigate = useNavigate()
   const { user, logout, getAccessToken } = usePrefeituraAuth()
@@ -26,14 +23,15 @@ function PrefeituraLayoutShell() {
   useAuditNavigation({ scope: 'prefeitura', getAccessToken })
 
   const sidebarSections = useMemo(() => {
-    const filtered = filterPrefeituraSidebarSections(user, prefeituraSidebarSections)
+    const filtered = filterPrefeituraSidebarSections(user, getPrefeituraSidebarSections())
     return filtered.map((section) => ({
       ...section,
       items: section.items.map((item) => {
-        if (item.to === PREFEITURA_NOTIFICACOES_PATH) {
+        const pageId = resolvePrefeituraPageIdFromPath(item.to)
+        if (pageId === 'notificacoes') {
           return { ...item, showAlertDot: hasGestorUnreadInbox }
         }
-        if (item.to === PREFEITURA_SUPORTE_PATH) {
+        if (pageId === 'suporte') {
           return { ...item, badgeCount: awaitingSuporteCount }
         }
         return item

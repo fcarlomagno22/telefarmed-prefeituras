@@ -36,7 +36,7 @@ export function SpecialtySelectionLoadingGrid() {
     <div className="flex min-h-[12rem] flex-1 flex-col gap-4" role="status" aria-live="polite">
       <div className="flex items-center justify-center gap-2 py-1">
         <Loader2 className="h-5 w-5 animate-spin text-[var(--brand-primary)]" aria-hidden />
-        <p className="text-sm text-gray-600">Carregando especialidades do contrato…</p>
+        <p className="text-sm text-gray-600">Carregando especialidades…</p>
       </div>
       <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
         {Array.from({ length: 9 }).map((_, index) => (

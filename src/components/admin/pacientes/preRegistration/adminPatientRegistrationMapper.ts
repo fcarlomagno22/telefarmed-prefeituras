@@ -8,7 +8,7 @@ import type {
   UpdatePacientePayload,
 } from '../../../../lib/services/admin/pacientes'
 import type { PatientRegistration } from '../../../../types/attendance'
-import { cpfDigits } from '../../../../utils/cpf'
+import { cpfDigits, isValidCpf } from '../../../../utils/cpf'
 import { onlyDigits } from '../../../../utils/lgpdDisplay'
 
 const avatarPalette = [
@@ -58,7 +58,10 @@ function ageFromBirthDateIso(iso: string) {
 
 function missingFieldsForRegistration(registration: PatientRegistration) {
   const missing: string[] = []
-  if (registration.cnsPendente || !registration.cns?.trim()) missing.push('CNS')
+  const hasValidCpf = isValidCpf(registration.cpf)
+  if (!hasValidCpf && (registration.cnsPendente || !registration.cns?.trim())) {
+    missing.push('CNS')
+  }
   if (!registration.nationality) missing.push('nacionalidade')
   if (!registration.raceColor) missing.push('raça/cor')
   if (!registration.phone?.trim()) missing.push('telefone')
@@ -229,7 +232,7 @@ export function registrationToPreCadastroPayload(
     guardianName: registration.guardianName.trim() || undefined,
     guardianCpf: registration.guardianCpf.trim() || undefined,
     cns: registration.cns.trim() || undefined,
-    cnsPendente: registration.cnsPendente,
+    cnsPendente: isValidCpf(registration.cpf) ? false : registration.cnsPendente,
     contacts: registration.contacts.map((contact) => ({
       id: contact.id,
       name: contact.name,
@@ -265,7 +268,7 @@ export function registrationToUpdatePayload(
     guardianName: registration.guardianName.trim() || undefined,
     guardianCpf: registration.guardianCpf.trim() || undefined,
     cns: registration.cns.trim() || undefined,
-    cnsPendente: registration.cnsPendente,
+    cnsPendente: isValidCpf(registration.cpf) ? false : registration.cnsPendente,
     contacts: registration.contacts.map((contact) => ({
       id: contact.id,
       name: contact.name,

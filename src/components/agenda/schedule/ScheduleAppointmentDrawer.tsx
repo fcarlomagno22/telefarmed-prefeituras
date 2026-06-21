@@ -18,10 +18,16 @@ import { PatientRegistrationConsentStep } from '../../dashboard/PatientRegistrat
 import { PatientRegistrationForm } from '../../dashboard/PatientRegistrationForm'
 import { usePatientRegistrationOperator } from '../../../hooks/usePatientRegistrationOperator'
 import { SpecialtySelectionStep } from '../../dashboard/SpecialtySelectionStep'
-import { useUbtTriagemEspecialidadeCatalog } from '../../../hooks/useUbtTriagemEspecialidadeCatalog'
+import { AttendanceStepFooter } from '../../dashboard/AttendanceStepFooter'
+import { AttendanceStepShell } from '../../dashboard/AttendanceStepShell'
+import { useUbtRh3ScheduleSpecialtyCatalog } from '../../../hooks/useUbtRh3ScheduleSpecialtyCatalog'
 import { ScheduleAppointmentFlowStepper } from './ScheduleAppointmentFlowStepper'
 import { ScheduleAppointmentSuccess } from './ScheduleAppointmentSuccess'
-import { ScheduleDateTimeStep } from './ScheduleDateTimeStep'
+import { ScheduleRh3DateTimeStep } from './ScheduleRh3DateTimeStep'
+import { useUbtRh3ScheduleMutations } from '../../../hooks/useUbtRh3ScheduleMutations'
+import type { Rh3ScheduleSlot } from '../../../lib/services/ubt/rh3'
+import { toDateKey } from '../../../utils/agendaDate'
+import { formatRh3ProfessionalName, formatRh3ScheduleHour, parseRh3ScheduleHourToApi } from '../../../utils/rh3ScheduleFormat'
 import type {
   ScheduleAppointmentInitialState,
   ScheduleAppointmentStep,
@@ -43,6 +49,8 @@ type ScheduleAppointmentDrawerProps = {
       especialidadeId: string
       selectedDate: Date
       selectedTime: string
+      origemAtendimento?: 'mp' | 'mt'
+      rh3Booked?: boolean
     },
   ) => void | Promise<void>
   onRescheduled?: (
@@ -68,6 +76,7 @@ export function ScheduleAppointmentDrawer({
   onRescheduled,
 }: ScheduleAppointmentDrawerProps) {
   const { lookupByCpf, registerCompletedPatient: persistPatient } = useUbtPatientRegistration()
+  const { bookRh3Appointment } = useUbtRh3ScheduleMutations()
   const territoryPolicy = useUbtPatientTerritoryPolicy(open)
   const [entered, setEntered] = useState(false)
   const [step, setStep] = useState<ScheduleAppointmentStep>('cpf_lookup')
@@ -77,19 +86,22 @@ export function ScheduleAppointmentDrawer({
   const [selectedDoctorId, setSelectedDoctorId] = useState('')
   const [selectedDoctorName, setSelectedDoctorName] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
+  const [rh3EspecialidadId, setRh3EspecialidadId] = useState<number | null>(null)
+  const [selectedRh3TurnoId, setSelectedRh3TurnoId] = useState<number | null>(null)
   const [isReturningPatient, setIsReturningPatient] = useState(false)
   const [existingPatientId, setExistingPatientId] = useState<string | undefined>()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [bookingError, setBookingError] = useState<string | null>(null)
   const [consentBackStep, setConsentBackStep] = useState<ScheduleAppointmentStep>('address')
   const operator = usePatientRegistrationOperator()
 
   const catalogEnabled = open && step === 'specialty'
   const {
-    specialties: contratoSpecialties,
+    specialties: rh3Specialties,
     isLoading: isCatalogLoading,
     loadError: catalogLoadError,
     reload: reloadCatalog,
-  } = useUbtTriagemEspecialidadeCatalog(catalogEnabled, selectedDate)
+  } = useUbtRh3ScheduleSpecialtyCatalog(catalogEnabled)
 
   const resetFlow = useCallback(() => {
     setStep('cpf_lookup')
@@ -99,9 +111,12 @@ export function ScheduleAppointmentDrawer({
     setSelectedDoctorId('')
     setSelectedDoctorName('')
     setSelectedTime('')
+    setRh3EspecialidadId(null)
+    setSelectedRh3TurnoId(null)
     setIsReturningPatient(false)
     setExistingPatientId(undefined)
     setIsSubmitting(false)
+    setBookingError(null)
     setConsentBackStep('address')
   }, [initialDate])
 
@@ -164,12 +179,24 @@ export function ScheduleAppointmentDrawer({
 
   function goToScheduleDateTime() {
     setSelectedTime('')
+    setSelectedDoctorId('')
+    setSelectedDoctorName('')
+    setSelectedRh3TurnoId(null)
     setStep('schedule_datetime')
   }
 
+  function handleSelectSpecialty(id: string, name: string) {
+    const item = rh3Specialties.find((specialty) => specialty.id === id)
+    setSession((prev) => ({ ...prev, specialtyId: id, specialtyName: name }))
+    setRh3EspecialidadId(item?.rh3EspecialidadId ?? null)
+  }
+
   async function confirmSchedule() {
-    if (!selectedDoctorId || !selectedTime || isSubmitting) return
+    const rh3Id = rh3EspecialidadId
+    if (rh3Id == null || selectedRh3TurnoId == null || !selectedTime || isSubmitting) return
+
     setIsSubmitting(true)
+    setBookingError(null)
 
     try {
       const saved = await persistPatient(registration, existingPatientId)
@@ -180,11 +207,32 @@ export function ScheduleAppointmentDrawer({
         ? `Consulta reagendada para ${registration.fullName}`
         : `Consulta agendada para ${registration.fullName}`
 
+      await bookRh3Appointment({
+        pacienteId,
+        especialidadeId: session.specialtyId,
+        rh3EspecialidadId: rh3Id,
+        idTurno: selectedRh3TurnoId,
+        data: toDateKey(selectedDate),
+        hora: parseRh3ScheduleHourToApi(selectedTime),
+        professionalName: selectedDoctorName || undefined,
+        specialtyName: session.specialtyName,
+        paciente: {
+          cpf: registration.cpf,
+          fullName: registration.fullName,
+          email: registration.email,
+          phone: registration.phone,
+          birthDate: registration.birthDate,
+          gender: registration.gender,
+        },
+      })
+
       const meta = {
-        profissionalId: selectedDoctorId,
+        profissionalId: String(selectedRh3TurnoId),
         especialidadeId: session.specialtyId,
         selectedDate,
         selectedTime,
+        origemAtendimento: 'mt' as const,
+        rh3Booked: true,
       }
 
       if (isReschedule && initialFlow?.rescheduleAppointmentId && onRescheduled) {
@@ -202,8 +250,12 @@ export function ScheduleAppointmentDrawer({
       }
 
       setStep('success')
-    } catch {
-      // erro tratado pelo hook pai (toast)
+    } catch (error) {
+      setBookingError(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível concluir o agendamento terceirizado.',
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -387,18 +439,14 @@ export function ScheduleAppointmentDrawer({
           {step === 'specialty' && (
             <SpecialtySelectionStep
               selectedId={session.specialtyId}
-              selectedDate={selectedDate}
-              showAvailability
-              availabilityFilter="all"
               requireAvailability={false}
-              specialties={contratoSpecialties}
+              specialties={rh3Specialties}
               isLoading={isCatalogLoading}
               loadError={catalogLoadError}
               onRetryLoad={() => void reloadCatalog()}
-              description="Escolha a especialidade do contrato. Em seguida você definirá a data, o médico e o horário."
-              onSelect={(id, name) =>
-                setSession((prev) => ({ ...prev, specialtyId: id, specialtyName: name }))
-              }
+              description="Escolha a especialidade terceirizada autorizada no contrato. Na etapa seguinte você verá datas, médicos e horários disponíveis."
+              emptyMessage="Nenhuma especialidade terceirizada autorizada no contrato ativo."
+              onSelect={handleSelectSpecialty}
               onBack={() => {
                 if (initialFlow?.mode === 'reschedule') {
                   onClose()
@@ -406,31 +454,63 @@ export function ScheduleAppointmentDrawer({
                 }
                 setStep('registration_consent')
               }}
-              onContinue={goToScheduleDateTime}
+              onContinue={() => {
+                if (!rh3EspecialidadId) return
+                goToScheduleDateTime()
+              }}
             />
           )}
 
-          {step === 'schedule_datetime' && (
-            <ScheduleDateTimeStep
-              specialtyId={session.specialtyId}
+          {step === 'schedule_datetime' && rh3EspecialidadId == null ? (
+            <AttendanceStepShell
+              hideScrollbar
+              fillAvailable
+              embedded
+              title="Data e horário"
+              description="Esta especialidade está configurada como terceirizada, mas não foi encontrada no catálogo RH3."
+              footer={<AttendanceStepFooter onBack={() => setStep('specialty')} />}
+            >
+              <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                Verifique a configuração RH3 e se o nome da especialidade coincide com o catálogo
+                terceirizado.
+              </p>
+            </AttendanceStepShell>
+          ) : null}
+
+          {step === 'schedule_datetime' && rh3EspecialidadId != null ? (
+            <>
+              {bookingError ? (
+                <p className="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                  {bookingError}
+                </p>
+              ) : null}
+            <ScheduleRh3DateTimeStep
               specialtyName={session.specialtyName}
+              rh3EspecialidadId={rh3EspecialidadId}
               selectedDate={selectedDate}
-              selectedDoctorId={selectedDoctorId}
+              selectedTurnoId={selectedRh3TurnoId}
               selectedTime={selectedTime}
-              isSubmitting={isSubmitting}
+              selectedProfessionalName={selectedDoctorName}
               onSelectDate={(date) => {
                 setSelectedDate(date)
                 setSelectedTime('')
+                setSelectedRh3TurnoId(null)
+                setSelectedDoctorName('')
               }}
-              onSelectDoctor={(doctorId, doctorName) => {
-                setSelectedDoctorId(doctorId)
-                setSelectedDoctorName(doctorName ?? '')
+              onSelectSlot={(slot: Rh3ScheduleSlot) => {
+                setSelectedRh3TurnoId(slot.idTurno)
+                setSelectedTime(formatRh3ScheduleHour(slot.hour))
+                setSelectedDoctorName(formatRh3ProfessionalName(slot.professionalName ?? ''))
+                setSelectedDoctorId(
+                  slot.professionalId != null ? String(slot.professionalId) : String(slot.idTurno),
+                )
               }}
-              onSelectTime={setSelectedTime}
               onBack={() => setStep('specialty')}
               onContinue={confirmSchedule}
+              isSubmitting={isSubmitting}
             />
-          )}
+            </>
+          ) : null}
 
           {step === 'success' && (
             <ScheduleAppointmentSuccess

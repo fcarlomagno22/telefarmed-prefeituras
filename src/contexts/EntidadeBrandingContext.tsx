@@ -20,6 +20,10 @@ import {
   buildEntidadeBrandingPresentation,
 } from '../lib/entidadeBranding/resolve'
 import {
+  buildTelefarmedSelfBranding,
+  isPlatformUbtWithoutTenantSlug,
+} from '../lib/entidadeBranding/platformUbtBranding'
+import {
   entidadeExportBrandingFromFields,
   setEntidadeExportBranding,
 } from '../utils/entidadeExportHtml'
@@ -27,6 +31,7 @@ import { useEntidadeDocumentTitle } from '../hooks/useAppDocumentTitle'
 import { useTenantFavicon } from '../hooks/useTenantFavicon'
 import type { PortalId } from '../config/portalHost'
 import { useOptionalTenantHost } from './TenantHostContext'
+import type { EntidadeBrandingFields } from '../types/entidadeBranding'
 
 export type EntidadeBrandingPortal = Extract<PortalId, 'prefeitura' | 'ubt'>
 
@@ -71,21 +76,33 @@ export function EntidadeBrandingProvider({ portal, children }: EntidadeBrandingP
   const user = auth?.user ?? null
   const accessToken = auth?.accessToken ?? null
   const tenantHost = useOptionalTenantHost()
+  const useTelefarmedSelfBranding =
+    portal === 'ubt' && isPlatformUbtWithoutTenantSlug(tenantHost?.slug)
 
-  const [branding, setBranding] = useState<EntidadeBrandingFields | null>(() =>
-    brandingFieldsFromUser(user) ?? tenantHost?.prefetchBranding ?? null,
-  )
+  const [branding, setBranding] = useState<EntidadeBrandingFields | null>(() => {
+    if (useTelefarmedSelfBranding) return buildTelefarmedSelfBranding()
+    return brandingFieldsFromUser(user) ?? tenantHost?.prefetchBranding ?? null
+  })
   const logoExpiresAtRef = useRef(0)
 
   const syncFromUser = useCallback(() => {
+    if (useTelefarmedSelfBranding) {
+      setBranding(buildTelefarmedSelfBranding())
+      return
+    }
     setBranding(brandingFieldsFromUser(user))
-  }, [user])
+  }, [useTelefarmedSelfBranding, user])
 
   useEffect(() => {
     syncFromUser()
   }, [syncFromUser])
 
   const refreshBranding = useCallback(async () => {
+    if (useTelefarmedSelfBranding) {
+      setBranding(buildTelefarmedSelfBranding())
+      return
+    }
+
     if (!accessToken) {
       syncFromUser()
       return
@@ -123,16 +140,27 @@ export function EntidadeBrandingProvider({ portal, children }: EntidadeBrandingP
     } catch {
       // Mantém logo do /me ou fallback estático.
     }
-  }, [accessToken, portal, syncFromUser, user])
+  }, [accessToken, portal, syncFromUser, useTelefarmedSelfBranding, user])
 
   useEffect(() => {
+    if (useTelefarmedSelfBranding) {
+      setBranding(buildTelefarmedSelfBranding())
+      return
+    }
+
     if (!auth?.isAuthenticated) {
       logoExpiresAtRef.current = 0
       setBranding(tenantHost?.prefetchBranding ?? null)
       return
     }
     void refreshBranding()
-  }, [auth?.isAuthenticated, refreshBranding, tenantHost?.prefetchBranding, user?.entidadeContratanteId])
+  }, [
+    auth?.isAuthenticated,
+    refreshBranding,
+    tenantHost?.prefetchBranding,
+    useTelefarmedSelfBranding,
+    user?.entidadeContratanteId,
+  ])
 
   const presentation = useMemo(
     () => buildEntidadeBrandingPresentation(branding),

@@ -25,9 +25,15 @@ export type PortalConfig = {
 export const portals: Record<PortalId, PortalConfig> = {
   ubt: {
     id: 'ubt',
-    loginPath: ubtRoutes.login,
-    transitionPath: ubtRoutes.entrando,
-    homePath: ubtRoutes.agenda,
+    get loginPath() {
+      return ubtRoutes.login
+    },
+    get transitionPath() {
+      return ubtRoutes.entrando
+    },
+    get homePath() {
+      return ubtRoutes.agenda
+    },
     welcomeTitle: brand.welcomeTitle,
     welcomeSubtitle: brand.welcomeSubtitle,
     /** Textos fixos no card de login das UBTs whitelabel (host do cliente). */
@@ -45,9 +51,15 @@ export const portals: Record<PortalId, PortalConfig> = {
   },
   prefeitura: {
     id: 'prefeitura',
-    loginPath: prefeituraRoutes.login,
-    transitionPath: prefeituraRoutes.entrando,
-    homePath: prefeituraRoutes.dashboard,
+    get loginPath() {
+      return prefeituraRoutes.login
+    },
+    get transitionPath() {
+      return prefeituraRoutes.entrando
+    },
+    get homePath() {
+      return prefeituraRoutes.dashboard
+    },
     welcomeTitle: 'Painel de Gestão',
     welcomeSubtitle: 'Entre com suas credenciais de Administrador',
     transitionTitle: 'Entrando no painel municipal',
@@ -62,9 +74,15 @@ export const portals: Record<PortalId, PortalConfig> = {
   },
   admin: {
     id: 'admin',
-    loginPath: adminRoutes.login,
-    transitionPath: adminRoutes.entrando,
-    homePath: adminRoutes.dashboard,
+    get loginPath() {
+      return adminRoutes.login
+    },
+    get transitionPath() {
+      return adminRoutes.entrando
+    },
+    get homePath() {
+      return adminRoutes.dashboard
+    },
     welcomeTitle: 'Painel Admin',
     welcomeSubtitle: 'Gestão das prefeituras na plataforma',
     transitionTitle: 'Entrando no painel administrativo',
@@ -79,9 +97,15 @@ export const portals: Record<PortalId, PortalConfig> = {
   },
   profissional: {
     id: 'profissional',
-    loginPath: profissionalRoutes.login,
-    transitionPath: profissionalRoutes.entrando,
-    homePath: profissionalRoutes.agenda,
+    get loginPath() {
+      return profissionalRoutes.login
+    },
+    get transitionPath() {
+      return profissionalRoutes.entrando
+    },
+    get homePath() {
+      return profissionalRoutes.agenda
+    },
     welcomeTitle: brand.profissionalWelcomeTitle,
     welcomeSubtitle: brand.profissionalWelcomeSubtitle,
     transitionTitle: 'Entrando no painel profissional',

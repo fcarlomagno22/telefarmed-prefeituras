@@ -37,49 +37,65 @@ export const systemPages: SystemPageDefinition[] = [
     id: 'triagem',
     label: 'Triagem',
     description: 'Terminal de atendimento e fluxo de telemedicina',
-    route: ubtRoutes.triagem,
+    get route() {
+      return ubtRoutes.triagem
+    },
   },
   {
     id: 'agenda',
     label: 'Agenda',
     description: 'Agendamentos e calendário da unidade',
-    route: ubtRoutes.agenda,
+    get route() {
+      return ubtRoutes.agenda
+    },
   },
   {
     id: 'consultas',
     label: 'Consultas',
     description: 'Histórico e gestão de atendimentos',
-    route: ubtRoutes.consultas,
+    get route() {
+      return ubtRoutes.consultas
+    },
   },
   {
     id: 'usuarios',
     label: 'Usuários da rede',
     description: 'Pacientes atendidos na rede',
-    route: ubtRoutes.usuarios,
+    get route() {
+      return ubtRoutes.usuarios
+    },
   },
   {
     id: 'suporte',
     label: 'Suporte técnico',
     description: 'Chamados e atendimento ao operador',
-    route: ubtRoutes.suporte,
+    get route() {
+      return ubtRoutes.suporte
+    },
   },
   {
     id: 'notificacoes',
     label: 'Notificações',
     description: 'Comunicados da gestão e da Telefarmed',
-    route: ubtRoutes.notificacoes,
+    get route() {
+      return ubtRoutes.notificacoes
+    },
   },
   {
     id: 'credenciais',
     label: 'Credenciais de acesso',
     description: 'Gestão de usuários e permissões',
-    route: ubtRoutes.credenciais,
+    get route() {
+      return ubtRoutes.credenciais
+    },
   },
   {
     id: 'auditoria',
     label: 'Logs de auditoria',
     description: 'Rastreabilidade de ações na unidade',
-    route: ubtRoutes.auditoria,
+    get route() {
+      return ubtRoutes.auditoria
+    },
   },
 ]
 

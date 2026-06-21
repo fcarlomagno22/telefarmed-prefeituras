@@ -1,23 +1,67 @@
 import { useEffect, useMemo, useState } from 'react'
 import { filterAvailableSlotsFromNow, countSpecialtyAvailableSlotsFromNow } from '../data/scheduleDoctorsMock'
 import type { SpecialtyOption } from '../components/dashboard/SpecialtySelectionStep'
+import {
+  isMtSpecialty,
+  isRh3ImmediateMtSpecialty,
+} from '../config/rh3WalkInSpecialty'
 import { isBackendApiEnabled } from '../lib/api/config'
 import { toDateKey } from '../utils/agendaDate'
 import { useUbtScheduleCatalog } from './useUbtScheduleCatalog'
 import { useUbtTriagemEspecialidadeCatalog } from './useUbtTriagemEspecialidadeCatalog'
 
+function mapWalkInSpecialtyOption(item: SpecialtyOption): SpecialtyOption {
+  if (isMtSpecialty(item)) {
+    const rh3Linked = Boolean(item.rh3EspecialidadId)
+
+    if (isRh3ImmediateMtSpecialty(item)) {
+      return {
+        ...item,
+        available: rh3Linked,
+        availableSlots: rh3Linked ? 1 : 0,
+        walkInBadge: rh3Linked ? 'immediate' : 'none',
+      }
+    }
+
+    const slots = item.availableSlots ?? 0
+    return {
+      ...item,
+      available: rh3Linked && slots > 0,
+      availableSlots: slots,
+      walkInBadge: slots > 0 ? 'slots' : 'none',
+    }
+  }
+
+  const slots = item.availableSlots ?? 0
+  return {
+    ...item,
+    available: slots > 0,
+    availableSlots: slots,
+    walkInBadge: slots > 0 ? 'slots' : 'none',
+  }
+}
+
+function filterWalkInSpecialtiesForDay(specialties: SpecialtyOption[]): SpecialtyOption[] {
+  return specialties.map(mapWalkInSpecialtyOption).filter((item) => item.available)
+}
+
 function mapMockWalkInSpecialties(
   specialties: SpecialtyOption[],
   selectedDate: Date,
 ): SpecialtyOption[] {
-  return specialties.map((item) => {
+  const mapped = specialties.map((item) => {
+    if (isMtSpecialty(item)) {
+      return mapWalkInSpecialtyOption(item)
+    }
+
     const availableSlots = countSpecialtyAvailableSlotsFromNow(item.id, selectedDate)
-    return {
+    return mapWalkInSpecialtyOption({
       ...item,
       availableSlots,
-      available: availableSlots > 0,
-    }
+    })
   })
+
+  return filterWalkInSpecialtiesForDay(mapped)
 }
 
 export function useUbtWalkInSpecialtyAvailability(enabled: boolean, selectedDate: Date) {
@@ -51,22 +95,27 @@ export function useUbtWalkInSpecialtyAvailability(enabled: boolean, selectedDate
     setIsRefining(true)
 
     void (async () => {
-      const next = await Promise.all(
-        catalog.specialties.map(async (item) => {
-          const doctors = await scheduleCatalog.getDoctorsForSpecialty(item.id, dateKey)
-          let availableSlots = 0
+      const next = filterWalkInSpecialtiesForDay(
+        await Promise.all(
+          catalog.specialties.map(async (item) => {
+            if (isMtSpecialty(item)) {
+              return item
+            }
 
-          for (const doctor of doctors) {
-            const slots = await scheduleCatalog.getDoctorAvailableSlots(doctor.id, dateKey)
-            availableSlots += filterAvailableSlotsFromNow(slots).length
-          }
+            const doctors = await scheduleCatalog.getDoctorsForSpecialty(item.id, dateKey)
+            let availableSlots = 0
 
-          return {
-            ...item,
-            availableSlots,
-            available: availableSlots > 0,
-          }
-        }),
+            for (const doctor of doctors) {
+              const slots = await scheduleCatalog.getDoctorAvailableSlots(doctor.id, dateKey)
+              availableSlots += filterAvailableSlotsFromNow(slots).length
+            }
+
+            return {
+              ...item,
+              availableSlots,
+            }
+          }),
+        ),
       )
 
       if (!cancelled) {

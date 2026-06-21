@@ -5,11 +5,21 @@ import { z } from 'zod'
 
 const backendRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 config({ path: resolve(backendRoot, '.env') })
+config({ path: resolve(backendRoot, '../.env') })
 
 function envValue(key: string): string | undefined {
   const raw = process.env[key]
   if (raw == null) return undefined
   return raw.replace(/^["']|["']$/g, '').trim()
+}
+
+/** Aceita alias legado de env vars (ex.: migração DOC24_* → RH3_*). */
+function envValueFirst(...keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = envValue(key)
+    if (value) return value
+  }
+  return undefined
 }
 
 const envSchema = z.object({
@@ -52,6 +62,12 @@ const envSchema = z.object({
   /** Credenciais OAuth da API ICD da OMS (https://icd.who.int/icdapi). */
   WHO_ICD_CLIENT_ID: z.string().trim().min(1).optional(),
   WHO_ICD_CLIENT_SECRET: z.string().trim().min(1).optional(),
+  /** Integração RH3 (teleconsulta terceirizada). */
+  RH3_API_BASE_URL: z.string().url().optional(),
+  RH3_CLIENT_ID: z.string().trim().min(1).optional(),
+  RH3_CLIENT_SECRET: z.string().trim().min(1).optional(),
+  /** Segredo opcional para validar POST /api/webhooks/consultas-status. */
+  RH3_WEBHOOK_SECRET: z.string().trim().min(8).optional(),
 })
 
 export type Env = z.infer<typeof envSchema> & {
@@ -81,6 +97,10 @@ const parsedEnv = envSchema.parse({
   CORS_ALLOW_TENANT_ORIGINS: envValue('CORS_ALLOW_TENANT_ORIGINS'),
   WHO_ICD_CLIENT_ID: envValue('WHO_ICD_CLIENT_ID'),
   WHO_ICD_CLIENT_SECRET: envValue('WHO_ICD_CLIENT_SECRET'),
+  RH3_API_BASE_URL: envValueFirst('RH3_API_BASE_URL', 'DOC24_API_BASE_URL'),
+  RH3_CLIENT_ID: envValueFirst('RH3_CLIENT_ID', 'DOC24_CLIENT_ID'),
+  RH3_CLIENT_SECRET: envValueFirst('RH3_CLIENT_SECRET', 'DOC24_CLIENT_SECRET'),
+  RH3_WEBHOOK_SECRET: envValueFirst('RH3_WEBHOOK_SECRET', 'DOC24_WEBHOOK_SECRET'),
 })
 
 export const env: Env = {

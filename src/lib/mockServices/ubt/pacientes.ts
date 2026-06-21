@@ -9,7 +9,7 @@ import { getNetworkUserProfile } from '../../../data/networkUserProfiles'
 import { readUbtMockSession } from '../../mockAuth/ubtAuthMock'
 import type { PatientLookupContext, PatientLookupResult } from '../../../types/patientLookup'
 import { normalizePatientRegistration, type PatientRegistration } from '../../../types/attendance'
-import { maskCpf } from '../../../utils/masks'
+import { maskCep, maskCpf, maskPhone } from '../../../utils/masks'
 import { cnsDigits } from '../../../utils/cns'
 import { cpfDigits } from '../../../utils/cpf'
 import { clearLgpdMaskedRegistrationField } from '../../../utils/lgpdMaskedValue'
@@ -260,19 +260,24 @@ export function mapUbtDetailToPatientRegistration(
     cpf: detail.cpf.includes('.') ? detail.cpf : maskCpf(detail.cpf),
     birthDate: birthDateIso,
     gender: detail.gender,
-    phone: clearLgpdMaskedRegistrationField(detail.phone),
+    phone: maskPhone(clearLgpdMaskedRegistrationField(detail.phone)),
     email: clearLgpdMaskedRegistrationField(detail.email),
     guardianName: detail.guardianName,
-    guardianCpf: clearLgpdMaskedRegistrationField(detail.guardianCpf),
+    guardianCpf: clearLgpdMaskedRegistrationField(detail.guardianCpf)
+      ? maskCpf(clearLgpdMaskedRegistrationField(detail.guardianCpf))
+      : '',
     guardianRelationship: detail.guardianRelationship ?? '',
-    guardianPhone: clearLgpdMaskedRegistrationField(detail.guardianPhone),
+    guardianPhone: maskPhone(clearLgpdMaskedRegistrationField(detail.guardianPhone)),
     guardianAttendanceAuthorized: detail.guardianAttendanceAuthorized ?? false,
     nationality: detail.nationality ?? '',
     raceColor: detail.raceColor ?? '',
     cns: detail.cns ? detail.cns : '',
     cnsPendente: detail.cnsPendente ?? false,
-    contacts: detail.contacts,
-    zipCode: clearLgpdMaskedRegistrationField(detail.zipCode),
+    contacts: detail.contacts?.map((contact) => ({
+      ...contact,
+      phone: contact.phone ? maskPhone(clearLgpdMaskedRegistrationField(contact.phone)) : '',
+    })),
+    zipCode: maskCep(clearLgpdMaskedRegistrationField(detail.zipCode)),
     street: clearLgpdMaskedRegistrationField(detail.street),
     number: clearLgpdMaskedRegistrationField(detail.number),
     complement: clearLgpdMaskedRegistrationField(detail.complement),

@@ -91,8 +91,8 @@ import { VidaPlusPage } from './pages/VidaPlusPage'
 import { vidaPlusRoutes } from './config/vidaPlusRoutes'
 import { adminRoutes } from './config/adminRoutes'
 import { prefeituraRoutes } from './config/prefeituraRoutes'
-import { dedicatedPortalRoutes, LiveShareDedicatedRoutes, SharedPublicRoutes } from './routes/DedicatedPortalRoutes'
-import { getDedicatedPortal, isLiveShareDedicatedHost } from './config/portalHost'
+import { dedicatedPortalRoutes, LiveShareDedicatedRoutes, SharedPublicRoutes, tenantGestaoHostRoutes } from './routes/DedicatedPortalRoutes'
+import { getDedicatedPortal, isLiveShareDedicatedHost, isTenantGestaoHost } from './config/portalHost'
 import { TenantHostProvider, useTenantHost } from './contexts/TenantHostContext'
 import { TenantHostLoadingPage } from './components/tenant/TenantHostLoadingPage'
 import { TenantHostNotFoundPage } from './components/tenant/TenantHostNotFoundPage'
@@ -160,6 +160,8 @@ function AppRoutes() {
         {!liveShareHost ? SharedPublicRoutes() : null}
         {liveShareHost ? (
           <>{LiveShareDedicatedRoutes()}</>
+        ) : isTenantGestaoHost() ? (
+          <>{tenantGestaoHostRoutes}</>
         ) : dedicatedPortal ? (
           <>{dedicatedPortalRoutes(dedicatedPortal)}</>
         ) : (

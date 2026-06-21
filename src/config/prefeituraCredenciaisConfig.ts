@@ -78,7 +78,7 @@ export const prefeituraPortalPages: PrefeituraPortalPageDefinition[] = [
   },
   {
     id: 'faturamento',
-    label: 'Faturamento',
+    label: 'Faturamento SUS',
     description: 'Notas fiscais, competências e cobranças do contrato',
     get route() {
       return prefeituraRoutes.faturamento

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { isValidCns, normalizeCns } from '../../lib/cns.js'
+import { isValidCpf } from '../../lib/cpf.js'
 import {
   isValidPacienteNacionalidade,
   isValidPacienteRacaCor,
@@ -148,6 +149,7 @@ function refineRegistrationConsentOnCreate(
 }
 
 type PacienteRegistrationRefinementBase = {
+  cpf?: string
   cns?: string
   cnsPendente?: boolean
   guardianName?: string
@@ -186,12 +188,18 @@ function refinePacienteRegistrationOnUpdate(
   }
 }
 
+function hasValidPacienteCpf(cpf: string | undefined): boolean {
+  const digits = (cpf ?? '').replace(/\D/g, '')
+  return digits.length === 11 && isValidCpf(digits)
+}
+
 function refineCnsOnCreate(
-  data: { cns?: string; cnsPendente?: boolean },
+  data: { cpf?: string; cns?: string; cnsPendente?: boolean },
   ctx: z.RefinementCtx,
 ) {
   const pending = data.cnsPendente === true
   const digits = normalizeCns(data.cns ?? '')
+  const hasValidCpf = hasValidPacienteCpf(data.cpf)
 
   if (pending) {
     if (digits.length > 0) {
@@ -201,10 +209,12 @@ function refineCnsOnCreate(
         path: ['cns'],
       })
     }
+    if (hasValidCpf) return
     return
   }
 
   if (digits.length === 0) {
+    if (hasValidCpf) return
     ctx.addIssue({
       code: 'custom',
       message: 'Informe o CNS/Cartão SUS ou marque como pendência.',
@@ -223,7 +233,7 @@ function refineCnsOnCreate(
 }
 
 function refineCnsOnUpdate(
-  data: { cns?: string; cnsPendente?: boolean },
+  data: { cpf?: string; cns?: string; cnsPendente?: boolean },
   ctx: z.RefinementCtx,
 ) {
   if (data.cnsPendente === undefined && data.cns === undefined) return

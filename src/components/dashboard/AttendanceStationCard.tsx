@@ -826,7 +826,11 @@ export function AttendanceStationCard({
         />
       )}
 
-      <ConsultationLockOverlay active={status === 'waiting_doctor'} onComplete={resetToIdle} />
+      <ConsultationLockOverlay
+        active={status === 'waiting_doctor'}
+        patientCpf={registration.cpf}
+        onComplete={resetToIdle}
+      />
 
       {!isLoadingFromQueue && status === 'in_consultation' && patient && (
         <PatientPanel

@@ -65,11 +65,11 @@ export async function loadContratosBundleForEntidades(
   const [especialidadesResult, precosProfissaoResult, precosEspecialidadeResult] = await Promise.all([
     supabaseAdmin
       .from('contrato_entidade_especialidades')
-      .select('contrato_id, especialidade_id')
+      .select('contrato_id, especialidade_id, origem_atendimento')
       .in('contrato_id', contratoIds),
     supabaseAdmin
       .from('contrato_entidade_precos_profissao')
-      .select('contrato_id, profissao_id, tipo, valor_consulta_centavos')
+      .select('contrato_id, profissao_id, tipo, valor_consulta_centavos, origem_atendimento')
       .in('contrato_id', contratoIds),
     supabaseAdmin
       .from('contrato_entidade_precos_especialidade')

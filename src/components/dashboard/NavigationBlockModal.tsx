@@ -2,18 +2,21 @@ type NavigationBlockModalProps = {
   open: boolean
   onAcknowledge: () => void
   onEndSession?: () => void
+  stackZIndex?: number
 }
 
 export function NavigationBlockModal({
   open,
   onAcknowledge,
   onEndSession,
+  stackZIndex = 300,
 }: NavigationBlockModalProps) {
   if (!open) return null
 
   return (
     <div
-      className="fixed inset-0 z-[300] flex items-center justify-center bg-black/40 px-4"
+      className="fixed inset-0 flex items-center justify-center bg-black/40 px-4"
+      style={{ zIndex: stackZIndex }}
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="navigation-block-title"

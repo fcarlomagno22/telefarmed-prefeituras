@@ -1,4 +1,4 @@
-import { normalizeCpf } from '../../lib/cpf.js'
+import { normalizeCpf, isValidCpf } from '../../lib/cpf.js'
 import { isValidCns, normalizeCns } from '../../lib/cns.js'
 import { parseTipoEntidade } from '../../lib/entidadeBranding/terminology.js'
 import {
@@ -10,6 +10,7 @@ import {
   PATIENT_TERRITORY_MISMATCH_SUBJECT,
 } from '../../lib/municipalityTerritory.js'
 import { supabaseAdmin } from '../../db/supabase.js'
+import { enrichEnderecoWithMunicipioIbge } from '../../lib/municipiosIbge.js'
 import { resolvePacienteFotoPublicUrl, hydratePatientAvatarUrls } from '../../lib/pacienteFoto.js'
 import { PacientesError } from './errors.js'
 import {
@@ -270,13 +271,18 @@ async function assertNoDuplicatePaciente(
   }
 }
 
-function resolveCnsFields(input: { cns?: string; cnsPendente?: boolean }) {
+function resolveCnsFields(input: { cns?: string; cnsPendente?: boolean; cpf?: string }) {
   if (input.cnsPendente) {
     return { cns: null, cns_pendente: true }
   }
 
   const normalized = normalizeCns(input.cns ?? '')
   if (!normalized) {
+    const cpfDigits = normalizeCpf(input.cpf ?? '')
+    if (cpfDigits.length === 11 && isValidCpf(cpfDigits)) {
+      return { cns: null, cns_pendente: false }
+    }
+
     throw new PacientesError(
       'Informe o CNS/Cartão SUS ou marque como pendência.',
       'INVALID_DATA',
@@ -405,7 +411,7 @@ function assertPatientAddressInEntityTerritory(
 function buildPacienteInsertRow(input: CreatePacienteInput) {
   const cpf = normalizeCpf(input.cpf)
   const birthDate = parseBirthDateToIso(input.birthDate)
-  const cnsFields = resolveCnsFields(input)
+  const cnsFields = resolveCnsFields({ ...input, cpf: input.cpf })
 
   return {
     cpf,
@@ -494,6 +500,7 @@ export async function updatePaciente(
     const cnsFields = resolveCnsFields({
       cns: input.cns,
       cnsPendente: input.cnsPendente,
+      cpf: current.cpf,
     })
     patch.cns = cnsFields.cns
     patch.cns_pendente = cnsFields.cns_pendente
@@ -505,10 +512,12 @@ export async function updatePaciente(
     )
   }
 
-  const endereco = {
-    ...(current.endereco ?? {}),
+  const endereco = enrichEnderecoWithMunicipioIbge({
+    ...Object.fromEntries(
+      Object.entries(current.endereco ?? {}).map(([key, value]) => [key, String(value ?? '')]),
+    ),
     ...buildEnderecoFromInput(input),
-  }
+  })
   if (Object.keys(endereco).length > 0) patch.endereco = endereco
 
   if (input.contacts) {

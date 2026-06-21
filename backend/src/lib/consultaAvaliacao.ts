@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../db/supabase.js'
+import { ensureConsultaRegistroSus } from './consultas/registroSus.service.js'
 
 export type ConsultaAvaliacaoDetalhadaInput = {
   notaProfissional: number
@@ -194,6 +195,8 @@ export async function finalizeConsultaAfterAvaliacao(
       .eq('id', consulta.fila_espera_id)
       .in('status', ['em_atendimento', 'chamado', 'aguardando'])
   }
+
+  await ensureConsultaRegistroSus(consultaId)
 }
 
 type UpsertConsultaAvaliacaoOptions = {

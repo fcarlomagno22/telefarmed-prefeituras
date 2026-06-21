@@ -8,6 +8,7 @@ import {
 } from 'react'
 import { extractTenantSlugFromHostname } from '../config/tenantHost'
 import { brand } from '../config/brand'
+import { getDedicatedPortal } from '../config/portalHost'
 import { applyBrandCssVariables } from '../utils/brandColor'
 import {
   syncPortalHostContext,
@@ -90,15 +91,21 @@ export function TenantHostProvider({ children }: { children: ReactNode }) {
   }, [slug])
 
   useEffect(() => {
-    if (status !== 'ready' || !tenant) return
+    if (status !== 'ready' || !tenant) {
+      if (!slug && getDedicatedPortal() === 'ubt') {
+        applyBrandCssVariables(brand.primaryColor)
+      }
+      return
+    }
     if (tenant.kind === 'gestao' || tenant.kind === 'ubt') {
       applyBrandCssVariables(tenant.branding.corPrimaria)
       return
     }
     applyBrandCssVariables(brand.primaryColor)
-  }, [status, tenant])
+  }, [slug, status, tenant])
 
   const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
+
   if (slug && tenant && status === 'ready') {
     syncPortalHostContext({
       hostname,
@@ -109,6 +116,22 @@ export function TenantHostProvider({ children }: { children: ReactNode }) {
   } else if (!slug) {
     syncPortalHostContextFromWindow()
   }
+
+  useEffect(() => {
+    if (slug && tenant && status === 'ready') {
+      syncPortalHostContext({
+        hostname,
+        tenantSlug: slug,
+        tenantKind: tenant.kind,
+        portalKind: tenant.portalKind,
+      })
+      return
+    }
+
+    if (!slug) {
+      syncPortalHostContextFromWindow()
+    }
+  }, [hostname, slug, status, tenant])
 
   const value = useMemo<TenantHostContextValue>(
     () => ({
@@ -121,9 +144,12 @@ export function TenantHostProvider({ children }: { children: ReactNode }) {
     [slug, status, tenant],
   )
 
+  const platformUbtFavicon =
+    !slug && getDedicatedPortal() === 'ubt' ? brand.faviconUrl : tenant?.branding?.faviconUrl
+
   return (
     <TenantHostContext.Provider value={value}>
-      <TenantHostDocumentHead faviconUrl={tenant?.branding?.faviconUrl} />
+      <TenantHostDocumentHead faviconUrl={platformUbtFavicon} />
       {children}
     </TenantHostContext.Provider>
   )

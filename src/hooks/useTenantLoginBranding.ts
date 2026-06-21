@@ -6,6 +6,7 @@ import { useEntidadeBranding } from '../contexts/EntidadeBrandingContext'
 import { useOptionalTenantHost } from '../contexts/TenantHostContext'
 import { useEntidadeBrandTheme } from './useEntidadeBrandTheme'
 import { resolveEntidadeLoginBackgroundUrl } from '../lib/entidadeBranding/resolve'
+import { isPlatformUbtWithoutTenantSlug } from '../lib/entidadeBranding/platformUbtBranding'
 
 type TenantLoginPortal = Extract<PortalId, 'prefeitura' | 'ubt'>
 
@@ -39,17 +40,28 @@ export function useTenantLoginBranding(portal: PortalId) {
   const tenantHost = useOptionalTenantHost()
   const portalConfig = portals[portal]
   const whitelabelUbtTenant = isWhitelabelUbtTenant(portal, tenantHost?.tenant?.kind)
+  const platformUbtSelfBranding =
+    portal === 'ubt' && isPlatformUbtWithoutTenantSlug(tenantHost?.slug)
 
   const portalPublicUrl = useMemo(
-    () =>
-      isTenantLoginPortal(portal) && !whitelabelUbtTenant
+    () => {
+      if (platformUbtSelfBranding) return null
+      return isTenantLoginPortal(portal) && !whitelabelUbtTenant
         ? resolveLoginPortalPublicUrl(tenantHost?.tenant?.publicUrl, tenantHost?.slug)
-        : null,
-    [portal, tenantHost?.slug, tenantHost?.tenant?.publicUrl, whitelabelUbtTenant],
+        : null
+    },
+    [
+      platformUbtSelfBranding,
+      portal,
+      tenantHost?.slug,
+      tenantHost?.tenant?.publicUrl,
+      whitelabelUbtTenant,
+    ],
   )
 
   const hasTenantBranding = Boolean(
-    isTenantLoginPortal(portal) &&
+    !platformUbtSelfBranding &&
+      isTenantLoginPortal(portal) &&
       (tenantHost?.prefetchBranding ?? tenantHost?.tenant?.branding?.nomeMarca),
   )
 
@@ -57,6 +69,7 @@ export function useTenantLoginBranding(portal: PortalId) {
 
   const welcomeTitle = useMemo(() => {
     if (portal === 'prefeitura') return portalConfig.welcomeTitle
+    if (platformUbtSelfBranding) return portalConfig.welcomeTitle
     if (whitelabelUbtTenant) {
       return portalConfig.tenantWelcomeTitle ?? 'Unidade de Teleatendimento'
     }
@@ -67,6 +80,7 @@ export function useTenantLoginBranding(portal: PortalId) {
   }, [
     entidadeBranding.displayName,
     hasTenantBranding,
+    platformUbtSelfBranding,
     portal,
     portalConfig.tenantWelcomeTitle,
     portalConfig.welcomeTitle,
@@ -75,12 +89,14 @@ export function useTenantLoginBranding(portal: PortalId) {
 
   const welcomeSubtitle = useMemo(() => {
     if (portal === 'prefeitura') return portalConfig.welcomeSubtitle
+    if (platformUbtSelfBranding) return portalConfig.welcomeSubtitle
     if (whitelabelUbtTenant) {
       return portalConfig.tenantWelcomeSubtitle ?? 'Faça o login com suas credenciais'
     }
     if (portalPublicUrl) return portalPublicUrl
     return portalConfig.welcomeSubtitle
   }, [
+    platformUbtSelfBranding,
     portal,
     portalConfig.tenantWelcomeSubtitle,
     portalConfig.welcomeSubtitle,
@@ -89,31 +105,39 @@ export function useTenantLoginBranding(portal: PortalId) {
   ])
 
   const headline = useMemo(() => {
-    if (whitelabelUbtTenant) return brand.headline
+    if (platformUbtSelfBranding || whitelabelUbtTenant) return brand.headline
     if (hasTenantBranding && entidadeBranding.displayName !== brand.appName) {
       return entidadeBranding.displayName
     }
     return brand.headline
-  }, [entidadeBranding.displayName, hasTenantBranding, whitelabelUbtTenant])
+  }, [entidadeBranding.displayName, hasTenantBranding, platformUbtSelfBranding, whitelabelUbtTenant])
 
   const subheadline = useMemo(() => {
+    if (platformUbtSelfBranding) return brand.subheadline
     if (whitelabelUbtTenant) return brand.subheadline
     if (portalPublicUrl) return portalPublicUrl
     return brand.subheadline
-  }, [portalPublicUrl, whitelabelUbtTenant])
+  }, [platformUbtSelfBranding, portalPublicUrl, whitelabelUbtTenant])
 
   const loginBackgroundUrl = useMemo(() => {
+    if (platformUbtSelfBranding) return brand.backgroundImageUrl
     if (whitelabelUbtTenant) {
       return brand.ubtClientLoginBackgroundUrl
     }
     const fromTenant = tenantHost?.tenant?.branding?.loginBackgroundUrl?.trim()
     if (fromTenant) return fromTenant
     return resolveEntidadeLoginBackgroundUrl(entidadeBranding.branding, portal)
-  }, [entidadeBranding.branding, portal, tenantHost?.tenant?.branding?.loginBackgroundUrl, whitelabelUbtTenant])
+  }, [
+    entidadeBranding.branding,
+    platformUbtSelfBranding,
+    portal,
+    tenantHost?.tenant?.branding?.loginBackgroundUrl,
+    whitelabelUbtTenant,
+  ])
 
   return {
-    displayName: entidadeBranding.displayName,
-    logoUrl: entidadeBranding.logoUrl,
+    displayName: platformUbtSelfBranding ? brand.appName : entidadeBranding.displayName,
+    logoUrl: platformUbtSelfBranding ? brand.logoUrl : entidadeBranding.logoUrl,
     loginBackgroundUrl,
     welcomeTitle,
     welcomeSubtitle,
@@ -122,5 +146,6 @@ export function useTenantLoginBranding(portal: PortalId) {
     portalPublicUrl,
     hasTenantBranding,
     whitelabelUbtTenant,
+    platformUbtSelfBranding,
   }
 }

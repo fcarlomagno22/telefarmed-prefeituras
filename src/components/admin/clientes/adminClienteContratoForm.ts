@@ -7,11 +7,18 @@ import type {
 } from '../../../types/adminClientes'
 import type { CreateContratoPayload, UpdateContratoPayload } from '../../../lib/services/admin/clientes'
 import type { ClienteSpecialtyOption } from '../../../hooks/useAdminClientesClinicoCatalog'
+import type { MedicoProfessionRef } from '../../../config/adminContratoOrigemAtendimento'
 import { isValidEmail } from '../../prefeitura/rede/newUbt/newUbtFormTypes'
 import { parseBirthDateInput } from '../../../utils/calendar'
 import { maskIntegerPtBr, maskCurrencyBrl } from '../../../utils/masks'
 import type { AdminEntidadeCadastroFormState } from './cadastro/adminEntidadeCadastroTypes'
 import { resolveAceitaPacientesOutrosMunicipios } from '../../../config/adminEntidadeTipo'
+import type { ContratoOrigemAtendimento } from '../../../config/adminContratoOrigemAtendimento'
+import {
+  buildOrigemAtendimentoEspecialidadesPayload,
+  buildOrigemAtendimentoProfissoesPayload,
+  hydrateContratoOrigemAtendimentoFromDetalhes,
+} from './adminClienteContratoOrigemAtendimento'
 import {
   hasPositiveCurrency,
   parseCurrencyBrl,
@@ -42,6 +49,8 @@ export type AddContratoFormState = {
   aceitaPacientesOutrosMunicipios: boolean
   excedentePrecosProfissao: Record<string, string>
   excedentePrecosEspecialidade: Record<string, string>
+  origemAtendimentoProfissao: Record<string, ContratoOrigemAtendimento>
+  origemAtendimentoEspecialidade: Record<string, ContratoOrigemAtendimento>
 }
 
 export { hasPositiveCurrency, parseCurrencyBrl } from './adminClienteContratoPricing'
@@ -54,6 +63,8 @@ function numberToBrlInput(value: number): string {
 export function buildAddContratoFormFromContrato(
   contrato: AdminClienteRow['contratos'][number],
   tipoModalidade: AdminClienteContratoTipo,
+  specialties: ClienteSpecialtyOption[] = [],
+  professions: MedicoProfessionRef[] = [],
 ): AddContratoFormState {
   const detalhes = contrato.detalhes
   const precosProfissao: Record<string, string> = {}
@@ -74,6 +85,17 @@ export function buildAddContratoFormFromContrato(
     excedentePrecosEspecialidade[item.specialtyId] = numberToBrlInput(item.valorConsulta)
   }
 
+  const professionIds = new Set((detalhes?.precosPorProfissao ?? []).map((item) => item.professionId))
+  const specialtyIds = new Set(detalhes?.especialidadesAutorizadas ?? [])
+  const origemMaps = hydrateContratoOrigemAtendimentoFromDetalhes({
+    specialtyIds,
+    professionIds,
+    precosPorProfissao: detalhes?.precosPorProfissao ?? [],
+    precosPorEspecialidade: detalhes?.precosPorEspecialidade ?? [],
+    specialties,
+    professions,
+  })
+
   return {
     numeroContrato: contrato.numero ?? '',
     tipo: contrato.tipo,
@@ -90,14 +112,16 @@ export function buildAddContratoFormFromContrato(
     contatoEmail: '',
     contatoPhoneType: 'celular',
     contatoPhone: '',
-    professionIds: new Set((detalhes?.precosPorProfissao ?? []).map((item) => item.professionId)),
-    specialtyIds: new Set(detalhes?.especialidadesAutorizadas ?? []),
+    professionIds,
+    specialtyIds,
     precosProfissao,
     precosEspecialidade,
     permiteUltrapassar: detalhes?.permiteUltrapassar ?? false,
     aceitaPacientesOutrosMunicipios: detalhes?.aceitaPacientesOutrosMunicipios ?? false,
     excedentePrecosProfissao,
     excedentePrecosEspecialidade,
+    origemAtendimentoProfissao: origemMaps.origemAtendimentoProfissao,
+    origemAtendimentoEspecialidade: origemMaps.origemAtendimentoEspecialidade,
   }
 }
 
@@ -365,6 +389,13 @@ export function validateEditContratoStep(
   }
 }
 
+export function validateLimitedEditContratoForm(
+  form: AddContratoFormState,
+  specialties: ClienteSpecialtyOption[] = [],
+): string | null {
+  return validateEspecialidadesStep(form, specialties)
+}
+
 function validateEspecialidadesStep(
   form: AddContratoFormState,
   specialties: ClienteSpecialtyOption[] = [],
@@ -450,6 +481,7 @@ export function buildCreateContratoPayloadFromForm(
   form: AddContratoFormState,
   pin: string,
   specialties: ClienteSpecialtyOption[],
+  professions: MedicoProfessionRef[] = [],
 ): CreateContratoPayload {
   const pacoteOuMensal = isPacoteOuMensalContrato(form.tipoModalidade)
   const pricing = buildContratoPricingPayload(form, specialties, {
@@ -487,6 +519,12 @@ export function buildCreateContratoPayloadFromForm(
     excedentePrecosPorProfissao: pricing.excedentePrecosPorProfissao,
     excedentePrecosPorEspecialidade: pricing.excedentePrecosPorEspecialidade,
     especialidadesAutorizadas: [...form.specialtyIds],
+    origemAtendimentoEspecialidades: buildOrigemAtendimentoEspecialidadesPayload(
+      form,
+      specialties,
+      professions,
+    ),
+    origemAtendimentoProfissoes: buildOrigemAtendimentoProfissoesPayload(form, professions),
     contatoContrato,
   }
 }
@@ -495,12 +533,14 @@ export function buildUpdateContratoPayloadFromForm(
   form: AddContratoFormState,
   pin: string,
   specialties: ClienteSpecialtyOption[],
+  professions: MedicoProfessionRef[] = [],
 ): UpdateContratoPayload {
   const payload = buildCreateContratoPayloadFromForm(
     { contatoContrato: undefined } as AdminClienteRow,
     form,
     pin,
     specialties,
+    professions,
   )
   const { contatoContrato: _ignored, ...rest } = payload
   return rest
@@ -605,6 +645,7 @@ export function buildCreateContratoPayloadFromCadastroForm(
   form: AdminEntidadeCadastroFormState,
   pin: string,
   specialties: ClienteSpecialtyOption[],
+  professions: MedicoProfessionRef[] = [],
 ): CreateContratoPayload {
   const pacoteOuMensal = isPacoteOuMensalContrato(form.contratoModalidade)
   const permiteUltrapassar = pacoteOuMensal && form.permiteUltrapassar
@@ -643,6 +684,12 @@ export function buildCreateContratoPayloadFromCadastroForm(
       ? pricing.excedentePrecosPorEspecialidade
       : null,
     especialidadesAutorizadas: [...form.specialtyIds],
+    origemAtendimentoEspecialidades: buildOrigemAtendimentoEspecialidadesPayload(
+      form,
+      specialties,
+      professions,
+    ),
+    origemAtendimentoProfissoes: buildOrigemAtendimentoProfissoesPayload(form, professions),
     contatoContrato,
   }
 }

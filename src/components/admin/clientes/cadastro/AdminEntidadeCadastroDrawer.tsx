@@ -50,6 +50,7 @@ import {
   selectAllVisibleSpecialties,
   setSpecialtiesSelectionForProfession,
   toggleProfessionInContratoForm,
+  toggleSpecialtyInContratoForm,
 } from '../adminClienteContratoCatalogUtils'
 import { hasPositiveCurrency } from '../adminClienteContratoForm'
 import { groupSpecialtiesBySelectedProfessions } from '../adminClienteContratoPricing'
@@ -659,26 +660,7 @@ export function AdminEntidadeCadastroDrawer({
   }
 
   function toggleSpecialty(id: string) {
-    setForm((current) => {
-      const next = new Set(current.specialtyIds)
-      const precosEspecialidade = { ...current.precosEspecialidade }
-      const excedentePrecosEspecialidade = { ...current.excedentePrecosEspecialidade }
-
-      if (next.has(id)) {
-        next.delete(id)
-        delete precosEspecialidade[id]
-        delete excedentePrecosEspecialidade[id]
-      } else {
-        next.add(id)
-      }
-
-      return {
-        ...current,
-        specialtyIds: next,
-        precosEspecialidade,
-        excedentePrecosEspecialidade,
-      }
-    })
+    setForm((current) => toggleSpecialtyInContratoForm(current, id))
   }
 
   function selectAllSpecialties() {
@@ -691,6 +673,7 @@ export function AdminEntidadeCadastroDrawer({
       specialtyIds: new Set(),
       precosEspecialidade: {},
       excedentePrecosEspecialidade: {},
+      origemAtendimentoEspecialidade: {},
     }))
   }
 
@@ -1185,6 +1168,8 @@ export function AdminEntidadeCadastroDrawer({
                     specialtyIds={form.specialtyIds}
                     precosProfissao={form.precosProfissao}
                     precosEspecialidade={form.precosEspecialidade}
+                    origemAtendimentoProfissao={form.origemAtendimentoProfissao}
+                    origemAtendimentoEspecialidade={form.origemAtendimentoEspecialidade}
                     onToggleProfession={toggleProfession}
                     onToggleSpecialty={toggleSpecialty}
                     onToggleAllSpecialtiesForProfession={toggleAllSpecialtiesForProfession}
@@ -1193,6 +1178,24 @@ export function AdminEntidadeCadastroDrawer({
                     }
                     onPrecoChange={(specialtyId, value) =>
                       updatePrecoEspecialidade(specialtyId, maskCurrencyBrl(value))
+                    }
+                    onOrigemProfissaoChange={(professionId, origem) =>
+                      setForm((current) => ({
+                        ...current,
+                        origemAtendimentoProfissao: {
+                          ...current.origemAtendimentoProfissao,
+                          [professionId]: origem,
+                        },
+                      }))
+                    }
+                    onOrigemEspecialidadeChange={(specialtyId, origem) =>
+                      setForm((current) => ({
+                        ...current,
+                        origemAtendimentoEspecialidade: {
+                          ...current.origemAtendimentoEspecialidade,
+                          [specialtyId]: origem,
+                        },
+                      }))
                     }
                     inputClass={inputClass}
                     labelClass={labelClass}

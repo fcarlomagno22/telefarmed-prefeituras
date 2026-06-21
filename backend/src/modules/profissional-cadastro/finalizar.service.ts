@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { isValidCnpj, normalizeCnpj } from '../../lib/cnpj.js'
 import { hashPassword } from '../../lib/password.js'
+import { buildProfissionalCboFields } from '../../lib/faturamento/formacaoCbo.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { loadCandidaturaByAccessCode, normalizeAccessCode } from './access-code.js'
 import { ProfissionalCadastroError } from './errors.js'
@@ -336,6 +337,8 @@ export async function finalizeProfissionalCadastro(
   }
 
   try {
+    const cbo = await buildProfissionalCboFields(candidatura.formacao, candidatura.especialidade_nome)
+
     const { error: insertError } = await supabaseAdmin.from('usuarios_profissionais').insert({
       id: profissionalId,
       cpf: candidatura.cpf,
@@ -344,13 +347,15 @@ export async function finalizeProfissionalCadastro(
       senha_hash: senhaHash,
       telefone: candidatura.telefone,
       data_nascimento: candidatura.data_nascimento,
-      formacao: candidatura.formacao,
+      formacao: cbo.formacao,
       especialidade_id: candidatura.especialidade_id,
       especialidade: candidatura.especialidade_nome ?? '',
       conselho_sigla: candidatura.conselho_sigla,
       conselho_numero: candidatura.conselho_numero,
       conselho_uf: candidatura.conselho_uf,
       rqe: candidatura.rqe,
+      cbo_codigo: cbo.cbo_codigo,
+      cbo_descricao: cbo.cbo_descricao,
       bio: candidatura.descricao_profissional,
       endereco: candidatura.endereco,
       dados_pj: dadosPj,

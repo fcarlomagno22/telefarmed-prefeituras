@@ -15,7 +15,7 @@ import {
   patientRaceColorOptions,
 } from '../../utils/patientRegistrationOptions'
 import { patientHasGuardianSection } from '../../utils/patientRegistrationConsent'
-import { requiresGuardianValidation } from '../../utils/patientRegistrationValidation'
+import { requiresGuardianValidation, isPatientCnsRequiredForRegistration } from '../../utils/patientRegistrationValidation'
 import { AttendanceFieldHighlight } from './AttendanceFieldHighlight'
 import { AttendanceStepFooter } from './AttendanceStepFooter'
 import { AttendanceStepShell } from './AttendanceStepShell'
@@ -84,6 +84,7 @@ export function PatientRegistrationForm({
   )
   const continueReady = isRegistrationStepReady(data, ageGroup, cpfLocked)
   const highlight = (field: RegistrationFieldKey) => showHints && missingFields.includes(field)
+  const cnsRequired = isPatientCnsRequiredForRegistration(data.cpf, cpfLocked)
 
   const showGuardian = patientHasGuardianSection(ageGroup, data)
 
@@ -210,7 +211,7 @@ export function PatientRegistrationForm({
           <AttendanceFieldHighlight highlight={highlight('cns')} className="block sm:col-span-2">
             <label className="block">
               <span className="mb-1.5 block text-xs font-medium text-gray-700">
-                CNS / Cartão SUS
+                CNS / Cartão SUS{cnsRequired ? '' : ' (opcional)'}
               </span>
               <input
                 type="text"
@@ -236,17 +237,23 @@ export function PatientRegistrationForm({
                 <p className="mt-1.5 text-xs text-red-600">{cnsErrorMessage}</p>
               ) : null}
             </label>
-            <label className="mt-2 flex cursor-pointer items-start gap-2">
-              <input
-                type="checkbox"
-                checked={data.cnsPendente}
-                onChange={(e) => handleCnsPendenteChange(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[var(--brand-primary)] focus:ring-[var(--brand-primary)]"
-              />
-              <span className="text-xs text-gray-600">
-                Paciente não possui CNS — marcar como pendência
-              </span>
-            </label>
+            {cnsRequired ? (
+              <label className="mt-2 flex cursor-pointer items-start gap-2">
+                <input
+                  type="checkbox"
+                  checked={data.cnsPendente}
+                  onChange={(e) => handleCnsPendenteChange(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[var(--brand-primary)] focus:ring-[var(--brand-primary)]"
+                />
+                <span className="text-xs text-gray-600">
+                  Paciente não possui CNS — marcar como pendência
+                </span>
+              </label>
+            ) : (
+              <p className="mt-1.5 text-xs text-gray-500">
+                Com CPF válido, o CNS não é obrigatório no cadastro.
+              </p>
+            )}
           </AttendanceFieldHighlight>
 
           <AttendanceFieldHighlight highlight={highlight('nationality')} className="block">

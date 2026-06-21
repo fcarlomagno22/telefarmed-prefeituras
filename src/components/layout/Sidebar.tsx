@@ -2,7 +2,7 @@ import { LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useEntidadeBranding } from '../../contexts/EntidadeBrandingContext'
 import { ubtRoutes } from '../../config/ubtRoutes'
-import { defaultSidebarItems } from '../../config/sidebarNav'
+import { getDefaultSidebarItems } from '../../config/sidebarNav'
 import { SidebarNavItem, type SidebarNavSection } from './SidebarNavItem'
 import {
   PREFEITURA_SIDEBAR_COLLAPSED_STORAGE_KEY,
@@ -10,7 +10,7 @@ import {
 } from './SidebarNavSectionGroup'
 
 type SidebarProps = {
-  items?: typeof defaultSidebarItems
+  items?: ReturnType<typeof getDefaultSidebarItems>
   sections?: SidebarNavSection[]
   logoutPath?: string
   onLogout?: () => void | Promise<void>
@@ -21,7 +21,11 @@ type SidebarProps = {
 
 const defaultSidebarLogoClassName = 'h-7 w-auto max-w-[120px] object-contain'
 
-function SidebarNavList({ items }: { items: typeof defaultSidebarItems }) {
+function SidebarNavList({
+  items,
+}: {
+  items: ReturnType<typeof getDefaultSidebarItems>
+}) {
   return (
     <div className="flex flex-col gap-1.5">
       {items.map((item) => (
@@ -41,7 +45,7 @@ export function Sidebar({
 }: SidebarProps) {
   const navigate = useNavigate()
   const { logoUrl, displayName } = useEntidadeBranding()
-  const flatItems = items ?? defaultSidebarItems
+  const flatItems = items ?? getDefaultSidebarItems()
 
   async function handleLogout() {
     if (onLogout) {

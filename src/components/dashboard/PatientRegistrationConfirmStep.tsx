@@ -252,7 +252,7 @@ export function PatientRegistrationConfirmStep({
               </span>
               <input
                 type="tel"
-                value={data.phone}
+                value={maskPhone(data.phone)}
                 onChange={(e) => patch('phone', maskPhone(e.target.value))}
                 placeholder="(00) 00000-0000"
                 className={inputClass}

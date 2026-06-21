@@ -115,9 +115,15 @@ export function AgendaPage() {
   const walkInDrawer = useAgendaWalkInReceptionDrawer({
     selectedDate: agendaDate.selectedDate,
     existingAppointments: appointments,
-    onCompleted: (appointment) => {
+    onCompleted: (appointment, _registration, options) => {
       addAppointment(appointment)
-      void checkInToFila(appointment.id)
+      if (!options?.skipFilaCheckIn) {
+        void checkInToFila(appointment.id)
+      }
+      void reload({ silent: true })
+    },
+    onMtSessionEnded: () => {
+      void reload({ silent: true })
     },
     onRegisterWalkIn: mutations.registerWalkIn,
   })

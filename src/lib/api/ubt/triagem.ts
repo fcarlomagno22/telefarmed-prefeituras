@@ -23,6 +23,8 @@ export type UbtTriagemEspecialidadeCatalog = {
     name: string
     availableSlots: number
     available: boolean
+    origemAtendimento?: 'mp' | 'mt'
+    rh3EspecialidadId?: number
   }>
 }
 

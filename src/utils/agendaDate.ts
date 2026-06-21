@@ -31,6 +31,27 @@ export function formatAgendaDayLabel(date: Date): string {
   return formatted.charAt(0).toUpperCase() + formatted.slice(1)
 }
 
+const AGENDA_MONTH_ABBR = [
+  'jan',
+  'fev',
+  'mar',
+  'abr',
+  'mai',
+  'jun',
+  'jul',
+  'ago',
+  'set',
+  'out',
+  'nov',
+  'dez',
+] as const
+
+export function formatAgendaDayMonthShort(date: Date): string {
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = AGENDA_MONTH_ABBR[date.getMonth()]
+  return `${day}/${month}`
+}
+
 export function toDateInputValue(date: Date): string {
   return toDateKey(date)
 }

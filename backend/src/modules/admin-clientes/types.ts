@@ -21,12 +21,16 @@ export type AdminClienteContactDto = {
 export type AdminClientePrecoProfissaoDto = {
   professionId: string
   valorConsulta: number
+  origemAtendimento?: ContratoOrigemAtendimento
 }
 
 export type AdminClientePrecoEspecialidadeDto = {
   specialtyId: string
   valorConsulta: number
+  origemAtendimento?: ContratoOrigemAtendimento
 }
+
+export type ContratoOrigemAtendimento = 'mp' | 'mt'
 
 export type AdminClienteContratoDetalhesDto = {
   consultasContratadas: number | null

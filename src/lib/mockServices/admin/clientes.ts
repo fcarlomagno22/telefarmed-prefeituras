@@ -149,6 +149,8 @@ export type CreateContratoPayload = {
   excedentePrecosPorProfissao?: AdminClientePrecoProfissao[] | null
   excedentePrecosPorEspecialidade?: AdminClientePrecoEspecialidade[] | null
   especialidadesAutorizadas: string[]
+  origemAtendimentoEspecialidades?: { specialtyId: string; origem: 'mp' | 'mt' }[]
+  origemAtendimentoProfissoes?: { professionId: string; origem: 'mp' | 'mt' }[]
   contatoContrato?: AdminClienteContact
 }
 
@@ -166,6 +168,47 @@ function ensureEntidade(entidadeId: string): AdminClienteRow {
 
 function clone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
+}
+
+function buildMockContratoDetalhes(
+  payload: Pick<
+    CreateContratoPayload,
+    | 'consultasContratadas'
+    | 'permiteUltrapassar'
+    | 'aceitaPacientesOutrosMunicipios'
+    | 'precosPorProfissao'
+    | 'precosPorEspecialidade'
+    | 'excedentePrecosPorProfissao'
+    | 'excedentePrecosPorEspecialidade'
+    | 'especialidadesAutorizadas'
+    | 'origemAtendimentoEspecialidades'
+    | 'origemAtendimentoProfissoes'
+  >,
+): NonNullable<AdminClienteContrato['detalhes']> {
+  const origemBySpecialty = new Map(
+    (payload.origemAtendimentoEspecialidades ?? []).map((item) => [item.specialtyId, item.origem]),
+  )
+  const origemByProfession = new Map(
+    (payload.origemAtendimentoProfissoes ?? []).map((item) => [item.professionId, item.origem]),
+  )
+
+  return {
+    consultasContratadas: payload.consultasContratadas ?? null,
+    valorConsultaPacote: null,
+    permiteUltrapassar: payload.permiteUltrapassar,
+    aceitaPacientesOutrosMunicipios: payload.aceitaPacientesOutrosMunicipios ?? false,
+    precosPorProfissao: payload.precosPorProfissao.map((item) => ({
+      ...item,
+      origemAtendimento: origemByProfession.get(item.professionId) ?? 'mp',
+    })),
+    precosPorEspecialidade: payload.precosPorEspecialidade.map((item) => ({
+      ...item,
+      origemAtendimento: origemBySpecialty.get(item.specialtyId) ?? 'mp',
+    })),
+    excedentePrecosPorProfissao: payload.excedentePrecosPorProfissao ?? null,
+    excedentePrecosPorEspecialidade: payload.excedentePrecosPorEspecialidade ?? null,
+    especialidadesAutorizadas: payload.especialidadesAutorizadas,
+  }
 }
 
 export function isAdminClientesApiError(error: unknown): error is AdminClientesApiError {
@@ -492,17 +535,7 @@ export async function createClienteContrato(
     status: 'ativo',
     percentualUtilizado: null,
     consultasRealizadas: null,
-    detalhes: {
-      consultasContratadas: payload.consultasContratadas ?? null,
-      valorConsultaPacote: null,
-      permiteUltrapassar: payload.permiteUltrapassar,
-      aceitaPacientesOutrosMunicipios: payload.aceitaPacientesOutrosMunicipios ?? false,
-      precosPorProfissao: payload.precosPorProfissao,
-      precosPorEspecialidade: payload.precosPorEspecialidade,
-      excedentePrecosPorProfissao: payload.excedentePrecosPorProfissao ?? null,
-      excedentePrecosPorEspecialidade: payload.excedentePrecosPorEspecialidade ?? null,
-      especialidadesAutorizadas: payload.especialidadesAutorizadas,
-    },
+    detalhes: buildMockContratoDetalhes(payload),
   }
   row.contratos = [contrato, ...row.contratos]
   return mockDelay(clone(row), 80)
@@ -543,17 +576,7 @@ export async function updateClienteContrato(
       payload.tipo === 'mensal' || payload.tipo === 'pacote_fechado' || payload.tipo === 'sob_demanda'
         ? payload.tipo
         : contrato.modalidade ?? 'pacote_fechado'
-    contrato.detalhes = {
-      consultasContratadas: payload.consultasContratadas ?? null,
-      valorConsultaPacote: null,
-      permiteUltrapassar: payload.permiteUltrapassar,
-      aceitaPacientesOutrosMunicipios: payload.aceitaPacientesOutrosMunicipios ?? false,
-      precosPorProfissao: payload.precosPorProfissao,
-      precosPorEspecialidade: payload.precosPorEspecialidade,
-      excedentePrecosPorProfissao: payload.excedentePrecosPorProfissao ?? null,
-      excedentePrecosPorEspecialidade: payload.excedentePrecosPorEspecialidade ?? null,
-      especialidadesAutorizadas: payload.especialidadesAutorizadas,
-    }
+    contrato.detalhes = buildMockContratoDetalhes(payload)
     return mockDelay(clone(entidade), 70)
   }
   throw new AdminClientesApiError('Contrato não encontrado.', 404)

@@ -17,6 +17,7 @@ type AdminClienteContratoActionsMenuProps = {
   onSelectAction: (action: AdminClienteContratoAction) => void
   onDeleteContrato?: () => void
   onViewContrato?: () => void
+  onEditContrato?: () => void
 }
 
 const menuItemClass =
@@ -38,6 +39,7 @@ export function AdminClienteContratoActionsMenu({
   onSelectAction,
   onDeleteContrato,
   onViewContrato,
+  onEditContrato,
 }: AdminClienteContratoActionsMenuProps) {
   const triggerRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -141,21 +143,35 @@ export function AdminClienteContratoActionsMenu({
               role="menu"
             >
               {onViewContrato ? (
-                <>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className={menuItemClass}
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      onClose()
-                      onViewContrato()
-                    }}
-                  >
-                    Visualizar
-                  </button>
-                  <div className="my-1 h-px bg-gray-100" />
-                </>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={menuItemClass}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onClose()
+                    onViewContrato()
+                  }}
+                >
+                  Visualizar
+                </button>
+              ) : null}
+              {onEditContrato ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={menuItemClass}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onClose()
+                    onEditContrato()
+                  }}
+                >
+                  Editar
+                </button>
+              ) : null}
+              {onViewContrato || onEditContrato ? (
+                <div className="my-1 h-px bg-gray-100" />
               ) : null}
               {options.map((option) => (
                 <button

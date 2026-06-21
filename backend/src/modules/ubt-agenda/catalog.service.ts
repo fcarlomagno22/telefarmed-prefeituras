@@ -5,6 +5,9 @@ import {
   loadContratoSpecialtyContext,
   slotAuthorizedForCliente,
 } from './contrato-specialty.service.js'
+import { listRh3MtSpecialtiesForUbt } from '../ubt-rh3/catalog.service.js'
+import { loadAuthorizedSpecialtyOrigemMap } from '../ubt-rh3/origem.service.js'
+import { isRh3ImmediateMtSpecialtyName } from '../../lib/rh3/walkInSpecialty.js'
 import {
   formatScheduleDoctor,
   buildAgendaDaySummary,
@@ -522,19 +525,66 @@ export async function getUbtTriagemSpecialtyCatalog(
     name: string
     availableSlots: number
     available: boolean
+    origemAtendimento: 'mp' | 'mt'
+    rh3EspecialidadId?: number
   }>
 }> {
   const contratoIds = await loadActiveContratoIds(scope.entidadeContratanteId)
-  const availability = await listUbtAgendaSpecialtyAvailability(scope, date)
+  const [authorized, origemMap, mpAvailability] = await Promise.all([
+    loadAuthorizedSpecialtyIds(scope),
+    loadAuthorizedSpecialtyOrigemMap(scope.entidadeContratanteId),
+    listUbtAgendaSpecialtyAvailability(scope, date),
+  ])
+
+  const mpById = new Map(mpAvailability.map((item) => [item.id, item]))
+
+  let mtFromRh3: Awaited<ReturnType<typeof listRh3MtSpecialtiesForUbt>> = []
+  try {
+    mtFromRh3 = await listRh3MtSpecialtiesForUbt(scope, date)
+  } catch {
+    mtFromRh3 = []
+  }
+  const mtById = new Map(mtFromRh3.map((item) => [item.id, item]))
+
+  const specialties = [...authorized.entries()]
+    .map(([id, name]) => {
+      const origem = origemMap.get(id) ?? 'mp'
+
+      if (origem === 'mt') {
+        const mt = mtById.get(id)
+        const immediate = isRh3ImmediateMtSpecialtyName(name)
+        const rh3EspecialidadId = mt?.rh3EspecialidadId
+        const slots = immediate ? (rh3EspecialidadId ? 1 : 0) : (mt?.availableSlots ?? 0)
+        const available = immediate
+          ? Boolean(rh3EspecialidadId)
+          : slots > 0 && Boolean(rh3EspecialidadId)
+
+        return {
+          id,
+          name,
+          availableSlots: slots,
+          available,
+          origemAtendimento: 'mt' as const,
+          rh3EspecialidadId,
+        }
+      }
+
+      const mp = mpById.get(id)
+      const slots = mp?.availableSlots ?? 0
+      return {
+        id,
+        name,
+        availableSlots: slots,
+        available: slots > 0,
+        origemAtendimento: 'mp' as const,
+      }
+    })
+    .filter((item) => item.available)
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
 
   return {
     contratoId: contratoIds[0] ?? null,
     date,
-    specialties: availability.map((item) => ({
-      id: item.id,
-      name: item.name,
-      availableSlots: item.availableSlots,
-      available: item.availableSlots > 0,
-    })),
+    specialties,
   }
 }

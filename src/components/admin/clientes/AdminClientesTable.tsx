@@ -181,6 +181,7 @@ export function AdminClientesTable({
   const [viewContrato, setViewContrato] = useState<{
     cliente: AdminClienteRow
     contrato: AdminClienteContrato
+    mode: 'view' | 'edit'
   } | null>(null)
   const [viewUbtsCliente, setViewUbtsCliente] = useState<AdminClienteRow | null>(null)
   const [viewUbtsDrawerClosing, setViewUbtsDrawerClosing] = useState(false)
@@ -549,7 +550,11 @@ export function AdminClientesTable({
                                               })
                                             }}
                                             onViewContrato={() => {
-                                              setViewContrato({ cliente: row, contrato })
+                                              setViewContrato({ cliente: row, contrato, mode: 'view' })
+                                              setViewDrawerClosing(false)
+                                            }}
+                                            onEditContrato={() => {
+                                              setViewContrato({ cliente: row, contrato, mode: 'edit' })
                                               setViewDrawerClosing(false)
                                             }}
                                           />
@@ -748,6 +753,7 @@ export function AdminClientesTable({
         closing={viewDrawerClosing}
         cliente={viewContrato?.cliente ?? null}
         contrato={viewContrato?.contrato ?? null}
+        initialEditing={viewContrato?.mode === 'edit'}
         onSaveContrato={(contratoId, form) =>
           new Promise((resolve, reject) => {
             const snapshot = viewContrato
@@ -767,12 +773,12 @@ export function AdminClientesTable({
                 }
 
                 try {
-                  const payload = buildUpdateContratoPayloadFromForm(form, pin, specialties)
+                  const payload = buildUpdateContratoPayloadFromForm(form, pin, specialties, professions)
                   const row = await updateClienteContrato(token, contratoId, payload)
                   onUpsertRow(row)
                   const updatedContrato = row.contratos.find((item) => item.id === contratoId)
                   if (updatedContrato) {
-                    setViewContrato({ cliente: row, contrato: updatedContrato })
+                    setViewContrato({ cliente: row, contrato: updatedContrato, mode: 'view' })
                   }
                   if (viewEntity?.id === row.id) {
                     setViewEntity(row)
@@ -846,6 +852,7 @@ export function AdminClientesTable({
                   form,
                   pin,
                   specialties,
+                  professions,
                 )
                 const row = await createClienteContrato(token, clienteSnapshot.id, payload)
                 onUpsertRow(row)

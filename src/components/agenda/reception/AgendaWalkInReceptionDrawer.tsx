@@ -2,9 +2,12 @@ import { UserPlus, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { DayAppointment } from '../../../data/agendaMock'
+import { resolveWalkInMtFlowMode } from '../../../config/rh3WalkInSpecialty'
 import { useUbtPatientRegistration } from '../../../hooks/useUbtPatientRegistration'
 import { useUbtPatientTerritoryPolicy } from '../../../hooks/useUbtPatientTerritoryPolicy'
+import { useUbtRh3ScheduleMutations } from '../../../hooks/useUbtRh3ScheduleMutations'
 import { useUbtWalkInSpecialtyAvailability } from '../../../hooks/useUbtWalkInSpecialtyAvailability'
+import type { Rh3ScheduleSlot } from '../../../lib/services/ubt/rh3'
 import {
   emptyAttendanceSession,
   emptyPatientRegistration,
@@ -12,6 +15,8 @@ import {
   type AttendanceSession,
   type PatientRegistration,
 } from '../../../types/attendance'
+import { formatAgendaDayLabel, toDateKey } from '../../../utils/agendaDate'
+import { parseRh3ScheduleHourToApi } from '../../../utils/rh3ScheduleFormat'
 import { AgeGroupSelectionStep } from '../../dashboard/AgeGroupSelectionStep'
 import { CpfLookupStep } from '../../dashboard/CpfLookupStep'
 import { FaceCaptureModal } from '../../dashboard/FaceCaptureModal'
@@ -24,9 +29,18 @@ import { PatientRegistrationForm } from '../../dashboard/PatientRegistrationForm
 import { usePatientRegistrationOperator } from '../../../hooks/usePatientRegistrationOperator'
 import { SpecialtySelectionStep } from '../../dashboard/SpecialtySelectionStep'
 import { WalkInDoctorTimeStep } from './WalkInDoctorTimeStep'
+import { WalkInRh3WaitingRoomStep } from './WalkInRh3WaitingRoomStep'
+import { ScheduleRh3DateTimeStep } from '../schedule/ScheduleRh3DateTimeStep'
 import { AgendaWalkInReceptionFlowStepper } from './AgendaWalkInReceptionFlowStepper'
 import { AgendaWalkInReceptionSuccess } from './AgendaWalkInReceptionSuccess'
-import type { AgendaWalkInReceptionStep } from './agendaWalkInReceptionTypes'
+import { ConsultationLockOverlay } from '../../dashboard/ConsultationLockOverlay'
+import { writeConsultationLockToStorage } from '../../../hooks/useConsultationSessionGuard'
+import type {
+  AgendaWalkInReceptionStep,
+  WalkInReceptionFlowMode,
+} from './agendaWalkInReceptionTypes'
+
+const MT_WAITING_ROOM_LOCK_Z_INDEX = 10_050
 
 type AgendaWalkInReceptionDrawerProps = {
   open: boolean
@@ -35,7 +49,12 @@ type AgendaWalkInReceptionDrawerProps = {
   existingAppointments: DayAppointment[]
   onClose: () => void
   onTransitionEnd: () => void
-  onCompleted: (appointment: DayAppointment, registration: PatientRegistration) => void
+  onCompleted: (
+    appointment: DayAppointment,
+    registration: PatientRegistration,
+    options?: { skipFilaCheckIn?: boolean },
+  ) => void
+  onMtSessionEnded?: () => void
   onRegisterWalkIn: (payload: {
     pacienteId: string
     especialidadeId: string
@@ -53,25 +72,41 @@ export function AgendaWalkInReceptionDrawer({
   onClose,
   onTransitionEnd,
   onCompleted,
+  onMtSessionEnded,
   onRegisterWalkIn,
 }: AgendaWalkInReceptionDrawerProps) {
   const { lookupByCpf, registerCompletedPatient: persistPatient } = useUbtPatientRegistration()
+  const { bookRh3Appointment, bookRh3ImmediateConsultation } = useUbtRh3ScheduleMutations()
   const territoryPolicy = useUbtPatientTerritoryPolicy(open)
   const registrationOperator = usePatientRegistrationOperator()
   const [entered, setEntered] = useState(false)
   const [step, setStep] = useState<AgendaWalkInReceptionStep>('specialty')
+  const [flowMode, setFlowMode] = useState<WalkInReceptionFlowMode>('mp')
   const [consentBackStep, setConsentBackStep] = useState<'photo' | 'confirm_registration'>('photo')
   const [registration, setRegistration] = useState(emptyPatientRegistration)
   const [session, setSession] = useState(emptyAttendanceSession)
   const [selectedDoctorId, setSelectedDoctorId] = useState('')
   const [selectedDoctorName, setSelectedDoctorName] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
+  const [rh3EspecialidadId, setRh3EspecialidadId] = useState<number | null>(null)
+  const [selectedRh3Date, setSelectedRh3Date] = useState(selectedDate)
+  const [selectedRh3TurnoId, setSelectedRh3TurnoId] = useState<number | null>(null)
+  const [mtDeeplinkUrl, setMtDeeplinkUrl] = useState<string | null>(null)
+  const [mtScheduledTimeLabel, setMtScheduledTimeLabel] = useState('')
+  const [bookingError, setBookingError] = useState<string | null>(null)
   const [photoCaptureOpen, setPhotoCaptureOpen] = useState(false)
   const [existingPatientId, setExistingPatientId] = useState<string | undefined>()
   const [completedAppointment, setCompletedAppointment] = useState<DayAppointment | null>(
     null,
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [mtWaitingRoomLocked, setMtWaitingRoomLocked] = useState(false)
+  const [mtWaitingRoomAccessLoading, setMtWaitingRoomAccessLoading] = useState(false)
+  const [mtWaitingRoomAccessError, setMtWaitingRoomAccessError] = useState<string | null>(null)
+
+  const isMpFlow = flowMode === 'mp'
+  const isMtImmediateFlow = flowMode === 'mt_immediate'
+  const isMtScheduledFlow = flowMode === 'mt_scheduled'
 
   const catalogEnabled = open && step === 'specialty'
   const {
@@ -83,16 +118,32 @@ export function AgendaWalkInReceptionDrawer({
 
   const resetFlow = useCallback(() => {
     setStep('specialty')
+    setFlowMode('mp')
     setRegistration(emptyPatientRegistration())
     setSession(emptyAttendanceSession())
     setSelectedDoctorId('')
     setSelectedDoctorName('')
     setSelectedTime('')
+    setRh3EspecialidadId(null)
+    setSelectedRh3Date(selectedDate)
+    setSelectedRh3TurnoId(null)
+    setMtDeeplinkUrl(null)
+    setMtScheduledTimeLabel('')
+    setBookingError(null)
     setPhotoCaptureOpen(false)
     setExistingPatientId(undefined)
     setCompletedAppointment(null)
     setIsSubmitting(false)
-  }, [])
+    setMtWaitingRoomLocked(false)
+    setMtWaitingRoomAccessLoading(false)
+    setMtWaitingRoomAccessError(null)
+  }, [selectedDate])
+
+  const stepBeforeCpf = useCallback((): AgendaWalkInReceptionStep => {
+    if (isMtImmediateFlow) return 'specialty'
+    if (isMtScheduledFlow) return 'rh3_schedule_datetime'
+    return 'schedule_datetime'
+  }, [isMtImmediateFlow, isMtScheduledFlow])
 
   useEffect(() => {
     if (!open) {
@@ -111,7 +162,7 @@ export function AgendaWalkInReceptionDrawer({
     if (!isActive) return
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape' && step !== 'success') onClose()
+      if (event.key === 'Escape' && step !== 'success' && !mtWaitingRoomLocked) onClose()
     }
 
     const previousOverflow = document.body.style.overflow
@@ -122,7 +173,32 @@ export function AgendaWalkInReceptionDrawer({
       document.body.style.overflow = previousOverflow
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isActive, onClose, step])
+  }, [isActive, onClose, step, mtWaitingRoomLocked])
+
+  function handleAccessMtWaitingRoom() {
+    if (!mtDeeplinkUrl || mtWaitingRoomAccessLoading || mtWaitingRoomLocked) return
+
+    setMtWaitingRoomAccessLoading(true)
+    setMtWaitingRoomAccessError(null)
+
+    // window.open com noopener/noreferrer costuma retornar null mesmo abrindo a aba.
+    const link = document.createElement('a')
+    link.href = mtDeeplinkUrl
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
+    link.click()
+
+    writeConsultationLockToStorage(true)
+    setMtWaitingRoomLocked(true)
+    setMtWaitingRoomAccessLoading(false)
+  }
+
+  function handleMtWaitingRoomComplete() {
+    writeConsultationLockToStorage(false)
+    setMtWaitingRoomLocked(false)
+    onMtSessionEnded?.()
+    handleCloseAfterSuccess()
+  }
 
   useEffect(() => {
     if (!closing) return
@@ -130,8 +206,75 @@ export function AgendaWalkInReceptionDrawer({
     return () => window.clearTimeout(fallback)
   }, [closing, onTransitionEnd])
 
+  async function finishMtReception(nextRegistration: PatientRegistration) {
+    const rh3Id = rh3EspecialidadId
+    if (rh3Id == null || isSubmitting) return
+
+    setIsSubmitting(true)
+    setBookingError(null)
+
+    try {
+      const saved = await persistPatient(nextRegistration, existingPatientId)
+      const pacientePayload = {
+        cpf: nextRegistration.cpf,
+        fullName: nextRegistration.fullName,
+        email: nextRegistration.email,
+        phone: nextRegistration.phone,
+        birthDate: nextRegistration.birthDate,
+        gender: nextRegistration.gender,
+      }
+
+      if (isMtImmediateFlow) {
+        const response = await bookRh3ImmediateConsultation({
+          pacienteId: saved.id,
+          especialidadeId: session.specialtyId,
+          rh3EspecialidadId: rh3Id,
+          specialtyName: session.specialtyName,
+          paciente: pacientePayload,
+        })
+        setMtDeeplinkUrl(response.consultation.deeplinkPaciente)
+        setMtScheduledTimeLabel('')
+        onCompleted(response.consultation.appointment, nextRegistration, { skipFilaCheckIn: true })
+      } else {
+        if (selectedRh3TurnoId == null || !selectedTime) return
+        const response = await bookRh3Appointment({
+          pacienteId: saved.id,
+          especialidadeId: session.specialtyId,
+          rh3EspecialidadId: rh3Id,
+          idTurno: selectedRh3TurnoId,
+          data: toDateKey(selectedRh3Date),
+          hora: parseRh3ScheduleHourToApi(selectedTime),
+          professionalName: selectedDoctorName || undefined,
+          specialtyName: session.specialtyName,
+          paciente: pacientePayload,
+        })
+        const deeplink = response.appointment.deeplinkPaciente
+        if (!deeplink) {
+          throw new Error('Link de teleconsulta não retornado pelo parceiro.')
+        }
+        setMtDeeplinkUrl(deeplink)
+        setMtScheduledTimeLabel(
+          `${formatAgendaDayLabel(selectedRh3Date)} · ${selectedTime}`,
+        )
+        onCompleted(response.appointment.appointment, nextRegistration, { skipFilaCheckIn: true })
+      }
+
+      setRegistration(nextRegistration)
+      setStep('mt_waiting_room')
+    } catch {
+      setBookingError('Não foi possível registrar a teleconsulta terceirizada. Tente novamente.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   async function finishReception(nextRegistration: PatientRegistration) {
     if (isSubmitting) return
+    if (!isMpFlow) {
+      await finishMtReception(nextRegistration)
+      return
+    }
+
     setIsSubmitting(true)
     try {
       const saved = await persistPatient(nextRegistration, existingPatientId)
@@ -171,7 +314,13 @@ export function AgendaWalkInReceptionDrawer({
             panelVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
           }`}
           aria-label="Fechar recepção presencial"
-          onClick={step === 'success' ? handleCloseAfterSuccess : onClose}
+          onClick={
+            mtWaitingRoomLocked
+              ? undefined
+              : step === 'success'
+                ? handleCloseAfterSuccess
+                : onClose
+          }
         />
 
         <aside
@@ -204,15 +353,24 @@ export function AgendaWalkInReceptionDrawer({
               </div>
               <button
                 type="button"
-                onClick={step === 'success' ? handleCloseAfterSuccess : onClose}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800"
+                onClick={
+                  mtWaitingRoomLocked
+                    ? undefined
+                    : step === 'success' || step === 'mt_waiting_room'
+                      ? handleCloseAfterSuccess
+                      : onClose
+                }
+          disabled={mtWaitingRoomLocked}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 transition hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 ${
+            mtWaitingRoomLocked ? 'pointer-events-none opacity-40' : ''
+          }`}
                 aria-label="Fechar"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            {step !== 'success' ? (
+            {step !== 'success' && step !== 'mt_waiting_room' ? (
               <div className="mt-4">
                 <AgendaWalkInReceptionFlowStepper step={step} />
               </div>
@@ -220,31 +378,75 @@ export function AgendaWalkInReceptionDrawer({
           </header>
 
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 py-4 sm:px-6 sm:py-5">
+            {bookingError ? (
+              <p className="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                {bookingError}
+              </p>
+            ) : null}
+
             {step === 'specialty' && (
               <SpecialtySelectionStep
                 selectedDate={selectedDate}
                 showAvailability
                 availabilityFilter="with-slots-only"
+                walkInAvailabilityLabels
                 specialties={walkInSpecialties}
                 isLoading={isCatalogLoading}
                 loadError={catalogLoadError}
                 onRetryLoad={() => void reloadCatalog()}
                 selectedId={session.specialtyId}
-                description="Especialidades do contrato com médico em plantão e horário livre a partir de agora."
-                emptyMessage="Nenhuma especialidade com vaga de encaixe neste momento. Tente novamente em alguns minutos."
+                description="Especialidades com médico disponível neste dia: plantão local (MP) ou teleconsulta terceirizada (MT) com vaga."
+                emptyMessage="Nenhuma especialidade com médico disponível neste dia."
                 onSelect={(id, name) =>
                   setSession((prev) => ({ ...prev, specialtyId: id, specialtyName: name }))
                 }
                 onBack={onClose}
                 onContinue={() => {
+                  const item = walkInSpecialties.find(
+                    (specialty) => specialty.id === session.specialtyId,
+                  )
+                  const mtFlow = item ? resolveWalkInMtFlowMode(item) : null
+
+                  setBookingError(null)
                   setSelectedDoctorId('')
                   setSelectedTime('')
+                  setSelectedRh3TurnoId(null)
+                  setSelectedRh3Date(selectedDate)
+
+                  if (mtFlow === 'mt_immediate') {
+                    if (!item?.rh3EspecialidadId) {
+                      setBookingError(
+                        'Esta especialidade terceirizada não está vinculada ao catálogo RH3.',
+                      )
+                      return
+                    }
+                    setFlowMode('mt_immediate')
+                    setRh3EspecialidadId(item.rh3EspecialidadId)
+                    setStep('cpf_lookup')
+                    return
+                  }
+
+                  if (mtFlow === 'mt_scheduled') {
+                    if (!item?.rh3EspecialidadId) {
+                      setBookingError(
+                        'Esta especialidade terceirizada não está vinculada ao catálogo RH3.',
+                      )
+                      return
+                    }
+                    setFlowMode('mt_scheduled')
+                    setRh3EspecialidadId(item.rh3EspecialidadId)
+                    setStep('rh3_schedule_datetime')
+                    return
+                  }
+
+                  setFlowMode('mp')
+                  setRh3EspecialidadId(null)
                   setStep('schedule_datetime')
                 }}
               />
             )}
 
-            {step === 'schedule_datetime' && (
+            {step === 'schedule_datetime' && isMpFlow && (
               <WalkInDoctorTimeStep
                 specialtyId={session.specialtyId}
                 specialtyName={session.specialtyName}
@@ -260,6 +462,31 @@ export function AgendaWalkInReceptionDrawer({
                 onContinue={() => setStep('cpf_lookup')}
               />
             )}
+
+            {step === 'rh3_schedule_datetime' && rh3EspecialidadId != null && isMtScheduledFlow ? (
+              <ScheduleRh3DateTimeStep
+                specialtyName={session.specialtyName}
+                rh3EspecialidadId={rh3EspecialidadId}
+                selectedDate={selectedRh3Date}
+                selectedTurnoId={selectedRh3TurnoId}
+                selectedTime={selectedTime}
+                selectedProfessionalName={selectedDoctorName}
+                onSelectDate={(date) => {
+                  setSelectedRh3Date(date)
+                  setSelectedTime('')
+                  setSelectedRh3TurnoId(null)
+                  setSelectedDoctorName('')
+                }}
+                onSelectSlot={(slot: Rh3ScheduleSlot) => {
+                  setSelectedRh3TurnoId(slot.idTurno)
+                  setSelectedTime(slot.hour)
+                  setSelectedDoctorName(slot.professionalName ?? '')
+                }}
+                onBack={() => setStep('specialty')}
+                onContinue={() => setStep('cpf_lookup')}
+                continueLabel="Continuar"
+              />
+            ) : null}
 
             {step === 'cpf_lookup' && (
               <CpfLookupStep
@@ -295,7 +522,7 @@ export function AgendaWalkInReceptionDrawer({
                   setSession((prev) => ({ ...prev, ageGroup: null }))
                   setStep('age_group')
                 }}
-                onBack={() => setStep('schedule_datetime')}
+                onBack={() => setStep(stepBeforeCpf())}
               />
             )}
 
@@ -311,7 +538,7 @@ export function AgendaWalkInReceptionDrawer({
                 }}
                 onBack={() => setStep('cpf_lookup')}
                 onOpenPhotoCapture={() => setPhotoCaptureOpen(true)}
-                continueLabel="Continuar para confirmação final"
+                continueLabel="Continuar"
               />
             )}
 
@@ -353,7 +580,9 @@ export function AgendaWalkInReceptionDrawer({
               <PatientAddressStep
                 data={registration}
                 onChange={setRegistration}
-                onSubmit={() => setStep('photo')}
+                onSubmit={() =>
+                  setStep(isMpFlow ? 'photo' : 'registration_consent')
+                }
                 onBack={() => setStep('contacts')}
                 requiredTerritory={territoryPolicy.requiredTerritory}
                 contractAllowsOtherMunicipalities={territoryPolicy.allowsOtherMunicipalities}
@@ -364,7 +593,7 @@ export function AgendaWalkInReceptionDrawer({
               />
             )}
 
-            {step === 'photo' && (
+            {step === 'photo' && isMpFlow && (
               <PatientPhotoStep
                 photoDataUrl={registration.photoDataUrl}
                 description="Foto para identificação no Terminal. Após confirmar, o paciente entra na fila da triagem — sem abrir sala de espera virtual aqui."
@@ -381,8 +610,8 @@ export function AgendaWalkInReceptionDrawer({
                   )
                 }
                 isSubmitting={isSubmitting}
-                continueLabel="Finalizar recepção"
-                submittingLabel="Finalizando recepção…"
+                continueLabel="Continuar"
+                submittingLabel="Continuando…"
               />
             )}
 
@@ -395,10 +624,23 @@ export function AgendaWalkInReceptionDrawer({
                 onChange={setRegistration}
                 onSubmit={(nextRegistration) => void finishReception(nextRegistration)}
                 onBack={() => setStep(consentBackStep)}
-                continueLabel="Finalizar recepção"
+                continueLabel="Continuar"
                 continueLoading={isSubmitting}
               />
             )}
+
+            {step === 'mt_waiting_room' && mtDeeplinkUrl && !mtWaitingRoomLocked ? (
+              <WalkInRh3WaitingRoomStep
+                registration={registration}
+                specialtyName={session.specialtyName}
+                scheduledTimeLabel={mtScheduledTimeLabel || undefined}
+                mode={isMtImmediateFlow ? 'immediate' : 'scheduled'}
+                loading={mtWaitingRoomAccessLoading}
+                accessError={mtWaitingRoomAccessError}
+                onAccessWaitingRoom={handleAccessMtWaitingRoom}
+                onCancel={handleCloseAfterSuccess}
+              />
+            ) : null}
 
             {step === 'success' && completedAppointment && (
               <AgendaWalkInReceptionSuccess
@@ -417,6 +659,14 @@ export function AgendaWalkInReceptionDrawer({
           setRegistration((prev) => ({ ...prev, photoDataUrl }))
           setPhotoCaptureOpen(false)
         }}
+      />
+
+      <ConsultationLockOverlay
+        active={mtWaitingRoomLocked}
+        skipFeedback
+        patientCpf={registration.cpf}
+        stackZIndex={MT_WAITING_ROOM_LOCK_Z_INDEX}
+        onComplete={handleMtWaitingRoomComplete}
       />
     </>,
     document.body,

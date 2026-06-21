@@ -11,6 +11,10 @@ export type SpecialtyOption = {
   name: string
   available: boolean
   availableSlots?: number
+  origemAtendimento?: 'mp' | 'mt'
+  rh3EspecialidadId?: number
+  /** Rótulo secundário no encaixe presencial. */
+  walkInBadge?: 'immediate' | 'schedule' | 'slots' | 'none'
 }
 
 type SpecialtySelectionStepProps = {
@@ -29,6 +33,8 @@ type SpecialtySelectionStepProps = {
   availabilityFilter?: 'all' | 'with-slots-only'
   /** Quando false, permite avançar só com especialidade selecionada (ex.: agendamento futuro). */
   requireAvailability?: boolean
+  /** Exibe rótulos do encaixe presencial (24h, Agendar, vagas). */
+  walkInAvailabilityLabels?: boolean
 }
 
 export function SpecialtySelectionStep({
@@ -46,6 +52,7 @@ export function SpecialtySelectionStep({
   showAvailability = false,
   availabilityFilter = 'all',
   requireAvailability = true,
+  walkInAvailabilityLabels = false,
 }: SpecialtySelectionStepProps) {
   const [search, setSearch] = useState('')
   const [showHints, setShowHints] = useState(false)
@@ -80,6 +87,37 @@ export function SpecialtySelectionStep({
   const canContinue = requireAvailability
     ? Boolean(selectedSpecialty?.available)
     : Boolean(selectedId)
+
+  function resolveAvailabilityBadge(specialty: SpecialtyOption): {
+    text: string
+    tone: 'positive' | 'schedule' | 'muted'
+  } {
+    if (walkInAvailabilityLabels) {
+      if (specialty.walkInBadge === 'immediate') {
+        return { text: 'Disponível 24h', tone: 'positive' }
+      }
+      if (specialty.walkInBadge === 'schedule') {
+        return { text: 'Agendar', tone: specialty.available ? 'schedule' : 'muted' }
+      }
+      if (specialty.walkInBadge === 'slots') {
+        const slots = specialty.availableSlots ?? 0
+        return {
+          text: `${slots} ${slots === 1 ? 'vaga' : 'vagas'}`,
+          tone: 'positive',
+        }
+      }
+      return { text: 'sem vaga hoje', tone: 'muted' }
+    }
+
+    const slots = specialty.availableSlots ?? 0
+    if (slots > 0) {
+      return {
+        text: `${slots} ${slots === 1 ? 'vaga' : 'vagas'}`,
+        tone: 'positive',
+      }
+    }
+    return { text: 'sem vaga hoje', tone: 'muted' }
+  }
 
   const emptyAvailabilityMessage =
     availabilityFilter === 'with-slots-only'
@@ -164,6 +202,7 @@ export function SpecialtySelectionStep({
             {filtered.map((specialty) => {
               const isSelected = specialty.id === selectedId
               const isUnavailable = requireAvailability && !specialty.available
+              const badge = resolveAvailabilityBadge(specialty)
               const slots = specialty.availableSlots ?? 0
 
               return (
@@ -204,12 +243,14 @@ export function SpecialtySelectionStep({
                       <span
                         className={[
                           'mt-1 text-[9px] font-medium',
-                          slots > 0 ? 'text-emerald-700' : 'text-gray-400',
+                          badge.tone === 'positive'
+                            ? 'text-emerald-700'
+                            : badge.tone === 'schedule'
+                              ? 'text-violet-700'
+                              : 'text-gray-400',
                         ].join(' ')}
                       >
-                        {slots > 0
-                          ? `${slots} ${slots === 1 ? 'vaga' : 'vagas'}`
-                          : 'sem vaga hoje'}
+                        {badge.text}
                       </span>
                     ) : null}
                   </button>
@@ -220,7 +261,7 @@ export function SpecialtySelectionStep({
         </AttendanceFieldHighlight>
       )}
 
-      {showAvailability && selectedId && selectedSlots > 0 ? (
+      {showAvailability && selectedId && selectedSpecialty?.available && selectedSlots > 0 && !walkInAvailabilityLabels ? (
         <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800 ring-1 ring-emerald-100">
           Há capacidade para atendimento nesta especialidade ({selectedSlots}{' '}
           {selectedSlots === 1 ? 'horário disponível' : 'horários disponíveis'}).

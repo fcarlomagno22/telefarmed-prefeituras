@@ -1,6 +1,7 @@
 import { ClipboardCheck, KeyRound } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { prefeituraRoutes } from '../../../../config/prefeituraRoutes'
 import { ubtPublicUrl } from '../../../../config/tenantHost'
 import { prefeituraRedeStatusBadgeConfig } from '../prefeituraRedeStatusBadge'
 import {
@@ -228,7 +229,7 @@ export function PrefeituraNewUbtReviewStep({
           Após cadastrar, crie a credencial de{' '}
           <strong>{form.responsibleName.trim() || 'a gestora'}</strong> em{' '}
           <Link
-            to="/prefeitura/credenciais"
+            to={prefeituraRoutes.credenciais}
             className="font-semibold text-[var(--brand-primary)] underline-offset-2 hover:underline"
           >
             Credenciais de acesso

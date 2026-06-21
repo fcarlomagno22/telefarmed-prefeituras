@@ -2,7 +2,8 @@ import { Loader2 } from 'lucide-react'
 import lottie from 'lottie-web'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { brand } from '../../config/brand'
+import { PoweredByTelefarmed } from '../brand/PoweredByTelefarmed'
+import { useEntidadeBranding } from '../../contexts/EntidadeBrandingContext'
 import { readWaitingRoomSession } from '../../data/waitingRoomSession'
 import { useConsultationSessionGuard } from '../../hooks/useConsultationSessionGuard'
 import { useUbtAuth } from '../../contexts/UbtAuthContext'
@@ -10,29 +11,39 @@ import {
   isUbtConsultasApiError,
   registrarUbtConsultaAvaliacao,
 } from '../../lib/services/ubt/consultas'
+import { releaseRh3Elegibilidad } from '../../lib/services/ubt/rh3'
 import {
   ConsultationFeedbackPanel,
   type ConsultationFeedback,
 } from './ConsultationFeedbackPanel'
-import { NavigationBlockModal } from './NavigationBlockModal'
 
 const doctorAnimationPath = `${import.meta.env.BASE_URL}doctor.json`
 
 type ConsultationLockOverlayProps = {
   active: boolean
   onComplete: () => void
+  /** CPF do paciente — remove elegibilidade RH3 ao encerrar. */
+  patientCpf?: string
+  /** Sem token de consulta local (ex.: teleconsulta RH3 no encaixe). */
+  skipFeedback?: boolean
+  /** Empilhamento acima de drawers/modais (padrão: 200). */
+  stackZIndex?: number
 }
 
 export function ConsultationLockOverlay({
   active,
   onComplete,
+  patientCpf,
+  skipFeedback = false,
+  stackZIndex = 200,
 }: ConsultationLockOverlayProps) {
   const { getAccessToken } = useUbtAuth()
+  const { logoUrl, displayName } = useEntidadeBranding()
   const [showFeedback, setShowFeedback] = useState(false)
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false)
   const [feedbackError, setFeedbackError] = useState<string | null>(null)
   const guardActive = active && !showFeedback
-  const { showBlockModal, dismissBlockModal } = useConsultationSessionGuard(guardActive)
+  useConsultationSessionGuard(guardActive, { onBlocked: () => {} })
   const containerRef = useRef<HTMLDivElement>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -52,6 +63,25 @@ export function ConsultationLockOverlay({
     onComplete()
   }
 
+  async function releaseRh3PatientElegibilidad() {
+    const document = patientCpf?.replace(/\D/g, '') ?? ''
+    if (document.length !== 11) return
+
+    const accessToken = getAccessToken()
+    if (!accessToken) return
+
+    try {
+      await releaseRh3Elegibilidad(accessToken, document)
+    } catch {
+      // Encerramento local segue mesmo se a Doc24 falhar.
+    }
+  }
+
+  async function completeOverlaySession() {
+    await releaseRh3PatientElegibilidad()
+    finishOverlay()
+  }
+
   async function handleFeedbackSubmit(feedback: ConsultationFeedback) {
     const accessToken = getAccessToken()
     const codigo = readWaitingRoomSession()?.token
@@ -69,7 +99,7 @@ export function ConsultationLockOverlay({
         feedback.rating,
         feedback.comment || undefined,
       )
-      finishOverlay()
+      await completeOverlaySession()
     } catch (error) {
       const message = isUbtConsultasApiError(error)
         ? error.message
@@ -118,29 +148,38 @@ export function ConsultationLockOverlay({
   }, [active, showFeedback])
 
   function handleRequestEnd() {
-    dismissBlockModal()
     setFeedbackError(null)
+    if (skipFeedback) {
+      void completeOverlaySession()
+      return
+    }
     setShowFeedback(true)
   }
 
   function handleFeedbackSkip() {
-    finishOverlay()
+    void completeOverlaySession()
   }
 
   if (!visible) return null
 
   return createPortal(
-    <>
-      <div className="fixed inset-0 z-[200] flex flex-col bg-white px-6">
-        <div className="absolute right-6 top-6 sm:right-8 sm:top-8">
-          <img
-            src={brand.logoUrl}
-            alt={brand.appName}
-            className="h-10 w-auto max-w-[140px] object-contain object-right sm:h-12 sm:max-w-[160px]"
-          />
-        </div>
+    <div
+      className="fixed inset-0 flex flex-col bg-white px-6"
+      style={{ zIndex: stackZIndex }}
+    >
+      <div className="absolute right-6 top-6 sm:right-8 sm:top-8">
+        <img
+          src={logoUrl}
+          alt={displayName}
+          className="h-10 w-auto max-w-[140px] object-contain object-right sm:h-12 sm:max-w-[160px]"
+        />
+      </div>
 
-        <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto py-10">
+      <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-8">
+        <PoweredByTelefarmed />
+      </div>
+
+      <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto py-10">
           {showFeedback ? (
             <div className="flex w-full max-w-md flex-col items-center">
               <ConsultationFeedbackPanel
@@ -205,15 +244,8 @@ export function ConsultationLockOverlay({
               </button>
             </div>
           )}
-        </div>
       </div>
-
-      <NavigationBlockModal
-        open={showBlockModal}
-        onAcknowledge={dismissBlockModal}
-        onEndSession={handleRequestEnd}
-      />
-    </>,
+    </div>,
     document.body,
   )
 }

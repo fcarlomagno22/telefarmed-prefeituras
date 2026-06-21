@@ -1,5 +1,7 @@
 import { formatCpfDisplay, initialsFromName, avatarClassForId } from '../admin-credenciais/formatters.js'
 import { formatCnsDisplay } from '../../lib/cns.js'
+import { isValidCpf } from '../../lib/cpf.js'
+import { enrichEnderecoWithMunicipioIbge } from '../../lib/municipiosIbge.js'
 import type {
   AdminContractStatus,
   AdminMunicipalPatientDetailDto,
@@ -143,7 +145,9 @@ function readContacts(contatoEmergencia: unknown): AdminPatientDetailProfileDto[
 
 function computeMissingFields(row: ListagemRow): string[] {
   const missing: string[] = []
-  if (row.cns_pendente || !row.cns?.trim()) missing.push('CNS')
+  const cpfDigits = row.cpf.replace(/\D/g, '')
+  const hasValidCpf = cpfDigits.length === 11 && isValidCpf(cpfDigits)
+  if (!hasValidCpf && (row.cns_pendente || !row.cns?.trim())) missing.push('CNS')
   if (!row.nacionalidade?.trim()) missing.push('nacionalidade')
   if (!row.raca_cor?.trim()) missing.push('raça/cor')
   if (!row.telefone?.trim()) missing.push('telefone')
@@ -332,9 +336,10 @@ export function buildEnderecoFromInput(input: {
   if (input.city?.trim()) endereco.cidade = input.city.trim()
   if (input.state?.trim()) endereco.uf = input.state.trim()
   if (input.residenceMunicipalityIbgeCode?.trim()) {
-    endereco.codigo_ibge_municipio = input.residenceMunicipalityIbgeCode.trim()
+    endereco.codigo_ibge_municipio = input.residenceMunicipalityIbgeCode.replace(/\D/g, '').slice(0, 7)
   }
-  return endereco
+
+  return enrichEnderecoWithMunicipioIbge(endereco)
 }
 
 export function buildResponsavelFromInput(input: {

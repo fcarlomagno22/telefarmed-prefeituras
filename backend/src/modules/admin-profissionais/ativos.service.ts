@@ -4,6 +4,7 @@ import {
   resolveFormacaoEspecialidadeId,
 } from '../../lib/config-clinico/formacao-especialidade.js'
 import { ProfissionalCadastroError } from '../profissional-cadastro/errors.js'
+import { buildProfissionalCboFields } from '../../lib/faturamento/formacaoCbo.js'
 import { hashPassword } from '../../lib/password.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import { createProfissionalFotoSignedUrl } from './documentos.service.js'
@@ -140,6 +141,8 @@ export async function createProfissionalAtivo(payload: CreateAtivoBody) {
     throw new ProfissionaisError('Já existe um profissional com este CPF.', 'DUPLICATE_CPF', 409)
   }
 
+  const cbo = await buildProfissionalCboFields(payload.formation, payload.specialty)
+
   const { data, error } = await supabaseAdmin
     .from('usuarios_profissionais')
     .insert({
@@ -148,12 +151,14 @@ export async function createProfissionalAtivo(payload: CreateAtivoBody) {
       email: payload.email.trim().toLowerCase(),
       senha_hash: senhaHash,
       telefone: payload.phone?.trim() || null,
-      formacao: payload.formation,
+      formacao: cbo.formacao,
       especialidade_id: especialidadeId,
       especialidade: payload.specialty.trim(),
       conselho_sigla: FORMACAO_CONSELHO_SIGLA[payload.formation],
       conselho_numero: payload.councilNumber.replace(/\D/g, '') || payload.councilNumber.trim(),
       conselho_uf: payload.councilUf,
+      cbo_codigo: cbo.cbo_codigo,
+      cbo_descricao: cbo.cbo_descricao,
       endereco: {
         cep: payload.zipCode.replace(/\D/g, ''),
         logradouro: payload.street.trim(),

@@ -17,10 +17,12 @@ export function AgendaWalkInReceptionFlowStepper({
   const fillRatioRef = useRef(0)
 
   const total = walkInReceptionFlowSteps.length
-  const allDone = step === 'success'
+  const allDone = step === 'success' || step === 'mt_waiting_room'
   const stepNumber = allDone ? total : activeIndex + 1
   const currentLabel = allDone
-    ? 'Paciente na fila'
+    ? step === 'mt_waiting_room'
+      ? 'Sala de espera terceirizada'
+      : 'Paciente na fila'
     : walkInReceptionFlowSteps[activeIndex]?.label ?? ''
 
   const targetRatio = allDone ? 1 : (activeIndex + 1) / total

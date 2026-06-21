@@ -29,6 +29,7 @@ import { registerUbtAuthRoutes } from './modules/ubt-auth/routes.js'
 import { registerUbtPacientesRoutes } from './modules/ubt-pacientes/routes.js'
 import { registerUbtAgendaRoutes } from './modules/ubt-agenda/routes.js'
 import { registerUbtTriagemRoutes } from './modules/ubt-triagem/routes.js'
+import { registerUbtRh3Routes } from './modules/ubt-rh3/routes.js'
 import { registerUbtConsultasRoutes } from './modules/ubt-consultas/routes.js'
 import { registerUbtCredenciaisRoutes } from './modules/ubt-credenciais/routes.js'
 import { registerProfissionalAuthRoutes } from './modules/profissional-auth/routes.js'
@@ -55,6 +56,7 @@ import { registerAdminAuditoriaRoutes } from './modules/admin-auditoria/routes.j
 import { registerAdminMonitorRoutes } from './modules/admin-monitor/routes.js'
 import { registerAdminDashboardRoutes } from './modules/admin-dashboard/routes.js'
 import { registerPrefeituraAuditoriaRoutes } from './modules/prefeitura-auditoria/routes.js'
+import { registerPrefeituraFaturamentoRoutes } from './modules/prefeitura-faturamento/routes.js'
 import { registerUbtAuditoriaRoutes } from './modules/ubt-auditoria/routes.js'
 import { registerProfissionalAuditoriaRoutes } from './modules/profissional-auditoria/routes.js'
 import {
@@ -67,6 +69,7 @@ import { registerInternalCronRoutes } from './modules/internal-cron/routes.js'
 import { registerPublicTenantRoutes } from './modules/public-tenant/routes.js'
 import { registerPublicDemoRoutes } from './modules/public-demo/routes.js'
 import { registerIcdReferenceRoutes } from './modules/icd-reference/routes.js'
+import { registerRh3WebhookRoutes } from './modules/rh3-webhook/routes.js'
 import { resolveCorsOrigin } from './lib/corsOrigins.js'
 
 export async function buildApp() {
@@ -164,6 +167,13 @@ export async function buildApp() {
   )
 
   await app.register(
+    async (ubtRh3) => {
+      await registerUbtRh3Routes(ubtRh3)
+    },
+    { prefix: '/api/v1/ubt/rh3' },
+  )
+
+  await app.register(
     async (ubtConsultas) => {
       await registerUbtConsultasRoutes(ubtConsultas)
     },
@@ -239,6 +249,13 @@ export async function buildApp() {
       await registerPrefeituraPacientesRoutes(prefeituraPacientes)
     },
     { prefix: '/api/v1/prefeitura/pacientes' },
+  )
+
+  await app.register(
+    async (prefeituraFaturamento) => {
+      await registerPrefeituraFaturamentoRoutes(prefeituraFaturamento)
+    },
+    { prefix: '/api/v1/prefeitura/faturamento' },
   )
 
   await app.register(
@@ -330,6 +347,13 @@ export async function buildApp() {
       await registerIcdReferenceRoutes(icdReference)
     },
     { prefix: '/api/v1/reference/icd' },
+  )
+
+  await app.register(
+    async (rh3Webhook) => {
+      await registerRh3WebhookRoutes(rh3Webhook)
+    },
+    { prefix: '/api/webhooks' },
   )
 
   await app.register(

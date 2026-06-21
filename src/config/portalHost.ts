@@ -97,7 +97,8 @@ export function syncPortalHostContextFromWindow(): void {
 
 /**
  * Resolve portal dedicado a partir do host + contexto do tenant (API pública).
- * Em host de entidade (gestão): `dedicatedPortal === 'prefeitura'` e rotas sem `/prefeitura`.
+ * Host de entidade (gestão): rotas em `/admin/*` e `/ubt/*` no mesmo subdomínio.
+ * Host UBT whitelabel (kind `ubt`): terminal na raiz (`/login`, `/agenda`, …).
  */
 export function resolveFromTenantContext(
   override?: PortalHostContextInput,
@@ -115,10 +116,24 @@ export function resolveFromTenantContext(
   const input = override ?? activePortalHostContext
 
   if (input?.tenantSlug && input.tenantKind) {
+    if (input.tenantKind === 'platform') {
+      return {
+        dedicatedPortal: mapTenantToDedicatedPortal(input.tenantKind, input.portalKind),
+        tenantSlug: input.tenantSlug,
+        mode: 'platform',
+      }
+    }
+    if (input.tenantKind === 'ubt') {
+      return {
+        dedicatedPortal: 'ubt',
+        tenantSlug: input.tenantSlug,
+        mode: 'tenant',
+      }
+    }
     return {
-      dedicatedPortal: mapTenantToDedicatedPortal(input.tenantKind, input.portalKind),
+      dedicatedPortal: null,
       tenantSlug: input.tenantSlug,
-      mode: input.tenantKind === 'platform' ? 'platform' : 'tenant',
+      mode: 'tenant',
     }
   }
 
@@ -163,9 +178,19 @@ export function isDedicatedPortal(portal: PortalId): boolean {
   return resolveFromTenantContext().dedicatedPortal === portal
 }
 
-/** Prefixo de URL: vazio no host dedicado; `/{portal}` no dev/local multi-portal. */
+/** Entidade gestora no subdomínio do cliente (`saopaulo.localhost`, `{slug}.telefarmed.com.br`). */
+export function isTenantGestaoHost(): boolean {
+  const resolution = resolveFromTenantContext()
+  return resolution.mode === 'tenant' && Boolean(resolution.tenantSlug) && !resolution.dedicatedPortal
+}
+
+/** Prefixo de URL: vazio no host dedicado; `/admin` (gestão) e `/ubt` no tenant; `/{portal}` no dev local. */
 export function portalBasePath(portal: PortalId): string {
   if (isDedicatedPortal(portal)) return ''
+  if (isTenantGestaoHost()) {
+    if (portal === 'prefeitura') return '/admin'
+    if (portal === 'ubt') return '/ubt'
+  }
   return `/${portal}`
 }
 
@@ -185,11 +210,21 @@ export function portalRouteSegment(portal: PortalId, absolutePath: string): stri
   return absolutePath.replace(/^\//, '')
 }
 
-/** Redireciona URLs legadas com prefixo `/prefeitura/...` → `/...` no host dedicado. */
+/** Redireciona URLs legadas (`/prefeitura/...` ou raiz antiga) para o path público do portal. */
 export function legacyPrefixedPath(portal: PortalId, pathname: string): string | null {
-  if (!isDedicatedPortal(portal)) return null
-  const legacyPrefix = `/${portal}`
-  if (!pathname.startsWith(`${legacyPrefix}/`) && pathname !== legacyPrefix) return null
-  const next = pathname.slice(legacyPrefix.length)
-  return next || '/login'
+  if (isDedicatedPortal(portal)) {
+    const legacyPrefix = `/${portal}`
+    if (!pathname.startsWith(`${legacyPrefix}/`) && pathname !== legacyPrefix) return null
+    const next = pathname.slice(legacyPrefix.length)
+    return next || '/login'
+  }
+
+  if (isTenantGestaoHost() && portal === 'prefeitura') {
+    if (pathname.startsWith('/prefeitura/') || pathname === '/prefeitura') {
+      const next = pathname.slice('/prefeitura'.length)
+      return portalPath('prefeitura', next || '/login')
+    }
+  }
+
+  return null
 }

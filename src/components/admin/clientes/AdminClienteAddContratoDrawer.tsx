@@ -16,6 +16,7 @@ import {
 import {
   toggleProfessionInContratoForm,
   setSpecialtiesSelectionForProfession,
+  toggleSpecialtyInContratoForm,
   type ClienteProfessionOption,
 } from './adminClienteContratoCatalogUtils'
 import {
@@ -165,6 +166,8 @@ function createInitialForm(
     aceitaPacientesOutrosMunicipios: false,
     excedentePrecosProfissao: {},
     excedentePrecosEspecialidade: {},
+    origemAtendimentoProfissao: {},
+    origemAtendimentoEspecialidade: {},
   }
 }
 
@@ -303,24 +306,7 @@ export function AdminClienteAddContratoDrawer({
   }
 
   function toggleSpecialty(id: string) {
-    setForm((current) => {
-      const next = new Set(current.specialtyIds)
-      const precosEspecialidade = { ...current.precosEspecialidade }
-      const excedentePrecosEspecialidade = { ...current.excedentePrecosEspecialidade }
-      if (next.has(id)) {
-        next.delete(id)
-        delete precosEspecialidade[id]
-        delete excedentePrecosEspecialidade[id]
-      } else {
-        next.add(id)
-      }
-      return {
-        ...current,
-        specialtyIds: next,
-        precosEspecialidade,
-        excedentePrecosEspecialidade,
-      }
-    })
+    setForm((current) => toggleSpecialtyInContratoForm(current, id))
     setBatchPrecosFeedback(null)
     setBatchExcedenteFeedback(null)
     setStepError(null)
@@ -681,6 +667,8 @@ export function AdminClienteAddContratoDrawer({
                 specialtyIds={form.specialtyIds}
                 precosProfissao={form.precosProfissao}
                 precosEspecialidade={form.precosEspecialidade}
+                origemAtendimentoProfissao={form.origemAtendimentoProfissao}
+                origemAtendimentoEspecialidade={form.origemAtendimentoEspecialidade}
                 onToggleProfession={toggleProfession}
                 onToggleSpecialty={toggleSpecialty}
                 onToggleAllSpecialtiesForProfession={toggleAllSpecialtiesForProfession}
@@ -699,6 +687,24 @@ export function AdminClienteAddContratoDrawer({
                     precosEspecialidade: {
                       ...current.precosEspecialidade,
                       [specialtyId]: maskCurrencyBrl(value),
+                    },
+                  }))
+                }
+                onOrigemProfissaoChange={(professionId, origem) =>
+                  setForm((current) => ({
+                    ...current,
+                    origemAtendimentoProfissao: {
+                      ...current.origemAtendimentoProfissao,
+                      [professionId]: origem,
+                    },
+                  }))
+                }
+                onOrigemEspecialidadeChange={(specialtyId, origem) =>
+                  setForm((current) => ({
+                    ...current,
+                    origemAtendimentoEspecialidade: {
+                      ...current.origemAtendimentoEspecialidade,
+                      [specialtyId]: origem,
                     },
                   }))
                 }

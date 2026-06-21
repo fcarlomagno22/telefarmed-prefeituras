@@ -544,6 +544,8 @@ function buildContratoCommercialRpcPayload(
     | 'permiteUltrapassar'
     | 'aceitaPacientesOutrosMunicipios'
     | 'especialidadesAutorizadas'
+    | 'origemAtendimentoEspecialidades'
+    | 'origemAtendimentoProfissoes'
     | 'precosPorProfissao'
     | 'precosPorEspecialidade'
     | 'excedentePrecosPorProfissao'
@@ -565,6 +567,8 @@ function buildContratoCommercialRpcPayload(
     permiteUltrapassar: input.permiteUltrapassar,
     aceitaPacientesOutrosMunicipios: input.aceitaPacientesOutrosMunicipios ?? false,
     especialidadesAutorizadas: input.especialidadesAutorizadas,
+    origemAtendimentoEspecialidades: input.origemAtendimentoEspecialidades ?? [],
+    origemAtendimentoProfissoes: input.origemAtendimentoProfissoes ?? [],
     precosProfissao: [
       ...input.precosPorProfissao.map((item) => ({
         professionId: item.professionId,

@@ -5,6 +5,7 @@ import {
   resolveFirstAccessiblePrefeituraPath,
 } from '../../config/prefeituraPageAccess'
 import { usePrefeituraAuth } from '../../contexts/PrefeituraAuthContext'
+import { stripPortalPrefix } from '../../utils/sidebarNavPath'
 
 export function PrefeituraPagePermissionGuard() {
   const { user } = usePrefeituraAuth()
@@ -20,8 +21,10 @@ export function PrefeituraPagePermissionGuard() {
   }
 
   const fallback = resolveFirstAccessiblePrefeituraPath(user)
-  if (fallback && fallback !== location.pathname) {
-    return <Navigate to={fallback.replace('/prefeitura/', '')} replace />
+  const normalizedFallback = fallback ? stripPortalPrefix(fallback) : null
+  const normalizedPath = stripPortalPrefix(location.pathname)
+  if (normalizedFallback && normalizedFallback !== normalizedPath) {
+    return <Navigate to={normalizedFallback} replace />
   }
 
   return (
@@ -51,5 +54,5 @@ export function PrefeituraHomeRedirect() {
     )
   }
 
-  return <Navigate to={fallback.replace('/prefeitura/', '')} replace />
+  return <Navigate to={stripPortalPrefix(fallback)} replace />
 }

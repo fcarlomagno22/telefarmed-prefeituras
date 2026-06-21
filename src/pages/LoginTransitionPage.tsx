@@ -3,7 +3,7 @@ import lottie from 'lottie-web'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { brand } from '../config/brand'
-import { getDedicatedPortal } from '../config/portalHost'
+import { getDedicatedPortal, isTenantGestaoHost } from '../config/portalHost'
 import { resolveDefaultAdminHomePath } from '../config/adminPageAccess'
 import { consumeAdminPostLoginRedirect } from '../lib/auth/adminPostLoginRedirect'
 import { resolveDefaultPrefeituraHomePath } from '../config/prefeituraPageAccess'
@@ -32,6 +32,7 @@ function resolvePortal(pathname: string, state: LoginTransitionLocationState | n
   if (state?.portal) return state.portal
   const dedicated = getDedicatedPortal()
   if (dedicated) return dedicated
+  if (isTenantGestaoHost() && pathname.startsWith('/admin')) return 'prefeitura'
   if (pathname.startsWith('/admin')) return 'admin'
   if (pathname.startsWith('/profissional')) return 'profissional'
   if (pathname.startsWith('/prefeitura')) return 'prefeitura'

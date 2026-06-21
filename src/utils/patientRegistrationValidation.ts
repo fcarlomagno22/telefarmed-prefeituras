@@ -1,6 +1,12 @@
 import type { PatientAgeGroup } from '../types/attendance'
-import { cpfDigits } from './cpf'
+import { cpfDigits, isValidCpf } from './cpf'
 import { clearLgpdMaskedRegistrationField } from './lgpdMaskedValue'
+
+/** CNS só é exigido no cadastro quando o paciente não possui CPF válido. */
+export function isPatientCnsRequiredForRegistration(cpf: string, cpfLocked = false): boolean {
+  if (cpfLocked) return false
+  return !isValidCpf(cpf)
+}
 
 /** Espelha a regra do backend: responsável exigido para menor ou quando há dados parciais. */
 export function requiresGuardianValidation(

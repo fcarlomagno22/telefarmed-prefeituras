@@ -11,6 +11,7 @@ const PREFEITURA_PAGE_IDS = [
   'suporte',
   'credenciais',
   'auditoria',
+  'faturamento',
 ] as const
 
 const PERMISSION_ACTIONS = ['visualizar', 'inserir', 'editar', 'excluir'] as const

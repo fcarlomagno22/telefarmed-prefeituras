@@ -160,6 +160,8 @@ export type CreateContratoPayload = {
   excedentePrecosPorProfissao?: AdminClientePrecoProfissao[] | null
   excedentePrecosPorEspecialidade?: AdminClientePrecoEspecialidade[] | null
   especialidadesAutorizadas: string[]
+  origemAtendimentoEspecialidades?: { specialtyId: string; origem: 'mp' | 'mt' }[]
+  origemAtendimentoProfissoes?: { professionId: string; origem: 'mp' | 'mt' }[]
   contatoContrato?: AdminClienteContact
 }
 

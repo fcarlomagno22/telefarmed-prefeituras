@@ -43,7 +43,7 @@ export function AdminClientesMainPanel() {
     loadError,
   } = useAdminClientesPage()
   const { requestPin, pinModal } = useAdminClientesPin()
-  const { specialties } = useAdminClientesClinicoCatalog()
+  const { specialties, professions } = useAdminClientesClinicoCatalog()
   const [cadastroOpen, setCadastroOpen] = useState(false)
   const [cadastroClosing, setCadastroClosing] = useState(false)
   const [successToast, setSuccessToast] = useState<string | null>(null)
@@ -93,7 +93,7 @@ export function AdminClientesMainPanel() {
               const rowWithContrato = await createClienteContrato(
                 token,
                 row.id,
-                buildCreateContratoPayloadFromCadastroForm(form, pin, specialties),
+                buildCreateContratoPayloadFromCadastroForm(form, pin, specialties, professions),
               )
               upsertRow(rowWithContrato)
               await reload()

@@ -6,7 +6,12 @@ import type { PatientRegistration } from '../types/attendance'
 type UseAgendaWalkInReceptionDrawerOptions = {
   selectedDate: Date
   existingAppointments: DayAppointment[]
-  onCompleted: (appointment: DayAppointment, registration: PatientRegistration) => void
+  onCompleted: (
+    appointment: DayAppointment,
+    registration: PatientRegistration,
+    options?: { skipFilaCheckIn?: boolean },
+  ) => void
+  onMtSessionEnded?: () => void
   onRegisterWalkIn: (payload: {
     pacienteId: string
     especialidadeId: string
@@ -20,6 +25,7 @@ export function useAgendaWalkInReceptionDrawer({
   selectedDate,
   existingAppointments,
   onCompleted,
+  onMtSessionEnded,
   onRegisterWalkIn,
 }: UseAgendaWalkInReceptionDrawerOptions) {
   const [open, setOpen] = useState(false)
@@ -50,6 +56,7 @@ export function useAgendaWalkInReceptionDrawer({
       onClose={requestClose}
       onTransitionEnd={handleTransitionEnd}
       onCompleted={onCompleted}
+      onMtSessionEnded={onMtSessionEnded}
       onRegisterWalkIn={onRegisterWalkIn}
     />
   )

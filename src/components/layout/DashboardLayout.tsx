@@ -1,20 +1,20 @@
 import { useMemo, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { brand } from '../../config/brand'
-import { getDedicatedPortal } from '../../config/portalHost'
-import { filterUbtSidebarItems } from '../../config/ubtPageAccess'
+import { getDedicatedPortal, isTenantGestaoHost } from '../../config/portalHost'
+import { filterUbtSidebarItems, resolveUbtPageIdFromPath } from '../../config/ubtPageAccess'
 import { useOptionalUbtAuth } from '../../contexts/UbtAuthContext'
 import { useUbtUnreadInbox } from '../../contexts/UbtNotificacoesContext'
 import { useUbtSuporteAwaitingCount } from '../../contexts/UbtSuporteContext'
 import { useAuditNavigation } from '../../hooks/useAuditNavigation'
 import { useEntidadeBrandTheme } from '../../hooks/useEntidadeBrandTheme'
-import { defaultSidebarItems } from '../../config/sidebarNav'
+import { useOptionalTenantHost } from '../../contexts/TenantHostContext'
+import { isPlatformUbtWithoutTenantSlug } from '../../lib/entidadeBranding/platformUbtBranding'
+import { getDefaultSidebarItems } from '../../config/sidebarNav'
 import { ubtRoutes } from '../../config/ubtRoutes'
 import { OperatorFooter, type OperatorFooterProps } from './OperatorFooter'
 import { Sidebar } from './Sidebar'
 import type { SidebarNavItemProps, SidebarNavSection } from './SidebarNavItem'
-
-const UBT_NOTIFICACOES_PATH = ubtRoutes.notificacoes
 
 type DashboardLayoutProps = {
   children: ReactNode
@@ -40,18 +40,27 @@ export function DashboardLayout({
   const location = useLocation()
   const navigate = useNavigate()
   const ubtAuth = useOptionalUbtAuth()
+  const tenantHost = useOptionalTenantHost()
   const hasUbtUnreadInbox = useUbtUnreadInbox()
   const ubtSuporteAwaitingCount = useUbtSuporteAwaitingCount()
   const dedicatedPortal = getDedicatedPortal()
   const isUbtPortal =
     dedicatedPortal === 'ubt' ||
-    (location.pathname.startsWith('/ubt/') && !location.pathname.startsWith('/ubt/login'))
-  const isClientPortal =
+    location.pathname.startsWith('/ubt/') ||
+    location.pathname === '/ubt'
+  const isPrefeituraPortal =
     dedicatedPortal === 'prefeitura' ||
-    dedicatedPortal === 'ubt' ||
     location.pathname.startsWith('/prefeitura/') ||
+    (isTenantGestaoHost() && location.pathname.startsWith('/admin/')) ||
+    (isTenantGestaoHost() && location.pathname === '/admin')
+  const isClientPortal =
+    isPrefeituraPortal ||
+    dedicatedPortal === 'ubt' ||
     isUbtPortal
 
+  const isTelefarmedSelfUbt =
+    isUbtPortal && isPlatformUbtWithoutTenantSlug(tenantHost?.slug)
+  const showPoweredByFooter = isClientPortal && !isTelefarmedSelfUbt
   useEntidadeBrandTheme()
 
   useAuditNavigation({
@@ -82,7 +91,7 @@ export function DashboardLayout({
   const resolvedLogoutPath = logoutPath ?? (isUbtPortal ? ubtRoutes.login : undefined)
 
   const resolvedSidebarItems = useMemo(() => {
-    const base = sidebarItems ?? defaultSidebarItems
+    const base = sidebarItems ?? getDefaultSidebarItems()
     let items = sidebarItems ? base : base
 
     if (!sidebarItems && isUbtPortal && ubtAuth?.user) {
@@ -92,10 +101,11 @@ export function DashboardLayout({
     if (sidebarItems) return items
 
     return items.map((item) => {
-      if (item.to === UBT_NOTIFICACOES_PATH) {
+      const pageId = resolveUbtPageIdFromPath(item.to)
+      if (pageId === 'notificacoes') {
         return { ...item, showAlertDot: hasUbtUnreadInbox }
       }
-      if (item.to === ubtRoutes.suporte) {
+      if (pageId === 'suporte') {
         return { ...item, badgeCount: ubtSuporteAwaitingCount }
       }
       return item
@@ -120,7 +130,7 @@ export function DashboardLayout({
           </main>
           <OperatorFooter
             {...resolvedFooter}
-            trailing={isClientPortal ? 'powered-by' : 'active-session'}
+            trailing={showPoweredByFooter ? 'powered-by' : 'active-session'}
           />
         </div>
       </div>

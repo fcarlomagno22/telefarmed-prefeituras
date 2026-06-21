@@ -143,7 +143,7 @@ export function WalkInDoctorTimeStep({
         <AttendanceStepFooter
           onBack={onBack}
           onContinue={onContinue}
-          continueLabel="Continuar para CPF"
+          continueLabel="Continuar"
           continueReady={canContinue}
           onContinueBlocked={() => setShowHints(true)}
         />

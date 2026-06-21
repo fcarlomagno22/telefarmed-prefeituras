@@ -2,6 +2,7 @@ import { supabaseAdmin } from '../../db/supabase.js'
 import { logAtendimentoConsultaEventoSafe } from '../../lib/auditoria/atendimento-events.js'
 import { tryAutoClosePlantaoForProfissional } from '../profissional-agenda/auto-close-plantao.service.js'
 import { ensurePosConsultaPlanoForConsulta } from '../pos-consulta/plano.service.js'
+import { ensureConsultaRegistroSus } from '../../lib/consultas/registroSus.service.js'
 import { ProfissionalAtendimentosError } from './errors.js'
 import {
   assertConsultaEmAndamento,
@@ -88,6 +89,7 @@ export async function finalizarProfissionalAtendimento(
 
   if (!body.interrompido) {
     await ensurePosConsultaPlanoForConsulta(consultaId)
+    await ensureConsultaRegistroSus(consultaId)
   }
 
   await tryAutoClosePlantaoForProfissional(profissionalId)

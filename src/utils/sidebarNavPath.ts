@@ -14,11 +14,18 @@ function pathnameUsesLegacyPortalPrefix(pathname: string): boolean {
   )
 }
 
-/** Corrige rotas congeladas no import (`/prefeitura/...`) para hosts dedicados (`/...`). */
+/** Corrige rotas congeladas no import para o path público do host atual. */
 export function resolveSidebarNavTo(
   to: string,
   pathname = typeof window !== 'undefined' ? window.location.pathname : '',
 ): string {
+  if (to.startsWith('/prefeitura/') || to === '/prefeitura') {
+    const stripped = stripPortalPrefix(to)
+    if (pathname.startsWith('/admin/') || pathname === '/admin') {
+      return stripped === to ? to : `/admin${stripped}`
+    }
+  }
+
   if (!pathnameUsesLegacyPortalPrefix(pathname)) {
     const stripped = stripPortalPrefix(to)
     if (stripped !== to) return stripped

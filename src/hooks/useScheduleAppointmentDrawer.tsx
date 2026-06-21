@@ -82,9 +82,16 @@ export function useScheduleAppointmentDrawer(options: UseScheduleAppointmentDraw
         especialidadeId: string
         selectedDate: Date
         selectedTime: string
+        origemAtendimento?: 'mp' | 'mt'
+        rh3Booked?: boolean
       },
     ) => {
       try {
+        if (meta.origemAtendimento === 'mt' && meta.rh3Booked) {
+          setToast({ message: summary })
+          return
+        }
+
         await onScheduled?.({
           pacienteId: meta.pacienteId,
           profissionalId: meta.profissionalId,

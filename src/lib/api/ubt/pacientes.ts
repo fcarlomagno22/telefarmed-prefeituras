@@ -3,7 +3,7 @@ import type { networkUsersSummary } from '../../../data/networkUsersMock'
 import type { PatientLookupContext, PatientLookupResult } from '../../../types/patientLookup'
 import type { PatientRegistration } from '../../../types/attendance'
 import { normalizePatientRegistration } from '../../../types/attendance'
-import { maskCep, maskCpf } from '../../../utils/masks'
+import { maskCep, maskCpf, maskPhone } from '../../../utils/masks'
 import { maskCns } from '../../../utils/cns'
 import type {
   ListUbtPacientesParams,
@@ -73,12 +73,14 @@ function normalizeLookupPatient(patient: PatientRegistration): PatientRegistrati
     cpf: patient.cpf.includes('.') ? patient.cpf : maskCpf(patient.cpf),
     cns: patient.cns ? maskCns(patient.cns) : '',
     cnsPendente: patient.cnsPendente ?? false,
+    phone: patient.phone ? maskPhone(patient.phone) : '',
     guardianCpf: patient.guardianCpf ? maskCpf(patient.guardianCpf) : '',
+    guardianPhone: patient.guardianPhone ? maskPhone(patient.guardianPhone) : '',
     zipCode: patient.zipCode ? maskCep(patient.zipCode) : '',
     contacts: (patient.contacts ?? []).map((contact, index) => ({
       id: contact.id ?? `contact-${index + 1}`,
       name: contact.name ?? '',
-      phone: contact.phone ?? '',
+      phone: contact.phone ? maskPhone(contact.phone) : '',
       relationship: contact.relationship ?? '',
     })),
   })

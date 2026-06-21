@@ -7,6 +7,7 @@ import {
   requiresGuardianValidation,
   resolvedGuardianCpf,
   resolvedGuardianPhone,
+  isPatientCnsRequiredForRegistration,
 } from '../../utils/patientRegistrationValidation'
 
 export type RegistrationFieldKey =
@@ -43,6 +44,13 @@ const REGISTRATION_FIELD_MESSAGES: Record<RegistrationFieldKey, string> = {
   cns: 'Informe o CNS/Cartão SUS ou marque como pendência.',
 }
 
+function isCnsFieldInvalid(data: PatientRegistration, cpfLocked: boolean): boolean {
+  if (data.cnsPendente) return false
+  const cnsValue = data.cns.trim()
+  if (cnsValue && !isValidCns(data.cns)) return true
+  return isPatientCnsRequiredForRegistration(data.cpf, cpfLocked) && !isValidCns(data.cns)
+}
+
 export function getRegistrationMissingFields(
   data: PatientRegistration,
   ageGroup: PatientAgeGroup,
@@ -61,9 +69,7 @@ export function getRegistrationMissingFields(
   }
   if (!clearLgpdMaskedRegistrationField(data.email).trim()) missing.push('email')
 
-  if (data.cnsPendente) {
-    // pendência explícita — não exige número
-  } else if (!isValidCns(data.cns)) {
+  if (isCnsFieldInvalid(data, cpfLocked)) {
     missing.push('cns')
   }
 
@@ -101,10 +107,14 @@ export function getRegistrationFieldErrorMessage(
       : 'CPF do responsável inválido.'
   }
 
-  if (field === 'cns' && !data.cnsPendente) {
-    return cnsDigits(data.cns).length < 15
-      ? 'Informe um CNS/Cartão SUS completo com 15 dígitos.'
-      : 'CNS/Cartão SUS inválido. Verifique os números digitados.'
+  if (field === 'cns' && isCnsFieldInvalid(data, cpfLocked)) {
+    if (data.cns.trim() && cnsDigits(data.cns).length < 15) {
+      return 'Informe um CNS/Cartão SUS completo com 15 dígitos.'
+    }
+    if (data.cns.trim()) {
+      return 'CNS/Cartão SUS inválido. Verifique os números digitados.'
+    }
+    return REGISTRATION_FIELD_MESSAGES.cns
   }
 
   return REGISTRATION_FIELD_MESSAGES[field]

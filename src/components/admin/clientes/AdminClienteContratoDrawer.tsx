@@ -20,6 +20,7 @@ type AdminClienteContratoDrawerProps = {
   closing: boolean
   cliente: AdminClienteRow | null
   contrato: AdminClienteContrato | null
+  initialEditing?: boolean
   onSaveContrato?: (contratoId: string, form: AddContratoFormState) => Promise<void>
   onClose: () => void
   onTransitionEnd: () => void
@@ -42,6 +43,7 @@ export function AdminClienteContratoDrawer({
   closing,
   cliente,
   contrato,
+  initialEditing = false,
   onSaveContrato,
   onClose,
   onTransitionEnd,
@@ -93,8 +95,8 @@ export function AdminClienteContratoDrawer({
 
   useEffect(() => {
     if (!open) return
-    setEditing(false)
-  }, [open, contrato?.id])
+    setEditing(initialEditing && Boolean(onSaveContrato))
+  }, [open, contrato?.id, initialEditing, onSaveContrato])
 
   useEffect(() => {
     if (!closing) return

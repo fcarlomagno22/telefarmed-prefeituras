@@ -139,7 +139,7 @@ export function PatientGuardianFieldsSection({
           <input
             type="tel"
             inputMode="tel"
-            value={data.guardianPhone}
+            value={maskPhone(data.guardianPhone)}
             onChange={(e) => patch('guardianPhone', maskPhone(e.target.value))}
             placeholder="(00) 00000-0000"
             maxLength={15}
