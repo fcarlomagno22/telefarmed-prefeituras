@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { consultarCrmPorNome, isConsultarCrmConfigured } from '../../lib/consultarCrm/index.js'
 import { buildProfissionalCboFields, normalizeFormacaoForCbo, resolveFormacaoCboSync } from '../../lib/faturamento/formacaoCbo.js'
 import { UbtRh3Error } from './errors.js'
 
@@ -23,6 +24,49 @@ function pickDefined<T extends Record<string, unknown>>(payload: T): Partial<T> 
   return Object.fromEntries(
     Object.entries(payload).filter(([, value]) => value !== undefined),
   ) as Partial<T>
+}
+
+function hasProfissionalMtCrmCached(row: {
+  conselho_numero?: string | null
+  conselho_uf?: string | null
+}): boolean {
+  return Boolean(row.conselho_numero?.trim() && row.conselho_uf?.trim())
+}
+
+async function ensureProfissionalMtCrmFromConsultar(
+  profissionalMtId: string,
+  nome: string,
+): Promise<void> {
+  const { data, error } = await supabaseAdmin
+    .from('profissionais_mt')
+    .select('conselho_numero, conselho_uf')
+    .eq('id', profissionalMtId)
+    .maybeSingle()
+
+  if (error) throw error
+  if (hasProfissionalMtCrmCached(data ?? {})) return
+  if (!isConsultarCrmConfigured()) return
+
+  try {
+    const resolved = await consultarCrmPorNome(nome)
+    if (!resolved) return
+
+    const { error: updateError } = await supabaseAdmin
+      .from('profissionais_mt')
+      .update({
+        conselho_sigla: resolved.conselhoSigla,
+        conselho_numero: resolved.conselhoNumero,
+        conselho_uf: resolved.conselhoUf,
+      })
+      .eq('id', profissionalMtId)
+
+    if (updateError) throw updateError
+  } catch (lookupError) {
+    console.warn(
+      '[profissionais_mt] Falha ao consultar CRM via Consultar.io:',
+      lookupError instanceof Error ? lookupError.message : lookupError,
+    )
+  }
 }
 
 function buildSusPatch(input: UpsertProfissionalMtInput): Record<string, unknown> {
@@ -57,7 +101,7 @@ export async function upsertProfissionalMt(input: UpsertProfissionalMtInput): Pr
 
   const { data: existing, error: existingError } = await supabaseAdmin
     .from('profissionais_mt')
-    .select('id')
+    .select('id, conselho_numero, conselho_uf')
     .eq('nome', normalizedNome)
     .eq('especialidade', normalizedEspecialidade)
     .maybeSingle()
@@ -74,6 +118,7 @@ export async function upsertProfissionalMt(input: UpsertProfissionalMtInput): Pr
       if (updateError) throw updateError
     }
 
+    await ensureProfissionalMtCrmFromConsultar(String(existing.id), normalizedNome)
     return String(existing.id)
   }
 
@@ -89,7 +134,9 @@ export async function upsertProfissionalMt(input: UpsertProfissionalMtInput): Pr
     .single()
 
   if (!insertError && inserted?.id) {
-    return String(inserted.id)
+    const profissionalMtId = String(inserted.id)
+    await ensureProfissionalMtCrmFromConsultar(profissionalMtId, normalizedNome)
+    return profissionalMtId
   }
 
   if (insertError && insertError.code !== '23505') {
@@ -116,7 +163,9 @@ export async function upsertProfissionalMt(input: UpsertProfissionalMtInput): Pr
     await supabaseAdmin.from('profissionais_mt').update(susPatch).eq('id', raced.id)
   }
 
-  return String(raced.id)
+  const profissionalMtId = String(raced.id)
+  await ensureProfissionalMtCrmFromConsultar(profissionalMtId, normalizedNome)
+  return profissionalMtId
 }
 
 export async function syncProfissionalMtFromUsuarioProfissional(

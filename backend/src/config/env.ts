@@ -68,6 +68,9 @@ const envSchema = z.object({
   RH3_CLIENT_SECRET: z.string().trim().min(1).optional(),
   /** Segredo opcional para validar POST /api/webhooks/consultas-status. */
   RH3_WEBHOOK_SECRET: z.string().trim().min(8).optional(),
+  /** Consulta CRM de profissionais terceirizados (Consultar.io). */
+  MT_CRM_API_BASE_URL: z.string().url().optional(),
+  MT_CRM_API_TOKEN: z.string().trim().min(1).optional(),
 })
 
 export type Env = z.infer<typeof envSchema> & {
@@ -101,6 +104,8 @@ const parsedEnv = envSchema.parse({
   RH3_CLIENT_ID: envValueFirst('RH3_CLIENT_ID', 'DOC24_CLIENT_ID'),
   RH3_CLIENT_SECRET: envValueFirst('RH3_CLIENT_SECRET', 'DOC24_CLIENT_SECRET'),
   RH3_WEBHOOK_SECRET: envValueFirst('RH3_WEBHOOK_SECRET', 'DOC24_WEBHOOK_SECRET'),
+  MT_CRM_API_BASE_URL: envValue('MT_CRM_API_BASE_URL'),
+  MT_CRM_API_TOKEN: envValue('MT_CRM_API_TOKEN'),
 })
 
 export const env: Env = {
