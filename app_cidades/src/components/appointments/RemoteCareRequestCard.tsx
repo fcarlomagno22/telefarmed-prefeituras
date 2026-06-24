@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Linking, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../theme/colors'
 import type { RemoteCareRequest } from '../../types/remoteCareRequest'
+import { getRemoteCareUrgencyLabel } from '../../utils/remoteCareUrgency'
 import { PrimaryButton } from '../PrimaryButton'
 
 type RemoteCareRequestCardProps = {
@@ -79,7 +80,7 @@ export function RemoteCareRequestCard({ request }: RemoteCareRequestCardProps) {
               <Ionicons name="phone-portrait-outline" size={16} color={colors.primaryLight} />
               <Text style={styles.modeLabel}>Consulta online</Text>
             </View>
-            <Text style={styles.title}>Atendimento pelo celular</Text>
+            <Text style={styles.title}>{request.specialtyName}</Text>
           </View>
 
           <View
@@ -93,6 +94,13 @@ export function RemoteCareRequestCard({ request }: RemoteCareRequestCardProps) {
           >
             <Text style={[styles.statusText, { color: statusMeta.text }]}>{statusMeta.label}</Text>
           </View>
+        </View>
+
+        <View style={styles.metaRow}>
+          <Ionicons name="speedometer-outline" size={14} color={colors.textSubtle} />
+          <Text style={styles.metaText}>
+            Urgência {getRemoteCareUrgencyLabel(request.urgencyLevel).toLowerCase()}
+          </Text>
         </View>
 
         <Text style={styles.reason} numberOfLines={2}>

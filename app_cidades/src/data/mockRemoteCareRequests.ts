@@ -1,9 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import type { RemoteCareRequest } from '../types/remoteCareRequest'
+import type { RemoteCareRequest, RemoteCareUrgencyLevel } from '../types/remoteCareRequest'
 import { generateAppointmentProtocol } from '../utils/myAppointments'
 
 const STORAGE_KEY = '@telefarmed/remote-care-requests'
 const MOCK_DELAY_MS = 320
+
+export type CreateRemoteCareRequestPayload = {
+  specialtyId: string
+  specialtyName: string
+  urgencyLevel: RemoteCareUrgencyLevel
+  reason: string
+}
 
 function delay(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms))
@@ -34,6 +41,9 @@ export function createSeedRemoteCareRequests(patientCpf: string): RemoteCareRequ
       1,
       {
         protocol: 'TF-2026-88421',
+        specialtyId: '4',
+        specialtyName: 'Clínica Geral',
+        urgencyLevel: 'moderate',
         reason: 'Estou acamado(a) ou com mobilidade muito reduzida',
         status: 'under_review',
       },
@@ -44,6 +54,9 @@ export function createSeedRemoteCareRequests(patientCpf: string): RemoteCareRequ
       2,
       {
         protocol: 'TF-2026-77109',
+        specialtyId: '4',
+        specialtyName: 'Clínica Geral',
+        urgencyLevel: 'high',
         reason: 'Uso cadeira de rodas e não consigo me deslocar até o posto',
         status: 'approved',
         reviewedAt: new Date(now - 1 * 24 * 60 * 60 * 1000).toISOString(),
@@ -53,6 +66,15 @@ export function createSeedRemoteCareRequests(patientCpf: string): RemoteCareRequ
       fiveDaysAgo,
     ),
   ]
+}
+
+function normalizeRemoteCareRequest(request: RemoteCareRequest): RemoteCareRequest {
+  return {
+    ...request,
+    specialtyId: request.specialtyId ?? '4',
+    specialtyName: request.specialtyName ?? 'Clínica Geral',
+    urgencyLevel: request.urgencyLevel ?? 'moderate',
+  }
 }
 
 function isSeedRequest(request: RemoteCareRequest, patientCpf: string) {
@@ -90,7 +112,9 @@ export async function fetchRemoteCareRequests(patientCpf: string): Promise<Remot
     seedById.set(storedSeed.id, storedSeed)
   }
 
-  const merged = [...userRequests, ...Array.from(seedById.values())].sort(
+  const merged = [...userRequests, ...Array.from(seedById.values())]
+    .map(normalizeRemoteCareRequest)
+    .sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   )
 
@@ -100,7 +124,7 @@ export async function fetchRemoteCareRequests(patientCpf: string): Promise<Remot
 
 export async function createRemoteCareRequest(
   patientCpf: string,
-  reason: string,
+  payload: CreateRemoteCareRequestPayload,
 ): Promise<RemoteCareRequest> {
   await delay(MOCK_DELAY_MS)
 
@@ -108,7 +132,10 @@ export async function createRemoteCareRequest(
     id: `remote-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     patientCpf,
     protocol: generateAppointmentProtocol(),
-    reason: reason.trim(),
+    specialtyId: payload.specialtyId,
+    specialtyName: payload.specialtyName,
+    urgencyLevel: payload.urgencyLevel,
+    reason: payload.reason.trim(),
     status: 'under_review',
     createdAt: new Date().toISOString(),
   }

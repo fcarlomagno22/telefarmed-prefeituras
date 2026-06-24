@@ -17,6 +17,8 @@ import { ScheduleStepTitle } from './ScheduleStepTitle'
 type ScheduleRemoteCareRequestStepProps = {
   onBack?: () => void
   isSubmitting?: boolean
+  specialtyName?: string
+  urgencyLabel?: string
   onSubmit: (payload: { reason: string; evidenceUri: string }) => void
 }
 
@@ -30,6 +32,8 @@ const REASON_OPTIONS = [
 export function ScheduleRemoteCareRequestStep({
   onBack,
   isSubmitting = false,
+  specialtyName,
+  urgencyLabel,
   onSubmit,
 }: ScheduleRemoteCareRequestStepProps) {
   const [selectedReason, setSelectedReason] = useState('')
@@ -86,6 +90,23 @@ export function ScheduleRemoteCareRequestStep({
   return (
     <View style={styles.wrap}>
       <ScheduleStepTitle title="Solicitar atendimento pelo celular" onBack={onBack} />
+
+      {specialtyName || urgencyLabel ? (
+        <View style={styles.summaryRow}>
+          {specialtyName ? (
+            <View style={styles.summaryChip}>
+              <Ionicons name="medkit-outline" size={14} color={colors.primaryLight} />
+              <Text style={styles.summaryChipText}>{specialtyName}</Text>
+            </View>
+          ) : null}
+          {urgencyLabel ? (
+            <View style={styles.summaryChip}>
+              <Ionicons name="speedometer-outline" size={14} color={colors.primaryLight} />
+              <Text style={styles.summaryChipText}>Urgência {urgencyLabel.toLowerCase()}</Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
 
       <Text style={styles.subtleNote}>
         Esse benefício é destinado a quem está acamado(a) ou com dificuldade real de locomoção. A
@@ -182,6 +203,27 @@ export function ScheduleRemoteCareRequestStep({
 const styles = StyleSheet.create({
   wrap: {
     gap: 14,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  summaryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255, 107, 0, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 133, 51, 0.22)',
+  },
+  summaryChipText: {
+    color: colors.primaryLight,
+    fontSize: 12,
+    fontWeight: '700',
   },
   subtleNote: {
     color: colors.textSubtle,

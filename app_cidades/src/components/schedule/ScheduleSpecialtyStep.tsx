@@ -16,9 +16,19 @@ type ScheduleSpecialtyStepProps = {
   selectedId: string
   onSelect: (id: string, name: string) => void
   onBack?: () => void
+  title?: string
+  description?: string
+  showAvailability?: boolean
 }
 
-export function ScheduleSpecialtyStep({ selectedId, onSelect, onBack }: ScheduleSpecialtyStepProps) {
+export function ScheduleSpecialtyStep({
+  selectedId,
+  onSelect,
+  onBack,
+  title = 'Escolha a especialidade',
+  description = 'Selecione a área médica do seu contrato. Depois você define data, profissional e horário.',
+  showAvailability = true,
+}: ScheduleSpecialtyStepProps) {
   const [search, setSearch] = useState('')
   const [specialties, setSpecialties] = useState<ScheduleSpecialty[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -64,10 +74,8 @@ export function ScheduleSpecialtyStep({ selectedId, onSelect, onBack }: Schedule
 
   return (
     <View style={styles.wrap}>
-      <ScheduleStepTitle title="Escolha a especialidade" onBack={onBack} />
-      <Text style={styles.description}>
-        Selecione a área médica do seu contrato. Depois você define data, profissional e horário.
-      </Text>
+      <ScheduleStepTitle title={title} onBack={onBack} />
+      <Text style={styles.description}>{description}</Text>
 
       <View style={styles.searchWrap}>
         <Ionicons name="search" size={18} color={colors.textSubtle} style={styles.searchIcon} />
@@ -111,9 +119,11 @@ export function ScheduleSpecialtyStep({ selectedId, onSelect, onBack }: Schedule
                     {item.name}
                   </Text>
                   <Text style={[styles.cardMeta, isSelected && styles.cardMetaSelected]}>
-                    {hasSlots
-                      ? `${item.availableSlots} vagas nos próximos 30 dias`
-                      : 'Sem vagas no período'}
+                    {showAvailability
+                      ? hasSlots
+                        ? `${item.availableSlots} vagas nos próximos 30 dias`
+                        : 'Sem vagas no período'
+                      : 'Consulta online pelo celular'}
                   </Text>
                 </View>
                 <ScheduleCardCheck selected={isSelected} />

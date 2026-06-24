@@ -19,6 +19,7 @@ import { ScheduleDoctorStep } from '../components/schedule/ScheduleDoctorStep'
 import { ScheduleModeStep } from '../components/schedule/ScheduleModeStep'
 import { ScheduleRemoteCareRequestStep } from '../components/schedule/ScheduleRemoteCareRequestStep'
 import { ScheduleRemoteCareSuccessStep } from '../components/schedule/ScheduleRemoteCareSuccessStep'
+import { ScheduleRemoteCareUrgencyStep } from '../components/schedule/ScheduleRemoteCareUrgencyStep'
 import { ScheduleSpecialtyStep } from '../components/schedule/ScheduleSpecialtyStep'
 import { ScheduleSuccessStep } from '../components/schedule/ScheduleSuccessStep'
 import { ScheduleTimeStep } from '../components/schedule/ScheduleTimeStep'
@@ -41,8 +42,10 @@ import {
   ScheduleCareMode,
   ScheduleViewMode,
 } from '../types/scheduleAppointment'
+import type { RemoteCareUrgencyLevel } from '../types/remoteCareRequest'
 import { playSuccessSound } from '../utils/appSounds'
 import { submitRemoteCareRequest } from '../utils/remoteCareRequest'
+import { getRemoteCareUrgencyLabel } from '../utils/remoteCareUrgency'
 import {
   getScheduleStartDate,
   SCHEDULE_DAY_COUNT,
@@ -73,6 +76,7 @@ export function ScheduleAppointmentScreen() {
   const [selectedDoctorName, setSelectedDoctorName] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [remoteUrgencyLevel, setRemoteUrgencyLevel] = useState<RemoteCareUrgencyLevel | ''>('')
   const [isRemoteSubmitting, setIsRemoteSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [remoteSubmitError, setRemoteSubmitError] = useState<string | null>(null)
@@ -127,6 +131,13 @@ export function ScheduleAppointmentScreen() {
     setSelectedTime('')
   }
 
+  function resetRemoteCareState() {
+    setSpecialtyId('')
+    setSpecialtyName('')
+    setRemoteUrgencyLevel('')
+    setRemoteSubmitError(null)
+  }
+
   function handleBack() {
     if (step === 'success' || step === 'remote_success') {
       navigateTo('home')
@@ -135,6 +146,17 @@ export function ScheduleAppointmentScreen() {
 
     if (step === 'remote_request') {
       setRemoteSubmitError(null)
+      setStep('remote_urgency')
+      return
+    }
+
+    if (step === 'remote_urgency') {
+      setStep('remote_specialty')
+      return
+    }
+
+    if (step === 'remote_specialty') {
+      resetRemoteCareState()
       setStep('care_mode')
       return
     }
@@ -192,6 +214,17 @@ export function ScheduleAppointmentScreen() {
 
     if (step === 'remote_request') {
       setRemoteSubmitError(null)
+      setStep('remote_urgency')
+      return true
+    }
+
+    if (step === 'remote_urgency') {
+      setStep('remote_specialty')
+      return true
+    }
+
+    if (step === 'remote_specialty') {
+      resetRemoteCareState()
       setStep('care_mode')
       return true
     }
@@ -254,19 +287,32 @@ export function ScheduleAppointmentScreen() {
     requireAuth('quick:schedule', () => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
       setCareMode(mode)
-      setRemoteSubmitError(null)
+      resetRemoteCareState()
 
       if (mode === 'in_person') {
         setStep('specialty')
         return
       }
 
-      setStep('remote_request')
+      setStep('remote_specialty')
     })
   }
 
+  function handleRemoteSpecialtySelect(id: string, name: string) {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    setSpecialtyId(id)
+    setSpecialtyName(name)
+    setRemoteUrgencyLevel('')
+    setStep('remote_urgency')
+  }
+
+  function handleRemoteUrgencySelect(level: RemoteCareUrgencyLevel) {
+    setRemoteUrgencyLevel(level)
+    setStep('remote_request')
+  }
+
   async function handleRemoteCareSubmit(payload: { reason: string; evidenceUri: string }) {
-    if (!user || isRemoteSubmitting) return
+    if (!user || isRemoteSubmitting || !specialtyId || !specialtyName || !remoteUrgencyLevel) return
 
     setIsRemoteSubmitting(true)
     setRemoteSubmitError(null)
@@ -275,6 +321,9 @@ export function ScheduleAppointmentScreen() {
       await submitRemoteCareRequest({
         reason: payload.reason,
         evidenceUri: payload.evidenceUri,
+        specialtyId,
+        specialtyName,
+        urgencyLevel: remoteUrgencyLevel,
         patientCpf: user.cpf,
         patientName: user.name,
         patientPhone: user.phone,
@@ -481,7 +530,7 @@ export function ScheduleAppointmentScreen() {
             <Text style={styles.headerTitle}>Agendar consulta</Text>
             <Text style={styles.headerSubtitle}>
               {careMode === 'remote'
-                ? 'Modalidade · Solicitação · Resposta'
+                ? 'Modalidade · Especialidade · Urgência · Solicitação'
                 : 'Modalidade · Especialidade · Unidade · Agendamento · Confirmação'}
             </Text>
           </View>
@@ -506,11 +555,35 @@ export function ScheduleAppointmentScreen() {
             />
           ) : null}
 
+          {step === 'remote_specialty' ? (
+            <ScheduleSpecialtyStep
+              selectedId={specialtyId}
+              onSelect={handleRemoteSpecialtySelect}
+              onBack={handleBack}
+              title="Qual especialidade você precisa?"
+              description="Escolha a área médica da sua consulta online. A equipe vai analisar se há profissional disponível para o seu caso."
+              showAvailability={false}
+            />
+          ) : null}
+
+          {step === 'remote_urgency' ? (
+            <ScheduleRemoteCareUrgencyStep
+              selectedLevel={remoteUrgencyLevel}
+              specialtyName={specialtyName}
+              onSelect={handleRemoteUrgencySelect}
+              onBack={handleBack}
+            />
+          ) : null}
+
           {step === 'remote_request' ? (
             <>
               <ScheduleRemoteCareRequestStep
                 onBack={handleBack}
                 isSubmitting={isRemoteSubmitting}
+                specialtyName={specialtyName}
+                urgencyLabel={
+                  remoteUrgencyLevel ? getRemoteCareUrgencyLabel(remoteUrgencyLevel) : undefined
+                }
                 onSubmit={(payload) => void handleRemoteCareSubmit(payload)}
               />
               {remoteSubmitError ? <Text style={styles.errorText}>{remoteSubmitError}</Text> : null}
