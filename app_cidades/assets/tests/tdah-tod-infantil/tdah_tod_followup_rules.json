@@ -1,0 +1,637 @@
+{
+  "metadata": {
+    "module": "tdah_tod_infantil",
+    "file": "tdah_tod_followup_rules.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "depends_on": [
+      "tdah_tod_questions.json",
+      "tdah_tod_scoring_rules.json",
+      "tdah_tod_cutoffs.json",
+      "tdah_tod_age_rules.json",
+      "tdah_tod_informants.json",
+      "tdah_tod_functional_impairment.json",
+      "tdah_tod_red_flags.json",
+      "tdah_tod_differential_screening.json",
+      "tdah_tod_referral_rules.json",
+      "tdah_tod_result_messages.json"
+    ],
+    "clinical_scope": "Regras de reavaliação e acompanhamento longitudinal para rastreio SNAP-IV 26 de sinais compatíveis com TDAH/TOD.",
+    "diagnostic_disclaimer": "Acompanhamento por app não fecha diagnóstico, não substitui consulta e não deve atrasar atendimento quando houver risco, prejuízo importante ou piora.",
+    "principle": "Acompanhar evolução por sintomas, prejuízo funcional, contexto escolar/familiar, red flags, diferenciais e resposta às orientações/encaminhamentos."
+  },
+  "followup_objectives": [
+    {
+      "id": "monitorar_evolucao_sintomas",
+      "label": "Monitorar evolução dos sinais",
+      "description": "Reaplicar SNAP-IV 26 ou bloco curto para comparar desatenção, hiperatividade/impulsividade e oposição/desafio ao longo do tempo."
+    },
+    {
+      "id": "monitorar_prejuizo_funcional",
+      "label": "Monitorar prejuízo funcional",
+      "description": "Verificar impacto em escola, rotina familiar, relações, segurança e autocuidado."
+    },
+    {
+      "id": "confirmar_multiplos_ambientes",
+      "label": "Confirmar casa e escola",
+      "description": "Coletar dados de responsável e professor sempre que possível."
+    },
+    {
+      "id": "acompanhar_diferenciais",
+      "label": "Acompanhar diferenciais",
+      "description": "Revisar sono, ansiedade, humor, trauma, bullying, visão, audição, aprendizagem, linguagem, neurodesenvolvimento e medicações."
+    },
+    {
+      "id": "garantir_segurança",
+      "label": "Garantir segurança",
+      "description": "Reaplicar red flags sempre que houver piora, crise, comportamento de risco ou alerta novo."
+    }
+  ],
+  "followup_plan_by_classification": [
+    {
+      "classification_id": "baixo_indicativo",
+      "followup_intensity": "baixo",
+      "default_next_check_days": 60,
+      "acceptable_window_days": {
+        "min": 45,
+        "max": 90
+      },
+      "recommended_blocks": [
+        "short_symptom_check",
+        "functional_impairment_short",
+        "red_flags_short"
+      ],
+      "actions": [
+        "Manter orientações gerais.",
+        "Reavaliar se houver piora, novo prejuízo escolar/familiar ou preocupação persistente.",
+        "Solicitar escola apenas se queixa escolar surgir ou persistir."
+      ],
+      "message_key": "followup_baixo_indicativo"
+    },
+    {
+      "classification_id": "sinais_leves",
+      "followup_intensity": "leve",
+      "default_next_check_days": 45,
+      "acceptable_window_days": {
+        "min": 30,
+        "max": 60
+      },
+      "recommended_blocks": [
+        "short_symptom_check",
+        "functional_impairment_short",
+        "sleep_context",
+        "school_form_if_missing",
+        "red_flags_short"
+      ],
+      "actions": [
+        "Aplicar orientações de rotina, sono, telas e combinados.",
+        "Solicitar formulário da escola se ainda não houver.",
+        "Reavaliar em 30 a 60 dias.",
+        "Escalonar se houver piora ou prejuízo moderado/importante."
+      ],
+      "message_key": "followup_sinais_leves"
+    },
+    {
+      "classification_id": "sinais_moderados",
+      "followup_intensity": "moderado",
+      "default_next_check_days": 30,
+      "acceptable_window_days": {
+        "min": 15,
+        "max": 45
+      },
+      "recommended_blocks": [
+        "snap_iv_26_recheck",
+        "functional_impairment",
+        "school_form_if_missing",
+        "differential_screening_relevant_domains",
+        "red_flags_short",
+        "referral_status_check"
+      ],
+      "actions": [
+        "Confirmar se avaliação profissional foi agendada ou realizada.",
+        "Coletar escola/responsável se faltar um dos ambientes.",
+        "Reavaliar sintomas e prejuízo em até 30 dias.",
+        "Escalonar para sinais importantes se houver aumento de sintomas, prejuízo funcional ou red flags."
+      ],
+      "message_key": "followup_sinais_moderados"
+    },
+    {
+      "classification_id": "sinais_importantes",
+      "followup_intensity": "alto",
+      "default_next_check_days": 15,
+      "acceptable_window_days": {
+        "min": 7,
+        "max": 30
+      },
+      "recommended_blocks": [
+        "snap_iv_26_recheck",
+        "functional_impairment",
+        "red_flags_full",
+        "school_form_required",
+        "differential_screening_relevant_domains",
+        "referral_status_check",
+        "support_plan_check"
+      ],
+      "actions": [
+        "Confirmar encaminhamento prioritário.",
+        "Verificar se há plano inicial em casa e na escola.",
+        "Reavaliar em 7 a 30 dias conforme prejuízo.",
+        "Escalonar para prioridade clínica se houver prejuízo importante, risco, agressividade, autoagressão, crise ou piora rápida."
+      ],
+      "message_key": "followup_sinais_importantes"
+    },
+    {
+      "classification_id": "prioridade_clinica",
+      "followup_intensity": "prioritario",
+      "default_next_check_days": 7,
+      "acceptable_window_days": {
+        "min": 1,
+        "max": 15
+      },
+      "recommended_blocks": [
+        "red_flags_full",
+        "referral_status_check",
+        "safety_status_check",
+        "functional_impairment",
+        "professional_contact_status"
+      ],
+      "actions": [
+        "Confirmar se a criança/adolescente foi avaliada ou está com atendimento prioritário agendado.",
+        "Se houver risco atual, orientar urgência imediatamente.",
+        "Não depender apenas de reavaliação por app.",
+        "Manter acompanhamento curto até haver avaliação profissional ou estabilização."
+      ],
+      "message_key": "followup_prioridade_clinica"
+    },
+    {
+      "classification_id": "pendente",
+      "followup_intensity": "dados_insuficientes",
+      "default_next_check_days": 7,
+      "acceptable_window_days": {
+        "min": 1,
+        "max": 14
+      },
+      "recommended_blocks": [
+        "missing_required_blocks",
+        "school_form_if_missing",
+        "red_flags_short"
+      ],
+      "actions": [
+        "Completar blocos obrigatórios.",
+        "Solicitar informante escolar ou responsável quando ausente.",
+        "Não gerar conclusão até obter dados mínimos."
+      ],
+      "message_key": "followup_pendente"
+    }
+  ],
+  "followup_blocks": [
+    {
+      "id": "short_symptom_check",
+      "label": "Checagem breve de sintomas",
+      "questions": [
+        "Desde a última triagem, a desatenção melhorou, piorou ou ficou igual?",
+        "Desde a última triagem, a agitação/impulsividade melhorou, piorou ou ficou igual?",
+        "Desde a última triagem, a oposição/desafio melhorou, piorou ou ficou igual?"
+      ],
+      "answer_scale": "better_same_worse"
+    },
+    {
+      "id": "snap_iv_26_recheck",
+      "label": "Reaplicar SNAP-IV 26",
+      "source_file": "tdah_tod_questions.json",
+      "description": "Reaplicar os 26 itens para comparar pontuação por domínio."
+    },
+    {
+      "id": "functional_impairment_short",
+      "label": "Checagem breve de prejuízo funcional",
+      "questions": [
+        "A rotina em casa foi prejudicada desde a última triagem?",
+        "A escola ou aprendizagem foram prejudicadas desde a última triagem?",
+        "As relações com colegas, família ou adultos foram prejudicadas desde a última triagem?"
+      ],
+      "answer_scale": "none_mild_moderate_important"
+    },
+    {
+      "id": "functional_impairment",
+      "label": "Reavaliar prejuízo funcional completo",
+      "source_file": "tdah_tod_functional_impairment.json"
+    },
+    {
+      "id": "red_flags_short",
+      "label": "Checagem breve de alertas",
+      "questions": [
+        "Houve fala de morte, autoagressão ou risco contra si mesmo(a)?",
+        "Houve agressividade grave, ameaça, fuga, intoxicação ou situação insegura?",
+        "Houve suspeita de violência, abuso, negligência ou ambiente inseguro?"
+      ],
+      "answer_scale": "yes_no_unknown",
+      "if_any_yes": "apply_red_flags_full"
+    },
+    {
+      "id": "red_flags_full",
+      "label": "Reaplicar red flags completo",
+      "source_file": "tdah_tod_red_flags.json"
+    },
+    {
+      "id": "differential_screening_relevant_domains",
+      "label": "Reavaliar diferenciais relevantes",
+      "source_file": "tdah_tod_differential_screening.json",
+      "filter": "only_domains_with_previous_relevant_flags_or_new_complaints"
+    },
+    {
+      "id": "referral_status_check",
+      "label": "Checar encaminhamentos",
+      "questions": [
+        "A avaliação recomendada foi agendada?",
+        "A avaliação recomendada foi realizada?",
+        "Houve dificuldade de acesso ao atendimento?",
+        "A escola recebeu orientação ou formulário?"
+      ],
+      "answer_scale": "status_options"
+    },
+    {
+      "id": "safety_status_check",
+      "label": "Checagem de segurança atual",
+      "questions": [
+        "Existe risco atual de a criança/adolescente se machucar ou machucar alguém?",
+        "Existe adulto responsável supervisionando a criança/adolescente neste momento?",
+        "Houve nova crise grave, fuga, intoxicação, ameaça, violência ou situação insegura desde a última triagem?",
+        "A família sabe qual serviço procurar se houver piora hoje?"
+      ],
+      "answer_scale": "yes_no_unknown",
+      "if_any_risk_yes": "apply_red_flags_full_and_urgent_flow"
+    },
+    {
+      "id": "support_plan_check",
+      "label": "Checar plano de apoio",
+      "questions": [
+        "A família conseguiu aplicar orientações de rotina e combinados?",
+        "A escola aplicou alguma estratégia de apoio?",
+        "Alguma estratégia ajudou claramente?",
+        "Alguma estratégia piorou o comportamento?"
+      ],
+      "answer_scale": "yes_no_partial"
+    },
+    {
+      "id": "professional_contact_status",
+      "label": "Contato profissional",
+      "questions": [
+        "A criança/adolescente já foi avaliada por profissional?",
+        "Há orientação profissional em andamento?",
+        "Foi definido plano de acompanhamento?"
+      ],
+      "answer_scale": "status_options"
+    }
+  ],
+  "comparison_rules": {
+    "baseline_required": true,
+    "compare_by": [
+      "raw_score",
+      "mean_score",
+      "positive_item_count",
+      "functional_impairment_level",
+      "red_flags",
+      "differential_flags",
+      "school_home_consistency"
+    ],
+    "domain_change_thresholds": [
+      {
+        "id": "melhora_importante_dominio",
+        "condition": "positive_item_count_decrease >= 3 OR mean_score_decrease >= 0.5",
+        "change_label": "melhora_importante",
+        "message_key": "melhora_importante"
+      },
+      {
+        "id": "melhora_leve_dominio",
+        "condition": "positive_item_count_decrease BETWEEN 1 AND 2 OR mean_score_decrease BETWEEN 0.25 AND 0.49",
+        "change_label": "melhora_leve",
+        "message_key": "melhora_leve"
+      },
+      {
+        "id": "estavel_dominio",
+        "condition": "absolute_positive_item_count_change == 0 AND absolute_mean_score_change < 0.25",
+        "change_label": "estavel",
+        "message_key": "estavel"
+      },
+      {
+        "id": "piora_leve_dominio",
+        "condition": "positive_item_count_increase BETWEEN 1 AND 2 OR mean_score_increase BETWEEN 0.25 AND 0.49",
+        "change_label": "piora_leve",
+        "message_key": "piora_leve"
+      },
+      {
+        "id": "piora_importante_dominio",
+        "condition": "positive_item_count_increase >= 3 OR mean_score_increase >= 0.5",
+        "change_label": "piora_importante",
+        "message_key": "piora_importante"
+      }
+    ],
+    "functional_change_thresholds": [
+      {
+        "id": "prejuizo_melhorou",
+        "condition": "functional_impairment_rank_decrease >= 1",
+        "change_label": "prejuizo_melhorou"
+      },
+      {
+        "id": "prejuizo_piorou",
+        "condition": "functional_impairment_rank_increase >= 1",
+        "change_label": "prejuizo_piorou"
+      },
+      {
+        "id": "novo_prejuizo_importante",
+        "condition": "previous_functional_impairment_level != prejuizo_importante AND current_functional_impairment_level == prejuizo_importante",
+        "change_label": "novo_prejuizo_importante"
+      }
+    ]
+  },
+  "escalation_rules": [
+    {
+      "id": "qualquer_red_flag_urgente",
+      "condition": "urgent_red_flag == true OR safeguarding_red_flag == true",
+      "action": "override_to_urgent_or_safeguarding_flow",
+      "new_classification_floor": "prioridade_clinica",
+      "recommended_followup_days": 1,
+      "message_key": "escalar_red_flag"
+    },
+    {
+      "id": "piora_importante_sintomas",
+      "condition": "any_domain_change_label == piora_importante",
+      "action": "increase_priority_one_level",
+      "recommended_followup_days": 15,
+      "message_key": "escalar_piora_sintomas"
+    },
+    {
+      "id": "novo_prejuizo_importante",
+      "condition": "functional_change_label == novo_prejuizo_importante",
+      "action": "increase_priority_to_sinais_importantes_or_prioridade",
+      "recommended_followup_days": 7,
+      "message_key": "escalar_prejuizo_importante"
+    },
+    {
+      "id": "sem_melhora_apos_duas_reavaliacoes",
+      "condition": "classification_id IN [sinais_moderados, sinais_importantes] AND consecutive_followups_without_improvement >= 2",
+      "action": "recommend_professional_review_or_specialist",
+      "recommended_followup_days": 15,
+      "message_key": "escalar_sem_melhora"
+    },
+    {
+      "id": "encaminhamento_nao_realizado_com_prioridade",
+      "condition": "classification_id IN [sinais_importantes, prioridade_clinica] AND referral_required == true AND referral_status IN [not_scheduled, missed] ",
+      "action": "care_navigation_needed",
+      "recommended_followup_days": 7,
+      "message_key": "escalar_acesso_atendimento"
+    },
+    {
+      "id": "diferencial_persistente_com_prejuizo",
+      "condition": "relevant_differential_domain_count >= 1 AND functional_impairment_level IN [prejuizo_moderado, prejuizo_importante]",
+      "action": "recommend_differential_specific_referral",
+      "recommended_followup_days": 15,
+      "message_key": "escalar_diferenciais"
+    }
+  ],
+  "deescalation_rules": [
+    {
+      "id": "melhora_importante_sem_prejuizo",
+      "condition": "all_relevant_domains_below_cutoff == true AND functional_impairment_level IN [sem_prejuizo_relevante, prejuizo_leve] AND urgent_red_flag == false",
+      "action": "decrease_followup_intensity",
+      "next_followup_days": 60,
+      "message_key": "reduzir_intensidade_melhora"
+    },
+    {
+      "id": "estavel_baixo_por_duas_reavaliacoes",
+      "condition": "classification_id == baixo_indicativo AND consecutive_stable_or_improved_followups >= 2",
+      "action": "move_to_as_needed_monitoring",
+      "next_followup_days": null,
+      "message_key": "acompanhar_sob_demanda"
+    },
+    {
+      "id": "sinais_leves_melhorando",
+      "condition": "classification_id == sinais_leves AND any_domain_change_label IN [melhora_leve, melhora_importante] AND functional_impairment_level IN [sem_prejuizo_relevante, prejuizo_leve]",
+      "action": "maintain_guidance_extend_interval",
+      "next_followup_days": 60,
+      "message_key": "manter_orientacao_estender"
+    }
+  ],
+  "closure_rules": [
+    {
+      "id": "encerrar_triagem_baixo_estavel",
+      "condition": "classification_id == baixo_indicativo AND consecutive_stable_or_improved_followups >= 2 AND no_red_flags == true",
+      "status": "encerrado_com_orientacao",
+      "message_key": "encerrar_baixo_estavel",
+      "reopen_triggers": [
+        "nova_piora",
+        "prejuizo_escolar",
+        "red_flag",
+        "solicitacao_familia_ou_escola"
+      ]
+    },
+    {
+      "id": "encerrar_por_acompanhamento_profissional",
+      "condition": "professional_followup_active == true AND care_plan_defined == true",
+      "status": "encaminhado_para_cuidado_continuado",
+      "message_key": "encerrar_profissional",
+      "reopen_triggers": [
+        "familia_solicita_nova_triagem",
+        "escola_solicita_atualizacao",
+        "piora_importante",
+        "red_flag"
+      ]
+    },
+    {
+      "id": "nao_encerrar_com_prioridade",
+      "condition": "classification_id IN [sinais_importantes, prioridade_clinica] AND professional_followup_active == false",
+      "status": "manter_ativo",
+      "message_key": "nao_encerrar_prioridade"
+    }
+  ],
+  "care_plan_tracking": {
+    "track_referrals": true,
+    "track_school_form": true,
+    "track_family_guidance": true,
+    "track_professional_evaluation": true,
+    "status_options": [
+      {
+        "id": "not_started",
+        "label": "Não iniciado"
+      },
+      {
+        "id": "scheduled",
+        "label": "Agendado"
+      },
+      {
+        "id": "in_progress",
+        "label": "Em andamento"
+      },
+      {
+        "id": "completed",
+        "label": "Realizado"
+      },
+      {
+        "id": "missed",
+        "label": "Não compareceu/perdeu prazo"
+      },
+      {
+        "id": "blocked_access",
+        "label": "Sem acesso/disponibilidade"
+      }
+    ],
+    "required_tracking_fields": [
+      "referral_destination",
+      "referral_priority",
+      "created_at",
+      "due_date",
+      "status",
+      "last_update_at"
+    ]
+  },
+  "school_followup_rules": [
+    {
+      "id": "solicitar_escola_inicial",
+      "condition": "professor_available == false AND age_group_id NOT IN [under_4_not_eligible, age_18_or_more_not_child_module]",
+      "action": "request_school_form",
+      "due_days": 14,
+      "message_key": "solicitar_escola"
+    },
+    {
+      "id": "reaplicar_escola_se_moderado_ou_importante",
+      "condition": "classification_id IN [sinais_moderados, sinais_importantes, prioridade_clinica] AND professor_available == true",
+      "action": "repeat_teacher_form",
+      "due_days": 30,
+      "message_key": "reaplicar_escola"
+    },
+    {
+      "id": "acompanhar_apoio_escolar",
+      "condition": "school_functional_impairment_level IN [prejuizo_moderado, prejuizo_importante]",
+      "action": "check_school_support_plan",
+      "due_days": 30,
+      "message_key": "acompanhar_apoio_escolar"
+    }
+  ],
+  "age_specific_followup_rules": [
+    {
+      "id": "pre_escolar_intervalo_curto_se_prejuizo",
+      "condition": "age_group_id == age_4_5_preschool AND functional_impairment_level IN [prejuizo_moderado, prejuizo_importante]",
+      "recommended_followup_days": 15,
+      "focus": [
+        "rotina",
+        "sono",
+        "linguagem",
+        "desenvolvimento",
+        "orientacao_parental",
+        "creche_escola"
+      ],
+      "message_key": "followup_pre_escolar"
+    },
+    {
+      "id": "idade_escolar_com_aprendizagem",
+      "condition": "age_group_id == age_6_11_school_child AND avaliar_aprendizagem_linguagem == true",
+      "recommended_followup_days": 30,
+      "focus": [
+        "escola",
+        "aprendizagem",
+        "visao_audicao",
+        "neuropsicologia_psicopedagogia"
+      ],
+      "message_key": "followup_aprendizagem"
+    },
+    {
+      "id": "adolescente_contexto_emocional",
+      "condition": "age_group_id IN [age_12_14_early_adolescent, age_15_16_adolescent, age_17_late_adolescent] AND (ansiedade_relevante == true OR humor_depressivo_relevante == true OR trauma_bullying_estresse_relevante == true)",
+      "recommended_followup_days": 15,
+      "focus": [
+        "sono",
+        "humor",
+        "ansiedade",
+        "bullying",
+        "substancias",
+        "risco"
+      ],
+      "message_key": "followup_adolescente_emocional"
+    }
+  ],
+  "message_templates": {
+    "followup_baixo_indicativo": "O ideal é acompanhar e repetir a triagem se houver piora, persistência das queixas ou novo prejuízo.",
+    "followup_sinais_leves": "Vamos observar por 30 a 60 dias, ajustar rotina/sono e completar informação da escola quando possível.",
+    "followup_sinais_moderados": "Recomenda-se reavaliar em até 30 dias e confirmar se a avaliação profissional foi agendada ou realizada.",
+    "followup_sinais_importantes": "O acompanhamento deve ser mais próximo. Reavalie em até 15 dias e confirme atendimento prioritário.",
+    "followup_prioridade_clinica": "Acompanhamento por app não basta. Confirme atendimento prioritário e use urgência se houver risco atual.",
+    "followup_pendente": "Complete os dados obrigatórios para gerar uma orientação confiável.",
+    "melhora_importante": "Houve melhora importante nos sinais informados.",
+    "melhora_leve": "Houve melhora leve nos sinais informados.",
+    "estavel": "Os sinais parecem estáveis desde a última avaliação.",
+    "piora_leve": "Houve leve piora. Vale observar de perto e reforçar orientações.",
+    "piora_importante": "Houve piora importante. A prioridade de avaliação deve ser revista.",
+    "escalar_red_flag": "Apareceu alerta de risco. O fluxo deve ser de segurança/urgência, não apenas acompanhamento.",
+    "escalar_piora_sintomas": "Os sintomas pioraram de forma relevante. Recomenda-se antecipar avaliação profissional.",
+    "escalar_prejuizo_importante": "Surgiu ou aumentou prejuízo funcional importante. O caso deve ser priorizado.",
+    "escalar_sem_melhora": "Sem melhora após reavaliações, é indicado revisar o plano e considerar avaliação especializada.",
+    "escalar_acesso_atendimento": "O encaminhamento prioritário ainda não aconteceu. É preciso apoio para acesso ao cuidado.",
+    "escalar_diferenciais": "Há fatores diferenciais persistentes com prejuízo. O acompanhamento deve incluir avaliação desses fatores.",
+    "reduzir_intensidade_melhora": "Com melhora e baixo prejuízo, o acompanhamento pode ficar menos frequente.",
+    "acompanhar_sob_demanda": "Com estabilidade e baixo indicativo, a triagem pode ficar sob demanda.",
+    "manter_orientacao_estender": "Os sinais leves estão melhorando. Mantenha orientações e reavalie em intervalo maior.",
+    "encerrar_baixo_estavel": "O rastreio pode ser encerrado com orientação, mantendo retorno se houver piora.",
+    "encerrar_profissional": "Como já há acompanhamento profissional definido, o app pode ficar como apoio e registro.",
+    "nao_encerrar_prioridade": "Ainda não é indicado encerrar, pois há prioridade clínica sem acompanhamento confirmado.",
+    "solicitar_escola": "Peça o formulário da escola para melhorar a precisão do acompanhamento.",
+    "reaplicar_escola": "Vale repetir o formulário do professor para comparar evolução em sala.",
+    "acompanhar_apoio_escolar": "Verifique se a escola conseguiu aplicar estratégias de apoio.",
+    "followup_pre_escolar": "Em pré-escolares com prejuízo, acompanhe mais de perto rotina, sono, linguagem e desenvolvimento.",
+    "followup_aprendizagem": "Quando há suspeita de aprendizagem/linguagem, acompanhe escola e avaliações específicas.",
+    "followup_adolescente_emocional": "Em adolescentes, acompanhe sono, humor, ansiedade, bullying, substâncias e risco."
+  },
+  "output_schema": {
+    "followup_result": {
+      "followup_plan_id": "string",
+      "followup_intensity": "baixo | leve | moderado | alto | prioritario | dados_insuficientes",
+      "next_check_days": "number | null",
+      "due_date": "date | null",
+      "recommended_blocks": [
+        "string"
+      ],
+      "actions": [
+        "string"
+      ],
+      "comparison_summary": {
+        "domain_changes": [
+          {
+            "domain": "desatencao | hiperatividade_impulsividade | oposicao_desafio",
+            "change_label": "melhora_importante | melhora_leve | estavel | piora_leve | piora_importante",
+            "positive_item_count_delta": "number",
+            "mean_score_delta": "number"
+          }
+        ],
+        "functional_change_label": "string",
+        "new_red_flags": [
+          "string"
+        ],
+        "persistent_differential_flags": [
+          "string"
+        ]
+      },
+      "applied_escalation_rules": [
+        "string"
+      ],
+      "applied_deescalation_rules": [
+        "string"
+      ],
+      "closure_status": "active | manter_ativo | encerrado_com_orientacao | encaminhado_para_cuidado_continuado",
+      "message_keys": [
+        "string"
+      ],
+      "family_message": "string",
+      "professional_summary": "string"
+    }
+  },
+  "implementation_notes": [
+    "Reaplicar SNAP-IV 26 completo quando houver sinais moderados/importantes, piora, novo prejuízo ou antes/depois de intervenção relevante.",
+    "Para sinais leves, pode usar bloco curto e repetir SNAP-IV 26 se persistir ou piorar.",
+    "Red flags devem ser rechecadas em toda reavaliação, mesmo que em versão breve.",
+    "Não atrasar encaminhamento prioritário aguardando reavaliação por app.",
+    "Acompanhar escola e família separadamente sempre que possível.",
+    "Comparar pontuação por domínio, não apenas classificação final.",
+    "Registrar encaminhamentos e barreiras de acesso para painel gestor.",
+    "Não usar melhora no app como alta clínica se havia prioridade sem avaliação profissional.",
+    "Adequar prazos à capacidade real da rede municipal/Telefarmed antes de produção."
+  ]
+}

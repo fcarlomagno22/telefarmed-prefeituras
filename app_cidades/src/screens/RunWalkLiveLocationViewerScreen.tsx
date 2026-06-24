@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
+import * as NavigationBar from 'expo-navigation-bar'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
   Platform,
@@ -11,6 +12,7 @@ import {
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SystemBars } from 'react-native-edge-to-edge'
 import { LiveLocationTrackingMap } from '../components/runWalk/liveShare/LiveLocationTrackingMap'
 import { useAuth } from '../contexts/AuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
@@ -67,9 +69,31 @@ export function RunWalkLiveLocationViewerScreen() {
   )
   const averageSpeedLabel = formatAverageSpeedKmh(averageSpeedKmh)
   const hasMapPoints = Boolean(snapshot && snapshot.points.length > 0)
+  const [bottomInsetPx, setBottomInsetPx] = useState(220)
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return
+
+    void NavigationBar.setBackgroundColorAsync('#000000')
+    void NavigationBar.setButtonStyleAsync('light')
+  }, [])
+
+  const topInsetPx = Math.max(insets.top, 12) + 52
 
   return (
     <View style={styles.root}>
+      <SystemBars style="light" />
+
+      {insets.top > 0 ? (
+        <View pointerEvents="none" style={[styles.safeAreaBand, { height: insets.top }]} />
+      ) : null}
+      {insets.bottom > 0 ? (
+        <View
+          pointerEvents="none"
+          style={[styles.safeAreaBand, styles.safeAreaBandBottom, { height: insets.bottom }]}
+        />
+      ) : null}
+
       <View style={styles.mapLayer}>
         {hasValidLink && hasMapPoints ? (
           <LiveLocationTrackingMap
@@ -77,6 +101,8 @@ export function RunWalkLiveLocationViewerScreen() {
             participantLabel={firstName}
             activityLabel={snapshot!.activityName}
             fullscreen
+            bottomInsetPx={bottomInsetPx}
+            topInsetPx={topInsetPx}
           />
         ) : (
           <LinearGradient
@@ -87,8 +113,8 @@ export function RunWalkLiveLocationViewerScreen() {
       </View>
 
       <LinearGradient
-        colors={['rgba(10, 10, 12, 0.88)', 'transparent', 'rgba(10, 10, 12, 0.92)']}
-        locations={[0, 0.42, 1]}
+        colors={['#000000', 'transparent', 'transparent']}
+        locations={[0, 0.18, 1]}
         style={StyleSheet.absoluteFillObject}
         pointerEvents="none"
       />
@@ -117,7 +143,12 @@ export function RunWalkLiveLocationViewerScreen() {
         </View>
       </View>
 
-      <View style={[styles.bottomPanel, { paddingBottom: Math.max(insets.bottom, 16) + 12 }]}>
+      <View
+        style={[styles.bottomPanel, { paddingBottom: Math.max(insets.bottom, 16) + 12 }]}
+        onLayout={(event) => {
+          setBottomInsetPx(Math.ceil(event.nativeEvent.layout.height) + 16)
+        }}
+      >
         {!hasValidLink ? (
           <View style={styles.messageCard}>
             <Text style={styles.errorTitle}>Link inválido</Text>
@@ -232,7 +263,19 @@ function StatsContent({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#000000',
+  },
+  safeAreaBand: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    backgroundColor: '#000000',
+    zIndex: 2,
+  },
+  safeAreaBandBottom: {
+    top: undefined,
+    bottom: 0,
   },
   mapLayer: {
     ...StyleSheet.absoluteFillObject,

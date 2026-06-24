@@ -13,6 +13,7 @@ export type VidaSaudavelActionId =
   | 'eat-well'
   | 'sleep-time'
   | 'mental-health'
+  | 'my-emotional'
   | 'active-mind'
   | 'my-routine'
 
@@ -73,6 +74,12 @@ const ACTIONS: ActionConfig[] = [
     title: 'Saúde Mental',
     icon: 'brain',
     ...ACTION_ICON_PALETTES.mentalHealth,
+  },
+  {
+    id: 'my-emotional',
+    title: 'Meu emocional',
+    icon: 'head-heart-outline',
+    ...ACTION_ICON_PALETTES.myEmotional,
   },
   {
     id: 'active-mind',

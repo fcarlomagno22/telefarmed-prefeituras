@@ -1,0 +1,710 @@
+{
+  "metadata": {
+    "module": "tdah_tod_infantil",
+    "file": "tdah_tod_referral_rules.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "depends_on": [
+      "tdah_tod_questions.json",
+      "tdah_tod_scoring_rules.json",
+      "tdah_tod_cutoffs.json",
+      "tdah_tod_age_rules.json",
+      "tdah_tod_informants.json",
+      "tdah_tod_functional_impairment.json",
+      "tdah_tod_red_flags.json",
+      "tdah_tod_differential_screening.json",
+      "tdah_tod_result_messages.json"
+    ],
+    "clinical_scope": "Regras de encaminhamento automático após rastreio SNAP-IV 26 para sinais compatíveis com TDAH, oposição/desafio e prejuízo funcional associado.",
+    "diagnostic_disclaimer": "O encaminhamento automático não fecha diagnóstico e não prescreve tratamento. Ele organiza prioridade e direciona o melhor próximo passo.",
+    "principle": "Red flags e segurança vêm antes da pontuação. Depois, o encaminhamento considera idade, classificação final, prejuízo funcional, perfil de domínio, informantes e diferenciais."
+  },
+  "referral_destinations": [
+    {
+      "id": "orientacao_familiar",
+      "label": "Orientação familiar",
+      "type": "educational_guidance",
+      "priority_rank": 1,
+      "description": "Orientações sobre rotina, sono, telas, combinados, previsibilidade, reforço positivo e manejo inicial.",
+      "default_sla": "imediato_no_app",
+      "user_message_key": "orientacao_familiar"
+    },
+    {
+      "id": "reavaliacao_30_60_dias",
+      "label": "Reavaliação em 30 a 60 dias",
+      "type": "followup",
+      "priority_rank": 1,
+      "description": "Repetir triagem após observação, ajustes de rotina ou coleta de informações escolares.",
+      "default_sla": "30_60_dias",
+      "user_message_key": "reavaliacao_30_60_dias"
+    },
+    {
+      "id": "formulario_escola",
+      "label": "Formulário para escola/professor",
+      "type": "data_collection",
+      "priority_rank": 2,
+      "description": "Coletar versão escolar do SNAP-IV 26 e prejuízo funcional escolar.",
+      "default_sla": "antes_da_classificacao_final_quando_possivel",
+      "user_message_key": "solicitar_formulario_escola"
+    },
+    {
+      "id": "pediatra",
+      "label": "Consulta com pediatra",
+      "type": "clinical_evaluation",
+      "priority_rank": 3,
+      "description": "Avaliar saúde geral, sono, visão, audição, desenvolvimento, medicações, condições clínicas e necessidade de encaminhamento.",
+      "default_sla": "rotina_ou_prioritario_conforme_gravidade",
+      "user_message_key": "consulta_pediatra"
+    },
+    {
+      "id": "psicologo_infantil",
+      "label": "Psicólogo infantil/adolescente",
+      "type": "mental_health_evaluation",
+      "priority_rank": 3,
+      "description": "Avaliar comportamento, emoções, ansiedade, humor, trauma, dinâmica familiar, oposição/desafio e orientar manejo.",
+      "default_sla": "rotina_ou_prioritario_conforme_gravidade",
+      "user_message_key": "psicologo_neuropsicologo"
+    },
+    {
+      "id": "neuropsicologo",
+      "label": "Neuropsicólogo",
+      "type": "neuropsychological_assessment",
+      "priority_rank": 3,
+      "description": "Avaliar atenção, funções executivas, aprendizagem, linguagem, memória, perfil cognitivo e impacto funcional.",
+      "default_sla": "quando_houver_prejuizo_aprendizagem_duvida_diagnostica",
+      "user_message_key": "psicologo_neuropsicologo"
+    },
+    {
+      "id": "neuropediatra",
+      "label": "Neuropediatra",
+      "type": "specialist_evaluation",
+      "priority_rank": 4,
+      "description": "Avaliar neurodesenvolvimento, TDAH complexo, suspeita de autismo, regressão, crises, prejuízo importante ou sinais neurológicos.",
+      "default_sla": "prioritario_quando_indicado",
+      "user_message_key": "neuropediatra_psiquiatra_infantil"
+    },
+    {
+      "id": "psiquiatra_infantil",
+      "label": "Psiquiatra infantil/adolescente",
+      "type": "specialist_mental_health",
+      "priority_rank": 4,
+      "description": "Avaliar risco, humor, ansiedade grave, agressividade, oposição grave, comorbidades, necessidade medicamentosa ou quadro complexo.",
+      "default_sla": "prioritario_quando_indicado",
+      "user_message_key": "neuropediatra_psiquiatra_infantil"
+    },
+    {
+      "id": "avaliacao_visual_auditiva",
+      "label": "Avaliação de visão/audição",
+      "type": "sensory_evaluation",
+      "priority_rank": 3,
+      "description": "Avaliar visão e audição quando queixas sensoriais podem explicar desatenção, baixo rendimento ou dificuldade de seguir instruções.",
+      "default_sla": "rotina_prioritaria_se_prejuizo_escolar",
+      "user_message_key": "avaliar_medico_sensorial"
+    },
+    {
+      "id": "avaliacao_sono",
+      "label": "Avaliação de sono",
+      "type": "medical_sleep_evaluation",
+      "priority_rank": 3,
+      "description": "Avaliar sono insuficiente, insônia, ronco, respiração oral, sonolência e suspeita de apneia.",
+      "default_sla": "rotina_prioritaria_se_ronco_apneia",
+      "user_message_key": "sono_relevante"
+    },
+    {
+      "id": "fono_psicopedagogia",
+      "label": "Fonoaudiologia/psicopedagogia",
+      "type": "learning_language_support",
+      "priority_rank": 3,
+      "description": "Avaliar linguagem, leitura, escrita, matemática e dificuldades acadêmicas que podem imitar desatenção.",
+      "default_sla": "quando_houver_prejuizo_academico",
+      "user_message_key": "aprendizagem_linguagem_relevante"
+    },
+    {
+      "id": "rede_protecao",
+      "label": "Rede de proteção",
+      "type": "safeguarding",
+      "priority_rank": 5,
+      "description": "Acionar protocolo local de proteção em suspeita de abuso, violência, negligência ou ambiente inseguro.",
+      "default_sla": "imediato_conforme_protocolo_local",
+      "user_message_key": "mensagem_rede_protecao"
+    },
+    {
+      "id": "urgencia_emergencia",
+      "label": "Urgência/emergência",
+      "type": "urgent_care",
+      "priority_rank": 5,
+      "description": "Fluxo imediato para risco de autoagressão, suicídio, psicose, intoxicação, crise grave, agressão grave ou risco atual.",
+      "default_sla": "imediato",
+      "user_message_key": "fluxo_urgencia"
+    }
+  ],
+  "referral_priority_levels": [
+    {
+      "id": "orientacao",
+      "rank": 1,
+      "label": "Orientação",
+      "target_time": "no_app_ou_rotina",
+      "description": "Sem urgência; foco em orientação, observação e reavaliação."
+    },
+    {
+      "id": "rotina",
+      "rank": 2,
+      "label": "Rotina",
+      "target_time": "30_60_dias",
+      "description": "Encaminhamento eletivo quando persistente ou com prejuízo leve."
+    },
+    {
+      "id": "avaliacao_recomendada",
+      "rank": 3,
+      "label": "Avaliação recomendada",
+      "target_time": "15_30_dias",
+      "description": "Avaliação profissional recomendada por sinais moderados, prejuízo ou diferencial relevante."
+    },
+    {
+      "id": "prioritario",
+      "rank": 4,
+      "label": "Prioritário",
+      "target_time": "7_15_dias",
+      "description": "Priorizar na rede por sinais importantes, prejuízo importante, múltiplos domínios ou alerta não emergencial."
+    },
+    {
+      "id": "urgente",
+      "rank": 5,
+      "label": "Urgente",
+      "target_time": "imediato",
+      "description": "Fluxo imediato por segurança, risco ou proteção."
+    }
+  ],
+  "global_routing_order": [
+    {
+      "step": 1,
+      "name": "red_flags_first",
+      "description": "Se houver red flag urgente ou rede de proteção, encaminhar por segurança antes de interpretar SNAP-IV."
+    },
+    {
+      "step": 2,
+      "name": "eligibility_age",
+      "description": "Aplicar bloqueios e cautelas por idade."
+    },
+    {
+      "step": 3,
+      "name": "data_quality",
+      "description": "Verificar informantes, respostas insuficientes e necessidade de formulário escolar."
+    },
+    {
+      "step": 4,
+      "name": "classification_and_impairment",
+      "description": "Combinar classificação final, prejuízo funcional e consistência casa/escola."
+    },
+    {
+      "step": 5,
+      "name": "differential_context",
+      "description": "Adicionar encaminhamentos para sono, visão/audição, aprendizagem, ansiedade, humor, trauma, neurodesenvolvimento ou medicação."
+    },
+    {
+      "step": 6,
+      "name": "compose_referral_plan",
+      "description": "Gerar lista ordenada de encaminhamentos com prioridade, justificativa e mensagem ao usuário."
+    }
+  ],
+  "automatic_referral_rules": [
+    {
+      "id": "red_flag_urgente_para_urgencia",
+      "priority": 1000,
+      "condition": "urgent_red_flag == true",
+      "referrals": [
+        {
+          "destination": "urgencia_emergencia",
+          "priority_level": "urgente",
+          "reason": "Há alerta de risco atual ou potencialmente grave.",
+          "required": true
+        }
+      ],
+      "block_lower_priority_referrals_as_main_result": true,
+      "message_key": "mensagem_urgente"
+    },
+    {
+      "id": "rede_protecao_para_protecao",
+      "priority": 990,
+      "condition": "safeguarding_red_flag == true",
+      "referrals": [
+        {
+          "destination": "rede_protecao",
+          "priority_level": "urgente",
+          "reason": "Há suspeita de abuso, violência, negligência ou ambiente inseguro.",
+          "required": true
+        }
+      ],
+      "block_lower_priority_referrals_as_main_result": true,
+      "message_key": "mensagem_rede_protecao"
+    },
+    {
+      "id": "menor_4_anos_para_desenvolvimento",
+      "priority": 900,
+      "condition": "age_group_id == under_4_not_eligible",
+      "referrals": [
+        {
+          "destination": "pediatra",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Módulo SNAP-IV infantil não é indicado para menores de 4 anos; avaliar desenvolvimento.",
+          "required": true
+        }
+      ],
+      "message_key": "fora_faixa_menor_4_anos"
+    },
+    {
+      "id": "pendente_completar_dados",
+      "priority": 850,
+      "condition": "classification_id == pendente",
+      "referrals": [
+        {
+          "destination": "formulario_escola",
+          "priority_level": "orientacao",
+          "reason": "Faltam dados para aumentar precisão do rastreio.",
+          "required": false
+        }
+      ],
+      "message_key": "pendente"
+    },
+    {
+      "id": "baixo_indicativo",
+      "priority": 100,
+      "condition": "classification_id == baixo_indicativo AND urgent_red_flag == false",
+      "referrals": [
+        {
+          "destination": "orientacao_familiar",
+          "priority_level": "orientacao",
+          "reason": "Poucos sinais compatíveis e sem prejuízo funcional relevante.",
+          "required": false
+        },
+        {
+          "destination": "reavaliacao_30_60_dias",
+          "priority_level": "orientacao",
+          "reason": "Reavaliar se persistir, piorar ou surgir prejuízo.",
+          "required": false
+        }
+      ],
+      "message_key": "baixo_indicativo"
+    },
+    {
+      "id": "sinais_leves",
+      "priority": 200,
+      "condition": "classification_id == sinais_leves AND urgent_red_flag == false",
+      "referrals": [
+        {
+          "destination": "orientacao_familiar",
+          "priority_level": "orientacao",
+          "reason": "Sinais leves podem melhorar com rotina, sono, previsibilidade e manejo familiar.",
+          "required": false
+        },
+        {
+          "destination": "formulario_escola",
+          "priority_level": "orientacao",
+          "reason": "Confirmar se os sinais aparecem também no ambiente escolar.",
+          "required": false
+        },
+        {
+          "destination": "reavaliacao_30_60_dias",
+          "priority_level": "rotina",
+          "reason": "Monitorar evolução após orientações iniciais.",
+          "required": false
+        }
+      ],
+      "message_key": "sinais_leves"
+    },
+    {
+      "id": "sinais_moderados_avaliacao",
+      "priority": 300,
+      "condition": "classification_id == sinais_moderados AND urgent_red_flag == false",
+      "referrals": [
+        {
+          "destination": "pediatra",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Sinais moderados exigem avaliação clínica geral e investigação de diferenciais.",
+          "required": true
+        },
+        {
+          "destination": "psicologo_infantil",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Avaliar comportamento, emoções, rotina familiar/escolar e prejuízo funcional.",
+          "required": false
+        },
+        {
+          "destination": "formulario_escola",
+          "priority_level": "orientacao",
+          "reason": "A informação escolar aumenta precisão da interpretação.",
+          "required": false
+        }
+      ],
+      "message_key": "sinais_moderados"
+    },
+    {
+      "id": "sinais_importantes_priorizar",
+      "priority": 400,
+      "condition": "classification_id == sinais_importantes AND urgent_red_flag == false",
+      "referrals": [
+        {
+          "destination": "pediatra",
+          "priority_level": "prioritario",
+          "reason": "Sinais importantes e/ou prejuízo funcional claro exigem avaliação clínica prioritária.",
+          "required": true
+        },
+        {
+          "destination": "psicologo_infantil",
+          "priority_level": "prioritario",
+          "reason": "Necessário avaliar comportamento, prejuízo, manejo familiar e fatores emocionais.",
+          "required": false
+        },
+        {
+          "destination": "neuropsicologo",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Útil quando há prejuízo acadêmico, dúvida diagnóstica ou necessidade de mapear atenção/funções executivas.",
+          "required": false
+        }
+      ],
+      "message_key": "sinais_importantes"
+    },
+    {
+      "id": "prioridade_clinica_especializada",
+      "priority": 500,
+      "condition": "classification_id == prioridade_clinica AND urgent_red_flag == false AND safeguarding_red_flag == false",
+      "referrals": [
+        {
+          "destination": "pediatra",
+          "priority_level": "prioritario",
+          "reason": "Classificação de prioridade clínica exige avaliação e coordenação de cuidado.",
+          "required": true
+        },
+        {
+          "destination": "neuropediatra",
+          "priority_level": "prioritario",
+          "reason": "Indicado se houver neurodesenvolvimento, regressão, crise, complexidade ou prejuízo importante.",
+          "required": false
+        },
+        {
+          "destination": "psiquiatra_infantil",
+          "priority_level": "prioritario",
+          "reason": "Indicado se houver risco, humor, ansiedade importante, agressividade, oposição grave ou comorbidades.",
+          "required": false
+        }
+      ],
+      "message_key": "prioridade_clinica"
+    }
+  ],
+  "age_specific_referral_rules": [
+    {
+      "id": "pre_escolar_priorizar_orientacao_parental",
+      "condition": "age_group_id == age_4_5_preschool AND urgent_red_flag == false",
+      "add_referrals": [
+        {
+          "destination": "orientacao_familiar",
+          "priority_level": "orientacao",
+          "reason": "Em pré-escolares, orientação parental/comportamental e rotina são primeira linha de apoio."
+        },
+        {
+          "destination": "pediatra",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Avaliar desenvolvimento, sono, linguagem, visão/audição e contexto."
+        }
+      ],
+      "message_key": "idade_pre_escolar_cautela"
+    },
+    {
+      "id": "escolar_formulario_escola",
+      "condition": "age_group_id == age_6_11_school_child AND professor_available == false",
+      "add_referrals": [
+        {
+          "destination": "formulario_escola",
+          "priority_level": "orientacao",
+          "reason": "Na idade escolar, o relato do professor é muito importante para comparar ambientes."
+        }
+      ],
+      "message_key": "recomendar_formulario_escola"
+    },
+    {
+      "id": "adolescente_contexto_saude_mental",
+      "condition": "age_group_id IN [age_12_14_early_adolescent, age_15_16_adolescent, age_17_late_adolescent] AND urgent_red_flag == false",
+      "add_referrals": [
+        {
+          "destination": "psicologo_infantil",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Em adolescentes, sono, telas, ansiedade, humor, bullying e substâncias precisam ser contextualizados."
+        }
+      ],
+      "message_key": "adolescente_contexto_diferenciais"
+    }
+  ],
+  "domain_profile_referral_rules": [
+    {
+      "id": "perfil_desatencao_com_prejuizo_academico",
+      "condition": "desatencao_relevant == true AND functional_domain_escolar_academico_level IN [prejuizo_moderado, prejuizo_importante]",
+      "add_referrals": [
+        {
+          "destination": "neuropsicologo",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Desatenção com prejuízo acadêmico pede avaliação de atenção, funções executivas e aprendizagem."
+        },
+        {
+          "destination": "fono_psicopedagogia",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Investigar aprendizagem e linguagem quando há impacto escolar."
+        }
+      ]
+    },
+    {
+      "id": "perfil_hiperatividade_impulsividade_com_prejuizo",
+      "condition": "hiperatividade_impulsividade_relevant == true AND functional_impairment_level IN [prejuizo_moderado, prejuizo_importante]",
+      "add_referrals": [
+        {
+          "destination": "psicologo_infantil",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Impulsividade com prejuízo se beneficia de avaliação comportamental e orientação familiar/escolar."
+        },
+        {
+          "destination": "pediatra",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Avaliar sono, condições clínicas e necessidade de encaminhamento."
+        }
+      ]
+    },
+    {
+      "id": "perfil_oposicao_desafio",
+      "condition": "oposicao_desafio_relevant == true",
+      "add_referrals": [
+        {
+          "destination": "psicologo_infantil",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Sinais de oposição/desafio exigem entender contexto familiar, escolar, emocional, trauma e manejo de limites."
+        }
+      ]
+    },
+    {
+      "id": "oposicao_desafio_grave_com_agressividade",
+      "condition": "oposicao_desafio_relevant == true AND (priority_red_flag == true OR functional_impairment_level == prejuizo_importante)",
+      "add_referrals": [
+        {
+          "destination": "psiquiatra_infantil",
+          "priority_level": "prioritario",
+          "reason": "Oposição/desafio com prejuízo importante, agressividade ou alerta exige avaliação de saúde mental com prioridade."
+        }
+      ]
+    },
+    {
+      "id": "perfil_combinado_tdah_com_prejuizo",
+      "condition": "adhd_combined_relevant == true AND functional_impairment_level IN [prejuizo_moderado, prejuizo_importante]",
+      "add_referrals": [
+        {
+          "destination": "pediatra",
+          "priority_level": "prioritario",
+          "reason": "Sinais combinados com prejuízo indicam necessidade de avaliação clínica coordenada."
+        },
+        {
+          "destination": "neuropsicologo",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Avaliar perfil atencional, impulsividade, funções executivas e aprendizagem."
+        }
+      ]
+    }
+  ],
+  "differential_referral_rules": [
+    {
+      "id": "sono_relevante",
+      "condition": "sono_relevante == true OR ronco_apneia_suspeita == true",
+      "add_referrals": [
+        {
+          "destination": "avaliacao_sono",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Sono ruim pode imitar ou agravar desatenção, irritabilidade e agitação."
+        },
+        {
+          "destination": "pediatra",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Avaliar sono, ronco, respiração oral ou sonolência."
+        }
+      ],
+      "message_key": "sono_relevante"
+    },
+    {
+      "id": "visao_audicao_relevante",
+      "condition": "avaliar_visao == true OR avaliar_audicao == true",
+      "add_referrals": [
+        {
+          "destination": "avaliacao_visual_auditiva",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Dificuldade visual/auditiva pode parecer desatenção ou dificuldade de seguir instruções."
+        }
+      ],
+      "message_key": "avaliar_medico_sensorial"
+    },
+    {
+      "id": "aprendizagem_linguagem_relevante",
+      "condition": "avaliar_aprendizagem_linguagem == true",
+      "add_referrals": [
+        {
+          "destination": "fono_psicopedagogia",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Dificuldades de aprendizagem/linguagem podem gerar frustração, evitação e desatenção aparente."
+        },
+        {
+          "destination": "neuropsicologo",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Avaliar funções cognitivas, atenção e aprendizagem quando houver prejuízo."
+        }
+      ],
+      "message_key": "aprendizagem_linguagem_relevante"
+    },
+    {
+      "id": "ansiedade_humor_trauma",
+      "condition": "ansiedade_relevante == true OR humor_depressivo_relevante == true OR trauma_bullying_estresse_relevante == true",
+      "add_referrals": [
+        {
+          "destination": "psicologo_infantil",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Sofrimento emocional, ansiedade, humor ou trauma podem parecer TDAH/TOD e exigem avaliação."
+        }
+      ],
+      "message_key": "emocional_relevante"
+    },
+    {
+      "id": "neurodesenvolvimento_relevante",
+      "condition": "avaliar_neurodesenvolvimento == true",
+      "add_referrals": [
+        {
+          "destination": "neuropediatra",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Sinais de autismo, rigidez, sensorialidade ou atraso do desenvolvimento exigem avaliação de neurodesenvolvimento."
+        },
+        {
+          "destination": "neuropsicologo",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Mapear perfil cognitivo, social, sensorial e executivo."
+        }
+      ],
+      "message_key": "neurodesenvolvimento_relevante"
+    },
+    {
+      "id": "medico_medicacao_relevante",
+      "condition": "avaliar_condicao_medica_medicacao == true OR medical_evaluation_red_flag == true",
+      "add_referrals": [
+        {
+          "destination": "pediatra",
+          "priority_level": "avaliacao_recomendada",
+          "reason": "Condição médica ou medicação pode afetar sono, humor, atenção e comportamento."
+        }
+      ],
+      "message_key": "mensagem_avaliacao_medica"
+    }
+  ],
+  "school_referral_rules": [
+    {
+      "id": "solicitar_escola_se_faltante",
+      "condition": "professor_available == false AND age_group_id NOT IN [under_4_not_eligible, age_18_or_more_not_child_module]",
+      "add_referrals": [
+        {
+          "destination": "formulario_escola",
+          "priority_level": "orientacao",
+          "reason": "O relato escolar ajuda a verificar sinais em mais de um ambiente."
+        }
+      ]
+    },
+    {
+      "id": "apoio_escolar_se_prejuizo",
+      "condition": "school_functional_impairment_level IN [prejuizo_moderado, prejuizo_importante] OR functional_domain_escolar_academico_level IN [prejuizo_moderado, prejuizo_importante]",
+      "school_actions": [
+        "Compartilhar orientação sem rótulo diagnóstico.",
+        "Sugerir rotina previsível, instruções curtas, checagem de compreensão, lugar com menos distrações quando apropriado.",
+        "Usar reforço positivo e feedback frequente.",
+        "Observar aprendizagem, bullying, visão/audição e relações com colegas.",
+        "Registrar prejuízo e estratégias que funcionam."
+      ],
+      "message_key": "school_support_recommended"
+    }
+  ],
+  "deduplication_and_ranking": {
+    "deduplicate_by_destination": true,
+    "if_same_destination_multiple_reasons": "merge_reasons_and_keep_highest_priority_level",
+    "max_primary_referrals_for_family_app": 3,
+    "always_include_if_present": [
+      "urgencia_emergencia",
+      "rede_protecao",
+      "pediatra",
+      "formulario_escola"
+    ],
+    "ranking_order": [
+      "priority_level.rank DESC",
+      "required DESC",
+      "destination.priority_rank DESC",
+      "rule.priority DESC"
+    ],
+    "family_app_display": {
+      "show_primary_referrals": 3,
+      "show_secondary_referrals_collapsed": true,
+      "avoid_overwhelming_language": true
+    },
+    "professional_report_display": {
+      "show_all_referrals": true,
+      "include_rule_ids": true,
+      "include_reasons": true
+    }
+  },
+  "output_schema": {
+    "referral_result": {
+      "primary_referrals": [
+        {
+          "destination": "string",
+          "label": "string",
+          "priority_level": "orientacao | rotina | avaliacao_recomendada | prioritario | urgente",
+          "required": "boolean",
+          "reasons": [
+            "string"
+          ],
+          "message_key": "string",
+          "target_time": "string"
+        }
+      ],
+      "secondary_referrals": [
+        {
+          "destination": "string",
+          "label": "string",
+          "priority_level": "string",
+          "reasons": [
+            "string"
+          ]
+        }
+      ],
+      "school_actions": [
+        "string"
+      ],
+      "applied_rule_ids": [
+        "string"
+      ],
+      "blocked_standard_result": "boolean",
+      "requires_urgent_flow": "boolean",
+      "requires_safeguarding_flow": "boolean",
+      "requires_professional_evaluation": "boolean",
+      "requires_school_form": "boolean",
+      "family_summary_message": "string",
+      "professional_summary_message": "string"
+    }
+  },
+  "safe_language_templates": {
+    "baixo_indicativo": "Neste momento, o encaminhamento principal é orientação e acompanhamento. Se houver piora ou prejuízo, reavalie.",
+    "sinais_leves": "Os sinais são leves. Vale organizar rotina, observar evolução e coletar informação da escola.",
+    "sinais_moderados": "Os sinais moderados recomendam avaliação profissional, especialmente se houver impacto em casa, escola ou relações.",
+    "sinais_importantes": "Os sinais importantes justificam priorizar avaliação profissional e envolver família e escola.",
+    "prioridade_clinica": "A prioridade é avaliação clínica mais rápida, considerando prejuízo, alertas e contexto.",
+    "mensagem_urgente": "Há alerta de risco. O encaminhamento principal é urgência/emergência ou serviço de saúde mental presencial.",
+    "mensagem_rede_protecao": "Há alerta de proteção. O encaminhamento principal é acionar a rede competente conforme protocolo local.",
+    "school_support_recommended": "A escola pode ajudar com observação estruturada, previsibilidade, reforço positivo e adaptações simples enquanto a avaliação acontece."
+  },
+  "implementation_notes": [
+    "Executar regras de red flag antes de qualquer encaminhamento baseado em pontuação.",
+    "Não prescrever medicação nem sugerir troca/suspensão de medicamento.",
+    "Não usar o encaminhamento como diagnóstico.",
+    "Quando houver apenas responsável, incluir formulário da escola sempre que idade permitir.",
+    "Pré-escolares devem priorizar orientação parental/comportamental e avaliação do desenvolvimento.",
+    "Diferenciais relevantes devem gerar encaminhamento próprio sem automaticamente aumentar diagnóstico de TDAH/TOD.",
+    "No app da família, mostrar poucos encaminhamentos principais; no relatório profissional, mostrar todos.",
+    "Adequar prazos/SLA à capacidade real da rede municipal/Telefarmed antes de produção."
+  ]
+}

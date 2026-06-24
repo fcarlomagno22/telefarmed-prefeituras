@@ -1,0 +1,821 @@
+{
+  "metadata": {
+    "module": "tdah_tod_infantil",
+    "file": "tdah_tod_red_flags.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "depends_on": [
+      "tdah_tod_questions.json",
+      "tdah_tod_scoring_rules.json",
+      "tdah_tod_cutoffs.json",
+      "tdah_tod_age_rules.json",
+      "tdah_tod_functional_impairment.json",
+      "tdah_tod_informants.json"
+    ],
+    "clinical_scope": "Alertas de risco, exclusão e cautela antes de interpretar rastreio SNAP-IV 26 para TDAH/TOD.",
+    "diagnostic_disclaimer": "Red flags não fecham diagnóstico. Elas indicam situações que exigem avaliação profissional, fluxo de urgência, proteção ou investigação diferencial antes de concluir o rastreio.",
+    "principle": "Quando houver red flag urgente, o motor deve priorizar segurança e encaminhamento, suspendendo qualquer mensagem que pareça concluir TDAH/TOD."
+  },
+  "answer_scales": [
+    {
+      "id": "yes_no_unknown",
+      "type": "single_choice",
+      "answers": [
+        {
+          "label": "Não",
+          "value": "no",
+          "is_positive": false
+        },
+        {
+          "label": "Sim",
+          "value": "yes",
+          "is_positive": true
+        },
+        {
+          "label": "Não sei informar",
+          "value": "unknown",
+          "is_positive": false,
+          "requires_context_note": true
+        }
+      ]
+    },
+    {
+      "id": "timeframe_red_flag",
+      "type": "single_choice",
+      "answers": [
+        {
+          "label": "Está acontecendo agora ou nas últimas 24 horas",
+          "value": "current_24h",
+          "urgency_modifier": "increase"
+        },
+        {
+          "label": "Aconteceu nos últimos 7 dias",
+          "value": "last_7_days",
+          "urgency_modifier": "increase"
+        },
+        {
+          "label": "Aconteceu no último mês",
+          "value": "last_month",
+          "urgency_modifier": "standard"
+        },
+        {
+          "label": "Aconteceu antes, mas não recentemente",
+          "value": "past_not_recent",
+          "urgency_modifier": "contextualize"
+        }
+      ]
+    }
+  ],
+  "severity_levels": [
+    {
+      "id": "urgente",
+      "rank": 5,
+      "label": "Urgente",
+      "engine_behavior": "override_to_urgent_flow",
+      "classification_override": "prioridade_clinica",
+      "block_standard_result": true,
+      "recommended_action": "Orientar procura imediata de serviço de urgência/emergência, SAMU 192, pronto atendimento, CAPSij/CAPS, hospital ou rede local conforme disponibilidade e risco."
+    },
+    {
+      "id": "prioritario",
+      "rank": 4,
+      "label": "Prioritário",
+      "engine_behavior": "override_to_priority_clinical_assessment",
+      "classification_override": "prioridade_clinica",
+      "block_standard_result": false,
+      "recommended_action": "Priorizar avaliação clínica/saúde mental infantil e não tratar como rastreio simples de TDAH/TOD."
+    },
+    {
+      "id": "avaliacao_medica",
+      "rank": 3,
+      "label": "Exige avaliação médica",
+      "engine_behavior": "require_medical_evaluation_before_final_interpretation",
+      "classification_floor": "sinais_importantes",
+      "block_standard_result": false,
+      "recommended_action": "Orientar avaliação pediátrica/neurológica/psiquiátrica conforme sinal e rede disponível."
+    },
+    {
+      "id": "rede_protecao",
+      "rank": 4,
+      "label": "Exige rede de proteção",
+      "engine_behavior": "activate_safeguarding_pathway",
+      "classification_override": "prioridade_clinica",
+      "block_standard_result": true,
+      "recommended_action": "Acionar fluxo institucional de proteção da criança/adolescente, assistência social, conselho tutelar ou serviço competente conforme protocolo local."
+    },
+    {
+      "id": "contextual",
+      "rank": 2,
+      "label": "Contextualiza resultado",
+      "engine_behavior": "add_caution_and_differential_note",
+      "classification_floor": null,
+      "block_standard_result": false,
+      "recommended_action": "Manter rastreio, mas adicionar cautela e recomendar investigação diferencial."
+    }
+  ],
+  "red_flag_categories": [
+    {
+      "id": "risco_autoagressao_suicidio",
+      "label": "Risco de autoagressão ou suicídio"
+    },
+    {
+      "id": "risco_agressao_violencia",
+      "label": "Risco de agressão, violência ou perda de controle"
+    },
+    {
+      "id": "psicose_mania_desorganizacao_grave",
+      "label": "Psicose, mania ou desorganização grave"
+    },
+    {
+      "id": "neurologico_medico_agudo",
+      "label": "Sinais neurológicos ou médicos agudos"
+    },
+    {
+      "id": "regressao_desenvolvimento",
+      "label": "Regressão ou mudança abrupta de funcionamento"
+    },
+    {
+      "id": "sono_respiracao",
+      "label": "Sono, ronco, apneia ou sonolência intensa"
+    },
+    {
+      "id": "abuso_violencia_negligencia",
+      "label": "Suspeita de abuso, violência ou negligência"
+    },
+    {
+      "id": "substancias_intoxicacao",
+      "label": "Uso de substâncias, intoxicação ou abstinência"
+    },
+    {
+      "id": "medicamentos_condicoes_clinicas",
+      "label": "Medicamentos ou condições clínicas que podem imitar TDAH"
+    },
+    {
+      "id": "prejuizo_extremo",
+      "label": "Prejuízo funcional extremo"
+    }
+  ],
+  "questions": [
+    {
+      "id": "rf_self_harm_ideation_01",
+      "category": "risco_autoagressao_suicidio",
+      "severity_if_yes": "urgente",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "A criança/adolescente falou recentemente em morrer, sumir, se matar ou não querer mais viver?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "risco_suicidio_ideacao",
+        "fluxo_urgente_saude_mental"
+      ],
+      "action": "Não gerar resultado padrão. Orientar avaliação imediata de segurança e serviço de urgência/saúde mental."
+    },
+    {
+      "id": "rf_self_harm_behavior_02",
+      "category": "risco_autoagressao_suicidio",
+      "severity_if_yes": "urgente",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Houve autoagressão, tentativa de se machucar, cortes, ingestão de remédios/produtos ou comportamento de risco contra si mesmo(a)?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "risco_autoagressao",
+        "fluxo_urgente_saude_mental"
+      ],
+      "action": "Priorizar segurança, supervisão contínua e serviço de urgência."
+    },
+    {
+      "id": "rf_aggression_weapon_03",
+      "category": "risco_agressao_violencia",
+      "severity_if_yes": "urgente",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Houve ameaça grave de ferir alguém, uso de objeto como arma, crueldade física ou agressão que colocou alguém em risco?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "risco_agressao_grave",
+        "fluxo_urgente_segurança"
+      ],
+      "action": "Não tratar como oposição simples. Acionar avaliação de risco e fluxo de segurança."
+    },
+    {
+      "id": "rf_uncontrollable_rage_04",
+      "category": "risco_agressao_violencia",
+      "severity_if_yes": "prioritario",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "As crises de raiva são tão intensas que adultos não conseguem conter com segurança ou há destruição importante de objetos?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "crises_agressividade_intensa",
+        "avaliacao_prioritaria_comportamento"
+      ],
+      "action": "Elevar prioridade clínica e avaliar segurança familiar/escolar."
+    },
+    {
+      "id": "rf_psychosis_05",
+      "category": "psicose_mania_desorganizacao_grave",
+      "severity_if_yes": "urgente",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "A criança/adolescente relata ouvir vozes, ver coisas que outros não veem, ter ideias muito estranhas ou parecer fora da realidade?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "sinais_psicose",
+        "fluxo_urgente_saude_mental"
+      ],
+      "action": "Suspender interpretação de TDAH/TOD e orientar avaliação urgente em saúde mental."
+    },
+    {
+      "id": "rf_mania_06",
+      "category": "psicose_mania_desorganizacao_grave",
+      "severity_if_yes": "prioritario",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "question": "Houve período de vários dias com energia fora do comum, sono muito reduzido sem cansaço, fala acelerada, grandiosidade ou comportamento muito arriscado?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "sinais_mania_hipomania",
+        "avaliacao_prioritaria_psiquiatria_infantil"
+      ],
+      "action": "Não interpretar como hiperatividade simples; recomendar avaliação de saúde mental."
+    },
+    {
+      "id": "rf_seizure_07",
+      "category": "neurologico_medico_agudo",
+      "severity_if_yes": "avaliacao_medica",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há crises convulsivas, apagões, ausências, desmaios, confusão súbita ou episódios em que parece desligar do ambiente?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "avaliar_crises_convulsivas_ausencias",
+        "avaliacao_medica_neurologica"
+      ],
+      "action": "Recomendar avaliação médica/neurológica antes de concluir rastreio comportamental."
+    },
+    {
+      "id": "rf_head_injury_08",
+      "category": "neurologico_medico_agudo",
+      "severity_if_yes": "avaliacao_medica",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Os sintomas começaram ou pioraram muito após queda, pancada na cabeça, acidente, infecção grave ou internação?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "inicio_pos_trauma_ou_doenca",
+        "avaliacao_medica_necessaria"
+      ],
+      "action": "Priorizar avaliação médica e não atribuir automaticamente a TDAH/TOD."
+    },
+    {
+      "id": "rf_regression_09",
+      "category": "regressao_desenvolvimento",
+      "severity_if_yes": "avaliacao_medica",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Houve perda de habilidades que já existiam, como fala, autonomia, controle de esfíncteres, aprendizagem, interação ou autocuidado?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "regressao_desenvolvimento",
+        "avaliacao_medica_neurodesenvolvimento"
+      ],
+      "action": "Recomendar avaliação pediátrica/neurológica/desenvolvimento."
+    },
+    {
+      "id": "rf_abrupt_change_10",
+      "category": "regressao_desenvolvimento",
+      "severity_if_yes": "prioritario",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "A mudança de comportamento foi muito repentina, em dias ou poucas semanas, sem histórico parecido antes?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "mudanca_abrupta_funcionamento",
+        "avaliacao_prioritaria_diferencial"
+      ],
+      "action": "Investigar causa médica, emocional, familiar, escolar ou traumática antes de interpretar como TDAH/TOD."
+    },
+    {
+      "id": "rf_abuse_violence_11",
+      "category": "abuso_violencia_negligencia",
+      "severity_if_yes": "rede_protecao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há suspeita, relato ou sinais de violência física, sexual, psicológica, negligência grave ou exploração?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "suspeita_abuso_violencia_negligencia",
+        "acionar_rede_protecao"
+      ],
+      "action": "Acionar protocolo local de proteção. Não exibir resultado padrão para responsável se isso puder aumentar risco."
+    },
+    {
+      "id": "rf_domestic_violence_12",
+      "category": "abuso_violencia_negligencia",
+      "severity_if_yes": "rede_protecao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "A criança/adolescente está exposta a violência doméstica, ameaças graves, brigas intensas ou ambiente inseguro?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "exposicao_violencia_domestica",
+        "avaliar_rede_protecao"
+      ],
+      "action": "Acionar fluxo de proteção/assistência social conforme protocolo local."
+    },
+    {
+      "id": "rf_bullying_severe_13",
+      "category": "abuso_violencia_negligencia",
+      "severity_if_yes": "prioritario",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há bullying intenso, humilhação, ameaça, perseguição ou medo de ir à escola?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "bullying_grave",
+        "avaliar_contexto_escolar_protecao"
+      ],
+      "action": "Contextualizar sinais de desatenção/oposição e acionar escola/rede de proteção quando necessário."
+    },
+    {
+      "id": "rf_substance_use_14",
+      "category": "substancias_intoxicacao",
+      "severity_if_yes": "prioritario",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 10,
+        "max": 17
+      },
+      "question": "Há suspeita ou relato de uso de álcool, nicotina, maconha, estimulantes, calmantes, energéticos em excesso ou outras substâncias?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "uso_substancias",
+        "avaliacao_saude_mental_adolescente"
+      ],
+      "action": "Não interpretar impulsividade/desatenção isoladamente; recomendar avaliação de saúde mental/adolescência."
+    },
+    {
+      "id": "rf_intoxication_15",
+      "category": "substancias_intoxicacao",
+      "severity_if_yes": "urgente",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há suspeita de intoxicação, overdose, ingestão de remédios/produtos, sonolência extrema, confusão ou alteração importante de consciência?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "suspeita_intoxicacao",
+        "fluxo_urgente_medico"
+      ],
+      "action": "Orientar serviço de urgência/emergência imediatamente."
+    },
+    {
+      "id": "rf_sleep_apnea_16",
+      "category": "sono_respiracao",
+      "severity_if_yes": "avaliacao_medica",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há ronco alto frequente, pausas respiratórias no sono, sono muito agitado ou sonolência diurna importante?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": false,
+      "if_yes_flags": [
+        "avaliar_sono_apneia",
+        "avaliacao_pediatra_otorrino_sono"
+      ],
+      "action": "Investigar sono antes de concluir TDAH, pois sono ruim pode imitar desatenção/hiperatividade."
+    },
+    {
+      "id": "rf_severe_insomnia_17",
+      "category": "sono_respiracao",
+      "severity_if_yes": "contextual",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "A criança/adolescente dorme muito pouco, vira noites, usa telas até tarde ou tem rotina de sono muito irregular na maioria dos dias?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": false,
+      "if_yes_flags": [
+        "sono_insuficiente_irregular",
+        "contextualizar_desatencao_impulsividade"
+      ],
+      "action": "Adicionar cautela e orientar higiene do sono/reavaliação."
+    },
+    {
+      "id": "rf_medication_effect_18",
+      "category": "medicamentos_condicoes_clinicas",
+      "severity_if_yes": "avaliacao_medica",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Os sintomas começaram ou pioraram após iniciar, suspender ou alterar remédio, suplemento, estimulante, corticoide, antialérgico, anticonvulsivante ou outro tratamento?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "possivel_efeito_medicacao",
+        "revisao_medica_medicamentosa"
+      ],
+      "action": "Recomendar revisão médica antes de atribuir sintomas a TDAH/TOD."
+    },
+    {
+      "id": "rf_medical_condition_19",
+      "category": "medicamentos_condicoes_clinicas",
+      "severity_if_yes": "avaliacao_medica",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há doença clínica não controlada, dor crônica, anemia importante, alteração de tireoide, diabetes descompensado ou outra condição que afete energia, humor ou atenção?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": false,
+      "if_yes_flags": [
+        "condicao_clinica_pode_interferir",
+        "avaliacao_medica_necessaria"
+      ],
+      "action": "Contextualizar e recomendar avaliação médica."
+    },
+    {
+      "id": "rf_vision_hearing_20",
+      "category": "medicamentos_condicoes_clinicas",
+      "severity_if_yes": "contextual",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há suspeita de dificuldade para enxergar, ouvir, acompanhar a lousa, entender fala ou responder quando chamado?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": false,
+      "if_yes_flags": [
+        "avaliar_visao_audicao",
+        "contextualizar_desatencao"
+      ],
+      "action": "Orientar avaliação visual/auditiva antes de interpretar desatenção como TDAH."
+    },
+    {
+      "id": "rf_learning_language_21",
+      "category": "medicamentos_condicoes_clinicas",
+      "severity_if_yes": "contextual",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há atraso de fala/linguagem, dificuldade persistente de leitura, escrita, matemática ou suspeita de transtorno de aprendizagem?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": false,
+      "if_yes_flags": [
+        "avaliar_linguagem_aprendizagem",
+        "contextualizar_desatencao"
+      ],
+      "action": "Recomendar avaliação pedagógica/fono/neuropsicológica conforme caso."
+    },
+    {
+      "id": "rf_autism_signs_22",
+      "category": "medicamentos_condicoes_clinicas",
+      "severity_if_yes": "contextual",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há sinais importantes de dificuldade de comunicação social, rigidez, interesses restritos, sensibilidade sensorial ou suspeita de autismo?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": false,
+      "if_yes_flags": [
+        "avaliar_sinais_autismo",
+        "avaliacao_neurodesenvolvimento"
+      ],
+      "action": "Não excluir TDAH automaticamente, mas recomendar avaliação de neurodesenvolvimento."
+    },
+    {
+      "id": "rf_severe_school_refusal_23",
+      "category": "prejuizo_extremo",
+      "severity_if_yes": "prioritario",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há recusa intensa de ir à escola, faltas frequentes, evasão, crises para entrar na escola ou queda abrupta no funcionamento escolar?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "prejuizo_escolar_extremo",
+        "avaliar_ansiedade_bullying_aprendizagem_contexto"
+      ],
+      "action": "Elevar prioridade e investigar ansiedade, bullying, aprendizagem, trauma e contexto escolar."
+    },
+    {
+      "id": "rf_basic_needs_24",
+      "category": "prejuizo_extremo",
+      "severity_if_yes": "prioritario",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "O comportamento está impedindo necessidades básicas, como dormir, comer, tomar banho, sair de casa, tomar medicação necessária ou permanecer em segurança?",
+      "answer_scale": "yes_no_unknown",
+      "requires_timeframe_if_yes": true,
+      "if_yes_flags": [
+        "prejuizo_basico_importante",
+        "prioridade_clinica"
+      ],
+      "action": "Elevar para prioridade clínica e avaliar rede de apoio."
+    }
+  ],
+  "engine_rules": [
+    {
+      "id": "any_urgent_red_flag",
+      "condition": "any_question_positive_with_severity == urgente",
+      "set_flags": [
+        "urgent_red_flag",
+        "fluxo_prioritario_por_alerta"
+      ],
+      "classification_override": "prioridade_clinica",
+      "block_standard_tdah_tod_result": true,
+      "result_message_key": "mensagem_urgente"
+    },
+    {
+      "id": "any_safeguarding_red_flag",
+      "condition": "any_question_positive_with_severity == rede_protecao",
+      "set_flags": [
+        "safeguarding_red_flag",
+        "acionar_rede_protecao"
+      ],
+      "classification_override": "prioridade_clinica",
+      "block_standard_tdah_tod_result": true,
+      "result_message_key": "mensagem_rede_protecao"
+    },
+    {
+      "id": "any_priority_red_flag",
+      "condition": "any_question_positive_with_severity == prioritario",
+      "set_flags": [
+        "priority_red_flag"
+      ],
+      "classification_floor": "sinais_importantes",
+      "block_standard_tdah_tod_result": false,
+      "result_message_key": "mensagem_prioritaria"
+    },
+    {
+      "id": "any_medical_evaluation_red_flag",
+      "condition": "any_question_positive_with_severity == avaliacao_medica",
+      "set_flags": [
+        "medical_evaluation_red_flag"
+      ],
+      "classification_floor": "sinais_importantes",
+      "block_standard_tdah_tod_result": false,
+      "result_message_key": "mensagem_avaliacao_medica"
+    },
+    {
+      "id": "contextual_red_flags",
+      "condition": "any_question_positive_with_severity == contextual",
+      "set_flags": [
+        "contextual_red_flag",
+        "avaliar_diferenciais"
+      ],
+      "classification_floor": null,
+      "block_standard_tdah_tod_result": false,
+      "result_message_key": "mensagem_contextual"
+    }
+  ],
+  "exclusion_and_caution_rules": [
+    {
+      "id": "exclude_standard_interpretation_if_urgent",
+      "condition": "urgent_red_flag == true OR safeguarding_red_flag == true",
+      "effect": "do_not_show_standard_snap_interpretation",
+      "safe_phrase": "Antes de interpretar sinais de TDAH/TOD, é necessário cuidar do alerta de segurança identificado."
+    },
+    {
+      "id": "medical_before_behavioral_conclusion",
+      "condition": "medical_evaluation_red_flag == true",
+      "effect": "show_snap_score_but_hold_final_clinical_meaning",
+      "safe_phrase": "O rastreio pode mostrar sinais comportamentais, mas há fator médico/neurológico que precisa ser avaliado."
+    },
+    {
+      "id": "contextualize_if_sleep_learning_vision_hearing",
+      "condition": "contextual_red_flag == true",
+      "effect": "add_differential_note",
+      "safe_phrase": "Alguns fatores relatados podem imitar ou intensificar desatenção, impulsividade ou oposição."
+    },
+    {
+      "id": "multiple_contextual_flags",
+      "condition": "contextual_red_flag_count >= 2",
+      "effect": "increase_recommendation_to_professional_evaluation",
+      "safe_phrase": "Há múltiplos fatores contextuais que justificam avaliação profissional, mesmo que a pontuação SNAP-IV não esteja alta."
+    }
+  ],
+  "routing": {
+    "urgent_flow": {
+      "id": "urgent_flow",
+      "title": "Fluxo de urgência",
+      "actions": [
+        "Orientar responsável a não deixar criança/adolescente sem supervisão se houver risco atual.",
+        "Orientar procura de serviço de urgência/emergência, SAMU 192, pronto atendimento, hospital ou serviço de saúde mental da rede local.",
+        "Se houver risco de violência, intoxicação, psicose, autoagressão ou abuso, seguir protocolo institucional/local.",
+        "Registrar que o rastreio SNAP-IV ficou suspenso por alerta de risco."
+      ]
+    },
+    "priority_clinical_flow": {
+      "id": "priority_clinical_flow",
+      "title": "Fluxo clínico prioritário",
+      "actions": [
+        "Priorizar avaliação com pediatra, neuropediatra, psiquiatra infantil ou saúde mental infantil conforme rede.",
+        "Solicitar informações de escola e família, se seguro.",
+        "Investigar diferenciais antes de concluir hipótese de TDAH/TOD."
+      ]
+    },
+    "medical_evaluation_flow": {
+      "id": "medical_evaluation_flow",
+      "title": "Fluxo de avaliação médica",
+      "actions": [
+        "Orientar avaliação pediátrica ou especialidade apropriada.",
+        "Investigar sono, visão, audição, crises convulsivas, efeitos de medicação e condições clínicas.",
+        "Repetir ou reinterpretar rastreio comportamental após avaliação/estabilização quando necessário."
+      ]
+    },
+    "safeguarding_flow": {
+      "id": "safeguarding_flow",
+      "title": "Fluxo de proteção",
+      "actions": [
+        "Seguir protocolo local de proteção da criança/adolescente.",
+        "Evitar expor informação ao possível agressor quando isso puder aumentar risco.",
+        "Acionar serviço social, conselho tutelar, escola, saúde ou autoridade competente conforme protocolo institucional."
+      ]
+    }
+  },
+  "output_schema": {
+    "red_flag_result": {
+      "answered_item_count": "number",
+      "positive_red_flags": [
+        {
+          "id": "string",
+          "category": "string",
+          "severity": "urgente | prioritario | avaliacao_medica | rede_protecao | contextual",
+          "timeframe": "current_24h | last_7_days | last_month | past_not_recent | null",
+          "flags": [
+            "string"
+          ]
+        }
+      ],
+      "highest_severity": "urgente | rede_protecao | prioritario | avaliacao_medica | contextual | none",
+      "urgent_red_flag": "boolean",
+      "safeguarding_red_flag": "boolean",
+      "medical_evaluation_red_flag": "boolean",
+      "contextual_red_flag": "boolean",
+      "classification_override": "prioridade_clinica | null",
+      "classification_floor": "sinais_importantes | null",
+      "block_standard_tdah_tod_result": "boolean",
+      "recommended_flow": "urgent_flow | safeguarding_flow | priority_clinical_flow | medical_evaluation_flow | standard_flow",
+      "message_key": "string"
+    }
+  },
+  "safe_language_templates": {
+    "mensagem_urgente": "Foi identificado um alerta de risco que precisa de atenção imediata. Antes de interpretar sinais de TDAH/TOD, procure ajuda presencial de urgência ou serviço de saúde mental da rede local.",
+    "mensagem_rede_protecao": "Foi identificado um possível alerta de proteção. O cuidado principal agora é garantir segurança e acionar a rede adequada conforme protocolo local.",
+    "mensagem_prioritaria": "Há um alerta que aumenta a prioridade de avaliação profissional. O resultado do rastreio não deve ser interpretado isoladamente como TDAH/TOD.",
+    "mensagem_avaliacao_medica": "Há sinais que podem ter causa médica, neurológica, sono, medicação ou condição clínica. Recomenda-se avaliação profissional antes de concluir o rastreio comportamental.",
+    "mensagem_contextual": "Há fatores que podem imitar ou intensificar sinais de desatenção, impulsividade ou oposição. O resultado deve ser interpretado com cautela e pode exigir avaliação diferencial.",
+    "sem_red_flags": "Nenhum alerta de risco foi informado neste bloco. O resultado ainda não fecha diagnóstico e deve ser interpretado junto da pontuação, prejuízo funcional e contexto."
+  },
+  "implementation_notes": [
+    "Aplicar red flags antes de exibir qualquer resultado final de TDAH/TOD.",
+    "Se houver red flag urgente ou rede_protecao, bloquear resultado padrão e exibir fluxo de segurança/proteção.",
+    "Se houver red flag médica, manter pontuação SNAP-IV como dado de rastreio, mas segurar conclusão forte até avaliação médica.",
+    "Se houver red flag contextual, adicionar nota de cautela e integrar ao arquivo tdah_tod_differential_screening.json.",
+    "Professor pode responder sinais observáveis de escola, mas perguntas médicas detalhadas devem vir preferencialmente do responsável.",
+    "Nunca exibir 'tem TDAH' ou 'tem TOD'. Usar linguagem de sinais compatíveis, risco, cautela e encaminhamento.",
+    "Adequar textos de urgência aos fluxos e telefones locais do município/operadora antes de produção."
+  ]
+}

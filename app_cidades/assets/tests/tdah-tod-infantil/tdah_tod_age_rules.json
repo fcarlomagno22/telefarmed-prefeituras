@@ -1,0 +1,783 @@
+{
+  "metadata": {
+    "module": "tdah_tod_infantil",
+    "file": "tdah_tod_age_rules.json",
+    "version": "1.1.0",
+    "locale": "pt-BR",
+    "depends_on": [
+      "tdah_tod_questions.json",
+      "tdah_tod_scoring_rules.json",
+      "tdah_tod_cutoffs.json",
+      "tdah_tod_informants.json",
+      "tdah_tod_functional_impairment.json",
+      "tdah_tod_red_flags.json",
+      "tdah_tod_differential_screening.json"
+    ],
+    "instrument_basis": [
+      "SNAP-IV 26 para sintomas nucleares de TDAH/TOD",
+      "AAP ADHD Clinical Practice Guideline - avaliação de 4 a 18 anos",
+      "Critérios clínicos de início antes dos 12 anos, prejuízo funcional e sintomas em mais de um ambiente"
+    ],
+    "clinical_scope": "Regras de elegibilidade, aplicação e interpretação por idade para triagem neurocomportamental infantil/adolescente.",
+    "diagnostic_disclaimer": "A idade orienta a aplicação e a interpretação do rastreio, mas o resultado não fecha diagnóstico.",
+    "base_age_range": {
+      "min": 4,
+      "max": 17,
+      "unit": "years",
+      "inclusive": true
+    },
+    "age_principle": "Usar os mesmos itens SNAP-IV 26, mas modificar cautela, blocos obrigatórios, informantes, confiança e encaminhamento conforme a fase do desenvolvimento."
+  },
+  "age_input": {
+    "required_fields": [
+      "birth_date",
+      "assessment_date"
+    ],
+    "accepted_fallback_fields": [
+      "age_years",
+      "age_months"
+    ],
+    "preferred_calculation": "calculate_completed_years_and_months_from_birth_date",
+    "rounding_policy": "Usar anos completos e meses completos na data da avaliação.",
+    "validation_rules": [
+      {
+        "id": "birth_date_required_or_age_required",
+        "condition": "birth_date is missing AND age_years is missing",
+        "action": "block_assessment",
+        "message_key": "idade_obrigatoria"
+      },
+      {
+        "id": "future_birth_date",
+        "condition": "birth_date > assessment_date",
+        "action": "block_assessment",
+        "message_key": "data_nascimento_invalida"
+      },
+      {
+        "id": "age_conflict",
+        "condition": "birth_date_age_differs_from_informed_age_by_more_than_1_year",
+        "action": "request_confirmation",
+        "message_key": "idade_informada_divergente"
+      }
+    ]
+  },
+  "age_groups": [
+    {
+      "id": "under_4_not_eligible",
+      "label": "Menor de 4 anos",
+      "age_range": {
+        "min": 0,
+        "max": 3,
+        "inclusive_max": true
+      },
+      "developmental_stage": "primeira_infancia",
+      "eligibility": "not_eligible",
+      "allow_snap_iv_26": false,
+      "allow_functional_impairment_block": false,
+      "classification_behavior": "do_not_classify",
+      "result_flag": "fora_faixa_menor_4_anos",
+      "default_confidence": "indisponivel",
+      "recommended_action": "Orientar avaliação com pediatra ou equipe de desenvolvimento infantil quando houver preocupação com comportamento, fala, sono, alimentação, interação social, atraso global ou regressão.",
+      "safe_message": "Este rastreio foi estruturado para crianças a partir de 4 anos. Para menores de 4 anos, o mais adequado é avaliação clínica do desenvolvimento infantil."
+    },
+    {
+      "id": "age_4_5_preschool",
+      "label": "4 a 5 anos",
+      "age_range": {
+        "min": 4,
+        "max": 5,
+        "inclusive_max": true
+      },
+      "developmental_stage": "pre_escolar",
+      "eligibility": "eligible_with_caution",
+      "allow_snap_iv_26": true,
+      "allow_functional_impairment_block": true,
+      "classification_behavior": "classify_with_preschool_caution",
+      "result_flag": "idade_pre_escolar_interpretar_com_cautela",
+      "default_confidence": "moderada",
+      "recommended_informants": [
+        "responsavel",
+        "professor_ou_creche",
+        "cuidador_regular"
+      ],
+      "minimum_informants_for_higher_confidence": 2,
+      "clinical_note": "Em pré-escolares, agitação, oposição e baixa tolerância à frustração podem variar muito com desenvolvimento, sono, rotina, linguagem e ambiente.",
+      "safe_message": "Na idade pré-escolar, o resultado deve ser interpretado com cautela e sempre considerando sono, rotina, linguagem, desenvolvimento e ambiente."
+    },
+    {
+      "id": "age_6_11_school_child",
+      "label": "6 a 11 anos",
+      "age_range": {
+        "min": 6,
+        "max": 11,
+        "inclusive_max": true
+      },
+      "developmental_stage": "idade_escolar",
+      "eligibility": "eligible_standard",
+      "allow_snap_iv_26": true,
+      "allow_functional_impairment_block": true,
+      "classification_behavior": "standard_classification",
+      "result_flag": "idade_escolar_pontuacao_padrao",
+      "default_confidence": "moderada",
+      "recommended_informants": [
+        "responsavel",
+        "professor"
+      ],
+      "minimum_informants_for_higher_confidence": 2,
+      "clinical_note": "Faixa principal para rastreio escolar, com forte valor da comparação entre casa e escola.",
+      "safe_message": "Nesta faixa escolar, o rastreio deve considerar casa e escola, além do impacto no aprendizado, comportamento e relações."
+    },
+    {
+      "id": "age_12_14_early_adolescent",
+      "label": "12 a 14 anos",
+      "age_range": {
+        "min": 12,
+        "max": 14,
+        "inclusive_max": true
+      },
+      "developmental_stage": "adolescencia_inicial",
+      "eligibility": "eligible_with_context",
+      "allow_snap_iv_26": true,
+      "allow_functional_impairment_block": true,
+      "classification_behavior": "standard_classification_with_adolescent_context",
+      "result_flag": "adolescente_inicial_contextualizar_sintomas",
+      "default_confidence": "moderada",
+      "recommended_informants": [
+        "responsavel",
+        "professor",
+        "coordenacao_escolar",
+        "adolescente_quando_disponivel"
+      ],
+      "minimum_informants_for_higher_confidence": 2,
+      "clinical_note": "No início da adolescência, hiperatividade pode aparecer menos como correr/subir e mais como inquietação, impulsividade, desorganização e dificuldade acadêmica.",
+      "safe_message": "No início da adolescência, é importante contextualizar sono, uso de telas, ansiedade, humor, bullying, aprendizagem e mudanças familiares."
+    },
+    {
+      "id": "age_15_16_adolescent",
+      "label": "15 a 16 anos",
+      "age_range": {
+        "min": 15,
+        "max": 16,
+        "inclusive_max": true
+      },
+      "developmental_stage": "adolescencia_media",
+      "eligibility": "eligible_with_context",
+      "allow_snap_iv_26": true,
+      "allow_functional_impairment_block": true,
+      "classification_behavior": "standard_classification_with_adolescent_context",
+      "result_flag": "adolescente_contextualizar_sintomas",
+      "default_confidence": "moderada",
+      "recommended_informants": [
+        "responsavel",
+        "professor",
+        "coordenacao_escolar",
+        "adolescente_quando_disponivel"
+      ],
+      "minimum_informants_for_higher_confidence": 2,
+      "clinical_note": "A queixa pode aparecer como desorganização, procrastinação, queda de rendimento, irritabilidade, sono ruim, impulsividade social ou conflitos.",
+      "safe_message": "Em adolescentes, sintomas de desatenção, impulsividade ou oposição podem estar relacionados também a sono, ansiedade, depressão, uso de substâncias, pressão escolar ou conflitos familiares."
+    },
+    {
+      "id": "age_17_late_adolescent",
+      "label": "17 anos",
+      "age_range": {
+        "min": 17,
+        "max": 17,
+        "inclusive_max": true
+      },
+      "developmental_stage": "adolescencia_tardia",
+      "eligibility": "eligible_with_context",
+      "allow_snap_iv_26": true,
+      "allow_functional_impairment_block": true,
+      "classification_behavior": "standard_snap_classification_with_clinical_review_trigger",
+      "result_flag": "adolescente_tardio_contextualizar_sintomas",
+      "default_confidence": "moderada",
+      "recommended_informants": [
+        "responsavel",
+        "professor",
+        "coordenacao_escolar",
+        "adolescente_quando_disponivel"
+      ],
+      "minimum_informants_for_higher_confidence": 2,
+      "clinical_note": "Manter corte SNAP-IV 26 do motor para triagem padronizada; se houver 5 sintomas fortes em um domínio com prejuízo funcional, marcar revisão clínica, sem classificar automaticamente como sinal relevante.",
+      "safe_message": "Aos 17 anos, o rastreio deve considerar autonomia, rotina de sono, pressão acadêmica, humor, ansiedade, substâncias e prejuízo funcional."
+    },
+    {
+      "id": "age_18_or_more_not_child_module",
+      "label": "18 anos ou mais",
+      "age_range": {
+        "min": 18,
+        "max": 120,
+        "inclusive_max": true
+      },
+      "developmental_stage": "adulto",
+      "eligibility": "not_eligible_for_child_module",
+      "allow_snap_iv_26": false,
+      "allow_functional_impairment_block": false,
+      "classification_behavior": "do_not_classify",
+      "result_flag": "fora_faixa_18_anos_ou_mais",
+      "default_confidence": "indisponivel",
+      "recommended_action": "Usar módulo adulto de rastreio atencional/comportamental, se disponível, ou orientar avaliação clínica.",
+      "safe_message": "Este módulo foi criado para crianças e adolescentes de 4 a 17 anos. Para maiores de 18 anos, use um fluxo próprio para adultos."
+    }
+  ],
+  "age_specific_cutoff_policy": {
+    "default_policy": "Usar os cortes do tdah_tod_cutoffs.json para todos os elegíveis: 6/9 em desatenção, 6/9 em hiperatividade/impulsividade e 4/8 em oposição/desafio.",
+    "do_not_auto_diagnose": true,
+    "rules": [
+      {
+        "id": "preschool_same_cutoff_more_caution",
+        "age_group_id": "age_4_5_preschool",
+        "cutoff_behavior": "same_cutoffs_as_snap_iv_26",
+        "interpretation_modifier": "increase_caution",
+        "reason": "Em pré-escolares, sintomas podem refletir variações do desenvolvimento, linguagem, sono e ambiente."
+      },
+      {
+        "id": "school_age_standard_cutoff",
+        "age_group_id": "age_6_11_school_child",
+        "cutoff_behavior": "same_cutoffs_as_snap_iv_26",
+        "interpretation_modifier": "standard",
+        "reason": "Faixa escolar principal para comparação entre responsável e professor."
+      },
+      {
+        "id": "adolescent_same_cutoff_contextualized",
+        "age_group_id": "age_12_14_early_adolescent",
+        "cutoff_behavior": "same_cutoffs_as_snap_iv_26",
+        "interpretation_modifier": "contextualize_with_differentials",
+        "reason": "Sono, humor, ansiedade, telas, bullying, substâncias e pressão escolar podem imitar ou agravar sinais."
+      },
+      {
+        "id": "adolescent_15_16_same_cutoff_contextualized",
+        "age_group_id": "age_15_16_adolescent",
+        "cutoff_behavior": "same_cutoffs_as_snap_iv_26",
+        "interpretation_modifier": "contextualize_with_differentials",
+        "reason": "Em adolescentes, hiperatividade pode ser menos motora e mais subjetiva/funcional."
+      },
+      {
+        "id": "age_17_review_trigger_at_5_items",
+        "age_group_id": "age_17_late_adolescent",
+        "cutoff_behavior": "same_cutoffs_as_snap_iv_26_for_app_classification",
+        "clinical_review_trigger": {
+          "condition": "positive_item_count == 5 in desatencao OR positive_item_count == 5 in hiperatividade_impulsividade AND functional_impairment_level IN [prejuizo_moderado, prejuizo_importante]",
+          "flag": "adolescente_17_revisao_clinica_por_limiar",
+          "message_key": "adolescente_17_limiar_revisao_clinica"
+        },
+        "reason": "O motor mantém padronização SNAP-IV 26, mas sinaliza revisão clínica quando adolescente tardio tem sintomas quase no corte com prejuízo."
+      }
+    ]
+  },
+  "age_group_scoring_modifiers": [
+    {
+      "id": "preschool_cap_without_external_informant",
+      "applies_to_age_group": "age_4_5_preschool",
+      "condition": "only_responsavel_available == true AND urgent_red_flag == false",
+      "modifier_type": "maximum_classification_cap",
+      "maximum_classification_id": "sinais_moderados",
+      "reason": "Em pré-escolares, a ausência de creche/escola/cuidador externo reduz segurança para classificar como sinais importantes."
+    },
+    {
+      "id": "preschool_no_priority_without_impairment_or_red_flag",
+      "applies_to_age_group": "age_4_5_preschool",
+      "condition": "functional_impairment_level NOT IN [prejuizo_importante] AND urgent_red_flag == false",
+      "modifier_type": "prevent_priority_clinica",
+      "maximum_classification_id": "sinais_importantes",
+      "reason": "Prioridade clínica em pré-escolar deve depender de prejuízo importante, red flag ou decisão profissional."
+    },
+    {
+      "id": "preschool_developmental_flag_increases_referral",
+      "applies_to_age_group": "age_4_5_preschool",
+      "condition": "developmental_delay_flag == true OR language_delay_flag == true OR autism_signs_flag == true",
+      "modifier_type": "referral_modifier",
+      "recommended_referral": "pediatra_neuropediatra_desenvolvimento_fono_psicologia_conforme_caso",
+      "reason": "Atrasos do desenvolvimento podem explicar ou acompanhar sinais de atenção/oposição."
+    },
+    {
+      "id": "school_age_two_environment_boost",
+      "applies_to_age_group": "age_6_11_school_child",
+      "condition": "same_domain_relevant_in_responsavel_and_professor == true",
+      "modifier_type": "minimum_classification_floor",
+      "minimum_classification_id": "sinais_importantes",
+      "reason": "Sinais consistentes em casa e escola aumentam a prioridade do rastreio."
+    },
+    {
+      "id": "school_age_learning_flag_contextualizes",
+      "applies_to_age_group": "age_6_11_school_child",
+      "condition": "learning_difficulty_flag == true",
+      "modifier_type": "context_modifier",
+      "message_key": "avaliar_aprendizagem_visao_audicao",
+      "reason": "Dificuldade de aprendizagem, visão ou audição pode parecer desatenção."
+    },
+    {
+      "id": "early_adolescent_differential_required",
+      "applies_to_age_group": "age_12_14_early_adolescent",
+      "condition": "differential_screening_missing == true",
+      "modifier_type": "confidence_decrease",
+      "confidence_level": "baixa",
+      "reason": "Em adolescentes, diferenciais como sono, ansiedade, depressão, substâncias, telas e bullying precisam ser rastreados."
+    },
+    {
+      "id": "middle_adolescent_differential_required",
+      "applies_to_age_group": "age_15_16_adolescent",
+      "condition": "differential_screening_missing == true",
+      "modifier_type": "confidence_decrease",
+      "confidence_level": "baixa",
+      "reason": "Fatores emocionais, rotina, sono, substâncias e demanda acadêmica podem imitar ou agravar sinais de TDAH/TOD."
+    },
+    {
+      "id": "late_adolescent_differential_required",
+      "applies_to_age_group": "age_17_late_adolescent",
+      "condition": "differential_screening_missing == true",
+      "modifier_type": "confidence_decrease",
+      "confidence_level": "baixa",
+      "reason": "Aos 17 anos, diferenciais e contexto funcional são indispensáveis para interpretar o rastreio."
+    }
+  ],
+  "age_group_required_blocks": [
+    {
+      "age_group_id": "age_4_5_preschool",
+      "required_blocks": [
+        "responsavel_questions",
+        "functional_impairment",
+        "red_flags",
+        "sleep_screening",
+        "developmental_screening",
+        "language_screening"
+      ],
+      "strongly_recommended_blocks": [
+        "professor_or_creche_questions",
+        "vision_hearing_screening",
+        "family_context_screening",
+        "autism_signs_screening"
+      ]
+    },
+    {
+      "age_group_id": "age_6_11_school_child",
+      "required_blocks": [
+        "responsavel_questions",
+        "functional_impairment",
+        "red_flags",
+        "sleep_screening",
+        "school_context_screening"
+      ],
+      "strongly_recommended_blocks": [
+        "professor_or_school_questions",
+        "vision_hearing_screening",
+        "learning_difficulty_screening",
+        "anxiety_mood_screening",
+        "bullying_trauma_screening"
+      ]
+    },
+    {
+      "age_group_id": "age_12_14_early_adolescent",
+      "required_blocks": [
+        "responsavel_questions",
+        "functional_impairment",
+        "red_flags",
+        "sleep_screening",
+        "anxiety_mood_screening",
+        "screen_time_screening",
+        "bullying_trauma_screening"
+      ],
+      "strongly_recommended_blocks": [
+        "professor_or_school_questions",
+        "adolescent_self_report",
+        "substance_use_screening",
+        "learning_difficulty_screening",
+        "family_context_screening"
+      ]
+    },
+    {
+      "age_group_id": "age_15_16_adolescent",
+      "required_blocks": [
+        "responsavel_questions",
+        "functional_impairment",
+        "red_flags",
+        "sleep_screening",
+        "anxiety_mood_screening",
+        "screen_time_screening",
+        "substance_use_screening",
+        "bullying_trauma_screening"
+      ],
+      "strongly_recommended_blocks": [
+        "professor_or_school_questions",
+        "adolescent_self_report",
+        "academic_pressure_screening",
+        "family_context_screening"
+      ]
+    },
+    {
+      "age_group_id": "age_17_late_adolescent",
+      "required_blocks": [
+        "responsavel_questions",
+        "functional_impairment",
+        "red_flags",
+        "sleep_screening",
+        "anxiety_mood_screening",
+        "screen_time_screening",
+        "substance_use_screening",
+        "bullying_trauma_screening"
+      ],
+      "strongly_recommended_blocks": [
+        "professor_or_school_questions",
+        "adolescent_self_report",
+        "academic_pressure_screening",
+        "work_or_entrance_exam_context",
+        "family_context_screening"
+      ]
+    }
+  ],
+  "developmental_context_prompts": [
+    {
+      "id": "preschool_language_delay",
+      "age_groups": [
+        "age_4_5_preschool"
+      ],
+      "prompt_type": "clinical_context",
+      "question": "Houve atraso importante de fala, linguagem ou compreensão para a idade?",
+      "answer_type": "yes_no",
+      "if_yes_flag": "avaliar_atraso_linguagem_desenvolvimento",
+      "routing": "considerar_pediatra_fono_neurodesenvolvimento"
+    },
+    {
+      "id": "preschool_global_delay",
+      "age_groups": [
+        "age_4_5_preschool"
+      ],
+      "prompt_type": "clinical_context",
+      "question": "A criança apresenta atraso em autonomia, coordenação, interação social ou aprendizagem esperada para a idade?",
+      "answer_type": "yes_no",
+      "if_yes_flag": "avaliar_atraso_global_desenvolvimento",
+      "routing": "considerar_pediatra_neuropediatra_terapias"
+    },
+    {
+      "id": "preschool_autism_signs",
+      "age_groups": [
+        "age_4_5_preschool"
+      ],
+      "prompt_type": "clinical_context",
+      "question": "Há dificuldade importante de interação social, contato visual, brincadeira compartilhada, comunicação ou rigidez de rotina?",
+      "answer_type": "yes_no",
+      "if_yes_flag": "avaliar_sinais_autismo",
+      "routing": "considerar_avaliacao_neurodesenvolvimento"
+    },
+    {
+      "id": "school_learning_difficulty",
+      "age_groups": [
+        "age_6_11_school_child",
+        "age_12_14_early_adolescent",
+        "age_15_16_adolescent",
+        "age_17_late_adolescent"
+      ],
+      "prompt_type": "clinical_context",
+      "question": "Há dificuldade persistente de leitura, escrita, matemática ou queda importante no rendimento escolar?",
+      "answer_type": "yes_no",
+      "if_yes_flag": "avaliar_dificuldade_aprendizagem",
+      "routing": "considerar_avaliacao_pedagogica_psicopedagogica_neuropsicologica"
+    },
+    {
+      "id": "adolescent_mood_anxiety",
+      "age_groups": [
+        "age_12_14_early_adolescent",
+        "age_15_16_adolescent",
+        "age_17_late_adolescent"
+      ],
+      "prompt_type": "clinical_context",
+      "question": "Há tristeza frequente, ansiedade intensa, irritabilidade persistente, isolamento ou perda de interesse?",
+      "answer_type": "yes_no",
+      "if_yes_flag": "avaliar_ansiedade_humor",
+      "routing": "considerar_psicologo_psiquiatra_infantil_conforme_gravidade"
+    },
+    {
+      "id": "adolescent_sleep_screen_time",
+      "age_groups": [
+        "age_12_14_early_adolescent",
+        "age_15_16_adolescent",
+        "age_17_late_adolescent"
+      ],
+      "prompt_type": "clinical_context",
+      "question": "O sono está irregular ou há uso de telas até tarde na maioria dos dias?",
+      "answer_type": "yes_no",
+      "if_yes_flag": "avaliar_sono_telas",
+      "routing": "orientar_higiene_sono_reavaliar_e_considerar_pediatra"
+    },
+    {
+      "id": "adolescent_substance_risk",
+      "age_groups": [
+        "age_12_14_early_adolescent",
+        "age_15_16_adolescent",
+        "age_17_late_adolescent"
+      ],
+      "prompt_type": "clinical_context",
+      "question": "Há suspeita ou relato de uso de álcool, nicotina, estimulantes, maconha ou outras substâncias?",
+      "answer_type": "yes_no",
+      "if_yes_flag": "avaliar_uso_substancias",
+      "routing": "considerar_avaliacao_saude_mental_adolescente"
+    },
+    {
+      "id": "adolescent_bullying_trauma",
+      "age_groups": [
+        "age_12_14_early_adolescent",
+        "age_15_16_adolescent",
+        "age_17_late_adolescent"
+      ],
+      "prompt_type": "clinical_context",
+      "question": "Há bullying, violência, trauma recente, separação familiar ou mudança importante na rotina?",
+      "answer_type": "yes_no",
+      "if_yes_flag": "avaliar_bullying_trauma_mudanca_contextual",
+      "routing": "considerar_psicologo_servico_social_rede_protecao_conforme_caso"
+    }
+  ],
+  "informant_rules_by_age": [
+    {
+      "age_group_id": "age_4_5_preschool",
+      "primary_informant": "responsavel",
+      "secondary_informants": [
+        "professor_regente",
+        "coordenador_orientador_escolar",
+        "cuidador_principal",
+        "avo_ou_familiar_cuidador"
+      ],
+      "school_form_label": "creche/escola",
+      "if_no_school_or_external_caregiver": {
+        "allowed": true,
+        "confidence": "moderada",
+        "message_key": "pre_escolar_sem_escola_interpretar_com_cautela"
+      }
+    },
+    {
+      "age_group_id": "age_6_11_school_child",
+      "primary_informant": "responsavel",
+      "secondary_informants": [
+        "professor_regente",
+        "professor_disciplina",
+        "coordenador_orientador_escolar"
+      ],
+      "school_form_label": "escola",
+      "if_no_school": {
+        "allowed": true,
+        "confidence": "moderada",
+        "message_key": "sem_formulario_escolar_recomendar_envio"
+      }
+    },
+    {
+      "age_group_id": "age_12_14_early_adolescent",
+      "primary_informant": "responsavel",
+      "secondary_informants": [
+        "professor_regente",
+        "professor_disciplina",
+        "coordenador_orientador_escolar",
+        "adolescente_quando_disponivel"
+      ],
+      "school_form_label": "escola",
+      "if_no_school": {
+        "allowed": true,
+        "confidence": "moderada",
+        "message_key": "adolescente_sem_formulario_escolar_contextualizar"
+      }
+    },
+    {
+      "age_group_id": "age_15_16_adolescent",
+      "primary_informant": "responsavel",
+      "secondary_informants": [
+        "professor_disciplina",
+        "coordenador_orientador_escolar",
+        "adolescente_quando_disponivel"
+      ],
+      "school_form_label": "escola",
+      "if_no_school": {
+        "allowed": true,
+        "confidence": "moderada",
+        "message_key": "adolescente_sem_formulario_escolar_contextualizar"
+      }
+    },
+    {
+      "age_group_id": "age_17_late_adolescent",
+      "primary_informant": "responsavel",
+      "secondary_informants": [
+        "professor_disciplina",
+        "coordenador_orientador_escolar",
+        "adolescente_quando_disponivel"
+      ],
+      "school_form_label": "escola",
+      "if_no_school": {
+        "allowed": true,
+        "confidence": "moderada",
+        "message_key": "adolescente_sem_formulario_escolar_contextualizar"
+      }
+    }
+  ],
+  "age_based_referral_preferences": [
+    {
+      "age_group_id": "age_4_5_preschool",
+      "preferred_first_actions": [
+        "orientacao_parental",
+        "higiene_sono_rotina",
+        "avaliacao_pediatra",
+        "intervencao_comportamental_parental",
+        "orientacao_creche_escola"
+      ],
+      "specialist_when": [
+        "prejuizo_importante",
+        "red_flag",
+        "atraso_desenvolvimento",
+        "suspeita_autismo",
+        "agressividade_grave",
+        "regressao"
+      ]
+    },
+    {
+      "age_group_id": "age_6_11_school_child",
+      "preferred_first_actions": [
+        "formulario_professor",
+        "avaliacao_pediatra",
+        "orientacao_familiar",
+        "orientacao_escolar",
+        "avaliacao_psicologica_ou_neuropsicologica_quando_houver_prejuizo"
+      ],
+      "specialist_when": [
+        "sinais_importantes",
+        "prioridade_clinica",
+        "prejuizo_funcional_importante",
+        "comorbidades",
+        "red_flag"
+      ]
+    },
+    {
+      "age_group_id": "age_12_14_early_adolescent",
+      "preferred_first_actions": [
+        "avaliar_sono_telas_humor_ansiedade",
+        "formulario_escola",
+        "avaliacao_pediatra_ou_saude_mental",
+        "orientacao_familiar",
+        "suporte_escolar"
+      ],
+      "specialist_when": [
+        "prejuizo_importante",
+        "risco_autoagressao",
+        "depressao_ansiedade_importante",
+        "uso_substancias",
+        "agressividade_grave",
+        "red_flag"
+      ]
+    },
+    {
+      "age_group_id": "age_15_16_adolescent",
+      "preferred_first_actions": [
+        "avaliar_sono_telas_humor_ansiedade_substancias",
+        "avaliar_pressao_academica",
+        "avaliacao_pediatra_ou_saude_mental",
+        "suporte_escolar",
+        "plano_de_rotina_estudo"
+      ],
+      "specialist_when": [
+        "prejuizo_importante",
+        "risco_autoagressao",
+        "depressao_ansiedade_importante",
+        "uso_substancias",
+        "red_flag"
+      ]
+    },
+    {
+      "age_group_id": "age_17_late_adolescent",
+      "preferred_first_actions": [
+        "avaliar_sono_humor_ansiedade_substancias",
+        "avaliar_prejuizo_funcional_em_estudo_trabalho_rotina",
+        "avaliacao_pediatra_saude_mental_ou_fluxo_adulto_transicao",
+        "suporte_escolar_ou_vocacional"
+      ],
+      "specialist_when": [
+        "prejuizo_importante",
+        "risco_autoagressao",
+        "depressao_ansiedade_importante",
+        "uso_substancias",
+        "red_flag",
+        "limiar_5_sintomas_com_prejuizo"
+      ]
+    }
+  ],
+  "result_message_modifiers": [
+    {
+      "id": "append_under_4_message",
+      "condition": "age_group_id == under_4_not_eligible",
+      "append_message_key": "fora_faixa_menor_4_anos"
+    },
+    {
+      "id": "append_preschool_caution",
+      "condition": "age_group_id == age_4_5_preschool",
+      "append_message_key": "idade_pre_escolar_cautela"
+    },
+    {
+      "id": "append_school_form_recommendation",
+      "condition": "age_group_id IN [age_6_11_school_child, age_12_14_early_adolescent, age_15_16_adolescent, age_17_late_adolescent] AND professor_available == false",
+      "append_message_key": "recomendar_formulario_escola"
+    },
+    {
+      "id": "append_adolescent_context",
+      "condition": "age_group_id IN [age_12_14_early_adolescent, age_15_16_adolescent, age_17_late_adolescent]",
+      "append_message_key": "adolescente_contexto_diferenciais"
+    },
+    {
+      "id": "append_age_17_review",
+      "condition": "age_group_id == age_17_late_adolescent AND adolescente_17_revisao_clinica_por_limiar == true",
+      "append_message_key": "adolescente_17_limiar_revisao_clinica"
+    },
+    {
+      "id": "append_adult_module_message",
+      "condition": "age_group_id == age_18_or_more_not_child_module",
+      "append_message_key": "fora_faixa_adulto"
+    }
+  ],
+  "message_templates": {
+    "idade_obrigatoria": "Informe a idade ou a data de nascimento para iniciar o rastreio.",
+    "data_nascimento_invalida": "A data de nascimento informada parece inválida. Confira antes de continuar.",
+    "idade_informada_divergente": "A idade calculada pela data de nascimento é diferente da idade informada. Confirme os dados antes de gerar o resultado.",
+    "fora_faixa_menor_4_anos": "Este rastreio foi estruturado para crianças a partir de 4 anos. Para menores de 4 anos, procure avaliação do desenvolvimento infantil com profissional habilitado.",
+    "idade_pre_escolar_cautela": "Como a criança está em idade pré-escolar, o resultado deve ser interpretado com cautela e sempre considerando sono, rotina, linguagem, desenvolvimento e ambiente.",
+    "pre_escolar_sem_escola_interpretar_com_cautela": "Sem relato de escola, creche ou cuidador externo, o resultado pré-escolar fica menos preciso.",
+    "sem_formulario_escolar_recomendar_envio": "Para melhorar a precisão, envie também o formulário da escola/professor.",
+    "adolescente_sem_formulario_escolar_contextualizar": "Em adolescentes, a informação escolar ajuda a diferenciar dificuldade de atenção de sono, ansiedade, humor, telas e pressão acadêmica.",
+    "recomendar_formulario_escola": "O formulário da escola é recomendado para verificar se os sinais aparecem também no ambiente escolar.",
+    "adolescente_contexto_diferenciais": "Nesta idade, investigue também sono, telas, ansiedade, humor, bullying, trauma, substâncias, pressão escolar e mudanças familiares.",
+    "adolescente_17_limiar_revisao_clinica": "Aos 17 anos, sinais quase no ponto de corte com prejuízo funcional merecem revisão clínica, mesmo quando o rastreio automático não classifica como sinal relevante.",
+    "avaliar_aprendizagem_visao_audicao": "Quando há prejuízo escolar, avalie também aprendizagem, visão e audição, pois essas condições podem parecer desatenção.",
+    "fora_faixa_adulto": "Este módulo é infantil/adolescente. Para maiores de 18 anos, use um fluxo próprio para adultos."
+  },
+  "output_schema": {
+    "age_rule_result": {
+      "age_years": "number",
+      "age_months": "number",
+      "age_group_id": "under_4_not_eligible | age_4_5_preschool | age_6_11_school_child | age_12_14_early_adolescent | age_15_16_adolescent | age_17_late_adolescent | age_18_or_more_not_child_module",
+      "developmental_stage": "string",
+      "eligibility": "eligible_standard | eligible_with_caution | eligible_with_context | not_eligible | not_eligible_for_child_module",
+      "allow_snap_iv_26": "boolean",
+      "allow_functional_impairment_block": "boolean",
+      "classification_behavior": "string",
+      "result_flags": [
+        "string"
+      ],
+      "required_blocks": [
+        "string"
+      ],
+      "strongly_recommended_blocks": [
+        "string"
+      ],
+      "recommended_informants": [
+        "string"
+      ],
+      "confidence_modifier": "string",
+      "cutoff_policy_applied": "string",
+      "message_keys": [
+        "string"
+      ]
+    }
+  },
+  "implementation_notes": [
+    "Bloquear classificação para menores de 4 anos e maiores de 17 anos neste módulo.",
+    "Para 4 e 5 anos, permitir rastreio, mas sempre adicionar nota de cautela e valorizar avaliação do desenvolvimento, linguagem, sono e rotina.",
+    "Para 6 a 11 anos, usar fluxo padrão com forte recomendação de responsável + professor.",
+    "Para 12 a 17 anos, manter pontuação SNAP-IV 26, mas exigir investigação de sono, telas, ansiedade, humor, bullying, trauma, substâncias e pressão acadêmica.",
+    "Aos 17 anos, manter classificação automática pelo SNAP-IV 26, mas gerar flag de revisão clínica quando houver 5 itens positivos em desatenção ou hiperatividade/impulsividade com prejuízo funcional moderado/importante.",
+    "A ausência de professor/escola não impede MVP, mas reduz confiança e deve gerar recomendação de formulário escolar.",
+    "Red flags urgentes devem sobrescrever qualquer regra etária e acionar prioridade clínica.",
+    "Nunca exibir diagnóstico fechado. Usar linguagem de sinais compatíveis e recomendação de avaliação profissional."
+  ]
+}

@@ -32,6 +32,7 @@ export type AppScreen =
   | 'sleep-time'
   | 'sleep-stories'
   | 'mental-health'
+  | 'my-emotional'
   | 'my-routine'
   | 'active-mind'
   | 'active-mind-difficulty'

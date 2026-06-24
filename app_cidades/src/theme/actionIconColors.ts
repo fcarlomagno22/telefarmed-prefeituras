@@ -48,6 +48,10 @@ export const ACTION_ICON_PALETTES = {
     iconGradient: ['#67e8f9', '#0891b2', '#0e7490'],
     shadowColor: 'rgba(8, 145, 178, 0.38)',
   },
+  myEmotional: {
+    iconGradient: ['#c4b5fd', '#8b5cf6', '#6d28d9'],
+    shadowColor: 'rgba(139, 92, 246, 0.38)',
+  },
   bible: {
     iconGradient: ['#fde68a', '#d97706', '#b45309'],
     shadowColor: 'rgba(217, 119, 6, 0.42)',

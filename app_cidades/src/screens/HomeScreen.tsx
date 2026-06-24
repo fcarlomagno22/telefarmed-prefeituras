@@ -13,7 +13,7 @@ import { MenuDrawer } from '../components/MenuDrawer'
 import { PromoCarousel } from '../components/PromoCarousel'
 import { VidaSaudavelActions, VidaSaudavelActionId } from '../components/VidaSaudavelActions'
 import { appEnv } from '../config/env'
-import { getPromoBanners } from '../config/promoBanners'
+import { getPromoBanners, type PromoBanner } from '../config/promoBanners'
 import { useAuth } from '../contexts/AuthContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
@@ -76,6 +76,12 @@ export function HomeScreen() {
     }
   }
 
+  function handlePromoBannerPress(banner: PromoBanner) {
+    if (banner.kind === 'child-behavior-screening') {
+      requireAuth('home:child-behavior-screening', () => navigateTo('my-emotional'))
+    }
+  }
+
   function handleVidaAction(actionId: VidaSaudavelActionId) {
     if (actionId === 'my-metrics') {
       navigateTo('my-metrics')
@@ -104,6 +110,11 @@ export function HomeScreen() {
 
     if (actionId === 'mental-health') {
       navigateTo('mental-health')
+      return
+    }
+
+    if (actionId === 'my-emotional') {
+      requireAuth('vida:my-emotional', () => navigateTo('my-emotional'))
       return
     }
 
@@ -218,7 +229,11 @@ export function HomeScreen() {
             <GuestWelcomeCard skeleton={showSkeleton} />
           )}
           <HomeQuickActions onActionPress={handleQuickAction} skeleton={showSkeleton} />
-          <PromoCarousel banners={promoBanners} skeleton={showSkeleton} />
+          <PromoCarousel
+            banners={promoBanners}
+            skeleton={showSkeleton}
+            onBannerPress={handlePromoBannerPress}
+          />
           <Text style={styles.sectionTitle}>Saúde, Bem-estar e Qualidade de Vida</Text>
           <VidaSaudavelActions onActionPress={handleVidaAction} skeleton={showSkeleton} />
         </ScrollView>

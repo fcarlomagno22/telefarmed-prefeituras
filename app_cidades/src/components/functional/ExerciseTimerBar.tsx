@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient'
-import { StyleSheet, Text, View } from 'react-native'
+import { Animated, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../theme/colors'
 import type { TimerPhase } from '../../types/functionalTraining'
 import { formatTimerDisplay } from '../../utils/functionalTraining'
@@ -8,6 +8,8 @@ type ExerciseTimerBarProps = {
   secondsLeft: number
   totalSeconds: number
   phase: TimerPhase
+  showTime?: boolean
+  progressAnimated?: Animated.Value
 }
 
 const PHASE_GRADIENTS: Record<TimerPhase, [string, string, string]> = {
@@ -30,6 +32,8 @@ export function ExerciseTimerBar({
   secondsLeft,
   totalSeconds,
   phase,
+  showTime = true,
+  progressAnimated,
 }: ExerciseTimerBarProps) {
   const safeTotal = Math.max(totalSeconds, 1)
   const clampedSeconds = Math.min(Math.max(secondsLeft, 0), safeTotal)
@@ -44,26 +48,43 @@ export function ExerciseTimerBar({
       : formatTimerDisplay(displaySeconds)
 
   const isCountdown = phase === 'countdown'
+  const animatedWidth = progressAnimated?.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  })
 
   return (
     <View style={styles.wrap}>
-      <Text
-        style={[
-          styles.time,
-          isCountdown && styles.timeCountdown,
-          phase === 'rest' && styles.timeRest,
-        ]}
-      >
-        {display}
-      </Text>
+      {showTime ? (
+        <Text
+          style={[
+            styles.time,
+            isCountdown && styles.timeCountdown,
+            phase === 'rest' && styles.timeRest,
+          ]}
+        >
+          {display}
+        </Text>
+      ) : null}
 
       <View style={[styles.track, { shadowColor: glow }]}>
-        <LinearGradient
-          colors={gradient}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={[styles.fill, { width: `${progress * 100}%` }]}
-        />
+        {animatedWidth ? (
+          <Animated.View style={{ width: animatedWidth, height: '100%' }}>
+            <LinearGradient
+              colors={gradient}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={styles.fill}
+            />
+          </Animated.View>
+        ) : (
+          <LinearGradient
+            colors={gradient}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={[styles.fill, { width: `${progress * 100}%` }]}
+          />
+        )}
       </View>
     </View>
   )

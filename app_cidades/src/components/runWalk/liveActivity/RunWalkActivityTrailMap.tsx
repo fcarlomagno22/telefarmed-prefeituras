@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Platform, StyleSheet, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { WebView, type WebViewMessageEvent } from 'react-native-webview'
 import { profilePhotoToDataUri } from '../../../utils/profilePhotoImage'
 import { resolveMapMarkerHeading, type GeoCoordinates } from '../../../utils/geo'
@@ -17,7 +17,10 @@ type RunWalkActivityTrailMapProps = {
   deviceHeadingDegrees?: number | null
 }
 
-function buildPinStyles() {
+function buildPinStyles(hasPhoto: boolean) {
+  const dotSize = hasPhoto ? 36 : 22
+  const dotBorder = hasPhoto ? 3 : 3
+
   return `
       .leaflet-marker-icon.live-pin-wrap {
         background: transparent !important;
@@ -31,25 +34,23 @@ function buildPinStyles() {
       }
       .live-pin-shell {
         position: relative;
-        width: 100%;
-        height: 100%;
+        width: ${dotSize}px;
+        height: ${dotSize}px;
         overflow: visible;
       }
       .live-pin-body {
         position: absolute;
-        left: 50%;
-        top: 50%;
-        width: var(--pin-size);
-        height: var(--pin-size);
-        margin-left: calc(var(--pin-size) / -2);
-        margin-top: calc(var(--pin-size) / -2);
+        left: 0;
+        top: 0;
+        width: ${dotSize}px;
+        height: ${dotSize}px;
         border-radius: 50%;
         box-sizing: border-box;
         z-index: 1;
       }
       .live-pin-body.is-dot {
         background: #22c55e;
-        border: 3px solid #fff;
+        border: ${dotBorder}px solid #fff;
         box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.22);
       }
       .live-pin-body.is-photo {
@@ -63,32 +64,46 @@ function buildPinStyles() {
         object-fit: cover;
         display: block;
       }
+      .live-pin-pulse {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: ${dotSize}px;
+        height: ${dotSize}px;
+        margin-left: -${dotSize / 2}px;
+        margin-top: -${dotSize / 2}px;
+        border-radius: 50%;
+        border: 2px solid rgba(34, 197, 94, 0.45);
+        animation: live-pin-pulse 2s ease-out infinite;
+        pointer-events: none;
+        z-index: 0;
+      }
+      @keyframes live-pin-pulse {
+        0% { transform: scale(0.7); opacity: 0.85; }
+        70% { transform: scale(1.8); opacity: 0; }
+        100% { transform: scale(1.8); opacity: 0; }
+      }
       .live-pin-arrow {
         position: absolute;
-        inset: 0;
+        left: 0;
+        top: 0;
+        width: ${dotSize}px;
+        height: ${dotSize}px;
         z-index: 3;
         transform-origin: 50% 50%;
         pointer-events: none;
-        will-change: transform;
-        transition: opacity 0.15s ease;
       }
       .live-pin-arrow-tip {
         position: absolute;
         left: 50%;
-        top: calc(50% - var(--pin-r));
+        top: 0;
         width: 0;
         height: 0;
-        transform: translate(-50%, calc(-100% + 1px));
+        transform: translate(-50%, calc(-100% + 2px));
         border-left: 5px solid transparent;
         border-right: 5px solid transparent;
-        border-bottom: 7px solid #ffffff;
+        border-bottom: 8px solid #ffffff;
         filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
-      }
-      .live-pin-shell.is-photo .live-pin-arrow-tip {
-        border-left-width: 6px;
-        border-right-width: 6px;
-        border-bottom-width: 8px;
-        transform: translate(-50%, calc(-100% + 1px));
       }
   `
 }
@@ -148,7 +163,7 @@ function buildTrailMapHtml(
     <style>
       html, body, #map { width: 100%; height: 100%; margin: 0; background: #0b0f14; touch-action: none; }
       .leaflet-control-attribution, .leaflet-control-zoom { display: none !important; }
-      ${buildPinStyles()}
+      ${buildPinStyles(hasPhoto)}
     </style>
   </head>
   <body>
@@ -176,8 +191,8 @@ function buildTrailMapHtml(
       let animTo = null;
       let animDuration = 900;
       let mapBearing = 0;
-      const mapRotationEnabled = liveTracking;
-      const pinPhotoSrc = ${photoSrcJson};
+      const mapRotationEnabled = false;
+      let pinPhotoSrc = ${photoSrcJson};
       const pinSize = ${pinSize};
       const pinAnchor = ${pinAnchor};
       const pinRadius = ${pinRadius};
@@ -185,6 +200,21 @@ function buildTrailMapHtml(
       const autoFitBounds = ${autoFitBounds ? 'true' : 'false'};
       const liveTracking = ${liveTracking ? 'true' : 'false'};
       const mapInteractive = ${interactive || liveTracking ? 'true' : 'false'};
+
+      function toLatLng(point) {
+        if (!point) return null;
+        if (point.lat != null && point.lng != null) {
+          return L.latLng(Number(point.lat), Number(point.lng));
+        }
+        if (Array.isArray(point) && point.length >= 2) {
+          return L.latLng(Number(point[0]), Number(point[1]));
+        }
+        return null;
+      }
+
+      function normalizeTrail(trailPoints) {
+        return (trailPoints || []).map(toLatLng).filter(Boolean);
+      }
 
       function postMessage(payload) {
         if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
@@ -194,19 +224,18 @@ function buildTrailMapHtml(
 
       function buildPinHtml(heading, showArrow) {
         const hasPhoto = !!pinPhotoSrc;
-        const shellClass = 'live-pin-shell' + (hasPhoto ? ' is-photo' : '');
         const safeHeading = Number.isFinite(Number(heading)) ? Number(heading) : lastKnownHeading;
         const arrowStyle = showArrow
           ? 'transform: rotate(' + safeHeading + 'deg); opacity: 1;'
           : 'opacity: 0;';
-        const shellStyle =
-          '--pin-r: ' + pinRadius + 'px; --pin-size: ' + circleSize + 'px;';
         const bodyClass = 'live-pin-body ' + (hasPhoto ? 'is-photo' : 'is-dot');
+        const pulseMarkup = hasPhoto ? '' : '<div class="live-pin-pulse"></div>';
         const bodyMarkup = hasPhoto
           ? '<div class="' + bodyClass + '"><img src="' + pinPhotoSrc + '" alt="" /></div>'
           : '<div class="' + bodyClass + '"></div>';
 
-        return '<div class="' + shellClass + '" style="' + shellStyle + '">' +
+        return '<div class="live-pin-shell">' +
+          pulseMarkup +
           bodyMarkup +
           '<div class="live-pin-arrow" style="' + arrowStyle + '">' +
           '<span class="live-pin-arrow-tip"></span>' +
@@ -250,10 +279,11 @@ function buildTrailMapHtml(
       }
 
       function ensureMarker(latlng, heading) {
+        if (heading != null && Number.isFinite(Number(heading))) {
+          lastKnownHeading = Number(heading);
+        }
+
         if (!marker) {
-          if (heading != null && Number.isFinite(Number(heading))) {
-            lastKnownHeading = Number(heading);
-          }
           marker = L.marker(latlng, {
             icon: createMarkerIcon(lastKnownHeading, true),
             zIndexOffset: 1000,
@@ -261,6 +291,8 @@ function buildTrailMapHtml(
           syncArrowElement();
           return;
         }
+
+        marker.setLatLng(latlng);
       }
 
       function easeOutCubic(t) {
@@ -279,6 +311,7 @@ function buildTrailMapHtml(
         const pane = map.getPane('mapPane');
         if (!pane) return;
         const size = map.getSize();
+        if (!size || !size.x || !size.y) return;
         pane.style.transformOrigin = (size.x / 2) + 'px ' + (size.y / 2) + 'px';
         pane.style.transform = 'rotate(' + mapBearing + 'deg)';
       }
@@ -297,7 +330,8 @@ function buildTrailMapHtml(
       }
 
       function updateLiveSegment(targetLatLng) {
-        if (!liveTracking || trailCoords.length === 0) {
+        const target = toLatLng(targetLatLng);
+        if (!liveTracking || trailCoords.length === 0 || !target) {
           if (liveSegment) {
             map.removeLayer(liveSegment);
             liveSegment = null;
@@ -307,8 +341,8 @@ function buildTrailMapHtml(
 
         const lastCommitted = trailCoords[trailCoords.length - 1];
         if (
-          Math.abs(lastCommitted.lat - targetLatLng.lat) < 0.0000005 &&
-          Math.abs(lastCommitted.lng - targetLatLng.lng) < 0.0000005
+          Math.abs(lastCommitted.lat - target.lat) < 0.0000005 &&
+          Math.abs(lastCommitted.lng - target.lng) < 0.0000005
         ) {
           if (liveSegment) {
             map.removeLayer(liveSegment);
@@ -318,7 +352,7 @@ function buildTrailMapHtml(
         }
 
         if (!liveSegment) {
-          liveSegment = L.polyline([lastCommitted, targetLatLng], {
+          liveSegment = L.polyline([lastCommitted, target], {
             color: '#22c55e',
             weight: 4,
             opacity: 0.72,
@@ -326,46 +360,26 @@ function buildTrailMapHtml(
             lineJoin: 'round',
           }).addTo(map);
         } else {
-          liveSegment.setLatLngs([lastCommitted, targetLatLng]);
+          liveSegment.setLatLngs([lastCommitted, target]);
         }
       }
 
       function animateMarkerTo(targetLatLng, durationMs) {
         cancelAnimation();
+        const target = toLatLng(targetLatLng);
+        if (!target) return;
 
         if (!marker) {
-          ensureMarker(targetLatLng, lastKnownHeading);
-          marker.setLatLng(targetLatLng);
-          followMapTo(targetLatLng);
-          updateLiveSegment(targetLatLng);
+          ensureMarker(target, lastKnownHeading);
+          marker.setLatLng(target);
+          followMapTo(target);
+          updateLiveSegment(target);
           return;
         }
 
-        animFrom = marker.getLatLng();
-        animTo = targetLatLng;
-        animStart = performance.now();
-        animDuration = Math.max(280, durationMs || 900);
-
-        function tick(now) {
-          const elapsed = now - animStart;
-          const progress = Math.min(1, elapsed / animDuration);
-          const eased = easeOutCubic(progress);
-          const lat = animFrom.lat + (animTo.lat - animFrom.lat) * eased;
-          const lng = animFrom.lng + (animTo.lng - animFrom.lng) * eased;
-          const interpolated = L.latLng(lat, lng);
-
-          marker.setLatLng(interpolated);
-          followMapTo(interpolated);
-          updateLiveSegment(interpolated);
-
-          if (progress < 1) {
-            animFrame = requestAnimationFrame(tick);
-          } else {
-            animFrame = null;
-          }
-        }
-
-        animFrame = requestAnimationFrame(tick);
+        marker.setLatLng(target);
+        followMapTo(target);
+        updateLiveSegment(target);
       }
 
       function resetTrailPolyline(trailPoints) {
@@ -377,7 +391,7 @@ function buildTrailMapHtml(
           map.removeLayer(liveSegment);
           liveSegment = null;
         }
-        trailCoords = trailPoints.slice();
+        trailCoords = normalizeTrail(trailPoints);
 
         if (trailCoords.length > 1) {
           polyline = L.polyline(trailCoords, {
@@ -391,17 +405,19 @@ function buildTrailMapHtml(
       }
 
       function appendTrailPoints(trailPoints) {
-        if (trailPoints.length < trailCoords.length) {
-          resetTrailPolyline(trailPoints);
+        const normalized = normalizeTrail(trailPoints);
+
+        if (normalized.length < trailCoords.length) {
+          resetTrailPolyline(normalized);
           return;
         }
 
-        if (trailPoints.length === 0) {
+        if (normalized.length === 0) {
           resetTrailPolyline([]);
           return;
         }
 
-        const newPoints = trailPoints.slice(trailCoords.length);
+        const newPoints = normalized.slice(trailCoords.length);
         if (newPoints.length === 0) return;
 
         if (!polyline) {
@@ -416,7 +432,7 @@ function buildTrailMapHtml(
           newPoints.forEach((point) => polyline.addLatLng(point));
         }
 
-        trailCoords = trailPoints.slice();
+        trailCoords = normalized.slice();
 
         if (liveSegment) {
           map.removeLayer(liveSegment);
@@ -439,8 +455,8 @@ function buildTrailMapHtml(
 
         const target = hasCurrent
           ? L.latLng(Number(currentLat), Number(currentLng))
-          : trailPoints.length > 0
-            ? trailPoints[trailPoints.length - 1]
+          : trailCoords.length > 0
+            ? trailCoords[trailCoords.length - 1]
             : null;
 
         if (!target) return;
@@ -456,11 +472,13 @@ function buildTrailMapHtml(
           animateMarkerTo(target, animDuration);
         } else {
           marker.setLatLng(target);
+          followMapTo(target);
         }
 
-        if (autoFitBounds && trailPoints.length > 1) {
-          const bounds = L.latLngBounds(trailPoints);
+        if (autoFitBounds && trailCoords.length > 1) {
+          const bounds = L.latLngBounds(trailCoords);
           map.fitBounds(bounds, { padding: [28, 28], maxZoom: 17 });
+          applyMapRotation();
         }
       }
 
@@ -483,13 +501,27 @@ function buildTrailMapHtml(
         applyMapRotation();
       }
 
+      function updatePinPhoto(src) {
+        pinPhotoSrc = src || null;
+        if (!marker) return;
+        marker.setIcon(createMarkerIcon(lastKnownHeading, true));
+        syncArrowElement();
+      }
+
       window.updateLiveTrailMap = updateLiveTrailMap;
       window.updateLiveMarkerHeading = updateLiveMarkerHeading;
       window.setMapBearing = setMapBearing;
       window.setFollowUser = setFollowUser;
       window.recenterOnUser = recenterOnUser;
+      window.updatePinPhoto = updatePinPhoto;
 
       updateLiveTrailMap(${liveTracking ? '[]' : trailJson}, ${liveTracking ? 'null' : initialHeading}, null, null, true);
+
+      map.whenReady(function() {
+        map.invalidateSize();
+        applyMapRotation();
+        postMessage({ type: 'mapReady' });
+      });
 
       if (mapInteractive) {
         map.on('dragstart', function() {
@@ -504,6 +536,18 @@ function buildTrailMapHtml(
     </script>
   </body>
 </html>`
+}
+
+function buildPinPhotoUpdateScript(profilePhotoDataUri: string | null) {
+  const photoSrcJson = profilePhotoDataUri ? JSON.stringify(profilePhotoDataUri) : 'null'
+  return `
+    (function () {
+      if (typeof window.updatePinPhoto === 'function') {
+        window.updatePinPhoto(${photoSrcJson});
+      }
+      return true;
+    })();
+  `
 }
 
 function buildLiveUpdateScript(
@@ -611,9 +655,15 @@ export function RunWalkActivityTrailMap({
   }, [profilePhotoUri])
 
   const html = useMemo(
-    () => buildTrailMapHtml(trail, profilePhotoDataUri, interactive, liveTracking),
+    () =>
+      buildTrailMapHtml(
+        liveTracking ? [] : trail,
+        liveTracking ? null : profilePhotoDataUri,
+        interactive,
+        liveTracking,
+      ),
     liveTracking
-      ? [interactive, liveTracking, profilePhotoDataUri]
+      ? [interactive, liveTracking]
       : [interactive, liveTracking, profilePhotoDataUri, trail],
   )
 
@@ -630,7 +680,15 @@ export function RunWalkActivityTrailMap({
 
   useEffect(() => {
     if (!isMapReady) return
+
     injectLiveUpdate()
+    const retryTimers = [120, 400, 1000].map((delay) =>
+      setTimeout(() => injectLiveUpdate(), delay),
+    )
+
+    return () => {
+      retryTimers.forEach(clearTimeout)
+    }
   }, [injectLiveUpdate, isMapReady])
 
   useEffect(() => {
@@ -652,10 +710,18 @@ export function RunWalkActivityTrailMap({
     webViewRef.current.injectJavaScript(buildFollowUserScript(followUser))
   }, [followUser, isMapReady, liveTracking])
 
+  useEffect(() => {
+    if (!isMapReady || !webViewRef.current || !liveTracking) return
+    webViewRef.current.injectJavaScript(buildPinPhotoUpdateScript(profilePhotoDataUri))
+  }, [isMapReady, liveTracking, profilePhotoDataUri])
+
   const handleWebViewMessage = useCallback(
     (event: WebViewMessageEvent) => {
       try {
         const payload = JSON.parse(event.nativeEvent.data) as { type?: string }
+        if (payload.type === 'mapReady') {
+          setIsMapReady(true)
+        }
         if (payload.type === 'userPanned') {
           onUserPanned?.()
         }
@@ -680,9 +746,13 @@ export function RunWalkActivityTrailMap({
         javaScriptEnabled
         domStorageEnabled
         setSupportMultipleWindows={false}
-        onLoadEnd={() => setIsMapReady(true)}
         onMessage={handleWebViewMessage}
-        {...(Platform.OS === 'android' ? { androidLayerType: 'hardware' as const } : {})}
+        onLoadEnd={() => {
+          setTimeout(() => injectLiveUpdate(), 50)
+        }}
+        mixedContentMode="always"
+        allowFileAccess
+        allowUniversalAccessFromFileURLs
       />
     </View>
   )

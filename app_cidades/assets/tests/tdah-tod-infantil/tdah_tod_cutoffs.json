@@ -1,0 +1,707 @@
+{
+  "metadata": {
+    "module": "tdah_tod_infantil",
+    "file": "tdah_tod_cutoffs.json",
+    "version": "1.1.0",
+    "locale": "pt-BR",
+    "depends_on": [
+      "tdah_tod_questions.json",
+      "tdah_tod_scoring_rules.json",
+      "tdah_tod_functional_impairment.json",
+      "tdah_tod_red_flags.json",
+      "tdah_tod_differential_screening.json"
+    ],
+    "instrument_basis": [
+      "SNAP-IV 26-item Teacher and Parent Rating Scale",
+      "Vanderbilt ADHD Diagnostic Rating Scale - lógica de sintomas 2/3 e prejuízo funcional",
+      "Critérios clínicos de TDAH/TOD exigem duração, prejuízo, contexto e múltiplos informantes"
+    ],
+    "clinical_scope": "Faixas de classificação final para rastreio de sinais compatíveis com TDAH, oposição/desafio e prejuízo funcional associado.",
+    "diagnostic_disclaimer": "A classificação não confirma TDAH, TOD ou qualquer transtorno mental. Ela indica intensidade de sinais compatíveis e orienta o melhor encaminhamento.",
+    "classification_principle": "A classificação final combina pontuação SNAP-IV 26 por domínio, número de informantes, presença em casa/escola, prejuízo funcional, red flags e rastreio diferencial."
+  },
+  "classification_scale": [
+    {
+      "id": "baixo_indicativo",
+      "rank": 0,
+      "label": "Baixo indicativo",
+      "severity": "baixo",
+      "clinical_meaning": "Poucos sinais compatíveis no rastreio e ausência de prejuízo funcional relevante informado.",
+      "default_action": "Orientações gerais, acompanhamento da rotina e nova triagem se houver piora ou persistência.",
+      "requires_professional_evaluation": false,
+      "requires_school_form": false,
+      "requires_urgent_flow": false,
+      "dashboard_bucket": "baixo_indicativo"
+    },
+    {
+      "id": "sinais_leves",
+      "rank": 1,
+      "label": "Sinais leves",
+      "severity": "leve",
+      "clinical_meaning": "Alguns sinais aparecem, mas ainda sem padrão forte em SNAP-IV 26 ou sem prejuízo funcional moderado/importante.",
+      "default_action": "Orientação familiar, higiene do sono, organização de rotina, redução de telas quando aplicável e reavaliação em 30 a 60 dias.",
+      "requires_professional_evaluation": false,
+      "requires_school_form": true,
+      "requires_urgent_flow": false,
+      "dashboard_bucket": "sinais_leves"
+    },
+    {
+      "id": "sinais_moderados",
+      "rank": 2,
+      "label": "Sinais moderados",
+      "severity": "moderado",
+      "clinical_meaning": "Há sinais relevantes em pelo menos um domínio SNAP-IV 26, ou sinais subclínicos associados a prejuízo funcional.",
+      "default_action": "Recomendar avaliação com pediatra, psicólogo infantil ou profissional de saúde mental; solicitar formulário da escola se ainda não houver.",
+      "requires_professional_evaluation": true,
+      "requires_school_form": true,
+      "requires_urgent_flow": false,
+      "dashboard_bucket": "sinais_moderados"
+    },
+    {
+      "id": "sinais_importantes",
+      "rank": 3,
+      "label": "Sinais importantes",
+      "severity": "importante",
+      "clinical_meaning": "Há sinais relevantes com prejuízo funcional claro, múltiplos domínios afetados ou consistência entre casa e escola.",
+      "default_action": "Priorizar consulta, envolver escola/família e considerar avaliação com neuropsicólogo, neuropediatra ou psiquiatra infantil conforme rede disponível.",
+      "requires_professional_evaluation": true,
+      "requires_school_form": true,
+      "requires_urgent_flow": false,
+      "dashboard_bucket": "sinais_importantes"
+    },
+    {
+      "id": "prioridade_clinica",
+      "rank": 4,
+      "label": "Prioridade clínica",
+      "severity": "prioritario",
+      "clinical_meaning": "Há sinais importantes associados a prejuízo funcional importante, red flags ou necessidade de avaliação especializada mais rápida.",
+      "default_action": "Encaminhar para avaliação clínica prioritária e acionar fluxo de cuidado conforme gravidade e rede local.",
+      "requires_professional_evaluation": true,
+      "requires_school_form": true,
+      "requires_urgent_flow": true,
+      "dashboard_bucket": "prioridade_clinica"
+    },
+    {
+      "id": "pendente",
+      "rank": -1,
+      "label": "Pendente",
+      "severity": "indeterminado",
+      "clinical_meaning": "Dados insuficientes para classificar o rastreio.",
+      "default_action": "Completar respostas obrigatórias antes de gerar a classificação.",
+      "requires_professional_evaluation": false,
+      "requires_school_form": false,
+      "requires_urgent_flow": false,
+      "dashboard_bucket": "pendente"
+    }
+  ],
+  "snap_iv_26_domain_cutoffs": [
+    {
+      "domain": "desatencao",
+      "label": "Desatenção",
+      "item_count": 9,
+      "maximum_raw_score": 27,
+      "positive_values": [
+        2,
+        3
+      ],
+      "positive_item_cutoff_for_relevant_signal": 6,
+      "minimum_answered_items_for_valid_score": 8,
+      "mean_score_reference": {
+        "range_min": 0,
+        "range_max": 3,
+        "use": "Medida de intensidade do domínio; não deve ser usada isoladamente como diagnóstico.",
+        "screening_mean_bands": [
+          {
+            "id": "media_baixa",
+            "mean_score_min": 0,
+            "mean_score_max": 0.99
+          },
+          {
+            "id": "media_intermediaria",
+            "mean_score_min": 1,
+            "mean_score_max": 1.99
+          },
+          {
+            "id": "media_alta",
+            "mean_score_min": 2,
+            "mean_score_max": 3
+          }
+        ]
+      },
+      "bands": [
+        {
+          "id": "baixo_indicativo_desatencao",
+          "domain_level": "baixo",
+          "positive_item_count_min": 0,
+          "positive_item_count_max": 2,
+          "raw_score_min": 0,
+          "raw_score_max": 8,
+          "mean_score_min": 0,
+          "mean_score_max": 0.99,
+          "adds_points_to_global_severity": 0,
+          "interpretation": "Baixo indicativo de desatenção no ambiente avaliado."
+        },
+        {
+          "id": "sinais_subclinicos_desatencao",
+          "domain_level": "leve",
+          "positive_item_count_min": 3,
+          "positive_item_count_max": 5,
+          "raw_score_min": 9,
+          "raw_score_max": 17,
+          "mean_score_min": 1,
+          "mean_score_max": 1.99,
+          "adds_points_to_global_severity": 1,
+          "interpretation": "Sinais leves/intermediários de desatenção. Investigar sono, ansiedade, aprendizagem, telas, visão/audição e rotina."
+        },
+        {
+          "id": "sinais_relevantes_desatencao",
+          "domain_level": "relevante",
+          "positive_item_count_min": 6,
+          "positive_item_count_max": 9,
+          "raw_score_min": 18,
+          "raw_score_max": 27,
+          "mean_score_min": 2,
+          "mean_score_max": 3,
+          "adds_points_to_global_severity": 2,
+          "interpretation": "Sinais relevantes de desatenção no ambiente avaliado. Não confirma TDAH; exige prejuízo funcional, contexto e avaliação profissional."
+        }
+      ]
+    },
+    {
+      "domain": "hiperatividade_impulsividade",
+      "label": "Hiperatividade e impulsividade",
+      "item_count": 9,
+      "maximum_raw_score": 27,
+      "positive_values": [
+        2,
+        3
+      ],
+      "positive_item_cutoff_for_relevant_signal": 6,
+      "minimum_answered_items_for_valid_score": 8,
+      "mean_score_reference": {
+        "range_min": 0,
+        "range_max": 3,
+        "use": "Medida de intensidade do domínio; não deve ser usada isoladamente como diagnóstico.",
+        "screening_mean_bands": [
+          {
+            "id": "media_baixa",
+            "mean_score_min": 0,
+            "mean_score_max": 0.99
+          },
+          {
+            "id": "media_intermediaria",
+            "mean_score_min": 1,
+            "mean_score_max": 1.99
+          },
+          {
+            "id": "media_alta",
+            "mean_score_min": 2,
+            "mean_score_max": 3
+          }
+        ]
+      },
+      "bands": [
+        {
+          "id": "baixo_indicativo_hiperatividade_impulsividade",
+          "domain_level": "baixo",
+          "positive_item_count_min": 0,
+          "positive_item_count_max": 2,
+          "raw_score_min": 0,
+          "raw_score_max": 8,
+          "mean_score_min": 0,
+          "mean_score_max": 0.99,
+          "adds_points_to_global_severity": 0,
+          "interpretation": "Baixo indicativo de hiperatividade/impulsividade no ambiente avaliado."
+        },
+        {
+          "id": "sinais_subclinicos_hiperatividade_impulsividade",
+          "domain_level": "leve",
+          "positive_item_count_min": 3,
+          "positive_item_count_max": 5,
+          "raw_score_min": 9,
+          "raw_score_max": 17,
+          "mean_score_min": 1,
+          "mean_score_max": 1.99,
+          "adds_points_to_global_severity": 1,
+          "interpretation": "Sinais leves/intermediários de hiperatividade/impulsividade. Contextualizar idade, sono, telas, ansiedade e ambiente."
+        },
+        {
+          "id": "sinais_relevantes_hiperatividade_impulsividade",
+          "domain_level": "relevante",
+          "positive_item_count_min": 6,
+          "positive_item_count_max": 9,
+          "raw_score_min": 18,
+          "raw_score_max": 27,
+          "mean_score_min": 2,
+          "mean_score_max": 3,
+          "adds_points_to_global_severity": 2,
+          "interpretation": "Sinais relevantes de hiperatividade/impulsividade no ambiente avaliado. Não confirma TDAH; exige prejuízo funcional, contexto e avaliação profissional."
+        }
+      ]
+    },
+    {
+      "domain": "oposicao_desafio",
+      "label": "Oposição e desafio",
+      "item_count": 8,
+      "maximum_raw_score": 24,
+      "positive_values": [
+        2,
+        3
+      ],
+      "positive_item_cutoff_for_relevant_signal": 4,
+      "minimum_answered_items_for_valid_score": 7,
+      "mean_score_reference": {
+        "range_min": 0,
+        "range_max": 3,
+        "use": "Medida de intensidade do domínio; não deve ser usada isoladamente como diagnóstico.",
+        "screening_mean_bands": [
+          {
+            "id": "media_baixa",
+            "mean_score_min": 0,
+            "mean_score_max": 0.99
+          },
+          {
+            "id": "media_intermediaria",
+            "mean_score_min": 1,
+            "mean_score_max": 1.99
+          },
+          {
+            "id": "media_alta",
+            "mean_score_min": 2,
+            "mean_score_max": 3
+          }
+        ]
+      },
+      "bands": [
+        {
+          "id": "baixo_indicativo_oposicao_desafio",
+          "domain_level": "baixo",
+          "positive_item_count_min": 0,
+          "positive_item_count_max": 1,
+          "raw_score_min": 0,
+          "raw_score_max": 6,
+          "mean_score_min": 0,
+          "mean_score_max": 0.99,
+          "adds_points_to_global_severity": 0,
+          "interpretation": "Baixo indicativo de oposição/desafio no ambiente avaliado."
+        },
+        {
+          "id": "sinais_subclinicos_oposicao_desafio",
+          "domain_level": "leve",
+          "positive_item_count_min": 2,
+          "positive_item_count_max": 3,
+          "raw_score_min": 7,
+          "raw_score_max": 12,
+          "mean_score_min": 1,
+          "mean_score_max": 1.99,
+          "adds_points_to_global_severity": 1,
+          "interpretation": "Sinais leves/intermediários de oposição/desafio. Avaliar limites, dinâmica familiar/escolar, estresse, bullying, trauma e sofrimento emocional."
+        },
+        {
+          "id": "sinais_relevantes_oposicao_desafio",
+          "domain_level": "relevante",
+          "positive_item_count_min": 4,
+          "positive_item_count_max": 8,
+          "raw_score_min": 13,
+          "raw_score_max": 24,
+          "mean_score_min": 2,
+          "mean_score_max": 3,
+          "adds_points_to_global_severity": 2,
+          "interpretation": "Sinais relevantes de oposição/desafio no ambiente avaliado. Não confirma TOD; exige análise contextual e avaliação profissional."
+        }
+      ]
+    }
+  ],
+  "domain_summary_variables": {
+    "relevant_domain_count": "Número de domínios com sinal relevante, considerando o maior nível encontrado entre os informantes disponíveis.",
+    "subclinical_domain_count": "Número de domínios com sinais subclínicos/leves, sem atingir corte relevante.",
+    "adhd_core_relevant": "desatencao_relevant == true OR hiperatividade_impulsividade_relevant == true",
+    "adhd_combined_relevant": "desatencao_relevant == true AND hiperatividade_impulsividade_relevant == true",
+    "odd_relevant": "oposicao_desafio_relevant == true",
+    "same_domain_relevant_in_two_settings": "Mesmo domínio relevante em responsável e professor.",
+    "any_domain_relevant_in_two_settings": "Algum domínio relevante em casa e algum domínio relevante na escola."
+  },
+  "global_severity_score": {
+    "description": "Pontuação auxiliar para transformar os resultados por domínio em classificação geral do motor.",
+    "score_components": [
+      {
+        "id": "domain_level_points",
+        "source": "snap_iv_26_domain_cutoffs.bands.adds_points_to_global_severity",
+        "calculation": "Somar o maior nível de cada domínio entre os informantes disponíveis.",
+        "max_points": 6
+      },
+      {
+        "id": "same_domain_two_settings",
+        "source": "tdah_tod_scoring_rules.cross_environment_rules",
+        "condition": "same_domain_relevant_in_two_settings == true",
+        "points": 1
+      },
+      {
+        "id": "any_relevant_two_settings",
+        "source": "tdah_tod_scoring_rules.cross_environment_rules",
+        "condition": "any_domain_relevant_in_two_settings == true",
+        "points": 1
+      },
+      {
+        "id": "functional_impairment_leve",
+        "source": "tdah_tod_functional_impairment.json",
+        "condition": "functional_impairment_level == prejuizo_leve",
+        "points": 1
+      },
+      {
+        "id": "functional_impairment_moderado",
+        "source": "tdah_tod_functional_impairment.json",
+        "condition": "functional_impairment_level == prejuizo_moderado",
+        "points": 2
+      },
+      {
+        "id": "functional_impairment_importante",
+        "source": "tdah_tod_functional_impairment.json",
+        "condition": "functional_impairment_level == prejuizo_importante",
+        "points": 3
+      },
+      {
+        "id": "differential_context_present",
+        "source": "tdah_tod_differential_screening.json",
+        "condition": "any_differential_context_flag == true",
+        "points": 0,
+        "effect": "Não aumenta gravidade automaticamente; adiciona cautela e recomendação de avaliação diferencial."
+      },
+      {
+        "id": "red_flag_present",
+        "source": "tdah_tod_red_flags.json",
+        "condition": "any_red_flag == true",
+        "points": 2,
+        "also_apply_floor": "sinais_importantes"
+      },
+      {
+        "id": "urgent_red_flag_present",
+        "source": "tdah_tod_red_flags.json",
+        "condition": "urgent_red_flag == true",
+        "points": 99,
+        "also_apply_floor": "prioridade_clinica"
+      }
+    ],
+    "classification_by_global_points": [
+      {
+        "points_min": 0,
+        "points_max": 1,
+        "classification_id": "baixo_indicativo"
+      },
+      {
+        "points_min": 2,
+        "points_max": 3,
+        "classification_id": "sinais_leves"
+      },
+      {
+        "points_min": 4,
+        "points_max": 5,
+        "classification_id": "sinais_moderados"
+      },
+      {
+        "points_min": 6,
+        "points_max": 7,
+        "classification_id": "sinais_importantes"
+      },
+      {
+        "points_min": 8,
+        "points_max": 99,
+        "classification_id": "prioridade_clinica"
+      }
+    ]
+  },
+  "minimum_classification_floors": [
+    {
+      "id": "dominio_relevante_com_prejuizo_moderado",
+      "condition": "relevant_domain_count >= 1 AND functional_impairment_level == prejuizo_moderado",
+      "minimum_classification_id": "sinais_moderados",
+      "reason": "Sinais SNAP-IV relevantes associados a prejuízo funcional moderado merecem avaliação profissional."
+    },
+    {
+      "id": "dominio_relevante_com_prejuizo_importante",
+      "condition": "relevant_domain_count >= 1 AND functional_impairment_level == prejuizo_importante",
+      "minimum_classification_id": "sinais_importantes",
+      "reason": "Sinais SNAP-IV relevantes com prejuízo funcional importante aumentam prioridade de cuidado."
+    },
+    {
+      "id": "mesmo_dominio_relevante_em_casa_e_escola",
+      "condition": "same_domain_relevant_in_two_settings == true",
+      "minimum_classification_id": "sinais_importantes",
+      "reason": "Sinais no mesmo domínio em mais de um ambiente aumentam consistência do rastreio."
+    },
+    {
+      "id": "perfil_combinado_tdah_com_prejuizo",
+      "condition": "adhd_combined_relevant == true AND functional_impairment_level IN [prejuizo_moderado, prejuizo_importante]",
+      "minimum_classification_id": "sinais_importantes",
+      "reason": "Sinais combinados de desatenção e hiperatividade/impulsividade com prejuízo funcional indicam necessidade de avaliação prioritária."
+    },
+    {
+      "id": "oposicao_desafio_com_prejuizo_importante",
+      "condition": "odd_relevant == true AND functional_impairment_level == prejuizo_importante",
+      "minimum_classification_id": "sinais_importantes",
+      "reason": "Sinais opositores/desafiadores com prejuízo importante exigem orientação familiar/escolar e avaliação clínica."
+    },
+    {
+      "id": "red_flag_nao_urgente",
+      "condition": "any_red_flag == true AND urgent_red_flag == false",
+      "minimum_classification_id": "sinais_importantes",
+      "reason": "Alertas clínicos ou psicossociais elevam a necessidade de avaliação."
+    },
+    {
+      "id": "red_flag_urgente",
+      "condition": "urgent_red_flag == true",
+      "minimum_classification_id": "prioridade_clinica",
+      "reason": "Red flags urgentes têm precedência sobre a pontuação comportamental."
+    }
+  ],
+  "maximum_classification_caps": [
+    {
+      "id": "sem_prejuizo_funcional_claro",
+      "condition": "functional_impairment_level == sem_prejuizo_relevante AND urgent_red_flag == false",
+      "maximum_classification_id": "sinais_leves",
+      "exception": "Permitir sinais_moderados se houver sinais relevantes no mesmo domínio em casa e escola ou decisão clínica manual.",
+      "reason": "Sem prejuízo funcional claro, a interpretação deve ser cautelosa."
+    },
+    {
+      "id": "apenas_um_informante_sem_prejuizo_importante",
+      "condition": "only_one_respondent_available == true AND functional_impairment_level NOT IN [prejuizo_importante] AND urgent_red_flag == false",
+      "maximum_classification_id": "sinais_moderados",
+      "exception": "Permitir sinais_importantes se houver múltiplos domínios relevantes com prejuízo moderado, agressividade importante ou decisão clínica manual.",
+      "reason": "A ausência de informação de outro ambiente reduz a confiança do rastreio."
+    },
+    {
+      "id": "dados_insuficientes",
+      "condition": "any_required_domain_score_status == insuficiente",
+      "maximum_classification_id": "pendente",
+      "reason": "Não classificar sem dados mínimos suficientes."
+    }
+  ],
+  "direct_classification_rules": [
+    {
+      "id": "pendente_por_dados_insuficientes",
+      "priority": 1,
+      "condition": "any_required_domain_score_status == insuficiente",
+      "classification_id": "pendente"
+    },
+    {
+      "id": "prioridade_por_red_flag_urgente",
+      "priority": 99,
+      "condition": "urgent_red_flag == true",
+      "classification_id": "prioridade_clinica"
+    },
+    {
+      "id": "baixo_sem_sinais_sem_prejuizo",
+      "priority": 10,
+      "condition": "relevant_domain_count == 0 AND subclinical_domain_count == 0 AND functional_impairment_level IN [sem_prejuizo_relevante, prejuizo_leve] AND urgent_red_flag == false",
+      "classification_id": "baixo_indicativo"
+    },
+    {
+      "id": "leve_sinais_subclinicos",
+      "priority": 20,
+      "condition": "relevant_domain_count == 0 AND subclinical_domain_count >= 1 AND functional_impairment_level IN [sem_prejuizo_relevante, prejuizo_leve] AND urgent_red_flag == false",
+      "classification_id": "sinais_leves"
+    },
+    {
+      "id": "moderado_um_dominio_relevante",
+      "priority": 30,
+      "condition": "relevant_domain_count == 1 AND functional_impairment_level IN [prejuizo_leve, prejuizo_moderado] AND urgent_red_flag == false",
+      "classification_id": "sinais_moderados"
+    },
+    {
+      "id": "moderado_multiplos_subclinicos_com_prejuizo",
+      "priority": 31,
+      "condition": "relevant_domain_count == 0 AND subclinical_domain_count >= 2 AND functional_impairment_level IN [prejuizo_moderado, prejuizo_importante] AND urgent_red_flag == false",
+      "classification_id": "sinais_moderados"
+    },
+    {
+      "id": "importante_multiplos_dominios_relevantes",
+      "priority": 40,
+      "condition": "relevant_domain_count >= 2 AND functional_impairment_level IN [prejuizo_moderado, prejuizo_importante] AND urgent_red_flag == false",
+      "classification_id": "sinais_importantes"
+    },
+    {
+      "id": "importante_mesmo_dominio_casa_escola",
+      "priority": 41,
+      "condition": "same_domain_relevant_in_two_settings == true AND urgent_red_flag == false",
+      "classification_id": "sinais_importantes"
+    },
+    {
+      "id": "importante_red_flag_nao_urgente",
+      "priority": 42,
+      "condition": "any_red_flag == true AND urgent_red_flag == false",
+      "classification_id": "sinais_importantes"
+    },
+    {
+      "id": "prioridade_prejuizo_importante_multiplos_dominios",
+      "priority": 50,
+      "condition": "relevant_domain_count >= 2 AND functional_impairment_level == prejuizo_importante",
+      "classification_id": "prioridade_clinica"
+    }
+  ],
+  "profile_cutoffs": [
+    {
+      "id": "perfil_sem_predominio_claro",
+      "condition": "relevant_domain_count == 0",
+      "label": "Sem predomínio claro",
+      "safe_phrase": "As respostas não mostram um agrupamento forte de sinais em um domínio específico."
+    },
+    {
+      "id": "perfil_desatencao",
+      "condition": "desatencao_relevant == true AND hiperatividade_impulsividade_relevant == false",
+      "label": "Predomínio de desatenção",
+      "safe_phrase": "As respostas indicam predomínio de sinais de desatenção."
+    },
+    {
+      "id": "perfil_hiperatividade_impulsividade",
+      "condition": "hiperatividade_impulsividade_relevant == true AND desatencao_relevant == false",
+      "label": "Predomínio de hiperatividade/impulsividade",
+      "safe_phrase": "As respostas indicam predomínio de sinais de hiperatividade e impulsividade."
+    },
+    {
+      "id": "perfil_combinado_atencao_impulsividade",
+      "condition": "desatencao_relevant == true AND hiperatividade_impulsividade_relevant == true",
+      "label": "Sinais combinados de atenção e impulsividade",
+      "safe_phrase": "As respostas indicam sinais relevantes tanto de desatenção quanto de hiperatividade/impulsividade."
+    },
+    {
+      "id": "perfil_oposicao_desafio_associado",
+      "condition": "oposicao_desafio_relevant == true",
+      "label": "Sinais de oposição/desafio associados",
+      "safe_phrase": "Também aparecem sinais de oposição/desafio, que precisam ser compreendidos no contexto familiar, escolar e emocional."
+    },
+    {
+      "id": "perfil_tdah_com_oposicao_associada",
+      "condition": "adhd_core_relevant == true AND odd_relevant == true",
+      "label": "Sinais de atenção/impulsividade com oposição associada",
+      "safe_phrase": "Aparecem sinais de atenção/impulsividade junto de oposição/desafio; isso merece avaliação profissional para entender causas, prejuízo e comorbidades."
+    }
+  ],
+  "confidence_levels": [
+    {
+      "id": "baixa",
+      "label": "Confiança baixa",
+      "conditions": [
+        "any_required_domain_score_status == insuficiente",
+        "functional_impairment_missing == true",
+        "major_informant_disagreement == true"
+      ],
+      "result_note": "As informações são insuficientes ou divergentes. O ideal é complementar os dados antes de decidir encaminhamento."
+    },
+    {
+      "id": "moderada",
+      "label": "Confiança moderada",
+      "conditions": [
+        "only_one_respondent_available == true AND functional_impairment_available == true",
+        "responsavel_available == true AND professor_available == false",
+        "professor_available == true AND responsavel_available == false"
+      ],
+      "result_note": "O resultado é útil para rastreio inicial, mas ganha precisão com dados de mais de um ambiente."
+    },
+    {
+      "id": "maior",
+      "label": "Confiança maior",
+      "conditions": [
+        "responsavel_available == true AND professor_available == true",
+        "functional_impairment_available == true",
+        "major_informant_disagreement == false"
+      ],
+      "result_note": "O rastreio tem melhor qualidade porque considera mais de um ambiente e impacto funcional."
+    }
+  ],
+  "differential_context_modifiers": [
+    {
+      "id": "diferenciais_presentes_sem_red_flag",
+      "condition": "any_differential_context_flag == true AND urgent_red_flag == false",
+      "classification_effect": "do_not_automatically_escalate",
+      "message_modifier": "Adicionar nota de cautela: sono, ansiedade, humor, trauma, bullying, visão/audição, medicação, aprendizagem ou autismo podem influenciar sinais parecidos com TDAH/TOD."
+    },
+    {
+      "id": "diferenciais_com_prejuizo",
+      "condition": "any_differential_context_flag == true AND functional_impairment_level IN [prejuizo_moderado, prejuizo_importante]",
+      "classification_effect": "maintain_or_escalate_by_impairment",
+      "message_modifier": "Recomendar avaliação profissional para diferenciar TDAH/TOD de outras causas ou condições associadas."
+    }
+  ],
+  "tie_breaking_rules": [
+    {
+      "id": "priorizar_maior_gravidade",
+      "rule": "Quando duas regras gerarem classificações diferentes, escolher a classificação de maior rank, salvo se houver maximum_classification_caps aplicável."
+    },
+    {
+      "id": "red_flags_primeiro",
+      "rule": "Red flags urgentes têm precedência sobre qualquer pontuação comportamental."
+    },
+    {
+      "id": "prejuizo_funcional_desempata",
+      "rule": "Quando a pontuação por domínio ficar entre duas faixas, o prejuízo funcional define a faixa final."
+    },
+    {
+      "id": "dois_ambientes_aumenta_confianca",
+      "rule": "Sinais relevantes no mesmo domínio em casa e escola aumentam a confiança e podem elevar a classificação mínima para sinais importantes."
+    },
+    {
+      "id": "apenas_um_ambiente_limita_conclusao",
+      "rule": "Quando só houver um informante, manter linguagem de rastreio inicial e solicitar o outro ambiente sempre que possível."
+    },
+    {
+      "id": "sem_diagnostico",
+      "rule": "Nunca transformar classificação em diagnóstico. Usar sempre linguagem de sinais compatíveis."
+    }
+  ],
+  "output_schema": {
+    "classification_result": {
+      "classification_id": "baixo_indicativo | sinais_leves | sinais_moderados | sinais_importantes | prioridade_clinica | pendente",
+      "classification_label": "string",
+      "classification_rank": "number",
+      "severity": "baixo | leve | moderado | importante | prioritario | indeterminado",
+      "global_severity_points": "number",
+      "domain_bands": [
+        {
+          "domain": "string",
+          "respondent": "responsavel | professor",
+          "band_id": "string",
+          "domain_level": "baixo | leve | relevante",
+          "positive_item_count": "number",
+          "mean_score": "number"
+        }
+      ],
+      "profile_labels": [
+        "string"
+      ],
+      "applied_rules": [
+        "string"
+      ],
+      "applied_floors": [
+        "string"
+      ],
+      "applied_caps": [
+        "string"
+      ],
+      "confidence_level": "baixa | moderada | maior",
+      "requires_professional_evaluation": "boolean",
+      "requires_school_form": "boolean",
+      "requires_urgent_flow": "boolean",
+      "safe_result_phrase": "string"
+    }
+  },
+  "safe_language_templates": {
+    "baixo_indicativo": "As respostas indicam baixo indicativo de sinais compatíveis com TDAH/TOD neste rastreio. Isso não substitui avaliação profissional, especialmente se houver piora ou prejuízo na rotina.",
+    "sinais_leves": "As respostas indicam sinais leves que merecem observação, orientação de rotina e reavaliação. Este resultado não fecha diagnóstico.",
+    "sinais_moderados": "As respostas indicam sinais moderados e recomendam avaliação profissional, principalmente se houver impacto na escola, em casa ou nas relações.",
+    "sinais_importantes": "As respostas indicam sinais importantes e impacto que justificam priorização de avaliação profissional e coleta de informações da escola.",
+    "prioridade_clinica": "As respostas indicam necessidade de avaliação clínica prioritária. O resultado não confirma diagnóstico, mas sugere que a criança/adolescente precisa de atenção profissional mais rápida.",
+    "pendente": "Não há informações suficientes para classificar o rastreio com segurança. Complete as respostas necessárias antes de gerar o resultado."
+  },
+  "implementation_notes": [
+    "Usar snap_iv_26_domain_cutoffs para transformar cada domínio em baixo, leve ou relevante.",
+    "Para desatenção e hiperatividade/impulsividade, 6 ou mais itens positivos em 9 indicam sinal relevante no domínio.",
+    "Para oposição/desafio, 4 ou mais itens positivos em 8 indicam sinal relevante no domínio.",
+    "Resposta 2 ou 3 conta como item positivo.",
+    "A média do domínio serve como intensidade complementar, não como diagnóstico.",
+    "A classificação final deve considerar prejuízo funcional; sem prejuízo claro, limitar a gravidade salvo exceção clínica.",
+    "Quando não houver professor, recomendar envio do formulário escolar.",
+    "Quando houver red flag urgente, classificar como prioridade_clinica independentemente da pontuação SNAP-IV.",
+    "Quando houver sinais diferenciais, manter a pontuação, mas orientar avaliação para causas que podem imitar ou agravar TDAH/TOD.",
+    "Sempre exibir a frase de não diagnóstico junto ao resultado."
+  ]
+}

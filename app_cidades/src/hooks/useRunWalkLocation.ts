@@ -70,7 +70,7 @@ const TRACKING_WATCH_OPTIONS: Record<
   Pick<Location.LocationOptions, 'distanceInterval' | 'timeInterval'>
 > = {
   default: { distanceInterval: 5, timeInterval: 4000 },
-  activity: { distanceInterval: 2, timeInterval: 1000 },
+  activity: { distanceInterval: 5, timeInterval: 2000 },
 }
 
 export function useRunWalkLocation({

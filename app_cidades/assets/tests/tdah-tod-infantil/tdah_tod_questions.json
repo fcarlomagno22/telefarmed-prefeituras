@@ -1,0 +1,1097 @@
+{
+  "metadata": {
+    "module": "tdah_tod_infantil",
+    "file": "tdah_tod_questions.json",
+    "version": "1.1.0",
+    "locale": "pt-BR",
+    "clinical_scope": "Triagem neurocomportamental infantil para sinais compatíveis com TDAH, TOD e prejuízo funcional associado.",
+    "diagnostic_disclaimer": "O resultado não fecha diagnóstico. Ele identifica sinais compatíveis e orienta o melhor encaminhamento.",
+    "instrument_basis": [
+      "SNAP-IV 26-item Teacher and Parent Rating Scale",
+      "NICHQ Vanderbilt ADHD Diagnostic Rating Scales - núcleo TDAH/TOD",
+      "Critérios sintomáticos DSM para TDAH e comportamento opositor/desafiador"
+    ],
+    "instrument_policy": "Itens redigidos em português clínico para rastreio digital, alinhados aos construtos usados por SNAP-IV e Vanderbilt. Não apresentar como formulário oficial, tradução oficial ou substituto de avaliação médica/neuropsicológica.",
+    "intended_age_range": {
+      "min": 4,
+      "max": 17
+    },
+    "recommended_informants": [
+      "responsavel",
+      "professor"
+    ],
+    "recommended_application": "Aplicar preferencialmente em dois ambientes: casa/responsável e escola/professor. A interpretação deve considerar duração, intensidade, prejuízo funcional e consistência entre ambientes.",
+    "timeframe": "últimos 6 meses",
+    "clinical_guardrails": [
+      "Não usar isoladamente para diagnosticar TDAH ou TOD.",
+      "Não usar para prescrever ou alterar medicação.",
+      "Resultados relevantes exigem avaliação profissional e investigação de diagnósticos diferenciais.",
+      "Quando houver risco de autoagressão, agressividade grave, violência, abuso, surto, crise convulsiva ou regressão abrupta, acionar fluxo de urgência."
+    ]
+  },
+  "respondent_types": [
+    {
+      "id": "responsavel",
+      "label": "Responsável/cuidador",
+      "context": "casa, rotina familiar, deveres, sono, relações e comportamento fora da escola"
+    },
+    {
+      "id": "professor",
+      "label": "Professor/escola",
+      "context": "sala de aula, aprendizagem, convivência escolar, organização, cumprimento de regras e desempenho"
+    }
+  ],
+  "answer_scales": [
+    {
+      "id": "snap_frequency_0_3",
+      "type": "single_choice",
+      "label": "Escala de frequência/intensidade 0-3",
+      "instructions": {
+        "responsavel": "Considerando os últimos 6 meses, marque o quanto esse comportamento apareceu na rotina da criança/adolescente.",
+        "professor": "Considerando os últimos 6 meses, marque o quanto esse comportamento apareceu no ambiente escolar."
+      },
+      "answers": [
+        {
+          "label": "Nem um pouco",
+          "value": 0,
+          "meaning": "ausente ou dentro do esperado para a idade/contexto"
+        },
+        {
+          "label": "Só um pouco",
+          "value": 1,
+          "meaning": "presente de forma leve ou ocasional"
+        },
+        {
+          "label": "Bastante",
+          "value": 2,
+          "meaning": "presente com frequência e perceptível"
+        },
+        {
+          "label": "Demais",
+          "value": 3,
+          "meaning": "presente com muita frequência ou intensidade"
+        }
+      ],
+      "positive_values": [
+        2,
+        3
+      ]
+    }
+  ],
+  "domains": [
+    {
+      "id": "desatencao",
+      "label": "Desatenção",
+      "clinical_target": "Sinais compatíveis com TDAH, apresentação predominantemente desatenta",
+      "minimum_core_items": 9
+    },
+    {
+      "id": "hiperatividade_impulsividade",
+      "label": "Hiperatividade e impulsividade",
+      "clinical_target": "Sinais compatíveis com TDAH, apresentação predominantemente hiperativa/impulsiva",
+      "minimum_core_items": 9
+    },
+    {
+      "id": "oposicao_desafio",
+      "label": "Oposição e desafio",
+      "clinical_target": "Sinais compatíveis com comportamento opositor/desafiador",
+      "minimum_core_items": 8
+    }
+  ],
+  "question_sets": [
+    {
+      "id": "snap_iv_26_core",
+      "label": "SNAP-IV 26 - núcleo TDAH/TOD",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "question_count": 26,
+      "domains": [
+        "desatencao",
+        "hiperatividade_impulsividade",
+        "oposicao_desafio"
+      ],
+      "scoring_reference": "Itens 2 ou 3 contam como clinicamente positivos para rastreio. A regra de corte fica em tdah_tod_scoring_rules.json e tdah_tod_cutoffs.json."
+    },
+    {
+      "id": "vanderbilt_core_alignment",
+      "label": "Alinhamento Vanderbilt - sintomas centrais",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "question_count": 26,
+      "domains": [
+        "desatencao",
+        "hiperatividade_impulsividade",
+        "oposicao_desafio"
+      ],
+      "note": "O Vanderbilt usa núcleo de 18 sintomas de TDAH e blocos adicionais de oposição/desafio, desempenho e comorbidades. Neste arquivo ficam os itens centrais TDAH/TOD; prejuízo funcional e diferenciais ficam nos arquivos próprios."
+    }
+  ],
+  "questions": [
+    {
+      "id": "snap_inattention_01",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "desatencao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 1,
+        "vanderbilt_parent_item": 1,
+        "vanderbilt_teacher_item": 1,
+        "dsm_symptom_key": "ADHD-IN-01"
+      },
+      "question": {
+        "responsavel": "Frequentemente deixa passar detalhes ou comete erros por descuido em tarefas, deveres, brincadeiras ou atividades da rotina?",
+        "professor": "Frequentemente deixa passar detalhes ou comete erros por descuido em atividades escolares, provas, cópias ou tarefas de sala?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Atenção a detalhes e erros por descuido."
+    },
+    {
+      "id": "snap_inattention_02",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "desatencao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 2,
+        "vanderbilt_parent_item": 2,
+        "vanderbilt_teacher_item": 2,
+        "dsm_symptom_key": "ADHD-IN-02"
+      },
+      "question": {
+        "responsavel": "Frequentemente tem dificuldade para manter a atenção em tarefas, estudos, brincadeiras, leitura ou conversas?",
+        "professor": "Frequentemente tem dificuldade para manter a atenção durante explicações, tarefas, leitura, atividades em grupo ou provas?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Atenção sustentada."
+    },
+    {
+      "id": "snap_inattention_03",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "desatencao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 3,
+        "vanderbilt_parent_item": 3,
+        "vanderbilt_teacher_item": 3,
+        "dsm_symptom_key": "ADHD-IN-03"
+      },
+      "question": {
+        "responsavel": "Frequentemente parece não escutar quando alguém fala diretamente com ela/ele, mesmo sem distração óbvia?",
+        "professor": "Frequentemente parece não escutar quando o professor ou outro adulto fala diretamente com ela/ele?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Atenção ao interlocutor."
+    },
+    {
+      "id": "snap_inattention_04",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "desatencao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 4,
+        "vanderbilt_parent_item": 4,
+        "vanderbilt_teacher_item": 4,
+        "dsm_symptom_key": "ADHD-IN-04"
+      },
+      "question": {
+        "responsavel": "Frequentemente não segue instruções até o fim ou não termina tarefas, deveres ou responsabilidades, sem ser por oposição deliberada?",
+        "professor": "Frequentemente não segue instruções até o fim ou não conclui atividades escolares, sem ser por desafio direto à orientação?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Seguimento de instruções e conclusão de tarefas."
+    },
+    {
+      "id": "snap_inattention_05",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "desatencao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 5,
+        "vanderbilt_parent_item": 5,
+        "vanderbilt_teacher_item": 5,
+        "dsm_symptom_key": "ADHD-IN-05"
+      },
+      "question": {
+        "responsavel": "Frequentemente tem dificuldade para organizar tarefas, materiais, horários, deveres ou a própria rotina?",
+        "professor": "Frequentemente tem dificuldade para organizar materiais, caderno, agenda, etapas da atividade ou rotina escolar?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Organização e planejamento."
+    },
+    {
+      "id": "snap_inattention_06",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "desatencao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 6,
+        "vanderbilt_parent_item": 6,
+        "vanderbilt_teacher_item": 6,
+        "dsm_symptom_key": "ADHD-IN-06"
+      },
+      "question": {
+        "responsavel": "Frequentemente evita, não gosta ou adia tarefas que exigem esforço mental contínuo, como lição, leitura, estudo ou organização?",
+        "professor": "Frequentemente evita, não gosta ou adia atividades que exigem esforço mental contínuo, como leitura, escrita, exercícios ou provas?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Esforço mental sustentado."
+    },
+    {
+      "id": "snap_inattention_07",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "desatencao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 7,
+        "vanderbilt_parent_item": 7,
+        "vanderbilt_teacher_item": 7,
+        "dsm_symptom_key": "ADHD-IN-07"
+      },
+      "question": {
+        "responsavel": "Frequentemente perde objetos necessários para tarefas ou rotina, como material escolar, brinquedos, roupas, documentos ou itens pessoais?",
+        "professor": "Frequentemente perde objetos necessários na escola, como lápis, caderno, livros, agenda, uniforme ou materiais de atividade?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Perda de objetos e manejo de pertences."
+    },
+    {
+      "id": "snap_inattention_08",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "desatencao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 8,
+        "vanderbilt_parent_item": 8,
+        "vanderbilt_teacher_item": 8,
+        "dsm_symptom_key": "ADHD-IN-08"
+      },
+      "question": {
+        "responsavel": "Frequentemente se distrai facilmente com sons, movimentos, telas, pessoas, objetos ou pensamentos durante uma atividade?",
+        "professor": "Frequentemente se distrai facilmente com barulhos, colegas, objetos, movimentos ou acontecimentos da sala?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Distratibilidade."
+    },
+    {
+      "id": "snap_inattention_09",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "desatencao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 9,
+        "vanderbilt_parent_item": 9,
+        "vanderbilt_teacher_item": 9,
+        "dsm_symptom_key": "ADHD-IN-09"
+      },
+      "question": {
+        "responsavel": "Frequentemente esquece atividades do dia a dia, combinados, recados, tarefas, horários ou responsabilidades simples?",
+        "professor": "Frequentemente esquece combinados, recados, tarefas, materiais, prazos ou responsabilidades simples da rotina escolar?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Esquecimento em atividades cotidianas."
+    },
+    {
+      "id": "snap_hyperimpulsive_01",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "hiperatividade_impulsividade",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 10,
+        "vanderbilt_parent_item": 10,
+        "vanderbilt_teacher_item": 10,
+        "dsm_symptom_key": "ADHD-HI-01"
+      },
+      "question": {
+        "responsavel": "Frequentemente mexe mãos, pés, corpo ou objetos, remexe-se na cadeira ou parece ter dificuldade de ficar parado(a)?",
+        "professor": "Frequentemente mexe mãos, pés, corpo ou objetos e se remexe na carteira durante atividades em que se espera que fique sentado(a)?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Agitação motora fina e inquietação."
+    },
+    {
+      "id": "snap_hyperimpulsive_02",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "hiperatividade_impulsividade",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 11,
+        "vanderbilt_parent_item": 11,
+        "vanderbilt_teacher_item": 11,
+        "dsm_symptom_key": "ADHD-HI-02"
+      },
+      "question": {
+        "responsavel": "Frequentemente levanta ou sai do lugar em momentos em que deveria permanecer sentado(a), como refeições, tarefas ou atividades guiadas?",
+        "professor": "Frequentemente levanta da carteira ou sai do lugar em momentos em que deveria permanecer sentado(a)?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Dificuldade de permanecer sentado."
+    },
+    {
+      "id": "snap_hyperimpulsive_03",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "hiperatividade_impulsividade",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 12,
+        "vanderbilt_parent_item": 12,
+        "vanderbilt_teacher_item": 12,
+        "dsm_symptom_key": "ADHD-HI-03"
+      },
+      "question": {
+        "responsavel": "Frequentemente corre, escala, pula ou se movimenta demais em situações em que isso é inadequado para a idade ou contexto?",
+        "professor": "Frequentemente corre, escala, pula ou se movimenta demais em situações escolares em que isso atrapalha a atividade?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Atividade motora excessiva para o contexto."
+    },
+    {
+      "id": "snap_hyperimpulsive_04",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "hiperatividade_impulsividade",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 13,
+        "vanderbilt_parent_item": 13,
+        "vanderbilt_teacher_item": 13,
+        "dsm_symptom_key": "ADHD-HI-04"
+      },
+      "question": {
+        "responsavel": "Frequentemente tem dificuldade para brincar, estudar, descansar ou fazer atividades de lazer de forma tranquila?",
+        "professor": "Frequentemente tem dificuldade para participar de atividades de forma tranquila, silenciosa ou organizada?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Dificuldade em atividades tranquilas."
+    },
+    {
+      "id": "snap_hyperimpulsive_05",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "hiperatividade_impulsividade",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 14,
+        "vanderbilt_parent_item": 14,
+        "vanderbilt_teacher_item": 14,
+        "dsm_symptom_key": "ADHD-HI-05"
+      },
+      "question": {
+        "responsavel": "Frequentemente parece estar sempre acelerado(a), como se estivesse com dificuldade de reduzir o ritmo?",
+        "professor": "Frequentemente parece estar sempre acelerado(a), passando de uma coisa para outra com dificuldade de reduzir o ritmo?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Nível geral de atividade."
+    },
+    {
+      "id": "snap_hyperimpulsive_06",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "hiperatividade_impulsividade",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 15,
+        "vanderbilt_parent_item": 15,
+        "vanderbilt_teacher_item": 15,
+        "dsm_symptom_key": "ADHD-HI-06"
+      },
+      "question": {
+        "responsavel": "Frequentemente fala demais, interrompe o silêncio da atividade ou domina conversas e brincadeiras?",
+        "professor": "Frequentemente fala demais, conversa fora de hora ou domina interações sem perceber o momento dos colegas?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Fala excessiva."
+    },
+    {
+      "id": "snap_hyperimpulsive_07",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "hiperatividade_impulsividade",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 16,
+        "vanderbilt_parent_item": 16,
+        "vanderbilt_teacher_item": 16,
+        "dsm_symptom_key": "ADHD-HI-07"
+      },
+      "question": {
+        "responsavel": "Frequentemente responde antes de a pergunta terminar ou age antes de entender toda a orientação?",
+        "professor": "Frequentemente responde antes de a pergunta terminar ou inicia a tarefa antes de ouvir toda a orientação?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Resposta precipitada e impulsividade verbal."
+    },
+    {
+      "id": "snap_hyperimpulsive_08",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "hiperatividade_impulsividade",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 17,
+        "vanderbilt_parent_item": 17,
+        "vanderbilt_teacher_item": 17,
+        "dsm_symptom_key": "ADHD-HI-08"
+      },
+      "question": {
+        "responsavel": "Frequentemente tem dificuldade para esperar a sua vez em filas, jogos, conversas, brincadeiras ou atividades em grupo?",
+        "professor": "Frequentemente tem dificuldade para esperar a sua vez em fila, roda, jogos, perguntas ou atividades em grupo?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Espera de turno."
+    },
+    {
+      "id": "snap_hyperimpulsive_09",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "hiperatividade_impulsividade",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 18,
+        "vanderbilt_parent_item": 18,
+        "vanderbilt_teacher_item": 18,
+        "dsm_symptom_key": "ADHD-HI-09"
+      },
+      "question": {
+        "responsavel": "Frequentemente interrompe conversas, invade brincadeiras, pega objetos ou se intromete nas atividades dos outros?",
+        "professor": "Frequentemente interrompe colegas, invade atividades, pega materiais ou se intromete em situações que não eram sua vez?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Interrupção e intrusão."
+    },
+    {
+      "id": "snap_odd_01",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "oposicao_desafio",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 19,
+        "vanderbilt_parent_item": 19,
+        "vanderbilt_teacher_item": 19,
+        "dsm_symptom_key": "ODD-01"
+      },
+      "question": {
+        "responsavel": "Frequentemente perde a paciência, explode ou tem acessos de raiva desproporcionais à situação?",
+        "professor": "Frequentemente perde a paciência, explode ou tem acessos de raiva desproporcionais no ambiente escolar?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Irritabilidade e perda de controle emocional."
+    },
+    {
+      "id": "snap_odd_02",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "oposicao_desafio",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 20,
+        "vanderbilt_parent_item": 20,
+        "vanderbilt_teacher_item": 20,
+        "dsm_symptom_key": "ODD-02"
+      },
+      "question": {
+        "responsavel": "Frequentemente discute com adultos ou figuras de autoridade, mesmo diante de pedidos simples?",
+        "professor": "Frequentemente discute com professores, coordenadores ou outros adultos da escola diante de pedidos ou regras?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Discussões com figuras de autoridade."
+    },
+    {
+      "id": "snap_odd_03",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "oposicao_desafio",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 21,
+        "vanderbilt_parent_item": 21,
+        "vanderbilt_teacher_item": 21,
+        "dsm_symptom_key": "ODD-03"
+      },
+      "question": {
+        "responsavel": "Frequentemente desafia, se recusa ativamente a obedecer regras ou deixa de cumprir pedidos de adultos?",
+        "professor": "Frequentemente desafia, se recusa ativamente a obedecer regras ou deixa de cumprir orientações escolares?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Recusa ativa e desafio a regras."
+    },
+    {
+      "id": "snap_odd_04",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "oposicao_desafio",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 22,
+        "vanderbilt_parent_item": 22,
+        "vanderbilt_teacher_item": 22,
+        "dsm_symptom_key": "ODD-04"
+      },
+      "question": {
+        "responsavel": "Frequentemente incomoda outras pessoas de propósito, provoca conflitos ou faz coisas sabendo que irritam os outros?",
+        "professor": "Frequentemente incomoda colegas ou adultos de propósito, provoca conflitos ou faz coisas sabendo que irritam os outros?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Provocação deliberada."
+    },
+    {
+      "id": "snap_odd_05",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "oposicao_desafio",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 23,
+        "vanderbilt_parent_item": 23,
+        "vanderbilt_teacher_item": 23,
+        "dsm_symptom_key": "ODD-05"
+      },
+      "question": {
+        "responsavel": "Frequentemente culpa outras pessoas pelos próprios erros, mau comportamento ou dificuldades?",
+        "professor": "Frequentemente culpa colegas, professores ou outras pessoas pelos próprios erros, mau comportamento ou dificuldades?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Externalização de culpa."
+    },
+    {
+      "id": "snap_odd_06",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "oposicao_desafio",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 24,
+        "vanderbilt_parent_item": 24,
+        "vanderbilt_teacher_item": 24,
+        "dsm_symptom_key": "ODD-06"
+      },
+      "question": {
+        "responsavel": "Frequentemente fica sensível, se ofende com facilidade ou reage como se os outros estivessem provocando?",
+        "professor": "Frequentemente fica sensível, se ofende com facilidade ou reage como se colegas ou adultos estivessem provocando?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Susceptibilidade, irritabilidade e reatividade."
+    },
+    {
+      "id": "snap_odd_07",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "oposicao_desafio",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 25,
+        "vanderbilt_parent_item": 25,
+        "vanderbilt_teacher_item": 25,
+        "dsm_symptom_key": "ODD-07"
+      },
+      "question": {
+        "responsavel": "Frequentemente fica irritado(a), ressentido(a), bravo(a) ou de mau humor por longos períodos?",
+        "professor": "Frequentemente fica irritado(a), ressentido(a), bravo(a) ou de mau humor no ambiente escolar?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Humor irritável ou ressentido."
+    },
+    {
+      "id": "snap_odd_08",
+      "scale": "SNAP-IV-26",
+      "instrument_family": [
+        "SNAP-IV",
+        "Vanderbilt"
+      ],
+      "module": "tdah_tod_infantil",
+      "domain": "oposicao_desafio",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "timeframe": "últimos 6 meses",
+      "source_alignment": {
+        "snap_iv_26_item": 26,
+        "vanderbilt_parent_item": 26,
+        "vanderbilt_teacher_item": 26,
+        "dsm_symptom_key": "ODD-08"
+      },
+      "question": {
+        "responsavel": "Frequentemente age de forma vingativa, tenta dar o troco ou demonstra rancor depois de contrariado(a)?",
+        "professor": "Frequentemente age de forma vingativa, tenta dar o troco ou demonstra rancor depois de conflitos ou correções?"
+      },
+      "answer_scale": "snap_frequency_0_3",
+      "weight": 1,
+      "positive_values": [
+        2,
+        3
+      ],
+      "reverse_scored": false,
+      "clinical_note": "Comportamento vingativo ou rancoroso."
+    }
+  ]
+}

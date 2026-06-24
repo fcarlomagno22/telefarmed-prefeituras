@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { AppModal } from '../AppModal'
 import type { ActivityFeedbackKey } from '../../mentalHealthEngine/renderCopyEngine'
 import { getCtaLabel, renderFeedbackThankYou } from '../../mentalHealthEngine/renderCopyEngine'
 import type { DailyMicroPlan, UserClinicalState } from '../../types/mentalHealthEngine'
@@ -164,7 +165,14 @@ export function MentalHealthMicroPlanDrawer({
   }
 
   return (
-    <View style={styles.overlay}>
+    <AppModal
+      visible={visible}
+      transparent
+      animationType="none"
+      navBarUnderlayColor="#0b0b10"
+      onRequestClose={onClose}
+    >
+      <View style={styles.overlay}>
       <Pressable style={styles.backdrop} onPress={onClose} />
 
       <LinearGradient colors={['#0f172a', '#111827', '#0b0b10']} style={styles.sheet}>
@@ -420,14 +428,14 @@ export function MentalHealthMicroPlanDrawer({
           ) : null}
         </ScrollView>
       </LinearGradient>
-    </View>
+      </View>
+    </AppModal>
   )
 }
 
 const styles = StyleSheet.create({
   overlay: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 40,
+    flex: 1,
     justifyContent: 'flex-end',
   },
   backdrop: {

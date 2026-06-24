@@ -1,0 +1,863 @@
+{
+  "metadata": {
+    "module": "tdah_tod_infantil",
+    "file": "tdah_tod_differential_screening.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "depends_on": [
+      "tdah_tod_questions.json",
+      "tdah_tod_scoring_rules.json",
+      "tdah_tod_cutoffs.json",
+      "tdah_tod_age_rules.json",
+      "tdah_tod_red_flags.json",
+      "tdah_tod_functional_impairment.json"
+    ],
+    "instrument_basis": [
+      "SNAP-IV 26 para sintomas nucleares de TDAH/TOD",
+      "AAP/CDC: avaliação de TDAH deve investigar condições coexistentes e causas que imitam sintomas",
+      "Rastreio diferencial: sono, ansiedade, humor/depressão, trauma/bullying, visão, audição, aprendizagem/linguagem e contexto clínico"
+    ],
+    "clinical_scope": "Perguntas para rastrear fatores que podem imitar, explicar, intensificar ou coexistir com sinais de TDAH/TOD.",
+    "diagnostic_disclaimer": "Este bloco não diagnostica condições diferenciais. Ele identifica sinais de cautela e orienta investigação profissional.",
+    "principle": "Quando houver sinais diferenciais relevantes, manter a pontuação SNAP-IV 26, mas reduzir confiança interpretativa e orientar avaliação do fator associado."
+  },
+  "answer_scales": [
+    {
+      "id": "frequency_0_3",
+      "type": "single_choice",
+      "answers": [
+        {
+          "label": "Nunca ou quase nunca",
+          "value": 0,
+          "is_positive": false
+        },
+        {
+          "label": "Às vezes",
+          "value": 1,
+          "is_positive": false
+        },
+        {
+          "label": "Frequentemente",
+          "value": 2,
+          "is_positive": true
+        },
+        {
+          "label": "Muito frequentemente",
+          "value": 3,
+          "is_positive": true
+        }
+      ],
+      "positive_values": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "yes_no_unknown",
+      "type": "single_choice",
+      "answers": [
+        {
+          "label": "Não",
+          "value": "no",
+          "is_positive": false
+        },
+        {
+          "label": "Sim",
+          "value": "yes",
+          "is_positive": true
+        },
+        {
+          "label": "Não sei informar",
+          "value": "unknown",
+          "is_positive": false,
+          "requires_context_note": true
+        }
+      ]
+    },
+    {
+      "id": "impact_0_3",
+      "type": "single_choice",
+      "answers": [
+        {
+          "label": "Não atrapalha",
+          "value": 0,
+          "is_positive": false
+        },
+        {
+          "label": "Atrapalha um pouco",
+          "value": 1,
+          "is_positive": false
+        },
+        {
+          "label": "Atrapalha bastante",
+          "value": 2,
+          "is_positive": true
+        },
+        {
+          "label": "Atrapalha muito",
+          "value": 3,
+          "is_positive": true
+        }
+      ],
+      "positive_values": [
+        2,
+        3
+      ]
+    }
+  ],
+  "differential_domains": [
+    {
+      "id": "sono",
+      "label": "Sono e respiração durante o sono",
+      "clinical_reason": "Sono insuficiente, insônia, ronco e apneia podem gerar desatenção, irritabilidade, impulsividade e agitação."
+    },
+    {
+      "id": "ansiedade",
+      "label": "Ansiedade e preocupações",
+      "clinical_reason": "Ansiedade pode causar inquietação, distração, evitação, dificuldade de concentração e irritabilidade."
+    },
+    {
+      "id": "humor_depressao",
+      "label": "Humor, tristeza e depressão",
+      "clinical_reason": "Humor deprimido pode causar desatenção, baixa motivação, lentificação, irritabilidade e queda escolar."
+    },
+    {
+      "id": "trauma_bullying_estresse",
+      "label": "Trauma, bullying e estresse psicossocial",
+      "clinical_reason": "Trauma, violência, bullying e estresse intenso podem causar hipervigilância, irritabilidade, oposição, queda escolar e desorganização."
+    },
+    {
+      "id": "visao",
+      "label": "Visão",
+      "clinical_reason": "Dificuldade visual pode parecer desatenção, erro por descuido, evitação de leitura e baixo rendimento escolar."
+    },
+    {
+      "id": "audicao",
+      "label": "Audição",
+      "clinical_reason": "Dificuldade auditiva pode parecer falta de escuta, desatenção, não seguir instruções e atraso de linguagem."
+    },
+    {
+      "id": "aprendizagem_linguagem",
+      "label": "Aprendizagem e linguagem",
+      "clinical_reason": "Transtornos de aprendizagem ou linguagem podem causar evitação, frustração, desatenção aparente e oposição secundária."
+    },
+    {
+      "id": "neurodesenvolvimento",
+      "label": "Neurodesenvolvimento e autismo",
+      "clinical_reason": "Autismo, atraso global, dificuldades sensoriais e rigidez podem coexistir ou ser confundidos com TDAH/TOD."
+    },
+    {
+      "id": "medico_medicacao",
+      "label": "Condições médicas e medicações",
+      "clinical_reason": "Doenças clínicas, dor, epilepsia, efeitos de medicação e alterações metabólicas podem afetar atenção, humor e comportamento."
+    }
+  ],
+  "questions": [
+    {
+      "id": "diff_sleep_duration_01",
+      "domain": "sono",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "A criança/adolescente costuma dormir pouco para a idade ou acorda sem parecer descansado(a)?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "sono_insuficiente"
+      ],
+      "clinical_effect": "contextualize_tdah_symptoms",
+      "recommended_action": "Orientar higiene do sono e considerar avaliação pediátrica se persistente."
+    },
+    {
+      "id": "diff_sleep_latency_02",
+      "domain": "sono",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Tem muita dificuldade para pegar no sono, demora muito para dormir ou vira noites?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "insonia_ou_atraso_sono"
+      ],
+      "clinical_effect": "contextualize_tdah_symptoms",
+      "recommended_action": "Avaliar rotina, telas, ansiedade, humor e higiene do sono."
+    },
+    {
+      "id": "diff_sleep_screen_03",
+      "domain": "sono",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Usa celular, tablet, videogame ou televisão até tarde, perto da hora de dormir?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "uso_telas_ate_tarde"
+      ],
+      "clinical_effect": "contextualize_tdah_symptoms",
+      "recommended_action": "Orientar rotina de telas e sono antes de interpretar desatenção/irritabilidade."
+    },
+    {
+      "id": "diff_sleep_snoring_04",
+      "domain": "sono",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Ronca alto, respira pela boca, parece parar de respirar dormindo ou tem sono muito agitado?",
+      "answer_scale": "yes_no_unknown",
+      "if_positive_flags": [
+        "ronco_apneia_suspeita"
+      ],
+      "clinical_effect": "requires_medical_evaluation",
+      "red_flag_reference": "tdah_tod_red_flags.rf_sleep_apnea_16",
+      "recommended_action": "Sugerir avaliação pediátrica/otorrino/sono antes de concluir TDAH."
+    },
+    {
+      "id": "diff_anxiety_worry_01",
+      "domain": "ansiedade",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Demonstra preocupação excessiva, medo de errar, tensão ou necessidade constante de confirmação?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "ansiedade_preocupacao_excessiva"
+      ],
+      "clinical_effect": "contextualize_inattention_and_avoidance",
+      "recommended_action": "Considerar rastreio de ansiedade e avaliação psicológica se houver prejuízo."
+    },
+    {
+      "id": "diff_anxiety_separation_02",
+      "domain": "ansiedade",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 12
+      },
+      "question": "Tem medo intenso de ficar longe dos pais/responsáveis, ir à escola ou dormir sozinho(a)?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "ansiedade_separacao"
+      ],
+      "clinical_effect": "contextualize_opposition_school_refusal",
+      "recommended_action": "Avaliar ansiedade de separação e contexto escolar/familiar."
+    },
+    {
+      "id": "diff_anxiety_somatic_03",
+      "domain": "ansiedade",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Tem dores de barriga, dor de cabeça, falta de ar, náusea ou mal-estar em situações de prova, escola, separação ou cobrança?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "ansiedade_sintomas_fisicos"
+      ],
+      "clinical_effect": "contextualize_school_impairment",
+      "recommended_action": "Investigar ansiedade, bullying, pressão escolar e causas médicas."
+    },
+    {
+      "id": "diff_anxiety_avoidance_04",
+      "domain": "ansiedade",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Evita tarefas, escola, apresentações, provas, grupos ou atividades por medo, vergonha ou insegurança?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "evitacao_por_ansiedade"
+      ],
+      "clinical_effect": "contextualize_task_avoidance",
+      "recommended_action": "Diferenciar evitação ansiosa de desatenção/oposição."
+    },
+    {
+      "id": "diff_mood_sadness_01",
+      "domain": "humor_depressao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Parece triste, desanimado(a), choroso(a), sem prazer ou sem interesse por coisas de que gostava?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "humor_depressivo"
+      ],
+      "clinical_effect": "contextualize_inattention_low_motivation",
+      "recommended_action": "Considerar avaliação de humor/depressão, especialmente se houver isolamento ou queda funcional."
+    },
+    {
+      "id": "diff_mood_irritability_02",
+      "domain": "humor_depressao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Fica irritado(a), explosivo(a) ou de mau humor na maior parte dos dias, mesmo fora de situações de limite ou contrariedade?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "irritabilidade_persistente"
+      ],
+      "clinical_effect": "contextualize_odd_and_mood",
+      "recommended_action": "Diferenciar oposição/desafio de sofrimento emocional ou transtorno de humor."
+    },
+    {
+      "id": "diff_mood_fatigue_03",
+      "domain": "humor_depressao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 6,
+        "max": 17
+      },
+      "question": "Demonstra cansaço frequente, lentidão, baixa energia ou dificuldade de iniciar atividades mesmo quando quer fazer?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "baixa_energia_lentificacao"
+      ],
+      "clinical_effect": "contextualize_inattention",
+      "recommended_action": "Avaliar sono, humor e condições clínicas."
+    },
+    {
+      "id": "diff_mood_selfworth_04",
+      "domain": "humor_depressao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 6,
+        "max": 17
+      },
+      "question": "Fala que é burro(a), ruim, incapaz, que ninguém gosta dele(a) ou demonstra culpa/vergonha excessiva?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "baixa_autoestima_culpa"
+      ],
+      "clinical_effect": "requires_emotional_assessment",
+      "recommended_action": "Considerar avaliação psicológica e checar red flags de autoagressão se houver fala de morte."
+    },
+    {
+      "id": "diff_trauma_bullying_01",
+      "domain": "trauma_bullying_estresse",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Houve bullying, humilhação, ameaça, exclusão, perseguição ou medo de algum colega/adulto?",
+      "answer_scale": "yes_no_unknown",
+      "if_positive_flags": [
+        "bullying_ou_violencia_escolar"
+      ],
+      "clinical_effect": "contextualize_school_behavior",
+      "recommended_action": "Investigar segurança escolar e acionar escola/rede quando necessário."
+    },
+    {
+      "id": "diff_trauma_event_02",
+      "domain": "trauma_bullying_estresse",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "A criança/adolescente passou por trauma, violência, perda importante, acidente, separação difícil ou mudança brusca recente?",
+      "answer_scale": "yes_no_unknown",
+      "if_positive_flags": [
+        "evento_traumatico_ou_estressor"
+      ],
+      "clinical_effect": "contextualize_abrupt_change",
+      "recommended_action": "Avaliar relação temporal entre evento e sintomas."
+    },
+    {
+      "id": "diff_trauma_hypervigilance_03",
+      "domain": "trauma_bullying_estresse",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Parece assustado(a), em alerta, desconfiado(a), reativo(a) a barulhos/toques ou evita lugares/pessoas específicas?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "hipervigilancia_evitação_trauma"
+      ],
+      "clinical_effect": "requires_psychosocial_assessment",
+      "recommended_action": "Diferenciar trauma/medo de hiperatividade/oposição."
+    },
+    {
+      "id": "diff_trauma_family_stress_04",
+      "domain": "trauma_bullying_estresse",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há conflitos familiares intensos, brigas frequentes, insegurança em casa ou rotina muito instável?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "estresse_familiar_importante"
+      ],
+      "clinical_effect": "contextualize_odd_and_impairment",
+      "recommended_action": "Avaliar suporte familiar, orientação parental e proteção quando necessário."
+    },
+    {
+      "id": "diff_vision_board_01",
+      "domain": "visao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Tem dificuldade para enxergar a lousa, telas, livros, letras pequenas ou precisa se aproximar muito para ver?",
+      "answer_scale": "yes_no_unknown",
+      "if_positive_flags": [
+        "suspeita_dificuldade_visual"
+      ],
+      "clinical_effect": "requires_vision_assessment",
+      "recommended_action": "Orientar avaliação visual/oftalmológica."
+    },
+    {
+      "id": "diff_vision_reading_02",
+      "domain": "visao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Evita leitura/desenho/cópia, perde a linha, aperta os olhos, reclama de dor de cabeça ou cansaço visual?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "visao_pode_afetar_tarefas"
+      ],
+      "clinical_effect": "contextualize_inattention_school",
+      "recommended_action": "Avaliar visão antes de atribuir erros/desatenção a TDAH."
+    },
+    {
+      "id": "diff_hearing_response_01",
+      "domain": "audicao",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Parece não ouvir quando chamado(a), pede para repetir, aumenta volume ou responde de forma inadequada ao que foi dito?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "suspeita_dificuldade_auditiva"
+      ],
+      "clinical_effect": "requires_hearing_assessment",
+      "recommended_action": "Orientar avaliação auditiva/fono/otorrino conforme caso."
+    },
+    {
+      "id": "diff_hearing_infections_02",
+      "domain": "audicao",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Tem histórico de otites frequentes, perda auditiva, zumbido, uso de aparelho auditivo ou atraso de fala associado?",
+      "answer_scale": "yes_no_unknown",
+      "if_positive_flags": [
+        "historico_auditivo_relevante"
+      ],
+      "clinical_effect": "contextualize_language_attention",
+      "recommended_action": "Investigar audição/linguagem antes de concluir desatenção."
+    },
+    {
+      "id": "diff_learning_reading_01",
+      "domain": "aprendizagem_linguagem",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 6,
+        "max": 17
+      },
+      "question": "Há dificuldade persistente de leitura, compreensão de texto, escrita, ortografia ou matemática?",
+      "answer_scale": "yes_no_unknown",
+      "if_positive_flags": [
+        "dificuldade_aprendizagem"
+      ],
+      "clinical_effect": "requires_learning_assessment",
+      "recommended_action": "Considerar avaliação pedagógica, psicopedagógica ou neuropsicológica."
+    },
+    {
+      "id": "diff_learning_avoidance_02",
+      "domain": "aprendizagem_linguagem",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 6,
+        "max": 17
+      },
+      "question": "A recusa, irritação ou fuga de tarefas aparece principalmente em leitura, escrita, matemática ou provas?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "evitacao_por_dificuldade_academica"
+      ],
+      "clinical_effect": "contextualize_odd_task_avoidance",
+      "recommended_action": "Diferenciar oposição/desafio de frustração por dificuldade acadêmica."
+    },
+    {
+      "id": "diff_language_delay_03",
+      "domain": "aprendizagem_linguagem",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há atraso de fala, dificuldade de entender instruções, narrar fatos, encontrar palavras ou se expressar claramente?",
+      "answer_scale": "yes_no_unknown",
+      "if_positive_flags": [
+        "dificuldade_linguagem"
+      ],
+      "clinical_effect": "requires_language_assessment",
+      "recommended_action": "Considerar avaliação fonoaudiológica e escolar."
+    },
+    {
+      "id": "diff_learning_decline_04",
+      "domain": "aprendizagem_linguagem",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 6,
+        "max": 17
+      },
+      "question": "Houve queda importante e recente no rendimento escolar em relação ao padrão anterior?",
+      "answer_scale": "yes_no_unknown",
+      "if_positive_flags": [
+        "queda_rendimento_recente"
+      ],
+      "clinical_effect": "requires_context_review",
+      "recommended_action": "Investigar sono, humor, ansiedade, bullying, visão/audição, mudança familiar e condição médica."
+    },
+    {
+      "id": "diff_autism_social_01",
+      "domain": "neurodesenvolvimento",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há dificuldade importante de interação social, troca de conversa, brincadeira compartilhada, contato visual ou compreensão de pistas sociais?",
+      "answer_scale": "yes_no_unknown",
+      "if_positive_flags": [
+        "sinais_comunicacao_social"
+      ],
+      "clinical_effect": "requires_neurodevelopmental_assessment",
+      "recommended_action": "Considerar avaliação de neurodesenvolvimento/autismo."
+    },
+    {
+      "id": "diff_autism_rigidity_02",
+      "domain": "neurodesenvolvimento",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há rigidez intensa, sofrimento com mudanças de rotina, interesses muito restritos ou comportamentos repetitivos?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "rigidez_interesses_restritos"
+      ],
+      "clinical_effect": "contextualize_opposition_and_attention",
+      "recommended_action": "Diferenciar oposição de rigidez, sensibilidade sensorial ou autismo."
+    },
+    {
+      "id": "diff_sensory_03",
+      "domain": "neurodesenvolvimento",
+      "respondent": [
+        "responsavel",
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Tem sensibilidade intensa a barulho, toque, roupa, luz, cheiro, comida ou ambientes cheios?",
+      "answer_scale": "frequency_0_3",
+      "if_positive_flags": [
+        "sensibilidade_sensorial"
+      ],
+      "clinical_effect": "contextualize_irritability_avoidance",
+      "recommended_action": "Avaliar impacto sensorial e contexto de crises/evitação."
+    },
+    {
+      "id": "diff_medical_pain_01",
+      "domain": "medico_medicacao",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Há dor frequente, doença clínica, cansaço intenso, anemia, alteração hormonal/metabólica ou outro problema de saúde em acompanhamento?",
+      "answer_scale": "yes_no_unknown",
+      "if_positive_flags": [
+        "condicao_clinica_interfere"
+      ],
+      "clinical_effect": "requires_medical_context",
+      "recommended_action": "Considerar avaliação médica e relação com comportamento/atenção."
+    },
+    {
+      "id": "diff_medication_02",
+      "domain": "medico_medicacao",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Usa ou mudou recentemente remédios que podem afetar sono, humor, energia ou atenção?",
+      "answer_scale": "yes_no_unknown",
+      "if_positive_flags": [
+        "medicacao_pode_interferir"
+      ],
+      "clinical_effect": "requires_medication_review",
+      "recommended_action": "Revisar medicações com médico antes de atribuir sintomas a TDAH/TOD."
+    }
+  ],
+  "domain_scoring_rules": [
+    {
+      "domain": "sono",
+      "positive_count_for_context_flag": 1,
+      "positive_count_for_relevant_flag": 2,
+      "relevant_flag": "sono_relevante",
+      "interpretation": "Sono pode explicar ou piorar desatenção, irritabilidade, impulsividade e agitação."
+    },
+    {
+      "domain": "ansiedade",
+      "positive_count_for_context_flag": 1,
+      "positive_count_for_relevant_flag": 2,
+      "relevant_flag": "ansiedade_relevante",
+      "interpretation": "Ansiedade pode aparecer como inquietação, evitação, dificuldade de concentração ou irritabilidade."
+    },
+    {
+      "domain": "humor_depressao",
+      "positive_count_for_context_flag": 1,
+      "positive_count_for_relevant_flag": 2,
+      "relevant_flag": "humor_depressivo_relevante",
+      "interpretation": "Tristeza, baixa energia ou irritabilidade persistente podem imitar ou coexistir com TDAH/TOD."
+    },
+    {
+      "domain": "trauma_bullying_estresse",
+      "positive_count_for_context_flag": 1,
+      "positive_count_for_relevant_flag": 1,
+      "relevant_flag": "trauma_bullying_estresse_relevante",
+      "interpretation": "Trauma, bullying ou estresse importante exigem cautela antes de interpretar oposição/desatenção."
+    },
+    {
+      "domain": "visao",
+      "positive_count_for_context_flag": 1,
+      "positive_count_for_relevant_flag": 1,
+      "relevant_flag": "avaliar_visao",
+      "interpretation": "Dificuldade visual pode parecer desatenção ou erro por descuido."
+    },
+    {
+      "domain": "audicao",
+      "positive_count_for_context_flag": 1,
+      "positive_count_for_relevant_flag": 1,
+      "relevant_flag": "avaliar_audicao",
+      "interpretation": "Dificuldade auditiva pode parecer falta de escuta ou desatenção."
+    },
+    {
+      "domain": "aprendizagem_linguagem",
+      "positive_count_for_context_flag": 1,
+      "positive_count_for_relevant_flag": 1,
+      "relevant_flag": "avaliar_aprendizagem_linguagem",
+      "interpretation": "Dificuldades acadêmicas ou de linguagem podem gerar desatenção aparente e oposição secundária."
+    },
+    {
+      "domain": "neurodesenvolvimento",
+      "positive_count_for_context_flag": 1,
+      "positive_count_for_relevant_flag": 1,
+      "relevant_flag": "avaliar_neurodesenvolvimento",
+      "interpretation": "Sinais de autismo, rigidez ou sensibilidade sensorial exigem avaliação de neurodesenvolvimento."
+    },
+    {
+      "domain": "medico_medicacao",
+      "positive_count_for_context_flag": 1,
+      "positive_count_for_relevant_flag": 1,
+      "relevant_flag": "avaliar_condicao_medica_medicacao",
+      "interpretation": "Condição médica ou medicação pode afetar atenção, humor, sono e comportamento."
+    }
+  ],
+  "engine_integration_rules": [
+    {
+      "id": "any_differential_context_flag",
+      "condition": "any_domain_positive_count >= positive_count_for_context_flag",
+      "set_flag": "any_differential_context_flag",
+      "classification_effect": "do_not_escalate_by_itself",
+      "confidence_modifier": "contextualize",
+      "message_key": "diferenciais_presentes"
+    },
+    {
+      "id": "multiple_differential_domains",
+      "condition": "relevant_differential_domain_count >= 2",
+      "set_flag": "multiplos_diferenciais_relevantes",
+      "classification_effect": "recommend_professional_evaluation",
+      "confidence_modifier": "decrease",
+      "message_key": "multiplos_diferenciais"
+    },
+    {
+      "id": "medical_or_sensory_requires_evaluation",
+      "condition": "domain IN [visao, audicao, medico_medicacao] has relevant_flag",
+      "set_flag": "avaliacao_medica_sensorial_recomendada",
+      "classification_effect": "hold_strong_tdah_interpretation_until_evaluated",
+      "message_key": "avaliar_medico_sensorial"
+    },
+    {
+      "id": "sleep_relevant_before_tdah",
+      "condition": "sono_relevante == true",
+      "set_flag": "sono_pode_explicar_sintomas",
+      "classification_effect": "add_caution_sleep",
+      "message_key": "sono_relevante"
+    },
+    {
+      "id": "emotional_relevant_before_odd",
+      "condition": "ansiedade_relevante == true OR humor_depressivo_relevante == true OR trauma_bullying_estresse_relevante == true",
+      "set_flag": "sofrimento_emocional_contextualiza_comportamento",
+      "classification_effect": "add_caution_emotional",
+      "message_key": "emocional_relevante"
+    },
+    {
+      "id": "learning_language_relevant",
+      "condition": "avaliar_aprendizagem_linguagem == true",
+      "set_flag": "aprendizagem_linguagem_pode_explicar_prejuizo",
+      "classification_effect": "recommend_learning_language_assessment",
+      "message_key": "aprendizagem_linguagem_relevante"
+    },
+    {
+      "id": "neurodevelopment_relevant",
+      "condition": "avaliar_neurodesenvolvimento == true",
+      "set_flag": "neurodesenvolvimento_pode_coexistir_ou_explica",
+      "classification_effect": "recommend_neurodevelopment_assessment",
+      "message_key": "neurodesenvolvimento_relevante"
+    }
+  ],
+  "output_schema": {
+    "differential_screening_result": {
+      "answered_item_count": "number",
+      "domain_results": [
+        {
+          "domain": "sono | ansiedade | humor_depressao | trauma_bullying_estresse | visao | audicao | aprendizagem_linguagem | neurodesenvolvimento | medico_medicacao",
+          "positive_item_count": "number",
+          "context_flag": "boolean",
+          "relevant_flag": "string | null",
+          "interpretation": "string",
+          "recommended_action": "string"
+        }
+      ],
+      "relevant_differential_domain_count": "number",
+      "flags": [
+        "string"
+      ],
+      "confidence_modifier": "none | contextualize | decrease",
+      "classification_effects": [
+        "string"
+      ],
+      "message_keys": [
+        "string"
+      ]
+    }
+  },
+  "safe_language_templates": {
+    "sem_diferenciais_relevantes": "Neste bloco, não apareceram fatores diferenciais relevantes. Ainda assim, o resultado não fecha diagnóstico e deve ser interpretado com prejuízo funcional e contexto.",
+    "diferenciais_presentes": "Apareceram fatores que podem imitar ou intensificar sinais de desatenção, impulsividade ou oposição. O resultado do SNAP-IV deve ser interpretado com cautela.",
+    "multiplos_diferenciais": "Há múltiplos fatores diferenciais relevantes. Recomenda-se avaliação profissional antes de concluir que os sinais são compatíveis principalmente com TDAH/TOD.",
+    "avaliar_medico_sensorial": "Há sinais que sugerem avaliar visão, audição, condição médica ou medicação, pois isso pode interferir na atenção e no comportamento.",
+    "sono_relevante": "Sono insuficiente, irregular ou com sinais respiratórios pode causar sintomas parecidos com TDAH. Vale investigar sono antes de concluir o rastreio.",
+    "emocional_relevante": "Ansiedade, humor deprimido, trauma, bullying ou estresse podem aparecer como desatenção, irritabilidade ou oposição. O contexto emocional precisa ser considerado.",
+    "aprendizagem_linguagem_relevante": "Dificuldades de aprendizagem ou linguagem podem gerar evitação, frustração e desatenção aparente. Avaliação pedagógica/fono/neuropsicológica pode ser indicada.",
+    "neurodesenvolvimento_relevante": "Sinais de neurodesenvolvimento, rigidez ou sensibilidade sensorial podem coexistir com TDAH ou explicar parte das queixas. Recomenda-se avaliação especializada quando houver prejuízo."
+  },
+  "implementation_notes": [
+    "Aplicar este bloco antes da classificação final, junto com red flags e prejuízo funcional.",
+    "Este arquivo não substitui avaliação clínica e não diagnostica ansiedade, depressão, trauma, deficiência visual/auditiva, transtorno de aprendizagem, autismo ou condição médica.",
+    "Quando houver diferencial relevante, manter a pontuação SNAP-IV 26, mas reduzir confiança interpretativa e adicionar mensagem de cautela.",
+    "Sono, ansiedade, depressão, aprendizagem, visão/audição e condições clínicas podem imitar sintomas de TDAH.",
+    "Trauma, bullying e estresse podem gerar irritabilidade, oposição, queda escolar e desatenção aparente.",
+    "Se qualquer resposta indicar risco urgente, usar tdah_tod_red_flags.json para sobrepor o fluxo.",
+    "Nunca exibir frase diagnóstica como 'tem TDAH' ou 'tem TOD'. Usar 'sinais compatíveis' e 'recomenda avaliação'."
+  ]
+}

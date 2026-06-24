@@ -1,0 +1,555 @@
+{
+  "metadata": {
+    "module": "tdah_tod_infantil",
+    "file": "tdah_tod_scoring_rules.json",
+    "version": "1.1.0",
+    "locale": "pt-BR",
+    "depends_on": [
+      "tdah_tod_questions.json"
+    ],
+    "instrument_basis": [
+      "SNAP-IV 26-item Teacher and Parent Rating Scale",
+      "NICHQ Vanderbilt ADHD Diagnostic Rating Scales - lógica de itens 0-3 e prejuízo funcional",
+      "Critérios sintomáticos DSM para TDAH e comportamento opositor/desafiador"
+    ],
+    "clinical_scope": "Regras de pontuação por domínio para triagem neurocomportamental infantil baseada no núcleo SNAP-IV 26.",
+    "diagnostic_disclaimer": "A pontuação não fecha diagnóstico. Ela organiza sinais compatíveis, impacto relatado e necessidade de encaminhamento.",
+    "recommended_application": "Pontuar separadamente as respostas do responsável e do professor; quando ambos existirem, avaliar consistência entre casa e escola."
+  },
+  "global_scoring": {
+    "answer_scale": "snap_frequency_0_3",
+    "score_values": {
+      "nem_um_pouco": 0,
+      "so_um_pouco": 1,
+      "bastante": 2,
+      "demais": 3
+    },
+    "positive_values": [
+      2,
+      3
+    ],
+    "positive_item_definition": "Item com resposta 'Bastante' ou 'Demais'.",
+    "raw_score_method": "Somar os valores das respostas válidas do domínio.",
+    "mean_score_method": "raw_score / answered_item_count",
+    "positive_item_method": "Contar itens do domínio com resposta 2 ou 3.",
+    "percent_positive_method": "positive_item_count / answered_item_count",
+    "percent_max_score_method": "raw_score / maximum_possible_score_for_answered_items",
+    "reverse_scoring": false,
+    "do_not_use_as_diagnosis": true,
+    "missing_answer_policy": {
+      "allow_partial_domain_score": true,
+      "do_not_impute_missing_values": true,
+      "minimum_answered_ratio": 0.8,
+      "minimum_answered_items_by_domain": {
+        "desatencao": 8,
+        "hiperatividade_impulsividade": 8,
+        "oposicao_desafio": 7
+      },
+      "if_below_minimum": {
+        "score_status": "insuficiente",
+        "message_key": "respostas_insuficientes_para_pontuar_dominio",
+        "recommended_action": "Solicitar preenchimento dos itens faltantes antes de gerar conclusão do domínio."
+      }
+    }
+  },
+  "respondent_scoring": {
+    "score_separately_by_respondent": true,
+    "respondents": [
+      {
+        "id": "responsavel",
+        "label": "Responsável/cuidador",
+        "environment": "casa",
+        "weight": 1,
+        "required_for_initial_screening": true
+      },
+      {
+        "id": "professor",
+        "label": "Professor/escola",
+        "environment": "escola",
+        "weight": 1,
+        "required_for_higher_confidence": true,
+        "recommended_for_precision": true
+      }
+    ],
+    "confidence_rules": [
+      {
+        "id": "apenas_responsavel",
+        "condition": "available_respondents == ['responsavel']",
+        "confidence": "moderada",
+        "message_key": "resultado_com_apenas_responsavel",
+        "interpretation_note": "Resultado útil para rastreio inicial, mas menos preciso sem informação escolar."
+      },
+      {
+        "id": "apenas_professor",
+        "condition": "available_respondents == ['professor']",
+        "confidence": "moderada",
+        "message_key": "resultado_com_apenas_professor",
+        "interpretation_note": "Resultado útil para rastreio escolar, mas deve ser complementado pelo responsável."
+      },
+      {
+        "id": "responsavel_e_professor",
+        "condition": "available_respondents includes responsavel AND professor",
+        "confidence": "maior",
+        "message_key": "resultado_com_dois_ambientes",
+        "interpretation_note": "A presença de sinais em casa e escola aumenta a consistência do rastreio."
+      }
+    ]
+  },
+  "domain_rules": [
+    {
+      "domain": "desatencao",
+      "label": "Desatenção",
+      "clinical_target": "Sinais compatíveis com TDAH, apresentação predominantemente desatenta",
+      "question_ids": [
+        "snap_inattention_01",
+        "snap_inattention_02",
+        "snap_inattention_03",
+        "snap_inattention_04",
+        "snap_inattention_05",
+        "snap_inattention_06",
+        "snap_inattention_07",
+        "snap_inattention_08",
+        "snap_inattention_09"
+      ],
+      "item_count": 9,
+      "maximum_raw_score": 27,
+      "positive_values": [
+        2,
+        3
+      ],
+      "minimum_positive_items_for_relevant_signal": 6,
+      "minimum_answered_items_for_valid_score": 8,
+      "calculated_fields": [
+        "answered_item_count",
+        "missing_item_count",
+        "raw_score",
+        "mean_score",
+        "maximum_possible_score_for_answered_items",
+        "positive_item_count",
+        "percent_positive",
+        "percent_max_score"
+      ],
+      "flags": {
+        "relevant_signal": "sinais_relevantes_desatencao",
+        "subthreshold_signal": "sinais_subclinicos_desatencao",
+        "low_signal": "baixo_indicativo_desatencao",
+        "insufficient_data": "dados_insuficientes_desatencao"
+      },
+      "domain_score_bands": [
+        {
+          "id": "baixo_indicativo_desatencao",
+          "positive_items_min": 0,
+          "positive_items_max": 2,
+          "mean_score_min": 0,
+          "mean_score_max": 0.99,
+          "interpretation": "Baixo indicativo de desatenção no ambiente avaliado."
+        },
+        {
+          "id": "sinais_subclinicos_desatencao",
+          "positive_items_min": 3,
+          "positive_items_max": 5,
+          "mean_score_min": 1,
+          "mean_score_max": 1.99,
+          "interpretation": "Sinais leves ou intermediários de desatenção; observar prejuízo funcional, sono, ansiedade, aprendizagem e contexto."
+        },
+        {
+          "id": "sinais_relevantes_desatencao",
+          "positive_items_min": 6,
+          "positive_items_max": 9,
+          "mean_score_min": 2,
+          "mean_score_max": 3,
+          "interpretation": "Sinais relevantes de desatenção no ambiente avaliado. Não confirma TDAH; exige correlação clínica e prejuízo funcional."
+        }
+      ],
+      "clinical_note": "Domínio associado a dificuldade de manter atenção, seguir instruções, organizar tarefas, concluir atividades, evitar esforço mental sustentado, perder objetos, distrair-se e esquecer rotinas."
+    },
+    {
+      "domain": "hiperatividade_impulsividade",
+      "label": "Hiperatividade e impulsividade",
+      "clinical_target": "Sinais compatíveis com TDAH, apresentação predominantemente hiperativa/impulsiva",
+      "question_ids": [
+        "snap_hyperimpulsive_01",
+        "snap_hyperimpulsive_02",
+        "snap_hyperimpulsive_03",
+        "snap_hyperimpulsive_04",
+        "snap_hyperimpulsive_05",
+        "snap_hyperimpulsive_06",
+        "snap_hyperimpulsive_07",
+        "snap_hyperimpulsive_08",
+        "snap_hyperimpulsive_09"
+      ],
+      "item_count": 9,
+      "maximum_raw_score": 27,
+      "positive_values": [
+        2,
+        3
+      ],
+      "minimum_positive_items_for_relevant_signal": 6,
+      "minimum_answered_items_for_valid_score": 8,
+      "calculated_fields": [
+        "answered_item_count",
+        "missing_item_count",
+        "raw_score",
+        "mean_score",
+        "maximum_possible_score_for_answered_items",
+        "positive_item_count",
+        "percent_positive",
+        "percent_max_score"
+      ],
+      "flags": {
+        "relevant_signal": "sinais_relevantes_hiperatividade_impulsividade",
+        "subthreshold_signal": "sinais_subclinicos_hiperatividade_impulsividade",
+        "low_signal": "baixo_indicativo_hiperatividade_impulsividade",
+        "insufficient_data": "dados_insuficientes_hiperatividade_impulsividade"
+      },
+      "domain_score_bands": [
+        {
+          "id": "baixo_indicativo_hiperatividade_impulsividade",
+          "positive_items_min": 0,
+          "positive_items_max": 2,
+          "mean_score_min": 0,
+          "mean_score_max": 0.99,
+          "interpretation": "Baixo indicativo de hiperatividade/impulsividade no ambiente avaliado."
+        },
+        {
+          "id": "sinais_subclinicos_hiperatividade_impulsividade",
+          "positive_items_min": 3,
+          "positive_items_max": 5,
+          "mean_score_min": 1,
+          "mean_score_max": 1.99,
+          "interpretation": "Sinais leves ou intermediários de hiperatividade/impulsividade; observar prejuízo funcional, idade, sono, telas, ansiedade e contexto."
+        },
+        {
+          "id": "sinais_relevantes_hiperatividade_impulsividade",
+          "positive_items_min": 6,
+          "positive_items_max": 9,
+          "mean_score_min": 2,
+          "mean_score_max": 3,
+          "interpretation": "Sinais relevantes de hiperatividade/impulsividade no ambiente avaliado. Não confirma TDAH; exige correlação clínica e prejuízo funcional."
+        }
+      ],
+      "clinical_note": "Domínio associado a inquietação, dificuldade de permanecer sentado, atividade motora excessiva, fala excessiva, resposta precipitada, dificuldade de esperar e interrupções."
+    },
+    {
+      "domain": "oposicao_desafio",
+      "label": "Oposição e desafio",
+      "clinical_target": "Sinais compatíveis com comportamento opositor/desafiador",
+      "question_ids": [
+        "snap_odd_01",
+        "snap_odd_02",
+        "snap_odd_03",
+        "snap_odd_04",
+        "snap_odd_05",
+        "snap_odd_06",
+        "snap_odd_07",
+        "snap_odd_08"
+      ],
+      "item_count": 8,
+      "maximum_raw_score": 24,
+      "positive_values": [
+        2,
+        3
+      ],
+      "minimum_positive_items_for_relevant_signal": 4,
+      "minimum_answered_items_for_valid_score": 7,
+      "calculated_fields": [
+        "answered_item_count",
+        "missing_item_count",
+        "raw_score",
+        "mean_score",
+        "maximum_possible_score_for_answered_items",
+        "positive_item_count",
+        "percent_positive",
+        "percent_max_score"
+      ],
+      "flags": {
+        "relevant_signal": "sinais_relevantes_oposicao_desafio",
+        "subthreshold_signal": "sinais_subclinicos_oposicao_desafio",
+        "low_signal": "baixo_indicativo_oposicao_desafio",
+        "insufficient_data": "dados_insuficientes_oposicao_desafio"
+      },
+      "domain_score_bands": [
+        {
+          "id": "baixo_indicativo_oposicao_desafio",
+          "positive_items_min": 0,
+          "positive_items_max": 1,
+          "mean_score_min": 0,
+          "mean_score_max": 0.99,
+          "interpretation": "Baixo indicativo de oposição/desafio no ambiente avaliado."
+        },
+        {
+          "id": "sinais_subclinicos_oposicao_desafio",
+          "positive_items_min": 2,
+          "positive_items_max": 3,
+          "mean_score_min": 1,
+          "mean_score_max": 1.99,
+          "interpretation": "Sinais leves ou intermediários de oposição/desafio; observar intensidade, frequência, ambiente, dinâmica familiar/escolar e prejuízo."
+        },
+        {
+          "id": "sinais_relevantes_oposicao_desafio",
+          "positive_items_min": 4,
+          "positive_items_max": 8,
+          "mean_score_min": 2,
+          "mean_score_max": 3,
+          "interpretation": "Sinais relevantes de oposição/desafio no ambiente avaliado. Não confirma TOD; exige avaliação clínica e análise contextual."
+        }
+      ],
+      "clinical_note": "Domínio associado a irritabilidade, discussões, desafio a regras, provocação, culpabilização de terceiros, ressentimento e comportamento vingativo."
+    }
+  ],
+  "domain_flag_logic": {
+    "primary_rule": "Classificar o domínio prioritariamente por positive_item_count.",
+    "secondary_rule": "Usar mean_score e percent_max_score como medidas de intensidade para relatório e desempate clínico.",
+    "band_selection": [
+      {
+        "condition": "answered_item_count < minimum_answered_items_for_valid_score",
+        "score_status": "insuficiente",
+        "flag": "insufficient_data"
+      },
+      {
+        "condition": "positive_item_count >= minimum_positive_items_for_relevant_signal",
+        "score_status": "valid",
+        "flag": "relevant_signal"
+      },
+      {
+        "condition": "positive_item_count > low_band_max AND positive_item_count < minimum_positive_items_for_relevant_signal",
+        "score_status": "valid",
+        "flag": "subthreshold_signal"
+      },
+      {
+        "condition": "positive_item_count <= low_band_max",
+        "score_status": "valid",
+        "flag": "low_signal"
+      }
+    ]
+  },
+  "combined_domain_rules": [
+    {
+      "id": "perfil_desatento_predominante",
+      "condition": {
+        "all": [
+          {
+            "domain": "desatencao",
+            "flag": "sinais_relevantes_desatencao"
+          }
+        ],
+        "none": [
+          {
+            "domain": "hiperatividade_impulsividade",
+            "flag": "sinais_relevantes_hiperatividade_impulsividade"
+          }
+        ]
+      },
+      "result_flag": "perfil_compativel_com_sinais_desatentos",
+      "interpretation": "Predomínio de sinais de desatenção. Não confirma TDAH; recomenda avaliação profissional se houver prejuízo funcional."
+    },
+    {
+      "id": "perfil_hiperativo_impulsivo_predominante",
+      "condition": {
+        "all": [
+          {
+            "domain": "hiperatividade_impulsividade",
+            "flag": "sinais_relevantes_hiperatividade_impulsividade"
+          }
+        ],
+        "none": [
+          {
+            "domain": "desatencao",
+            "flag": "sinais_relevantes_desatencao"
+          }
+        ]
+      },
+      "result_flag": "perfil_compativel_com_sinais_hiperativos_impulsivos",
+      "interpretation": "Predomínio de sinais de hiperatividade/impulsividade. Não confirma TDAH; recomenda avaliação profissional se houver prejuízo funcional."
+    },
+    {
+      "id": "perfil_combinado_tdah",
+      "condition": {
+        "all": [
+          {
+            "domain": "desatencao",
+            "flag": "sinais_relevantes_desatencao"
+          },
+          {
+            "domain": "hiperatividade_impulsividade",
+            "flag": "sinais_relevantes_hiperatividade_impulsividade"
+          }
+        ]
+      },
+      "result_flag": "perfil_compativel_com_sinais_combinados_tdah",
+      "interpretation": "Sinais relevantes em desatenção e hiperatividade/impulsividade. Não confirma TDAH; recomenda avaliação profissional e coleta de informações da escola."
+    },
+    {
+      "id": "perfil_oposicao_desafio",
+      "condition": {
+        "all": [
+          {
+            "domain": "oposicao_desafio",
+            "flag": "sinais_relevantes_oposicao_desafio"
+          }
+        ]
+      },
+      "result_flag": "perfil_compativel_com_sinais_opositores_desafiadores",
+      "interpretation": "Sinais relevantes de oposição/desafio. Não confirma TOD; recomenda avaliação profissional, orientação familiar e análise do contexto escolar/social."
+    },
+    {
+      "id": "perfil_tdah_com_oposicao_associada",
+      "condition": {
+        "any": [
+          {
+            "domain": "desatencao",
+            "flag": "sinais_relevantes_desatencao"
+          },
+          {
+            "domain": "hiperatividade_impulsividade",
+            "flag": "sinais_relevantes_hiperatividade_impulsividade"
+          }
+        ],
+        "all": [
+          {
+            "domain": "oposicao_desafio",
+            "flag": "sinais_relevantes_oposicao_desafio"
+          }
+        ]
+      },
+      "result_flag": "sinais_tdah_com_oposicao_associada",
+      "interpretation": "Há sinais de atenção/impulsividade associados a oposição/desafio. Recomenda avaliação clínica para entender causas, comorbidades e prejuízo funcional."
+    }
+  ],
+  "cross_environment_rules": [
+    {
+      "id": "consistente_casa_escola_mesmo_dominio",
+      "applies_when": "responsavel_and_professor_available",
+      "condition": "same_domain_has_relevant_signal_in_both_respondents",
+      "result_flag": "consistencia_entre_casa_e_escola",
+      "confidence_modifier": "increase",
+      "interpretation": "Sinais relevantes aparecem em mais de um ambiente, aumentando a consistência do rastreio."
+    },
+    {
+      "id": "sinal_relevante_apenas_em_casa",
+      "applies_when": "responsavel_and_professor_available",
+      "condition": "domain_has_relevant_signal_for_responsavel_but_not_professor",
+      "result_flag": "sinais_predominantes_em_casa",
+      "confidence_modifier": "contextualize",
+      "interpretation": "Sinais relatados principalmente em casa; avaliar rotina familiar, sono, telas, dinâmica de limites e fatores emocionais."
+    },
+    {
+      "id": "sinal_relevante_apenas_na_escola",
+      "applies_when": "responsavel_and_professor_available",
+      "condition": "domain_has_relevant_signal_for_professor_but_not_responsavel",
+      "result_flag": "sinais_predominantes_na_escola",
+      "confidence_modifier": "contextualize",
+      "interpretation": "Sinais relatados principalmente na escola; avaliar demandas pedagógicas, aprendizagem, bullying, adaptação escolar, visão e audição."
+    },
+    {
+      "id": "discordancia_importante_entre_informantes",
+      "applies_when": "responsavel_and_professor_available",
+      "condition": "absolute_positive_item_difference_by_domain >= 4",
+      "result_flag": "discordancia_importante_entre_informantes",
+      "confidence_modifier": "decrease",
+      "interpretation": "Há diferença importante entre os relatos. Recomenda aprofundar contexto antes de concluir o rastreio."
+    }
+  ],
+  "functional_impairment_integration": {
+    "depends_on": "tdah_tod_functional_impairment.json",
+    "required_for_final_classification": true,
+    "reason": "SNAP-IV organiza sintomas; a classificação final do motor deve considerar prejuízo funcional em casa, escola e relações.",
+    "expected_impairment_levels": [
+      "sem_prejuizo_relevante",
+      "prejuizo_leve",
+      "prejuizo_moderado",
+      "prejuizo_importante"
+    ],
+    "rules": [
+      {
+        "id": "sinais_sem_prejuizo_funcional",
+        "condition": "any_relevant_domain_signal == true AND functional_impairment_level == sem_prejuizo_relevante",
+        "result_flag": "sinais_sem_prejuizo_funcional_claro",
+        "classification_modifier": "do_not_escalate_above_sinais_leves_without_clinical_review",
+        "interpretation": "Há sinais em itens comportamentais, mas sem prejuízo funcional claro; orientar observação e reavaliação."
+      },
+      {
+        "id": "sinais_com_prejuizo_moderado_ou_importante",
+        "condition": "any_relevant_domain_signal == true AND functional_impairment_level IN [prejuizo_moderado, prejuizo_importante]",
+        "result_flag": "sinais_com_prejuizo_funcional",
+        "classification_modifier": "increase_priority",
+        "interpretation": "Sinais comportamentais associados a prejuízo funcional aumentam a prioridade de avaliação profissional."
+      }
+    ]
+  },
+  "red_flag_integration": {
+    "depends_on": "tdah_tod_red_flags.json",
+    "required_before_final_message": true,
+    "override_rule": {
+      "condition": "any_red_flag == true",
+      "result_flag": "fluxo_prioritario_por_alerta",
+      "classification_modifier": "override_to_priority_or_urgent_path",
+      "interpretation": "Alerta clínico ou psicossocial exige fluxo próprio antes de interpretar a triagem de TDAH/TOD."
+    }
+  },
+  "differential_screening_integration": {
+    "depends_on": "tdah_tod_differential_screening.json",
+    "required_for_contextual_result": true,
+    "context_flags": [
+      "sono_insuficiente_ou_ronco",
+      "uso_excessivo_de_telas",
+      "ansiedade_relevante",
+      "humor_depressivo",
+      "bullying_ou_violencia",
+      "trauma_recente",
+      "queixa_visual_ou_auditiva",
+      "crises_convulsivas_ou_epilepsia",
+      "medicacao_que_pode_interferir",
+      "mudanca_familiar_recente",
+      "atraso_fala_aprendizagem",
+      "sinais_autismo"
+    ],
+    "interpretation_rule": "Quando houver flags diferenciais, manter a pontuação SNAP-IV, mas adicionar mensagem de que os sinais podem ser influenciados por outros fatores e precisam de avaliação profissional."
+  },
+  "output_schema": {
+    "per_respondent_domain_result": {
+      "respondent": "responsavel | professor",
+      "domain": "desatencao | hiperatividade_impulsividade | oposicao_desafio",
+      "answered_item_count": "number",
+      "missing_item_count": "number",
+      "raw_score": "number",
+      "mean_score": "number",
+      "maximum_possible_score_for_answered_items": "number",
+      "positive_item_count": "number",
+      "percent_positive": "number",
+      "percent_max_score": "number",
+      "domain_band_id": "string",
+      "flags": [
+        "string"
+      ],
+      "score_status": "valid | insuficiente"
+    },
+    "combined_result": {
+      "available_respondents": [
+        "responsavel",
+        "professor"
+      ],
+      "combined_flags": [
+        "string"
+      ],
+      "cross_environment_flags": [
+        "string"
+      ],
+      "confidence": "baixa | moderada | maior",
+      "requires_functional_impairment_for_final_classification": true,
+      "requires_red_flag_screening_for_final_classification": true,
+      "requires_differential_screening_context": true
+    }
+  },
+  "implementation_notes": [
+    "Pontuar cada domínio separadamente por informante.",
+    "Resposta 2 ou 3 conta como item positivo.",
+    "Desatenção usa 6 ou mais itens positivos como sinal relevante.",
+    "Hiperatividade/impulsividade usa 6 ou mais itens positivos como sinal relevante.",
+    "Oposição/desafio usa 4 ou mais itens positivos como sinal relevante.",
+    "A média por domínio deve ser exibida como intensidade, não como diagnóstico.",
+    "Quando houver apenas um informante, gerar resultado de rastreio com confiança moderada e solicitar outro ambiente quando possível.",
+    "Não gerar frase diagnóstica como 'tem TDAH' ou 'tem TOD'. Usar linguagem de sinais compatíveis e necessidade de avaliação.",
+    "A classificação final deve depender também de prejuízo funcional, red flags, idade e consistência entre ambientes."
+  ]
+}

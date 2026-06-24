@@ -1,0 +1,529 @@
+{
+  "metadata": {
+    "module": "tdah_tod_infantil",
+    "file": "tdah_tod_consent_terms.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "effective_date": "2026-06-24",
+    "depends_on": [
+      "tdah_tod_questions.json",
+      "tdah_tod_informants.json",
+      "tdah_tod_red_flags.json",
+      "tdah_tod_result_messages.json",
+      "tdah_tod_referral_rules.json"
+    ],
+    "legal_context": [
+      "LGPD - Lei 13.709/2018",
+      "Proteção de dados pessoais de crianças e adolescentes em seu melhor interesse",
+      "Consentimento específico e em destaque de pelo menos um dos pais ou responsável legal quando aplicável",
+      "Dados de saúde e comportamento como dados pessoais sensíveis"
+    ],
+    "clinical_scope": "Consentimento, avisos e termos de uso para rastreio neurocomportamental infantil baseado em SNAP-IV 26.",
+    "diagnostic_disclaimer": "O resultado não fecha diagnóstico. Ele identifica sinais compatíveis e orienta o melhor encaminhamento.",
+    "plain_language_required": true
+  },
+  "term_sets": [
+    {
+      "id": "main_guardian_consent",
+      "title": "Consentimento para triagem neurocomportamental infantil",
+      "audience": "mae_pai_responsavel_legal",
+      "required": true,
+      "blocking": true,
+      "display_position": "before_screening",
+      "summary": "Autorização do responsável para responder ao rastreio, tratar dados sensíveis de saúde/comportamento e receber orientação de encaminhamento.",
+      "full_text": "Autorizo a realização de uma triagem neurocomportamental infantil para identificar sinais compatíveis com desatenção, hiperatividade/impulsividade, oposição/desafio, prejuízo funcional e fatores associados. Entendo que este rastreio não fecha diagnóstico de TDAH, TOD ou qualquer transtorno mental. O resultado serve para organizar sinais, indicar nível de atenção e orientar o melhor encaminhamento. Declaro que sou mãe, pai ou responsável legal, ou que possuo autorização adequada para responder em nome da criança/adolescente.",
+      "acceptance_label": "Li e autorizo a realização da triagem.",
+      "decline_behavior": {
+        "action": "block_screening",
+        "message": "Sem o consentimento do responsável, a triagem não pode ser iniciada."
+      }
+    },
+    {
+      "id": "non_diagnostic_notice",
+      "title": "Aviso de não diagnóstico",
+      "audience": "todos",
+      "required": true,
+      "blocking": true,
+      "display_position": "before_result",
+      "summary": "Aviso obrigatório de que o resultado é rastreio e não diagnóstico.",
+      "full_text": "Este resultado não confirma nem descarta TDAH, TOD, autismo, ansiedade, depressão, transtorno de aprendizagem ou qualquer outra condição. Não substitui consulta com pediatra, neuropediatra, psiquiatra infantil, psicólogo, neuropsicólogo ou outro profissional habilitado. A avaliação profissional deve considerar história clínica, desenvolvimento, escola, família, prejuízo funcional, sono, visão, audição, aprendizagem, saúde emocional e possíveis fatores de risco.",
+      "acceptance_label": "Entendi que o resultado não é diagnóstico.",
+      "decline_behavior": {
+        "action": "allow_exit_without_result",
+        "message": "O resultado só pode ser exibido após confirmação de entendimento do aviso de não diagnóstico."
+      }
+    },
+    {
+      "id": "sensitive_data_consent",
+      "title": "Uso de dados sensíveis de saúde e comportamento",
+      "audience": "mae_pai_responsavel_legal",
+      "required": true,
+      "blocking": true,
+      "display_position": "before_screening",
+      "summary": "Consentimento específico para coleta e tratamento de dados sensíveis.",
+      "full_text": "Autorizo o tratamento de dados pessoais e dados sensíveis relacionados à saúde, comportamento, escola, desenvolvimento, rotina familiar, sono, emoções, prejuízo funcional e alertas de risco da criança/adolescente, exclusivamente para fins de triagem, orientação de encaminhamento, acompanhamento, segurança do cuidado e gestão assistencial quando aplicável.",
+      "acceptance_label": "Autorizo o uso desses dados para a triagem e encaminhamento.",
+      "decline_behavior": {
+        "action": "block_screening",
+        "message": "Sem autorização para tratamento dos dados necessários, a triagem não pode ser realizada."
+      }
+    },
+    {
+      "id": "school_form_authorization",
+      "title": "Autorização para formulário da escola",
+      "audience": "mae_pai_responsavel_legal",
+      "required": false,
+      "blocking": false,
+      "display_position": "after_home_screening_or_before_school_invite",
+      "summary": "Autorização para convidar professor/escola a responder formulário de observação.",
+      "full_text": "Autorizo o envio de formulário para professor, coordenação ou profissional escolar indicado, para que responda perguntas sobre comportamento, atenção, rotina escolar, aprendizagem e prejuízo funcional da criança/adolescente. Entendo que a escola não receberá diagnóstico e que as informações devem ser usadas apenas para complementar o rastreio e orientar cuidado.",
+      "acceptance_label": "Autorizo enviar formulário para a escola/professor.",
+      "decline_behavior": {
+        "action": "continue_without_school_form",
+        "message": "A triagem poderá continuar, mas a precisão será menor sem informação escolar."
+      }
+    },
+    {
+      "id": "share_report_with_professional",
+      "title": "Compartilhamento com profissional de saúde",
+      "audience": "mae_pai_responsavel_legal",
+      "required": false,
+      "blocking": false,
+      "display_position": "before_report_sharing",
+      "summary": "Autorização para compartilhar relatório com profissional ou serviço de saúde indicado.",
+      "full_text": "Autorizo que o relatório de rastreio seja compartilhado com profissional ou serviço de saúde indicado por mim ou vinculado ao atendimento, para apoiar avaliação clínica e encaminhamento. O relatório deve manter linguagem de rastreio e não deve ser tratado como diagnóstico.",
+      "acceptance_label": "Autorizo compartilhar o relatório com profissional de saúde.",
+      "decline_behavior": {
+        "action": "do_not_share_report",
+        "message": "O relatório não será compartilhado automaticamente."
+      }
+    },
+    {
+      "id": "municipal_dashboard_consent",
+      "title": "Uso de dados para painel gestor",
+      "audience": "mae_pai_responsavel_legal",
+      "required": false,
+      "blocking": false,
+      "display_position": "before_screening_or_settings",
+      "summary": "Autorização para uso de dados agregados em painel municipal/gestor.",
+      "full_text": "Autorizo que dados agregados e, sempre que possível, não identificados sejam usados para indicadores de gestão, como número de triagens, faixas de risco, escolas/bairros com maior demanda e fila por prioridade. Esses dados não devem expor publicamente a identidade da criança/adolescente.",
+      "acceptance_label": "Autorizo uso agregado para indicadores de gestão.",
+      "decline_behavior": {
+        "action": "do_not_use_identifiable_data_for_dashboard",
+        "message": "Os dados identificáveis não serão usados para painel gestor sem autorização ou outra base legal aplicável."
+      }
+    },
+    {
+      "id": "followup_contact_consent",
+      "title": "Contato para acompanhamento",
+      "audience": "mae_pai_responsavel_legal",
+      "required": false,
+      "blocking": false,
+      "display_position": "after_result",
+      "summary": "Autorização para lembretes e contato de acompanhamento.",
+      "full_text": "Autorizo receber lembretes, mensagens ou contatos relacionados ao acompanhamento da triagem, reavaliação, formulário escolar, encaminhamento recomendado e alertas de cuidado.",
+      "acceptance_label": "Autorizo contato para acompanhamento.",
+      "decline_behavior": {
+        "action": "disable_followup_notifications",
+        "message": "Você poderá acessar o resultado, mas não receberá lembretes automáticos."
+      }
+    },
+    {
+      "id": "urgent_risk_notice",
+      "title": "Aviso sobre situações de urgência",
+      "audience": "todos",
+      "required": true,
+      "blocking": true,
+      "display_position": "before_red_flags_and_before_result",
+      "summary": "Aviso de que risco atual exige atendimento presencial urgente.",
+      "full_text": "Se houver risco atual de autoagressão, suicídio, agressão grave, intoxicação, surto, alucinações, abuso, violência, crise convulsiva, perda de consciência ou qualquer situação insegura, não aguarde o resultado do app. Procure imediatamente serviço de urgência/emergência, SAMU 192, pronto atendimento, hospital, serviço de saúde mental ou rede de proteção conforme o caso.",
+      "acceptance_label": "Entendi que situações de risco exigem ajuda imediata.",
+      "decline_behavior": {
+        "action": "block_result_and_show_urgent_notice",
+        "message": "É necessário confirmar o aviso de urgência para continuar."
+      }
+    }
+  ],
+  "data_collection_notice": {
+    "title": "Quais dados podem ser coletados",
+    "plain_text": "Para realizar a triagem, podemos coletar dados de identificação mínima, idade, relação do respondente com a criança/adolescente, respostas sobre atenção, impulsividade, oposição/desafio, rotina escolar, rotina familiar, prejuízo funcional, sono, humor, ansiedade, aprendizagem, visão, audição, desenvolvimento, alertas de risco e encaminhamentos.",
+    "data_categories": [
+      {
+        "id": "identificacao_minima",
+        "label": "Identificação mínima",
+        "examples": [
+          "nome ou código do paciente",
+          "idade",
+          "data de nascimento quando necessária",
+          "responsável"
+        ],
+        "required": true
+      },
+      {
+        "id": "dados_saude_comportamento",
+        "label": "Dados de saúde e comportamento",
+        "examples": [
+          "sinais de desatenção",
+          "hiperatividade/impulsividade",
+          "oposição/desafio",
+          "prejuízo funcional",
+          "sono",
+          "humor",
+          "ansiedade",
+          "red flags"
+        ],
+        "required": true,
+        "sensitive": true
+      },
+      {
+        "id": "dados_escolares",
+        "label": "Dados escolares",
+        "examples": [
+          "observação do professor",
+          "prejuízo acadêmico",
+          "rotina de sala",
+          "relações com colegas"
+        ],
+        "required": false,
+        "sensitive": true
+      },
+      {
+        "id": "dados_acompanhamento",
+        "label": "Dados de acompanhamento",
+        "examples": [
+          "encaminhamento recomendado",
+          "status de reavaliação",
+          "formulário escolar pendente",
+          "evolução da pontuação"
+        ],
+        "required": false,
+        "sensitive": true
+      }
+    ]
+  },
+  "allowed_purposes": [
+    {
+      "id": "triagem",
+      "label": "Realizar triagem",
+      "description": "Organizar respostas e identificar sinais compatíveis com TDAH/TOD e fatores associados."
+    },
+    {
+      "id": "encaminhamento",
+      "label": "Orientar encaminhamento",
+      "description": "Indicar orientação familiar, escola, pediatra, psicólogo, neuropsicólogo, neuropediatra, psiquiatra infantil, urgência ou rede de proteção conforme regras do motor."
+    },
+    {
+      "id": "seguranca",
+      "label": "Proteger segurança",
+      "description": "Identificar red flags e orientar fluxo de urgência/proteção quando necessário."
+    },
+    {
+      "id": "acompanhamento",
+      "label": "Acompanhar evolução",
+      "description": "Permitir reavaliação, comparação de pontuação e acompanhamento de encaminhamentos."
+    },
+    {
+      "id": "gestao_agregada",
+      "label": "Gestão agregada",
+      "description": "Gerar indicadores agregados para gestão de demanda, sem exposição pública da identidade da criança/adolescente."
+    }
+  ],
+  "prohibited_uses": [
+    {
+      "id": "diagnostico_automatico",
+      "label": "Diagnóstico automático",
+      "description": "O sistema não pode afirmar que a criança tem ou não tem TDAH, TOD ou outro transtorno."
+    },
+    {
+      "id": "prescricao_automatico",
+      "label": "Prescrição ou ajuste de medicação",
+      "description": "O sistema não pode prescrever, suspender, iniciar ou alterar medicamentos."
+    },
+    {
+      "id": "rotulo_escolar",
+      "label": "Rótulo escolar",
+      "description": "O resultado não deve ser usado para rotular, punir, excluir ou limitar acesso da criança/adolescente."
+    },
+    {
+      "id": "compartilhamento_sem_autorizacao",
+      "label": "Compartilhamento indevido",
+      "description": "Não compartilhar dados identificáveis com escola, terceiros ou painel público sem autorização ou base legal aplicável."
+    },
+    {
+      "id": "decisao_discriminatoria",
+      "label": "Decisão discriminatória",
+      "description": "Não usar o rastreio para negar matrícula, atendimento, benefício, participação em atividade ou qualquer direito."
+    }
+  ],
+  "required_checkboxes": [
+    {
+      "id": "confirm_guardian_role",
+      "required": true,
+      "label": "Declaro que sou mãe, pai ou responsável legal, ou que possuo autorização para responder pela criança/adolescente.",
+      "blocks_if_false": true
+    },
+    {
+      "id": "accept_screening_not_diagnosis",
+      "required": true,
+      "label": "Entendo que este rastreio não fecha diagnóstico e não substitui avaliação profissional.",
+      "blocks_if_false": true
+    },
+    {
+      "id": "authorize_sensitive_data",
+      "required": true,
+      "label": "Autorizo o tratamento dos dados necessários para triagem, resultado e encaminhamento.",
+      "blocks_if_false": true
+    },
+    {
+      "id": "understand_urgent_risk",
+      "required": true,
+      "label": "Entendo que situações de risco exigem atendimento imediato e não devem aguardar o app.",
+      "blocks_if_false": true
+    }
+  ],
+  "optional_checkboxes": [
+    {
+      "id": "authorize_school_form",
+      "label": "Autorizo enviar formulário para professor/escola.",
+      "default": false,
+      "maps_to_term_set": "school_form_authorization"
+    },
+    {
+      "id": "authorize_professional_sharing",
+      "label": "Autorizo compartilhar o relatório com profissional de saúde indicado.",
+      "default": false,
+      "maps_to_term_set": "share_report_with_professional"
+    },
+    {
+      "id": "authorize_dashboard_aggregated_use",
+      "label": "Autorizo uso agregado para indicadores de gestão.",
+      "default": false,
+      "maps_to_term_set": "municipal_dashboard_consent"
+    },
+    {
+      "id": "authorize_followup_contact",
+      "label": "Autorizo receber lembretes e contatos de acompanhamento.",
+      "default": false,
+      "maps_to_term_set": "followup_contact_consent"
+    }
+  ],
+  "guardian_verification": {
+    "required_for_child": true,
+    "recommended_for_adolescent": true,
+    "accepted_guardian_types": [
+      "mae",
+      "pai",
+      "responsavel_legal"
+    ],
+    "minimum_fields": [
+      "guardian_name",
+      "guardian_relationship",
+      "guardian_document_or_platform_id",
+      "child_name_or_id",
+      "child_birth_date_or_age",
+      "consent_timestamp",
+      "terms_version"
+    ],
+    "reasonable_efforts": [
+      "confirmar vínculo declarado",
+      "registrar aceite específico em destaque",
+      "registrar versão dos termos",
+      "registrar data/hora e origem do aceite",
+      "usar autenticação da plataforma quando disponível"
+    ],
+    "if_not_verified": {
+      "action": "allow_only_minimum_data_or_block_sensitive_result",
+      "message": "Não foi possível confirmar o responsável. Complete a verificação para acessar a triagem completa."
+    }
+  },
+  "minor_assent": {
+    "required": false,
+    "recommended_age_min": 12,
+    "title": "Explicação para adolescente",
+    "plain_text": "Este questionário ajuda adultos e profissionais a entenderem melhor atenção, comportamento, escola, sono e emoções. Ele não coloca rótulo em você e não fecha diagnóstico. Se alguma pergunta causar desconforto ou se houver risco, peça ajuda a um adulto de confiança ou profissional.",
+    "can_decline_note": "Quando apropriado, registrar se o adolescente não quis participar, sem impedir cuidado essencial decidido pelo responsável/profissional."
+  },
+  "school_participant_notice": {
+    "title": "Aviso para professor/escola",
+    "plain_text": "Este formulário coleta observações escolares para complementar o rastreio. Ele não gera diagnóstico e não deve ser usado para rotular, punir ou excluir o aluno. Responda apenas com base no comportamento observado no ambiente escolar e no período solicitado.",
+    "teacher_required_confirmations": [
+      {
+        "id": "teacher_observed_child",
+        "label": "Confirmo que observo o aluno em contexto escolar recente.",
+        "required": true
+      },
+      {
+        "id": "teacher_no_diagnosis_understanding",
+        "label": "Entendo que este formulário não fecha diagnóstico.",
+        "required": true
+      },
+      {
+        "id": "teacher_confidentiality",
+        "label": "Comprometo-me a tratar as informações com confidencialidade.",
+        "required": true
+      }
+    ]
+  },
+  "urgent_exception_notice": {
+    "title": "Exceção para proteção e urgência",
+    "plain_text": "Quando houver risco grave ou necessidade de proteger a criança/adolescente, dados mínimos podem ser usados ou compartilhados com serviços competentes para preservar segurança, saúde e direitos, conforme lei e protocolos locais.",
+    "applies_when": [
+      "urgent_red_flag == true",
+      "safeguarding_red_flag == true",
+      "risco_atual_para_crianca_ou_terceiros == true"
+    ],
+    "minimum_necessary_principle": true
+  },
+  "data_retention_and_rights": {
+    "plain_text": "O responsável pode solicitar informações sobre dados tratados, correção, atualização, exclusão quando aplicável, revogação de consentimentos opcionais e esclarecimentos sobre uso dos dados, conforme a LGPD e políticas da plataforma.",
+    "rights": [
+      "confirmacao_de_tratamento",
+      "acesso_a_dados",
+      "correcao_de_dados",
+      "informacao_sobre_compartilhamento",
+      "revogacao_de_consentimento_opcional",
+      "solicitacao_de_exclusao_quando_aplicavel",
+      "portabilidade_quando_aplicavel"
+    ],
+    "retention_policy_placeholder": {
+      "id": "define_by_telefarmed_policy",
+      "message": "Definir prazo de retenção conforme política institucional, obrigações legais/regulatórias e finalidade assistencial."
+    }
+  },
+  "audit_log_requirements": {
+    "must_record": [
+      "term_set_id",
+      "term_version",
+      "accepted",
+      "accepted_at",
+      "guardian_user_id_or_identifier",
+      "guardian_relationship",
+      "child_patient_id_or_identifier",
+      "ip_or_device_metadata_when_allowed",
+      "app_version",
+      "locale",
+      "revoked_at_if_applicable"
+    ],
+    "immutability_recommended": true,
+    "show_to_user": [
+      "term_title",
+      "accepted_at",
+      "accepted_status",
+      "revocation_status"
+    ]
+  },
+  "revocation_rules": [
+    {
+      "id": "revoke_school_form",
+      "applies_to": "school_form_authorization",
+      "effect": "stop_new_school_invites",
+      "does_not_delete_prior_clinical_records_automatically": true
+    },
+    {
+      "id": "revoke_followup_contact",
+      "applies_to": "followup_contact_consent",
+      "effect": "disable_followup_notifications",
+      "does_not_delete_prior_clinical_records_automatically": true
+    },
+    {
+      "id": "revoke_dashboard_optional",
+      "applies_to": "municipal_dashboard_consent",
+      "effect": "stop_identifiable_or_optional_dashboard_use_when_applicable",
+      "does_not_delete_aggregated_anonymized_data_automatically": true
+    },
+    {
+      "id": "revoke_professional_sharing",
+      "applies_to": "share_report_with_professional",
+      "effect": "stop_future_report_sharing",
+      "does_not_recall_reports_already_shared": true
+    }
+  ],
+  "display_rules": [
+    {
+      "id": "show_required_before_start",
+      "condition": "before_screening",
+      "show_term_sets": [
+        "main_guardian_consent",
+        "sensitive_data_consent",
+        "urgent_risk_notice"
+      ],
+      "show_required_checkboxes": true
+    },
+    {
+      "id": "show_no_diagnosis_before_result",
+      "condition": "before_result",
+      "show_term_sets": [
+        "non_diagnostic_notice"
+      ],
+      "must_confirm": true
+    },
+    {
+      "id": "show_school_authorization_when_needed",
+      "condition": "school_form_requested == true",
+      "show_term_sets": [
+        "school_form_authorization"
+      ],
+      "must_confirm_optional_choice": true
+    },
+    {
+      "id": "show_urgent_notice_on_red_flag",
+      "condition": "urgent_red_flag == true OR safeguarding_red_flag == true",
+      "show_term_sets": [
+        "urgent_risk_notice"
+      ],
+      "make_primary_message": true
+    }
+  ],
+  "safe_language_templates": {
+    "start_screening_title": "Antes de começar",
+    "start_screening_body": "Esta triagem ajuda a identificar sinais compatíveis e orientar próximos passos. Ela não fecha diagnóstico.",
+    "required_consent_missing": "Para continuar, é necessário confirmar os consentimentos obrigatórios.",
+    "not_diagnostic_short": "Resultado de rastreio, não de diagnóstico.",
+    "not_diagnostic_full": "O resultado não confirma nem descarta TDAH/TOD. Ele deve ser interpretado por profissional junto da história clínica, escola, família e prejuízo funcional.",
+    "school_without_authorization": "Sem autorização, não enviaremos formulário para a escola.",
+    "urgent_warning": "Se houver risco atual, procure ajuda imediata. Não aguarde o resultado do app.",
+    "privacy_short": "Seus dados serão usados para triagem, orientação e cuidado, respeitando privacidade e segurança.",
+    "guardian_verification_needed": "Precisamos confirmar o responsável antes de continuar."
+  },
+  "output_schema": {
+    "consent_state": {
+      "can_start_screening": "boolean",
+      "can_show_result": "boolean",
+      "can_send_school_form": "boolean",
+      "can_share_professional_report": "boolean",
+      "can_send_followup_notifications": "boolean",
+      "can_use_aggregated_dashboard_data": "boolean",
+      "required_terms_acceptance": [
+        {
+          "term_set_id": "string",
+          "accepted": "boolean",
+          "accepted_at": "datetime",
+          "term_version": "string"
+        }
+      ],
+      "optional_terms_acceptance": [
+        {
+          "term_set_id": "string",
+          "accepted": "boolean",
+          "accepted_at": "datetime | null",
+          "revoked_at": "datetime | null",
+          "term_version": "string"
+        }
+      ],
+      "guardian_verification_status": "verified | pending | failed | not_required",
+      "blocking_messages": [
+        "string"
+      ]
+    }
+  },
+  "implementation_notes": [
+    "Exibir consentimentos obrigatórios antes da triagem.",
+    "Exibir aviso de não diagnóstico antes do resultado.",
+    "Não agrupar consentimento obrigatório com autorizações opcionais.",
+    "Autorização de escola, compartilhamento com profissional, painel gestor e contato de acompanhamento devem ser opt-ins separados.",
+    "Registrar versão dos termos, data/hora, responsável e aceite.",
+    "Em red flags urgentes, priorizar aviso de segurança e fluxo assistencial.",
+    "Adequar texto final à política de privacidade, DPO/encarregado, controlador/operador e contratos reais da Telefarmed antes de produção.",
+    "Este JSON é base operacional e não substitui revisão jurídica, clínica e de segurança da informação."
+  ]
+}

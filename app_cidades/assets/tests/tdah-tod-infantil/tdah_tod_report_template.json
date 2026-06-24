@@ -1,0 +1,1155 @@
+{
+  "metadata": {
+    "module": "tdah_tod_infantil",
+    "file": "tdah_tod_report_template.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "depends_on": [
+      "tdah_tod_questions.json",
+      "tdah_tod_scoring_rules.json",
+      "tdah_tod_cutoffs.json",
+      "tdah_tod_age_rules.json",
+      "tdah_tod_informants.json",
+      "tdah_tod_functional_impairment.json",
+      "tdah_tod_red_flags.json",
+      "tdah_tod_differential_screening.json",
+      "tdah_tod_result_messages.json",
+      "tdah_tod_referral_rules.json",
+      "tdah_tod_followup_rules.json",
+      "tdah_tod_consent_terms.json"
+    ],
+    "instrument_basis": [
+      "SNAP-IV 26-item Teacher and Parent Rating Scale",
+      "Logica de prejuizo funcional inspirada em instrumentos clinicos como Vanderbilt",
+      "Avaliação infantil deve considerar sintomas, prejuizo, idade, contexto, historia clinica, casa e escola"
+    ],
+    "clinical_scope": "Modelo de relatorio para familia, profissional de saude e escola a partir do rastreio SNAP-IV 26 de sinais compativeis com TDAH e oposicao/desafio.",
+    "diagnostic_disclaimer": "O relatorio nao fecha diagnostico. Ele organiza sinais compativeis, prejuizo funcional, contexto e encaminhamento recomendado.",
+    "language_policy": "Usar linguagem de rastreio. Nao afirmar diagnostico fechado de TDAH, TOD ou outro transtorno."
+  },
+  "report_types": [
+    {
+      "id": "familia_resumo",
+      "label": "Relatorio para familia",
+      "audience": "pais_responsaveis_cuidadores",
+      "purpose": "Explicar o resultado em linguagem simples, orientar proximos passos e reduzir interpretacoes diagnosticas indevidas.",
+      "default_format": "pdf_e_tela",
+      "reading_level": "simples",
+      "include_raw_item_answers": false,
+      "include_sensitive_red_flag_details": false,
+      "requires_consent_terms": [
+        "consentimento_responsavel",
+        "aviso_nao_diagnostico"
+      ]
+    },
+    {
+      "id": "profissional_completo",
+      "label": "Relatorio tecnico para profissional",
+      "audience": "pediatra_psicologo_neuropsicologo_neuropediatra_psiquiatra_infantil",
+      "purpose": "Entregar resumo estruturado da triagem, pontuacao por dominio, prejuizo funcional, red flags, diferenciais, consistencia entre informantes e encaminhamentos.",
+      "default_format": "pdf",
+      "reading_level": "tecnico_claro",
+      "include_raw_item_answers": true,
+      "include_sensitive_red_flag_details": true,
+      "requires_consent_terms": [
+        "consentimento_responsavel",
+        "aviso_nao_diagnostico",
+        "compartilhamento_profissional"
+      ]
+    },
+    {
+      "id": "escola_observacao",
+      "label": "Relatorio para escola",
+      "audience": "professor_coordenacao_orientacao_escolar",
+      "purpose": "Solicitar observacao escolar ou devolver sintese autorizada com foco pedagogico e comportamental, sem diagnostico e sem dados sensiveis desnecessarios.",
+      "default_format": "pdf_ou_link_seguro",
+      "reading_level": "objetivo",
+      "include_raw_item_answers": false,
+      "include_sensitive_red_flag_details": false,
+      "requires_consent_terms": [
+        "consentimento_responsavel",
+        "autorizacao_formulario_escola"
+      ]
+    },
+    {
+      "id": "gestor_anonimizado",
+      "label": "Resumo anonimizado para painel gestor",
+      "audience": "gestao_municipal_saude_educacao",
+      "purpose": "Alimentar indicadores populacionais sem identificacao individual, sem texto clinico nominativo e sem respostas item a item.",
+      "default_format": "json_dashboard",
+      "reading_level": "gestao",
+      "include_raw_item_answers": false,
+      "include_sensitive_red_flag_details": false,
+      "requires_consent_terms": [
+        "uso_painel_gestor_anonimizado"
+      ]
+    }
+  ],
+  "shared_variables": {
+    "identification": [
+      {
+        "key": "report_id",
+        "type": "string",
+        "required": true,
+        "description": "Identificador unico do relatorio."
+      },
+      {
+        "key": "assessment_id",
+        "type": "string",
+        "required": true,
+        "description": "Identificador da triagem."
+      },
+      {
+        "key": "generated_at",
+        "type": "datetime_iso8601",
+        "required": true,
+        "description": "Data e hora de geracao do relatorio."
+      },
+      {
+        "key": "child_display_name",
+        "type": "string",
+        "required": true,
+        "privacy_note": "Pode ser nome completo, iniciais ou nome social conforme configuracao de privacidade."
+      },
+      {
+        "key": "child_age_years",
+        "type": "integer",
+        "required": true
+      },
+      {
+        "key": "child_age_months",
+        "type": "integer",
+        "required": false
+      },
+      {
+        "key": "school_grade",
+        "type": "string",
+        "required": false
+      },
+      {
+        "key": "school_name",
+        "type": "string",
+        "required": false,
+        "privacy_note": "Obrigatorio apenas quando houver autorizacao para uso escolar ou relatorio profissional."
+      }
+    ],
+    "context": [
+      {
+        "key": "respondents_summary",
+        "type": "array",
+        "required": true,
+        "expected_items": [
+          "responsavel",
+          "professor"
+        ],
+        "description": "Lista de informantes preenchidos e relacionamento com a crianca."
+      },
+      {
+        "key": "school_form_status",
+        "type": "enum",
+        "required": true,
+        "allowed_values": [
+          "nao_solicitado",
+          "solicitado",
+          "preenchido",
+          "indisponivel",
+          "recusado"
+        ]
+      },
+      {
+        "key": "available_environments",
+        "type": "array",
+        "required": true,
+        "allowed_values": [
+          "casa",
+          "escola",
+          "outro_cuidador"
+        ]
+      },
+      {
+        "key": "eligibility_status",
+        "type": "enum",
+        "required": true,
+        "allowed_values": [
+          "elegivel",
+          "elegivel_com_cautela",
+          "nao_elegivel",
+          "pendente"
+        ]
+      },
+      {
+        "key": "age_group_id",
+        "type": "string",
+        "required": true,
+        "source": "tdah_tod_age_rules.json"
+      }
+    ],
+    "scoring": [
+      {
+        "key": "classification_id",
+        "type": "string",
+        "required": true,
+        "allowed_values": [
+          "baixo_indicativo",
+          "sinais_leves",
+          "sinais_moderados",
+          "sinais_importantes",
+          "prioridade_clinica",
+          "pendente"
+        ],
+        "source": "tdah_tod_cutoffs.json"
+      },
+      {
+        "key": "classification_label",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "classification_rank",
+        "type": "integer",
+        "required": true
+      },
+      {
+        "key": "confidence_level",
+        "type": "enum",
+        "required": true,
+        "allowed_values": [
+          "baixa",
+          "moderada",
+          "alta",
+          "indeterminada"
+        ]
+      },
+      {
+        "key": "domain_profile_ids",
+        "type": "array",
+        "required": true,
+        "source": "tdah_tod_cutoffs.json"
+      },
+      {
+        "key": "domain_results",
+        "type": "array",
+        "required": true,
+        "description": "Resultados por dominio e informante."
+      },
+      {
+        "key": "functional_impairment_level",
+        "type": "string",
+        "required": true,
+        "source": "tdah_tod_functional_impairment.json"
+      },
+      {
+        "key": "cross_environment_consistency",
+        "type": "enum",
+        "required": true,
+        "allowed_values": [
+          "consistente_casa_escola",
+          "mais_forte_em_casa",
+          "mais_forte_na_escola",
+          "apenas_um_informante",
+          "inconsistente",
+          "pendente"
+        ]
+      }
+    ],
+    "safety_and_context": [
+      {
+        "key": "red_flags_present",
+        "type": "boolean",
+        "required": true
+      },
+      {
+        "key": "red_flag_level",
+        "type": "enum",
+        "required": true,
+        "allowed_values": [
+          "nenhum",
+          "contextual",
+          "prioritario",
+          "protecao",
+          "urgente"
+        ]
+      },
+      {
+        "key": "red_flag_ids",
+        "type": "array",
+        "required": false,
+        "source": "tdah_tod_red_flags.json"
+      },
+      {
+        "key": "differential_flags",
+        "type": "array",
+        "required": false,
+        "source": "tdah_tod_differential_screening.json"
+      },
+      {
+        "key": "referral_recommendations",
+        "type": "array",
+        "required": true,
+        "source": "tdah_tod_referral_rules.json"
+      },
+      {
+        "key": "followup_plan",
+        "type": "object",
+        "required": true,
+        "source": "tdah_tod_followup_rules.json"
+      }
+    ]
+  },
+  "section_library": [
+    {
+      "id": "report_header",
+      "label": "Cabecalho",
+      "purpose": "Identificar crianca, data, tipo de relatorio e origem da triagem.",
+      "default_title": "Relatorio de Rastreio Neurocomportamental Infantil",
+      "fields": [
+        "child_display_name",
+        "child_age_years",
+        "child_age_months",
+        "school_grade",
+        "assessment_id",
+        "generated_at",
+        "report_type"
+      ]
+    },
+    {
+      "id": "non_diagnostic_notice",
+      "label": "Aviso de nao diagnostico",
+      "purpose": "Evitar interpretacao de diagnostico fechado.",
+      "required": true,
+      "text_blocks": {
+        "short": "Este resultado nao fecha diagnostico. Ele identifica sinais compativeis e orienta o melhor encaminhamento.",
+        "full": "Este relatorio nao substitui consulta com pediatra, neuropediatra, psiquiatra infantil, psicologo, neuropsicologo ou equipe multiprofissional. A interpretacao deve considerar historia clinica, desenvolvimento, ambiente familiar e escolar, prejuizo funcional e fatores que podem imitar sintomas de TDAH ou oposicao/desafio."
+      }
+    },
+    {
+      "id": "assessment_method",
+      "label": "Metodo de triagem",
+      "purpose": "Explicar o que foi aplicado e quais blocos entraram no calculo.",
+      "content_rules": [
+        "Informar que a base de sintomas e o SNAP-IV 26.",
+        "Informar os dominios avaliados: desatencao, hiperatividade/impulsividade e oposicao/desafio.",
+        "Informar que prejuizo funcional, red flags e diferenciais modulam a interpretacao.",
+        "Nao descrever o instrumento como diagnostico isolado."
+      ],
+      "default_text": "A triagem organizou respostas em dominios compatíveis com o SNAP-IV 26, somando informacoes sobre prejuizo funcional, idade, contexto, fatores diferenciais e alertas de risco."
+    },
+    {
+      "id": "informants_summary",
+      "label": "Informantes e ambientes",
+      "purpose": "Mostrar quem respondeu e a qualidade dos dados.",
+      "fields": [
+        "respondents_summary",
+        "available_environments",
+        "school_form_status",
+        "confidence_level"
+      ],
+      "interpretation_rules": [
+        {
+          "condition": "only_responsavel_available",
+          "message": "O resultado representa principalmente o ambiente familiar. Para maior precisao, recomenda-se formulario da escola."
+        },
+        {
+          "condition": "responsavel_and_professor_available",
+          "message": "Ha informacoes de casa e escola, o que melhora a leitura do padrao funcional."
+        },
+        {
+          "condition": "only_professor_available",
+          "message": "O resultado representa principalmente o ambiente escolar. Para maior precisao, recomenda-se resposta do responsavel."
+        }
+      ]
+    },
+    {
+      "id": "classification_summary",
+      "label": "Resumo do resultado",
+      "purpose": "Apresentar a classificacao final e o significado clinico em linguagem de rastreio.",
+      "fields": [
+        "classification_label",
+        "classification_id",
+        "classification_rank",
+        "domain_profile_ids",
+        "functional_impairment_level"
+      ],
+      "message_source": "tdah_tod_result_messages.json",
+      "must_include": [
+        "headline",
+        "family_summary_or_clinical_summary",
+        "next_steps"
+      ]
+    },
+    {
+      "id": "domain_score_summary",
+      "label": "Pontuacao por dominio",
+      "purpose": "Mostrar pontuacao SNAP-IV 26 por dominio e informante.",
+      "table_template_id": "domain_scores_table",
+      "fields": [
+        "domain_results"
+      ],
+      "interpretation_rules": [
+        "Itens com resposta 2 ou 3 contam como positivos no modelo de rastreio.",
+        "Se houver menos itens respondidos que o minimo valido, marcar dominio como incompleto.",
+        "Nao usar media ou contagem isolada para fechar diagnostico."
+      ]
+    },
+    {
+      "id": "functional_impairment_summary",
+      "label": "Prejuizo funcional",
+      "purpose": "Descrever impacto na escola, familia, relacoes e rotina.",
+      "table_template_id": "functional_impairment_table",
+      "fields": [
+        "functional_impairment_level",
+        "functional_impairment_domains"
+      ],
+      "interpretation_rules": [
+        "Prejuizo moderado ou importante aumenta prioridade de avaliacao.",
+        "Sem prejuizo funcional claro, sintomas devem ser interpretados com mais cautela.",
+        "Prejuizo escolar deve gerar recomendacao de dialogo com escola e coleta de formulario escolar quando ausente."
+      ]
+    },
+    {
+      "id": "cross_environment_summary",
+      "label": "Casa e escola",
+      "purpose": "Comparar consistencia entre ambientes.",
+      "fields": [
+        "cross_environment_consistency",
+        "available_environments",
+        "school_form_status"
+      ],
+      "default_messages": [
+        {
+          "condition": "consistente_casa_escola",
+          "text": "Os sinais aparecem de forma consistente em casa e na escola, o que reforca a necessidade de avaliacao profissional."
+        },
+        {
+          "condition": "mais_forte_em_casa",
+          "text": "Os sinais parecem mais intensos em casa. Vale investigar rotina familiar, sono, telas, regras, estresse e relacoes."
+        },
+        {
+          "condition": "mais_forte_na_escola",
+          "text": "Os sinais parecem mais intensos na escola. Vale investigar demandas academicas, aprendizagem, relacionamento, bullying, adaptacao e sala de aula."
+        },
+        {
+          "condition": "apenas_um_informante",
+          "text": "Ha apenas um ambiente informado. A interpretacao deve ser feita com cautela ate haver dados complementares."
+        }
+      ]
+    },
+    {
+      "id": "age_context_summary",
+      "label": "Contexto por idade",
+      "purpose": "Aplicar cautelas por faixa etaria.",
+      "fields": [
+        "age_group_id",
+        "child_age_years",
+        "child_age_months"
+      ],
+      "source": "tdah_tod_age_rules.json",
+      "rules": [
+        "Criancas abaixo de 4 anos nao devem receber classificacao SNAP-IV 26 padrao.",
+        "Entre 4 e 5 anos, priorizar observacao, orientacao familiar e avaliacao pediatrica quando houver prejuizo importante.",
+        "Entre 6 e 17 anos, aplicar regra padrao com casa, escola e prejuizo funcional sempre que possivel.",
+        "A partir de 18 anos, usar modulo adulto/adolescente tardio apropriado, nao este modulo infantil."
+      ]
+    },
+    {
+      "id": "red_flags_summary",
+      "label": "Alertas de risco",
+      "purpose": "Registrar se ha risco, protecao ou urgencia.",
+      "fields": [
+        "red_flags_present",
+        "red_flag_level",
+        "red_flag_ids"
+      ],
+      "table_template_id": "red_flags_table",
+      "rendering_rules": [
+        "Se red_flag_level for urgente, exibir orientacao de urgencia antes da classificacao.",
+        "Se red_flag_level for protecao, exibir orientacao de rede de protecao conforme protocolo local.",
+        "No relatorio escolar, ocultar detalhes sensiveis salvo autorizacao e necessidade legal/protetiva.",
+        "No relatorio familiar, usar linguagem acolhedora e direta, sem detalhes graficos."
+      ]
+    },
+    {
+      "id": "differential_screening_summary",
+      "label": "Fatores que podem imitar ou agravar sinais",
+      "purpose": "Listar sono, ansiedade, humor, trauma, bullying, visao, audicao, aprendizagem, medicacao e neurodesenvolvimento.",
+      "fields": [
+        "differential_flags"
+      ],
+      "table_template_id": "differential_flags_table",
+      "default_text": "Alguns fatores podem parecer TDAH ou piorar atencao, impulsividade e comportamento. Eles devem ser considerados antes de qualquer conclusao diagnostica.",
+      "domains_to_group": [
+        "sono",
+        "ansiedade",
+        "humor_depressao",
+        "trauma_bullying_estresse",
+        "visao",
+        "audicao",
+        "aprendizagem_linguagem",
+        "neurodesenvolvimento",
+        "medico_medicacao"
+      ]
+    },
+    {
+      "id": "referral_plan",
+      "label": "Encaminhamento recomendado",
+      "purpose": "Transformar resultado em proxima acao.",
+      "fields": [
+        "referral_recommendations"
+      ],
+      "table_template_id": "referral_table",
+      "source": "tdah_tod_referral_rules.json",
+      "rules": [
+        "Ordenar por prioridade decrescente.",
+        "Exibir no maximo 4 encaminhamentos principais para familia.",
+        "Exibir todos os encaminhamentos justificados para profissional.",
+        "Nunca sugerir medicacao diretamente pelo app."
+      ]
+    },
+    {
+      "id": "followup_plan",
+      "label": "Reavaliacao e acompanhamento",
+      "purpose": "Definir quando repetir triagem e quais blocos acompanhar.",
+      "fields": [
+        "followup_plan"
+      ],
+      "table_template_id": "followup_table",
+      "source": "tdah_tod_followup_rules.json",
+      "rules": [
+        "Se houver urgencia, follow-up comum nao deve atrasar busca por atendimento.",
+        "Se falta formulario da escola, incluir coleta escolar no plano.",
+        "Se houver sinais leves, priorizar 30 a 60 dias.",
+        "Se houver sinais importantes ou prioridade clinica, encurtar janela conforme regra de follow-up."
+      ]
+    },
+    {
+      "id": "school_guidance",
+      "label": "Orientacoes para escola",
+      "purpose": "Sugerir observacao e apoio escolar sem diagnostico.",
+      "render_when": [
+        "report_type == escola_observacao",
+        "school_form_status != recusado",
+        "autorizacao_formulario_escola == true"
+      ],
+      "content_rules": [
+        "Solicitar observacao de atencao, organizacao, impulsividade, relacao com pares, oposicao e prejuizo academico.",
+        "Nao informar diagnostico.",
+        "Nao rotular a crianca.",
+        "Sugerir adaptacoes gerais de sala enquanto aguarda avaliacao quando houver prejuizo."
+      ]
+    },
+    {
+      "id": "limitations",
+      "label": "Limites do relatorio",
+      "purpose": "Explicitar o que o rastreio nao faz.",
+      "required": true,
+      "items": [
+        "Nao confirma TDAH, TOD, autismo, ansiedade, depressao ou transtorno de aprendizagem.",
+        "Nao substitui anamnese, exame clinico, entrevista com familia e escola ou avaliacao multiprofissional.",
+        "Pode ser influenciado por sono, telas, estresse, bullying, trauma, visao, audicao, medicacoes e dificuldades de aprendizagem.",
+        "Resultados com apenas um informante devem ser interpretados com cautela.",
+        "Red flags devem seguir fluxo proprio de seguranca e protecao."
+      ]
+    },
+    {
+      "id": "privacy_consent_note",
+      "label": "Privacidade e consentimento",
+      "purpose": "Registrar consentimento e limitar compartilhamento.",
+      "source": "tdah_tod_consent_terms.json",
+      "fields": [
+        "consent_status",
+        "authorized_report_types",
+        "data_sharing_scope"
+      ]
+    }
+  ],
+  "table_templates": [
+    {
+      "id": "domain_scores_table",
+      "label": "Tabela de pontuacao por dominio",
+      "columns": [
+        {
+          "key": "domain_label",
+          "label": "Dominio"
+        },
+        {
+          "key": "respondent_type",
+          "label": "Informante"
+        },
+        {
+          "key": "answered_items",
+          "label": "Itens respondidos"
+        },
+        {
+          "key": "positive_item_count",
+          "label": "Itens 2/3"
+        },
+        {
+          "key": "raw_score",
+          "label": "Pontuacao bruta"
+        },
+        {
+          "key": "mean_score",
+          "label": "Media"
+        },
+        {
+          "key": "domain_level",
+          "label": "Nivel no rastreio"
+        },
+        {
+          "key": "interpretation",
+          "label": "Leitura"
+        }
+      ],
+      "family_visibility": "resumida",
+      "professional_visibility": "completa",
+      "school_visibility": "somente_se_autorizado_e_sem_dados_sensiveis"
+    },
+    {
+      "id": "functional_impairment_table",
+      "label": "Tabela de prejuizo funcional",
+      "columns": [
+        {
+          "key": "impairment_domain",
+          "label": "Area"
+        },
+        {
+          "key": "environment",
+          "label": "Ambiente"
+        },
+        {
+          "key": "level",
+          "label": "Nivel"
+        },
+        {
+          "key": "summary",
+          "label": "Resumo"
+        }
+      ],
+      "family_visibility": "resumida",
+      "professional_visibility": "completa",
+      "school_visibility": "apenas_escolar"
+    },
+    {
+      "id": "red_flags_table",
+      "label": "Tabela de alertas",
+      "columns": [
+        {
+          "key": "red_flag_level",
+          "label": "Nivel"
+        },
+        {
+          "key": "red_flag_group",
+          "label": "Grupo"
+        },
+        {
+          "key": "action",
+          "label": "Conduta"
+        }
+      ],
+      "family_visibility": "sem_detalhes_sensiveis",
+      "professional_visibility": "completa",
+      "school_visibility": "ocultar_por_padrao"
+    },
+    {
+      "id": "differential_flags_table",
+      "label": "Tabela de diferenciais",
+      "columns": [
+        {
+          "key": "domain",
+          "label": "Fator"
+        },
+        {
+          "key": "flag_level",
+          "label": "Relevancia"
+        },
+        {
+          "key": "why_it_matters",
+          "label": "Por que importa"
+        },
+        {
+          "key": "suggested_next_step",
+          "label": "Proximo passo"
+        }
+      ],
+      "family_visibility": "resumida",
+      "professional_visibility": "completa",
+      "school_visibility": "ocultar_exceto_aprendizagem_e_sono_quando_autorizado"
+    },
+    {
+      "id": "referral_table",
+      "label": "Tabela de encaminhamentos",
+      "columns": [
+        {
+          "key": "destination_label",
+          "label": "Encaminhamento"
+        },
+        {
+          "key": "priority_label",
+          "label": "Prioridade"
+        },
+        {
+          "key": "reason",
+          "label": "Motivo"
+        },
+        {
+          "key": "target_time",
+          "label": "Prazo sugerido"
+        }
+      ],
+      "family_visibility": "principais",
+      "professional_visibility": "completa",
+      "school_visibility": "nao_exibir"
+    },
+    {
+      "id": "followup_table",
+      "label": "Tabela de acompanhamento",
+      "columns": [
+        {
+          "key": "next_check_days",
+          "label": "Reavaliar em"
+        },
+        {
+          "key": "recommended_blocks",
+          "label": "Blocos"
+        },
+        {
+          "key": "actions",
+          "label": "Acoes"
+        }
+      ],
+      "family_visibility": "resumida",
+      "professional_visibility": "completa",
+      "school_visibility": "nao_exibir"
+    }
+  ],
+  "templates": [
+    {
+      "id": "familia_resumo_v1",
+      "report_type": "familia_resumo",
+      "title": "Resultado do Rastreio Neurocomportamental Infantil",
+      "subtitle_template": "Triagem de sinais de atencao, impulsividade e oposicao/desafio - {generated_at}",
+      "section_order": [
+        "report_header",
+        "non_diagnostic_notice",
+        "classification_summary",
+        "informants_summary",
+        "functional_impairment_summary",
+        "cross_environment_summary",
+        "differential_screening_summary",
+        "red_flags_summary",
+        "referral_plan",
+        "followup_plan",
+        "limitations",
+        "privacy_consent_note"
+      ],
+      "tone_rules": [
+        "Usar frases curtas.",
+        "Falar em sinais, nao em diagnostico.",
+        "Evitar termos tecnicos sem explicacao.",
+        "Validar a preocupacao da familia sem alarmismo.",
+        "Encerrar com proximos passos objetivos."
+      ],
+      "maximum_recommendations_visible": 4,
+      "hide_sections_when_empty": [
+        "differential_screening_summary",
+        "red_flags_summary"
+      ],
+      "opening_sentence_template": "As respostas sobre {child_display_name} indicam {classification_label} no rastreio. Esse resultado nao confirma diagnostico, mas ajuda a orientar o melhor proximo passo.",
+      "closing_sentence_template": "Leve este relatorio para a avaliacao profissional, especialmente se os sinais persistirem, piorarem ou estiverem afetando escola, familia ou relacoes."
+    },
+    {
+      "id": "profissional_completo_v1",
+      "report_type": "profissional_completo",
+      "title": "Relatorio Tecnico de Rastreio TDAH/TOD Infantil",
+      "subtitle_template": "SNAP-IV 26, prejuizo funcional, red flags e rastreio diferencial - {generated_at}",
+      "section_order": [
+        "report_header",
+        "non_diagnostic_notice",
+        "assessment_method",
+        "informants_summary",
+        "classification_summary",
+        "domain_score_summary",
+        "functional_impairment_summary",
+        "cross_environment_summary",
+        "age_context_summary",
+        "differential_screening_summary",
+        "red_flags_summary",
+        "referral_plan",
+        "followup_plan",
+        "limitations",
+        "privacy_consent_note"
+      ],
+      "tone_rules": [
+        "Ser tecnico, mas legivel.",
+        "Separar achados de interpretacao.",
+        "Apontar dados faltantes.",
+        "Nao converter rastreio em diagnostico.",
+        "Destacar red flags e diferenciais antes de hipoteses."
+      ],
+      "include_appendices": [
+        "raw_item_answer_summary",
+        "scoring_rule_version",
+        "consent_audit_summary"
+      ],
+      "opening_sentence_template": "Triagem neurocomportamental infantil baseada em SNAP-IV 26, com classificacao {classification_label}, nivel de confianca {confidence_level} e interpretacao condicionada a avaliacao clinica.",
+      "clinical_note_template": "Os achados devem ser correlacionados com anamnese, desenvolvimento, exame clinico quando aplicavel, funcionamento escolar/familiar e investigacao de condicoes coexistentes ou diferenciais."
+    },
+    {
+      "id": "escola_observacao_v1",
+      "report_type": "escola_observacao",
+      "title": "Solicitacao/Sintese de Observacao Escolar",
+      "subtitle_template": "Rastreio de atencao, impulsividade, comportamento e prejuizo escolar - {generated_at}",
+      "section_order": [
+        "report_header",
+        "non_diagnostic_notice",
+        "assessment_method",
+        "informants_summary",
+        "school_guidance",
+        "functional_impairment_summary",
+        "limitations",
+        "privacy_consent_note"
+      ],
+      "tone_rules": [
+        "Nao usar termos diagnosticos como confirmacao.",
+        "Focar em comportamento observavel e prejuizo pedagogico.",
+        "Nao incluir red flags sensiveis por padrao.",
+        "Nao compartilhar dados de saude alem do necessario e autorizado.",
+        "Solicitar colaboracao objetiva da escola."
+      ],
+      "opening_sentence_template": "A familia autorizou a coleta ou devolutiva de informacoes escolares para complementar um rastreio de sinais de atencao, impulsividade e comportamento.",
+      "school_request_items": [
+        "Observar manutencao de atencao em tarefas.",
+        "Observar organizacao de materiais e conclusao de atividades.",
+        "Observar inquietacao motora, impulsividade e interrupcoes.",
+        "Observar relacao com colegas e adultos.",
+        "Registrar impacto em aprendizagem, participacao e rotina de sala.",
+        "Preencher formulario escolar quando solicitado."
+      ]
+    },
+    {
+      "id": "gestor_anonimizado_v1",
+      "report_type": "gestor_anonimizado",
+      "title": "Resumo Anonimizado para Indicadores",
+      "section_order": [
+        "dashboard_payload"
+      ],
+      "allowed_fields": [
+        "assessment_id_hash",
+        "age_group_id",
+        "classification_id",
+        "domain_profile_ids",
+        "functional_impairment_level",
+        "school_form_status",
+        "red_flag_level_grouped",
+        "referral_destination_ids",
+        "neighborhood_or_school_code_if_permitted"
+      ],
+      "forbidden_fields": [
+        "child_display_name",
+        "guardian_name",
+        "free_text_notes",
+        "raw_item_answers",
+        "sensitive_red_flag_details",
+        "school_name_when_identifiable_without_permission"
+      ]
+    }
+  ],
+  "narrative_blocks": {
+    "classification_sentence_templates": [
+      {
+        "classification_id": "baixo_indicativo",
+        "family": "O rastreio mostrou baixo indicativo de sinais compativeis neste momento.",
+        "professional": "Baixo indicativo no rastreio, sem agrupamento sintomatico forte ou prejuizo funcional relevante informado."
+      },
+      {
+        "classification_id": "sinais_leves",
+        "family": "Aparecem sinais leves que merecem observacao e reavaliacao.",
+        "professional": "Sinais leves/subclinicos, com necessidade de monitoramento e correlacao com prejuizo funcional."
+      },
+      {
+        "classification_id": "sinais_moderados",
+        "family": "As respostas indicam sinais moderados e recomendam avaliacao profissional.",
+        "professional": "Sinais moderados no rastreio, justificando avaliacao clinica nao urgente e coleta de dados complementares."
+      },
+      {
+        "classification_id": "sinais_importantes",
+        "family": "As respostas indicam sinais importantes que merecem prioridade de avaliacao.",
+        "professional": "Sinais relevantes com prejuizo funcional, multiplos dominios ou consistencia entre ambientes."
+      },
+      {
+        "classification_id": "prioridade_clinica",
+        "family": "Ha necessidade de avaliacao clinica prioritaria.",
+        "professional": "Classificacao de prioridade clinica por intensidade, prejuizo, red flags ou complexidade do quadro."
+      },
+      {
+        "classification_id": "pendente",
+        "family": "Ainda faltam informacoes para classificar com seguranca.",
+        "professional": "Dados insuficientes para classificacao confiavel."
+      }
+    ],
+    "domain_explanation": {
+      "desatencao": "Desatencao envolve dificuldade de manter foco, organizar tarefas, seguir instrucoes, finalizar atividades e evitar distracoes.",
+      "hiperatividade_impulsividade": "Hiperatividade/impulsividade envolve inquietacao, dificuldade de esperar, interrupcoes, fala excessiva e acoes precipitadas.",
+      "oposicao_desafio": "Oposicao/desafio envolve irritabilidade, discussao com adultos, desafio a regras, provocacao e dificuldade persistente com limites.",
+      "prejuizo_funcional": "Prejuizo funcional e o impacto real dos sinais na escola, em casa, nas relacoes, na seguranca e na rotina."
+    },
+    "missing_data_messages": [
+      {
+        "condition": "school_form_missing",
+        "message": "Para melhorar a precisao, recomenda-se enviar o formulario para professor/escola."
+      },
+      {
+        "condition": "functional_impairment_missing",
+        "message": "Faltam informacoes de prejuizo funcional; sem elas, a interpretacao fica limitada."
+      },
+      {
+        "condition": "red_flags_missing",
+        "message": "Faltam respostas de seguranca. O bloco de red flags deve ser preenchido antes de concluir o relatorio."
+      },
+      {
+        "condition": "differential_screening_missing",
+        "message": "Faltam informacoes sobre sono, ansiedade, humor, aprendizagem, visao/audicao ou contexto. Esses fatores podem mudar a interpretacao."
+      }
+    ],
+    "do_not_use_phrases": [
+      "tem TDAH",
+      "tem TOD",
+      "diagnostico confirmado",
+      "diagnostico descartado",
+      "normal",
+      "anormal",
+      "crianca problema",
+      "falta de educacao",
+      "preguica",
+      "ma criacao",
+      "tratamento medicamentoso indicado pelo app"
+    ],
+    "preferred_phrases": [
+      "sinais compativeis",
+      "rastreio",
+      "orienta encaminhamento",
+      "recomenda avaliacao profissional",
+      "precisa ser interpretado no contexto",
+      "comparar casa e escola",
+      "avaliar prejuizo funcional",
+      "investigar fatores que podem imitar ou agravar os sinais"
+    ]
+  },
+  "rendering_rules": [
+    {
+      "id": "red_flags_override_first",
+      "priority": 100,
+      "condition": "red_flag_level in ['urgente', 'protecao']",
+      "action": "Exibir alerta de seguranca/protecao no inicio do relatorio e antes de qualquer pontuacao.",
+      "applies_to": [
+        "familia_resumo",
+        "profissional_completo"
+      ]
+    },
+    {
+      "id": "pending_blocks_hold_final_result",
+      "priority": 95,
+      "condition": "classification_id == 'pendente'",
+      "action": "Gerar relatorio parcial com blocos faltantes e nao exibir interpretacao clinica final.",
+      "applies_to": [
+        "familia_resumo",
+        "profissional_completo"
+      ]
+    },
+    {
+      "id": "single_informant_low_confidence",
+      "priority": 80,
+      "condition": "cross_environment_consistency == 'apenas_um_informante'",
+      "action": "Adicionar nota de cautela e recomendar segundo informante.",
+      "applies_to": [
+        "familia_resumo",
+        "profissional_completo"
+      ]
+    },
+    {
+      "id": "school_report_requires_authorization",
+      "priority": 100,
+      "condition": "report_type == 'escola_observacao' and autorizacao_formulario_escola != true",
+      "action": "Bloquear geracao do relatorio escolar e solicitar autorizacao do responsavel.",
+      "applies_to": [
+        "escola_observacao"
+      ]
+    },
+    {
+      "id": "hide_sensitive_content_from_school",
+      "priority": 90,
+      "condition": "report_type == 'escola_observacao'",
+      "action": "Ocultar red flags sensiveis, fatores familiares, trauma, violencia, medicacao e observacoes livres nao necessarias para finalidade escolar.",
+      "applies_to": [
+        "escola_observacao"
+      ]
+    },
+    {
+      "id": "professional_raw_answers_appendix",
+      "priority": 60,
+      "condition": "report_type == 'profissional_completo' and include_raw_item_answers == true",
+      "action": "Adicionar apendice com respostas item a item, dominio, informante e data.",
+      "applies_to": [
+        "profissional_completo"
+      ]
+    },
+    {
+      "id": "family_limit_referrals",
+      "priority": 50,
+      "condition": "report_type == 'familia_resumo'",
+      "action": "Exibir ate 4 encaminhamentos principais, ordenados por prioridade e com explicacao simples.",
+      "applies_to": [
+        "familia_resumo"
+      ]
+    },
+    {
+      "id": "dashboard_anonymization",
+      "priority": 100,
+      "condition": "report_type == 'gestor_anonimizado'",
+      "action": "Remover identificadores diretos, textos livres e respostas item a item.",
+      "applies_to": [
+        "gestor_anonimizado"
+      ]
+    }
+  ],
+  "output_schema": {
+    "report_payload": {
+      "type": "object",
+      "required": [
+        "report_id",
+        "report_type",
+        "metadata",
+        "child_context",
+        "classification",
+        "sections",
+        "recommendations",
+        "limitations",
+        "consent_audit"
+      ],
+      "properties": {
+        "report_id": {
+          "type": "string"
+        },
+        "report_type": {
+          "type": "string",
+          "allowed_values": [
+            "familia_resumo",
+            "profissional_completo",
+            "escola_observacao",
+            "gestor_anonimizado"
+          ]
+        },
+        "metadata": {
+          "type": "object",
+          "fields": [
+            "module",
+            "template_version",
+            "generated_at",
+            "instrument_basis",
+            "scoring_rules_version"
+          ]
+        },
+        "child_context": {
+          "type": "object",
+          "fields": [
+            "child_display_name",
+            "age",
+            "school_grade",
+            "respondents_summary",
+            "available_environments"
+          ]
+        },
+        "classification": {
+          "type": "object",
+          "fields": [
+            "classification_id",
+            "classification_label",
+            "classification_rank",
+            "confidence_level",
+            "domain_profile_ids",
+            "functional_impairment_level",
+            "cross_environment_consistency"
+          ]
+        },
+        "sections": {
+          "type": "array",
+          "item_schema": {
+            "section_id": "string",
+            "title": "string",
+            "body": "string",
+            "tables": "array",
+            "visibility": "string"
+          }
+        },
+        "recommendations": {
+          "type": "array",
+          "item_schema": {
+            "destination_id": "string",
+            "destination_label": "string",
+            "priority_level": "string",
+            "reason": "string",
+            "target_time": "string"
+          }
+        },
+        "limitations": {
+          "type": "array"
+        },
+        "consent_audit": {
+          "type": "object",
+          "fields": [
+            "consent_terms_accepted",
+            "authorized_report_types",
+            "generated_by_user_id",
+            "generated_at"
+          ]
+        }
+      }
+    }
+  },
+  "example_outputs": [
+    {
+      "id": "exemplo_familia_sinais_moderados",
+      "report_type": "familia_resumo",
+      "classification_id": "sinais_moderados",
+      "example_text": "As respostas indicam sinais moderados de desatencao e impulsividade, com impacto relatado na rotina escolar. Esse resultado nao confirma TDAH, mas recomenda avaliacao profissional. Para melhorar a precisao, envie tambem o formulario para a escola."
+    },
+    {
+      "id": "exemplo_profissional_sinais_importantes",
+      "report_type": "profissional_completo",
+      "classification_id": "sinais_importantes",
+      "example_text": "Triagem SNAP-IV 26 com sinais relevantes em desatencao e hiperatividade/impulsividade, prejuizo funcional importante e consistencia parcial entre informantes. Recomenda-se avaliacao clinica prioritaria, investigacao de sono/aprendizagem e coleta complementar da escola quando ausente."
+    },
+    {
+      "id": "exemplo_escola_solicitacao",
+      "report_type": "escola_observacao",
+      "classification_id": "pendente",
+      "example_text": "A familia autorizou a coleta de informacoes escolares para complementar rastreio de atencao, impulsividade e comportamento. Solicitamos observacao objetiva sobre atencao em sala, organizacao, conclusao de tarefas, impulsividade, relacao com colegas e impacto academico."
+    }
+  ],
+  "quality_checks": [
+    {
+      "id": "json_valid",
+      "description": "Arquivo deve ser JSON valido."
+    },
+    {
+      "id": "all_template_sections_exist",
+      "description": "Todo section_order deve apontar para section_library ou para uma secao especial permitida."
+    },
+    {
+      "id": "classification_ids_match_cutoffs",
+      "description": "Todo classification_id usado no template deve existir em tdah_tod_cutoffs.json."
+    },
+    {
+      "id": "no_diagnostic_language",
+      "description": "Textos renderizados nao devem usar frases proibidas de diagnostico fechado."
+    },
+    {
+      "id": "school_report_privacy",
+      "description": "Relatorio escolar nao deve expor red flags sensiveis, trauma, violencia, medicacao ou respostas item a item por padrao."
+    },
+    {
+      "id": "professional_report_has_versions",
+      "description": "Relatorio profissional deve registrar versao do template, versao das regras de pontuacao e data de geracao."
+    }
+  ]
+}

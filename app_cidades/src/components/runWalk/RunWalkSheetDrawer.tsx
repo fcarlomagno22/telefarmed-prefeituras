@@ -233,6 +233,7 @@ export function RunWalkSheetDrawer({
       visible
       transparent
       animationType="none"
+      navBarUnderlayColor={drawerChrome.surfaceBottom}
       onRequestClose={onClose}
     >
       <View style={[styles.host, fullScreen && styles.hostFullScreen]}>

@@ -1,0 +1,522 @@
+{
+  "metadata": {
+    "module": "tdah_tod_infantil",
+    "file": "tdah_tod_informants.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "depends_on": [
+      "tdah_tod_questions.json",
+      "tdah_tod_scoring_rules.json",
+      "tdah_tod_cutoffs.json",
+      "tdah_tod_consent_terms.json"
+    ],
+    "clinical_scope": "Definir quem pode responder ao rastreio SNAP-IV 26 para TDAH/TOD infantil, em qual contexto e com qual peso interpretativo.",
+    "diagnostic_disclaimer": "As respostas de informantes ajudam a identificar sinais compatíveis, mas não fecham diagnóstico. A avaliação profissional deve integrar história clínica, prejuízo funcional, desenvolvimento, escola, família e diferenciais.",
+    "principle": "Para maior confiança, o motor deve coletar informações de pelo menos dois ambientes: casa/responsável e escola/professor."
+  },
+  "informant_groups": [
+    {
+      "id": "responsavel_familiar",
+      "label": "Responsável familiar",
+      "environment": "casa",
+      "description": "Pessoa com responsabilidade direta pela criança/adolescente e conhecimento da rotina familiar.",
+      "priority": 1,
+      "can_start_screening": true,
+      "can_accept_consent": true,
+      "can_authorize_school_form": true,
+      "counts_as_primary_home_informant": true,
+      "counts_as_school_informant": false
+    },
+    {
+      "id": "cuidador_rotina",
+      "label": "Cuidador da rotina",
+      "environment": "casa",
+      "description": "Pessoa que convive de forma frequente e cuida da criança/adolescente na rotina, mesmo que não seja responsável legal.",
+      "priority": 2,
+      "can_start_screening": true,
+      "can_accept_consent": false,
+      "can_authorize_school_form": false,
+      "counts_as_primary_home_informant": true,
+      "counts_as_school_informant": false,
+      "requires_responsible_confirmation": true
+    },
+    {
+      "id": "profissional_escola",
+      "label": "Profissional da escola",
+      "environment": "escola",
+      "description": "Professor ou profissional escolar com contato direto e recente com a criança/adolescente.",
+      "priority": 1,
+      "can_start_screening": false,
+      "can_accept_consent": false,
+      "can_authorize_school_form": false,
+      "counts_as_primary_home_informant": false,
+      "counts_as_school_informant": true,
+      "requires_responsible_authorization": true
+    },
+    {
+      "id": "informante_complementar",
+      "label": "Informante complementar",
+      "environment": "complementar",
+      "description": "Pessoa que observa a criança/adolescente em contexto relevante, mas não substitui responsável ou professor.",
+      "priority": 3,
+      "can_start_screening": false,
+      "can_accept_consent": false,
+      "can_authorize_school_form": false,
+      "counts_as_primary_home_informant": false,
+      "counts_as_school_informant": false,
+      "requires_responsible_authorization": true
+    }
+  ],
+  "informant_types": [
+    {
+      "id": "mae",
+      "label": "Mãe",
+      "group": "responsavel_familiar",
+      "relationship_category": "parental",
+      "environment": "casa",
+      "allowed_question_respondent_type": "responsavel",
+      "clinical_weight": 1,
+      "data_confidence": "alta",
+      "minimum_contact_frequency": "convivio_frequente_ou_guarda_compartilhada",
+      "can_answer_snap_iv_26": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": true,
+      "can_answer_differential_screening": true,
+      "can_accept_consent": true,
+      "can_receive_result": true,
+      "notes": "Informante principal quando conhece a rotina da criança/adolescente."
+    },
+    {
+      "id": "pai",
+      "label": "Pai",
+      "group": "responsavel_familiar",
+      "relationship_category": "parental",
+      "environment": "casa",
+      "allowed_question_respondent_type": "responsavel",
+      "clinical_weight": 1,
+      "data_confidence": "alta",
+      "minimum_contact_frequency": "convivio_frequente_ou_guarda_compartilhada",
+      "can_answer_snap_iv_26": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": true,
+      "can_answer_differential_screening": true,
+      "can_accept_consent": true,
+      "can_receive_result": true,
+      "notes": "Informante principal quando conhece a rotina da criança/adolescente."
+    },
+    {
+      "id": "responsavel_legal",
+      "label": "Responsável legal",
+      "group": "responsavel_familiar",
+      "relationship_category": "legal_guardian",
+      "environment": "casa",
+      "allowed_question_respondent_type": "responsavel",
+      "clinical_weight": 1,
+      "data_confidence": "alta",
+      "minimum_contact_frequency": "convivio_frequente",
+      "can_answer_snap_iv_26": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": true,
+      "can_answer_differential_screening": true,
+      "can_accept_consent": true,
+      "can_receive_result": true,
+      "notes": "Inclui tutor, guardião, curador quando aplicável ou pessoa formalmente responsável pela criança/adolescente."
+    },
+    {
+      "id": "avo_ou_familiar_cuidador",
+      "label": "Avó/avô ou familiar cuidador",
+      "group": "cuidador_rotina",
+      "relationship_category": "family_caregiver",
+      "environment": "casa",
+      "allowed_question_respondent_type": "responsavel",
+      "clinical_weight": 0.9,
+      "data_confidence": "moderada_alta",
+      "minimum_contact_frequency": "convivio_frequente",
+      "can_answer_snap_iv_26": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": true,
+      "can_answer_differential_screening": true,
+      "can_accept_consent": false,
+      "can_receive_result": false,
+      "requires_responsible_confirmation": true,
+      "notes": "Pode responder se participa da rotina; resultado deve ser vinculado/confirmado por responsável legal."
+    },
+    {
+      "id": "cuidador_principal",
+      "label": "Cuidador principal",
+      "group": "cuidador_rotina",
+      "relationship_category": "daily_caregiver",
+      "environment": "casa",
+      "allowed_question_respondent_type": "responsavel",
+      "clinical_weight": 0.9,
+      "data_confidence": "moderada_alta",
+      "minimum_contact_frequency": "cuida_3_ou_mais_dias_por_semana",
+      "can_answer_snap_iv_26": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": true,
+      "can_answer_differential_screening": true,
+      "can_accept_consent": false,
+      "can_receive_result": false,
+      "requires_responsible_confirmation": true,
+      "notes": "Inclui babá, cuidador formal ou pessoa que acompanha a rotina diária."
+    },
+    {
+      "id": "professor_regente",
+      "label": "Professor regente",
+      "group": "profissional_escola",
+      "relationship_category": "teacher",
+      "environment": "escola",
+      "allowed_question_respondent_type": "professor",
+      "clinical_weight": 1,
+      "data_confidence": "alta",
+      "minimum_contact_frequency": "contato_semanal_regular",
+      "minimum_observation_period": "4_semanas",
+      "can_answer_snap_iv_26": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": false,
+      "can_answer_differential_screening": false,
+      "can_accept_consent": false,
+      "can_receive_result": false,
+      "requires_responsible_authorization": true,
+      "notes": "Informante escolar preferencial para comparar sinais entre casa e escola."
+    },
+    {
+      "id": "professor_disciplina",
+      "label": "Professor de disciplina",
+      "group": "profissional_escola",
+      "relationship_category": "teacher",
+      "environment": "escola",
+      "allowed_question_respondent_type": "professor",
+      "clinical_weight": 0.8,
+      "data_confidence": "moderada",
+      "minimum_contact_frequency": "contato_semanal_regular",
+      "minimum_observation_period": "4_semanas",
+      "can_answer_snap_iv_26": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": false,
+      "can_answer_differential_screening": false,
+      "can_accept_consent": false,
+      "can_receive_result": false,
+      "requires_responsible_authorization": true,
+      "notes": "Útil especialmente em adolescentes ou turmas com vários professores; quando possível, coletar de mais de um professor."
+    },
+    {
+      "id": "coordenador_orientador_escolar",
+      "label": "Coordenador/orientador escolar",
+      "group": "profissional_escola",
+      "relationship_category": "school_staff",
+      "environment": "escola",
+      "allowed_question_respondent_type": "professor",
+      "clinical_weight": 0.7,
+      "data_confidence": "moderada",
+      "minimum_contact_frequency": "acompanha_queixas_ou_rotina_escolar",
+      "minimum_observation_period": "4_semanas",
+      "can_answer_snap_iv_26": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": false,
+      "can_answer_differential_screening": false,
+      "can_accept_consent": false,
+      "can_receive_result": false,
+      "requires_responsible_authorization": true,
+      "notes": "Pode responder quando acompanha diretamente o caso, mas não substitui professor com contato diário quando este estiver disponível."
+    },
+    {
+      "id": "psicologo_pedagogo_escolar",
+      "label": "Psicólogo/pedagogo escolar",
+      "group": "informante_complementar",
+      "relationship_category": "school_support",
+      "environment": "complementar",
+      "allowed_question_respondent_type": "professor",
+      "clinical_weight": 0.6,
+      "data_confidence": "complementar",
+      "minimum_contact_frequency": "acompanha_o_caso",
+      "minimum_observation_period": "4_semanas",
+      "can_answer_snap_iv_26": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": false,
+      "can_answer_differential_screening": false,
+      "can_accept_consent": false,
+      "can_receive_result": false,
+      "requires_responsible_authorization": true,
+      "notes": "Usar como dado complementar, especialmente para descrição de prejuízo funcional e adaptações escolares."
+    }
+  ],
+  "eligibility_questions_for_informant": [
+    {
+      "id": "informant_relationship",
+      "label": "Qual sua relação com a criança/adolescente?",
+      "type": "single_choice",
+      "required": true,
+      "options_from": "informant_types"
+    },
+    {
+      "id": "has_regular_contact",
+      "label": "Você convive ou observa essa criança/adolescente com frequência?",
+      "type": "single_choice",
+      "required": true,
+      "answers": [
+        {
+          "label": "Sim, quase todos os dias",
+          "value": "daily",
+          "eligible": true
+        },
+        {
+          "label": "Sim, algumas vezes por semana",
+          "value": "weekly",
+          "eligible": true
+        },
+        {
+          "label": "Poucas vezes por mês",
+          "value": "monthly",
+          "eligible": "complementar"
+        },
+        {
+          "label": "Raramente",
+          "value": "rarely",
+          "eligible": false
+        }
+      ]
+    },
+    {
+      "id": "observation_period",
+      "label": "Há quanto tempo você observa essa criança/adolescente nessa rotina?",
+      "type": "single_choice",
+      "required": true,
+      "answers": [
+        {
+          "label": "Menos de 4 semanas",
+          "value": "less_than_4_weeks",
+          "eligible": "limited_confidence"
+        },
+        {
+          "label": "1 a 3 meses",
+          "value": "1_to_3_months",
+          "eligible": true
+        },
+        {
+          "label": "Mais de 3 meses",
+          "value": "more_than_3_months",
+          "eligible": true
+        }
+      ]
+    },
+    {
+      "id": "responding_context",
+      "label": "Você responderá com base em qual contexto?",
+      "type": "single_choice",
+      "required": true,
+      "answers": [
+        {
+          "label": "Casa/rotina familiar",
+          "value": "casa",
+          "maps_to_respondent": "responsavel"
+        },
+        {
+          "label": "Escola/sala de aula",
+          "value": "escola",
+          "maps_to_respondent": "professor"
+        },
+        {
+          "label": "Atendimento ou acompanhamento complementar",
+          "value": "complementar",
+          "maps_to_respondent": "professor",
+          "use_as": "complementary_only"
+        }
+      ]
+    }
+  ],
+  "response_acceptance_rules": [
+    {
+      "id": "responsavel_pode_iniciar",
+      "condition": "informant_group == responsavel_familiar AND can_accept_consent == true",
+      "accepted": true,
+      "score_role": "primary_home",
+      "confidence_modifier": "standard",
+      "next_step": "Aplicar SNAP-IV 26 versão responsável e solicitar formulário da escola quando possível."
+    },
+    {
+      "id": "cuidador_pode_responder_com_confirmacao",
+      "condition": "informant_group == cuidador_rotina",
+      "accepted": true,
+      "score_role": "primary_home_if_no_parent_available",
+      "confidence_modifier": "slightly_decrease",
+      "next_step": "Exigir confirmação/autorização de responsável legal antes de exibir resultado final ou compartilhar dados."
+    },
+    {
+      "id": "professor_responde_com_autorizacao",
+      "condition": "informant_group == profissional_escola",
+      "accepted": true,
+      "score_role": "primary_school",
+      "confidence_modifier": "standard",
+      "next_step": "Pontuar como ambiente escolar e combinar com resposta do responsável."
+    },
+    {
+      "id": "informante_complementar_nao_substitui_principal",
+      "condition": "informant_group == informante_complementar",
+      "accepted": true,
+      "score_role": "complementary",
+      "confidence_modifier": "do_not_increase_without_primary_informant",
+      "next_step": "Usar como complemento; solicitar responsável e professor quando possível."
+    },
+    {
+      "id": "contato_raro_nao_classificar",
+      "condition": "has_regular_contact == rarely",
+      "accepted": false,
+      "score_role": "none",
+      "confidence_modifier": "invalid",
+      "next_step": "Solicitar outro informante que conviva com a criança/adolescente."
+    },
+    {
+      "id": "observacao_menor_4_semanas",
+      "condition": "observation_period == less_than_4_weeks",
+      "accepted": true,
+      "score_role": "limited",
+      "confidence_modifier": "decrease",
+      "next_step": "Permitir rastreio inicial, mas marcar confiança baixa/moderada e recomendar nova coleta após maior período de observação."
+    }
+  ],
+  "multi_informant_combination_rules": [
+    {
+      "id": "ideal_responsavel_e_professor",
+      "condition": "has_primary_home == true AND has_primary_school == true",
+      "confidence_level": "maior",
+      "interpretation": "Melhor cenário de rastreio: informações de casa e escola permitem avaliar consistência entre ambientes."
+    },
+    {
+      "id": "apenas_responsavel",
+      "condition": "has_primary_home == true AND has_primary_school == false",
+      "confidence_level": "moderada",
+      "classification_cap_reference": "tdah_tod_cutoffs.maximum_classification_caps.apenas_um_informante_sem_prejuizo_importante",
+      "interpretation": "Resultado útil para rastreio inicial, mas deve solicitar formulário escolar para maior precisão."
+    },
+    {
+      "id": "apenas_professor",
+      "condition": "has_primary_home == false AND has_primary_school == true",
+      "confidence_level": "moderada",
+      "classification_cap_reference": "tdah_tod_cutoffs.maximum_classification_caps.apenas_um_informante_sem_prejuizo_importante",
+      "interpretation": "Resultado útil para alerta escolar, mas deve ser complementado por responsável antes de orientar família com resultado final."
+    },
+    {
+      "id": "discordancia_entre_casa_e_escola",
+      "condition": "major_informant_disagreement == true",
+      "confidence_level": "baixa",
+      "interpretation": "Diferenças entre casa e escola são clinicamente relevantes; investigar contexto, exigências ambientais, sono, ansiedade, aprendizagem, bullying e dinâmica familiar."
+    },
+    {
+      "id": "mesmo_dominio_em_dois_ambientes",
+      "condition": "same_domain_relevant_in_two_settings == true",
+      "confidence_level": "maior",
+      "classification_floor_reference": "tdah_tod_cutoffs.minimum_classification_floors.mesmo_dominio_relevante_em_casa_e_escola",
+      "interpretation": "Sinais relevantes no mesmo domínio em casa e escola aumentam a consistência do rastreio."
+    }
+  ],
+  "permission_rules": {
+    "consent_required_before_screening": true,
+    "who_can_consent": [
+      "mae",
+      "pai",
+      "responsavel_legal"
+    ],
+    "who_can_receive_family_result": [
+      "mae",
+      "pai",
+      "responsavel_legal"
+    ],
+    "school_result_sharing": {
+      "default": "blocked",
+      "allowed_only_with_responsible_authorization": true,
+      "share_only_minimum_necessary": true,
+      "recommended_content": [
+        "orientacao_de_encaminhamento",
+        "necessidade_de_observacao_escolar",
+        "sugestao_de_acompanhamento_pedagogico",
+        "sem_rotulo_diagnostico"
+      ]
+    },
+    "minor_privacy_note": "Dados de criança/adolescente exigem cuidado reforçado, consentimento do responsável e linguagem sem rótulo diagnóstico."
+  },
+  "routing_rules": [
+    {
+      "id": "selecionar_versao_responsavel",
+      "condition": "allowed_question_respondent_type == responsavel",
+      "question_filter": {
+        "respondent_contains": "responsavel"
+      }
+    },
+    {
+      "id": "selecionar_versao_professor",
+      "condition": "allowed_question_respondent_type == professor",
+      "question_filter": {
+        "respondent_contains": "professor"
+      }
+    },
+    {
+      "id": "solicitar_escola_apos_responsavel",
+      "condition": "home_screening_completed == true AND school_screening_missing == true",
+      "action": "Gerar convite/formulário para professor ou escola, mediante autorização do responsável."
+    },
+    {
+      "id": "solicitar_responsavel_apos_escola",
+      "condition": "school_screening_completed == true AND home_screening_missing == true",
+      "action": "Solicitar preenchimento por mãe, pai ou responsável legal antes de resultado final para família."
+    }
+  ],
+  "quality_flags": [
+    {
+      "id": "informante_sem_convivio_suficiente",
+      "condition": "has_regular_contact IN [monthly, rarely]",
+      "effect": "decrease_confidence_or_reject",
+      "message_key": "informante_nao_tem_convivio_suficiente"
+    },
+    {
+      "id": "observacao_curta",
+      "condition": "observation_period == less_than_4_weeks",
+      "effect": "decrease_confidence",
+      "message_key": "periodo_de_observacao_curto"
+    },
+    {
+      "id": "sem_informante_escolar",
+      "condition": "has_primary_school == false",
+      "effect": "request_school_form",
+      "message_key": "solicitar_formulario_escola"
+    },
+    {
+      "id": "sem_informante_responsavel",
+      "condition": "has_primary_home == false",
+      "effect": "request_responsible_form",
+      "message_key": "solicitar_formulario_responsavel"
+    },
+    {
+      "id": "possivel_viés_por_conflito",
+      "condition": "informant_reports_active_family_or_school_conflict == true",
+      "effect": "contextualize_result",
+      "message_key": "avaliar_contexto_de_conflito"
+    }
+  ],
+  "output_schema": {
+    "informant_session": {
+      "informant_type": "mae | pai | responsavel_legal | avo_ou_familiar_cuidador | cuidador_principal | professor_regente | professor_disciplina | coordenador_orientador_escolar | psicologo_pedagogo_escolar",
+      "informant_group": "responsavel_familiar | cuidador_rotina | profissional_escola | informante_complementar",
+      "environment": "casa | escola | complementar",
+      "allowed_question_respondent_type": "responsavel | professor",
+      "can_accept_consent": "boolean",
+      "requires_responsible_authorization": "boolean",
+      "requires_responsible_confirmation": "boolean",
+      "clinical_weight": "number",
+      "data_confidence": "alta | moderada_alta | moderada | complementar",
+      "quality_flags": [
+        "string"
+      ],
+      "score_role": "primary_home | primary_school | primary_home_if_no_parent_available | complementary | limited | none"
+    }
+  },
+  "implementation_notes": [
+    "O app deve iniciar preferencialmente por mãe, pai ou responsável legal.",
+    "Professor deve responder versão escolar mediante autorização do responsável.",
+    "Cuidador pode responder se convive frequentemente, mas não deve substituir consentimento do responsável legal.",
+    "Informante complementar melhora contexto, mas não aumenta confiança como casa + escola.",
+    "Para TDAH/TOD, a maior confiança vem da combinação entre responsável e professor.",
+    "Nunca exibir ao professor frase diagnóstica; usar linguagem de observação e encaminhamento.",
+    "Quando só houver um informante, o resultado deve ser classificado como rastreio inicial e solicitar o outro ambiente."
+  ]
+}

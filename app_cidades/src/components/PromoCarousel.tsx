@@ -12,20 +12,27 @@ import {
 import { LinearGradient } from 'expo-linear-gradient'
 import { PromoBanner } from '../config/promoBanners'
 import { colors } from '../theme/colors'
+import { ChildBehaviorScreeningPromoBanner } from './home/ChildBehaviorScreeningPromoBanner'
 import { SkeletonBone } from './SkeletonBone'
 
 const HORIZONTAL_PADDING = 20
-const CARD_HEIGHT = Math.round(208 * 0.7)
-const BOTTOM_FADE_HEIGHT = Math.round(56 * 0.7)
+const CARD_HEIGHT = Math.round(208 * 0.78)
+const BOTTOM_FADE_HEIGHT = Math.round(48 * 0.78)
 const AUTO_PLAY_MS = 4500
 
 type PromoCarouselProps = {
   banners: PromoBanner[]
   onGuestInteract?: () => void
+  onBannerPress?: (banner: PromoBanner) => void
   skeleton?: boolean
 }
 
-export function PromoCarousel({ banners, onGuestInteract, skeleton = false }: PromoCarouselProps) {
+export function PromoCarousel({
+  banners,
+  onGuestInteract,
+  onBannerPress,
+  skeleton = false,
+}: PromoCarouselProps) {
   const { width: screenWidth } = useWindowDimensions()
   const cardWidth = screenWidth - HORIZONTAL_PADDING * 2
 
@@ -83,6 +90,9 @@ export function PromoCarousel({ banners, onGuestInteract, skeleton = false }: Pr
 
   if (banners.length === 0) return null
 
+  const activeBanner = banners[activeIndex]
+  const showBottomFade = activeBanner?.kind === 'image'
+
   return (
     <View style={[styles.wrapper, { paddingHorizontal: HORIZONTAL_PADDING }]}>
       <View style={[styles.card, { width: cardWidth, height: CARD_HEIGHT }]}>
@@ -109,24 +119,38 @@ export function PromoCarousel({ banners, onGuestInteract, skeleton = false }: Pr
           renderItem={({ item }) => (
             <Pressable
               style={{ width: cardWidth, height: CARD_HEIGHT }}
-              disabled={!onGuestInteract}
-              onPress={onGuestInteract}
+              disabled={!onGuestInteract && !onBannerPress}
+              onPress={() => {
+                if (onGuestInteract) {
+                  onGuestInteract()
+                  return
+                }
+                onBannerPress?.(item)
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={item.accessibilityLabel}
             >
-              <Image
-                source={item.source}
-                style={styles.image}
-                resizeMode="cover"
-                accessibilityLabel={item.accessibilityLabel}
-              />
+              {item.kind === 'child-behavior-screening' ? (
+                <ChildBehaviorScreeningPromoBanner width={cardWidth} height={CARD_HEIGHT} />
+              ) : (
+                <Image
+                  source={item.source}
+                  style={styles.image}
+                  resizeMode="cover"
+                  accessibilityLabel={item.accessibilityLabel}
+                />
+              )}
             </Pressable>
           )}
         />
 
-        <LinearGradient
-          colors={['transparent', 'rgba(0, 0, 0, 0.55)']}
-          style={[styles.bottomFade, { height: BOTTOM_FADE_HEIGHT }]}
-          pointerEvents="none"
-        />
+        {showBottomFade ? (
+          <LinearGradient
+            colors={['transparent', 'rgba(0, 0, 0, 0.55)']}
+            style={[styles.bottomFade, { height: BOTTOM_FADE_HEIGHT }]}
+            pointerEvents="none"
+          />
+        ) : null}
 
         {banners.length > 1 ? (
           <View style={styles.dots}>

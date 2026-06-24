@@ -6,6 +6,7 @@ import {
   calculateAveragePaceMinPerKm,
   calculateAverageSpeedKmh,
   estimateCaloriesBurned,
+  speedKmhToPaceMinPerKm,
 } from '../utils/runWalkActivityStats'
 import { resolveActivityPlace } from '../utils/runWalkActivityLocation'
 import { StyleSheet, View } from 'react-native'
@@ -62,6 +63,7 @@ export function RunWalkLiveActivityScreen() {
     durationMinutes,
     coordinates: location.coordinates,
     gpsSpeedMps: location.speedMps,
+    accuracyMeters: location.accuracyMeters,
     enabled: true,
   })
 
@@ -103,6 +105,7 @@ export function RunWalkLiveActivityScreen() {
   async function handleConfirmFinish() {
     const elapsedSeconds = session.elapsedSeconds
     const distanceKm = session.distanceKm
+    const averageSpeedKmh = session.averageSpeedKmh
     const trail = [...session.trail]
     const stepCount = session.stepCount
     const heartRateBpm = session.heartRateBpm
@@ -136,8 +139,12 @@ export function RunWalkLiveActivityScreen() {
       activityName: params.activityName ?? modalityLabel,
       elapsedSeconds,
       distanceKm,
-      averageSpeedKmh: calculateAverageSpeedKmh(distanceKm, elapsedSeconds),
-      paceMinPerKm: calculateAveragePaceMinPerKm(distanceKm, elapsedSeconds),
+      averageSpeedKmh:
+        averageSpeedKmh > 0 ? averageSpeedKmh : calculateAverageSpeedKmh(distanceKm, elapsedSeconds),
+      paceMinPerKm:
+        averageSpeedKmh > 0
+          ? speedKmhToPaceMinPerKm(averageSpeedKmh)
+          : calculateAveragePaceMinPerKm(distanceKm, elapsedSeconds),
       stepCount,
       heartRateBpm,
       estimatedCalories: estimateCaloriesBurned(modality, elapsedSeconds),
@@ -217,7 +224,7 @@ export function RunWalkLiveActivityScreen() {
         <RunWalkActivityMetricsCard
           elapsedSeconds={session.elapsedSeconds}
           distanceKm={session.distanceKm}
-          speedKmh={session.currentSpeedKmh}
+          speedKmh={session.averageSpeedKmh}
           isFinished={session.isFinished}
           isPaused={session.isPaused}
           onFinishPress={handleFinishPress}
@@ -255,7 +262,7 @@ export function RunWalkLiveActivityScreen() {
         visible={finishDrawerVisible}
         elapsedSeconds={session.elapsedSeconds}
         distanceKm={session.distanceKm}
-        speedKmh={session.currentSpeedKmh}
+        speedKmh={session.averageSpeedKmh}
         onClose={() => setFinishDrawerVisible(false)}
         onConfirm={handleConfirmFinish}
       />

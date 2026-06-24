@@ -1,0 +1,434 @@
+{
+  "metadata": {
+    "module": "tdah_tod_infantil",
+    "file": "tdah_tod_result_messages.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "depends_on": [
+      "tdah_tod_questions.json",
+      "tdah_tod_scoring_rules.json",
+      "tdah_tod_cutoffs.json",
+      "tdah_tod_age_rules.json",
+      "tdah_tod_informants.json",
+      "tdah_tod_functional_impairment.json",
+      "tdah_tod_red_flags.json",
+      "tdah_tod_differential_screening.json"
+    ],
+    "clinical_scope": "Textos humanizados para exibir resultados de rastreio neurocomportamental infantil baseado em SNAP-IV 26, prejuízo funcional, idade, informantes, red flags e diferenciais.",
+    "diagnostic_disclaimer": "O resultado não fecha diagnóstico. Ele identifica sinais compatíveis e orienta o melhor encaminhamento.",
+    "tone": "acolhedor, claro, cuidadoso, sem rótulos, sem alarmismo e sem minimizar sofrimento",
+    "do_not_say": [
+      "Seu filho tem TDAH",
+      "Seu filho tem TOD",
+      "Diagnóstico positivo",
+      "Diagnóstico negativo",
+      "Resultado normal",
+      "Problema de criação",
+      "Má educação",
+      "Preguiça",
+      "Falta de limites como conclusão isolada"
+    ]
+  },
+  "global_disclaimers": {
+    "short": "Este resultado não fecha diagnóstico. Ele organiza sinais compatíveis e orienta o melhor encaminhamento.",
+    "full": "Este rastreio não substitui consulta com pediatra, neuropediatra, psiquiatra infantil, psicólogo ou neuropsicólogo. As respostas ajudam a identificar sinais compatíveis, mas a avaliação profissional precisa considerar história clínica, desenvolvimento, escola, família, prejuízo funcional e fatores que podem imitar TDAH/TOD.",
+    "snap_iv_note": "A pontuação foi organizada a partir de itens compatíveis com o núcleo SNAP-IV 26: desatenção, hiperatividade/impulsividade e oposição/desafio.",
+    "multi_setting_note": "Para maior precisão, é importante comparar informações de casa e da escola.",
+    "functional_note": "A intensidade dos sinais precisa ser interpretada junto do impacto real na rotina, no aprendizado, nas relações e na família."
+  },
+  "classification_messages": [
+    {
+      "classification_id": "baixo_indicativo",
+      "label": "Baixo indicativo",
+      "headline": "As respostas mostram baixo indicativo neste rastreio.",
+      "family_summary": "Pelas respostas informadas, não apareceu um conjunto forte de sinais compatíveis com TDAH ou oposição/desafio neste momento.",
+      "clinical_summary": "Baixa quantidade de itens positivos no SNAP-IV 26 e/ou ausência de prejuízo funcional relevante informado.",
+      "reassurance": "Isso não significa que a queixa não exista. Significa apenas que, neste rastreio, os sinais não formaram um padrão forte.",
+      "next_steps": [
+        "Manter observação da rotina, sono, escola e comportamento.",
+        "Repetir a triagem se houver piora, persistência das queixas ou novo prejuízo escolar/familiar.",
+        "Procurar avaliação profissional se a família ou escola continuar preocupada."
+      ],
+      "app_cta": "Acompanhar e reavaliar se necessário",
+      "requires_professional_evaluation": false,
+      "urgency_text": "Sem sinal de prioridade clínica pelo rastreio atual."
+    },
+    {
+      "classification_id": "sinais_leves",
+      "label": "Sinais leves",
+      "headline": "Aparecem sinais leves que merecem observação.",
+      "family_summary": "As respostas mostram alguns sinais de atenção, agitação/impulsividade ou oposição, mas ainda sem um padrão forte o suficiente para uma conclusão de maior gravidade no rastreio.",
+      "clinical_summary": "Sinais subclínicos ou isolados, geralmente com prejuízo ausente ou leve, exigindo monitoramento e orientação.",
+      "reassurance": "Muitas crianças podem passar por fases de maior agitação, distração ou resistência. O importante é observar se isso persiste, se piora ou se começa a atrapalhar escola, família e relações.",
+      "next_steps": [
+        "Organizar rotina, sono, horários, combinados e redução de telas perto de dormir.",
+        "Conversar com a escola para observar se os sinais também aparecem em sala.",
+        "Reavaliar em 30 a 60 dias ou antes se houver piora."
+      ],
+      "app_cta": "Receber orientações e reavaliar",
+      "requires_professional_evaluation": false,
+      "urgency_text": "Não indica urgência, salvo se houver alerta de risco em outro bloco."
+    },
+    {
+      "classification_id": "sinais_moderados",
+      "label": "Sinais moderados",
+      "headline": "As respostas indicam sinais moderados e recomendam avaliação.",
+      "family_summary": "O rastreio encontrou sinais compatíveis em pelo menos um domínio importante, ou sinais associados a impacto na rotina. Isso não confirma TDAH/TOD, mas indica que vale avançar para avaliação profissional.",
+      "clinical_summary": "Há sinais relevantes no SNAP-IV 26 ou combinação de sinais e prejuízo funcional que justificam avaliação clínica não urgente.",
+      "reassurance": "O objetivo agora não é rotular a criança, e sim entender o que está por trás das dificuldades e qual apoio pode ajudar.",
+      "next_steps": [
+        "Agendar avaliação com pediatra, psicólogo infantil ou profissional de saúde mental infantil.",
+        "Enviar formulário para professor/escola, se ainda não foi preenchido.",
+        "Investigar sono, ansiedade, humor, aprendizagem, visão, audição e contexto familiar/escolar."
+      ],
+      "app_cta": "Agendar avaliação",
+      "requires_professional_evaluation": true,
+      "urgency_text": "Avaliação recomendada, sem caráter de emergência se não houver red flags."
+    },
+    {
+      "classification_id": "sinais_importantes",
+      "label": "Sinais importantes",
+      "headline": "As respostas indicam sinais importantes que merecem prioridade.",
+      "family_summary": "O rastreio encontrou sinais relevantes e/ou impacto funcional claro em casa, na escola ou nas relações. Isso não fecha diagnóstico, mas indica necessidade de avaliação profissional com prioridade.",
+      "clinical_summary": "Sinais SNAP-IV relevantes com prejuízo funcional, múltiplos domínios afetados ou consistência entre ambientes.",
+      "reassurance": "Esse resultado não é uma sentença. Ele ajuda a organizar a fila de cuidado para que a criança receba avaliação e apoio mais rapidamente.",
+      "next_steps": [
+        "Priorizar consulta com pediatra, neuropediatra, psiquiatra infantil, psicólogo ou neuropsicólogo conforme rede disponível.",
+        "Levar ou anexar respostas da família e da escola.",
+        "Criar plano inicial de apoio em casa e na escola enquanto aguarda avaliação."
+      ],
+      "app_cta": "Priorizar atendimento",
+      "requires_professional_evaluation": true,
+      "urgency_text": "Prioridade clínica. Se houver risco de segurança, usar fluxo de urgência."
+    },
+    {
+      "classification_id": "prioridade_clinica",
+      "label": "Prioridade clínica",
+      "headline": "Há necessidade de avaliação clínica prioritária.",
+      "family_summary": "As respostas indicam sinais ou alertas que precisam de atenção profissional mais rápida. O resultado não confirma diagnóstico, mas mostra que não é adequado tratar a situação apenas como uma dificuldade comum de comportamento ou atenção.",
+      "clinical_summary": "Classificação elevada por prejuízo importante, múltiplos domínios, red flags, risco ou necessidade de avaliação especializada.",
+      "reassurance": "O foco agora é segurança, acolhimento e avaliação adequada. A prioridade é entender a causa e proteger a criança/adolescente.",
+      "next_steps": [
+        "Encaminhar para avaliação clínica prioritária.",
+        "Se houver risco atual de autoagressão, agressão, intoxicação, abuso, psicose ou crise grave, procurar serviço de urgência imediatamente.",
+        "Acionar rede de proteção ou saúde mental conforme o alerta identificado."
+      ],
+      "app_cta": "Buscar atendimento prioritário",
+      "requires_professional_evaluation": true,
+      "urgency_text": "Pode exigir fluxo prioritário ou urgência, conforme red flags."
+    },
+    {
+      "classification_id": "pendente",
+      "label": "Pendente",
+      "headline": "Ainda faltam informações para classificar com segurança.",
+      "family_summary": "Não há respostas suficientes para gerar um resultado confiável neste momento.",
+      "clinical_summary": "Dados insuficientes em domínio obrigatório, informante essencial, prejuízo funcional ou red flags.",
+      "reassurance": "Isso é comum quando algum bloco fica incompleto. Melhor completar as informações do que gerar uma orientação frágil.",
+      "next_steps": [
+        "Completar as perguntas obrigatórias.",
+        "Adicionar formulário da escola quando possível.",
+        "Responder os blocos de prejuízo funcional e alertas de risco."
+      ],
+      "app_cta": "Completar triagem",
+      "requires_professional_evaluation": false,
+      "urgency_text": "Sem classificação até completar dados mínimos."
+    }
+  ],
+  "domain_profile_messages": [
+    {
+      "profile_id": "perfil_sem_predominio_claro",
+      "label": "Sem predomínio claro",
+      "family_text": "As respostas não mostram predomínio claro de desatenção, hiperatividade/impulsividade ou oposição/desafio.",
+      "professional_text": "Sem agrupamento sintomático predominante no SNAP-IV 26."
+    },
+    {
+      "profile_id": "perfil_desatencao",
+      "label": "Predomínio de desatenção",
+      "family_text": "O padrão mais evidente aparece em atenção, organização, esquecimento, conclusão de tarefas ou distração.",
+      "professional_text": "Predomínio de sinais compatíveis com apresentação desatenta; correlacionar com prejuízo funcional e diferenciais."
+    },
+    {
+      "profile_id": "perfil_hiperatividade_impulsividade",
+      "label": "Predomínio de hiperatividade/impulsividade",
+      "family_text": "O padrão mais evidente aparece em inquietação, impulsividade, fala excessiva, dificuldade de esperar ou interrupções.",
+      "professional_text": "Predomínio de sinais hiperativos/impulsivos; correlacionar com idade, contexto, sono, ansiedade e prejuízo."
+    },
+    {
+      "profile_id": "perfil_combinado_atencao_impulsividade",
+      "label": "Sinais combinados de atenção e impulsividade",
+      "family_text": "Aparecem sinais tanto de desatenção quanto de hiperatividade/impulsividade.",
+      "professional_text": "Sinais combinados nos dois domínios nucleares de TDAH; avaliar consistência entre ambientes e prejuízo."
+    },
+    {
+      "profile_id": "perfil_oposicao_desafio_associado",
+      "label": "Sinais de oposição/desafio associados",
+      "family_text": "Também aparecem sinais de irritabilidade, desafio a regras, discussões ou comportamento de oposição.",
+      "professional_text": "Sinais compatíveis com oposição/desafio; avaliar dinâmica familiar/escolar, sofrimento emocional, trauma, limites e comorbidades."
+    },
+    {
+      "profile_id": "perfil_tdah_com_oposicao_associada",
+      "label": "Atenção/impulsividade com oposição associada",
+      "family_text": "Aparecem sinais de atenção ou impulsividade junto com oposição/desafio. Isso merece uma avaliação mais cuidadosa do contexto.",
+      "professional_text": "Sinais de TDAH associados a oposição/desafio; investigar comorbidades, prejuízo funcional e fatores ambientais."
+    }
+  ],
+  "functional_impairment_messages": [
+    {
+      "level": "sem_prejuizo_relevante",
+      "family_text": "Até aqui, as respostas não indicam prejuízo funcional relevante. Se a preocupação persistir, acompanhe e reavalie.",
+      "effect_text": "Sem prejuízo claro, o resultado deve ser interpretado com cautela."
+    },
+    {
+      "level": "prejuizo_leve",
+      "family_text": "Há algum impacto na rotina, mas ainda em nível leve. Organização, sono e apoio escolar/familiar podem ajudar.",
+      "effect_text": "Prejuízo leve sustenta orientação e monitoramento."
+    },
+    {
+      "level": "prejuizo_moderado",
+      "family_text": "Há impacto moderado em áreas importantes da rotina. Quando isso aparece junto de sinais no SNAP-IV, a avaliação profissional é recomendada.",
+      "effect_text": "Prejuízo moderado aumenta prioridade de avaliação."
+    },
+    {
+      "level": "prejuizo_importante",
+      "family_text": "Há impacto importante na rotina, escola, relações ou segurança. Isso exige atenção profissional com mais prioridade.",
+      "effect_text": "Prejuízo importante pode elevar a classificação final."
+    }
+  ],
+  "informant_messages": [
+    {
+      "id": "resultado_com_apenas_responsavel",
+      "condition": "responsavel_available == true AND professor_available == false",
+      "message": "Este resultado foi feito com informações da família. Para melhorar a precisão, envie também o formulário para a escola/professor.",
+      "confidence_label": "Confiança moderada"
+    },
+    {
+      "id": "resultado_com_apenas_professor",
+      "condition": "professor_available == true AND responsavel_available == false",
+      "message": "Este resultado foi feito com informações da escola. Para orientar a família com mais segurança, é importante completar também o formulário do responsável.",
+      "confidence_label": "Confiança moderada"
+    },
+    {
+      "id": "resultado_com_dois_ambientes",
+      "condition": "responsavel_available == true AND professor_available == true",
+      "message": "O rastreio considera informações de casa e escola, o que aumenta a qualidade da interpretação.",
+      "confidence_label": "Confiança maior"
+    },
+    {
+      "id": "discordancia_entre_informantes",
+      "condition": "major_informant_disagreement == true",
+      "message": "Há diferenças importantes entre os relatos de casa e escola. Isso não invalida o resultado; ajuda a mostrar que o contexto precisa ser entendido melhor.",
+      "confidence_label": "Exige contextualização"
+    }
+  ],
+  "age_messages": [
+    {
+      "age_group_id": "age_4_5_preschool",
+      "message": "Como a criança está em idade pré-escolar, o resultado deve ser interpretado com cautela. Sono, linguagem, desenvolvimento, rotina e ambiente podem influenciar bastante o comportamento."
+    },
+    {
+      "age_group_id": "age_6_11_school_child",
+      "message": "Nesta idade, comparar casa e escola ajuda muito a entender se os sinais aparecem em mais de um ambiente."
+    },
+    {
+      "age_group_id": "age_12_14_early_adolescent",
+      "message": "No início da adolescência, sono, telas, ansiedade, humor, bullying, aprendizagem e mudanças familiares podem influenciar atenção e comportamento."
+    },
+    {
+      "age_group_id": "age_15_16_adolescent",
+      "message": "Em adolescentes, desorganização, procrastinação, irritabilidade e queda escolar podem ter várias causas. O contexto emocional e de sono precisa ser considerado."
+    },
+    {
+      "age_group_id": "age_17_late_adolescent",
+      "message": "Aos 17 anos, o rastreio deve considerar autonomia, rotina de estudo/trabalho, sono, ansiedade, humor e uso de substâncias."
+    },
+    {
+      "age_group_id": "under_4_not_eligible",
+      "message": "Este módulo foi criado para crianças a partir de 4 anos. Para menores de 4 anos, o indicado é avaliação do desenvolvimento infantil."
+    },
+    {
+      "age_group_id": "age_18_or_more_not_child_module",
+      "message": "Este módulo é infantil/adolescente. Para maiores de 18 anos, use um fluxo próprio para adultos."
+    }
+  ],
+  "red_flag_messages": {
+    "sem_red_flags": "Nenhum alerta de risco foi informado neste bloco.",
+    "contextual_red_flag": "Há fatores que podem imitar ou intensificar sinais de atenção, impulsividade ou oposição. O resultado deve ser interpretado com cautela.",
+    "medical_evaluation_red_flag": "Há sinais que sugerem avaliação médica, neurológica, visual, auditiva, de sono ou revisão de medicação antes de concluir o rastreio comportamental.",
+    "priority_red_flag": "Há um alerta que aumenta a prioridade de avaliação profissional. O rastreio não deve ser interpretado isoladamente.",
+    "urgent_red_flag": "Foi identificado um alerta de risco que precisa de atenção imediata. Antes de interpretar TDAH/TOD, procure ajuda presencial de urgência ou serviço de saúde mental da rede local.",
+    "safeguarding_red_flag": "Foi identificado um possível alerta de proteção. O cuidado principal agora é garantir segurança e acionar a rede adequada conforme protocolo local."
+  },
+  "differential_messages": [
+    {
+      "flag": "sono_relevante",
+      "message": "Sono insuficiente, irregular ou com ronco pode causar desatenção, irritabilidade e agitação. Vale investigar sono antes de concluir o rastreio."
+    },
+    {
+      "flag": "ansiedade_relevante",
+      "message": "Ansiedade pode aparecer como inquietação, evitação, dificuldade de concentração ou irritabilidade."
+    },
+    {
+      "flag": "humor_depressivo_relevante",
+      "message": "Tristeza, baixa energia ou irritabilidade persistente podem parecer desatenção ou oposição."
+    },
+    {
+      "flag": "trauma_bullying_estresse_relevante",
+      "message": "Trauma, bullying ou estresse importante podem afetar atenção, humor, comportamento e rendimento escolar."
+    },
+    {
+      "flag": "avaliar_visao",
+      "message": "Dificuldade visual pode parecer desatenção, erro por descuido ou evitação de leitura/cópia."
+    },
+    {
+      "flag": "avaliar_audicao",
+      "message": "Dificuldade auditiva pode parecer falta de escuta, desatenção ou dificuldade de seguir instruções."
+    },
+    {
+      "flag": "avaliar_aprendizagem_linguagem",
+      "message": "Dificuldades de aprendizagem ou linguagem podem gerar frustração, evitação de tarefas e desatenção aparente."
+    },
+    {
+      "flag": "avaliar_neurodesenvolvimento",
+      "message": "Sinais de neurodesenvolvimento, rigidez ou sensibilidade sensorial podem coexistir com TDAH ou explicar parte das queixas."
+    },
+    {
+      "flag": "avaliar_condicao_medica_medicacao",
+      "message": "Condições médicas ou medicações podem afetar sono, energia, humor, atenção e comportamento."
+    }
+  ],
+  "referral_cta_messages": [
+    {
+      "id": "orientacao_familiar",
+      "title": "Orientação familiar",
+      "message": "Comece por ajustes de rotina, sono, combinados claros, previsibilidade e redução de telas perto de dormir."
+    },
+    {
+      "id": "reavaliacao_30_60_dias",
+      "title": "Reavaliar em 30 a 60 dias",
+      "message": "Acompanhe os sinais e repita a triagem se persistirem ou piorarem."
+    },
+    {
+      "id": "solicitar_formulario_escola",
+      "title": "Enviar formulário para escola",
+      "message": "A avaliação fica mais precisa quando professor ou escola também respondem."
+    },
+    {
+      "id": "consulta_pediatra",
+      "title": "Consulta com pediatra",
+      "message": "O pediatra pode avaliar saúde geral, sono, visão, audição, desenvolvimento e necessidade de encaminhamento."
+    },
+    {
+      "id": "psicologo_neuropsicologo",
+      "title": "Psicólogo ou neuropsicólogo",
+      "message": "Pode ajudar a entender atenção, comportamento, aprendizagem, emoções e prejuízo funcional."
+    },
+    {
+      "id": "neuropediatra_psiquiatra_infantil",
+      "title": "Neuropediatra ou psiquiatra infantil",
+      "message": "Indicado quando há sinais importantes, prejuízo relevante, comorbidades, dúvidas diagnósticas ou necessidade de avaliação especializada."
+    },
+    {
+      "id": "fluxo_urgencia",
+      "title": "Fluxo de urgência",
+      "message": "Se houver risco atual de autoagressão, agressão, intoxicação, psicose, abuso ou crise grave, procure serviço de urgência imediatamente."
+    }
+  ],
+  "report_sections": {
+    "family_report_order": [
+      "headline",
+      "diagnostic_disclaimer",
+      "classification_summary",
+      "domain_profile_summary",
+      "functional_impairment_summary",
+      "informant_quality_note",
+      "age_context_note",
+      "differential_context_note",
+      "red_flag_note",
+      "next_steps"
+    ],
+    "school_note_template": "O rastreio não fecha diagnóstico. As informações da escola ajudam a entender se os sinais aparecem no ambiente escolar e se há prejuízo em aprendizagem, rotina de sala e relações.",
+    "professional_note_template": "Resultado de rastreio baseado em respostas estruturadas. Correlacionar SNAP-IV 26, prejuízo funcional, informantes, idade, red flags e diferenciais antes de qualquer hipótese diagnóstica."
+  },
+  "composition_rules": [
+    {
+      "id": "always_start_with_no_diagnosis",
+      "rule": "Todo resultado exibido deve incluir global_disclaimers.short no primeiro bloco ou logo abaixo do título."
+    },
+    {
+      "id": "red_flags_override_standard_message",
+      "rule": "Se urgent_red_flag ou safeguarding_red_flag for verdadeiro, não exibir classificação comportamental padrão como mensagem principal."
+    },
+    {
+      "id": "include_school_request_when_missing",
+      "rule": "Se professor_available == false e idade >= 4, incluir informant_messages.resultado_com_apenas_responsavel."
+    },
+    {
+      "id": "include_differential_notes",
+      "rule": "Para cada flag diferencial relevante, incluir no máximo 3 mensagens diferenciais no resumo principal e o restante no relatório detalhado."
+    },
+    {
+      "id": "avoid_overloading_family",
+      "rule": "No app, exibir no máximo 3 próximos passos principais. Relatório profissional pode incluir todos os detalhes."
+    },
+    {
+      "id": "priority_language",
+      "rule": "Para sinais_importantes e prioridade_clinica, usar 'priorizar avaliação' em vez de 'emergência', exceto se houver red flag urgente."
+    }
+  ],
+  "example_outputs": [
+    {
+      "id": "example_moderate_inattention_school_missing",
+      "classification_id": "sinais_moderados",
+      "text": "As respostas indicam sinais moderados de desatenção, com impacto relatado na rotina. Este resultado não confirma TDAH, mas recomenda avaliação profissional. Para melhorar a precisão, envie também o formulário para a escola."
+    },
+    {
+      "id": "example_important_combined_with_school",
+      "classification_id": "sinais_importantes",
+      "text": "As respostas indicam sinais importantes de desatenção e impulsividade em mais de um ambiente, com prejuízo funcional. Isso não fecha diagnóstico, mas justifica priorizar avaliação profissional e organizar apoio em casa e na escola."
+    },
+    {
+      "id": "example_differential_sleep",
+      "classification_id": "sinais_leves",
+      "text": "Aparecem sinais leves de atenção e agitação, mas também há indícios de sono irregular. Antes de concluir que os sinais são compatíveis principalmente com TDAH, vale ajustar e avaliar o sono."
+    },
+    {
+      "id": "example_red_flag",
+      "classification_id": "prioridade_clinica",
+      "text": "Foi identificado um alerta de risco. O foco agora é segurança e avaliação presencial prioritária. O rastreio de TDAH/TOD deve ficar em segundo plano até esse alerta ser cuidado."
+    }
+  ],
+  "output_schema": {
+    "result_message_payload": {
+      "classification_id": "baixo_indicativo | sinais_leves | sinais_moderados | sinais_importantes | prioridade_clinica | pendente",
+      "headline": "string",
+      "diagnostic_disclaimer": "string",
+      "family_summary": "string",
+      "clinical_summary": "string",
+      "profile_messages": [
+        "string"
+      ],
+      "functional_impairment_message": "string",
+      "informant_message": "string",
+      "age_message": "string",
+      "red_flag_message": "string",
+      "differential_messages": [
+        "string"
+      ],
+      "next_steps": [
+        "string"
+      ],
+      "app_cta": "string",
+      "professional_note": "string"
+    }
+  },
+  "implementation_notes": [
+    "Mensagens devem ser montadas por composição, não por texto único fixo.",
+    "Usar classification_messages como base principal e adicionar mensagens de domínio, informante, idade, prejuízo, red flags e diferenciais conforme flags do motor.",
+    "Nunca exibir diagnóstico fechado.",
+    "Quando houver red flag urgente, esconder ou secundarizar pontuação SNAP-IV e exibir fluxo de segurança.",
+    "Quando houver diferencial relevante, explicar que o fator pode imitar ou piorar sinais de TDAH/TOD.",
+    "Quando só houver responsável, sempre sugerir formulário da escola.",
+    "Quando houver professor e responsável, destacar maior qualidade da interpretação.",
+    "Em relatórios profissionais, incluir pontuação e flags; para família, priorizar resumo claro e próximos passos."
+  ]
+}

@@ -21,10 +21,6 @@ type LeafletLayerGroup = {
   addTo: (map: LeafletMap) => LeafletLayerGroup
 }
 
-type LeafletControl = {
-  addTo: (map: LeafletMap) => void
-}
-
 type LeafletModule = {
   map: (element: HTMLElement, options?: Record<string, unknown>) => LeafletMap
   tileLayer: (url: string, options?: Record<string, unknown>) => { addTo: (map: LeafletMap) => void }
@@ -38,9 +34,6 @@ type LeafletModule = {
     options?: Record<string, unknown>,
   ) => { addTo: (group: LeafletLayerGroup) => void }
   layerGroup: () => LeafletLayerGroup
-  control: {
-    zoom: (options?: { position?: string }) => LeafletControl
-  }
 }
 
 declare global {
@@ -52,7 +45,8 @@ declare global {
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
 const FOCUS_ZOOM = 16
-const BOTTOM_PANEL_OFFSET_Y = 150
+const DEFAULT_BOTTOM_INSET = 220
+const DEFAULT_TOP_INSET = 56
 
 let leafletAssetsPromise: Promise<LeafletModule> | null = null
 
@@ -99,16 +93,36 @@ function toLatLngs(points: LiveSharePoint[]): Array<[number, number]> {
   return points.map((point) => [point.latitude, point.longitude] as [number, number])
 }
 
+function focusParticipantInVisibleArea(
+  map: LeafletMap,
+  bottomInsetPx: number,
+  topInsetPx: number,
+) {
+  const offsetY = Math.max(0, Math.round((bottomInsetPx - topInsetPx) / 2))
+  if (offsetY > 0) {
+    map.panBy([0, offsetY], { animate: false })
+  }
+}
+
 type LiveShareTrackingMapProps = {
   points: LiveSharePoint[]
   participantLabel: string
   participantName: string
   participantPhotoUrl?: string | null
+  bottomInsetPx?: number
+  topInsetPx?: number
 }
 
 export const LiveShareTrackingMap = forwardRef<LiveShareTrackingMapHandle, LiveShareTrackingMapProps>(
   function LiveShareTrackingMap(
-    { points, participantLabel, participantName, participantPhotoUrl },
+    {
+      points,
+      participantLabel,
+      participantName,
+      participantPhotoUrl,
+      bottomInsetPx = DEFAULT_BOTTOM_INSET,
+      topInsetPx = DEFAULT_TOP_INSET,
+    },
     ref,
   ) {
     const containerRef = useRef<HTMLDivElement | null>(null)
@@ -119,10 +133,14 @@ export const LiveShareTrackingMap = forwardRef<LiveShareTrackingMapHandle, LiveS
     const mapReadyRef = useRef(false)
     const latlngsRef = useRef<Array<[number, number]>>([])
     const isProgrammaticMoveRef = useRef(false)
+    const insetsRef = useRef({ bottom: bottomInsetPx, top: topInsetPx })
 
-    const offsetForBottomPanel = useCallback((map: LeafletMap) => {
-      map.panBy([0, -BOTTOM_PANEL_OFFSET_Y], { animate: false })
-    }, [])
+    useEffect(() => {
+      insetsRef.current = { bottom: bottomInsetPx, top: topInsetPx }
+      if (mapReadyRef.current && autoFollowRef.current) {
+        centerOnParticipant(false)
+      }
+    }, [bottomInsetPx, topInsetPx])
 
     const centerOnParticipant = useCallback(
       (animate = true) => {
@@ -131,12 +149,13 @@ export const LiveShareTrackingMap = forwardRef<LiveShareTrackingMapHandle, LiveS
         if (!map || !mapReadyRef.current || latlngs.length === 0) return
 
         const latest = latlngs[latlngs.length - 1]
+        const { bottom, top } = insetsRef.current
 
         autoFollowRef.current = true
         isProgrammaticMoveRef.current = true
 
         const finishMove = () => {
-          offsetForBottomPanel(map)
+          focusParticipantInVisibleArea(map, bottom, top)
           window.setTimeout(() => {
             isProgrammaticMoveRef.current = false
           }, 50)
@@ -150,7 +169,7 @@ export const LiveShareTrackingMap = forwardRef<LiveShareTrackingMapHandle, LiveS
           finishMove()
         }
       },
-      [offsetForBottomPanel],
+      [],
     )
 
     useImperativeHandle(
@@ -180,15 +199,14 @@ export const LiveShareTrackingMap = forwardRef<LiveShareTrackingMapHandle, LiveS
             center: latest,
             zoom: FOCUS_ZOOM,
             zoomControl: false,
-            attributionControl: true,
+            attributionControl: false,
           })
 
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
-            attribution: '&copy; OpenStreetMap',
+            subdomains: 'abcd',
           }).addTo(mapRef.current)
 
-          L.control.zoom({ position: 'topright' }).addTo(mapRef.current)
           layerRef.current = L.layerGroup().addTo(mapRef.current)
 
           mapRef.current.on('dragstart', () => {
@@ -207,15 +225,18 @@ export const LiveShareTrackingMap = forwardRef<LiveShareTrackingMapHandle, LiveS
           L.polyline(latlngs, {
             color: '#22c55e',
             weight: 4,
-            opacity: 0.9,
+            opacity: 0.95,
+            lineCap: 'round',
+            lineJoin: 'round',
           }).addTo(layerRef.current!)
         }
 
+        const hasPhoto = Boolean(participantPhotoUrl?.trim())
         const markerIcon = L.divIcon({
           className: 'live-share-photo-marker',
           html: buildLiveShareMapMarkerHtml(participantPhotoUrl, participantName),
-          iconSize: [44, 44],
-          iconAnchor: [22, 22],
+          iconSize: hasPhoto ? [36, 36] : [30, 30],
+          iconAnchor: hasPhoto ? [18, 18] : [15, 15],
         })
 
         L.marker(latest, { icon: markerIcon, zIndexOffset: 1000 }).addTo(layerRef.current!)
@@ -248,7 +269,7 @@ export const LiveShareTrackingMap = forwardRef<LiveShareTrackingMapHandle, LiveS
     return (
       <div
         ref={containerRef}
-        className="absolute inset-0 z-0 bg-[#f5f5f5]"
+        className="absolute inset-0 z-0 bg-[#0b0f14]"
         aria-label={`Mapa de acompanhamento de ${participantLabel}`}
       />
     )

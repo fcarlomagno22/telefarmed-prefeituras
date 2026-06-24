@@ -1,19 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ActivityModality } from '../types/auth'
 import type { RunWalkActivityStep } from '../types/runWalk'
+import { GpsMotionEngine } from '../utils/gpsMotionEngine'
 import type { GeoCoordinates } from '../utils/geo'
 import {
   calculateAverageSpeedKmh,
-  calculateInstantSpeedKmh,
-  calculateRollingPaceAndSpeed,
-  calculateTotalDistanceKm,
   estimateHeartRateBpm,
   estimateStepsFromDistance,
   getDefaultActivitySteps,
   getFallbackPaceMinPerKm,
-  paceMinPerKmToSpeedKmh,
   resolveCurrentActivityStep,
-  shouldAppendTrailPoint,
   type ActivityTrailPoint,
 } from '../utils/runWalkActivityStats'
 
@@ -22,6 +18,7 @@ type UseRunWalkActivitySessionOptions = {
   durationMinutes: number
   coordinates: GeoCoordinates | null
   gpsSpeedMps?: number | null
+  accuracyMeters?: number | null
   structure?: RunWalkActivityStep[]
   enabled?: boolean
 }
@@ -29,7 +26,8 @@ type UseRunWalkActivitySessionOptions = {
 type ActivitySessionSnapshot = {
   elapsedSeconds: number
   distanceKm: number
-  currentSpeedKmh: number | null
+  currentSpeedKmh: number
+  averageSpeedKmh: number
   trail: ActivityTrailPoint[]
 }
 
@@ -38,18 +36,20 @@ export function useRunWalkActivitySession({
   durationMinutes,
   coordinates,
   gpsSpeedMps = null,
+  accuracyMeters = null,
   structure,
   enabled = true,
 }: UseRunWalkActivitySessionOptions) {
   const startedAtRef = useRef(Date.now())
+  const motionEngineRef = useRef(new GpsMotionEngine())
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
-  const [trail, setTrail] = useState<ActivityTrailPoint[]>([])
+  const [motionSnapshot, setMotionSnapshot] = useState(() => motionEngineRef.current.getSnapshot())
   const [isFinished, setIsFinished] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [frozenSnapshot, setFrozenSnapshot] = useState<ActivitySessionSnapshot | null>(null)
   const elapsedSecondsRef = useRef(0)
-  const trailRef = useRef<ActivityTrailPoint[]>([])
   const pausedElapsedRef = useRef(0)
+  const lastIngestedAtRef = useRef<number | null>(null)
 
   const isTracking = enabled && !isFinished && !isPaused
 
@@ -63,9 +63,10 @@ export function useRunWalkActivitySession({
 
     startedAtRef.current = Date.now()
     elapsedSecondsRef.current = 0
-    trailRef.current = []
+    lastIngestedAtRef.current = null
+    motionEngineRef.current.reset()
+    setMotionSnapshot(motionEngineRef.current.getSnapshot())
     setElapsedSeconds(0)
-    setTrail([])
     setIsFinished(false)
     setIsPaused(false)
     setFrozenSnapshot(null)
@@ -87,58 +88,43 @@ export function useRunWalkActivitySession({
   useEffect(() => {
     if (!isTracking || !coordinates) return
 
-    setTrail((current) => {
-      if (!shouldAppendTrailPoint(current, coordinates, 4)) {
-        return current
-      }
+    const now = Date.now()
+    if (lastIngestedAtRef.current != null && now - lastIngestedAtRef.current < 400) {
+      return
+    }
 
-      const nextTrail = [
-        ...current,
-        {
-          latitude: coordinates.latitude,
-          longitude: coordinates.longitude,
-          recordedAt: Date.now(),
-        },
-      ]
-      trailRef.current = nextTrail
-      return nextTrail
+    lastIngestedAtRef.current = now
+    const snapshot = motionEngineRef.current.ingest({
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+      accuracyMeters,
+      speedMps: gpsSpeedMps,
+      recordedAt: now,
     })
-  }, [coordinates, isTracking])
+    setMotionSnapshot(snapshot)
+  }, [accuracyMeters, coordinates, gpsSpeedMps, isTracking])
 
-  const liveDistanceKm = useMemo(() => calculateTotalDistanceKm(trail), [trail])
-  const liveAverageSpeedKmh = useMemo(
-    () => calculateAverageSpeedKmh(liveDistanceKm, elapsedSeconds),
-    [elapsedSeconds, liveDistanceKm],
-  )
-  const rollingMetrics = useMemo(() => calculateRollingPaceAndSpeed(trail), [trail])
-
-  const livePaceMinPerKm =
-    rollingMetrics.paceMinPerKm ??
-    (liveDistanceKm > 0 ? null : getFallbackPaceMinPerKm(modality))
-  const liveSpeedKmh =
-    calculateInstantSpeedKmh(trail, gpsSpeedMps) ??
-    rollingMetrics.speedKmh ??
-    (livePaceMinPerKm != null ? paceMinPerKmToSpeedKmh(livePaceMinPerKm) : null)
+  const liveDistanceKm = motionSnapshot.distanceKm
+  const liveAverageSpeedKmh = motionSnapshot.averageSpeedKmh
+  const liveSpeedKmh = motionSnapshot.currentSpeedKmh
+  const trail = motionSnapshot.trail
 
   const finishActivity = () => {
     if (isFinished) return
 
-    const currentTrail = trailRef.current
-    const snapshotDistanceKm = calculateTotalDistanceKm(currentTrail)
-    const rolling = calculateRollingPaceAndSpeed(currentTrail)
-    const pace =
-      rolling.paceMinPerKm ??
-      (snapshotDistanceKm > 0 ? null : getFallbackPaceMinPerKm(modality))
-    const speed =
-      calculateInstantSpeedKmh(currentTrail, gpsSpeedMps) ??
-      rolling.speedKmh ??
-      (pace != null ? paceMinPerKmToSpeedKmh(pace) : null)
+    const motion = motionEngineRef.current.getSnapshot()
+    const snapshotDistanceKm = motion.distanceKm
+    const averageSpeed =
+      motion.movingTimeSeconds >= 3 && snapshotDistanceKm > 0
+        ? motion.averageSpeedKmh
+        : calculateAverageSpeedKmh(snapshotDistanceKm, motion.movingTimeSeconds) ?? 0
 
     const snapshot: ActivitySessionSnapshot = {
       elapsedSeconds: elapsedSecondsRef.current,
       distanceKm: snapshotDistanceKm,
-      currentSpeedKmh: speed,
-      trail: [...currentTrail],
+      currentSpeedKmh: motion.currentSpeedKmh,
+      averageSpeedKmh: averageSpeed,
+      trail: [...motion.trail],
     }
 
     setFrozenSnapshot(snapshot)
@@ -167,9 +153,7 @@ export function useRunWalkActivitySession({
 
   const activeElapsedSeconds = frozenSnapshot?.elapsedSeconds ?? elapsedSeconds
   const activeDistanceKm = frozenSnapshot?.distanceKm ?? liveDistanceKm
-  const activeAverageSpeedKmh = frozenSnapshot
-    ? calculateAverageSpeedKmh(frozenSnapshot.distanceKm, frozenSnapshot.elapsedSeconds)
-    : liveAverageSpeedKmh
+  const activeAverageSpeedKmh = frozenSnapshot?.averageSpeedKmh ?? liveAverageSpeedKmh
   const activeSpeedKmh = frozenSnapshot?.currentSpeedKmh ?? liveSpeedKmh
   const activeTrail = frozenSnapshot?.trail ?? trail
   const stepCount = estimateStepsFromDistance(activeDistanceKm, modality)
@@ -183,7 +167,7 @@ export function useRunWalkActivitySession({
   return {
     elapsedSeconds: activeElapsedSeconds,
     distanceKm: activeDistanceKm,
-    currentPaceMinPerKm: livePaceMinPerKm,
+    currentPaceMinPerKm: liveDistanceKm > 0 ? null : getFallbackPaceMinPerKm(modality),
     currentSpeedKmh: activeSpeedKmh,
     averageSpeedKmh: activeAverageSpeedKmh,
     stepCount,

@@ -74,7 +74,7 @@ export function RunWalkActivityMetricsCard({
       ) : null}
 
       <View style={styles.metricsRow}>
-        <MetricColumn label="Velocidade" metricParts={formatSpeedKmhParts(speedKmh)} />
+        <MetricColumn label="Vel. média" metricParts={formatSpeedKmhParts(speedKmh)} />
         <View style={styles.divider} />
         <MetricColumn label="Tempo" metricParts={formatElapsedActivityTimeParts(elapsedSeconds)} />
         <View style={styles.divider} />

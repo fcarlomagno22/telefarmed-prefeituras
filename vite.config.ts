@@ -6,7 +6,10 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     host: true,
-    allowedHosts: ['.localhost', '.telefarmed.local'],
+    port: 5173,
+    strictPort: true,
+    // Permite abrir o viewer /acompanhar pelo IP da rede (celular no mesmo Wi‑Fi).
+    allowedHosts: true,
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

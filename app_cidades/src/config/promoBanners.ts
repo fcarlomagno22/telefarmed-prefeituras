@@ -2,10 +2,26 @@ import { ImageSourcePropType } from 'react-native'
 import { appEnv } from './env'
 import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-export type PromoBanner = {
+export type PromoImageBanner = {
   id: string
+  kind: 'image'
   source: ImageSourcePropType
   accessibilityLabel?: string
+}
+
+export type PromoChildBehaviorScreeningBanner = {
+  id: string
+  kind: 'child-behavior-screening'
+  accessibilityLabel?: string
+}
+
+export type PromoBanner = PromoImageBanner | PromoChildBehaviorScreeningBanner
+
+const CHILD_BEHAVIOR_SCREENING_BANNER: PromoChildBehaviorScreeningBanner = {
+  id: 'promo-child-behavior-screening',
+  kind: 'child-behavior-screening',
+  accessibilityLabel:
+    'Como está o foco do seu filho? Questionário sobre atenção e comportamento infantil.',
 }
 
 const DEMO_BANNER_URLS = [
@@ -47,9 +63,10 @@ function toBannerSource(url: string): ImageSourcePropType {
   return resolveBrandImage(url, 'fundo_login.png')
 }
 
-function buildDefaultBanners(): PromoBanner[] {
+function buildDefaultBanners(): PromoImageBanner[] {
   return DEMO_BANNER_URLS.map((url, index) => ({
     id: `promo-demo-${index + 1}`,
+    kind: 'image' as const,
     source: { uri: url },
     accessibilityLabel: `Banner promocional ${index + 1}`,
   }))
@@ -58,13 +75,15 @@ function buildDefaultBanners(): PromoBanner[] {
 export function getPromoBanners(): PromoBanner[] {
   const urls = parsePromoBannerUrls(appEnv.promoBannerUrls)
 
-  if (urls.length === 0) {
-    return buildDefaultBanners()
-  }
+  const imageBanners: PromoImageBanner[] =
+    urls.length === 0
+      ? buildDefaultBanners()
+      : urls.map((url, index) => ({
+          id: `promo-${index + 1}`,
+          kind: 'image' as const,
+          source: toBannerSource(url),
+          accessibilityLabel: `Banner promocional ${index + 1}`,
+        }))
 
-  return urls.map((url, index) => ({
-    id: `promo-${index + 1}`,
-    source: toBannerSource(url),
-    accessibilityLabel: `Banner promocional ${index + 1}`,
-  }))
+  return [CHILD_BEHAVIOR_SCREENING_BANNER, ...imageBanners]
 }

@@ -56,12 +56,25 @@ export function LiveShareParticipantPhoto({
 export function buildLiveShareMapMarkerHtml(photoUrl: string | null | undefined, name: string): string {
   const safeUrl = photoUrl?.trim().replace(/"/g, '&quot;').replace(/'/g, '&#39;') ?? ''
   const initials = getInitials(name)
-  const ringStyle =
-    'width:44px;height:44px;border-radius:9999px;border:3px solid #22c55e;box-shadow:0 2px 10px rgba(0,0,0,0.28);overflow:hidden;background:#111118;display:flex;align-items:center;justify-content:center;'
 
   if (safeUrl) {
-    return `<div style="${ringStyle}"><img src="${safeUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>`
+    return (
+      '<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;' +
+      'background:#22c55e;border:3px solid #fff;' +
+      'box-shadow:0 0 0 4px rgba(34,197,94,0.22),0 4px 12px rgba(0,0,0,0.35);">' +
+      `<img src="${safeUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" />` +
+      '</div>'
+    )
   }
 
-  return `<div style="${ringStyle}color:#86efac;font:700 13px/1 system-ui,sans-serif;">${initials}</div>`
+  return (
+    '<div style="position:relative;width:30px;height:30px;">' +
+    '<div style="position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;' +
+    'border-radius:50%;border:2px solid rgba(34,197,94,0.45);"></div>' +
+    '<div style="width:22px;height:22px;border-radius:50%;background:#22c55e;border:3px solid #fff;' +
+    'box-shadow:0 0 0 4px rgba(34,197,94,0.22);display:flex;align-items:center;justify-content:center;' +
+    'color:#fff;font:800 9px/1 system-ui,sans-serif;">' +
+    initials +
+    '</div></div>'
+  )
 }

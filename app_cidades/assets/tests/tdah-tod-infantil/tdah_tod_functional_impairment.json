@@ -1,0 +1,866 @@
+{
+  "metadata": {
+    "module": "tdah_tod_infantil",
+    "file": "tdah_tod_functional_impairment.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "depends_on": [
+      "tdah_tod_questions.json",
+      "tdah_tod_scoring_rules.json",
+      "tdah_tod_cutoffs.json",
+      "tdah_tod_informants.json"
+    ],
+    "instrument_basis": [
+      "SNAP-IV 26 para sintomas nucleares de TDAH/TOD",
+      "Vanderbilt ADHD Diagnostic Rating Scale - seção de desempenho/prejuízo funcional",
+      "Critério clínico de interferência em funcionamento escolar, social e familiar"
+    ],
+    "clinical_scope": "Perguntas e regras para medir prejuízo funcional escolar, social e familiar associado a sinais de desatenção, hiperatividade/impulsividade e oposição/desafio.",
+    "diagnostic_disclaimer": "Prejuízo funcional não fecha diagnóstico. Ele indica impacto na rotina e ajuda a definir prioridade de encaminhamento.",
+    "principle": "Sintomas sem prejuízo funcional claro devem ser interpretados com cautela. Sintomas com prejuízo em casa, escola ou relações aumentam a necessidade de avaliação profissional."
+  },
+  "answer_scales": [
+    {
+      "id": "performance_1_5",
+      "type": "single_choice",
+      "label": "Escala de funcionamento 1-5",
+      "clinical_reference": "Inspirada na lógica de desempenho do Vanderbilt: pontuações 4 ou 5 indicam prejuízo funcional relevante.",
+      "instructions": {
+        "responsavel": "Marque como a criança/adolescente tem funcionado nessa área nos últimos 6 meses.",
+        "professor": "Marque como o aluno tem funcionado nessa área no ambiente escolar nos últimos 6 meses."
+      },
+      "answers": [
+        {
+          "label": "Muito bem",
+          "value": 1,
+          "meaning": "funcionamento acima do esperado ou sem dificuldade"
+        },
+        {
+          "label": "Bem",
+          "value": 2,
+          "meaning": "funcionamento adequado, com pouca ou nenhuma dificuldade"
+        },
+        {
+          "label": "Regular",
+          "value": 3,
+          "meaning": "alguma dificuldade, mas sem prejuízo importante"
+        },
+        {
+          "label": "Com dificuldade",
+          "value": 4,
+          "meaning": "prejuízo funcional presente"
+        },
+        {
+          "label": "Problema importante",
+          "value": 5,
+          "meaning": "prejuízo funcional importante"
+        }
+      ],
+      "impairment_values": [
+        4,
+        5
+      ],
+      "important_impairment_value": 5
+    },
+    {
+      "id": "impact_frequency_0_3",
+      "type": "single_choice",
+      "label": "Escala complementar de frequência de impacto 0-3",
+      "instructions": {
+        "responsavel": "Quando a pergunta for sobre frequência, marque o quanto isso acontece na rotina.",
+        "professor": "Quando a pergunta for sobre frequência, marque o quanto isso acontece na escola."
+      },
+      "answers": [
+        {
+          "label": "Nunca ou quase nunca",
+          "value": 0
+        },
+        {
+          "label": "Às vezes",
+          "value": 1
+        },
+        {
+          "label": "Frequentemente",
+          "value": 2
+        },
+        {
+          "label": "Muito frequentemente",
+          "value": 3
+        }
+      ],
+      "impairment_values": [
+        2,
+        3
+      ],
+      "important_impairment_value": 3
+    }
+  ],
+  "functional_domains": [
+    {
+      "id": "escolar_academico",
+      "label": "Prejuízo escolar/acadêmico",
+      "description": "Impacto em aprendizagem, desempenho, tarefas, leitura, escrita, matemática, organização e rotina escolar."
+    },
+    {
+      "id": "sala_rotina_escolar",
+      "label": "Funcionamento em sala e rotina escolar",
+      "description": "Impacto em participação, cumprimento de regras, permanência em atividade, organização e relação com professores."
+    },
+    {
+      "id": "familiar_rotina_casa",
+      "label": "Prejuízo familiar e rotina de casa",
+      "description": "Impacto em tarefas domésticas, autocuidado, combinados, conflitos familiares, dever de casa e rotina."
+    },
+    {
+      "id": "social_relacional",
+      "label": "Prejuízo social e relacional",
+      "description": "Impacto em amizades, brincadeiras, interação com pares, rejeição, isolamento, conflitos e convivência."
+    },
+    {
+      "id": "emocional_comportamental",
+      "label": "Impacto emocional/comportamental",
+      "description": "Impacto de irritabilidade, frustração, explosões, baixa tolerância, vergonha, culpa ou sofrimento após conflitos."
+    },
+    {
+      "id": "seguranca_autocuidado",
+      "label": "Segurança e autocuidado",
+      "description": "Impacto em impulsividade com risco, acidentes, fuga de supervisão, cuidado com pertences, higiene, sono e alimentação."
+    }
+  ],
+  "questions": [
+    {
+      "id": "imp_parent_school_overall_01",
+      "module": "tdah_tod_infantil",
+      "domain": "escolar_academico",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "De modo geral, como está o desempenho escolar ou pedagógico da criança/adolescente?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Funcionamento escolar global informado pela família."
+    },
+    {
+      "id": "imp_parent_reading_02",
+      "module": "tdah_tod_infantil",
+      "domain": "escolar_academico",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 6,
+        "max": 17
+      },
+      "question": "Como está o desempenho em leitura, compreensão de texto ou acompanhamento das atividades de linguagem?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Área acadêmica frequentemente afetada por desatenção, dificuldade de aprendizagem ou fatores emocionais."
+    },
+    {
+      "id": "imp_parent_writing_03",
+      "module": "tdah_tod_infantil",
+      "domain": "escolar_academico",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 6,
+        "max": 17
+      },
+      "question": "Como está o desempenho em escrita, cópia, produção de texto ou organização do caderno?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Escrita e organização podem refletir atenção, planejamento, motricidade, aprendizagem ou escolarização."
+    },
+    {
+      "id": "imp_parent_math_04",
+      "module": "tdah_tod_infantil",
+      "domain": "escolar_academico",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 6,
+        "max": 17
+      },
+      "question": "Como está o desempenho em matemática, raciocínio, resolução de exercícios ou acompanhamento de conteúdos numéricos?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Dificuldade acadêmica pode ser consequência de sintomas atencionais ou condição de aprendizagem associada."
+    },
+    {
+      "id": "imp_parent_homework_05",
+      "module": "tdah_tod_infantil",
+      "domain": "familiar_rotina_casa",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Como é a rotina de dever de casa, estudo ou atividades que exigem concentração em casa?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Prejuízo em tarefas de casa e estudo."
+    },
+    {
+      "id": "imp_parent_family_relationship_06",
+      "module": "tdah_tod_infantil",
+      "domain": "familiar_rotina_casa",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Como está a convivência com pais, responsáveis ou adultos da casa?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Relação familiar, conflito com autoridade e impacto de oposição/desafio."
+    },
+    {
+      "id": "imp_parent_sibling_relationship_07",
+      "module": "tdah_tod_infantil",
+      "domain": "social_relacional",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Como está a convivência com irmãos, primos ou outras crianças/adolescentes da família?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Conflitos com pares próximos e regulação emocional no ambiente familiar."
+    },
+    {
+      "id": "imp_parent_peers_08",
+      "module": "tdah_tod_infantil",
+      "domain": "social_relacional",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Como está a convivência com colegas, amigos, vizinhos ou outras crianças/adolescentes fora de casa?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Funcionamento social e aceitação por pares."
+    },
+    {
+      "id": "imp_parent_activities_09",
+      "module": "tdah_tod_infantil",
+      "domain": "social_relacional",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Como está a participação em brincadeiras, esportes, atividades em grupo, igreja, projetos ou outros ambientes sociais?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Impacto social fora do ambiente escolar formal."
+    },
+    {
+      "id": "imp_parent_daily_routine_10",
+      "module": "tdah_tod_infantil",
+      "domain": "familiar_rotina_casa",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Como está a capacidade de seguir rotina diária, horários, combinados e pequenas responsabilidades?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Funcionamento executivo na rotina familiar."
+    },
+    {
+      "id": "imp_parent_selfcare_11",
+      "module": "tdah_tod_infantil",
+      "domain": "seguranca_autocuidado",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Como está o autocuidado esperado para a idade, como higiene, alimentação, sono, organização de pertences e preparo para sair?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Autonomia, rotina e autocuidado."
+    },
+    {
+      "id": "imp_parent_emotional_control_12",
+      "module": "tdah_tod_infantil",
+      "domain": "emocional_comportamental",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Com que frequência explosões, birras, irritação, frustração ou discussões atrapalham a rotina da família?",
+      "answer_scale": "impact_frequency_0_3",
+      "weight": 1,
+      "clinical_note": "Impacto familiar de desregulação emocional e oposição/desafio."
+    },
+    {
+      "id": "imp_parent_family_stress_13",
+      "module": "tdah_tod_infantil",
+      "domain": "familiar_rotina_casa",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Com que frequência o comportamento gera desgaste importante nos cuidadores, conflitos em casa ou dificuldade de manter limites?",
+      "answer_scale": "impact_frequency_0_3",
+      "weight": 1,
+      "clinical_note": "Sobrecarga familiar e impacto no manejo comportamental."
+    },
+    {
+      "id": "imp_parent_safety_14",
+      "module": "tdah_tod_infantil",
+      "domain": "seguranca_autocuidado",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Com que frequência impulsividade, desatenção ou desafio a regras colocam a criança/adolescente em situações de risco, acidentes ou perigo?",
+      "answer_scale": "impact_frequency_0_3",
+      "weight": 1.5,
+      "clinical_note": "Prejuízo de segurança. Se houver risco grave ou atual, também acionar red flags."
+    },
+    {
+      "id": "imp_parent_avoidance_15",
+      "module": "tdah_tod_infantil",
+      "domain": "emocional_comportamental",
+      "respondent": [
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Com que frequência a família evita passeios, visitas, atividades sociais ou compromissos por medo do comportamento da criança/adolescente?",
+      "answer_scale": "impact_frequency_0_3",
+      "weight": 1,
+      "clinical_note": "Restrição funcional da família por comportamento ou desregulação."
+    },
+    {
+      "id": "imp_teacher_academic_overall_01",
+      "module": "tdah_tod_infantil",
+      "domain": "escolar_academico",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "De modo geral, como está o desempenho escolar do aluno em relação ao esperado para a turma?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Funcionamento acadêmico global observado pela escola."
+    },
+    {
+      "id": "imp_teacher_reading_02",
+      "module": "tdah_tod_infantil",
+      "domain": "escolar_academico",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 6,
+        "max": 17
+      },
+      "question": "Como está o desempenho em leitura, compreensão de texto ou atividades de linguagem?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Desempenho acadêmico em linguagem."
+    },
+    {
+      "id": "imp_teacher_writing_03",
+      "module": "tdah_tod_infantil",
+      "domain": "escolar_academico",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 6,
+        "max": 17
+      },
+      "question": "Como está o desempenho em escrita, cópia, produção de texto, registro ou organização do material?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Desempenho acadêmico em escrita e organização."
+    },
+    {
+      "id": "imp_teacher_math_04",
+      "module": "tdah_tod_infantil",
+      "domain": "escolar_academico",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 6,
+        "max": 17
+      },
+      "question": "Como está o desempenho em matemática, raciocínio, resolução de exercícios ou acompanhamento de conteúdos numéricos?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Desempenho acadêmico em matemática."
+    },
+    {
+      "id": "imp_teacher_assignment_completion_05",
+      "module": "tdah_tod_infantil",
+      "domain": "sala_rotina_escolar",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Como está a capacidade de iniciar, manter e concluir atividades em sala dentro do tempo esperado?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Prejuízo em produtividade e conclusão de tarefas."
+    },
+    {
+      "id": "imp_teacher_classroom_behavior_06",
+      "module": "tdah_tod_infantil",
+      "domain": "sala_rotina_escolar",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Como está o comportamento em sala em relação a regras, combinados, silêncio, espera de turno e permanência na atividade?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Funcionamento comportamental em sala."
+    },
+    {
+      "id": "imp_teacher_teacher_relationship_07",
+      "module": "tdah_tod_infantil",
+      "domain": "sala_rotina_escolar",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Como está a relação com professores, monitores ou outros adultos da escola?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Relação com autoridade escolar e adesão a orientações."
+    },
+    {
+      "id": "imp_teacher_peer_relationship_08",
+      "module": "tdah_tod_infantil",
+      "domain": "social_relacional",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Como está a relação com colegas da turma, em brincadeiras, trabalhos em grupo, intervalos ou convivência diária?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Funcionamento social escolar."
+    },
+    {
+      "id": "imp_teacher_organization_09",
+      "module": "tdah_tod_infantil",
+      "domain": "sala_rotina_escolar",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Como está a organização de materiais, caderno, agenda, prazos e etapas das atividades?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Organização escolar e função executiva."
+    },
+    {
+      "id": "imp_teacher_independence_10",
+      "module": "tdah_tod_infantil",
+      "domain": "sala_rotina_escolar",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Como está a capacidade de realizar atividades com autonomia, sem precisar de lembretes ou redirecionamento constante?",
+      "answer_scale": "performance_1_5",
+      "weight": 1,
+      "clinical_note": "Necessidade de mediação contínua."
+    },
+    {
+      "id": "imp_teacher_disruption_11",
+      "module": "tdah_tod_infantil",
+      "domain": "sala_rotina_escolar",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Com que frequência o comportamento interrompe a aula, atrapalha colegas ou exige intervenção do professor?",
+      "answer_scale": "impact_frequency_0_3",
+      "weight": 1,
+      "clinical_note": "Impacto comportamental no ambiente de sala."
+    },
+    {
+      "id": "imp_teacher_conflicts_12",
+      "module": "tdah_tod_infantil",
+      "domain": "social_relacional",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Com que frequência há conflitos com colegas, provocações, rejeição, isolamento ou dificuldade de participar do grupo?",
+      "answer_scale": "impact_frequency_0_3",
+      "weight": 1,
+      "clinical_note": "Prejuízo social e relacional na escola."
+    },
+    {
+      "id": "imp_teacher_emotional_regulation_13",
+      "module": "tdah_tod_infantil",
+      "domain": "emocional_comportamental",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Com que frequência frustração, irritação, choro, explosões ou resistência a correções prejudicam a rotina escolar?",
+      "answer_scale": "impact_frequency_0_3",
+      "weight": 1,
+      "clinical_note": "Regulação emocional e tolerância à frustração no contexto escolar."
+    },
+    {
+      "id": "imp_teacher_safety_14",
+      "module": "tdah_tod_infantil",
+      "domain": "seguranca_autocuidado",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Com que frequência desatenção, impulsividade ou desafio a regras geram risco de acidentes, fuga de supervisão ou situações inseguras na escola?",
+      "answer_scale": "impact_frequency_0_3",
+      "weight": 1.5,
+      "clinical_note": "Prejuízo de segurança escolar. Se houver risco grave ou atual, também acionar red flags."
+    },
+    {
+      "id": "imp_teacher_support_need_15",
+      "module": "tdah_tod_infantil",
+      "domain": "sala_rotina_escolar",
+      "respondent": [
+        "professor"
+      ],
+      "age_range": {
+        "min": 4,
+        "max": 17
+      },
+      "question": "Com que frequência o aluno precisa de adaptações, mediação individual, mudanças de lugar, pausas ou supervisão extra para acompanhar a rotina?",
+      "answer_scale": "impact_frequency_0_3",
+      "weight": 1,
+      "clinical_note": "Necessidade de suporte escolar adicional."
+    }
+  ],
+  "scoring_rules": {
+    "score_separately_by_respondent": true,
+    "score_separately_by_functional_domain": true,
+    "performance_1_5": {
+      "impairment_values": [
+        4,
+        5
+      ],
+      "important_impairment_values": [
+        5
+      ],
+      "raw_score_method": "sum_answer_values",
+      "mean_score_method": "raw_score / answered_item_count",
+      "impairment_item_method": "count_answers_with_value_4_or_5",
+      "important_impairment_item_method": "count_answers_with_value_5"
+    },
+    "impact_frequency_0_3": {
+      "impairment_values": [
+        2,
+        3
+      ],
+      "important_impairment_values": [
+        3
+      ],
+      "raw_score_method": "sum_answer_values",
+      "mean_score_method": "raw_score / answered_item_count",
+      "impairment_item_method": "count_answers_with_value_2_or_3",
+      "important_impairment_item_method": "count_answers_with_value_3"
+    },
+    "minimum_answered_items": {
+      "responsavel": 10,
+      "professor": 10
+    },
+    "missing_answer_policy": {
+      "allow_partial_score": true,
+      "minimum_answered_ratio": 0.75,
+      "do_not_impute_missing_values": true,
+      "if_below_minimum": {
+        "score_status": "insuficiente",
+        "message_key": "prejuizo_funcional_respostas_insuficientes",
+        "recommended_action": "Solicitar preenchimento dos itens faltantes antes de usar prejuízo funcional na classificação final."
+      }
+    }
+  },
+  "functional_impairment_levels": [
+    {
+      "id": "sem_prejuizo_relevante",
+      "rank": 0,
+      "label": "Sem prejuízo funcional relevante",
+      "condition": "impairment_item_count == 0 AND important_impairment_item_count == 0",
+      "classification_effect": "Pode limitar a classificação geral a sinais leves, salvo exceção clínica.",
+      "interpretation": "Não há impacto funcional relevante informado nas áreas avaliadas."
+    },
+    {
+      "id": "prejuizo_leve",
+      "rank": 1,
+      "label": "Prejuízo funcional leve",
+      "condition": "impairment_item_count == 1 AND important_impairment_item_count == 0",
+      "classification_effect": "Sustenta orientação e reavaliação; pode contribuir para sinais leves ou moderados conforme SNAP-IV.",
+      "interpretation": "Há impacto em uma área, ainda sem padrão amplo de prejuízo."
+    },
+    {
+      "id": "prejuizo_moderado",
+      "rank": 2,
+      "label": "Prejuízo funcional moderado",
+      "condition": "impairment_item_count BETWEEN 2 AND 3 OR important_impairment_item_count == 1 OR affected_functional_domain_count >= 2",
+      "classification_effect": "Eleva a necessidade de avaliação profissional quando associado a sinais SNAP-IV.",
+      "interpretation": "Há impacto em mais de uma área ou pelo menos uma área com problema importante."
+    },
+    {
+      "id": "prejuizo_importante",
+      "rank": 3,
+      "label": "Prejuízo funcional importante",
+      "condition": "impairment_item_count >= 4 OR important_impairment_item_count >= 2 OR safety_impairment_present == true",
+      "classification_effect": "Aumenta prioridade clínica quando associado a sinais SNAP-IV ou red flags.",
+      "interpretation": "Há prejuízo amplo, intenso ou envolvendo segurança/autocuidado."
+    }
+  ],
+  "domain_level_rules": [
+    {
+      "id": "dominio_sem_prejuizo",
+      "condition": "domain_impairment_item_count == 0",
+      "domain_level": "sem_prejuizo_relevante"
+    },
+    {
+      "id": "dominio_prejuizo_leve",
+      "condition": "domain_impairment_item_count == 1 AND domain_important_impairment_item_count == 0",
+      "domain_level": "prejuizo_leve"
+    },
+    {
+      "id": "dominio_prejuizo_moderado",
+      "condition": "domain_impairment_item_count >= 2 OR domain_important_impairment_item_count == 1",
+      "domain_level": "prejuizo_moderado"
+    },
+    {
+      "id": "dominio_prejuizo_importante",
+      "condition": "domain_important_impairment_item_count >= 2 OR domain == seguranca_autocuidado AND domain_impairment_item_count >= 1",
+      "domain_level": "prejuizo_importante"
+    }
+  ],
+  "integration_with_snap_iv_26": [
+    {
+      "id": "sintomas_sem_prejuizo_claro",
+      "condition": "any_relevant_snap_domain == true AND functional_impairment_level == sem_prejuizo_relevante",
+      "result_flag": "sinais_sem_prejuizo_funcional_claro",
+      "classification_modifier": "cap_at_sinais_leves_unless_clinical_override",
+      "message": "Há sinais no SNAP-IV 26, mas sem prejuízo funcional claro. Recomenda observar contexto e reavaliar."
+    },
+    {
+      "id": "sintomas_com_prejuizo_leve",
+      "condition": "any_relevant_snap_domain == true AND functional_impairment_level == prejuizo_leve",
+      "result_flag": "sinais_com_prejuizo_leve",
+      "classification_modifier": "support_sinais_moderados_if_symptoms_relevant",
+      "message": "Sinais comportamentais aparecem com algum impacto funcional; recomenda avaliação se persistente."
+    },
+    {
+      "id": "sintomas_com_prejuizo_moderado",
+      "condition": "any_relevant_snap_domain == true AND functional_impairment_level == prejuizo_moderado",
+      "result_flag": "sinais_com_prejuizo_funcional_moderado",
+      "classification_modifier": "minimum_sinais_moderados",
+      "message": "Sinais comportamentais associados a prejuízo funcional moderado recomendam avaliação profissional."
+    },
+    {
+      "id": "sintomas_com_prejuizo_importante",
+      "condition": "any_relevant_snap_domain == true AND functional_impairment_level == prejuizo_importante",
+      "result_flag": "sinais_com_prejuizo_funcional_importante",
+      "classification_modifier": "minimum_sinais_importantes_or_prioridade_if_red_flag",
+      "message": "Sinais comportamentais associados a prejuízo funcional importante justificam priorização de avaliação."
+    },
+    {
+      "id": "prejuizo_sem_sintomas_snap_relevantes",
+      "condition": "any_relevant_snap_domain == false AND functional_impairment_level IN [prejuizo_moderado, prejuizo_importante]",
+      "result_flag": "prejuizo_funcional_sem_padrao_snap_claro",
+      "classification_modifier": "recommend_differential_screening",
+      "message": "Há prejuízo funcional, mas sem padrão forte de TDAH/TOD no SNAP-IV 26. Investigar aprendizagem, sono, ansiedade, humor, visão/audição, trauma, bullying e outros fatores."
+    }
+  ],
+  "cross_environment_rules": [
+    {
+      "id": "prejuizo_em_casa_e_escola",
+      "condition": "home_functional_impairment_level IN [prejuizo_moderado, prejuizo_importante] AND school_functional_impairment_level IN [prejuizo_moderado, prejuizo_importante]",
+      "result_flag": "prejuizo_funcional_em_mais_de_um_ambiente",
+      "confidence_modifier": "increase",
+      "classification_modifier": "increase_priority_if_snap_relevant",
+      "interpretation": "Prejuízo aparece em casa e na escola, aumentando consistência do rastreio."
+    },
+    {
+      "id": "prejuizo_predominante_em_casa",
+      "condition": "home_functional_impairment_level IN [prejuizo_moderado, prejuizo_importante] AND school_functional_impairment_level IN [sem_prejuizo_relevante, prejuizo_leve]",
+      "result_flag": "prejuizo_predominante_em_casa",
+      "confidence_modifier": "contextualize",
+      "interpretation": "Impacto mais forte em casa; avaliar rotina, sono, telas, limites, conflitos familiares e sofrimento emocional."
+    },
+    {
+      "id": "prejuizo_predominante_na_escola",
+      "condition": "school_functional_impairment_level IN [prejuizo_moderado, prejuizo_importante] AND home_functional_impairment_level IN [sem_prejuizo_relevante, prejuizo_leve]",
+      "result_flag": "prejuizo_predominante_na_escola",
+      "confidence_modifier": "contextualize",
+      "interpretation": "Impacto mais forte na escola; avaliar aprendizagem, adaptação escolar, bullying, demandas pedagógicas, visão/audição e ambiente de sala."
+    }
+  ],
+  "priority_modifiers": [
+    {
+      "id": "seguranca_afetada",
+      "condition": "any_question_in_domain_seguranca_autocuidado_has_impairment == true",
+      "result_flag": "prejuizo_em_seguranca_autocuidado",
+      "classification_modifier": "consider_minimum_sinais_importantes",
+      "message": "Há impacto em segurança ou autocuidado; verificar red flags e necessidade de avaliação prioritária."
+    },
+    {
+      "id": "prejuizo_academico_importante",
+      "condition": "domain_escolar_academico_level == prejuizo_importante",
+      "result_flag": "prejuizo_academico_importante",
+      "classification_modifier": "request_school_support_and_professional_assessment",
+      "message": "Há prejuízo acadêmico importante; considerar avaliação de aprendizagem, visão/audição e suporte escolar."
+    },
+    {
+      "id": "prejuizo_social_importante",
+      "condition": "domain_social_relacional_level == prejuizo_importante",
+      "result_flag": "prejuizo_social_importante",
+      "classification_modifier": "request_psychosocial_context",
+      "message": "Há prejuízo social importante; investigar rejeição, isolamento, bullying, impulsividade, oposição e sofrimento emocional."
+    },
+    {
+      "id": "prejuizo_familiar_importante",
+      "condition": "domain_familiar_rotina_casa_level == prejuizo_importante",
+      "result_flag": "prejuizo_familiar_importante",
+      "classification_modifier": "recommend_parent_guidance",
+      "message": "Há prejuízo importante na rotina familiar; recomendar orientação parental e avaliação profissional."
+    }
+  ],
+  "output_schema": {
+    "functional_impairment_result": {
+      "available_respondents": [
+        "responsavel",
+        "professor"
+      ],
+      "per_respondent": [
+        {
+          "respondent": "responsavel | professor",
+          "answered_item_count": "number",
+          "missing_item_count": "number",
+          "raw_score": "number",
+          "mean_score": "number",
+          "impairment_item_count": "number",
+          "important_impairment_item_count": "number",
+          "affected_functional_domain_count": "number",
+          "functional_impairment_level": "sem_prejuizo_relevante | prejuizo_leve | prejuizo_moderado | prejuizo_importante",
+          "domain_levels": [
+            {
+              "domain": "string",
+              "domain_level": "sem_prejuizo_relevante | prejuizo_leve | prejuizo_moderado | prejuizo_importante",
+              "impairment_item_count": "number"
+            }
+          ],
+          "score_status": "valid | insuficiente"
+        }
+      ],
+      "combined": {
+        "functional_impairment_level": "sem_prejuizo_relevante | prejuizo_leve | prejuizo_moderado | prejuizo_importante",
+        "cross_environment_flags": [
+          "string"
+        ],
+        "priority_flags": [
+          "string"
+        ],
+        "integration_flags": [
+          "string"
+        ],
+        "classification_modifiers": [
+          "string"
+        ]
+      }
+    }
+  },
+  "safe_language_templates": {
+    "sem_prejuizo_relevante": "As respostas não indicam prejuízo funcional relevante nas áreas avaliadas. Se as queixas persistirem ou piorarem, a triagem pode ser repetida.",
+    "prejuizo_leve": "As respostas indicam prejuízo leve em uma área da rotina. Vale orientar organização, sono, rotina e observar evolução.",
+    "prejuizo_moderado": "As respostas indicam prejuízo funcional moderado. Quando associado a sinais de atenção, impulsividade ou oposição, recomenda avaliação profissional.",
+    "prejuizo_importante": "As respostas indicam prejuízo funcional importante. Isso não fecha diagnóstico, mas aumenta a prioridade de avaliação profissional.",
+    "prejuizo_predominante_em_casa": "O impacto parece mais forte em casa. É importante avaliar rotina familiar, sono, telas, limites e fatores emocionais.",
+    "prejuizo_predominante_na_escola": "O impacto parece mais forte na escola. É importante avaliar aprendizagem, adaptação escolar, bullying, demandas da sala, visão e audição.",
+    "prejuizo_em_mais_de_um_ambiente": "O impacto aparece em mais de um ambiente, o que aumenta a consistência do rastreio e justifica avaliação profissional."
+  },
+  "implementation_notes": [
+    "Aplicar este bloco depois do SNAP-IV 26 ou junto dele.",
+    "A resposta 4 ou 5 na escala performance_1_5 indica prejuízo funcional.",
+    "A resposta 2 ou 3 na escala impact_frequency_0_3 indica impacto funcional frequente.",
+    "Pelo padrão Vanderbilt, sintomas precisam ser interpretados junto de prejuízo funcional.",
+    "Classificação final deve usar o maior prejuízo combinado entre responsável e professor.",
+    "Prejuízo em segurança/autocuidado deve acionar checagem de red flags.",
+    "Se houver prejuízo funcional sem sintomas SNAP-IV relevantes, investigar diagnósticos diferenciais e fatores contextuais.",
+    "Nunca exibir frase como 'tem TDAH' ou 'tem TOD'; usar 'sinais compatíveis' e 'recomenda avaliação'."
+  ]
+}

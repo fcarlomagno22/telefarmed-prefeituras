@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useParams } from 'react-router-dom'
+import { useBlackMobileBrowserChrome } from '../hooks/useBlackMobileBrowserChrome'
 import {
   RunWalkLiveShareViewerContent,
   useLiveShareViewerPolling,
@@ -40,9 +41,11 @@ export function RunWalkLiveSharePublicPage() {
     fetchSession,
   )
 
+  useBlackMobileBrowserChrome()
+
   if (!hasValidToken) {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-[#0a0a0c] px-6 text-center text-white">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-black px-6 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-center text-white">
         <div className="max-w-md space-y-2">
           <h1 className="text-lg font-bold text-red-300">Link inválido</h1>
           <p className="text-sm text-white/70">

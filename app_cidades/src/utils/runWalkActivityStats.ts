@@ -97,8 +97,12 @@ export type ActivityMetricParts = {
 }
 
 export function formatSpeedKmhParts(speedKmh: number | null): ActivityMetricParts {
-  if (speedKmh == null || !Number.isFinite(speedKmh) || speedKmh <= 0) {
+  if (speedKmh == null || !Number.isFinite(speedKmh)) {
     return { value: '—' }
+  }
+
+  if (speedKmh <= 0) {
+    return { value: '0,0', unit: 'km/h' }
   }
 
   return {
@@ -258,7 +262,7 @@ export function calculateRollingPaceAndSpeed(
   }
 
   const elapsedMs = recent[recent.length - 1].recordedAt - recent[0].recordedAt
-  if (elapsedMs <= 0 || distanceKm <= 0.0005) {
+  if (elapsedMs <= 0 || distanceKm * 1000 < 8) {
     return { paceMinPerKm: null, speedKmh: null }
   }
 
@@ -271,8 +275,10 @@ export function calculateRollingPaceAndSpeed(
 export function calculateAverageSpeedKmh(
   distanceKm: number,
   elapsedSeconds: number,
+  minDistanceMeters = MIN_DISTANCE_FOR_SPEED_METERS,
 ): number | null {
   if (elapsedSeconds <= 0 || distanceKm <= 0) return null
+  if (distanceKm * 1000 < minDistanceMeters) return null
   return distanceKm / (elapsedSeconds / 3600)
 }
 
@@ -299,16 +305,20 @@ export function calculateInstantSpeedKmh(
   gpsSpeedMps: number | null | undefined,
   windowMs = 12_000,
 ): number | null {
-  const gpsSpeed = clampActivitySpeedKmh(mpsToKmh(gpsSpeedMps))
   const rollingSpeed = clampActivitySpeedKmh(
     calculateRollingPaceAndSpeed(trail, windowMs).speedKmh,
   )
 
+  if (rollingSpeed != null) {
+    return rollingSpeed
+  }
+
+  const gpsSpeed = clampActivitySpeedKmh(mpsToKmh(gpsSpeedMps))
   if (gpsSpeedMps != null && gpsSpeedMps >= 0.5 && gpsSpeed != null) {
     return gpsSpeed
   }
 
-  return rollingSpeed
+  return null
 }
 
 const CALORIES_MET_BY_MODALITY: Record<string, number> = {
@@ -336,6 +346,28 @@ export function formatCaloriesBurned(calories: number): string {
   return `${calories.toLocaleString('pt-BR')} kcal`
 }
 
+const MIN_TRAIL_SEGMENT_METERS = 8
+const MIN_DISTANCE_FOR_SPEED_METERS = 20
+const STATIONARY_GPS_SPEED_MPS = 0.6
+
+export type TrailPointFilterOptions = {
+  minDistanceMeters?: number
+  accuracyMeters?: number | null
+  gpsSpeedMps?: number | null
+}
+
+export function resolveMinTrailDistanceMeters(
+  accuracyMeters?: number | null,
+  minDistanceMeters = MIN_TRAIL_SEGMENT_METERS,
+): number {
+  const accuracy = accuracyMeters ?? 20
+  return Math.max(minDistanceMeters, Math.min(accuracy * 0.75, 25))
+}
+
+export function isStationaryGpsReading(gpsSpeedMps?: number | null): boolean {
+  return gpsSpeedMps == null || !Number.isFinite(gpsSpeedMps) || gpsSpeedMps < STATIONARY_GPS_SPEED_MPS
+}
+
 export function calculateTotalDistanceKm(trail: ActivityTrailPoint[]): number {
   if (trail.length < 2) return 0
 
@@ -350,11 +382,27 @@ export function calculateTotalDistanceKm(trail: ActivityTrailPoint[]): number {
 export function shouldAppendTrailPoint(
   trail: ActivityTrailPoint[],
   next: GeoCoordinates,
-  minDistanceMeters = 4,
+  options: number | TrailPointFilterOptions = MIN_TRAIL_SEGMENT_METERS,
 ): boolean {
+  const resolvedOptions: TrailPointFilterOptions =
+    typeof options === 'number' ? { minDistanceMeters: options } : options
+
   const last = trail[trail.length - 1]
   if (!last) return true
 
-  const deltaKm = haversineDistanceKm(last, next)
-  return deltaKm * 1000 >= minDistanceMeters
+  const deltaMeters = haversineDistanceKm(last, next) * 1000
+  const minDistanceMeters = resolveMinTrailDistanceMeters(
+    resolvedOptions.accuracyMeters,
+    resolvedOptions.minDistanceMeters,
+  )
+
+  if (deltaMeters < minDistanceMeters) {
+    return false
+  }
+
+  if (isStationaryGpsReading(resolvedOptions.gpsSpeedMps)) {
+    return deltaMeters >= Math.max(minDistanceMeters, 12)
+  }
+
+  return true
 }

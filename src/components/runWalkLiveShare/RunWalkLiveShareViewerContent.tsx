@@ -43,9 +43,36 @@ export function RunWalkLiveShareViewerContent({
   const averageSpeedLabel = formatAverageSpeedKmh(averageSpeedKmh)
   const hasMapPoints = Boolean(session && session.points.length > 0)
   const mapRef = useRef<LiveShareTrackingMapHandle>(null)
+  const bottomPanelRef = useRef<HTMLDivElement | null>(null)
+  const [bottomInsetPx, setBottomInsetPx] = useState(220)
+
+  useEffect(() => {
+    const node = bottomPanelRef.current
+    if (!node || typeof ResizeObserver === 'undefined') return
+
+    const observer = new ResizeObserver(() => {
+      setBottomInsetPx(Math.ceil(node.getBoundingClientRect().height) + 12)
+    })
+
+    observer.observe(node)
+    setBottomInsetPx(Math.ceil(node.getBoundingClientRect().height) + 12)
+
+    return () => observer.disconnect()
+  }, [session, error, loading])
 
   return (
-    <div className="relative min-h-[100dvh] overflow-hidden bg-[#0a0a0c] text-white">
+    <div className="relative min-h-[100dvh] overflow-hidden bg-black text-white">
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 z-[5] bg-black"
+        style={{ height: 'env(safe-area-inset-top)' }}
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-[5] bg-black"
+        style={{ height: 'env(safe-area-inset-bottom)' }}
+        aria-hidden
+      />
+
       <div className="absolute inset-0 z-0">
         {hasMapPoints ? (
           <LiveShareTrackingMap
@@ -54,6 +81,7 @@ export function RunWalkLiveShareViewerContent({
             participantLabel={firstName}
             participantName={session!.participantName}
             participantPhotoUrl={session!.participantPhotoUrl}
+            bottomInsetPx={bottomInsetPx}
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-b from-[#111118] via-[#0a0a0c] to-[#0a0a0c]" />
@@ -73,7 +101,10 @@ export function RunWalkLiveShareViewerContent({
 
         <div className="flex-1" aria-hidden />
 
-        <div className="pointer-events-auto px-4 pb-[max(16px,env(safe-area-inset-bottom))]">
+        <div
+          ref={bottomPanelRef}
+          className="pointer-events-auto px-4 pb-[max(16px,env(safe-area-inset-bottom))]"
+        >
         {error ? (
           <div className="mb-3 rounded-2xl border border-red-400/20 bg-[rgba(20,20,24,0.92)] p-4 text-center">
             <p className="text-sm font-semibold text-red-300">{error}</p>

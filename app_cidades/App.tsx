@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { AuthProvider, useAuth } from './src/contexts/AuthContext'
 import { GuestAuthProvider } from './src/contexts/GuestAuthContext'
 import { ThemeProvider } from './src/contexts/ThemeContext'
+import { OverlayPortalProvider } from './src/contexts/OverlayPortalContext'
 import { useAndroidBackHandler } from './src/hooks/useAndroidBackHandler'
 import { colors } from './src/theme/colors'
 import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen'
@@ -21,6 +22,7 @@ import { EatWellScreen } from './src/screens/EatWellScreen'
 import { SleepStoriesScreen } from './src/screens/SleepStoriesScreen'
 import { SleepTimeScreen } from './src/screens/SleepTimeScreen'
 import { MentalHealthScreen } from './src/screens/MentalHealthScreen'
+import { MyEmotionalScreen } from './src/screens/MyEmotionalScreen'
 import { MyRoutineScreen } from './src/screens/MyRoutineScreen'
 import { ActiveMindScreen } from './src/screens/ActiveMindScreen'
 import { ActiveMindDifficultyScreen } from './src/screens/ActiveMindDifficultyScreen'
@@ -90,6 +92,7 @@ function AppRouter() {
   if (screen === 'sleep-time') return <SleepTimeScreen />
   if (screen === 'sleep-stories') return <SleepStoriesScreen />
   if (screen === 'mental-health') return <MentalHealthScreen />
+  if (screen === 'my-emotional') return <MyEmotionalScreen />
   if (screen === 'my-routine') return <MyRoutineScreen />
   if (screen === 'active-mind') return <ActiveMindScreen />
   if (screen === 'active-mind-difficulty') return <ActiveMindDifficultyScreen />
@@ -112,14 +115,16 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
       <SafeAreaProvider>
-        <AuthProvider>
-          <GuestAuthProvider>
-            <ThemeProvider>
-              <SystemBars style="light" />
-              <AppRouter />
-            </ThemeProvider>
-          </GuestAuthProvider>
-        </AuthProvider>
+        <OverlayPortalProvider>
+          <AuthProvider>
+            <GuestAuthProvider>
+              <ThemeProvider>
+                <SystemBars style="light" />
+                <AppRouter />
+              </ThemeProvider>
+            </GuestAuthProvider>
+          </AuthProvider>
+        </OverlayPortalProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   )

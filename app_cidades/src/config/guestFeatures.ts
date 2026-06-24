@@ -10,6 +10,7 @@ export type GuestFeatureKey =
   | 'vida:eat-well'
   | 'vida:sleep-time'
   | 'vida:mental-health'
+  | 'vida:my-emotional'
   | 'vida:active-mind'
   | 'vida:my-goals'
   | 'vida:my-routine'
@@ -92,6 +93,12 @@ const FEATURES: Record<GuestFeatureKey, GuestFeatureContent> = {
     description:
       'Conteúdos e ferramentas para equilíbrio emocional, autocuidado e bem-estar psicológico.',
     icon: 'brain',
+  },
+  'vida:my-emotional': {
+    title: 'Meu emocional',
+    description:
+      'Triagens emocionais validadas para identificar sinais compatíveis e orientar quando buscar avaliação profissional.',
+    icon: 'head-heart-outline',
   },
   'vida:active-mind': {
     title: 'Ativa Mente',
