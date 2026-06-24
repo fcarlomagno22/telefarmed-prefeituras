@@ -1,7 +1,6 @@
-import { StatusBar } from 'expo-status-bar'
-import * as SystemUI from 'expo-system-ui'
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { SystemBars } from 'react-native-edge-to-edge'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { AuthProvider, useAuth } from './src/contexts/AuthContext'
 import { GuestAuthProvider } from './src/contexts/GuestAuthContext'
@@ -110,17 +109,13 @@ function AppRouter() {
 }
 
 export default function App() {
-  useEffect(() => {
-    void SystemUI.setBackgroundColorAsync(colors.background)
-  }, [])
-
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
       <SafeAreaProvider>
         <AuthProvider>
           <GuestAuthProvider>
             <ThemeProvider>
-              <StatusBar style="light" translucent backgroundColor="transparent" />
+              <SystemBars style="light" />
               <AppRouter />
             </ThemeProvider>
           </GuestAuthProvider>

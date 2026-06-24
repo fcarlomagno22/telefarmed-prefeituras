@@ -8,8 +8,6 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "androidNavigationBar": {
-      "backgroundColor": "#00000000",
-      "barStyle": "light-content",
       "enforceContrast": false
     },
     "splash": {
@@ -142,10 +140,18 @@
       [
         "expo-navigation-bar",
         {
-          "backgroundColor": "#00000000",
           "enforceContrast": false,
           "barStyle": "light",
-          "position": "absolute"
+          "visibility": "visible"
+        }
+      ],
+      [
+        "react-native-edge-to-edge",
+        {
+          "android": {
+            "parentTheme": "Default",
+            "enforceNavigationBarContrast": false
+          }
         }
       ],
       [

@@ -1,10 +1,9 @@
 /**
- * A navigation bar translúcida é aplicada no build via `app.json`:
- * - expo-navigation-bar plugin (position, backgroundColor, barStyle)
- * - androidNavigationBar
+ * Edge-to-edge e nav bar transparente são configurados no build nativo:
+ * - react-native-edge-to-edge (tema + enforceNavigationBarContrast)
+ * - expo-navigation-bar plugin (barStyle, enforceContrast)
  *
- * Com edge-to-edge ativo, setPositionAsync/setBackgroundColorAsync em runtime
- * só geram warnings e não alteram o comportamento.
+ * Modais usam AndroidNavBarUnderlay via AppModal.
  */
 export function applyAndroidNavigationBar() {}
 

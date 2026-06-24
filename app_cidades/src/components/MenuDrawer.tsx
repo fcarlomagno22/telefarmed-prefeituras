@@ -217,7 +217,13 @@ export function MenuDrawer({
   return (
     <>
       {isMounted ? (
-        <AppModal visible transparent animationType="none" onRequestClose={handleDismiss}>
+        <AppModal
+          visible
+          transparent
+          animationType="none"
+          navBarUnderlayColor="#08080a"
+          onRequestClose={handleDismiss}
+        >
           <View style={styles.root}>
             <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
               <Pressable style={StyleSheet.absoluteFillObject} onPress={handleDismiss} />

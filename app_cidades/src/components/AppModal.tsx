@@ -1,15 +1,15 @@
 import { Modal, ModalProps, Platform, StyleSheet, View } from 'react-native'
+import { AndroidNavBarUnderlay } from './AndroidNavBarUnderlay'
 import { colors } from '../theme/colors'
 
 type AppModalProps = ModalProps & {
-  /** Mantido por compatibilidade; a safe area inferior fica sempre transparente. */
   navBarUnderlayColor?: string
 }
 
 export function AppModal({
   children,
   visible,
-  navBarUnderlayColor: _navBarUnderlayColor,
+  navBarUnderlayColor = colors.background,
   transparent = true,
   statusBarTranslucent,
   navigationBarTranslucent,
@@ -19,14 +19,13 @@ export function AppModal({
     <Modal
       visible={visible}
       transparent={transparent}
-      statusBarTranslucent={
-        statusBarTranslucent ?? Platform.OS === 'android'
-      }
-      navigationBarTranslucent={navigationBarTranslucent ?? true}
+      statusBarTranslucent={statusBarTranslucent ?? Platform.OS === 'android'}
+      navigationBarTranslucent={navigationBarTranslucent ?? Platform.OS === 'android'}
       {...rest}
     >
       <View style={[styles.host, transparent && styles.hostTransparent]}>
         <View style={styles.content}>{children}</View>
+        <AndroidNavBarUnderlay color={navBarUnderlayColor} />
       </View>
     </Modal>
   )
