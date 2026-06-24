@@ -1,8 +1,11 @@
 import { StatusBar } from 'expo-status-bar'
-import { useCallback } from 'react'
+import * as SystemUI from 'expo-system-ui'
+import { useCallback, useEffect } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { AuthProvider, useAuth } from './src/contexts/AuthContext'
+import { GuestAuthProvider } from './src/contexts/GuestAuthContext'
+import { ThemeProvider } from './src/contexts/ThemeContext'
 import { useAndroidBackHandler } from './src/hooks/useAndroidBackHandler'
 import { useAndroidNavigationBar } from './src/hooks/useAndroidNavigationBar'
 import { colors } from './src/theme/colors'
@@ -20,6 +23,19 @@ import { EatWellScreen } from './src/screens/EatWellScreen'
 import { SleepStoriesScreen } from './src/screens/SleepStoriesScreen'
 import { SleepTimeScreen } from './src/screens/SleepTimeScreen'
 import { MentalHealthScreen } from './src/screens/MentalHealthScreen'
+import { MyRoutineScreen } from './src/screens/MyRoutineScreen'
+import { ActiveMindScreen } from './src/screens/ActiveMindScreen'
+import { ActiveMindDifficultyScreen } from './src/screens/ActiveMindDifficultyScreen'
+import { ActiveMindSudokuScreen } from './src/screens/ActiveMindSudokuScreen'
+import { ActiveMindCrosswordsScreen } from './src/screens/ActiveMindCrosswordsScreen'
+import { ActiveMindWordSearchScreen } from './src/screens/ActiveMindWordSearchScreen'
+import { ActiveMindFormTheWordScreen } from './src/screens/ActiveMindFormTheWordScreen'
+import { ActiveMindCalculationsScreen } from './src/screens/ActiveMindCalculationsScreen'
+import { ActiveMindLogicSequenceScreen } from './src/screens/ActiveMindLogicSequenceScreen'
+import { BibleScreen } from './src/screens/BibleScreen'
+import { BibleChaptersScreen } from './src/screens/BibleChaptersScreen'
+import { BibleChapterVersesScreen } from './src/screens/BibleChapterVersesScreen'
+import { BiblePeaceWordsTopicScreen } from './src/screens/BiblePeaceWordsTopicScreen'
 import { EatWellMenuDetailScreen } from './src/screens/EatWellMenuDetailScreen'
 import { RunWalkScreen } from './src/screens/RunWalkScreen'
 import { RunWalkPreparationChecklistScreen } from './src/screens/RunWalkPreparationChecklistScreen'
@@ -76,6 +92,19 @@ function AppRouter() {
   if (screen === 'sleep-time') return <SleepTimeScreen />
   if (screen === 'sleep-stories') return <SleepStoriesScreen />
   if (screen === 'mental-health') return <MentalHealthScreen />
+  if (screen === 'my-routine') return <MyRoutineScreen />
+  if (screen === 'active-mind') return <ActiveMindScreen />
+  if (screen === 'active-mind-difficulty') return <ActiveMindDifficultyScreen />
+  if (screen === 'active-mind-sudoku') return <ActiveMindSudokuScreen />
+  if (screen === 'active-mind-form-the-word') return <ActiveMindFormTheWordScreen />
+  if (screen === 'active-mind-crosswords') return <ActiveMindCrosswordsScreen />
+  if (screen === 'active-mind-word-search') return <ActiveMindWordSearchScreen />
+  if (screen === 'active-mind-calculations') return <ActiveMindCalculationsScreen />
+  if (screen === 'active-mind-logic-sequence') return <ActiveMindLogicSequenceScreen />
+  if (screen === 'bible') return <BibleScreen />
+  if (screen === 'bible-chapters') return <BibleChaptersScreen />
+  if (screen === 'bible-chapter-verses') return <BibleChapterVersesScreen />
+  if (screen === 'bible-peace-words-topic') return <BiblePeaceWordsTopicScreen />
   if (screen === 'schedule-appointment') return <ScheduleAppointmentScreen />
   if (screen === 'home') return <HomeScreen />
   return <LoginScreen />
@@ -84,12 +113,20 @@ function AppRouter() {
 export default function App() {
   useAndroidNavigationBar()
 
+  useEffect(() => {
+    void SystemUI.setBackgroundColorAsync(colors.background)
+  }, [])
+
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
       <SafeAreaProvider>
         <AuthProvider>
-          <StatusBar style="light" />
-          <AppRouter />
+          <GuestAuthProvider>
+            <ThemeProvider>
+              <StatusBar style="light" translucent backgroundColor="transparent" />
+              <AppRouter />
+            </ThemeProvider>
+          </GuestAuthProvider>
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

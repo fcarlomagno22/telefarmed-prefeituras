@@ -5,8 +5,8 @@ export type GuestFeatureKey =
   | 'quick:prescriptions'
   | 'quick:my-appointments'
   | 'vida:my-metrics'
-  | 'vida:run-walk'
   | 'vida:functional-training'
+  | 'vida:run-walk'
   | 'vida:eat-well'
   | 'vida:sleep-time'
   | 'vida:mental-health'
@@ -14,7 +14,7 @@ export type GuestFeatureKey =
   | 'vida:my-goals'
   | 'vida:my-routine'
   | 'tab:menu'
-  | 'tab:my-metrics'
+  | 'tab:suporte'
   | 'tab:home'
   | 'tab:agendar'
   | 'tab:pos-consulta'
@@ -42,11 +42,11 @@ const FEATURES: Record<GuestFeatureKey, GuestFeatureContent> = {
   'quick:post-consultation': {
     title: 'Pós-consulta',
     description:
-      'Acompanhe seus check-ins de 14 dias após a consulta, responda pelo app e veja sua evolução.',
+      'Acompanhe orientações, retornos e próximos passos depois da sua consulta — tudo organizado em um só lugar.',
     icon: 'clipboard-pulse-outline',
   },
   'quick:prescriptions': {
-    title: 'Atestados e +',
+    title: 'Receitas e +',
     description:
       'Consulte receitas digitais, renovações e documentos de saúde com praticidade e segurança.',
     icon: 'pill',
@@ -63,17 +63,17 @@ const FEATURES: Record<GuestFeatureKey, GuestFeatureContent> = {
       'Monitore peso, pressão, sono e outros indicadores ao longo do tempo com gráficos claros e metas personalizadas.',
     icon: 'ruler',
   },
+  'vida:functional-training': {
+    title: 'Treino Funcional',
+    description:
+      'Exercícios guiados para força, mobilidade e condicionamento no seu ritmo, com histórico e favoritos.',
+    icon: 'dumbbell',
+  },
   'vida:run-walk': {
     title: 'Corrida e Caminhada',
     description:
       'Registre atividades, acompanhe distância e calorias, e mantenha sua rotina de movimento ativa.',
     icon: 'run-fast',
-  },
-  'vida:functional-training': {
-    title: 'Treino Funcional',
-    description:
-      'Exercícios de força, mobilidade e condicionamento com rotinas guiadas para fortalecer o corpo no dia a dia.',
-    icon: 'kettlebell',
   },
   'vida:eat-well': {
     title: 'Comer Bem',
@@ -117,11 +117,11 @@ const FEATURES: Record<GuestFeatureKey, GuestFeatureContent> = {
       'Acesse perfil, configurações, documentos e atalhos extras do app. Disponível após entrar na sua conta.',
     icon: 'menu',
   },
-  'tab:my-metrics': {
-    title: 'Minhas métricas',
+  'tab:suporte': {
+    title: 'Suporte',
     description:
-      'Acompanhe peso, pressão, glicose, hidratação e outros indicadores de saúde em um só lugar.',
-    icon: 'ruler',
+      'Fale com nossa equipe, tire dúvidas e receba ajuda sobre consultas, cadastro e uso do app.',
+    icon: 'face-agent',
   },
   'tab:home': {
     title: 'Home',
@@ -138,7 +138,7 @@ const FEATURES: Record<GuestFeatureKey, GuestFeatureContent> = {
   'tab:pos-consulta': {
     title: 'Pós-consulta',
     description:
-      'Receba 7 check-ins em 14 dias após cada consulta realizada. Responda pelo app e acompanhe sua evolução.',
+      'Retome orientações médicas, exames solicitados e retornos agendados após cada atendimento.',
     icon: 'clipboard-text-outline',
   },
   'promo:carousel': {

@@ -46,8 +46,10 @@ import {
 } from '../data/eatWellDailyStorage'
 import { loadEatWellFavorites } from '../data/eatWellFavoritesStorage'
 import { addEatWellMenu, deleteEatWellMenu, loadEatWellMenus } from '../data/eatWellMenusStorage'
-import { loadNutritionGoals } from '../data/eatWellGoalsStorage'
+import { loadNutritionGoals, saveNutritionGoals } from '../data/eatWellGoalsStorage'
+import { computeNutritionGoalsFromWizard, generateEatWellMenuFromWizard } from '../eatWellEngine'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
 import type {
@@ -81,7 +83,6 @@ import {
 } from '../utils/eatWellCalendarDays'
 import { getAdjustedCalorieTarget, loadRunWalkDayEnergy } from '../utils/eatWellRunWalkCorrelation'
 import { loadEatWellWeekSummary } from '../utils/eatWellWeekStats'
-import { generateEatWellMenuFromWizard } from '../utils/eatWellMenuGeneration'
 import type { EatWellMenuWizardForm } from '../utils/eatWellMenuWizard'
 import { toLocalDateIso } from '../utils/runWalkWeeklyChart'
 import { resolveBrandImage } from '../utils/resolveBrandImage'
@@ -159,6 +160,11 @@ export function EatWellScreen() {
   const segmentPagerProgrammaticScrollRef = useRef(false)
   const skipDiaryResetRef = useRef(false)
   const replayDiaryAnimationRef = useRef(false)
+
+  const { requireAuth } = useGuestAuth()
+  const withEatWellAuth = (action: () => void) => {
+    requireAuth('vida:eat-well', action)
+  }
 
   const patientCpf = user?.cpf ?? 'guest'
   const fabBottomOffset = TAB_BAR_ESTIMATED_HEIGHT + Math.max(insets.bottom, 8) + 12
@@ -364,14 +370,18 @@ export function EatWellScreen() {
   }
 
   function openMealDetail(meal: MealLog) {
-    setSelectedMealDetail(meal)
-    setMealDetailVisible(true)
+    withEatWellAuth(() => {
+      setSelectedMealDetail(meal)
+      setMealDetailVisible(true)
+    })
   }
 
   function openMealLog(slot: MealSlot, meal: MealLog | null = null) {
-    setMealLogSlot(slot)
-    setEditingMeal(meal)
-    setMealLogVisible(true)
+    withEatWellAuth(() => {
+      setMealLogSlot(slot)
+      setEditingMeal(meal)
+      setMealLogVisible(true)
+    })
   }
 
   function closeMealLogDrawer() {
@@ -394,79 +404,112 @@ export function EatWellScreen() {
     feeling?: EatWellMealFeeling | null
     beverage?: EatWellMealBeverage | null
   }) {
-    const meal: MealLog = {
-      id: payload.mealId ?? `meal-${payload.slot}-${Date.now()}`,
-      slot: payload.slot,
-      loggedAt: new Date().toISOString(),
-      entries: payload.entries.map((entry) => ({ ...entry })),
-      photoUri: payload.photoUri ?? null,
-      portionSize: payload.portionSize,
-      feeling: payload.feeling ?? null,
-      beverage: payload.beverage ?? null,
-    }
-    const nextRecord = upsertMeal(dailyRecord, meal)
-    await persistRecord(nextRecord, 'Refeição registrada.')
+    withEatWellAuth(() => {
+      void (async () => {
+        const meal: MealLog = {
+          id: payload.mealId ?? `meal-${payload.slot}-${Date.now()}`,
+          slot: payload.slot,
+          loggedAt: new Date().toISOString(),
+          entries: payload.entries.map((entry) => ({ ...entry })),
+          photoUri: payload.photoUri ?? null,
+          portionSize: payload.portionSize,
+          feeling: payload.feeling ?? null,
+          beverage: payload.beverage ?? null,
+        }
+        const nextRecord = upsertMeal(dailyRecord, meal)
+        await persistRecord(nextRecord, 'Refeição registrada.')
+      })()
+    })
   }
 
   async function handleDeleteMeal(mealId: string) {
-    const nextRecord = {
-      ...dailyRecord,
-      meals: dailyRecord.meals.filter((meal) => meal.id !== mealId),
-    }
-    await persistRecord(nextRecord, 'Refeição removida.')
+    withEatWellAuth(() => {
+      void (async () => {
+        const nextRecord = {
+          ...dailyRecord,
+          meals: dailyRecord.meals.filter((meal) => meal.id !== mealId),
+        }
+        await persistRecord(nextRecord, 'Refeição removida.')
+      })()
+    })
   }
 
   async function handleAddWater(ml: number) {
-    const nextRecord: EatWellDailyRecord = {
-      ...dailyRecord,
-      waterLogs: [
-        ...dailyRecord.waterLogs,
-        { id: `water-${Date.now()}`, ml, loggedAt: new Date().toISOString() },
-      ],
-    }
-    await persistRecord(nextRecord, 'Água registrada')
+    withEatWellAuth(() => {
+      void (async () => {
+        const nextRecord: EatWellDailyRecord = {
+          ...dailyRecord,
+          waterLogs: [
+            ...dailyRecord.waterLogs,
+            { id: `water-${Date.now()}`, ml, loggedAt: new Date().toISOString() },
+          ],
+        }
+        await persistRecord(nextRecord, 'Água registrada')
+      })()
+    })
   }
 
   async function handleUndoWater() {
-    if (dailyRecord.waterLogs.length === 0) return
-    const nextRecord = {
-      ...dailyRecord,
-      waterLogs: dailyRecord.waterLogs.slice(0, -1),
-    }
-    await persistRecord(nextRecord, 'Último registro de água desfeito.')
+    withEatWellAuth(() => {
+      void (async () => {
+        if (dailyRecord.waterLogs.length === 0) return
+        const nextRecord = {
+          ...dailyRecord,
+          waterLogs: dailyRecord.waterLogs.slice(0, -1),
+        }
+        await persistRecord(nextRecord, 'Último registro de água desfeito.')
+      })()
+    })
   }
 
   async function handleMenuWizardComplete(form: EatWellMenuWizardForm) {
-    const menu = generateEatWellMenuFromWizard(form)
-    const nextMenus = await addEatWellMenu(patientCpf, menu)
-    setSavedMenus(nextMenus)
-    setMenuWizardVisible(false)
-    handleSegmentTabChange('menus')
-    setToastMessage(`"${menu.name}" foi adicionado aos seus cardápios.`)
+    withEatWellAuth(() => {
+      void (async () => {
+        const menu = generateEatWellMenuFromWizard(form)
+        const nextGoals = computeNutritionGoalsFromWizard(form)
+        const nextMenus = await addEatWellMenu(patientCpf, menu)
+        await saveNutritionGoals(patientCpf, nextGoals)
+        setGoals(nextGoals)
+        setSavedMenus(nextMenus)
+        setMenuWizardVisible(false)
+        handleSegmentTabChange('menus')
+        setToastMessage(`"${menu.name}" foi adicionado aos seus cardápios.`)
+      })()
+    })
   }
 
   async function handleDeleteMenu(menuId: string) {
-    const nextMenus = await deleteEatWellMenu(patientCpf, menuId)
-    setSavedMenus(nextMenus)
-    setToastMessage('Cardápio excluído.')
+    withEatWellAuth(() => {
+      void (async () => {
+        const nextMenus = await deleteEatWellMenu(patientCpf, menuId)
+        setSavedMenus(nextMenus)
+        setToastMessage('Cardápio excluído.')
+      })()
+    })
   }
 
   function handleOpenMenu(menu: EatWellSavedMenu) {
-    navigateTo('eat-well-menu', { menuId: menu.id })
+    withEatWellAuth(() => {
+      navigateTo('eat-well-menu', { menuId: menu.id })
+    })
   }
 
   async function handleQuickFavorite(favorite: EatWellFavorite) {
-    const meal: MealLog = {
-      id: `meal-quick-${Date.now()}`,
-      slot: favorite.slot,
-      loggedAt: new Date().toISOString(),
-      entries: favorite.entries.map((entry) => ({
-        ...entry,
-        id: `${entry.id}-${Date.now()}`,
-      })),
-    }
-    const nextRecord = upsertMeal(dailyRecord, meal)
-    await persistRecord(nextRecord, `${favorite.label} registrado rapidamente.`)
+    withEatWellAuth(() => {
+      void (async () => {
+        const meal: MealLog = {
+          id: `meal-quick-${Date.now()}`,
+          slot: favorite.slot,
+          loggedAt: new Date().toISOString(),
+          entries: favorite.entries.map((entry) => ({
+            ...entry,
+            id: `${entry.id}-${Date.now()}`,
+          })),
+        }
+        const nextRecord = upsertMeal(dailyRecord, meal)
+        await persistRecord(nextRecord, `${favorite.label} registrado rapidamente.`)
+      })()
+    })
   }
 
   function handleTabPress(tab: BottomTabId) {
@@ -614,7 +657,7 @@ export function EatWellScreen() {
                   <EatWellRunWalkEnergyBadge
                     energy={runWalkEnergy}
                     adjustedCalorieTarget={adjustedCalorieTarget}
-                    onPress={() => setEnergyDrawerVisible(true)}
+                    onPress={() => withEatWellAuth(() => setEnergyDrawerVisible(true))}
                   />
 
                   <EatWellMealContributionDonut
@@ -679,15 +722,17 @@ export function EatWellScreen() {
           <EatWellFab
             bottom={fabBottomOffset}
             onPress={() => {
-              if (segmentTab === 'menus') {
-                setMenuWizardVisible(true)
-                return
-              }
-              setFabMenuVisible(true)
+              withEatWellAuth(() => {
+                if (segmentTab === 'menus') {
+                  setMenuWizardVisible(true)
+                  return
+                }
+                setFabMenuVisible(true)
+              })
             }}
             onLongPress={() => {
               if (segmentTab === 'diary') {
-                setQuickMealVisible(true)
+                withEatWellAuth(() => setQuickMealVisible(true))
               }
             }}
           />

@@ -86,7 +86,7 @@ export type MentalHealthHowItWorksStep = {
 }
 
 export const MENTAL_HEALTH_HOW_IT_WORKS_INTRO =
-  'Do primeiro contato até os cuidados do dia — tudo no seu ritmo, com linguagem simples e sem diagnósticos na tela.'
+  'Do primeiro contato até os cuidados do dia — tudo no seu ritmo, com linguagem simples e acolhedora.'
 
 export const MENTAL_HEALTH_HOW_IT_WORKS_STEPS: MentalHealthHowItWorksStep[] = [
   {
@@ -111,7 +111,7 @@ export const MENTAL_HEALTH_HOW_IT_WORKS_STEPS: MentalHealthHowItWorksStep[] = [
     title: 'Entender seu momento',
     summary: 'Seus registros são cruzados com regras clínicas.',
     detail:
-      'Suas respostas alimentam um motor de cuidado determinístico: regras pré-definidas por especialistas, não um chat que inventa textos. Organizamos prioridades e sinais de atenção em linguagem simples — sem nomes de doenças ou diagnósticos aparecendo para você.',
+      'Suas respostas alimentam um motor de cuidado determinístico: regras pré-definidas por especialistas, não um chat que inventa textos. Organizamos prioridades e sinais de atenção em linguagem simples — sem nomes de doenças na interface.',
   },
   {
     id: 4,
@@ -228,11 +228,14 @@ export const MENTAL_HEALTH_CHECKIN_MOOD_LABELS: Record<MentalHealthMoodLevelId, 
   'very-bad': 'Muito mal',
 }
 
-export const MENTAL_HEALTH_CHECKIN_EMOTIONS = [
+export const MENTAL_HEALTH_CHECKIN_POSITIVE_EMOTIONS = [
   'Tranquilo',
   'Animado',
   'Grato',
   'Esperançoso',
+] as const
+
+export const MENTAL_HEALTH_CHECKIN_CHALLENGING_EMOTIONS = [
   'Preocupado',
   'Irritado',
   'Triste',
@@ -242,6 +245,41 @@ export const MENTAL_HEALTH_CHECKIN_EMOTIONS = [
   'Confuso',
   'Frustrado',
 ] as const
+
+export const MENTAL_HEALTH_CHECKIN_EMOTIONS = [
+  ...MENTAL_HEALTH_CHECKIN_POSITIVE_EMOTIONS,
+  ...MENTAL_HEALTH_CHECKIN_CHALLENGING_EMOTIONS,
+] as const
+
+export function isPositiveCheckInMood(mood: MentalHealthMoodLevelId | null) {
+  return mood === 'good' || mood === 'very-good'
+}
+
+export function isCrisisCheckInMood(mood: MentalHealthMoodLevelId | null) {
+  return mood === 'bad' || mood === 'very-bad'
+}
+
+export function getCheckInEmotionsForMood(mood: MentalHealthMoodLevelId | null) {
+  return isPositiveCheckInMood(mood)
+    ? MENTAL_HEALTH_CHECKIN_POSITIVE_EMOTIONS
+    : MENTAL_HEALTH_CHECKIN_CHALLENGING_EMOTIONS
+}
+
+const CHECKIN_INFLUENCES_TO_HIDE_FOR_POSITIVE_MOOD = new Set(['Conflito', 'Solidão'])
+
+export function getCheckInInfluencesForMood(mood: MentalHealthMoodLevelId | null) {
+  if (!isPositiveCheckInMood(mood)) {
+    return MENTAL_HEALTH_CHECKIN_INFLUENCES
+  }
+
+  return MENTAL_HEALTH_CHECKIN_INFLUENCES.filter(
+    (item) => !CHECKIN_INFLUENCES_TO_HIDE_FOR_POSITIVE_MOOD.has(item),
+  )
+}
+
+export function getCheckInMaxStep(mood: MentalHealthMoodLevelId | null): 3 | 4 {
+  return isPositiveCheckInMood(mood) ? 3 : 4
+}
 
 export const MAX_MENTAL_HEALTH_CHECKIN_EMOTIONS = 3
 
@@ -341,11 +379,8 @@ export type MentalHealthTodayState = {
   }
 }
 
-export const MENTAL_HEALTH_SEGMENT_TABS: { id: MentalHealthTab; label: string; available: boolean }[] = [
-  { id: 'today', label: 'Hoje', available: true },
-  { id: 'care', label: 'Cuidar', available: true },
-  { id: 'my-care', label: 'Meu cuidado', available: true },
-]
+/** @see mentalHealth/mentalHealthTabContract.ts — contrato Etapa 0 */
+export { MENTAL_HEALTH_SEGMENT_TABS_FROM_CONTRACT as MENTAL_HEALTH_SEGMENT_TABS } from '../mentalHealth/mentalHealthTabContract'
 
 export const MENTAL_HEALTH_WELCOME_MESSAGES: Record<MentalHealthWelcomeState, string> = {
   'no-history':

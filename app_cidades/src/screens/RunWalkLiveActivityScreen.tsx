@@ -17,6 +17,7 @@ import { RunWalkActivityMetricsCard } from '../components/runWalk/liveActivity/R
 import { RunWalkActivityMusicButton } from '../components/runWalk/liveActivity/RunWalkActivityMusicButton'
 import { RunWalkActivityOnlineBadge } from '../components/runWalk/liveActivity/RunWalkActivityOnlineBadge'
 import { RunWalkActivityPauseButton } from '../components/runWalk/liveActivity/RunWalkActivityPauseButton'
+import { RunWalkActivityRecenterButton } from '../components/runWalk/liveActivity/RunWalkActivityRecenterButton'
 import { RunWalkActivityShareLocationButton } from '../components/runWalk/liveActivity/RunWalkActivityShareLocationButton'
 import { RunWalkActivitySosButton } from '../components/runWalk/liveActivity/RunWalkActivitySosButton'
 import { RunWalkActivitySosDrawer } from '../components/runWalk/liveActivity/RunWalkActivitySosDrawer'
@@ -47,8 +48,9 @@ export function RunWalkLiveActivityScreen() {
   const [shareLocationDrawerVisible, setShareLocationDrawerVisible] = useState(false)
   const [musicDrawerVisible, setMusicDrawerVisible] = useState(false)
   const [finishDrawerVisible, setFinishDrawerVisible] = useState(false)
+  const [followUserOnMap, setFollowUserOnMap] = useState(true)
 
-  const { location } = useRunWalkLiveSharePublisher({
+  const { location, activateSharing, endActiveLiveShareSession } = useRunWalkLiveSharePublisher({
     enabled: true,
     address: user?.address,
     participantName: user?.name ?? 'Participante',
@@ -59,6 +61,7 @@ export function RunWalkLiveActivityScreen() {
     modality,
     durationMinutes,
     coordinates: location.coordinates,
+    gpsSpeedMps: location.speedMps,
     enabled: true,
   })
 
@@ -105,6 +108,7 @@ export function RunWalkLiveActivityScreen() {
     const heartRateBpm = session.heartRateBpm
 
     session.finishActivity()
+    await endActiveLiveShareSession()
 
     const summaryId = `run-walk-${Date.now()}`
     const activeMinutes = Math.max(1, Math.round(elapsedSeconds / 60))
@@ -155,11 +159,24 @@ export function RunWalkLiveActivityScreen() {
     <View style={styles.root}>
       <RunWalkActivityTrailMap
         trail={session.trail}
+        currentPosition={location.coordinates}
         fullscreen
+        interactive
         liveTracking
+        followUser={followUserOnMap}
+        onUserPanned={() => setFollowUserOnMap(false)}
         profilePhotoUri={user?.selfieUri}
         deviceHeadingDegrees={location.headingDegrees}
       />
+
+      {!followUserOnMap ? (
+        <View
+          pointerEvents="box-none"
+          style={[styles.recenterOverlay, { top: Math.max(insets.top, 10) + 56 }]}
+        >
+          <RunWalkActivityRecenterButton onPress={() => setFollowUserOnMap(true)} />
+        </View>
+      ) : null}
 
       <View
         pointerEvents="none"
@@ -222,6 +239,9 @@ export function RunWalkLiveActivityScreen() {
         longitude={location.coordinates?.longitude ?? null}
         onClose={() => setShareLocationDrawerVisible(false)}
         showStartActions
+        onSessionActivated={() => {
+          void activateSharing()
+        }}
         onContinueWithoutShare={() => setShareLocationDrawerVisible(false)}
       />
 
@@ -249,6 +269,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   onlineBadgeOverlay: {
+    position: 'absolute',
+    left: 16,
+    zIndex: 10,
+  },
+  recenterOverlay: {
     position: 'absolute',
     left: 16,
     zIndex: 10,

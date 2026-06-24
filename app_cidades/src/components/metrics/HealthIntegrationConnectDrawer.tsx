@@ -3,8 +3,17 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, Animated, Easing, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import { AppModal } from '../AppModal'
+import {
+  ActivityIndicator,
+  Animated,
+  Easing,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   DEFAULT_ENABLED_PERMISSIONS,
@@ -18,7 +27,7 @@ import {
   IntegrationConnectionState,
 } from '../../types/healthIntegrations'
 import { PrimaryButton } from '../PrimaryButton'
-import { getModalFooterPadding } from '../../utils/modalSafeArea'
+import { AppModal } from '../AppModal'
 
 const SHEET_OFFSET = 640
 const MOCK_LOADING_MS = 1600
@@ -330,14 +339,13 @@ export function HealthIntegrationConnectDrawer({
 
   if (!isMounted || !integration) return null
 
-  const resolvedIntegration = integration
   const canAuthorize = enabledPermissions.length > 0
 
   function renderContent() {
     if (step === 'loading') {
       return (
         <View style={styles.centerStage}>
-          <ActivityIndicator size="large" color={resolvedIntegration.accentColor} />
+          <ActivityIndicator size="large" color={integration.accentColor} />
           <Text style={styles.stageTitle} numberOfLines={1}>
             Abrindo permissões…
           </Text>
@@ -353,7 +361,7 @@ export function HealthIntegrationConnectDrawer({
         <View style={styles.centerStage}>
           <Animated.View style={[styles.bluetoothPulse, { opacity: pulseAnim }]}>
             <LinearGradient
-              colors={[...resolvedIntegration.gradient]}
+              colors={[...integration.gradient]}
               style={styles.bluetoothPulseInner}
             >
               <MaterialCommunityIcons name="bluetooth" size={28} color="#fff" />
@@ -372,7 +380,7 @@ export function HealthIntegrationConnectDrawer({
     if (step === 'pairing' && selectedDevice) {
       return (
         <View style={styles.centerStage}>
-          <ActivityIndicator size="large" color={resolvedIntegration.accentColor} />
+          <ActivityIndicator size="large" color={integration.accentColor} />
           <Text style={styles.stageTitle} numberOfLines={1}>
             Pareando…
           </Text>
@@ -395,7 +403,7 @@ export function HealthIntegrationConnectDrawer({
           <Text style={styles.stageSubtitle}>
             {successDeviceName
               ? `${successDeviceName} está sincronizando suas métricas`
-              : `${resolvedIntegration.title} está pronto para sincronizar suas métricas`}
+              : `${integration.title} está pronto para sincronizar suas métricas`}
           </Text>
           <View style={styles.successButtonWrap}>
             <PrimaryButton label="Concluir" onPress={handleDismiss} />
@@ -444,7 +452,7 @@ export function HealthIntegrationConnectDrawer({
 
           {connection.connectedDeviceName ? (
             <View style={styles.manageInlineRow}>
-              <MaterialCommunityIcons name="watch-variant" size={16} color={resolvedIntegration.accentColor} />
+              <MaterialCommunityIcons name="watch-variant" size={16} color={integration.accentColor} />
               <Text style={styles.manageInlineText}>{connection.connectedDeviceName}</Text>
             </View>
           ) : null}
@@ -463,7 +471,7 @@ export function HealthIntegrationConnectDrawer({
                   <MaterialCommunityIcons
                     name={item.icon as keyof typeof MaterialCommunityIcons.glyphMap}
                     size={16}
-                    color={resolvedIntegration.accentColor}
+                    color={integration.accentColor}
                   />
                   <Text style={styles.manageInlineText}>{item.label}</Text>
                 </View>
@@ -494,7 +502,7 @@ export function HealthIntegrationConnectDrawer({
               <MaterialCommunityIcons
                 name={device.icon as keyof typeof MaterialCommunityIcons.glyphMap}
                 size={20}
-                color={resolvedIntegration.accentColor}
+                color={integration.accentColor}
               />
               <View style={styles.deviceTextCol}>
                 <Text style={styles.deviceName}>{device.name}</Text>
@@ -514,21 +522,21 @@ export function HealthIntegrationConnectDrawer({
             icon="bluetooth"
             title="Conexão por Bluetooth"
             description="Ative o Bluetooth e deixe o dispositivo perto do celular"
-            accentColor={resolvedIntegration.accentColor}
+            accentColor={integration.accentColor}
           />
           <ListDivider />
           <InfoRow
             icon="watch-variant"
             title="Dispositivos compatíveis"
             description="Smartwatches, pulseiras e balanças com sincronização direta"
-            accentColor={resolvedIntegration.accentColor}
+            accentColor={integration.accentColor}
           />
           <ListDivider />
           <InfoRow
             icon="shield-check"
             title="Você no controle"
             description="O pareamento pode ser removido a qualquer momento"
-            accentColor={resolvedIntegration.accentColor}
+            accentColor={integration.accentColor}
           />
 
           <View style={styles.actionsBlock}>
@@ -547,21 +555,21 @@ export function HealthIntegrationConnectDrawer({
           icon="sync"
           title="O que sincroniza"
           description="Passos, distância, frequência cardíaca e dados corporais"
-          accentColor={resolvedIntegration.accentColor}
+          accentColor={integration.accentColor}
         />
         <ListDivider />
         <InfoRow
           icon="cellphone-check"
           title="Como funciona"
           description="Usamos o app de saúde do celular, sem parear Bluetooth"
-          accentColor={resolvedIntegration.accentColor}
+          accentColor={integration.accentColor}
         />
         <ListDivider />
         <InfoRow
           icon="shield-lock"
           title="Privacidade"
           description="Você escolhe o que compartilhar e pode revogar depois"
-          accentColor={resolvedIntegration.accentColor}
+          accentColor={integration.accentColor}
         />
 
         <Text style={styles.sectionLabel}>Compartilhar</Text>
@@ -572,7 +580,7 @@ export function HealthIntegrationConnectDrawer({
               label={permission.label}
               icon={permission.icon}
               enabled={enabledPermissions.includes(permission.id)}
-              accentColor={resolvedIntegration.accentColor}
+              accentColor={integration.accentColor}
               onToggle={() => togglePermission(permission.id)}
               isLast={index === HEALTH_PERMISSIONS.length - 1}
             />
@@ -606,7 +614,7 @@ export function HealthIntegrationConnectDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: getModalFooterPadding(insets.bottom, 8),
+              paddingBottom: Math.max(insets.bottom, 16) + 8,
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}
@@ -620,7 +628,7 @@ export function HealthIntegrationConnectDrawer({
           ) : null}
 
           <LinearGradient
-            colors={[...resolvedIntegration.gradient]}
+            colors={[...integration.gradient]}
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
             style={styles.topAccent}
@@ -631,16 +639,16 @@ export function HealthIntegrationConnectDrawer({
           {showHeader ? (
             <View style={styles.headerRow}>
               <LinearGradient
-                colors={[...resolvedIntegration.gradient]}
+                colors={[...integration.gradient]}
                 start={{ x: 0.2, y: 0 }}
                 end={{ x: 0.85, y: 1 }}
                 style={styles.headerIconOrb}
               >
-                <IntegrationIcon integration={resolvedIntegration} size={20} />
+                <IntegrationIcon integration={integration} size={20} />
               </LinearGradient>
 
               <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
-                {getHeaderTitle(step, resolvedIntegration)}
+                {getHeaderTitle(step, integration)}
               </Text>
 
               <Pressable

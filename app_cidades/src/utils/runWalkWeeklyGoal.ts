@@ -13,7 +13,12 @@ export function applyWeeklyGoalTargets(
   targets: WeeklyGoalTargets | null,
 ): WeeklyGoalStats {
   if (!targets) {
-    return stats
+    return {
+      ...stats,
+      targetActivities: 0,
+      targetActiveMinutes: 0,
+      targetMovementDays: 0,
+    }
   }
 
   return {

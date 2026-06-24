@@ -32,9 +32,10 @@ export function runRedFlagEngine(ctx: Record<string, unknown>, existing: ActiveR
 }
 
 export function shouldBlockMicroPlan(activeRedFlags: ActiveRedFlag[]) {
-  if (!activeRedFlags.length) return false
+  const openFlags = activeRedFlags.filter((flag) => flag.status === 'open')
+  if (!openFlags.length) return false
 
-  return activeRedFlags.some((flag) => {
+  return openFlags.some((flag) => {
     const definition = engineContent.redFlags.red_flags?.find(
       (item) => item.id === flag.red_flag_id,
     )

@@ -11,6 +11,7 @@ export type RunWalkLocationState = {
   coordinates: GeoCoordinates | null
   accuracyMeters: number | null
   headingDegrees: number | null
+  speedMps: number | null
   gpsQuality: GpsQuality
   cityLabel: string | null
   isLocating: boolean
@@ -55,21 +56,34 @@ async function resolveCityLabel(latitude: number, longitude: number): Promise<st
   }
 }
 
+export type RunWalkLocationTrackingMode = 'default' | 'activity'
+
 type UseRunWalkLocationOptions = {
   address?: RegistrationAddress
   enabled?: boolean
   trackHeading?: boolean
+  trackingMode?: RunWalkLocationTrackingMode
+}
+
+const TRACKING_WATCH_OPTIONS: Record<
+  RunWalkLocationTrackingMode,
+  Pick<Location.LocationOptions, 'distanceInterval' | 'timeInterval'>
+> = {
+  default: { distanceInterval: 5, timeInterval: 4000 },
+  activity: { distanceInterval: 2, timeInterval: 1000 },
 }
 
 export function useRunWalkLocation({
   address,
   enabled = true,
   trackHeading = false,
+  trackingMode = 'default',
 }: UseRunWalkLocationOptions) {
   const [state, setState] = useState<RunWalkLocationState>({
     coordinates: null,
     accuracyMeters: null,
     headingDegrees: null,
+    speedMps: null,
     gpsQuality: 'unavailable',
     cityLabel: null,
     isLocating: false,
@@ -93,7 +107,7 @@ export function useRunWalkLocation({
   }, [])
 
   const applyPosition = useCallback(
-    (latitude: number, longitude: number, accuracy: number | null, heading: number | null) => {
+    (latitude: number, longitude: number, accuracy: number | null, heading: number | null, speed: number | null) => {
       setState((prev) => ({
         ...prev,
         coordinates: { latitude, longitude },
@@ -102,6 +116,8 @@ export function useRunWalkLocation({
           heading != null && Number.isFinite(heading) && heading >= 0
             ? heading % 360
             : prev.headingDegrees,
+        speedMps:
+          speed != null && Number.isFinite(speed) && speed >= 0 ? speed : prev.speedMps,
         gpsQuality: accuracyToQuality(accuracy),
         isLocating: false,
         isResolvingCity: true,
@@ -158,14 +174,16 @@ export function useRunWalkLocation({
         position.coords.longitude,
         position.coords.accuracy ?? null,
         position.coords.heading ?? null,
+        position.coords.speed ?? null,
       )
 
       stopWatch()
+      const watchOptions = TRACKING_WATCH_OPTIONS[trackingMode]
       watchRef.current = await Location.watchPositionAsync(
         {
-          accuracy: Location.Accuracy.High,
-          distanceInterval: 5,
-          timeInterval: 4000,
+          accuracy: Location.Accuracy.BestForNavigation,
+          distanceInterval: watchOptions.distanceInterval,
+          timeInterval: watchOptions.timeInterval,
         },
         (update) => {
           applyPosition(
@@ -173,6 +191,7 @@ export function useRunWalkLocation({
             update.coords.longitude,
             update.coords.accuracy ?? null,
             update.coords.heading ?? null,
+            update.coords.speed ?? null,
           )
         },
       )
@@ -180,7 +199,7 @@ export function useRunWalkLocation({
       const fallback = address ? getHomeCoordinatesFromAddress(address) : null
       if (fallback) {
         const mock = getMockGpsCoordinates(fallback)
-        applyPosition(mock.latitude, mock.longitude, 18, null)
+        applyPosition(mock.latitude, mock.longitude, 18, null, null)
         setState((prev) => ({
           ...prev,
           permissionGranted: true,
@@ -195,7 +214,7 @@ export function useRunWalkLocation({
         error: 'Não foi possível obter sua localização.',
       }))
     }
-  }, [address, applyPosition, enabled, stopWatch])
+  }, [address, applyPosition, enabled, stopWatch, trackingMode])
 
   useEffect(() => {
     if (enabled) {

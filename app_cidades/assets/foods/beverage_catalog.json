@@ -1,0 +1,3688 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "file": "beverage_catalog.json",
+  "engine_mode": "deterministic",
+  "runtime_ai_generation": false,
+  "description": "Catálogo de bebidas por 100 ml para o motor algorítmico de cardápios da Telefarmed, com macronutrientes aproximados e tags booleanas de álcool, cafeína, açúcar e zero caloria.",
+  "nutrition_data_note": "Valores aproximados por 100 ml. Bebidas industrializadas variam por marca e formulação; recomenda-se revisão posterior com TBCA/TACO, USDA FoodData Central e rótulos comerciais padronizados.",
+  "clinical_validation": {
+    "status": "requires_nutritionist_review",
+    "note": "Base inicial para engenharia de dados. Não usar como prescrição clínica sem validação nutricional."
+  },
+  "schema": {
+    "id": "string",
+    "name": "string",
+    "aliases": "array<string>",
+    "macros_per_100ml": {
+      "calories": "number",
+      "proteinG": "number",
+      "carbsG": "number",
+      "fatG": "number",
+      "fiberG": "number",
+      "sugarsG": "number",
+      "saturatedFatG": "number"
+    },
+    "tags": {
+      "alcoholic": "boolean",
+      "caffeinated": "boolean",
+      "sugary": "boolean",
+      "zero_calorie": "boolean"
+    },
+    "category": "string"
+  },
+  "beverage_count": 150,
+  "beverages": [
+    {
+      "id": "bev_agua_filtrada",
+      "name": "Água filtrada",
+      "aliases": [
+        "água",
+        "agua",
+        "água comum",
+        "agua filtrada"
+      ],
+      "macros_per_100ml": {
+        "calories": 0,
+        "proteinG": 0,
+        "carbsG": 0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "water"
+    },
+    {
+      "id": "bev_agua_mineral_sem_gas",
+      "name": "Água mineral sem gás",
+      "aliases": [
+        "água mineral",
+        "agua mineral",
+        "água sem gás"
+      ],
+      "macros_per_100ml": {
+        "calories": 0,
+        "proteinG": 0,
+        "carbsG": 0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "water"
+    },
+    {
+      "id": "bev_agua_mineral_com_gas",
+      "name": "Água mineral com gás",
+      "aliases": [
+        "água com gás",
+        "agua com gas",
+        "água gaseificada"
+      ],
+      "macros_per_100ml": {
+        "calories": 0,
+        "proteinG": 0,
+        "carbsG": 0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "water"
+    },
+    {
+      "id": "bev_agua_saborizada_limao_sem_acucar",
+      "name": "Água saborizada com limão sem açúcar",
+      "aliases": [
+        "água com limão",
+        "agua com limao",
+        "água aromatizada limão"
+      ],
+      "macros_per_100ml": {
+        "calories": 1,
+        "proteinG": 0,
+        "carbsG": 0.2,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "water"
+    },
+    {
+      "id": "bev_agua_saborizada_hortela_sem_acucar",
+      "name": "Água saborizada com hortelã sem açúcar",
+      "aliases": [
+        "água com hortelã",
+        "agua com hortela",
+        "água aromatizada hortelã"
+      ],
+      "macros_per_100ml": {
+        "calories": 0,
+        "proteinG": 0,
+        "carbsG": 0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "water"
+    },
+    {
+      "id": "bev_agua_coco_natural",
+      "name": "Água de coco natural",
+      "aliases": [
+        "água de coco",
+        "agua de coco",
+        "coco verde"
+      ],
+      "macros_per_100ml": {
+        "calories": 19,
+        "proteinG": 0.2,
+        "carbsG": 4.5,
+        "fatG": 0,
+        "fiberG": 0.1,
+        "sugarsG": 3.8,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "water"
+    },
+    {
+      "id": "bev_agua_coco_caixinha",
+      "name": "Água de coco industrializada",
+      "aliases": [
+        "água de coco caixinha",
+        "agua de coco caixinha"
+      ],
+      "macros_per_100ml": {
+        "calories": 20,
+        "proteinG": 0.1,
+        "carbsG": 5.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 4.6,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "water"
+    },
+    {
+      "id": "bev_agua_tonica_normal",
+      "name": "Água tônica tradicional",
+      "aliases": [
+        "tônica",
+        "tonica",
+        "água tônica",
+        "agua tonica"
+      ],
+      "macros_per_100ml": {
+        "calories": 34,
+        "proteinG": 0,
+        "carbsG": 8.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 8.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "water"
+    },
+    {
+      "id": "bev_agua_tonica_zero",
+      "name": "Água tônica zero",
+      "aliases": [
+        "tônica zero",
+        "tonica zero",
+        "água tônica zero"
+      ],
+      "macros_per_100ml": {
+        "calories": 1,
+        "proteinG": 0,
+        "carbsG": 0.1,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "water"
+    },
+    {
+      "id": "bev_agua_alcalina",
+      "name": "Água alcalina",
+      "aliases": [
+        "agua alcalina",
+        "água alcalina"
+      ],
+      "macros_per_100ml": {
+        "calories": 0,
+        "proteinG": 0,
+        "carbsG": 0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "water"
+    },
+    {
+      "id": "bev_agua_com_gas_limao_zero",
+      "name": "Água com gás sabor limão zero",
+      "aliases": [
+        "água com gás saborizada",
+        "agua com gas limao zero"
+      ],
+      "macros_per_100ml": {
+        "calories": 0,
+        "proteinG": 0,
+        "carbsG": 0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "water"
+    },
+    {
+      "id": "bev_agua_saborizada_morango_zero",
+      "name": "Água saborizada morango zero",
+      "aliases": [
+        "água sabor morango zero",
+        "agua saborizada morango"
+      ],
+      "macros_per_100ml": {
+        "calories": 1,
+        "proteinG": 0,
+        "carbsG": 0.1,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "water"
+    },
+    {
+      "id": "bev_cafe_coado_sem_acucar",
+      "name": "Café coado sem açúcar",
+      "aliases": [
+        "café",
+        "cafe",
+        "café preto",
+        "cafe preto",
+        "café passado"
+      ],
+      "macros_per_100ml": {
+        "calories": 2,
+        "proteinG": 0.1,
+        "carbsG": 0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_cafe_expresso_sem_acucar",
+      "name": "Café expresso sem açúcar",
+      "aliases": [
+        "espresso",
+        "expresso",
+        "café expresso"
+      ],
+      "macros_per_100ml": {
+        "calories": 3,
+        "proteinG": 0.1,
+        "carbsG": 0.2,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_cafe_solovel_sem_acucar",
+      "name": "Café solúvel sem açúcar",
+      "aliases": [
+        "nescafé sem açúcar",
+        "café instantâneo",
+        "cafe soluvel"
+      ],
+      "macros_per_100ml": {
+        "calories": 2,
+        "proteinG": 0.1,
+        "carbsG": 0.3,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_cafe_descafeinado_sem_acucar",
+      "name": "Café descafeinado sem açúcar",
+      "aliases": [
+        "descafeinado",
+        "café descafeinado"
+      ],
+      "macros_per_100ml": {
+        "calories": 2,
+        "proteinG": 0.1,
+        "carbsG": 0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_cafe_com_acucar",
+      "name": "Café com açúcar",
+      "aliases": [
+        "cafe adoçado",
+        "café adoçado",
+        "café doce"
+      ],
+      "macros_per_100ml": {
+        "calories": 24,
+        "proteinG": 0.1,
+        "carbsG": 6.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 6.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_cafe_com_leite_integral_sem_acucar",
+      "name": "Café com leite integral sem açúcar",
+      "aliases": [
+        "pingado",
+        "média sem açúcar",
+        "café com leite"
+      ],
+      "macros_per_100ml": {
+        "calories": 32,
+        "proteinG": 1.6,
+        "carbsG": 2.4,
+        "fatG": 1.7,
+        "fiberG": 0,
+        "sugarsG": 2.4,
+        "saturatedFatG": 1.0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_cafe_com_leite_desnatado_sem_acucar",
+      "name": "Café com leite desnatado sem açúcar",
+      "aliases": [
+        "café com leite desnatado",
+        "pingado desnatado"
+      ],
+      "macros_per_100ml": {
+        "calories": 20,
+        "proteinG": 1.7,
+        "carbsG": 2.6,
+        "fatG": 0.1,
+        "fiberG": 0,
+        "sugarsG": 2.6,
+        "saturatedFatG": 0.1
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_cafe_com_leite_e_acucar",
+      "name": "Café com leite e açúcar",
+      "aliases": [
+        "pingado doce",
+        "média adoçada",
+        "café com leite adoçado"
+      ],
+      "macros_per_100ml": {
+        "calories": 55,
+        "proteinG": 1.5,
+        "carbsG": 8.0,
+        "fatG": 1.6,
+        "fiberG": 0,
+        "sugarsG": 8.0,
+        "saturatedFatG": 1.0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_cappuccino_tradicional",
+      "name": "Cappuccino tradicional",
+      "aliases": [
+        "capuccino",
+        "cappuccino",
+        "cappuccino de máquina"
+      ],
+      "macros_per_100ml": {
+        "calories": 78,
+        "proteinG": 2.4,
+        "carbsG": 11.0,
+        "fatG": 2.7,
+        "fiberG": 0.5,
+        "sugarsG": 8.5,
+        "saturatedFatG": 1.7
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_cappuccino_zero",
+      "name": "Cappuccino zero açúcar",
+      "aliases": [
+        "capuccino zero",
+        "cappuccino diet",
+        "cappuccino sem açúcar"
+      ],
+      "macros_per_100ml": {
+        "calories": 38,
+        "proteinG": 2.0,
+        "carbsG": 4.5,
+        "fatG": 1.5,
+        "fiberG": 0.4,
+        "sugarsG": 2.2,
+        "saturatedFatG": 1.0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_mocha",
+      "name": "Mocha",
+      "aliases": [
+        "café mocha",
+        "mocaccino",
+        "mocha café"
+      ],
+      "macros_per_100ml": {
+        "calories": 86,
+        "proteinG": 2.5,
+        "carbsG": 12.0,
+        "fatG": 3.0,
+        "fiberG": 0.5,
+        "sugarsG": 10.5,
+        "saturatedFatG": 1.9
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_latte_integral_sem_acucar",
+      "name": "Latte com leite integral sem açúcar",
+      "aliases": [
+        "café latte",
+        "latte",
+        "café com leite cremoso"
+      ],
+      "macros_per_100ml": {
+        "calories": 46,
+        "proteinG": 2.4,
+        "carbsG": 3.4,
+        "fatG": 2.4,
+        "fiberG": 0,
+        "sugarsG": 3.4,
+        "saturatedFatG": 1.5
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_latte_desnatado_sem_acucar",
+      "name": "Latte com leite desnatado sem açúcar",
+      "aliases": [
+        "latte desnatado",
+        "café latte desnatado"
+      ],
+      "macros_per_100ml": {
+        "calories": 34,
+        "proteinG": 3.0,
+        "carbsG": 4.8,
+        "fatG": 0.2,
+        "fiberG": 0,
+        "sugarsG": 4.8,
+        "saturatedFatG": 0.1
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_cafe_gelado_sem_acucar",
+      "name": "Café gelado sem açúcar",
+      "aliases": [
+        "iced coffee sem açúcar",
+        "café frio sem açúcar"
+      ],
+      "macros_per_100ml": {
+        "calories": 2,
+        "proteinG": 0.1,
+        "carbsG": 0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_cafe_gelado_adocado",
+      "name": "Café gelado adoçado",
+      "aliases": [
+        "iced coffee adoçado",
+        "café frio doce"
+      ],
+      "macros_per_100ml": {
+        "calories": 46,
+        "proteinG": 0.5,
+        "carbsG": 10.0,
+        "fatG": 0.4,
+        "fiberG": 0,
+        "sugarsG": 9.5,
+        "saturatedFatG": 0.2
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "coffee"
+    },
+    {
+      "id": "bev_cha_preto_sem_acucar",
+      "name": "Chá preto sem açúcar",
+      "aliases": [
+        "chá preto",
+        "cha preto"
+      ],
+      "macros_per_100ml": {
+        "calories": 2,
+        "proteinG": 0,
+        "carbsG": 0.6,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_cha_verde_sem_acucar",
+      "name": "Chá verde sem açúcar",
+      "aliases": [
+        "chá verde",
+        "cha verde"
+      ],
+      "macros_per_100ml": {
+        "calories": 1,
+        "proteinG": 0,
+        "carbsG": 0.2,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_cha_mate_sem_acucar",
+      "name": "Chá mate sem açúcar",
+      "aliases": [
+        "mate",
+        "chá mate",
+        "cha mate"
+      ],
+      "macros_per_100ml": {
+        "calories": 2,
+        "proteinG": 0,
+        "carbsG": 0.4,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_cha_mate_com_acucar",
+      "name": "Chá mate adoçado",
+      "aliases": [
+        "mate adoçado",
+        "chá mate doce"
+      ],
+      "macros_per_100ml": {
+        "calories": 34,
+        "proteinG": 0,
+        "carbsG": 8.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 8.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_cha_hibisco_sem_acucar",
+      "name": "Chá de hibisco sem açúcar",
+      "aliases": [
+        "hibisco",
+        "chá hibisco"
+      ],
+      "macros_per_100ml": {
+        "calories": 1,
+        "proteinG": 0,
+        "carbsG": 0.2,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_cha_camomila_sem_acucar",
+      "name": "Chá de camomila sem açúcar",
+      "aliases": [
+        "camomila",
+        "chá camomila"
+      ],
+      "macros_per_100ml": {
+        "calories": 1,
+        "proteinG": 0,
+        "carbsG": 0.2,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_cha_erva_doce_sem_acucar",
+      "name": "Chá de erva-doce sem açúcar",
+      "aliases": [
+        "erva doce",
+        "chá erva-doce"
+      ],
+      "macros_per_100ml": {
+        "calories": 1,
+        "proteinG": 0,
+        "carbsG": 0.2,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_cha_hortela_sem_acucar",
+      "name": "Chá de hortelã sem açúcar",
+      "aliases": [
+        "hortelã",
+        "chá hortelã"
+      ],
+      "macros_per_100ml": {
+        "calories": 1,
+        "proteinG": 0,
+        "carbsG": 0.2,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_cha_gengibre_sem_acucar",
+      "name": "Chá de gengibre sem açúcar",
+      "aliases": [
+        "gengibre",
+        "chá gengibre"
+      ],
+      "macros_per_100ml": {
+        "calories": 2,
+        "proteinG": 0,
+        "carbsG": 0.4,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_cha_limao_sem_acucar",
+      "name": "Chá de limão sem açúcar",
+      "aliases": [
+        "chá limão",
+        "cha limao"
+      ],
+      "macros_per_100ml": {
+        "calories": 2,
+        "proteinG": 0,
+        "carbsG": 0.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_cha_gelado_pessego_normal",
+      "name": "Chá gelado de pêssego tradicional",
+      "aliases": [
+        "ice tea pêssego",
+        "chá gelado pêssego"
+      ],
+      "macros_per_100ml": {
+        "calories": 32,
+        "proteinG": 0,
+        "carbsG": 7.8,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 7.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_cha_gelado_limao_normal",
+      "name": "Chá gelado de limão tradicional",
+      "aliases": [
+        "ice tea limão",
+        "chá gelado limão"
+      ],
+      "macros_per_100ml": {
+        "calories": 30,
+        "proteinG": 0,
+        "carbsG": 7.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 7.2,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_cha_gelado_zero",
+      "name": "Chá gelado zero",
+      "aliases": [
+        "ice tea zero",
+        "chá gelado sem açúcar"
+      ],
+      "macros_per_100ml": {
+        "calories": 1,
+        "proteinG": 0,
+        "carbsG": 0.1,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_kombucha_natural",
+      "name": "Kombucha natural",
+      "aliases": [
+        "kombucha",
+        "kombucha sem sabor"
+      ],
+      "macros_per_100ml": {
+        "calories": 12,
+        "proteinG": 0,
+        "carbsG": 3.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 2.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_kombucha_gengibre",
+      "name": "Kombucha de gengibre",
+      "aliases": [
+        "kombucha gengibre"
+      ],
+      "macros_per_100ml": {
+        "calories": 14,
+        "proteinG": 0,
+        "carbsG": 3.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 3.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_chimarrao",
+      "name": "Chimarrão",
+      "aliases": [
+        "chimarrao",
+        "erva mate",
+        "mate quente"
+      ],
+      "macros_per_100ml": {
+        "calories": 2,
+        "proteinG": 0,
+        "carbsG": 0.4,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_terere",
+      "name": "Tereré sem açúcar",
+      "aliases": [
+        "terere",
+        "tereré",
+        "mate gelado sem açúcar"
+      ],
+      "macros_per_100ml": {
+        "calories": 2,
+        "proteinG": 0,
+        "carbsG": 0.4,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_matcha_sem_acucar",
+      "name": "Matcha sem açúcar",
+      "aliases": [
+        "matcha",
+        "chá matcha"
+      ],
+      "macros_per_100ml": {
+        "calories": 3,
+        "proteinG": 0.3,
+        "carbsG": 0.4,
+        "fatG": 0,
+        "fiberG": 0.2,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "tea"
+    },
+    {
+      "id": "bev_leite_integral",
+      "name": "Leite integral",
+      "aliases": [
+        "leite",
+        "leite de vaca integral"
+      ],
+      "macros_per_100ml": {
+        "calories": 61,
+        "proteinG": 3.2,
+        "carbsG": 4.7,
+        "fatG": 3.3,
+        "fiberG": 0,
+        "sugarsG": 4.7,
+        "saturatedFatG": 1.9
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "milk"
+    },
+    {
+      "id": "bev_leite_semidesnatado",
+      "name": "Leite semidesnatado",
+      "aliases": [
+        "leite semi",
+        "leite semi-desnatado"
+      ],
+      "macros_per_100ml": {
+        "calories": 47,
+        "proteinG": 3.2,
+        "carbsG": 4.8,
+        "fatG": 1.6,
+        "fiberG": 0,
+        "sugarsG": 4.8,
+        "saturatedFatG": 1.0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "milk"
+    },
+    {
+      "id": "bev_leite_desnatado",
+      "name": "Leite desnatado",
+      "aliases": [
+        "leite magro",
+        "leite zero gordura"
+      ],
+      "macros_per_100ml": {
+        "calories": 34,
+        "proteinG": 3.4,
+        "carbsG": 5.0,
+        "fatG": 0.1,
+        "fiberG": 0,
+        "sugarsG": 5.0,
+        "saturatedFatG": 0.1
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "milk"
+    },
+    {
+      "id": "bev_leite_integral_sem_lactose",
+      "name": "Leite integral sem lactose",
+      "aliases": [
+        "leite sem lactose integral"
+      ],
+      "macros_per_100ml": {
+        "calories": 60,
+        "proteinG": 3.1,
+        "carbsG": 4.8,
+        "fatG": 3.2,
+        "fiberG": 0,
+        "sugarsG": 4.8,
+        "saturatedFatG": 1.9
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "milk"
+    },
+    {
+      "id": "bev_leite_desnatado_sem_lactose",
+      "name": "Leite desnatado sem lactose",
+      "aliases": [
+        "leite sem lactose desnatado"
+      ],
+      "macros_per_100ml": {
+        "calories": 35,
+        "proteinG": 3.3,
+        "carbsG": 5.0,
+        "fatG": 0.1,
+        "fiberG": 0,
+        "sugarsG": 5.0,
+        "saturatedFatG": 0.1
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "milk"
+    },
+    {
+      "id": "bev_leite_a2_integral",
+      "name": "Leite A2 integral",
+      "aliases": [
+        "leite a2",
+        "leite a2 integral"
+      ],
+      "macros_per_100ml": {
+        "calories": 61,
+        "proteinG": 3.2,
+        "carbsG": 4.7,
+        "fatG": 3.3,
+        "fiberG": 0,
+        "sugarsG": 4.7,
+        "saturatedFatG": 1.9
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "milk"
+    },
+    {
+      "id": "bev_leite_cabra",
+      "name": "Leite de cabra",
+      "aliases": [
+        "leite cabra"
+      ],
+      "macros_per_100ml": {
+        "calories": 69,
+        "proteinG": 3.6,
+        "carbsG": 4.5,
+        "fatG": 4.1,
+        "fiberG": 0,
+        "sugarsG": 4.5,
+        "saturatedFatG": 2.7
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "milk"
+    },
+    {
+      "id": "bev_leite_po_reconstituido_integral",
+      "name": "Leite em pó integral reconstituído",
+      "aliases": [
+        "leite em pó",
+        "leite ninho preparado"
+      ],
+      "macros_per_100ml": {
+        "calories": 65,
+        "proteinG": 3.3,
+        "carbsG": 5.0,
+        "fatG": 3.5,
+        "fiberG": 0,
+        "sugarsG": 5.0,
+        "saturatedFatG": 2.1
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "milk"
+    },
+    {
+      "id": "bev_bebida_soja_original",
+      "name": "Bebida de soja original",
+      "aliases": [
+        "leite de soja",
+        "bebida de soja"
+      ],
+      "macros_per_100ml": {
+        "calories": 45,
+        "proteinG": 3.0,
+        "carbsG": 4.0,
+        "fatG": 1.8,
+        "fiberG": 0.5,
+        "sugarsG": 3.0,
+        "saturatedFatG": 0.3
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "plant_milk"
+    },
+    {
+      "id": "bev_bebida_soja_zero",
+      "name": "Bebida de soja zero açúcar",
+      "aliases": [
+        "leite de soja zero",
+        "soja zero"
+      ],
+      "macros_per_100ml": {
+        "calories": 32,
+        "proteinG": 3.0,
+        "carbsG": 0.8,
+        "fatG": 1.8,
+        "fiberG": 0.5,
+        "sugarsG": 0.3,
+        "saturatedFatG": 0.3
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "plant_milk"
+    },
+    {
+      "id": "bev_bebida_amendoa_sem_acucar",
+      "name": "Bebida de amêndoas sem açúcar",
+      "aliases": [
+        "leite de amêndoas",
+        "amêndoas sem açúcar"
+      ],
+      "macros_per_100ml": {
+        "calories": 15,
+        "proteinG": 0.6,
+        "carbsG": 0.5,
+        "fatG": 1.2,
+        "fiberG": 0.2,
+        "sugarsG": 0.2,
+        "saturatedFatG": 0.1
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "plant_milk"
+    },
+    {
+      "id": "bev_bebida_amendoa_adocada",
+      "name": "Bebida de amêndoas adoçada",
+      "aliases": [
+        "leite de amêndoas adoçado"
+      ],
+      "macros_per_100ml": {
+        "calories": 32,
+        "proteinG": 0.6,
+        "carbsG": 5.5,
+        "fatG": 1.1,
+        "fiberG": 0.2,
+        "sugarsG": 5.0,
+        "saturatedFatG": 0.1
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "plant_milk"
+    },
+    {
+      "id": "bev_bebida_aveia_sem_acucar",
+      "name": "Bebida de aveia sem açúcar",
+      "aliases": [
+        "leite de aveia",
+        "aveia bebida"
+      ],
+      "macros_per_100ml": {
+        "calories": 45,
+        "proteinG": 1.0,
+        "carbsG": 7.0,
+        "fatG": 1.5,
+        "fiberG": 0.8,
+        "sugarsG": 3.5,
+        "saturatedFatG": 0.2
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "plant_milk"
+    },
+    {
+      "id": "bev_bebida_aveia_adocada",
+      "name": "Bebida de aveia adoçada",
+      "aliases": [
+        "leite de aveia adoçado"
+      ],
+      "macros_per_100ml": {
+        "calories": 60,
+        "proteinG": 1.0,
+        "carbsG": 10.0,
+        "fatG": 1.6,
+        "fiberG": 0.8,
+        "sugarsG": 7.0,
+        "saturatedFatG": 0.2
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "plant_milk"
+    },
+    {
+      "id": "bev_bebida_arroz",
+      "name": "Bebida de arroz",
+      "aliases": [
+        "leite de arroz",
+        "bebida vegetal arroz"
+      ],
+      "macros_per_100ml": {
+        "calories": 50,
+        "proteinG": 0.3,
+        "carbsG": 10.0,
+        "fatG": 1.0,
+        "fiberG": 0.1,
+        "sugarsG": 5.0,
+        "saturatedFatG": 0.1
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "plant_milk"
+    },
+    {
+      "id": "bev_bebida_coco",
+      "name": "Bebida de coco",
+      "aliases": [
+        "leite de coco bebida",
+        "bebida vegetal coco"
+      ],
+      "macros_per_100ml": {
+        "calories": 25,
+        "proteinG": 0.2,
+        "carbsG": 2.5,
+        "fatG": 1.5,
+        "fiberG": 0,
+        "sugarsG": 2.0,
+        "saturatedFatG": 1.2
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "plant_milk"
+    },
+    {
+      "id": "bev_leite_coco_culinario_diluido",
+      "name": "Leite de coco culinário diluído",
+      "aliases": [
+        "leite de coco diluído",
+        "coco culinário diluído"
+      ],
+      "macros_per_100ml": {
+        "calories": 95,
+        "proteinG": 0.8,
+        "carbsG": 2.0,
+        "fatG": 9.5,
+        "fiberG": 0,
+        "sugarsG": 1.5,
+        "saturatedFatG": 8.0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "plant_milk"
+    },
+    {
+      "id": "bev_kefir_leite_natural",
+      "name": "Kefir de leite natural",
+      "aliases": [
+        "kefir",
+        "kefir de leite"
+      ],
+      "macros_per_100ml": {
+        "calories": 55,
+        "proteinG": 3.3,
+        "carbsG": 4.5,
+        "fatG": 2.8,
+        "fiberG": 0,
+        "sugarsG": 4.0,
+        "saturatedFatG": 1.7
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "fermented_milk"
+    },
+    {
+      "id": "bev_iogurte_liquido_natural",
+      "name": "Iogurte líquido natural",
+      "aliases": [
+        "iogurte de beber natural",
+        "iogurte líquido"
+      ],
+      "macros_per_100ml": {
+        "calories": 62,
+        "proteinG": 3.4,
+        "carbsG": 5.5,
+        "fatG": 3.0,
+        "fiberG": 0,
+        "sugarsG": 5.0,
+        "saturatedFatG": 1.9
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "fermented_milk"
+    },
+    {
+      "id": "bev_iogurte_liquido_zero",
+      "name": "Iogurte líquido zero açúcar",
+      "aliases": [
+        "iogurte zero",
+        "iogurte de beber zero"
+      ],
+      "macros_per_100ml": {
+        "calories": 42,
+        "proteinG": 3.5,
+        "carbsG": 4.0,
+        "fatG": 1.5,
+        "fiberG": 0,
+        "sugarsG": 3.5,
+        "saturatedFatG": 0.9
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "fermented_milk"
+    },
+    {
+      "id": "bev_achocolatado_pronto_integral",
+      "name": "Achocolatado pronto integral",
+      "aliases": [
+        "toddy pronto",
+        "nescau pronto",
+        "achocolatado caixinha"
+      ],
+      "macros_per_100ml": {
+        "calories": 82,
+        "proteinG": 2.2,
+        "carbsG": 13.0,
+        "fatG": 2.4,
+        "fiberG": 0.6,
+        "sugarsG": 11.0,
+        "saturatedFatG": 1.5
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "chocolate_milk"
+    },
+    {
+      "id": "bev_achocolatado_pronto_desnatado",
+      "name": "Achocolatado pronto desnatado",
+      "aliases": [
+        "achocolatado light",
+        "bebida láctea chocolate light"
+      ],
+      "macros_per_100ml": {
+        "calories": 62,
+        "proteinG": 2.4,
+        "carbsG": 11.0,
+        "fatG": 0.8,
+        "fiberG": 0.6,
+        "sugarsG": 9.5,
+        "saturatedFatG": 0.5
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "chocolate_milk"
+    },
+    {
+      "id": "bev_achocolatado_caseiro_com_acucar",
+      "name": "Achocolatado caseiro com açúcar",
+      "aliases": [
+        "leite com chocolate",
+        "nescau com leite",
+        "toddy com leite"
+      ],
+      "macros_per_100ml": {
+        "calories": 95,
+        "proteinG": 3.0,
+        "carbsG": 14.0,
+        "fatG": 3.0,
+        "fiberG": 0.8,
+        "sugarsG": 13.0,
+        "saturatedFatG": 1.8
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "chocolate_milk"
+    },
+    {
+      "id": "bev_achocolatado_caseiro_sem_acucar",
+      "name": "Achocolatado caseiro sem açúcar",
+      "aliases": [
+        "cacau com leite sem açúcar",
+        "chocolate sem açúcar"
+      ],
+      "macros_per_100ml": {
+        "calories": 58,
+        "proteinG": 3.5,
+        "carbsG": 5.5,
+        "fatG": 2.8,
+        "fiberG": 0.8,
+        "sugarsG": 4.8,
+        "saturatedFatG": 1.7
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "chocolate_milk"
+    },
+    {
+      "id": "bev_bebida_lactea_morango",
+      "name": "Bebida láctea sabor morango",
+      "aliases": [
+        "iogurte morango bebida",
+        "bebida láctea morango"
+      ],
+      "macros_per_100ml": {
+        "calories": 75,
+        "proteinG": 2.1,
+        "carbsG": 12.0,
+        "fatG": 2.0,
+        "fiberG": 0,
+        "sugarsG": 11.0,
+        "saturatedFatG": 1.2
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "chocolate_milk"
+    },
+    {
+      "id": "bev_vitamina_banana_com_leite",
+      "name": "Vitamina de banana com leite",
+      "aliases": [
+        "vitamina de banana",
+        "banana com leite batido"
+      ],
+      "macros_per_100ml": {
+        "calories": 78,
+        "proteinG": 2.5,
+        "carbsG": 13.0,
+        "fatG": 1.8,
+        "fiberG": 0.8,
+        "sugarsG": 10.0,
+        "saturatedFatG": 1.1
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "smoothie"
+    },
+    {
+      "id": "bev_vitamina_mamao_com_leite",
+      "name": "Vitamina de mamão com leite",
+      "aliases": [
+        "vitamina de mamão",
+        "mamão com leite"
+      ],
+      "macros_per_100ml": {
+        "calories": 70,
+        "proteinG": 2.3,
+        "carbsG": 11.0,
+        "fatG": 1.7,
+        "fiberG": 0.7,
+        "sugarsG": 9.0,
+        "saturatedFatG": 1.0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "smoothie"
+    },
+    {
+      "id": "bev_vitamina_abacate_com_leite",
+      "name": "Vitamina de abacate com leite",
+      "aliases": [
+        "abacate com leite",
+        "vitamina de abacate"
+      ],
+      "macros_per_100ml": {
+        "calories": 115,
+        "proteinG": 2.5,
+        "carbsG": 9.0,
+        "fatG": 7.5,
+        "fiberG": 1.8,
+        "sugarsG": 7.0,
+        "saturatedFatG": 2.0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "smoothie"
+    },
+    {
+      "id": "bev_suco_natural_laranja",
+      "name": "Suco natural de Laranja",
+      "aliases": [
+        "suco de laranja",
+        "laranja natural",
+        "suco natural laranja"
+      ],
+      "macros_per_100ml": {
+        "calories": 45,
+        "proteinG": 0.7,
+        "carbsG": 10.4,
+        "fatG": 0.2,
+        "fiberG": 0.2,
+        "sugarsG": 8.4,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_limão",
+      "name": "Suco natural de Limão",
+      "aliases": [
+        "suco de limão",
+        "limão natural",
+        "suco natural limão"
+      ],
+      "macros_per_100ml": {
+        "calories": 18,
+        "proteinG": 0.2,
+        "carbsG": 5.5,
+        "fatG": 0.1,
+        "fiberG": 0.1,
+        "sugarsG": 1.7,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_acerola",
+      "name": "Suco natural de Acerola",
+      "aliases": [
+        "suco de acerola",
+        "acerola natural",
+        "suco natural acerola"
+      ],
+      "macros_per_100ml": {
+        "calories": 32,
+        "proteinG": 0.5,
+        "carbsG": 7.5,
+        "fatG": 0.2,
+        "fiberG": 0.3,
+        "sugarsG": 5.8,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_abacaxi",
+      "name": "Suco natural de Abacaxi",
+      "aliases": [
+        "suco de abacaxi",
+        "abacaxi natural",
+        "suco natural abacaxi"
+      ],
+      "macros_per_100ml": {
+        "calories": 50,
+        "proteinG": 0.4,
+        "carbsG": 12.0,
+        "fatG": 0.1,
+        "fiberG": 0.2,
+        "sugarsG": 10.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_maracujá",
+      "name": "Suco natural de Maracujá",
+      "aliases": [
+        "suco de maracujá",
+        "maracujá natural",
+        "suco natural maracujá"
+      ],
+      "macros_per_100ml": {
+        "calories": 38,
+        "proteinG": 0.4,
+        "carbsG": 9.5,
+        "fatG": 0.1,
+        "fiberG": 0.3,
+        "sugarsG": 8.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_uva_integral",
+      "name": "Suco natural de Uva integral",
+      "aliases": [
+        "suco de uva integral",
+        "uva integral natural",
+        "suco natural uva integral"
+      ],
+      "macros_per_100ml": {
+        "calories": 62,
+        "proteinG": 0.3,
+        "carbsG": 15.5,
+        "fatG": 0.1,
+        "fiberG": 0.1,
+        "sugarsG": 14.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_maçã",
+      "name": "Suco natural de Maçã",
+      "aliases": [
+        "suco de maçã",
+        "maçã natural",
+        "suco natural maçã"
+      ],
+      "macros_per_100ml": {
+        "calories": 46,
+        "proteinG": 0.1,
+        "carbsG": 11.5,
+        "fatG": 0.1,
+        "fiberG": 0.1,
+        "sugarsG": 10.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_melancia",
+      "name": "Suco natural de Melancia",
+      "aliases": [
+        "suco de melancia",
+        "melancia natural",
+        "suco natural melancia"
+      ],
+      "macros_per_100ml": {
+        "calories": 30,
+        "proteinG": 0.4,
+        "carbsG": 7.5,
+        "fatG": 0.1,
+        "fiberG": 0.2,
+        "sugarsG": 6.2,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_manga",
+      "name": "Suco natural de Manga",
+      "aliases": [
+        "suco de manga",
+        "manga natural",
+        "suco natural manga"
+      ],
+      "macros_per_100ml": {
+        "calories": 58,
+        "proteinG": 0.4,
+        "carbsG": 14.0,
+        "fatG": 0.2,
+        "fiberG": 0.5,
+        "sugarsG": 12.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_goiaba",
+      "name": "Suco natural de Goiaba",
+      "aliases": [
+        "suco de goiaba",
+        "goiaba natural",
+        "suco natural goiaba"
+      ],
+      "macros_per_100ml": {
+        "calories": 42,
+        "proteinG": 0.5,
+        "carbsG": 10.0,
+        "fatG": 0.2,
+        "fiberG": 0.8,
+        "sugarsG": 7.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_caju",
+      "name": "Suco natural de Caju",
+      "aliases": [
+        "suco de caju",
+        "caju natural",
+        "suco natural caju"
+      ],
+      "macros_per_100ml": {
+        "calories": 38,
+        "proteinG": 0.4,
+        "carbsG": 9.0,
+        "fatG": 0.1,
+        "fiberG": 0.2,
+        "sugarsG": 8.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_morango",
+      "name": "Suco natural de Morango",
+      "aliases": [
+        "suco de morango",
+        "morango natural",
+        "suco natural morango"
+      ],
+      "macros_per_100ml": {
+        "calories": 32,
+        "proteinG": 0.5,
+        "carbsG": 7.5,
+        "fatG": 0.2,
+        "fiberG": 0.8,
+        "sugarsG": 5.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_graviola",
+      "name": "Suco natural de Graviola",
+      "aliases": [
+        "suco de graviola",
+        "graviola natural",
+        "suco natural graviola"
+      ],
+      "macros_per_100ml": {
+        "calories": 52,
+        "proteinG": 0.6,
+        "carbsG": 12.5,
+        "fatG": 0.2,
+        "fiberG": 0.6,
+        "sugarsG": 10.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_cupuaçu",
+      "name": "Suco natural de Cupuaçu",
+      "aliases": [
+        "suco de cupuaçu",
+        "cupuaçu natural",
+        "suco natural cupuaçu"
+      ],
+      "macros_per_100ml": {
+        "calories": 54,
+        "proteinG": 0.5,
+        "carbsG": 13.0,
+        "fatG": 0.3,
+        "fiberG": 0.8,
+        "sugarsG": 10.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_açaí_batido",
+      "name": "Suco natural de Açaí batido",
+      "aliases": [
+        "suco de açaí batido",
+        "açaí batido natural",
+        "suco natural açaí batido"
+      ],
+      "macros_per_100ml": {
+        "calories": 86,
+        "proteinG": 1.0,
+        "carbsG": 14.0,
+        "fatG": 3.0,
+        "fiberG": 1.8,
+        "sugarsG": 10.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_tamarindo",
+      "name": "Suco natural de Tamarindo",
+      "aliases": [
+        "suco de tamarindo",
+        "tamarindo natural",
+        "suco natural tamarindo"
+      ],
+      "macros_per_100ml": {
+        "calories": 57,
+        "proteinG": 0.3,
+        "carbsG": 14.0,
+        "fatG": 0.1,
+        "fiberG": 0.5,
+        "sugarsG": 12.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_pitanga",
+      "name": "Suco natural de Pitanga",
+      "aliases": [
+        "suco de pitanga",
+        "pitanga natural",
+        "suco natural pitanga"
+      ],
+      "macros_per_100ml": {
+        "calories": 36,
+        "proteinG": 0.4,
+        "carbsG": 8.5,
+        "fatG": 0.1,
+        "fiberG": 0.4,
+        "sugarsG": 7.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_umbu",
+      "name": "Suco natural de Umbu",
+      "aliases": [
+        "suco de umbu",
+        "umbu natural",
+        "suco natural umbu"
+      ],
+      "macros_per_100ml": {
+        "calories": 35,
+        "proteinG": 0.4,
+        "carbsG": 8.0,
+        "fatG": 0.1,
+        "fiberG": 0.5,
+        "sugarsG": 6.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_detox_couve_limao",
+      "name": "Suco natural de Detox couve limao",
+      "aliases": [
+        "suco de detox couve limao",
+        "detox couve limao natural",
+        "suco natural detox couve limao"
+      ],
+      "macros_per_100ml": {
+        "calories": 22,
+        "proteinG": 0.5,
+        "carbsG": 5.0,
+        "fatG": 0.1,
+        "fiberG": 0.8,
+        "sugarsG": 2.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_suco_natural_cenoura_laranja",
+      "name": "Suco natural de Cenoura laranja",
+      "aliases": [
+        "suco de cenoura laranja",
+        "cenoura laranja natural",
+        "suco natural cenoura laranja"
+      ],
+      "macros_per_100ml": {
+        "calories": 42,
+        "proteinG": 0.5,
+        "carbsG": 9.8,
+        "fatG": 0.1,
+        "fiberG": 0.6,
+        "sugarsG": 7.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "natural_juice"
+    },
+    {
+      "id": "bev_nectar_laranja",
+      "name": "Néctar de laranja",
+      "aliases": [
+        "néctar de laranja",
+        "nectar laranja"
+      ],
+      "macros_per_100ml": {
+        "calories": 48,
+        "proteinG": 0.2,
+        "carbsG": 12.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 11.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_nectar_uva",
+      "name": "Néctar de uva",
+      "aliases": [
+        "néctar de uva",
+        "nectar uva"
+      ],
+      "macros_per_100ml": {
+        "calories": 58,
+        "proteinG": 0.2,
+        "carbsG": 14.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 13.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_nectar_manga",
+      "name": "Néctar de manga",
+      "aliases": [
+        "néctar de manga",
+        "nectar manga"
+      ],
+      "macros_per_100ml": {
+        "calories": 55,
+        "proteinG": 0.2,
+        "carbsG": 13.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 12.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_nectar_pessego",
+      "name": "Néctar de pêssego",
+      "aliases": [
+        "néctar de pêssego",
+        "nectar pessego"
+      ],
+      "macros_per_100ml": {
+        "calories": 50,
+        "proteinG": 0.2,
+        "carbsG": 12.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 11.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_suco_caixinha_laranja",
+      "name": "Suco de caixinha sabor laranja",
+      "aliases": [
+        "suco de caixinha sabor laranja",
+        "suco caixinha laranja"
+      ],
+      "macros_per_100ml": {
+        "calories": 43,
+        "proteinG": 0.1,
+        "carbsG": 10.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 9.8,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_suco_caixinha_uva",
+      "name": "Suco de caixinha sabor uva",
+      "aliases": [
+        "suco de caixinha sabor uva",
+        "suco caixinha uva"
+      ],
+      "macros_per_100ml": {
+        "calories": 52,
+        "proteinG": 0.1,
+        "carbsG": 13.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 12.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_refresco_po_laranja",
+      "name": "Refresco em pó sabor laranja preparado",
+      "aliases": [
+        "refresco em pó sabor laranja preparado",
+        "refresco po laranja"
+      ],
+      "macros_per_100ml": {
+        "calories": 36,
+        "proteinG": 0,
+        "carbsG": 9.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 8.8,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_refresco_po_uva",
+      "name": "Refresco em pó sabor uva preparado",
+      "aliases": [
+        "refresco em pó sabor uva preparado",
+        "refresco po uva"
+      ],
+      "macros_per_100ml": {
+        "calories": 37,
+        "proteinG": 0,
+        "carbsG": 9.2,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 9.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_refresco_po_zero",
+      "name": "Refresco em pó zero preparado",
+      "aliases": [
+        "refresco em pó zero preparado",
+        "refresco po zero"
+      ],
+      "macros_per_100ml": {
+        "calories": 2,
+        "proteinG": 0,
+        "carbsG": 0.2,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_limonada_pronta",
+      "name": "Limonada pronta adoçada",
+      "aliases": [
+        "limonada pronta adoçada",
+        "limonada pronta"
+      ],
+      "macros_per_100ml": {
+        "calories": 38,
+        "proteinG": 0,
+        "carbsG": 9.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 9.2,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_suco_integral_uva",
+      "name": "Suco integral de uva",
+      "aliases": [
+        "suco integral de uva",
+        "suco integral uva"
+      ],
+      "macros_per_100ml": {
+        "calories": 62,
+        "proteinG": 0.3,
+        "carbsG": 15.5,
+        "fatG": 0.1,
+        "fiberG": 0.1,
+        "sugarsG": 14.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_suco_integral_maca",
+      "name": "Suco integral de maçã",
+      "aliases": [
+        "suco integral de maçã",
+        "suco integral maca"
+      ],
+      "macros_per_100ml": {
+        "calories": 46,
+        "proteinG": 0.1,
+        "carbsG": 11.5,
+        "fatG": 0,
+        "fiberG": 0.1,
+        "sugarsG": 10.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_suco_verde_pronto",
+      "name": "Suco verde pronto",
+      "aliases": [
+        "suco verde pronto",
+        "suco verde pronto"
+      ],
+      "macros_per_100ml": {
+        "calories": 34,
+        "proteinG": 0.4,
+        "carbsG": 8.0,
+        "fatG": 0.1,
+        "fiberG": 0.5,
+        "sugarsG": 6.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_agua_saborizada_adocada",
+      "name": "Água saborizada adoçada",
+      "aliases": [
+        "água saborizada adoçada",
+        "agua saborizada adocada"
+      ],
+      "macros_per_100ml": {
+        "calories": 24,
+        "proteinG": 0,
+        "carbsG": 6.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 6.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_bebida_fruta_soja",
+      "name": "Bebida de fruta com soja",
+      "aliases": [
+        "bebida de fruta com soja",
+        "bebida fruta soja"
+      ],
+      "macros_per_100ml": {
+        "calories": 44,
+        "proteinG": 1.2,
+        "carbsG": 8.0,
+        "fatG": 0.8,
+        "fiberG": 0.3,
+        "sugarsG": 7.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "industrialized_juice"
+    },
+    {
+      "id": "bev_refrigerante_cola_normal",
+      "name": "Refrigerante cola tradicional",
+      "aliases": [
+        "coca-cola",
+        "coca",
+        "cola normal"
+      ],
+      "macros_per_100ml": {
+        "calories": 42,
+        "proteinG": 0,
+        "carbsG": 10.6,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 10.6,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_cola_zero",
+      "name": "Refrigerante cola zero",
+      "aliases": [
+        "coca zero",
+        "cola zero",
+        "refrigerante zero"
+      ],
+      "macros_per_100ml": {
+        "calories": 0,
+        "proteinG": 0,
+        "carbsG": 0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_guarana_normal",
+      "name": "Refrigerante guaraná tradicional",
+      "aliases": [
+        "guaraná",
+        "guarana",
+        "guaraná normal"
+      ],
+      "macros_per_100ml": {
+        "calories": 39,
+        "proteinG": 0,
+        "carbsG": 9.8,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 9.8,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_guarana_zero",
+      "name": "Refrigerante guaraná zero",
+      "aliases": [
+        "guaraná zero",
+        "guarana zero"
+      ],
+      "macros_per_100ml": {
+        "calories": 0,
+        "proteinG": 0,
+        "carbsG": 0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_laranja_normal",
+      "name": "Refrigerante sabor laranja",
+      "aliases": [
+        "fanta laranja",
+        "soda laranja"
+      ],
+      "macros_per_100ml": {
+        "calories": 45,
+        "proteinG": 0,
+        "carbsG": 11.2,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 11.2,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_laranja_zero",
+      "name": "Refrigerante sabor laranja zero",
+      "aliases": [
+        "fanta zero",
+        "laranja zero"
+      ],
+      "macros_per_100ml": {
+        "calories": 1,
+        "proteinG": 0,
+        "carbsG": 0.1,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_limao_normal",
+      "name": "Refrigerante sabor limão",
+      "aliases": [
+        "sprite",
+        "soda limonada",
+        "limão normal"
+      ],
+      "macros_per_100ml": {
+        "calories": 40,
+        "proteinG": 0,
+        "carbsG": 10.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 10.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_limao_zero",
+      "name": "Refrigerante sabor limão zero",
+      "aliases": [
+        "sprite zero",
+        "limão zero"
+      ],
+      "macros_per_100ml": {
+        "calories": 0,
+        "proteinG": 0,
+        "carbsG": 0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_uva_normal",
+      "name": "Refrigerante sabor uva",
+      "aliases": [
+        "refrigerante uva",
+        "fanta uva"
+      ],
+      "macros_per_100ml": {
+        "calories": 45,
+        "proteinG": 0,
+        "carbsG": 11.3,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 11.3,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_tubaina",
+      "name": "Tubaína",
+      "aliases": [
+        "tubaina",
+        "refrigerante tubaína"
+      ],
+      "macros_per_100ml": {
+        "calories": 43,
+        "proteinG": 0,
+        "carbsG": 10.8,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 10.8,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_citrus",
+      "name": "Refrigerante citrus",
+      "aliases": [
+        "schweppes citrus",
+        "citrus"
+      ],
+      "macros_per_100ml": {
+        "calories": 39,
+        "proteinG": 0,
+        "carbsG": 9.8,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 9.8,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_soda",
+      "name": "Soda tradicional",
+      "aliases": [
+        "soda",
+        "soda limonada"
+      ],
+      "macros_per_100ml": {
+        "calories": 39,
+        "proteinG": 0,
+        "carbsG": 9.7,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 9.7,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_cola_cafe",
+      "name": "Refrigerante cola com café",
+      "aliases": [
+        "coca café",
+        "cola café"
+      ],
+      "macros_per_100ml": {
+        "calories": 42,
+        "proteinG": 0,
+        "carbsG": 10.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 10.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_gengibre",
+      "name": "Refrigerante de gengibre",
+      "aliases": [
+        "ginger ale",
+        "gengibre soda"
+      ],
+      "macros_per_100ml": {
+        "calories": 34,
+        "proteinG": 0,
+        "carbsG": 8.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 8.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_quinino_zero",
+      "name": "Refrigerante quinino zero",
+      "aliases": [
+        "tonica quinino zero",
+        "quinino zero"
+      ],
+      "macros_per_100ml": {
+        "calories": 1,
+        "proteinG": 0,
+        "carbsG": 0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_refrigerante_organico_normal",
+      "name": "Refrigerante orgânico tradicional",
+      "aliases": [
+        "refri orgânico",
+        "refrigerante natural adoçado"
+      ],
+      "macros_per_100ml": {
+        "calories": 38,
+        "proteinG": 0,
+        "carbsG": 9.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 9.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "soda"
+    },
+    {
+      "id": "bev_isotonico_limao",
+      "name": "Isotônico sabor limão",
+      "aliases": [
+        "gatorade limão",
+        "isotônico"
+      ],
+      "macros_per_100ml": {
+        "calories": 24,
+        "proteinG": 0,
+        "carbsG": 6.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 6.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "sports_drink"
+    },
+    {
+      "id": "bev_isotonico_laranja",
+      "name": "Isotônico sabor laranja",
+      "aliases": [
+        "gatorade laranja",
+        "isotônico laranja"
+      ],
+      "macros_per_100ml": {
+        "calories": 24,
+        "proteinG": 0,
+        "carbsG": 6.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 6.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "sports_drink"
+    },
+    {
+      "id": "bev_isotonico_uva",
+      "name": "Isotônico sabor uva",
+      "aliases": [
+        "gatorade uva",
+        "isotônico uva"
+      ],
+      "macros_per_100ml": {
+        "calories": 25,
+        "proteinG": 0,
+        "carbsG": 6.2,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 6.1,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "sports_drink"
+    },
+    {
+      "id": "bev_isotonico_zero",
+      "name": "Isotônico zero",
+      "aliases": [
+        "gatorade zero",
+        "isotônico sem açúcar"
+      ],
+      "macros_per_100ml": {
+        "calories": 2,
+        "proteinG": 0,
+        "carbsG": 0.3,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "sports_drink"
+    },
+    {
+      "id": "bev_energetico_tradicional",
+      "name": "Energético tradicional",
+      "aliases": [
+        "red bull",
+        "monster",
+        "energético"
+      ],
+      "macros_per_100ml": {
+        "calories": 45,
+        "proteinG": 0,
+        "carbsG": 11.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 11.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "energy_drink"
+    },
+    {
+      "id": "bev_energetico_zero",
+      "name": "Energético zero",
+      "aliases": [
+        "red bull zero",
+        "monster zero",
+        "energético zero"
+      ],
+      "macros_per_100ml": {
+        "calories": 3,
+        "proteinG": 0,
+        "carbsG": 0.4,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": true
+      },
+      "category": "energy_drink"
+    },
+    {
+      "id": "bev_energetico_tropical",
+      "name": "Energético sabor tropical",
+      "aliases": [
+        "energético tropical",
+        "energy drink tropical"
+      ],
+      "macros_per_100ml": {
+        "calories": 48,
+        "proteinG": 0,
+        "carbsG": 12.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 11.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "energy_drink"
+    },
+    {
+      "id": "bev_pre_treino_pronto",
+      "name": "Bebida pré-treino pronta",
+      "aliases": [
+        "pré treino pronto",
+        "pre treino bebida"
+      ],
+      "macros_per_100ml": {
+        "calories": 8,
+        "proteinG": 0,
+        "carbsG": 1.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": true,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "energy_drink"
+    },
+    {
+      "id": "bev_cerveja_pilsen",
+      "name": "Cerveja pilsen",
+      "aliases": [
+        "cerveja",
+        "pilsen",
+        "lager"
+      ],
+      "macros_per_100ml": {
+        "calories": 41,
+        "proteinG": 0.3,
+        "carbsG": 3.6,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0.1,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_cerveja_lager",
+      "name": "Cerveja lager",
+      "aliases": [
+        "lager",
+        "cerveja clara"
+      ],
+      "macros_per_100ml": {
+        "calories": 43,
+        "proteinG": 0.3,
+        "carbsG": 3.8,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0.1,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_cerveja_ipa",
+      "name": "Cerveja IPA",
+      "aliases": [
+        "ipa",
+        "india pale ale"
+      ],
+      "macros_per_100ml": {
+        "calories": 55,
+        "proteinG": 0.5,
+        "carbsG": 5.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0.2,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_cerveja_weiss",
+      "name": "Cerveja weiss",
+      "aliases": [
+        "weiss",
+        "cerveja trigo"
+      ],
+      "macros_per_100ml": {
+        "calories": 48,
+        "proteinG": 0.5,
+        "carbsG": 4.2,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0.2,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_cerveja_stout",
+      "name": "Cerveja stout",
+      "aliases": [
+        "stout",
+        "cerveja preta"
+      ],
+      "macros_per_100ml": {
+        "calories": 60,
+        "proteinG": 0.6,
+        "carbsG": 6.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0.3,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_cerveja_sem_alcool",
+      "name": "Cerveja sem álcool",
+      "aliases": [
+        "cerveja zero álcool",
+        "sem álcool"
+      ],
+      "macros_per_100ml": {
+        "calories": 25,
+        "proteinG": 0.3,
+        "carbsG": 5.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 1.5,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": false,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "non_alcoholic_beer"
+    },
+    {
+      "id": "bev_cerveja_light",
+      "name": "Cerveja light",
+      "aliases": [
+        "cerveja leve",
+        "light beer"
+      ],
+      "macros_per_100ml": {
+        "calories": 30,
+        "proteinG": 0.2,
+        "carbsG": 2.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0.1,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_chopp_pilsen",
+      "name": "Chopp pilsen",
+      "aliases": [
+        "chopp",
+        "chope",
+        "chopp claro"
+      ],
+      "macros_per_100ml": {
+        "calories": 42,
+        "proteinG": 0.3,
+        "carbsG": 3.7,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0.1,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_vinho_tinto_seco",
+      "name": "Vinho tinto seco",
+      "aliases": [
+        "vinho tinto",
+        "tinto seco"
+      ],
+      "macros_per_100ml": {
+        "calories": 84,
+        "proteinG": 0.1,
+        "carbsG": 2.6,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0.6,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_vinho_branco_seco",
+      "name": "Vinho branco seco",
+      "aliases": [
+        "vinho branco",
+        "branco seco"
+      ],
+      "macros_per_100ml": {
+        "calories": 82,
+        "proteinG": 0.1,
+        "carbsG": 2.6,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 1.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_vinho_rose",
+      "name": "Vinho rosé",
+      "aliases": [
+        "rose",
+        "vinho rose",
+        "vinho rosado"
+      ],
+      "macros_per_100ml": {
+        "calories": 83,
+        "proteinG": 0.1,
+        "carbsG": 2.8,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 1.2,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_vinho_espumante_brut",
+      "name": "Espumante brut",
+      "aliases": [
+        "espumante",
+        "brut",
+        "champagne brut"
+      ],
+      "macros_per_100ml": {
+        "calories": 78,
+        "proteinG": 0.1,
+        "carbsG": 1.5,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 0.8,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_vinho_espumante_demi_sec",
+      "name": "Espumante demi-sec",
+      "aliases": [
+        "demi sec",
+        "espumante doce"
+      ],
+      "macros_per_100ml": {
+        "calories": 90,
+        "proteinG": 0.1,
+        "carbsG": 5.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 4.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_vinho_suave_tinto",
+      "name": "Vinho tinto suave",
+      "aliases": [
+        "vinho suave",
+        "tinto suave"
+      ],
+      "macros_per_100ml": {
+        "calories": 95,
+        "proteinG": 0.1,
+        "carbsG": 7.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 6.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_vinho_porto",
+      "name": "Vinho do Porto",
+      "aliases": [
+        "porto",
+        "vinho fortificado"
+      ],
+      "macros_per_100ml": {
+        "calories": 160,
+        "proteinG": 0.1,
+        "carbsG": 14.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 10.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_caipirinha_acucar",
+      "name": "Caipirinha com açúcar",
+      "aliases": [
+        "caipirinha",
+        "caipira com açúcar"
+      ],
+      "macros_per_100ml": {
+        "calories": 180,
+        "proteinG": 0,
+        "carbsG": 18.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 17.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_caipirinha_adocante",
+      "name": "Caipirinha com adoçante",
+      "aliases": [
+        "caipirinha zero",
+        "caipirinha sem açúcar"
+      ],
+      "macros_per_100ml": {
+        "calories": 120,
+        "proteinG": 0,
+        "carbsG": 2.0,
+        "fatG": 0,
+        "fiberG": 0,
+        "sugarsG": 1.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": false,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    },
+    {
+      "id": "bev_batida_coco",
+      "name": "Batida de coco",
+      "aliases": [
+        "batida",
+        "batida coco"
+      ],
+      "macros_per_100ml": {
+        "calories": 210,
+        "proteinG": 1.0,
+        "carbsG": 20.0,
+        "fatG": 5.0,
+        "fiberG": 0,
+        "sugarsG": 18.0,
+        "saturatedFatG": 0
+      },
+      "tags": {
+        "alcoholic": true,
+        "caffeinated": false,
+        "sugary": true,
+        "zero_calorie": false
+      },
+      "category": "alcoholic"
+    }
+  ]
+}

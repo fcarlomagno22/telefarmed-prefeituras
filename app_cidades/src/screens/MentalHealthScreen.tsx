@@ -24,7 +24,7 @@ const TAB_BAR_ESTIMATED_HEIGHT = 78
 
 export function MentalHealthScreen() {
   const insets = useSafeAreaInsets()
-  const { user, navigateTo, goBack, canGoBack, logout } = useAuth()
+  const { user, isAuthenticated, navigateTo, goBack, canGoBack, logout } = useAuth()
 
   const [menuVisible, setMenuVisible] = useState(false)
   const [onboardingRecord, setOnboardingRecord] = useState<MentalHealthOnboardingRecord>(
@@ -34,6 +34,8 @@ export function MentalHealthScreen() {
   const [onboardingVisible, setOnboardingVisible] = useState(false)
   const [homeRefreshKey, setHomeRefreshKey] = useState(0)
   const [clinicalStateSeed, setClinicalStateSeed] = useState<UserClinicalState | null>(null)
+  const [safetyFlowActive, setSafetyFlowActive] = useState(false)
+  const [settingsVisible, setSettingsVisible] = useState(false)
 
   const patientCpf = user?.cpf ?? 'guest'
   const headerPaddingTop = Math.max(insets.top, 12) + 8
@@ -42,9 +44,9 @@ export function MentalHealthScreen() {
   const loadRecord = useCallback(async () => {
     const record = await loadMentalHealthOnboardingRecord(patientCpf)
     setOnboardingRecord(record)
-    setOnboardingVisible(!record.completed)
+    setOnboardingVisible(isAuthenticated && !record.completed)
     setIsRecordReady(true)
-  }, [patientCpf])
+  }, [isAuthenticated, patientCpf])
 
   useEffect(() => {
     void loadRecord()
@@ -56,13 +58,22 @@ export function MentalHealthScreen() {
         return false
       }
 
+      if (settingsVisible) {
+        setSettingsVisible(false)
+        return true
+      }
+
+      if (safetyFlowActive) {
+        return false
+      }
+
       if (canGoBack()) {
         goBack()
         return true
       }
 
       return false
-    }, [canGoBack, goBack, onboardingVisible]),
+    }, [canGoBack, goBack, onboardingVisible, safetyFlowActive, settingsVisible]),
   )
 
   function handleTabPress(tab: BottomTabId) {
@@ -103,16 +114,28 @@ export function MentalHealthScreen() {
           title="Saúde Mental"
           subtitle="Cuidado emocional no seu ritmo"
           paddingTop={headerPaddingTop}
-          onBack={() => goBack()}
+          onBack={() => {
+            if (safetyFlowActive) return
+            goBack()
+          }}
+          onSettingsPress={
+            isRecordReady && onboardingRecord.completed && !safetyFlowActive
+              ? () => setSettingsVisible(true)
+              : undefined
+          }
         />
 
-        {isRecordReady && onboardingRecord.completed ? (
+        {isRecordReady && (isAuthenticated ? onboardingRecord.completed : true) ? (
           <MentalHealthHomeContent
             bottomPadding={bottomContentPadding}
             patientCpf={patientCpf}
             record={onboardingRecord}
             refreshKey={homeRefreshKey}
             clinicalStateSeed={clinicalStateSeed}
+            onSafetyFlowActiveChange={setSafetyFlowActive}
+            onboardingInProgress={onboardingVisible}
+            settingsVisible={settingsVisible}
+            onSettingsVisibleChange={setSettingsVisible}
           />
         ) : (
           <View style={styles.placeholder} />
@@ -130,7 +153,7 @@ export function MentalHealthScreen() {
       </ImageBackground>
 
       <MentalHealthOnboardingDrawer
-        visible={isRecordReady && onboardingVisible}
+        visible={isAuthenticated && isRecordReady && onboardingVisible}
         patientCpf={patientCpf}
         onSetupComplete={handleSetupComplete}
         onFlowComplete={handleOnboardingFlowComplete}

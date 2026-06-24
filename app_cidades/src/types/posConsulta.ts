@@ -49,6 +49,37 @@ export type PosConsultaSubmitResult = {
   nextCheckinLabel: string | null
 }
 
+export type PosConsultaPlanStatus = 'ativo' | 'encerrado'
+
+export type PosConsultaCheckinListStatus = 'respondido' | 'disponivel' | 'agendado' | 'expirado'
+
+export type PosConsultaPlanCheckinItem = {
+  id: string
+  checkinNumber: number
+  planDayNumber: number
+  status: PosConsultaCheckinListStatus
+  scheduledDateLabel: string
+  token: string
+  respondedAtLabel?: string
+  evolucaoComparacao?: PosConsultaEvolucaoComparacao
+  summary?: string
+  respostas?: PosConsultaCheckinRespostas
+  hasAlertSign?: boolean
+}
+
+export type PosConsultaPlanView = {
+  hasPlan: boolean
+  planStatus: PosConsultaPlanStatus
+  planDayNumber: number
+  planTotalDays: number
+  totalCheckins: number
+  answeredCheckins: number
+  nextCheckinNumber: number | null
+  nextCheckinDateLabel: string | null
+  availableCheckin: PosConsultaPlanCheckinItem | null
+  checkins: PosConsultaPlanCheckinItem[]
+}
+
 export function emptyPosConsultaVitalField<T>(): PosConsultaVitalField<T> {
   return { value: null, notMeasured: false }
 }

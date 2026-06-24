@@ -1,0 +1,447 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "file": "food_substitution_rules.json",
+  "engine_mode": "deterministic",
+  "runtime_ai_generation": false,
+  "description": "Regras deterministicas para substituicao de alimentos mantendo papel da refeicao, categoria, compatibilidade com restricoes e proximidade nutricional.",
+  "clinical_validation": {
+    "status": "requires_nutritionist_review",
+    "note": "Regras iniciais de equivalencia e substituicao. Devem ser validadas por nutricionista antes de uso assistencial."
+  },
+  "substitution_goal": {
+    "primary": "Encontrar alimentos ou preparacoes substitutas com funcao alimentar semelhante e perfil nutricional proximo.",
+    "must_respect": [
+      "dietary_constraints",
+      "allergy_exclusions",
+      "intolerance_exclusions",
+      "avoidedFoods_exact_match",
+      "slot_compatibility",
+      "meal_role_compatibility"
+    ],
+    "should_preserve": [
+      "same_meal_role",
+      "same_category",
+      "similar_macros",
+      "cultural_coherence",
+      "preparation_complexity"
+    ]
+  },
+  "macro_distance_weights": {
+    "calories": 0.35,
+    "protein": 0.25,
+    "carbs": 0.18,
+    "fat": 0.12,
+    "fiber": 0.1
+  },
+  "macro_distance_formula": {
+    "method": "weighted_normalized_absolute_difference",
+    "formula": "distance = sum(weight[nutrient] * abs(candidate[nutrient] - original[nutrient]) / max(original[nutrient], minimum_denominator[nutrient]))",
+    "lower_is_better": true,
+    "minimum_denominator": {
+      "calories": 50,
+      "protein": 3,
+      "carbs": 5,
+      "fat": 2,
+      "fiber": 1
+    },
+    "score_conversion": {
+      "formula": "score = max(0, 1 - distance)",
+      "higher_is_better": true
+    }
+  },
+  "preserve_tags": [
+    "same_meal_role",
+    "same_category"
+  ],
+  "preserve_tag_rules": {
+    "same_meal_role": {
+      "required": true,
+      "description": "Substituto deve exercer o mesmo papel no template, como protein, fruit, legume, whole_grain, healthy_fat ou beverage_unsweetened.",
+      "fallback_if_missing": "allow_equivalent_meal_role"
+    },
+    "same_category": {
+      "required": true,
+      "description": "Substituto deve pertencer a categoria alimentar equivalente, como fruta por fruta, leguminosa por leguminosa, proteina animal magra por proteina equivalente.",
+      "fallback_if_missing": "allow_same_macro_group"
+    }
+  },
+  "calorie_tolerance_pct": 15,
+  "result_count": 5,
+  "candidate_filters": {
+    "exclude_original_food": true,
+    "require_active_food": true,
+    "require_portion_defined": true,
+    "require_macro_data": [
+      "calories",
+      "proteinG",
+      "carbsG",
+      "fatG",
+      "fiberG"
+    ],
+    "exclude_tags_from_user_constraints": true,
+    "exclude_exact_avoided_foods": true,
+    "respect_max_per_day": true,
+    "respect_slot": true,
+    "respect_objective": true
+  },
+  "tolerances": {
+    "default": {
+      "calories_pct": 15,
+      "protein_pct": 25,
+      "carbs_pct": 25,
+      "fat_pct": 30,
+      "fiber_pct": 40
+    },
+    "by_meal_role": {
+      "lean_protein": {
+        "calories_pct": 15,
+        "protein_pct": 18,
+        "carbs_pct": 40,
+        "fat_pct": 25,
+        "fiber_pct": 100
+      },
+      "plant_protein": {
+        "calories_pct": 15,
+        "protein_pct": 25,
+        "carbs_pct": 25,
+        "fat_pct": 30,
+        "fiber_pct": 35
+      },
+      "complex_carbohydrate": {
+        "calories_pct": 15,
+        "protein_pct": 40,
+        "carbs_pct": 20,
+        "fat_pct": 40,
+        "fiber_pct": 35
+      },
+      "low_glycemic_carbohydrate": {
+        "calories_pct": 12,
+        "protein_pct": 40,
+        "carbs_pct": 18,
+        "fat_pct": 40,
+        "fiber_pct": 30
+      },
+      "fruit": {
+        "calories_pct": 20,
+        "protein_pct": 100,
+        "carbs_pct": 25,
+        "fat_pct": 100,
+        "fiber_pct": 40
+      },
+      "low_glycemic_fruit": {
+        "calories_pct": 15,
+        "protein_pct": 100,
+        "carbs_pct": 20,
+        "fat_pct": 100,
+        "fiber_pct": 30
+      },
+      "vegetable": {
+        "calories_pct": 30,
+        "protein_pct": 60,
+        "carbs_pct": 40,
+        "fat_pct": 100,
+        "fiber_pct": 40
+      },
+      "non_starchy_vegetable": {
+        "calories_pct": 35,
+        "protein_pct": 60,
+        "carbs_pct": 40,
+        "fat_pct": 100,
+        "fiber_pct": 40
+      },
+      "legume": {
+        "calories_pct": 15,
+        "protein_pct": 25,
+        "carbs_pct": 20,
+        "fat_pct": 60,
+        "fiber_pct": 25
+      },
+      "healthy_fat": {
+        "calories_pct": 15,
+        "protein_pct": 100,
+        "carbs_pct": 100,
+        "fat_pct": 20,
+        "fiber_pct": 60
+      },
+      "dairy_or_alternative": {
+        "calories_pct": 15,
+        "protein_pct": 25,
+        "carbs_pct": 30,
+        "fat_pct": 30,
+        "fiber_pct": 100
+      },
+      "beverage_unsweetened": {
+        "calories_pct": 100,
+        "protein_pct": 100,
+        "carbs_pct": 100,
+        "fat_pct": 100,
+        "fiber_pct": 100
+      }
+    }
+  },
+  "scoring": {
+    "weights": {
+      "macro_similarity": 0.45,
+      "tag_preservation": 0.25,
+      "restriction_compliance": 0.15,
+      "preference_match": 0.08,
+      "cultural_coherence": 0.07
+    },
+    "tag_preservation": {
+      "same_meal_role": 0.5,
+      "same_category": 0.35,
+      "same_preparation_style": 0.1,
+      "same_texture_or_usage": 0.05
+    },
+    "restriction_compliance": {
+      "hard_exclusion_score": 0,
+      "penalized_tag_penalty": -0.2,
+      "max_per_day_exceeded_action": "exclude_candidate"
+    },
+    "preference_match": {
+      "liked_food_boost": 0.12,
+      "liked_category_boost": 0.06,
+      "avoided_food_action": "exclude_candidate"
+    },
+    "cultural_coherence": {
+      "same_brazilian_meal_pattern_boost": 0.08,
+      "common_household_food_boost": 0.05,
+      "regional_equivalent_boost": 0.04
+    }
+  },
+  "portion_adjustment": {
+    "enabled": true,
+    "strategy": "adjust_candidate_portion_to_match_original_calories",
+    "max_portion_change_pct": 25,
+    "rounding": {
+      "grams": "nearest_5g",
+      "household_measure": "nearest_practical_fraction"
+    },
+    "do_not_adjust_units": [
+      "unit",
+      "slice",
+      "egg",
+      "fruit_unit",
+      "package"
+    ],
+    "when_adjustment_exceeds_limit": "keep_default_portion_and_apply_score_penalty"
+  },
+  "fallback_strategy": {
+    "order": [
+      "strict_same_role_same_category",
+      "same_role_equivalent_category",
+      "same_macro_group",
+      "default_safe_pool"
+    ],
+    "strict_same_role_same_category": {
+      "preserve_tags_required": [
+        "same_meal_role",
+        "same_category"
+      ],
+      "calorie_tolerance_pct": 15
+    },
+    "same_role_equivalent_category": {
+      "preserve_tags_required": [
+        "same_meal_role"
+      ],
+      "calorie_tolerance_pct": 20,
+      "allowed_if_results_less_than": 5
+    },
+    "same_macro_group": {
+      "preserve_tags_required": [],
+      "required_equivalence": "same_primary_macro_group",
+      "calorie_tolerance_pct": 25,
+      "allowed_if_results_less_than": 5
+    },
+    "default_safe_pool": {
+      "required_tags": [
+        "whole_food",
+        "minimally_processed",
+        "restriction_safe"
+      ],
+      "exclude_tags": [
+        "ultraprocessed",
+        "sugary_drink",
+        "deep_fried",
+        "high_sodium",
+        "high_sugar"
+      ],
+      "allowed_if_results_less_than": 5,
+      "flag_when_used": "substitution_default_safe_pool_used"
+    }
+  },
+  "equivalent_meal_roles": {
+    "protein": [
+      "lean_protein",
+      "plant_protein",
+      "dairy_or_alternative"
+    ],
+    "lean_protein": [
+      "protein",
+      "plant_protein"
+    ],
+    "plant_protein": [
+      "legume",
+      "protein"
+    ],
+    "complex_carbohydrate": [
+      "whole_grain",
+      "low_glycemic_carbohydrate",
+      "root_starch"
+    ],
+    "whole_grain": [
+      "complex_carbohydrate",
+      "low_glycemic_carbohydrate"
+    ],
+    "low_glycemic_carbohydrate": [
+      "whole_grain",
+      "legume",
+      "complex_carbohydrate"
+    ],
+    "fruit": [
+      "low_glycemic_fruit"
+    ],
+    "low_glycemic_fruit": [
+      "fruit"
+    ],
+    "vegetable": [
+      "non_starchy_vegetable",
+      "cooked_vegetable",
+      "salad"
+    ],
+    "non_starchy_vegetable": [
+      "vegetable",
+      "salad",
+      "cooked_vegetable"
+    ],
+    "healthy_fat": [
+      "nuts_seed",
+      "olive_oil",
+      "avocado"
+    ],
+    "dairy_or_alternative": [
+      "lactose_free_dairy_or_alternative",
+      "plant_dairy_alternative"
+    ],
+    "beverage_unsweetened": [
+      "hydration_item"
+    ]
+  },
+  "primary_macro_groups": {
+    "protein_dominant": [
+      "protein",
+      "lean_protein",
+      "plant_protein",
+      "dairy_or_alternative"
+    ],
+    "carb_dominant": [
+      "complex_carbohydrate",
+      "whole_grain",
+      "low_glycemic_carbohydrate",
+      "fruit",
+      "low_glycemic_fruit",
+      "root_starch"
+    ],
+    "fat_dominant": [
+      "healthy_fat",
+      "nuts_seed",
+      "olive_oil",
+      "avocado"
+    ],
+    "fiber_volume_dominant": [
+      "vegetable",
+      "non_starchy_vegetable",
+      "salad",
+      "cooked_vegetable"
+    ],
+    "hydration_dominant": [
+      "beverage_unsweetened",
+      "hydration_item"
+    ]
+  },
+  "tie_breakers": [
+    {
+      "order": 1,
+      "rule": "higher_restriction_compliance_score"
+    },
+    {
+      "order": 2,
+      "rule": "lower_macro_distance"
+    },
+    {
+      "order": 3,
+      "rule": "higher_preference_match"
+    },
+    {
+      "order": 4,
+      "rule": "lower_weekly_repetition_count"
+    },
+    {
+      "order": 5,
+      "rule": "higher_cultural_coherence"
+    },
+    {
+      "order": 6,
+      "rule": "stable_sort_by_food_id"
+    }
+  ],
+  "generation_pipeline": [
+    {
+      "step": 1,
+      "id": "load_original_food",
+      "description": "Carregar alimento original, porcao, macros, tags, categoria, meal_role e slot."
+    },
+    {
+      "step": 2,
+      "id": "filter_hard_constraints",
+      "description": "Remover candidatos bloqueados por alergias, intolerancias, preferencias duras, avoidedFoods e max_per_day."
+    },
+    {
+      "step": 3,
+      "id": "apply_preserve_tags",
+      "description": "Priorizar candidatos com same_meal_role e same_category."
+    },
+    {
+      "step": 4,
+      "id": "apply_calorie_tolerance",
+      "description": "Filtrar candidatos dentro da tolerancia calorica de 15% ou conforme fallback."
+    },
+    {
+      "step": 5,
+      "id": "calculate_macro_distance",
+      "description": "Calcular distancia ponderada usando calories, protein, carbs, fat e fiber."
+    },
+    {
+      "step": 6,
+      "id": "score_and_sort",
+      "description": "Pontuar candidatos, aplicar desempates e ordenar de forma deterministica."
+    },
+    {
+      "step": 7,
+      "id": "return_top_results",
+      "description": "Retornar ate result_count substituicoes com porcao ajustada e flags."
+    }
+  ],
+  "output_schema": {
+    "original_food_id": "string",
+    "result_count_requested": "integer",
+    "results": [
+      {
+        "food_id": "string",
+        "name": "string",
+        "portion": {
+          "amount": "number",
+          "unit": "string",
+          "grams": "number"
+        },
+        "macro_distance": "number",
+        "score": "number",
+        "preserved_tags": "array",
+        "fallback_level": "string|null",
+        "flags": "array"
+      }
+    ],
+    "flags": "array"
+  }
+}

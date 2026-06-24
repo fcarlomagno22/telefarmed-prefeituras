@@ -1,5 +1,8 @@
 # Monorepo: não enviar o restante do repositório para o EAS Build
 ../backend
+../backend/referencias/sigtap
+backend
+backend/referencias/sigtap
 ../dist
 ../src
 ../node_modules

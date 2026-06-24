@@ -238,7 +238,7 @@ export function paceMinPerKmToSpeedKmh(minPerKm: number): number | null {
 
 export function calculateRollingPaceAndSpeed(
   trail: ActivityTrailPoint[],
-  windowMs = 45_000,
+  windowMs = 12_000,
 ): { paceMinPerKm: number | null; speedKmh: number | null } {
   if (trail.length < 2) {
     return { paceMinPerKm: null, speedKmh: null }
@@ -282,6 +282,33 @@ export function calculateAveragePaceMinPerKm(
 ): number | null {
   const speed = calculateAverageSpeedKmh(distanceKm, elapsedSeconds)
   return speed != null ? speedKmhToPaceMinPerKm(speed) : null
+}
+
+export function mpsToKmh(speedMps: number | null | undefined): number | null {
+  if (speedMps == null || !Number.isFinite(speedMps) || speedMps < 0) return null
+  return speedMps * 3.6
+}
+
+export function clampActivitySpeedKmh(speedKmh: number | null): number | null {
+  if (speedKmh == null || !Number.isFinite(speedKmh) || speedKmh <= 0) return null
+  return Math.min(speedKmh, 35)
+}
+
+export function calculateInstantSpeedKmh(
+  trail: ActivityTrailPoint[],
+  gpsSpeedMps: number | null | undefined,
+  windowMs = 12_000,
+): number | null {
+  const gpsSpeed = clampActivitySpeedKmh(mpsToKmh(gpsSpeedMps))
+  const rollingSpeed = clampActivitySpeedKmh(
+    calculateRollingPaceAndSpeed(trail, windowMs).speedKmh,
+  )
+
+  if (gpsSpeedMps != null && gpsSpeedMps >= 0.5 && gpsSpeed != null) {
+    return gpsSpeed
+  }
+
+  return rollingSpeed
 }
 
 const CALORIES_MET_BY_MODALITY: Record<string, number> = {

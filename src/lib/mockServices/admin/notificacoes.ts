@@ -109,6 +109,11 @@ export type CreateAdminBroadcastPayload = {
         mode: 'users'
         userIds: string[]
       }
+    | {
+        channel: 'paciente_app'
+        mode: 'all' | 'selected'
+        entidadeIds?: string[]
+      }
   >
 }
 
@@ -344,6 +349,18 @@ export async function createAdminBroadcast(
 ) {
   void _accessToken
   const targets: AdminNotificationTargetSnapshot[] = payload.targets.map((target) => {
+    if (target.channel === 'paciente_app') {
+      return {
+        channel: 'paciente_app',
+        mode: target.mode === 'all' ? 'all' : 'selected',
+        recipientIds: target.entidadeIds ?? [],
+        recipientLabels:
+          target.mode === 'all'
+            ? ['Todos os pacientes ativos do app']
+            : [`${target.entidadeIds?.length ?? 0} município(s)`],
+        count: target.mode === 'all' ? 1280 : (target.entidadeIds?.length ?? 0) * 240,
+      }
+    }
     if (target.channel === 'medico') {
       if (target.mode === 'users') {
         const selected = adminDoctors.filter(

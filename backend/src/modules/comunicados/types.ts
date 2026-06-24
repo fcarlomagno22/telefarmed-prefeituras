@@ -80,7 +80,7 @@ export type PortalNotificationKpis = {
 }
 
 export type AdminBroadcastTargetSnapshot = {
-  channel: 'prefeitura' | 'ubt' | 'medico'
+  channel: 'prefeitura' | 'ubt' | 'medico' | 'paciente_app'
   mode: 'all' | 'selected' | 'users'
   audienceScope?: 'medico_all' | 'medico_plantao' | 'medico_especialidade'
   specialtyFilter?: string

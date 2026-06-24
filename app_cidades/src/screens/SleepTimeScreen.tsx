@@ -29,6 +29,7 @@ import type { SleepTimerMinutes } from '../components/sleepTime/sleepTimeSoundTy
 import { getSleepSoundById } from '../config/sleepSounds'
 import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
 import type { SleepSoundId, SleepTimeTab } from '../types/sleepTime'
@@ -69,6 +70,10 @@ export function SleepTimeScreen() {
   const insets = useSafeAreaInsets()
   const { width: screenWidth } = useWindowDimensions()
   const { user, navigateTo, goBack, canGoBack, logout } = useAuth()
+  const { requireAuth } = useGuestAuth()
+  const withSleepAuth = (action: () => void) => {
+    requireAuth('vida:sleep-time', action)
+  }
 
   const initialSession = getSleepSoundSessionSnapshot()
   const engine = getSleepSoundPlaybackEngine()
@@ -101,6 +106,7 @@ export function SleepTimeScreen() {
   const resolvedSessionSoundId =
     sessionSoundId ?? (engine.isActive() ? getSleepSoundSessionSnapshot().soundId : null)
   const sessionSound = resolvedSessionSoundId ? getSleepSoundById(resolvedSessionSoundId) : null
+
   const headerPaddingTop = Math.max(insets.top, 12) + 8
   const patientCpf = user?.cpf ?? 'guest'
 
@@ -265,22 +271,24 @@ export function SleepTimeScreen() {
   }
 
   function handleSoundPress(soundId: SleepSoundId) {
-    if (sessionSoundId !== soundId) {
-      setVolume(DEFAULT_SLEEP_SOUND_VOLUME)
-      setTimerMinutes(null)
-      setTimerRemainingSeconds(null)
-      setIsPaused(false)
-      patchSleepSoundSession({
-        soundId,
-        volume: DEFAULT_SLEEP_SOUND_VOLUME,
-        timerMinutes: null,
-      })
-    } else {
-      patchSleepSoundSession({ soundId })
-    }
+    withSleepAuth(() => {
+      if (sessionSoundId !== soundId) {
+        setVolume(DEFAULT_SLEEP_SOUND_VOLUME)
+        setTimerMinutes(null)
+        setTimerRemainingSeconds(null)
+        setIsPaused(false)
+        patchSleepSoundSession({
+          soundId,
+          volume: DEFAULT_SLEEP_SOUND_VOLUME,
+          timerMinutes: null,
+        })
+      } else {
+        patchSleepSoundSession({ soundId })
+      }
 
-    setSessionSoundId(soundId)
-    setDrawerSoundId(soundId)
+      setSessionSoundId(soundId)
+      setDrawerSoundId(soundId)
+    })
   }
 
   function handleDismissDrawer() {
@@ -314,12 +322,16 @@ export function SleepTimeScreen() {
   }
 
   function handleBreathingPress() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setBreathingVisible(true)
+    withSleepAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setBreathingVisible(true)
+    })
   }
 
   function handleStoriesPress() {
-    navigateTo('sleep-stories')
+    withSleepAuth(() => {
+      navigateTo('sleep-stories')
+    })
   }
 
   function handleSleepLogRegistered() {
@@ -462,7 +474,7 @@ export function SleepTimeScreen() {
 
         <BottomTabBar activeTab={null} onTabPress={handleTabPress} />
 
-        <SleepTimeFab bottom={fabBottomOffset} onPress={() => setLogDrawerVisible(true)} />
+        <SleepTimeFab bottom={fabBottomOffset} onPress={() => withSleepAuth(() => setLogDrawerVisible(true))} />
       </View>
 
       <SleepTimeLogDrawer

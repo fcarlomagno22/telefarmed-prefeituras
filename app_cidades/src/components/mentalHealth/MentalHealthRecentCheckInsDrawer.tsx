@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native'
+import * as Haptics from 'expo-haptics'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import type { MentalHealthCheckInEntry } from '../../types/mentalHealth'
 import { colors } from '../../theme/colors'
 import {
@@ -13,6 +14,8 @@ type MentalHealthRecentCheckInsDrawerProps = {
   visible: boolean
   entries: MentalHealthCheckInEntry[]
   onClose: () => void
+  onSelectEntry?: (entry: MentalHealthCheckInEntry) => void
+  limit?: number
 }
 
 function formatEntryDate(iso: string) {
@@ -33,30 +36,57 @@ export function MentalHealthRecentCheckInsDrawer({
   visible,
   entries,
   onClose,
+  onSelectEntry,
+  limit,
 }: MentalHealthRecentCheckInsDrawerProps) {
+  const visibleEntries = limit != null ? entries.slice(0, limit) : entries
+
   return (
     <RunWalkSheetDrawer
       visible={visible}
       title="Registros recentes"
-      subtitle="Seus últimos check-ins emocionais"
+      subtitle="Seus check-ins emocionais"
       onClose={onClose}
     >
-      {entries.length === 0 ? (
+      {visibleEntries.length === 0 ? (
         <Text style={styles.empty}>Você ainda não possui registros recentes.</Text>
       ) : (
-        entries.slice(0, 8).map((entry) => (
-          <View key={entry.id} style={styles.item}>
-            <View style={styles.itemHeader}>
-              <Text style={styles.itemDate}>{formatEntryDate(entry.recordedAt)}</Text>
-              <Text style={styles.itemTime}>{formatMentalHealthCheckInTime(entry.recordedAt)}</Text>
-            </View>
-            <Text style={styles.itemMood}>{formatMentalHealthMoodDisplay(entry.mood)}</Text>
-            <Text style={styles.itemMeta}>
-              {formatMentalHealthEmotions(entry.emotions)}
-              {entry.mainInfluence ? ` · ${entry.mainInfluence}` : ''}
-            </Text>
-          </View>
-        ))
+        visibleEntries.map((entry) => {
+          const content = (
+            <>
+              <View style={styles.itemHeader}>
+                <Text style={styles.itemDate}>{formatEntryDate(entry.recordedAt)}</Text>
+                <Text style={styles.itemTime}>{formatMentalHealthCheckInTime(entry.recordedAt)}</Text>
+              </View>
+              <Text style={styles.itemMood}>{formatMentalHealthMoodDisplay(entry.mood)}</Text>
+              <Text style={styles.itemMeta}>
+                {formatMentalHealthEmotions(entry.emotions)}
+                {entry.mainInfluence ? ` · ${entry.mainInfluence}` : ''}
+              </Text>
+            </>
+          )
+
+          if (!onSelectEntry) {
+            return (
+              <View key={entry.id} style={styles.item}>
+                {content}
+              </View>
+            )
+          }
+
+          return (
+            <Pressable
+              key={entry.id}
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                onSelectEntry(entry)
+              }}
+              style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+            >
+              {content}
+            </Pressable>
+          )
+        })
       )}
     </RunWalkSheetDrawer>
   )
@@ -74,6 +104,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(255, 255, 255, 0.07)',
+  },
+  itemPressed: {
+    opacity: 0.88,
   },
   itemHeader: {
     flexDirection: 'row',

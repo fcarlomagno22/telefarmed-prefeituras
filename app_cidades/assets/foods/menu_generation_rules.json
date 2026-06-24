@@ -1,0 +1,562 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "file": "menu_generation_rules.json",
+  "engine_mode": "deterministic",
+  "runtime_ai_generation": false,
+  "description": "Regras deterministicas para montagem, pontuacao, repeticao, preferencias textuais e fallback do motor de cardapios Telefarmed.",
+  "clinical_validation": {
+    "status": "requires_nutritionist_review",
+    "note": "Regras iniciais de geracao. Devem ser revisadas por nutricionista antes de uso assistencial."
+  },
+  "deterministic_seed": {
+    "enabled": true,
+    "seed_inputs": [
+      "user_id",
+      "plan_start_date",
+      "objective",
+      "target_kcal",
+      "dietary_constraints_hash",
+      "liked_foods_hash",
+      "avoided_foods_hash"
+    ],
+    "hash_algorithm": "sha256",
+    "same_inputs_same_menu": true,
+    "shuffle_strategy": "seeded_weighted_shuffle"
+  },
+  "calorie_distribution_by_slot": {
+    "default": {
+      "breakfast": 20,
+      "morning_snack": 8,
+      "lunch": 32,
+      "afternoon_snack": 10,
+      "dinner": 25,
+      "basket": 5
+    },
+    "by_objective": {
+      "weight_loss": {
+        "breakfast": 22,
+        "morning_snack": 8,
+        "lunch": 32,
+        "afternoon_snack": 10,
+        "dinner": 26,
+        "basket": 2
+      },
+      "maintain_weight": {
+        "breakfast": 20,
+        "morning_snack": 8,
+        "lunch": 32,
+        "afternoon_snack": 10,
+        "dinner": 25,
+        "basket": 5
+      },
+      "gain_weight": {
+        "breakfast": 22,
+        "morning_snack": 10,
+        "lunch": 30,
+        "afternoon_snack": 13,
+        "dinner": 23,
+        "basket": 2
+      },
+      "hypertrophy": {
+        "breakfast": 22,
+        "morning_snack": 10,
+        "lunch": 30,
+        "afternoon_snack": 13,
+        "dinner": 23,
+        "basket": 2
+      },
+      "metabolic_health": {
+        "breakfast": 22,
+        "morning_snack": 8,
+        "lunch": 33,
+        "afternoon_snack": 9,
+        "dinner": 26,
+        "basket": 2
+      },
+      "diabetes": {
+        "breakfast": 22,
+        "morning_snack": 9,
+        "lunch": 32,
+        "afternoon_snack": 10,
+        "dinner": 25,
+        "basket": 2
+      },
+      "hypertension": {
+        "breakfast": 21,
+        "morning_snack": 8,
+        "lunch": 33,
+        "afternoon_snack": 9,
+        "dinner": 27,
+        "basket": 2
+      },
+      "other": {
+        "breakfast": 20,
+        "morning_snack": 8,
+        "lunch": 32,
+        "afternoon_snack": 10,
+        "dinner": 25,
+        "basket": 5
+      }
+    },
+    "validation": {
+      "must_sum_to_pct": 100,
+      "tolerance_pct": 0,
+      "slot_calorie_rounding": "nearest_integer",
+      "rounding_remainder_strategy": "assign_to_lunch"
+    }
+  },
+  "scoring_weights": {
+    "default": {
+      "macro_fit": 0.3,
+      "variety": 0.2,
+      "preference_match": 0.18,
+      "restriction_compliance": 0.25,
+      "cultural_coherence": 0.07
+    },
+    "by_objective": {
+      "weight_loss": {
+        "macro_fit": 0.32,
+        "variety": 0.18,
+        "preference_match": 0.15,
+        "restriction_compliance": 0.28,
+        "cultural_coherence": 0.07
+      },
+      "maintain_weight": {
+        "macro_fit": 0.28,
+        "variety": 0.22,
+        "preference_match": 0.22,
+        "restriction_compliance": 0.2,
+        "cultural_coherence": 0.08
+      },
+      "gain_weight": {
+        "macro_fit": 0.3,
+        "variety": 0.18,
+        "preference_match": 0.22,
+        "restriction_compliance": 0.2,
+        "cultural_coherence": 0.1
+      },
+      "hypertrophy": {
+        "macro_fit": 0.36,
+        "variety": 0.16,
+        "preference_match": 0.18,
+        "restriction_compliance": 0.22,
+        "cultural_coherence": 0.08
+      },
+      "metabolic_health": {
+        "macro_fit": 0.3,
+        "variety": 0.18,
+        "preference_match": 0.16,
+        "restriction_compliance": 0.29,
+        "cultural_coherence": 0.07
+      },
+      "diabetes": {
+        "macro_fit": 0.28,
+        "variety": 0.15,
+        "preference_match": 0.12,
+        "restriction_compliance": 0.38,
+        "cultural_coherence": 0.07
+      },
+      "hypertension": {
+        "macro_fit": 0.27,
+        "variety": 0.16,
+        "preference_match": 0.13,
+        "restriction_compliance": 0.37,
+        "cultural_coherence": 0.07
+      },
+      "other": {
+        "macro_fit": 0.3,
+        "variety": 0.2,
+        "preference_match": 0.18,
+        "restriction_compliance": 0.25,
+        "cultural_coherence": 0.07
+      }
+    },
+    "validation": {
+      "must_sum_to": 1,
+      "tolerance": 0.0001
+    }
+  },
+  "scoring_components": {
+    "macro_fit": {
+      "description": "Avalia proximidade entre macros/calorias do slot e meta calculada.",
+      "score_range": [
+        0,
+        1
+      ],
+      "inputs": [
+        "slot_target_kcal",
+        "candidate_kcal",
+        "target_protein_g",
+        "candidate_protein_g",
+        "target_carbs_g",
+        "candidate_carbs_g",
+        "target_fat_g",
+        "candidate_fat_g",
+        "target_fiber_g",
+        "candidate_fiber_g"
+      ],
+      "tolerances": {
+        "calories_pct": 12,
+        "protein_pct": 20,
+        "carbs_pct": 20,
+        "fat_pct": 25,
+        "fiber_pct": 30
+      }
+    },
+    "variety": {
+      "description": "Evita repeticao excessiva de alimentos, categorias, preparos e fontes proteicas na semana.",
+      "score_range": [
+        0,
+        1
+      ],
+      "penalties": {
+        "same_food_repeated_today": -0.45,
+        "same_food_repeated_above_weekly_limit": -0.6,
+        "same_protein_source_consecutive_main_meals": -0.25,
+        "same_category_three_times_in_day": -0.2,
+        "same_preparation_method_consecutive_day": -0.15
+      }
+    },
+    "preference_match": {
+      "description": "Aumenta pontuacao de alimentos curtidos e reduz ou remove alimentos evitados pelo usuario.",
+      "score_range": [
+        0,
+        1
+      ],
+      "liked_food_boost": 0.25,
+      "liked_category_boost": 0.12,
+      "avoided_food_penalty": -1,
+      "avoided_category_penalty": -0.5,
+      "exact_avoided_match_action": "exclude_candidate"
+    },
+    "restriction_compliance": {
+      "description": "Verifica aderencia a exclude_tags, require_tags, penalize_tags e max_per_day vindos do dietary_constraints.json.",
+      "score_range": [
+        0,
+        1
+      ],
+      "hard_exclusion_score": 0,
+      "required_tag_missing_penalty": -0.35,
+      "penalized_tag_penalty": -0.2,
+      "max_per_day_exceeded_action": "exclude_candidate"
+    },
+    "cultural_coherence": {
+      "description": "Prioriza combinacoes familiares ao padrao alimentar brasileiro quando compativeis com objetivo e restricoes.",
+      "score_range": [
+        0,
+        1
+      ],
+      "boosts": {
+        "rice_beans_lunch_or_dinner": 0.18,
+        "protein_vegetable_starch_main_meal": 0.15,
+        "fruit_snack": 0.12,
+        "coffee_breakfast_without_sugar": 0.08,
+        "regional_food_match": 0.08,
+        "home_style_preparation": 0.1
+      },
+      "penalties": {
+        "breakfast_heavy_dinner_pattern": -0.1,
+        "main_meal_without_protein": -0.2,
+        "main_meal_without_vegetable": -0.18,
+        "snack_like_main_meal": -0.12
+      }
+    }
+  },
+  "likedFoods": {
+    "input_type": "array_of_strings",
+    "normalization": {
+      "case": "lowercase",
+      "trim": true,
+      "remove_accents": true,
+      "remove_extra_spaces": true,
+      "singularize_when_possible": true
+    },
+    "text_match_fields": [
+      "name",
+      "aliases",
+      "keywords"
+    ],
+    "match_modes": [
+      "exact",
+      "alias_exact",
+      "normalized_exact",
+      "token_contains",
+      "fuzzy_typo_tolerant"
+    ],
+    "fuzzy_matching": {
+      "enabled": true,
+      "max_levenshtein_distance": 2,
+      "min_token_length": 4,
+      "ignore_tokens": [
+        "com",
+        "sem",
+        "de",
+        "da",
+        "do",
+        "das",
+        "dos",
+        "e",
+        "ao",
+        "a"
+      ]
+    },
+    "candidate_boosting": {
+      "exact_food_id_match": 0.3,
+      "name_match": 0.25,
+      "alias_match": 0.22,
+      "keyword_match": 0.15,
+      "category_match": 0.08
+    }
+  },
+  "avoidedFoods": {
+    "input_type": "array_of_strings",
+    "normalization": {
+      "case": "lowercase",
+      "trim": true,
+      "remove_accents": true,
+      "remove_extra_spaces": true,
+      "singularize_when_possible": true
+    },
+    "text_match_fields": [
+      "name",
+      "aliases",
+      "keywords"
+    ],
+    "match_modes": [
+      "exact",
+      "alias_exact",
+      "normalized_exact",
+      "token_contains",
+      "fuzzy_typo_tolerant"
+    ],
+    "fuzzy_matching": {
+      "enabled": true,
+      "max_levenshtein_distance": 2,
+      "min_token_length": 4,
+      "ignore_tokens": [
+        "com",
+        "sem",
+        "de",
+        "da",
+        "do",
+        "das",
+        "dos",
+        "e",
+        "ao",
+        "a"
+      ]
+    },
+    "candidate_penalties": {
+      "exact_food_id_match": "exclude",
+      "name_match": "exclude",
+      "alias_match": "exclude",
+      "keyword_match": -0.5,
+      "category_match": -0.25
+    }
+  },
+  "repetition_rules": {
+    "max_repeat_same_food_per_week": 3,
+    "max_repeat_same_food_per_day": 1,
+    "max_repeat_same_main_protein_per_week": 4,
+    "max_repeat_same_breakfast_base_per_week": 3,
+    "max_repeat_same_snack_per_week": 3,
+    "max_repeat_same_preparation_method_per_week": 5,
+    "repeat_tracking_keys": [
+      "food_id",
+      "category",
+      "meal_role",
+      "protein_source_group",
+      "preparation_method"
+    ],
+    "exemptions": [
+      {
+        "tag": "water",
+        "reason": "Hidratacao nao conta como repeticao alimentar."
+      },
+      {
+        "tag": "basic_seasoning",
+        "reason": "Temperos naturais de baixa caloria nao contam como repeticao."
+      },
+      {
+        "tag": "staple_food",
+        "max_repeat_same_food_per_week": 5,
+        "reason": "Alimentos basicos brasileiros podem repetir mais quando o plano exige simplicidade e aderencia."
+      }
+    ]
+  },
+  "generation_pipeline": [
+    {
+      "step": 1,
+      "id": "load_user_profile",
+      "description": "Carregar objetivo, meta calorica, macros, restricoes, preferencias, alimentos curtidos e evitados."
+    },
+    {
+      "step": 2,
+      "id": "build_seed",
+      "description": "Criar seed deterministica com os campos definidos em deterministic_seed.seed_inputs."
+    },
+    {
+      "step": 3,
+      "id": "distribute_calories",
+      "description": "Aplicar calorie_distribution_by_slot conforme objetivo."
+    },
+    {
+      "step": 4,
+      "id": "select_meal_template",
+      "description": "Selecionar template do slot e objetivo em meal_composition_templates.json."
+    },
+    {
+      "step": 5,
+      "id": "filter_candidates",
+      "description": "Filtrar catalogo por role, slot, restricoes, max_per_day, disliked foods e disponibilidade."
+    },
+    {
+      "step": 6,
+      "id": "score_candidates",
+      "description": "Pontuar candidatos usando scoring_weights e scoring_components."
+    },
+    {
+      "step": 7,
+      "id": "assemble_slot",
+      "description": "Montar combinacao de itens por slot respeitando min_items, max_items, roles e calorias."
+    },
+    {
+      "step": 8,
+      "id": "weekly_variety_pass",
+      "description": "Aplicar limites semanais de repeticao e substituir itens excedentes."
+    },
+    {
+      "step": 9,
+      "id": "final_validation",
+      "description": "Validar calorias, macros, restricoes, repeticao e coerencia cultural antes de retornar o plano."
+    }
+  ],
+  "fallback_strategy": {
+    "order": [
+      "archetypes",
+      "relaxed_constraints",
+      "default_pool"
+    ],
+    "archetypes": {
+      "enabled": true,
+      "source_file": "meal_plan_archetypes.json",
+      "match_priority": [
+        "objective",
+        "slot",
+        "restriction_safe",
+        "calorie_proximity",
+        "cultural_coherence"
+      ],
+      "max_calorie_deviation_pct": 15,
+      "if_no_match": "next_fallback"
+    },
+    "relaxed_constraints": {
+      "enabled": true,
+      "never_relax": [
+        "allergy",
+        "celiac_disease",
+        "pregnancy_safety",
+        "vegan_animal_product_exclusion",
+        "vegetarian_meat_exclusion",
+        "avoidedFoods_exact_match"
+      ],
+      "relax_order": [
+        "preference_match",
+        "variety",
+        "cultural_coherence",
+        "soft_penalize_tags",
+        "optional_roles",
+        "calorie_tolerance"
+      ],
+      "calorie_tolerance_steps_pct": [
+        12,
+        18,
+        25
+      ],
+      "max_relaxation_rounds": 3,
+      "flag_when_used": "relaxed_constraints_used"
+    },
+    "default_pool": {
+      "enabled": true,
+      "description": "Conjunto simples de alimentos brasileiros basicos, minimamente processados e de baixo risco, filtrado por restricoes duras.",
+      "required_tags": [
+        "whole_food",
+        "minimally_processed",
+        "home_style"
+      ],
+      "preferred_food_groups": [
+        "rice",
+        "beans",
+        "egg",
+        "chicken",
+        "fish",
+        "leafy_greens",
+        "cooked_vegetable",
+        "fruit",
+        "oats",
+        "cassava",
+        "sweet_potato",
+        "plain_yogurt_or_safe_alternative"
+      ],
+      "avoid_tags": [
+        "ultraprocessed",
+        "sugary_drink",
+        "deep_fried",
+        "high_sodium",
+        "high_sugar"
+      ],
+      "flag_when_used": "default_pool_used"
+    },
+    "failure_behavior": {
+      "when_no_valid_menu": "return_partial_plan_with_flags",
+      "required_flags": [
+        "insufficient_food_pool",
+        "professional_review_recommended"
+      ],
+      "do_not_generate_free_text_menu": true
+    }
+  },
+  "quality_gates": {
+    "minimum_slot_score": 0.65,
+    "minimum_day_score": 0.72,
+    "maximum_daily_calorie_deviation_pct": 8,
+    "maximum_slot_calorie_deviation_pct": 15,
+    "macro_daily_tolerance_pct": {
+      "protein": 15,
+      "carbs": 15,
+      "fat": 18
+    },
+    "hard_fail_conditions": [
+      "contains_excluded_allergen",
+      "contains_exact_avoided_food",
+      "exceeds_max_per_day_hard_limit",
+      "missing_required_medical_constraint",
+      "weekly_repeat_limit_unresolved"
+    ]
+  },
+  "output_schema": {
+    "seed": "string",
+    "objective": "string",
+    "daily_target_kcal": "integer",
+    "slot_targets": {
+      "breakfast": "integer",
+      "morning_snack": "integer",
+      "lunch": "integer",
+      "afternoon_snack": "integer",
+      "dinner": "integer",
+      "basket": "integer"
+    },
+    "selected_items": "array",
+    "scores": {
+      "macro_fit": "number",
+      "variety": "number",
+      "preference_match": "number",
+      "restriction_compliance": "number",
+      "cultural_coherence": "number",
+      "total": "number"
+    },
+    "fallback_used": "string|null",
+    "flags": "array"
+  }
+}

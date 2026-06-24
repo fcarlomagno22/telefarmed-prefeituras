@@ -7,3 +7,7 @@ export const POS_CONSULTA_CHECKIN_INTERVAL_DAYS = 2
 export function getPosConsultaTotalCheckins() {
   return Math.ceil(POS_CONSULTA_PLAN_TOTAL_DAYS / POS_CONSULTA_CHECKIN_INTERVAL_DAYS)
 }
+
+export function posConsultaCheckinDayNumber(checkinNumber: number) {
+  return checkinNumber * POS_CONSULTA_CHECKIN_INTERVAL_DAYS
+}

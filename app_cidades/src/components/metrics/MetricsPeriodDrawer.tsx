@@ -2,8 +2,15 @@ import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
-import { AppModal } from '../AppModal'
+import {
+  Animated,
+  Easing,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
 import { PeriodPreset, PeriodSelection } from '../../types/metrics'
@@ -13,17 +20,14 @@ import {
   formatPeriodLabel,
 } from '../../utils/metricsPeriod'
 import { PrimaryButton } from '../PrimaryButton'
+import { AppModal } from '../AppModal'
 import { WaveTitle } from '../WaveTitle'
-import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 type MetricsPeriodDrawerProps = {
   visible: boolean
   period: PeriodSelection
   onClose: () => void
   onApply: (period: PeriodSelection) => void
-  subtitle?: string
-  title?: string
-  markedDateKeys?: ReadonlySet<string>
 }
 
 const PRESETS: { id: PeriodPreset; label: string }[] = [
@@ -31,7 +35,6 @@ const PRESETS: { id: PeriodPreset; label: string }[] = [
   { id: 'yesterday', label: 'Ontem' },
   { id: 'week', label: 'Essa semana' },
   { id: 'month', label: 'Este mês' },
-  { id: 'last30days', label: 'Últimos 30 dias' },
 ]
 
 const WEEKDAY_LABELS = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D']
@@ -88,9 +91,6 @@ export function MetricsPeriodDrawer({
   period,
   onClose,
   onApply,
-  subtitle = 'Escolha como deseja visualizar a evolução',
-  title = 'Período',
-  markedDateKeys,
 }: MetricsPeriodDrawerProps) {
   const insets = useSafeAreaInsets()
   const [isMounted, setIsMounted] = useState(false)
@@ -208,7 +208,7 @@ export function MetricsPeriodDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: getModalFooterPadding(insets.bottom, 8),
+              paddingBottom: Math.max(insets.bottom, 16) + 8,
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}
@@ -225,7 +225,7 @@ export function MetricsPeriodDrawer({
 
           <View style={styles.headerRow}>
             <View style={styles.titleWrap}>
-              <WaveTitle text={title} />
+              <WaveTitle text="Período" />
             </View>
             <Pressable
               onPress={handleDismiss}
@@ -237,7 +237,7 @@ export function MetricsPeriodDrawer({
             </Pressable>
           </View>
 
-          <Text style={styles.subtitle}>{subtitle}</Text>
+          <Text style={styles.subtitle}>Escolha como deseja visualizar a evolução</Text>
 
           <View style={styles.presetRow}>
             {PRESETS.map((preset) => {
@@ -297,7 +297,6 @@ export function MetricsPeriodDrawer({
                 const selectedEnd = rangeEnd && isSameDay(cell.date, rangeEnd)
                 const inRange = isBetween(cell.date, rangeStart, rangeEnd)
                 const isFuture = cell.date.getTime() > Date.now()
-                const hasMarker = markedDateKeys?.has(formatDateKey(cell.date)) ?? false
 
                 return (
                   <Pressable
@@ -327,14 +326,6 @@ export function MetricsPeriodDrawer({
                       >
                         {cell.date.getDate()}
                       </Text>
-                      {hasMarker ? (
-                        <View
-                          style={[
-                            styles.markerDot,
-                            (selectedStart || selectedEnd) && styles.markerDotSelected,
-                          ]}
-                        />
-                      ) : null}
                     </View>
                   </Pressable>
                 )
@@ -486,7 +477,7 @@ const styles = StyleSheet.create({
   },
   dayCell: {
     width: `${100 / 7}%`,
-    height: 44,
+    height: 40,
     padding: 2,
   },
   dayCellContent: {
@@ -494,8 +485,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 8,
-    gap: 2,
-    paddingVertical: 2,
   },
   dayCellInRange: {
     backgroundColor: 'rgba(255, 107, 0, 0.12)',
@@ -526,15 +515,6 @@ const styles = StyleSheet.create({
   },
   dayLabelDisabled: {
     color: colors.textSubtle,
-  },
-  markerDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 999,
-    backgroundColor: '#c4b5fd',
-  },
-  markerDotSelected: {
-    backgroundColor: '#fff',
   },
   rangeHint: {
     color: colors.textMuted,

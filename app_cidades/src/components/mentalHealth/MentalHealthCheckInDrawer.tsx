@@ -1,22 +1,25 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import {
+  Animated,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native'
 import { useAndroidBackHandler } from '../../hooks/useAndroidBackHandler'
 import { colors } from '../../theme/colors'
 import {
-  MAX_MENTAL_HEALTH_CHECKIN_EMOTIONS,
-  MENTAL_HEALTH_CHECKIN_EMOTIONS,
-  MENTAL_HEALTH_CHECKIN_INFLUENCES,
+  getCheckInEmotionsForMood,
+  getCheckInInfluencesForMood,
+  getCheckInMaxStep,
+  isPositiveCheckInMood,
   MENTAL_HEALTH_CHECKIN_MOOD_LABELS,
   MENTAL_HEALTH_CHECKIN_REACTIONS,
-  MENTAL_HEALTH_EMOTION_INTENSITY_OPTIONS,
   MENTAL_HEALTH_INFLUENCE_VALENCE_OPTIONS,
   MENTAL_HEALTH_MOOD_OPTIONS,
   type MentalHealthCheckInSaveInput,
@@ -35,6 +38,76 @@ const CHECKIN_STEPS = [
 ] as const
 
 const OPTIONAL_TEXT_LIMIT = 200
+
+type CheckInHintTarget = 'mood' | 'influence' | 'valence'
+
+const EMPTY_HINT_PULSE: Record<CheckInHintTarget, number> = {
+  mood: 0,
+  influence: 0,
+  valence: 0,
+}
+
+function AttentionHighlight({
+  pulseKey,
+  children,
+  style,
+}: {
+  pulseKey: number
+  children: ReactNode
+  style?: StyleProp<ViewStyle>
+}) {
+  const shakeX = useRef(new Animated.Value(0)).current
+  const glow = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    if (pulseKey === 0) return
+
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
+
+    const animation = Animated.parallel([
+      Animated.sequence([
+        Animated.timing(shakeX, { toValue: 10, duration: 45, useNativeDriver: true }),
+        Animated.timing(shakeX, { toValue: -10, duration: 45, useNativeDriver: true }),
+        Animated.timing(shakeX, { toValue: 8, duration: 45, useNativeDriver: true }),
+        Animated.timing(shakeX, { toValue: -8, duration: 45, useNativeDriver: true }),
+        Animated.timing(shakeX, { toValue: 0, duration: 45, useNativeDriver: true }),
+      ]),
+      Animated.sequence([
+        Animated.timing(glow, { toValue: 1, duration: 220, useNativeDriver: false }),
+        Animated.timing(glow, { toValue: 0.35, duration: 220, useNativeDriver: false }),
+        Animated.timing(glow, { toValue: 1, duration: 220, useNativeDriver: false }),
+        Animated.timing(glow, { toValue: 0, duration: 280, useNativeDriver: false }),
+      ]),
+    ])
+
+    animation.start()
+    return () => animation.stop()
+  }, [glow, pulseKey, shakeX])
+
+  const borderColor = glow.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['rgba(103, 232, 249, 0)', 'rgba(103, 232, 249, 0.7)'],
+  })
+
+  return (
+    <Animated.View style={{ transform: [{ translateX: shakeX }] }}>
+      <Animated.View
+        style={[
+          style,
+          {
+            borderColor,
+            borderWidth: 2,
+            borderRadius: 16,
+            padding: 2,
+            margin: -2,
+          },
+        ]}
+      >
+        {children}
+      </Animated.View>
+    </Animated.View>
+  )
+}
 
 type CheckInDraft = {
   mood: MentalHealthMoodLevelId | null
@@ -67,6 +140,44 @@ function emptyDraft(initialMood: MentalHealthMoodLevelId | null = null): CheckIn
     influenceDetail: '',
     reactions: [],
     reactionHelp: '',
+  }
+}
+
+function clampCheckInStep(
+  step: 1 | 2 | 3 | 4,
+  mood: MentalHealthMoodLevelId | null,
+): 1 | 2 | 3 | 4 {
+  const maxStep = getCheckInMaxStep(mood)
+  return step > maxStep ? maxStep : step
+}
+
+function resetDraftForMoodChange(
+  current: CheckInDraft,
+  mood: MentalHealthMoodLevelId,
+): CheckInDraft {
+  const wasPositive = isPositiveCheckInMood(current.mood)
+  const isPositive = isPositiveCheckInMood(mood)
+  const moodPathChanged = wasPositive !== isPositive
+
+  if (!moodPathChanged && current.mood === mood) {
+    return { ...current, mood }
+  }
+
+  const allowedEmotions = new Set<string>(getCheckInEmotionsForMood(mood))
+  const emotions = moodPathChanged
+    ? []
+    : current.emotions.filter((emotion) => allowedEmotions.has(emotion))
+
+  return {
+    ...current,
+    mood,
+    emotions,
+    emotionIntensity: emotions.length === 0 ? null : current.emotionIntensity,
+    mainInfluence: moodPathChanged ? null : current.mainInfluence,
+    influenceValence: moodPathChanged ? null : current.influenceValence,
+    influenceDetail: moodPathChanged ? '' : current.influenceDetail,
+    reactions: moodPathChanged ? [] : current.reactions,
+    reactionHelp: moodPathChanged ? '' : current.reactionHelp,
   }
 }
 
@@ -130,16 +241,63 @@ export function MentalHealthCheckInDrawer({
   const [phase, setPhase] = useState<'steps' | 'result'>('steps')
   const [draft, setDraft] = useState<CheckInDraft>(() => emptyDraft(initialMood))
   const [isSaving, setIsSaving] = useState(false)
+  const [hintPulse, setHintPulse] = useState(EMPTY_HINT_PULSE)
 
+  const isPositivePath = isPositiveCheckInMood(draft.mood)
+  const maxStep = getCheckInMaxStep(draft.mood)
+  const availableEmotions = getCheckInEmotionsForMood(draft.mood)
+  const availableInfluences = getCheckInInfluencesForMood(draft.mood)
+  const activeSteps = CHECKIN_STEPS.slice(0, maxStep)
   const currentStepMeta = CHECKIN_STEPS[step - 1] ?? CHECKIN_STEPS[0]
 
   useEffect(() => {
     if (!visible) return
     setPhase('steps')
-    setStep(initialStep)
+    setStep(clampCheckInStep(initialStep, initialMood))
     setDraft(emptyDraft(initialMood))
     setIsSaving(false)
+    setHintPulse(EMPTY_HINT_PULSE)
   }, [initialMood, initialStep, visible])
+
+  const triggerHints = useCallback((targets: CheckInHintTarget[]) => {
+    if (targets.length === 0) return
+
+    setHintPulse((current) => {
+      const next = { ...current }
+      for (const target of targets) {
+        next[target] += 1
+      }
+      return next
+    })
+  }, [])
+
+  const handleContinueStep1 = useCallback(() => {
+    if (!draft.mood) {
+      triggerHints(['mood'])
+      return
+    }
+
+    setStep(2)
+  }, [draft.mood, triggerHints])
+
+  const handleContinueStep3 = useCallback(() => {
+    const missing: CheckInHintTarget[] = []
+
+    if (!draft.mainInfluence) {
+      missing.push('influence')
+    }
+
+    if (!isPositivePath && !draft.influenceValence) {
+      missing.push('valence')
+    }
+
+    if (missing.length > 0) {
+      triggerHints(missing)
+      return
+    }
+
+    setStep((current) => clampCheckInStep((current + 1) as 2 | 3 | 4, draft.mood))
+  }, [draft.influenceValence, draft.mainInfluence, draft.mood, isPositivePath, triggerHints])
 
   const handleBack = useCallback(() => {
     if (phase === 'result') {
@@ -163,27 +321,14 @@ export function MentalHealthCheckInDrawer({
     }, [handleBack, visible]),
   )
 
-  function toggleEmotion(label: string) {
-    setDraft((current) => {
-      const selected = current.emotions.includes(label)
-      if (selected) {
-        const emotions = current.emotions.filter((item) => item !== label)
-        return {
-          ...current,
-          emotions,
-          emotionIntensity: emotions.length === 0 ? null : current.emotionIntensity,
-        }
-      }
-
-      if (current.emotions.length >= MAX_MENTAL_HEALTH_CHECKIN_EMOTIONS) {
-        return current
-      }
-
-      return {
-        ...current,
-        emotions: [...current.emotions, label],
-      }
-    })
+  function selectEmotionAndAdvance(label: string) {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    setDraft((current) => ({
+      ...current,
+      emotions: [label],
+      emotionIntensity: 3,
+    }))
+    setStep(3)
   }
 
   function toggleReaction(label: string) {
@@ -196,7 +341,20 @@ export function MentalHealthCheckInDrawer({
   }
 
   async function handleFinalize() {
-    if (!draft.mood || !draft.mainInfluence || !draft.influenceValence) return
+    const missing: CheckInHintTarget[] = []
+
+    if (!draft.mainInfluence) {
+      missing.push('influence')
+    }
+
+    if (!isPositivePath && !draft.influenceValence) {
+      missing.push('valence')
+    }
+
+    if (!draft.mood || missing.length > 0) {
+      triggerHints(missing)
+      return
+    }
 
     setIsSaving(true)
 
@@ -208,10 +366,10 @@ export function MentalHealthCheckInDrawer({
         emotions: draft.emotions,
         emotionIntensity: draft.emotionIntensity,
         mainInfluence: draft.mainInfluence,
-        influenceValence: draft.influenceValence,
+        influenceValence: isPositivePath ? null : draft.influenceValence,
         influenceDetail: draft.influenceDetail.trim() || null,
-        reactions: draft.reactions,
-        reactionHelp: draft.reactionHelp.trim() || null,
+        reactions: isPositivePath ? [] : draft.reactions,
+        reactionHelp: isPositivePath ? null : draft.reactionHelp.trim() || null,
         isQuickEntry: false,
       })
       setPhase('result')
@@ -220,23 +378,16 @@ export function MentalHealthCheckInDrawer({
     }
   }
 
-  const canContinueStep1 = draft.mood != null
-  const canContinueStep2 = draft.emotions.length > 0 && draft.emotionIntensity != null
-  const canContinueStep3 = draft.mainInfluence != null && draft.influenceValence != null
 
   const footer =
     phase === 'result' ? (
       <PrimaryButton label="Registrar como está meu dia" onPress={onClose} />
     ) : step === 1 ? (
-      <PrimaryButton
-        label="Continuar"
-        onPress={() => setStep(2)}
-        disabled={!canContinueStep1}
-      />
-    ) : step === 4 ? (
+      <PrimaryButton label="Continuar" onPress={handleContinueStep1} />
+    ) : step === 2 ? undefined : step === 4 || (step === 3 && isPositivePath) ? (
       <View style={styles.footerPair}>
         <Pressable
-          onPress={() => setStep(3)}
+          onPress={() => setStep(step === 4 ? 3 : 2)}
           style={({ pressed }) => [styles.footerSecondary, pressed && styles.buttonPressed]}
         >
           <Text style={styles.footerSecondaryText}>Voltar</Text>
@@ -246,7 +397,6 @@ export function MentalHealthCheckInDrawer({
             label="Finalizar check-in"
             onPress={() => void handleFinalize()}
             loading={isSaving}
-            disabled={!draft.mood || !draft.mainInfluence || !draft.influenceValence}
           />
         </View>
       </View>
@@ -259,11 +409,7 @@ export function MentalHealthCheckInDrawer({
           <Text style={styles.footerSecondaryText}>Voltar</Text>
         </Pressable>
         <View style={styles.footerPrimaryWrap}>
-          <PrimaryButton
-            label="Continuar"
-            onPress={() => setStep((current) => (current + 1) as 2 | 3 | 4)}
-            disabled={step === 2 ? !canContinueStep2 : !canContinueStep3}
-          />
+          <PrimaryButton label="Continuar" onPress={handleContinueStep3} />
         </View>
       </View>
     )
@@ -295,7 +441,7 @@ export function MentalHealthCheckInDrawer({
           </Pressable>
 
           <View style={styles.progressRow}>
-            {CHECKIN_STEPS.map((item) => (
+            {activeSteps.map((item) => (
               <View
                 key={item.id}
                 style={[styles.progressDot, item.id <= step && styles.progressDotActive]}
@@ -324,37 +470,40 @@ export function MentalHealthCheckInDrawer({
         <View style={styles.stepContent}>
           <Text style={styles.question}>Como você está agora?</Text>
 
-          <View style={styles.moodList}>
-            {MENTAL_HEALTH_MOOD_OPTIONS.map((option) => {
-              const selected = draft.mood === option.id
+          <AttentionHighlight pulseKey={hintPulse.mood}>
+            <View style={styles.moodList}>
+              {MENTAL_HEALTH_MOOD_OPTIONS.map((option) => {
+                const selected = draft.mood === option.id
 
-              return (
-                <Pressable
-                  key={option.id}
-                  onPress={() => {
-                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                    setDraft((current) => ({ ...current, mood: option.id }))
-                  }}
-                  style={({ pressed }) => [
-                    styles.moodOption,
-                    { backgroundColor: selected ? option.tint : 'rgba(255, 255, 255, 0.04)' },
-                    selected && styles.moodOptionSelected,
-                    pressed && styles.moodOptionPressed,
-                  ]}
-                >
-                  <MentalHealthMoodIcon mood={option.id} size="large" />
-                  <Text style={[styles.moodOptionLabel, selected && styles.moodOptionLabelSelected]}>
-                    {MENTAL_HEALTH_CHECKIN_MOOD_LABELS[option.id]}
-                  </Text>
-                  {selected ? (
-                    <Ionicons name="checkmark-circle" size={20} color="#67e8f9" />
-                  ) : (
-                    <View style={styles.moodOptionCheckPlaceholder} />
-                  )}
-                </Pressable>
-              )
-            })}
-          </View>
+                return (
+                  <Pressable
+                    key={option.id}
+                    onPress={() => {
+                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                      setDraft((current) => resetDraftForMoodChange(current, option.id))
+                      setStep((current) => clampCheckInStep(current, option.id))
+                    }}
+                    style={({ pressed }) => [
+                      styles.moodOption,
+                      { backgroundColor: selected ? option.tint : 'rgba(255, 255, 255, 0.04)' },
+                      selected && styles.moodOptionSelected,
+                      pressed && styles.moodOptionPressed,
+                    ]}
+                  >
+                    <MentalHealthMoodIcon mood={option.id} size="large" />
+                    <Text style={[styles.moodOptionLabel, selected && styles.moodOptionLabelSelected]}>
+                      {MENTAL_HEALTH_CHECKIN_MOOD_LABELS[option.id]}
+                    </Text>
+                    {selected ? (
+                      <Ionicons name="checkmark-circle" size={20} color="#67e8f9" />
+                    ) : (
+                      <View style={styles.moodOptionCheckPlaceholder} />
+                    )}
+                  </Pressable>
+                )
+              })}
+            </View>
+          </AttentionHighlight>
 
           <OptionalTextField
             label="Quer contar rapidamente o motivo?"
@@ -368,56 +517,18 @@ export function MentalHealthCheckInDrawer({
       {phase === 'steps' && step === 2 ? (
         <View style={styles.stepContent}>
           <Text style={styles.question}>Quais emoções estão mais presentes?</Text>
-          <Text style={styles.helper}>Selecione até três emoções.</Text>
+          <Text style={styles.helper}>Toque na emoção que mais combina com você agora.</Text>
 
           <View style={styles.chipsWrap}>
-            {MENTAL_HEALTH_CHECKIN_EMOTIONS.map((emotion) => (
+            {availableEmotions.map((emotion) => (
               <Chip
                 key={emotion}
                 label={emotion}
                 selected={draft.emotions.includes(emotion)}
-                onPress={() => {
-                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                  toggleEmotion(emotion)
-                }}
+                onPress={() => selectEmotionAndAdvance(emotion)}
               />
             ))}
           </View>
-
-          {draft.emotions.length > 0 ? (
-            <View style={styles.intensityBlock}>
-              <Text style={styles.question}>Qual a intensidade dessas emoções?</Text>
-              <View style={styles.intensityList}>
-                {MENTAL_HEALTH_EMOTION_INTENSITY_OPTIONS.map((option) => {
-                  const selected = draft.emotionIntensity === option.value
-
-                  return (
-                    <Pressable
-                      key={option.value}
-                      onPress={() => {
-                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                        setDraft((current) => ({
-                          ...current,
-                          emotionIntensity: option.value,
-                        }))
-                      }}
-                      style={[styles.intensityOption, selected && styles.intensityOptionSelected]}
-                    >
-                      <Text style={styles.intensityValue}>{option.value}</Text>
-                      <Text
-                        style={[
-                          styles.intensityLabel,
-                          selected && styles.intensityLabelSelected,
-                        ]}
-                      >
-                        {option.label}
-                      </Text>
-                    </Pressable>
-                  )
-                })}
-              </View>
-            </View>
-          ) : null}
         </View>
       ) : null}
 
@@ -425,36 +536,42 @@ export function MentalHealthCheckInDrawer({
         <View style={styles.stepContent}>
           <Text style={styles.question}>O que mais influenciou como você está?</Text>
 
-          <View style={styles.chipsWrap}>
-            {MENTAL_HEALTH_CHECKIN_INFLUENCES.map((item) => (
-              <Chip
-                key={item}
-                label={item}
-                selected={draft.mainInfluence === item}
-                onPress={() => {
-                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                  setDraft((current) => ({ ...current, mainInfluence: item }))
-                }}
-              />
-            ))}
-          </View>
+          <AttentionHighlight pulseKey={hintPulse.influence}>
+            <View style={styles.chipsWrap}>
+              {availableInfluences.map((item) => (
+                <Chip
+                  key={item}
+                  label={item}
+                  selected={draft.mainInfluence === item}
+                  onPress={() => {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                    setDraft((current) => ({ ...current, mainInfluence: item }))
+                  }}
+                />
+              ))}
+            </View>
+          </AttentionHighlight>
 
           {draft.mainInfluence ? (
             <>
-              <Text style={styles.question}>Esse acontecimento foi:</Text>
-              <View style={styles.chipsWrap}>
-                {MENTAL_HEALTH_INFLUENCE_VALENCE_OPTIONS.map((item) => (
-                  <Chip
-                    key={item.id}
-                    label={item.label}
-                    selected={draft.influenceValence === item.id}
-                    onPress={() => {
-                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                      setDraft((current) => ({ ...current, influenceValence: item.id }))
-                    }}
-                  />
-                ))}
-              </View>
+              {!isPositivePath ? (
+                <AttentionHighlight pulseKey={hintPulse.valence} style={styles.valenceBlock}>
+                  <Text style={styles.question}>Esse acontecimento foi:</Text>
+                  <View style={styles.chipsWrap}>
+                    {MENTAL_HEALTH_INFLUENCE_VALENCE_OPTIONS.map((item) => (
+                      <Chip
+                        key={item.id}
+                        label={item.label}
+                        selected={draft.influenceValence === item.id}
+                        onPress={() => {
+                          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                          setDraft((current) => ({ ...current, influenceValence: item.id }))
+                        }}
+                      />
+                    ))}
+                  </View>
+                </AttentionHighlight>
+              ) : null}
 
               <OptionalTextField
                 label="Conte brevemente o que aconteceu"
@@ -469,7 +586,7 @@ export function MentalHealthCheckInDrawer({
         </View>
       ) : null}
 
-      {phase === 'steps' && step === 4 ? (
+      {phase === 'steps' && step === 4 && !isPositivePath ? (
         <View style={styles.stepContent}>
           <Text style={styles.question}>Como você lidou com isso?</Text>
           <Text style={styles.helper}>Você pode escolher mais de uma opção.</Text>
@@ -618,6 +735,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+  },
+  valenceBlock: {
+    gap: 16,
   },
   chip: {
     paddingHorizontal: 14,

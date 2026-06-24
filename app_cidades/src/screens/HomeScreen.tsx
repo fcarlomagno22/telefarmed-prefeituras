@@ -5,7 +5,6 @@ import { ScrollView } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BiometricPromptModal } from '../components/BiometricPromptModal'
 import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
-import { FeatureAuthDrawer } from '../components/FeatureAuthDrawer'
 import { GuestWelcomeCard } from '../components/GuestWelcomeCard'
 import { HealthSummaryCard } from '../components/HealthSummaryCard'
 import { HomeHeader } from '../components/HomeHeader'
@@ -14,7 +13,6 @@ import { MenuDrawer } from '../components/MenuDrawer'
 import { PromoCarousel } from '../components/PromoCarousel'
 import { VidaSaudavelActions, VidaSaudavelActionId } from '../components/VidaSaudavelActions'
 import { appEnv } from '../config/env'
-import { GuestFeatureKey } from '../config/guestFeatures'
 import { getPromoBanners } from '../config/promoBanners'
 import { useAuth } from '../contexts/AuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
@@ -34,8 +32,6 @@ export function HomeScreen() {
   const insets = useSafeAreaInsets()
   const [activeTab, setActiveTab] = useState<BottomTabId>('home')
   const [menuVisible, setMenuVisible] = useState(false)
-  const [guestFeatureKey, setGuestFeatureKey] = useState<GuestFeatureKey | null>(null)
-  const [drawerVisible, setDrawerVisible] = useState(false)
   const {
     user,
     isAuthenticated,
@@ -52,22 +48,7 @@ export function HomeScreen() {
   const bottomContentPadding =
     TAB_BAR_ESTIMATED_HEIGHT + Math.max(insets.bottom, 8) + 24
 
-  function openGuestDrawer(featureKey: GuestFeatureKey) {
-    setGuestFeatureKey(featureKey)
-    setDrawerVisible(true)
-  }
-
-  function closeGuestDrawer() {
-    setDrawerVisible(false)
-    setGuestFeatureKey(null)
-  }
-
   function handleQuickAction(actionId: HomeQuickActionId) {
-    if (!isAuthenticated) {
-      openGuestDrawer(`quick:${actionId}`)
-      return
-    }
-
     if (actionId === 'schedule') {
       navigateTo('schedule-appointment')
       return
@@ -94,11 +75,6 @@ export function HomeScreen() {
   }
 
   function handleVidaAction(actionId: VidaSaudavelActionId) {
-    if (!isAuthenticated) {
-      openGuestDrawer(`vida:${actionId}`)
-      return
-    }
-
     if (actionId === 'my-metrics') {
       navigateTo('my-metrics')
       return
@@ -126,15 +102,20 @@ export function HomeScreen() {
 
     if (actionId === 'mental-health') {
       navigateTo('mental-health')
+      return
+    }
+
+    if (actionId === 'active-mind') {
+      navigateTo('active-mind')
+      return
+    }
+
+    if (actionId === 'my-routine') {
+      navigateTo('my-routine')
     }
   }
 
   function handleTabPress(tab: BottomTabId) {
-    if (!isAuthenticated) {
-      openGuestDrawer(`tab:${tab}`)
-      return
-    }
-
     if (tab === 'menu') {
       setMenuVisible(true)
       setActiveTab('menu')
@@ -178,11 +159,6 @@ export function HomeScreen() {
   useAndroidBackHandler(() => {
     if (shouldAskBiometric) {
       void dismissBiometricPrompt()
-      return true
-    }
-
-    if (drawerVisible) {
-      closeGuestDrawer()
       return true
     }
 
@@ -230,18 +206,15 @@ export function HomeScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {isAuthenticated ? (
-            <HealthSummaryCard skeleton={showSkeleton} />
+            <HealthSummaryCard
+              skeleton={showSkeleton}
+              onPressMetrics={() => navigateTo('my-metrics')}
+            />
           ) : (
             <GuestWelcomeCard skeleton={showSkeleton} />
           )}
           <HomeQuickActions onActionPress={handleQuickAction} skeleton={showSkeleton} />
-          <PromoCarousel
-            banners={promoBanners}
-            onGuestInteract={
-              isAuthenticated ? undefined : () => openGuestDrawer('promo:carousel')
-            }
-            skeleton={showSkeleton}
-          />
+          <PromoCarousel banners={promoBanners} skeleton={showSkeleton} />
           <Text style={styles.sectionTitle}>Saúde, Bem-estar e Qualidade de Vida</Text>
           <VidaSaudavelActions onActionPress={handleVidaAction} skeleton={showSkeleton} />
         </ScrollView>
@@ -258,14 +231,6 @@ export function HomeScreen() {
         selfieUri={user?.selfieUri}
         onClose={closeMenu}
         onLogoutPress={handleLogout}
-      />
-
-      <FeatureAuthDrawer
-        visible={drawerVisible}
-        featureKey={guestFeatureKey}
-        onClose={closeGuestDrawer}
-        onLoginPress={() => navigateTo('login')}
-        onRegisterPress={() => navigateTo('register')}
       />
 
       <BiometricPromptModal

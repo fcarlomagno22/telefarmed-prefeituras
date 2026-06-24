@@ -17,9 +17,9 @@ import {
 import { ScrollView } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
-import { FeatureAuthDrawer } from '../components/FeatureAuthDrawer'
 import { MenuDrawer } from '../components/MenuDrawer'
 import { MetricsAreaChart } from '../components/metrics/MetricsAreaChart'
+import { MetricsHoldToEditHint } from '../components/metrics/MetricsHoldToEditHint'
 import { HealthIntegrationsCard } from '../components/metrics/HealthIntegrationsCard'
 import { MetricsPeriodDrawer } from '../components/metrics/MetricsPeriodDrawer'
 import { GlucoseLogDrawer, GlucoseReading } from '../components/metrics/GlucoseLogDrawer'
@@ -43,7 +43,6 @@ import { BodyMeasurementsDrawer } from '../components/metrics/BodyMeasurementsDr
 import { BodyMeasurementLogDrawer } from '../components/metrics/BodyMeasurementLogDrawer'
 import { NeonSectionDivider } from '../components/NeonSectionDivider'
 import { appEnv } from '../config/env'
-import { GuestFeatureKey } from '../config/guestFeatures'
 import {
   applyLiveRegistrationSliding,
   createExtendedWeightHistory,
@@ -104,6 +103,7 @@ import {
   hasStepsIntegration,
 } from '../data/mockStepsHistory'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useSimulatedPageSkeleton } from '../hooks/useSimulatedPageSkeleton'
 import { colors } from '../theme/colors'
@@ -585,13 +585,15 @@ function SelectableMetricCard({
 export function MyMetricsScreen() {
   const insets = useSafeAreaInsets()
   const { width: screenWidth } = useWindowDimensions()
-  const { user, isAuthenticated, navigateTo, logout, isBootstrapping } = useAuth()
+  const { user, navigateTo, logout, isBootstrapping } = useAuth()
+  const { requireAuth } = useGuestAuth()
+  const withMetricsAuth = (action: () => void) => {
+    requireAuth('vida:my-metrics', action)
+  }
   const showSkeleton = useSimulatedPageSkeleton(isBootstrapping)
 
   const [activeTab, setActiveTab] = useState<BottomTabId | null>('my-metrics')
   const [menuVisible, setMenuVisible] = useState(false)
-  const [guestFeatureKey, setGuestFeatureKey] = useState<GuestFeatureKey | null>(null)
-  const [drawerVisible, setDrawerVisible] = useState(false)
   const [selectedMetricId, setSelectedMetricId] = useState<ChartableMetricId>('peso')
   const [period, setPeriod] = useState<PeriodSelection>(() => buildPeriodSelection('week'))
   const [periodDrawerVisible, setPeriodDrawerVisible] = useState(false)
@@ -921,39 +923,45 @@ export function MyMetricsScreen() {
   const chartDataForDisplay = isSelectedMetricChartUnavailable ? [] : chartData
 
   function handleHealthConnectionsChange(next: Record<string, IntegrationConnectionState>) {
-    const wasHeartRateSynced = hasHeartRateIntegration(healthConnections)
-    const nowHeartRateSynced = hasHeartRateIntegration(next)
-    const wasStepsSynced = hasStepsIntegration(healthConnections)
-    const nowStepsSynced = hasStepsIntegration(next)
-    setHealthConnections(next)
+    withMetricsAuth(() => {
+      const wasHeartRateSynced = hasHeartRateIntegration(healthConnections)
+      const nowHeartRateSynced = hasHeartRateIntegration(next)
+      const wasStepsSynced = hasStepsIntegration(healthConnections)
+      const nowStepsSynced = hasStepsIntegration(next)
+      setHealthConnections(next)
 
-    if (!wasHeartRateSynced && nowHeartRateSynced) {
-      setHeartRateReadings((prev) => {
-        if (prev.some((reading) => reading.source !== 'Manual')) return prev
-        return [...createMockHeartRateHistory(), ...prev.filter((reading) => reading.source === 'Manual')]
-      })
-    }
+      if (!wasHeartRateSynced && nowHeartRateSynced) {
+        setHeartRateReadings((prev) => {
+          if (prev.some((reading) => reading.source !== 'Manual')) return prev
+          return [...createMockHeartRateHistory(), ...prev.filter((reading) => reading.source === 'Manual')]
+        })
+      }
 
-    if (!wasStepsSynced && nowStepsSynced) {
-      setStepsDayRecords((prev) => {
-        if (prev.some((record) => record.source !== 'Manual')) return prev
-        return [...createMockStepsHistory(), ...prev.filter((record) => record.source === 'Manual')]
-      })
-    }
+      if (!wasStepsSynced && nowStepsSynced) {
+        setStepsDayRecords((prev) => {
+          if (prev.some((record) => record.source !== 'Manual')) return prev
+          return [...createMockStepsHistory(), ...prev.filter((record) => record.source === 'Manual')]
+        })
+      }
+    })
   }
 
   function openHealthIntegration() {
-    setIntegrationConnectRequest(Platform.OS === 'ios' ? 'apple-health' : 'health-connect')
+    withMetricsAuth(() => {
+      setIntegrationConnectRequest(Platform.OS === 'ios' ? 'apple-health' : 'health-connect')
+    })
   }
 
-  function openGuestDrawer(featureKey: GuestFeatureKey) {
-    setGuestFeatureKey(featureKey)
-    setDrawerVisible(true)
-  }
-
-  function closeGuestDrawer() {
-    setDrawerVisible(false)
-    setGuestFeatureKey(null)
+  function handleEditProfileField(field: EditableProfileFieldId) {
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      if (field === 'weight') {
+        setSelectedMetricId('peso')
+      }
+      InteractionManager.runAfterInteractions(() => {
+        setEditingProfileField(field)
+      })
+    })
   }
 
   function handleMetricPress(metricId: ChartableMetricId) {
@@ -969,16 +977,6 @@ export function MyMetricsScreen() {
 
   function handleWeightChartPress() {
     setSelectedMetricId('peso')
-  }
-
-  function handleEditProfileField(field: EditableProfileFieldId) {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    if (field === 'weight') {
-      setSelectedMetricId('peso')
-    }
-    InteractionManager.runAfterInteractions(() => {
-      setEditingProfileField(field)
-    })
   }
 
   function handleBack() {
@@ -1081,12 +1079,6 @@ export function MyMetricsScreen() {
       return true
     }
 
-    if (drawerVisible) {
-      setDrawerVisible(false)
-      setGuestFeatureKey(null)
-      return true
-    }
-
     if (menuVisible) {
       closeMenu()
       return true
@@ -1096,23 +1088,25 @@ export function MyMetricsScreen() {
   })
 
   function handleSaveProfileField(field: EditableProfileFieldId, value: string) {
-    if (field === 'weight') {
-      const weightKg = parseWeightKg(value)
-      setProfile((prev) => {
-        const next = { ...prev, [field]: value }
-        if (weightKg !== null) {
-          setSelectedMetricId('peso')
-          setWeightHistory((hist) =>
-            ensureSevenDayWeightHistory(registerWeightInHistory(hist, weightKg, period), next),
-          )
-          setChartScrollToken((token) => token + 1)
-        }
-        return next
-      })
-      return
-    }
+    withMetricsAuth(() => {
+      if (field === 'weight') {
+        const weightKg = parseWeightKg(value)
+        setProfile((prev) => {
+          const next = { ...prev, [field]: value }
+          if (weightKg !== null) {
+            setSelectedMetricId('peso')
+            setWeightHistory((hist) =>
+              ensureSevenDayWeightHistory(registerWeightInHistory(hist, weightKg, period), next),
+            )
+            setChartScrollToken((token) => token + 1)
+          }
+          return next
+        })
+        return
+      }
 
-    setProfile((prev) => ({ ...prev, [field]: value }))
+      setProfile((prev) => ({ ...prev, [field]: value }))
+    })
   }
 
   function pushLiveRegistration(
@@ -1129,123 +1123,153 @@ export function MyMetricsScreen() {
   }
 
   function handleOpenHydrationReport() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('hidratacao')
-    InteractionManager.runAfterInteractions(() => {
-      setHydrationReportDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('hidratacao')
+      InteractionManager.runAfterInteractions(() => {
+        setHydrationReportDrawerVisible(true)
+      })
     })
   }
 
   function handleOpenHydrationDrawer() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('hidratacao')
-    InteractionManager.runAfterInteractions(() => {
-      setHydrationDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('hidratacao')
+      InteractionManager.runAfterInteractions(() => {
+        setHydrationDrawerVisible(true)
+      })
     })
   }
 
   function handleRegisterHydration(amountMl: number) {
-    setHydrationHistory((prev) => {
-      const next = registerHydrationLog(prev, amountMl)
-      const todayLiters = getTodayHydrationLiters(next, getLatestMetricValue('hidratacao', profile))
-      setSelectedMetricId('hidratacao')
-      pushLiveRegistration('hidratacao', todayLiters)
-      return next
+    withMetricsAuth(() => {
+      setHydrationHistory((prev) => {
+        const next = registerHydrationLog(prev, amountMl)
+        const todayLiters = getTodayHydrationLiters(next, getLatestMetricValue('hidratacao', profile))
+        setSelectedMetricId('hidratacao')
+        pushLiveRegistration('hidratacao', todayLiters)
+        return next
+      })
     })
   }
 
   function handleOpenGlucoseReport() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('glicemia')
-    InteractionManager.runAfterInteractions(() => {
-      setGlucoseReportDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('glicemia')
+      InteractionManager.runAfterInteractions(() => {
+        setGlucoseReportDrawerVisible(true)
+      })
     })
   }
 
   function handleOpenGlucoseDrawer() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('glicemia')
-    InteractionManager.runAfterInteractions(() => {
-      setGlucoseDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('glicemia')
+      InteractionManager.runAfterInteractions(() => {
+        setGlucoseDrawerVisible(true)
+      })
     })
   }
 
   function handleOpenBloodPressureDrawer() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('pressao')
-    InteractionManager.runAfterInteractions(() => {
-      setBloodPressureDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('pressao')
+      InteractionManager.runAfterInteractions(() => {
+        setBloodPressureDrawerVisible(true)
+      })
     })
   }
 
   function handleOpenBloodPressureReport() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('pressao')
-    InteractionManager.runAfterInteractions(() => {
-      setBloodPressureReportDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('pressao')
+      InteractionManager.runAfterInteractions(() => {
+        setBloodPressureReportDrawerVisible(true)
+      })
     })
   }
 
   function handleRegisterGlucose(reading: GlucoseReading) {
-    setLoggedGlucose(reading)
-    setSelectedMetricId('glicemia')
-    pushLiveRegistration('glicemia', reading.amountMg)
-    setGlucoseHistory((prev) => appendGlucoseReading(prev, reading.amountMg, reading.context))
+    withMetricsAuth(() => {
+      setLoggedGlucose(reading)
+      setSelectedMetricId('glicemia')
+      pushLiveRegistration('glicemia', reading.amountMg)
+      setGlucoseHistory((prev) => appendGlucoseReading(prev, reading.amountMg, reading.context))
+    })
   }
 
   function handleRegisterBloodPressure(reading: BloodPressureReading) {
-    setLoggedBloodPressure(reading)
-    setSelectedMetricId('pressao')
-    pushLiveRegistration('pressao', reading.systolic, { diastolic: reading.diastolic })
-    setBloodPressureHistory((prev) =>
-      appendBloodPressureReading(prev, reading.systolic, reading.diastolic),
-    )
+    withMetricsAuth(() => {
+      setLoggedBloodPressure(reading)
+      setSelectedMetricId('pressao')
+      pushLiveRegistration('pressao', reading.systolic, { diastolic: reading.diastolic })
+      setBloodPressureHistory((prev) =>
+        appendBloodPressureReading(prev, reading.systolic, reading.diastolic),
+      )
+    })
   }
 
   function handleOpenHeartRateDrawer() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('frequencia')
-    InteractionManager.runAfterInteractions(() => {
-      setHeartRateDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('frequencia')
+      InteractionManager.runAfterInteractions(() => {
+        setHeartRateDrawerVisible(true)
+      })
     })
   }
 
   function handleOpenHeartRateReport() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('frequencia')
-    InteractionManager.runAfterInteractions(() => {
-      setHeartRateReportDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('frequencia')
+      InteractionManager.runAfterInteractions(() => {
+        setHeartRateReportDrawerVisible(true)
+      })
     })
   }
 
   function handleManualHeartRateReading(reading: HeartRateReading) {
-    setHeartRateReadings((prev) => appendHeartRateReading(prev, reading))
-    setSelectedMetricId('frequencia')
-    pushLiveRegistration('frequencia', reading.bpm)
+    withMetricsAuth(() => {
+      setHeartRateReadings((prev) => appendHeartRateReading(prev, reading))
+      setSelectedMetricId('frequencia')
+      pushLiveRegistration('frequencia', reading.bpm)
+    })
   }
 
   function handleOpenStepsDrawer() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('passos')
-    InteractionManager.runAfterInteractions(() => {
-      setStepsDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('passos')
+      InteractionManager.runAfterInteractions(() => {
+        setStepsDrawerVisible(true)
+      })
     })
   }
 
   function handleManualWalk(entry: ManualWalkEntry) {
-    const nextRecords = addManualWalkToRecords(stepsDayRecords, entry)
-    setStepsDayRecords(nextRecords)
-    const todaySteps = getTodaySteps(nextRecords)
-    setSelectedMetricId('passos')
-    pushLiveRegistration('passos', todaySteps)
-    pushLiveRegistration('distancia', getTodayDistanceKm(nextRecords))
+    withMetricsAuth(() => {
+      const nextRecords = addManualWalkToRecords(stepsDayRecords, entry)
+      setStepsDayRecords(nextRecords)
+      const todaySteps = getTodaySteps(nextRecords)
+      setSelectedMetricId('passos')
+      pushLiveRegistration('passos', todaySteps)
+      pushLiveRegistration('distancia', getTodayDistanceKm(nextRecords))
+    })
   }
 
   function handleOpenDistanceDrawer() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('distancia')
-    InteractionManager.runAfterInteractions(() => {
-      setDistanceDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('distancia')
+      InteractionManager.runAfterInteractions(() => {
+        setDistanceDrawerVisible(true)
+      })
     })
   }
 
@@ -1256,34 +1280,42 @@ export function MyMetricsScreen() {
   }
 
   function handleOpenCircumferenceDrawer() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('circunferencia')
-    InteractionManager.runAfterInteractions(() => {
-      setCircumferenceDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('circunferencia')
+      InteractionManager.runAfterInteractions(() => {
+        setCircumferenceDrawerVisible(true)
+      })
     })
   }
 
   function handleOpenImcDrawer() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('imc')
-    InteractionManager.runAfterInteractions(() => {
-      setImcDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('imc')
+      InteractionManager.runAfterInteractions(() => {
+        setImcDrawerVisible(true)
+      })
     })
   }
 
   function handleOpenBodyCompositionReport() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('imc')
-    InteractionManager.runAfterInteractions(() => {
-      setBodyCompositionReportDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('imc')
+      InteractionManager.runAfterInteractions(() => {
+        setBodyCompositionReportDrawerVisible(true)
+      })
     })
   }
 
   function handleOpenBodyMeasurementsReport() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('corporais')
-    InteractionManager.runAfterInteractions(() => {
-      setBodyMeasurementsReportDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('corporais')
+      InteractionManager.runAfterInteractions(() => {
+        setBodyMeasurementsReportDrawerVisible(true)
+      })
     })
   }
 
@@ -1300,20 +1332,24 @@ export function MyMetricsScreen() {
   }
 
   function handleRegisterCircumference(valueCm: number) {
-    setLoggedCircumference(valueCm)
-    setSelectedMetricId('circunferencia')
-    pushLiveRegistration('circunferencia', valueCm)
-    setBodyMeasurementHistory((prev) =>
-      registerBodyMeasurementInHistory(prev, 'abdomen', valueCm, period),
-    )
+    withMetricsAuth(() => {
+      setLoggedCircumference(valueCm)
+      setSelectedMetricId('circunferencia')
+      pushLiveRegistration('circunferencia', valueCm)
+      setBodyMeasurementHistory((prev) =>
+        registerBodyMeasurementInHistory(prev, 'abdomen', valueCm, period),
+      )
+    })
   }
 
   function handleOpenCorporaisDrawer() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setSelectedMetricId('corporais')
-    setPeriod(buildPeriodSelection(BODY_MEASUREMENT_CHART_PERIOD))
-    InteractionManager.runAfterInteractions(() => {
-      setBodyMeasurementsDrawerVisible(true)
+    withMetricsAuth(() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSelectedMetricId('corporais')
+      setPeriod(buildPeriodSelection(BODY_MEASUREMENT_CHART_PERIOD))
+      InteractionManager.runAfterInteractions(() => {
+        setBodyMeasurementsDrawerVisible(true)
+      })
     })
   }
 
@@ -1325,10 +1361,13 @@ export function MyMetricsScreen() {
   }
 
   function handleOpenBodyMeasurementLog(id: BodyMeasurementId) {
-    setBodyMeasurementLogTarget(id)
+    withMetricsAuth(() => {
+      setBodyMeasurementLogTarget(id)
+    })
   }
 
   function handleRegisterBodyMeasurement(id: BodyMeasurementId, value: number) {
+    withMetricsAuth(() => {
     setSelectedMetricId('corporais')
     setActiveBodyMeasurementId(id)
     setChartScrollToken((token) => token + 1)
@@ -1359,6 +1398,7 @@ export function MyMetricsScreen() {
     if (!isStorableBodyMeasurementId(id)) return
 
     setBodyMeasurementHistory((prev) => registerBodyMeasurementInHistory(prev, id, value, period))
+    })
   }
 
   const bodyMeasurementLogInitialValue =
@@ -1414,11 +1454,6 @@ export function MyMetricsScreen() {
         : undefined
 
   function handleTabPress(tab: BottomTabId) {
-    if (!isAuthenticated) {
-      openGuestDrawer(`tab:${tab}`)
-      return
-    }
-
     if (tab === 'home') {
       setMenuVisible(false)
       navigateTo('home')
@@ -1678,7 +1713,7 @@ export function MyMetricsScreen() {
                       ) : null}
 
                       <Pressable
-                        onPress={() => setPeriodDrawerVisible(true)}
+                        onPress={() => withMetricsAuth(() => setPeriodDrawerVisible(true))}
                         hitSlop={8}
                         style={({ pressed }) => [
                           styles.calendarButton,
@@ -1736,7 +1771,7 @@ export function MyMetricsScreen() {
 
           <View style={styles.sectionTitleRow}>
             <Text style={styles.sectionTitle}>Indicadores de saúde</Text>
-            <Text style={styles.sectionHint}>(segure para editar)</Text>
+            <MetricsHoldToEditHint />
           </View>
 
           <View style={styles.metricsGrid}>
@@ -1832,14 +1867,6 @@ export function MyMetricsScreen() {
         selfieUri={user?.selfieUri}
         onClose={closeMenu}
         onLogoutPress={handleLogout}
-      />
-
-      <FeatureAuthDrawer
-        visible={drawerVisible}
-        featureKey={guestFeatureKey}
-        onClose={closeGuestDrawer}
-        onLoginPress={() => navigateTo('login')}
-        onRegisterPress={() => navigateTo('register')}
       />
 
       <MetricsPeriodDrawer
@@ -2206,12 +2233,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     letterSpacing: 0.2,
-  },
-  sectionHint: {
-    color: colors.textSubtle,
-    fontSize: 11,
-    fontWeight: '500',
-    fontStyle: 'italic',
   },
   integrationsSectionTitle: {
     color: colors.textMuted,

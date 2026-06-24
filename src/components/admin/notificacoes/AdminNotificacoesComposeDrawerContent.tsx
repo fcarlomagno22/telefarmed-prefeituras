@@ -1,4 +1,4 @@
-import { Building2, Landmark, Search, Send, Stethoscope } from 'lucide-react'
+import { Building2, Landmark, Search, Send, Smartphone, Stethoscope } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import {
   type AdminBroadcast,
@@ -60,6 +60,7 @@ export function AdminNotificacoesComposeDrawerContent({
   const [priority, setPriority] = useState<AdminNotificationPriority>('normal')
   const [isSending, setIsSending] = useState(false)
   const [includePrefeituras, setIncludePrefeituras] = useState(true)
+  const [includeAppPacientes, setIncludeAppPacientes] = useState(false)
   const [includeUbts, setIncludeUbts] = useState(false)
   const [includeMedicos, setIncludeMedicos] = useState(false)
   const [medicoScope, setMedicoScope] = useState<MedicoAudienceScope>('medico_all')
@@ -248,7 +249,7 @@ export function AdminNotificacoesComposeDrawerContent({
   ])
 
   const destinationPreview = useMemo(() => {
-    if (!includePrefeituras && !includeUbts && !includeMedicos) {
+    if (!includePrefeituras && !includeUbts && !includeMedicos && !includeAppPacientes) {
       return 'Marque pelo menos um tipo de destinatário.'
     }
     if (includeMedicos && medicoScope === 'medico_especialidade' && !specialtyFilter) {
@@ -256,6 +257,9 @@ export function AdminNotificacoesComposeDrawerContent({
     }
 
     const parts: string[] = []
+    if (includeAppPacientes) {
+      parts.push('todos os pacientes ativos do app Telefarmed Cidades')
+    }
     if (includePrefeituras && prefeituraMode === 'all') parts.push('todas as prefeituras ativas')
     if (includePrefeituras && prefeituraMode === 'users') {
       parts.push(`${selectedPrefeituraUserIds.size} gestor(es) municipal(is)`)
@@ -280,6 +284,7 @@ export function AdminNotificacoesComposeDrawerContent({
     return `O comunicado será enviado para ${parts.join(' · ')}.`
   }, [
     includePrefeituras,
+    includeAppPacientes,
     includeUbts,
     includeMedicos,
     prefeituraMode,
@@ -300,7 +305,7 @@ export function AdminNotificacoesComposeDrawerContent({
   const canSend =
     title.trim().length > 0 &&
     message.trim().length > 0 &&
-    (includePrefeituras || includeUbts || includeMedicos) &&
+    (includePrefeituras || includeUbts || includeMedicos || includeAppPacientes) &&
     (!includePrefeituras ||
       prefeituraMode === 'all' ||
       (prefeituraMode === 'selected' && selectedPrefeituraIds.size > 0) ||
@@ -405,6 +410,20 @@ export function AdminNotificacoesComposeDrawerContent({
     const targets: AdminNotificationTargetSnapshot[] = []
 
     const apiTargets: CreateAdminBroadcastPayload['targets'] = []
+
+    if (includeAppPacientes) {
+      targets.push({
+        channel: 'paciente_app',
+        mode: 'all',
+        recipientIds: [],
+        recipientLabels: ['Todos os pacientes ativos do app'],
+        count: 0,
+      })
+      apiTargets.push({
+        channel: 'paciente_app',
+        mode: 'all',
+      })
+    }
 
     if (includePrefeituras) {
       if (prefeituraMode === 'users') {
@@ -547,6 +566,7 @@ export function AdminNotificacoesComposeDrawerContent({
       setMessage('')
       setPriority('normal')
       setIncludePrefeituras(true)
+      setIncludeAppPacientes(false)
       setIncludeUbts(false)
       setIncludeMedicos(false)
       setMedicoScope('medico_all')
@@ -618,6 +638,24 @@ export function AdminNotificacoesComposeDrawerContent({
 
         <div className="space-y-3 rounded-xl border border-gray-200 bg-slate-50/60 p-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Destino</p>
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2.5">
+            <input
+              type="checkbox"
+              checked={includeAppPacientes}
+              onChange={(e) => setIncludeAppPacientes(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[var(--brand-primary)]"
+            />
+            <span className="min-w-0">
+              <span className="flex items-center gap-1.5 text-sm font-bold text-gray-900">
+                <Smartphone className="h-4 w-4 text-orange-500" strokeWidth={2} />
+                App do paciente
+              </span>
+              <span className="mt-0.5 block text-xs text-gray-500">
+                Telefarmed Cidades — caixa de entrada no celular
+              </span>
+            </span>
+          </label>
 
           <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2.5">
             <input

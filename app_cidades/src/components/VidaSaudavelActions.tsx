@@ -14,7 +14,6 @@ export type VidaSaudavelActionId =
   | 'sleep-time'
   | 'mental-health'
   | 'active-mind'
-  | 'my-goals'
   | 'my-routine'
 
 type VidaSaudavelActionsProps = {
@@ -80,12 +79,6 @@ const ACTIONS: ActionConfig[] = [
     title: 'Ativa Mente',
     icon: 'puzzle',
     ...ACTION_ICON_PALETTES.activeMind,
-  },
-  {
-    id: 'my-goals',
-    title: 'Meus objetivos',
-    icon: 'target',
-    ...ACTION_ICON_PALETTES.myGoals,
   },
   {
     id: 'my-routine',

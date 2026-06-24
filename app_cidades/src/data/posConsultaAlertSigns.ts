@@ -1,7 +1,7 @@
-import type { PosConsultaCheckinRespostas } from '../types/posConsulta'
+import { PosConsultaAlertSignId } from '../types/posConsulta'
 
 export const POS_CONSULTA_ALERT_SIGNS: {
-  id: keyof PosConsultaCheckinRespostas['alertSigns']
+  id: PosConsultaAlertSignId
   label: string
 }[] = [
   { id: 'dispneia', label: 'Falta de ar ou dificuldade para respirar' },

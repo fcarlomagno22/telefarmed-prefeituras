@@ -1062,11 +1062,72 @@
       "id": "q_core_15",
       "module_id": "core_mood_anxiety",
       "order": 15,
-      "type": "duration",
-      "text_user": "Há aproximadamente quantos dias essa mudança vem acontecendo?",
-      "help_text_user": "Informe uma estimativa em dias. Se começou há meses, converta de forma aproximada.",
+      "type": "single",
+      "text_user": "Há aproximadamente quanto tempo essa mudança vem acontecendo?",
+      "help_text_user": "Escolha a opção que mais se aproxima do seu caso. Não precisa ser exato.",
       "required": true,
-      "options": [],
+      "options": [
+        {
+          "value": "under_1_week",
+          "label_user": "Há poucos dias (menos de 1 semana)",
+          "duration_days_estimate": 4,
+          "maps_to": [
+            "symptom_duration_prolonged"
+          ],
+          "score_contribution": {
+            "symptom": "symptom_duration_prolonged",
+            "points": 1
+          }
+        },
+        {
+          "value": "about_1_week",
+          "label_user": "Cerca de 1 semana",
+          "duration_days_estimate": 7,
+          "maps_to": [
+            "symptom_duration_prolonged"
+          ],
+          "score_contribution": {
+            "symptom": "symptom_duration_prolonged",
+            "points": 1
+          }
+        },
+        {
+          "value": "2_4_weeks",
+          "label_user": "Algumas semanas (2 a 4 semanas)",
+          "duration_days_estimate": 21,
+          "maps_to": [
+            "symptom_duration_prolonged"
+          ],
+          "score_contribution": {
+            "symptom": "symptom_duration_prolonged",
+            "points": 2
+          }
+        },
+        {
+          "value": "1_3_months",
+          "label_user": "Alguns meses (1 a 3 meses)",
+          "duration_days_estimate": 60,
+          "maps_to": [
+            "symptom_duration_prolonged"
+          ],
+          "score_contribution": {
+            "symptom": "symptom_duration_prolonged",
+            "points": 3
+          }
+        },
+        {
+          "value": "over_3_months",
+          "label_user": "Há bastante tempo (mais de 3 meses)",
+          "duration_days_estimate": 120,
+          "maps_to": [
+            "symptom_duration_prolonged"
+          ],
+          "score_contribution": {
+            "symptom": "symptom_duration_prolonged",
+            "points": 4
+          }
+        }
+      ],
       "maps_to": [
         "symptom_duration_prolonged"
       ],
@@ -1078,42 +1139,11 @@
         "obsessive_compulsive_disorder"
       ],
       "scoring": {
-        "method": "duration_thresholds",
-        "rules": [
-          {
-            "when_duration_days_gte": 180,
-            "add_symptom_score": {
-              "symptom": "symptom_duration_prolonged",
-              "points": 4
-            }
-          },
-          {
-            "when_duration_days_gte": 30,
-            "add_symptom_score": {
-              "symptom": "symptom_duration_prolonged",
-              "points": 3
-            }
-          },
-          {
-            "when_duration_days_gte": 14,
-            "add_symptom_score": {
-              "symptom": "symptom_duration_prolonged",
-              "points": 2
-            }
-          },
-          {
-            "when_duration_days_gte": 1,
-            "add_symptom_score": {
-              "symptom": "symptom_duration_prolonged",
-              "points": 1
-            }
-          }
-        ]
+        "method": "from_options"
       },
       "branching": [],
       "clinical_sensitivity": "normal",
-      "enabled": true,
-      "duration_unit": "days"
+      "enabled": true
     },
     {
       "id": "q_func_01",

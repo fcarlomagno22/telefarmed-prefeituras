@@ -1,10 +1,14 @@
 import * as Haptics from 'expo-haptics'
 import LottieView from 'lottie-react-native'
 import { useEffect, useRef, useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
 import {
   createLiveShareSession,
+  fetchLiveShareSessionByToken,
+  isLiveShareRemoteEnabled,
+  isLocalLiveShareSession,
   loadActiveLiveShareSession,
+  shouldReplaceLiveShareSession,
 } from '../../../data/runWalkLiveShareService'
 import {
   loadActiveTrustedContact,
@@ -13,6 +17,7 @@ import {
 import { colors } from '../../../theme/colors'
 import { playPingSound } from '../../../utils/appSounds'
 import { shareLiveLocationLink, waitForShareSheet } from '../../../utils/runWalkLocationShare'
+import type { LiveShareSessionSnapshot } from '../../../types/runWalkLiveShare'
 import { PrimaryButton } from '../../PrimaryButton'
 import { RunWalkSheetDrawer } from '../RunWalkSheetDrawer'
 import { RUN_WALK_FLOW_DRAWER_MIN_HEIGHT } from '../runWalkFlowDrawerLayout'
@@ -29,6 +34,7 @@ type RunWalkShareLocationDrawerProps = {
   showStartActions?: boolean
   onConfirmShare?: () => void
   onContinueWithoutShare?: () => void
+  onSessionActivated?: (session: LiveShareSessionSnapshot) => void
 }
 
 export function RunWalkShareLocationDrawer({
@@ -41,6 +47,7 @@ export function RunWalkShareLocationDrawer({
   showStartActions = false,
   onConfirmShare,
   onContinueWithoutShare,
+  onSessionActivated,
 }: RunWalkShareLocationDrawerProps) {
   const [isSaving, setIsSaving] = useState(false)
   const wasVisibleRef = useRef(false)
@@ -58,7 +65,23 @@ export function RunWalkShareLocationDrawer({
 
     try {
       let activeSession = await loadActiveLiveShareSession()
-      if (!activeSession?.isActive) {
+      if (shouldReplaceLiveShareSession(activeSession)) {
+        if (!isLiveShareRemoteEnabled()) {
+          Alert.alert(
+            'Compartilhamento indisponível',
+            'Este ambiente não está conectado ao servidor de acompanhamento. A outra pessoa não conseguirá abrir o link.',
+          )
+          return
+        }
+
+        if (latitude == null || longitude == null) {
+          Alert.alert(
+            'Aguardando GPS',
+            'Espere o GPS localizar você antes de compartilhar o link.',
+          )
+          return
+        }
+
         activeSession = await createLiveShareSession({
           participantName,
           activityName,
@@ -66,6 +89,35 @@ export function RunWalkShareLocationDrawer({
           longitude,
         })
       }
+
+      if (!activeSession?.isActive) {
+        Alert.alert(
+          'Não foi possível compartilhar',
+          'Não conseguimos iniciar o acompanhamento. Tente novamente em instantes.',
+        )
+        return
+      }
+
+      if (isLiveShareRemoteEnabled()) {
+        if (isLocalLiveShareSession(activeSession)) {
+          Alert.alert(
+            'Compartilhamento indisponível',
+            'Este ambiente não está conectado ao servidor de acompanhamento. A outra pessoa não conseguirá abrir o link.',
+          )
+          return
+        }
+
+        const verified = await fetchLiveShareSessionByToken(activeSession.shareToken)
+        if (!verified) {
+          Alert.alert(
+            'Não foi possível compartilhar',
+            'A sessão de acompanhamento não foi encontrada no servidor. Verifique sua conexão e tente novamente.',
+          )
+          return
+        }
+      }
+
+      onSessionActivated?.(activeSession)
 
       const shouldProceed = showStartActions
       onClose()
@@ -86,6 +138,11 @@ export function RunWalkShareLocationDrawer({
       if (shouldProceed) {
         onConfirmShare?.()
       }
+    } catch {
+      Alert.alert(
+        'Não foi possível compartilhar',
+        'Verifique sua conexão e tente novamente. Se o problema continuar, reinicie a atividade.',
+      )
     } finally {
       setIsSaving(false)
     }

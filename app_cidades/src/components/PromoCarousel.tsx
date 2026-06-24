@@ -15,7 +15,8 @@ import { colors } from '../theme/colors'
 import { SkeletonBone } from './SkeletonBone'
 
 const HORIZONTAL_PADDING = 20
-const CARD_HEIGHT = 208
+const CARD_HEIGHT = Math.round(208 * 0.7)
+const BOTTOM_FADE_HEIGHT = Math.round(56 * 0.7)
 const AUTO_PLAY_MS = 4500
 
 type PromoCarouselProps = {
@@ -123,7 +124,7 @@ export function PromoCarousel({ banners, onGuestInteract, skeleton = false }: Pr
 
         <LinearGradient
           colors={['transparent', 'rgba(0, 0, 0, 0.55)']}
-          style={styles.bottomFade}
+          style={[styles.bottomFade, { height: BOTTOM_FADE_HEIGHT }]}
           pointerEvents="none"
         />
 
@@ -175,7 +176,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: 56,
   },
   dots: {
     position: 'absolute',

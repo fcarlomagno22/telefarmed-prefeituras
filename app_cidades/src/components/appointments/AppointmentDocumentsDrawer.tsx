@@ -3,10 +3,19 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ActivityIndicator, Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import { AppModal } from '../AppModal'
+import {
+  ActivityIndicator,
+  Animated,
+  Easing,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
+import { AppModal } from '../AppModal'
 import { ConsultationDocumentPalette } from '../../theme/consultationDocumentColors'
 import { ConsultationDocumentKind, ConsultationDocumentPdf } from '../../types/appointmentDocuments'
 import { StoredAppointment } from '../../types/myAppointments'
@@ -17,7 +26,6 @@ import {
 import { downloadConsultationDocumentPdf } from '../../utils/consultationDocumentPdf'
 import { getAppointmentDateTime } from '../../utils/myAppointments'
 import { formatScheduleDayLabel } from '../../utils/scheduleDate'
-import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SHEET_OFFSET = 640
 
@@ -181,7 +189,7 @@ export function AppointmentDocumentsDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: getModalFooterPadding(insets.bottom),
+              paddingBottom: Math.max(insets.bottom, 16),
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}
@@ -211,7 +219,7 @@ export function AppointmentDocumentsDrawer({
             </LinearGradient>
 
             <View style={styles.headerTextCol}>
-              <Text style={styles.title}>Atestados e +</Text>
+              <Text style={styles.title}>Receitas e +</Text>
               <Text style={styles.subtitle} numberOfLines={2}>
                 {formatScheduleDayLabel(appointmentDate)} · {appointment.selectedDoctorName}
               </Text>

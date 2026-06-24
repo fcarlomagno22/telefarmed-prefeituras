@@ -7,6 +7,7 @@ export type MentalHealthDailyRecord = {
   dateIso: string
   checkInCompleted: boolean
   journalEntryToday: boolean
+  journalNote?: string | null
 }
 
 type MentalHealthDailyStore = Record<string, MentalHealthDailyRecord>
@@ -36,6 +37,7 @@ function getFreshRecord(): MentalHealthDailyRecord {
     dateIso: todayIso(),
     checkInCompleted: false,
     journalEntryToday: false,
+    journalNote: null,
   }
 }
 

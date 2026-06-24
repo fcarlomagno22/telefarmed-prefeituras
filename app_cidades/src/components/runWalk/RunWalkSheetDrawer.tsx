@@ -111,10 +111,17 @@ export function RunWalkSheetDrawer({
   }, [backdropOpacity, isMounted, sheetTranslateY, visible])
 
   useEffect(() => {
-    if (!visible || !keyboardAware) {
+    if (!visible) {
       setKeyboardInset(0)
       return
     }
+
+    if (!keyboardAware) {
+      setKeyboardInset(0)
+      return
+    }
+
+    setKeyboardInset(0)
 
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'
@@ -140,14 +147,19 @@ export function RunWalkSheetDrawer({
 
   const footerBottomPadding = getSheetBottomPadding(insets.bottom, extraBottomInset)
   const bottomInset = footerBottomPadding
+  const effectiveKeyboardInset = keyboardAware ? keyboardInset : 0
+  const keyboardAvoidingEnabled = keyboardAware && Platform.OS === 'ios'
   const footerPaddingBottom =
-    keyboardInset > 0
-      ? Math.max(KEYBOARD_FOOTER_CLEARANCE, keyboardInset - Math.max(insets.bottom, 0) + KEYBOARD_FOOTER_CLEARANCE)
+    effectiveKeyboardInset > 0
+      ? Math.max(
+          KEYBOARD_FOOTER_CLEARANCE,
+          effectiveKeyboardInset - Math.max(insets.bottom, 0) + KEYBOARD_FOOTER_CLEARANCE,
+        )
       : footerBottomPadding
 
   const scrollBottomPadding =
-    keyboardInset > 0
-      ? keyboardInset + KEYBOARD_EXTRA_SCROLL_PADDING + (footer ? 72 : 0)
+    effectiveKeyboardInset > 0
+      ? effectiveKeyboardInset + KEYBOARD_EXTRA_SCROLL_PADDING + (footer ? 72 : 0)
       : footer
         ? 12
         : Math.max(8, bottomInset)
@@ -162,6 +174,7 @@ export function RunWalkSheetDrawer({
       contentContainerStyle={[
         styles.scrollContent,
         fullScreen && styles.scrollContentFullScreen,
+        fullScreen && footer ? styles.scrollContentFullScreenWithFooter : null,
         footer ? styles.scrollContentWithFooter : null,
         { paddingBottom: scrollBottomPadding },
       ]}
@@ -169,7 +182,7 @@ export function RunWalkSheetDrawer({
       automaticallyAdjustKeyboardInsets={Platform.OS === 'ios' && keyboardAware}
       keyboardDismissMode="interactive"
       nestedScrollEnabled
-      bounces={keyboardInset === 0}
+      bounces={effectiveKeyboardInset === 0}
     >
       {children}
     </ScrollView>
@@ -179,13 +192,48 @@ export function RunWalkSheetDrawer({
     </View>
   )
 
+  const sheetBody =
+    fullScreen && footer ? (
+      <View style={styles.fullScreenColumn}>
+        <View style={styles.bodyFill}>{body}</View>
+        <View
+          style={[
+            styles.footer,
+            dense && styles.footerDense,
+            styles.footerFullScreen,
+            effectiveKeyboardInset > 0 && styles.footerWithKeyboard,
+            { paddingBottom: footerPaddingBottom },
+          ]}
+        >
+          {footer}
+        </View>
+      </View>
+    ) : fullScreen ? (
+      <View style={styles.bodyFill}>{body}</View>
+    ) : (
+      body
+    )
+
+  const sheetFooter =
+    fullScreen ? null : footer ? (
+      <View
+        style={[
+          styles.footer,
+          dense && styles.footerDense,
+          effectiveKeyboardInset > 0 && styles.footerWithKeyboard,
+          { paddingBottom: footerPaddingBottom },
+        ]}
+      >
+        {footer}
+      </View>
+    ) : null
+
   return (
     <AppModal
       visible
       transparent
       animationType="none"
       onRequestClose={onClose}
-      navBarUnderlayColor={drawerChrome.surfaceBottom}
     >
       <View style={[styles.host, fullScreen && styles.hostFullScreen]}>
         {!fullScreen ? (
@@ -200,18 +248,18 @@ export function RunWalkSheetDrawer({
         <KeyboardAvoidingView
           behavior={keyboardAvoidingBehavior}
           style={[styles.keyboardWrap, fullScreen && styles.keyboardWrapFullScreen]}
-          enabled={keyboardAware}
+          enabled={keyboardAvoidingEnabled}
         >
           <Animated.View
             style={[
               styles.sheet,
               fullScreen && styles.sheetFullScreen,
-              keyboardInset > 0 && styles.sheetWithKeyboard,
+              effectiveKeyboardInset > 0 && styles.sheetWithKeyboard,
               minHeight != null && { minHeight },
               {
                 transform: [{ translateY: sheetTranslateY }],
                 paddingTop: fullScreen ? Math.max(insets.top, 12) : 0,
-                paddingBottom: footer ? 0 : bottomInset,
+                paddingBottom: fullScreen ? 0 : footer ? 0 : bottomInset,
               },
             ]}
           >
@@ -250,22 +298,11 @@ export function RunWalkSheetDrawer({
             </View>
 
             {fullScreen ? (
-              <View style={[styles.bodyFill, styles.sheetForeground]}>{body}</View>
+              <View style={[styles.sheetForeground, styles.fullScreenColumnRoot]}>{sheetBody}</View>
             ) : (
-              body
+              sheetBody
             )}
-            {footer ? (
-              <View
-                style={[
-                  styles.footer,
-                  dense && styles.footerDense,
-                  keyboardInset > 0 && styles.footerWithKeyboard,
-                  { paddingBottom: footerPaddingBottom },
-                ]}
-              >
-                {footer}
-              </View>
-            ) : null}
+            {sheetFooter}
           </Animated.View>
         </KeyboardAvoidingView>
       </View>
@@ -310,6 +347,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
     borderWidth: 0,
+    justifyContent: 'flex-start',
   },
   sheetBackground: {
     ...StyleSheet.absoluteFillObject,
@@ -318,6 +356,14 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   bodyFill: {
+    flex: 1,
+    minHeight: 0,
+  },
+  fullScreenColumnRoot: {
+    flex: 1,
+    minHeight: 0,
+  },
+  fullScreenColumn: {
     flex: 1,
     minHeight: 0,
   },
@@ -383,6 +429,9 @@ const styles = StyleSheet.create({
   scrollContentFullScreen: {
     flexGrow: 1,
   },
+  scrollContentFullScreenWithFooter: {
+    flexGrow: 0,
+  },
   scrollContentWithFooter: {
     paddingBottom: 12,
   },
@@ -403,7 +452,10 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    backgroundColor: drawerChrome.surfaceBottom,
+    backgroundColor: 'transparent',
+  },
+  footerFullScreen: {
+    flexShrink: 0,
   },
   footerDense: {
     paddingTop: 4,

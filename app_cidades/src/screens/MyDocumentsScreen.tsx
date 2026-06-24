@@ -26,6 +26,7 @@ import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { SkeletonBone } from '../components/SkeletonBone'
 import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useSimulatedPageSkeleton } from '../hooks/useSimulatedPageSkeleton'
 import { colors } from '../theme/colors'
@@ -59,6 +60,7 @@ const TAB_BAR_ESTIMATED_HEIGHT = 78
 export function MyDocumentsScreen() {
   const insets = useSafeAreaInsets()
   const { user, navigateTo, logout } = useAuth()
+  const { requireAuth } = useGuestAuth()
 
   const [entries, setEntries] = useState<ConsultationDocumentsEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -147,8 +149,10 @@ export function MyDocumentsScreen() {
   }
 
   function openDocumentsDrawer(appointment: StoredAppointment) {
-    setDocumentsTarget(appointment)
-    setDocumentsVisible(true)
+    requireAuth('quick:prescriptions', () => {
+      setDocumentsTarget(appointment)
+      setDocumentsVisible(true)
+    })
   }
 
   function closeDocumentsDrawer() {
@@ -160,16 +164,20 @@ export function MyDocumentsScreen() {
     document: ConsultationDocumentPdf,
     appointment: StoredAppointment,
   ) {
-    if (downloadingId) return
+    requireAuth('quick:prescriptions', () => {
+      void (async () => {
+        if (downloadingId) return
 
-    setDownloadingId(document.id)
-    try {
-      await downloadConsultationDocumentPdf(document, appointment, {
-        patientName: user?.name,
-      })
-    } finally {
-      setDownloadingId(null)
-    }
+        setDownloadingId(document.id)
+        try {
+          await downloadConsultationDocumentPdf(document, appointment, {
+            patientName: user?.name,
+          })
+        } finally {
+          setDownloadingId(null)
+        }
+      })()
+    })
   }
 
   useAndroidBackHandler(() => {

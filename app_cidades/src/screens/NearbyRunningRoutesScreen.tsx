@@ -8,6 +8,7 @@ import { NearbyRunningRouteSpotDrawer } from '../components/runWalk/nearbyRoutes
 import { NearbyRunningRoutesMap } from '../components/runWalk/nearbyRoutes/NearbyRunningRoutesMap'
 import { NearbyRunningRoutesSafetyBanner } from '../components/runWalk/nearbyRoutes/NearbyRunningRoutesSafetyBanner'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useRunningRoutesOrigin } from '../hooks/useRunningRoutesOrigin'
 import { colors } from '../theme/colors'
@@ -17,6 +18,7 @@ import { fetchNearbyRunningRoutes } from '../utils/nearbyRunningRoutes'
 export function NearbyRunningRoutesScreen() {
   const insets = useSafeAreaInsets()
   const { user, goBack } = useAuth()
+  const { requireAuth } = useGuestAuth()
 
   const address = user?.address ?? {
     cep: '',
@@ -58,9 +60,11 @@ export function NearbyRunningRoutesScreen() {
   const userName = user?.name?.split(' ')[0] ?? 'Você'
 
   function handleSelectSpot(id: string) {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    setSelectedId(id)
-    setDrawerVisible(true)
+    requireAuth('vida:run-walk', () => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+      setSelectedId(id)
+      setDrawerVisible(true)
+    })
   }
 
   function handleCloseDrawer() {

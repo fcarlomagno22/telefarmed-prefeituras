@@ -169,11 +169,11 @@ const DEFAULT_DISPOSITION: DispositionState = {
 
 const DEFAULT_WEEKLY_GOAL: WeeklyGoalStats = {
   completedActivities: 3,
-  targetActivities: 4,
+  targetActivities: 0,
   activeMinutes: 96,
-  targetActiveMinutes: 150,
+  targetActiveMinutes: 0,
   movementDays: 4,
-  targetMovementDays: 5,
+  targetMovementDays: 0,
 }
 
 export function buildWeeklyCalendar(): WeeklyCalendarDay[] {

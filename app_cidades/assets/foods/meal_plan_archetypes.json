@@ -1,0 +1,2788 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "file": "meal_plan_archetypes.json",
+  "engine_mode": "deterministic",
+  "runtime_ai_generation": false,
+  "description": "200 combinações pré-validadas de food_ids por slot e objetivo para fallback do motor de cardápios Telefarmed, com pratos e cestas tipicamente brasileiros.",
+  "clinical_validation": {
+    "status": "requires_nutritionist_review",
+    "note": "Arquétipos iniciais para fallback algorítmico. Devem ser revisados por nutricionista antes de uso assistencial. Calorias são aproximadas e dependem das porções do catálogo alimentar."
+  },
+  "food_id_convention": "IDs em snake_case, preparados para referência cruzada futura com o catálogo de alimentos brasileiro.",
+  "archetype_count": 200,
+  "slots": [
+    "breakfast",
+    "morning_snack",
+    "lunch",
+    "afternoon_snack",
+    "dinner",
+    "basket"
+  ],
+  "objectives": [
+    "weight_loss",
+    "maintain_weight",
+    "gain_weight",
+    "hypertrophy",
+    "metabolic_health",
+    "diabetes",
+    "hypertension",
+    "other"
+  ],
+  "archetypes": [
+    {
+      "id": "arch_001_breakfast_weight_loss",
+      "label": "Pão integral com ovos e mamão - perda de peso leve",
+      "slot": "breakfast",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-ovo-mexido-base-cozido",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 310
+    },
+    {
+      "id": "arch_002_breakfast_weight_loss",
+      "label": "Aveia com banana e iogurte natural - perda de peso leve",
+      "slot": "breakfast",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-banana-prata-in-natura",
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 330
+    },
+    {
+      "id": "arch_003_breakfast_weight_loss",
+      "label": "Tapioca com queijo branco e fruta - perda de peso leve",
+      "slot": "breakfast",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 300
+    },
+    {
+      "id": "arch_004_breakfast_weight_loss",
+      "label": "Cuscuz com ovo e café - perda de peso leve",
+      "slot": "breakfast",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-cuscuz-de-milho-cozido-porcao-simples",
+        "food-ovo-de-galinha-inteiro-cozido",
+        "food-melancia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 310
+    },
+    {
+      "id": "arch_005_morning_snack_weight_loss",
+      "label": "Fruta com castanhas - perda de peso leve",
+      "slot": "morning_snack",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-maca-fuji-in-natura",
+        "food-castanha-de-caju-torrada-sem-sal",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 160
+    },
+    {
+      "id": "arch_006_morning_snack_weight_loss",
+      "label": "Iogurte natural com chia - perda de peso leve",
+      "slot": "morning_snack",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 150
+    },
+    {
+      "id": "arch_007_morning_snack_weight_loss",
+      "label": "Banana com aveia - perda de peso leve",
+      "slot": "morning_snack",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 180
+    },
+    {
+      "id": "arch_008_lunch_weight_loss",
+      "label": "Arroz, feijão, frango grelhado e salada - perda de peso leve",
+      "slot": "lunch",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-alface-crespa-salada-temperada",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo"
+      ],
+      "approximate_calories": 540
+    },
+    {
+      "id": "arch_009_lunch_weight_loss",
+      "label": "Arroz, feijão, carne magra e legumes - perda de peso leve",
+      "slot": "lunch",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-arroz-branco-tipo-1-cozido-sem-sal",
+        "food-feijao-preto-cozido-sem-sal-com-caldo",
+        "food-carne-bovina-patinho-cru-limpo",
+        "food-brocolis-cozido-sem-sal",
+        "food-cenoura-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 580
+    },
+    {
+      "id": "arch_010_lunch_weight_loss",
+      "label": "Peixe assado com mandioca e salada - perda de peso leve",
+      "slot": "lunch",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-peixe-tilapia-assado-com-azeite",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru"
+      ],
+      "approximate_calories": 530
+    },
+    {
+      "id": "arch_011_lunch_weight_loss",
+      "label": "Omelete com arroz, feijão e legumes - perda de peso leve",
+      "slot": "lunch",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 520
+    },
+    {
+      "id": "arch_012_lunch_weight_loss",
+      "label": "Prato vegetariano brasileiro - perda de peso leve",
+      "slot": "lunch",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-lentilha-marrom-cozido-sem-sal-com-caldo",
+        "food-grao-de-bico-cozido-sem-sal-com-caldo",
+        "food-alface-crespa-salada-temperada",
+        "food-beterraba-cozido-sem-sal"
+      ],
+      "approximate_calories": 550
+    },
+    {
+      "id": "arch_013_afternoon_snack_weight_loss",
+      "label": "Pão integral com queijo branco - perda de peso leve",
+      "slot": "afternoon_snack",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "bev_cafe_coado_sem_acucar",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 220
+    },
+    {
+      "id": "arch_014_afternoon_snack_weight_loss",
+      "label": "Vitamina de banana com aveia - perda de peso leve",
+      "slot": "afternoon_snack",
+      "objective": "weight_loss",
+      "food_ids": [
+        "bev_leite_desnatado",
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 260
+    },
+    {
+      "id": "arch_015_afternoon_snack_weight_loss",
+      "label": "Crepioca simples com fruta - perda de peso leve",
+      "slot": "afternoon_snack",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 240
+    },
+    {
+      "id": "arch_016_dinner_weight_loss",
+      "label": "Frango com legumes e batata-doce - perda de peso leve",
+      "slot": "dinner",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-batata-doce-cozido-sem-sal",
+        "food-brocolis-cozido-sem-sal",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 440
+    },
+    {
+      "id": "arch_017_dinner_weight_loss",
+      "label": "Sopa brasileira de legumes com carne - perda de peso leve",
+      "slot": "dinner",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-sopa-de-legumes-caseiro",
+        "food-carne-bovina-patinho-cozido-sem-sal",
+        "food-mandioquinha-cru",
+        "food-couve-manteiga-cru",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 410
+    },
+    {
+      "id": "arch_018_dinner_weight_loss",
+      "label": "Peixe com arroz integral e salada - perda de peso leve",
+      "slot": "dinner",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-peixe-tilapia-grelhado-sem-oleo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 420
+    },
+    {
+      "id": "arch_019_dinner_weight_loss",
+      "label": "Omelete com salada e mandioca - perda de peso leve",
+      "slot": "dinner",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru"
+      ],
+      "approximate_calories": 430
+    },
+    {
+      "id": "arch_020_dinner_weight_loss",
+      "label": "Arroz, feijão e legumes com proteína - perda de peso leve",
+      "slot": "dinner",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 480
+    },
+    {
+      "id": "arch_021_basket_weight_loss",
+      "label": "Cesta base arroz, feijão e ovos - perda de peso leve",
+      "slot": "basket",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cru",
+        "food-feijao-carioca-cru-seco",
+        "food-ovo-de-galinha-inteiro-cru",
+        "food-banana-prata-in-natura",
+        "food-alface-crespa-cru",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 440
+    },
+    {
+      "id": "arch_022_basket_weight_loss",
+      "label": "Cesta frango, legumes e frutas - perda de peso leve",
+      "slot": "basket",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-cru-limpo",
+        "food-batata-doce-cru",
+        "food-brocolis-cru",
+        "food-maca-fuji-in-natura",
+        "food-cenoura-cru",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 480
+    },
+    {
+      "id": "arch_023_basket_weight_loss",
+      "label": "Cesta vegetariana brasileira - perda de peso leve",
+      "slot": "basket",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-lentilha-marrom-cru-seco",
+        "food-grao-de-bico-cru-seco",
+        "food-arroz-integral-agulhinha-cru",
+        "food-abobora-moranga-cru",
+        "food-couve-manteiga-cru",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 490
+    },
+    {
+      "id": "arch_024_basket_weight_loss",
+      "label": "Cesta café da manhã simples - perda de peso leve",
+      "slot": "basket",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-pao-de-forma-integral",
+        "food-iogurte-natural-integral-natural",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 420
+    },
+    {
+      "id": "arch_025_basket_weight_loss",
+      "label": "Cesta baixo sódio caseira - perda de peso leve",
+      "slot": "basket",
+      "objective": "weight_loss",
+      "food_ids": [
+        "food-arroz-branco-tipo-1-cru",
+        "food-feijao-preto-cru-seco",
+        "food-peixe-tilapia-cru-limpo",
+        "food-abobrinha-italiana-cru",
+        "food-laranja-pera-in-natura",
+        "food-alface-crespa-salada-temperada"
+      ],
+      "approximate_calories": 460
+    },
+    {
+      "id": "arch_026_breakfast_maintain_weight",
+      "label": "Pão integral com ovos e mamão - manutenção tradicional",
+      "slot": "breakfast",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-ovo-mexido-base-cozido",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar"
+      ],
+      "approximate_calories": 360
+    },
+    {
+      "id": "arch_027_breakfast_maintain_weight",
+      "label": "Aveia com banana e iogurte natural - manutenção tradicional",
+      "slot": "breakfast",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-banana-prata-in-natura",
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 390
+    },
+    {
+      "id": "arch_028_breakfast_maintain_weight",
+      "label": "Tapioca com queijo branco e fruta - manutenção tradicional",
+      "slot": "breakfast",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar"
+      ],
+      "approximate_calories": 350
+    },
+    {
+      "id": "arch_029_breakfast_maintain_weight",
+      "label": "Cuscuz com ovo e café - manutenção tradicional",
+      "slot": "breakfast",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-cuscuz-de-milho-cozido-porcao-simples",
+        "food-ovo-de-galinha-inteiro-cozido",
+        "food-melancia-in-natura",
+        "bev_cafe_coado_sem_acucar"
+      ],
+      "approximate_calories": 370
+    },
+    {
+      "id": "arch_030_morning_snack_maintain_weight",
+      "label": "Fruta com castanhas - manutenção tradicional",
+      "slot": "morning_snack",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-maca-fuji-in-natura",
+        "food-castanha-de-caju-torrada-sem-sal"
+      ],
+      "approximate_calories": 190
+    },
+    {
+      "id": "arch_031_morning_snack_maintain_weight",
+      "label": "Iogurte natural com chia - manutenção tradicional",
+      "slot": "morning_snack",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 180
+    },
+    {
+      "id": "arch_032_morning_snack_maintain_weight",
+      "label": "Banana com aveia - manutenção tradicional",
+      "slot": "morning_snack",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco"
+      ],
+      "approximate_calories": 210
+    },
+    {
+      "id": "arch_033_lunch_maintain_weight",
+      "label": "Arroz, feijão, frango grelhado e salada - manutenção tradicional",
+      "slot": "lunch",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-alface-crespa-salada-temperada",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo"
+      ],
+      "approximate_calories": 640
+    },
+    {
+      "id": "arch_034_lunch_maintain_weight",
+      "label": "Arroz, feijão, carne magra e legumes - manutenção tradicional",
+      "slot": "lunch",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-arroz-branco-tipo-1-cozido-sem-sal",
+        "food-feijao-preto-cozido-sem-sal-com-caldo",
+        "food-carne-bovina-patinho-cru-limpo",
+        "food-brocolis-cozido-sem-sal",
+        "food-cenoura-cozido-sem-sal"
+      ],
+      "approximate_calories": 680
+    },
+    {
+      "id": "arch_035_lunch_maintain_weight",
+      "label": "Peixe assado com mandioca e salada - manutenção tradicional",
+      "slot": "lunch",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-peixe-tilapia-assado-com-azeite",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru",
+        "food-azeite-de-oliva-extra-virgem-cru-para-salada"
+      ],
+      "approximate_calories": 620
+    },
+    {
+      "id": "arch_036_lunch_maintain_weight",
+      "label": "Omelete com arroz, feijão e legumes - manutenção tradicional",
+      "slot": "lunch",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal"
+      ],
+      "approximate_calories": 610
+    },
+    {
+      "id": "arch_037_lunch_maintain_weight",
+      "label": "Prato vegetariano brasileiro - manutenção tradicional",
+      "slot": "lunch",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-lentilha-marrom-cozido-sem-sal-com-caldo",
+        "food-grao-de-bico-cozido-sem-sal-com-caldo",
+        "food-alface-crespa-salada-temperada",
+        "food-beterraba-cozido-sem-sal"
+      ],
+      "approximate_calories": 650
+    },
+    {
+      "id": "arch_038_afternoon_snack_maintain_weight",
+      "label": "Pão integral com queijo branco - manutenção tradicional",
+      "slot": "afternoon_snack",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "bev_cafe_coado_sem_acucar"
+      ],
+      "approximate_calories": 260
+    },
+    {
+      "id": "arch_039_afternoon_snack_maintain_weight",
+      "label": "Vitamina de banana com aveia - manutenção tradicional",
+      "slot": "afternoon_snack",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "bev_leite_desnatado",
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco"
+      ],
+      "approximate_calories": 300
+    },
+    {
+      "id": "arch_040_afternoon_snack_maintain_weight",
+      "label": "Crepioca simples com fruta - manutenção tradicional",
+      "slot": "afternoon_snack",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar"
+      ],
+      "approximate_calories": 280
+    },
+    {
+      "id": "arch_041_dinner_maintain_weight",
+      "label": "Frango com legumes e batata-doce - manutenção tradicional",
+      "slot": "dinner",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-batata-doce-cozido-sem-sal",
+        "food-brocolis-cozido-sem-sal",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo"
+      ],
+      "approximate_calories": 520
+    },
+    {
+      "id": "arch_042_dinner_maintain_weight",
+      "label": "Sopa brasileira de legumes com carne - manutenção tradicional",
+      "slot": "dinner",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-sopa-de-legumes-caseiro",
+        "food-carne-bovina-patinho-cozido-sem-sal",
+        "food-mandioquinha-cru",
+        "food-couve-manteiga-cru"
+      ],
+      "approximate_calories": 480
+    },
+    {
+      "id": "arch_043_dinner_maintain_weight",
+      "label": "Peixe com arroz integral e salada - manutenção tradicional",
+      "slot": "dinner",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-peixe-tilapia-grelhado-sem-oleo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-azeite-de-oliva-extra-virgem-cru-para-salada"
+      ],
+      "approximate_calories": 500
+    },
+    {
+      "id": "arch_044_dinner_maintain_weight",
+      "label": "Omelete com salada e mandioca - manutenção tradicional",
+      "slot": "dinner",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru"
+      ],
+      "approximate_calories": 510
+    },
+    {
+      "id": "arch_045_dinner_maintain_weight",
+      "label": "Arroz, feijão e legumes com proteína - manutenção tradicional",
+      "slot": "dinner",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal"
+      ],
+      "approximate_calories": 560
+    },
+    {
+      "id": "arch_046_basket_maintain_weight",
+      "label": "Cesta base arroz, feijão e ovos - manutenção tradicional",
+      "slot": "basket",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cru",
+        "food-feijao-carioca-cru-seco",
+        "food-ovo-de-galinha-inteiro-cru",
+        "food-banana-prata-in-natura",
+        "food-alface-crespa-cru"
+      ],
+      "approximate_calories": 520
+    },
+    {
+      "id": "arch_047_basket_maintain_weight",
+      "label": "Cesta frango, legumes e frutas - manutenção tradicional",
+      "slot": "basket",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-cru-limpo",
+        "food-batata-doce-cru",
+        "food-brocolis-cru",
+        "food-maca-fuji-in-natura",
+        "food-cenoura-cru"
+      ],
+      "approximate_calories": 560
+    },
+    {
+      "id": "arch_048_basket_maintain_weight",
+      "label": "Cesta vegetariana brasileira - manutenção tradicional",
+      "slot": "basket",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-lentilha-marrom-cru-seco",
+        "food-grao-de-bico-cru-seco",
+        "food-arroz-integral-agulhinha-cru",
+        "food-abobora-moranga-cru",
+        "food-couve-manteiga-cru"
+      ],
+      "approximate_calories": 580
+    },
+    {
+      "id": "arch_049_basket_maintain_weight",
+      "label": "Cesta café da manhã simples - manutenção tradicional",
+      "slot": "basket",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-pao-de-forma-integral",
+        "food-iogurte-natural-integral-natural",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar"
+      ],
+      "approximate_calories": 500
+    },
+    {
+      "id": "arch_050_basket_maintain_weight",
+      "label": "Cesta baixo sódio caseira - manutenção tradicional",
+      "slot": "basket",
+      "objective": "maintain_weight",
+      "food_ids": [
+        "food-arroz-branco-tipo-1-cru",
+        "food-feijao-preto-cru-seco",
+        "food-peixe-tilapia-cru-limpo",
+        "food-abobrinha-italiana-cru",
+        "food-laranja-pera-in-natura"
+      ],
+      "approximate_calories": 540
+    },
+    {
+      "id": "arch_051_breakfast_gain_weight",
+      "label": "Pão integral com ovos e mamão - ganho de peso reforçado",
+      "slot": "breakfast",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-ovo-mexido-base-cozido",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 420
+    },
+    {
+      "id": "arch_052_breakfast_gain_weight",
+      "label": "Aveia com banana e iogurte natural - ganho de peso reforçado",
+      "slot": "breakfast",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-banana-prata-in-natura",
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 460
+    },
+    {
+      "id": "arch_053_breakfast_gain_weight",
+      "label": "Tapioca com queijo branco e fruta - ganho de peso reforçado",
+      "slot": "breakfast",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 410
+    },
+    {
+      "id": "arch_054_breakfast_gain_weight",
+      "label": "Cuscuz com ovo e café - ganho de peso reforçado",
+      "slot": "breakfast",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-cuscuz-de-milho-cozido-porcao-simples",
+        "food-ovo-de-galinha-inteiro-cozido",
+        "food-melancia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 440
+    },
+    {
+      "id": "arch_055_morning_snack_gain_weight",
+      "label": "Fruta com castanhas - ganho de peso reforçado",
+      "slot": "morning_snack",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-maca-fuji-in-natura",
+        "food-castanha-de-caju-torrada-sem-sal",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 220
+    },
+    {
+      "id": "arch_056_morning_snack_gain_weight",
+      "label": "Iogurte natural com chia - ganho de peso reforçado",
+      "slot": "morning_snack",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 210
+    },
+    {
+      "id": "arch_057_morning_snack_gain_weight",
+      "label": "Banana com aveia - ganho de peso reforçado",
+      "slot": "morning_snack",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 250
+    },
+    {
+      "id": "arch_058_lunch_gain_weight",
+      "label": "Arroz, feijão, frango grelhado e salada - ganho de peso reforçado",
+      "slot": "lunch",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-alface-crespa-salada-temperada",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 760
+    },
+    {
+      "id": "arch_059_lunch_gain_weight",
+      "label": "Arroz, feijão, carne magra e legumes - ganho de peso reforçado",
+      "slot": "lunch",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-arroz-branco-tipo-1-cozido-sem-sal",
+        "food-feijao-preto-cozido-sem-sal-com-caldo",
+        "food-carne-bovina-patinho-cru-limpo",
+        "food-brocolis-cozido-sem-sal",
+        "food-cenoura-cozido-sem-sal",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 800
+    },
+    {
+      "id": "arch_060_lunch_gain_weight",
+      "label": "Peixe assado com mandioca e salada - ganho de peso reforçado",
+      "slot": "lunch",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-peixe-tilapia-assado-com-azeite",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru",
+        "food-azeite-de-oliva-extra-virgem-cru-para-salada",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 730
+    },
+    {
+      "id": "arch_061_lunch_gain_weight",
+      "label": "Omelete com arroz, feijão e legumes - ganho de peso reforçado",
+      "slot": "lunch",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 720
+    },
+    {
+      "id": "arch_062_lunch_gain_weight",
+      "label": "Prato vegetariano brasileiro - ganho de peso reforçado",
+      "slot": "lunch",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-lentilha-marrom-cozido-sem-sal-com-caldo",
+        "food-grao-de-bico-cozido-sem-sal-com-caldo",
+        "food-alface-crespa-salada-temperada",
+        "food-beterraba-cozido-sem-sal",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 770
+    },
+    {
+      "id": "arch_063_afternoon_snack_gain_weight",
+      "label": "Pão integral com queijo branco - ganho de peso reforçado",
+      "slot": "afternoon_snack",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "bev_cafe_coado_sem_acucar",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 310
+    },
+    {
+      "id": "arch_064_afternoon_snack_gain_weight",
+      "label": "Vitamina de banana com aveia - ganho de peso reforçado",
+      "slot": "afternoon_snack",
+      "objective": "gain_weight",
+      "food_ids": [
+        "bev_leite_desnatado",
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 350
+    },
+    {
+      "id": "arch_065_afternoon_snack_gain_weight",
+      "label": "Crepioca simples com fruta - ganho de peso reforçado",
+      "slot": "afternoon_snack",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 330
+    },
+    {
+      "id": "arch_066_dinner_gain_weight",
+      "label": "Frango com legumes e batata-doce - ganho de peso reforçado",
+      "slot": "dinner",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-batata-doce-cozido-sem-sal",
+        "food-brocolis-cozido-sem-sal",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 610
+    },
+    {
+      "id": "arch_067_dinner_gain_weight",
+      "label": "Sopa brasileira de legumes com carne - ganho de peso reforçado",
+      "slot": "dinner",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-sopa-de-legumes-caseiro",
+        "food-carne-bovina-patinho-cozido-sem-sal",
+        "food-mandioquinha-cru",
+        "food-couve-manteiga-cru",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 570
+    },
+    {
+      "id": "arch_068_dinner_gain_weight",
+      "label": "Peixe com arroz integral e salada - ganho de peso reforçado",
+      "slot": "dinner",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-peixe-tilapia-grelhado-sem-oleo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-azeite-de-oliva-extra-virgem-cru-para-salada",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 590
+    },
+    {
+      "id": "arch_069_dinner_gain_weight",
+      "label": "Omelete com salada e mandioca - ganho de peso reforçado",
+      "slot": "dinner",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 600
+    },
+    {
+      "id": "arch_070_dinner_gain_weight",
+      "label": "Arroz, feijão e legumes com proteína - ganho de peso reforçado",
+      "slot": "dinner",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 660
+    },
+    {
+      "id": "arch_071_basket_gain_weight",
+      "label": "Cesta base arroz, feijão e ovos - ganho de peso reforçado",
+      "slot": "basket",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cru",
+        "food-feijao-carioca-cru-seco",
+        "food-ovo-de-galinha-inteiro-cru",
+        "food-banana-prata-in-natura",
+        "food-alface-crespa-cru",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 610
+    },
+    {
+      "id": "arch_072_basket_gain_weight",
+      "label": "Cesta frango, legumes e frutas - ganho de peso reforçado",
+      "slot": "basket",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-cru-limpo",
+        "food-batata-doce-cru",
+        "food-brocolis-cru",
+        "food-maca-fuji-in-natura",
+        "food-cenoura-cru",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 660
+    },
+    {
+      "id": "arch_073_basket_gain_weight",
+      "label": "Cesta vegetariana brasileira - ganho de peso reforçado",
+      "slot": "basket",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-lentilha-marrom-cru-seco",
+        "food-grao-de-bico-cru-seco",
+        "food-arroz-integral-agulhinha-cru",
+        "food-abobora-moranga-cru",
+        "food-couve-manteiga-cru",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 680
+    },
+    {
+      "id": "arch_074_basket_gain_weight",
+      "label": "Cesta café da manhã simples - ganho de peso reforçado",
+      "slot": "basket",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-pao-de-forma-integral",
+        "food-iogurte-natural-integral-natural",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 590
+    },
+    {
+      "id": "arch_075_basket_gain_weight",
+      "label": "Cesta baixo sódio caseira - ganho de peso reforçado",
+      "slot": "basket",
+      "objective": "gain_weight",
+      "food_ids": [
+        "food-arroz-branco-tipo-1-cru",
+        "food-feijao-preto-cru-seco",
+        "food-peixe-tilapia-cru-limpo",
+        "food-abobrinha-italiana-cru",
+        "food-laranja-pera-in-natura",
+        "food-abacate-in-natura"
+      ],
+      "approximate_calories": 640
+    },
+    {
+      "id": "arch_076_breakfast_hypertrophy",
+      "label": "Pão integral com ovos e mamão - hipertrofia proteico",
+      "slot": "breakfast",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-ovo-mexido-base-cozido",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 440
+    },
+    {
+      "id": "arch_077_breakfast_hypertrophy",
+      "label": "Aveia com banana e iogurte natural - hipertrofia proteico",
+      "slot": "breakfast",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-banana-prata-in-natura",
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 480
+    },
+    {
+      "id": "arch_078_breakfast_hypertrophy",
+      "label": "Tapioca com queijo branco e fruta - hipertrofia proteico",
+      "slot": "breakfast",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 430
+    },
+    {
+      "id": "arch_079_breakfast_hypertrophy",
+      "label": "Cuscuz com ovo e café - hipertrofia proteico",
+      "slot": "breakfast",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-cuscuz-de-milho-cozido-porcao-simples",
+        "food-ovo-de-galinha-inteiro-cozido",
+        "food-melancia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 450
+    },
+    {
+      "id": "arch_080_morning_snack_hypertrophy",
+      "label": "Fruta com castanhas - hipertrofia proteico",
+      "slot": "morning_snack",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-maca-fuji-in-natura",
+        "food-castanha-de-caju-torrada-sem-sal",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 230
+    },
+    {
+      "id": "arch_081_morning_snack_hypertrophy",
+      "label": "Iogurte natural com chia - hipertrofia proteico",
+      "slot": "morning_snack",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 220
+    },
+    {
+      "id": "arch_082_morning_snack_hypertrophy",
+      "label": "Banana com aveia - hipertrofia proteico",
+      "slot": "morning_snack",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 260
+    },
+    {
+      "id": "arch_083_lunch_hypertrophy",
+      "label": "Arroz, feijão, frango grelhado e salada - hipertrofia proteico",
+      "slot": "lunch",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-alface-crespa-salada-temperada",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 780
+    },
+    {
+      "id": "arch_084_lunch_hypertrophy",
+      "label": "Arroz, feijão, carne magra e legumes - hipertrofia proteico",
+      "slot": "lunch",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-arroz-branco-tipo-1-cozido-sem-sal",
+        "food-feijao-preto-cozido-sem-sal-com-caldo",
+        "food-carne-bovina-patinho-cru-limpo",
+        "food-brocolis-cozido-sem-sal",
+        "food-cenoura-cozido-sem-sal",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 830
+    },
+    {
+      "id": "arch_085_lunch_hypertrophy",
+      "label": "Peixe assado com mandioca e salada - hipertrofia proteico",
+      "slot": "lunch",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-peixe-tilapia-assado-com-azeite",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru",
+        "food-azeite-de-oliva-extra-virgem-cru-para-salada",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 760
+    },
+    {
+      "id": "arch_086_lunch_hypertrophy",
+      "label": "Omelete com arroz, feijão e legumes - hipertrofia proteico",
+      "slot": "lunch",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 740
+    },
+    {
+      "id": "arch_087_lunch_hypertrophy",
+      "label": "Prato vegetariano brasileiro - hipertrofia proteico",
+      "slot": "lunch",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-lentilha-marrom-cozido-sem-sal-com-caldo",
+        "food-grao-de-bico-cozido-sem-sal-com-caldo",
+        "food-alface-crespa-salada-temperada",
+        "food-beterraba-cozido-sem-sal",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 790
+    },
+    {
+      "id": "arch_088_afternoon_snack_hypertrophy",
+      "label": "Pão integral com queijo branco - hipertrofia proteico",
+      "slot": "afternoon_snack",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "bev_cafe_coado_sem_acucar",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 320
+    },
+    {
+      "id": "arch_089_afternoon_snack_hypertrophy",
+      "label": "Vitamina de banana com aveia - hipertrofia proteico",
+      "slot": "afternoon_snack",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "bev_leite_desnatado",
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 370
+    },
+    {
+      "id": "arch_090_afternoon_snack_hypertrophy",
+      "label": "Crepioca simples com fruta - hipertrofia proteico",
+      "slot": "afternoon_snack",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 340
+    },
+    {
+      "id": "arch_091_dinner_hypertrophy",
+      "label": "Frango com legumes e batata-doce - hipertrofia proteico",
+      "slot": "dinner",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-batata-doce-cozido-sem-sal",
+        "food-brocolis-cozido-sem-sal",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 630
+    },
+    {
+      "id": "arch_092_dinner_hypertrophy",
+      "label": "Sopa brasileira de legumes com carne - hipertrofia proteico",
+      "slot": "dinner",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-sopa-de-legumes-caseiro",
+        "food-carne-bovina-patinho-cozido-sem-sal",
+        "food-mandioquinha-cru",
+        "food-couve-manteiga-cru",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 590
+    },
+    {
+      "id": "arch_093_dinner_hypertrophy",
+      "label": "Peixe com arroz integral e salada - hipertrofia proteico",
+      "slot": "dinner",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-peixe-tilapia-grelhado-sem-oleo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-azeite-de-oliva-extra-virgem-cru-para-salada",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 610
+    },
+    {
+      "id": "arch_094_dinner_hypertrophy",
+      "label": "Omelete com salada e mandioca - hipertrofia proteico",
+      "slot": "dinner",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 620
+    },
+    {
+      "id": "arch_095_dinner_hypertrophy",
+      "label": "Arroz, feijão e legumes com proteína - hipertrofia proteico",
+      "slot": "dinner",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal"
+      ],
+      "approximate_calories": 680
+    },
+    {
+      "id": "arch_096_basket_hypertrophy",
+      "label": "Cesta base arroz, feijão e ovos - hipertrofia proteico",
+      "slot": "basket",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cru",
+        "food-feijao-carioca-cru-seco",
+        "food-ovo-de-galinha-inteiro-cru",
+        "food-banana-prata-in-natura",
+        "food-alface-crespa-cru",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 630
+    },
+    {
+      "id": "arch_097_basket_hypertrophy",
+      "label": "Cesta frango, legumes e frutas - hipertrofia proteico",
+      "slot": "basket",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-cru-limpo",
+        "food-batata-doce-cru",
+        "food-brocolis-cru",
+        "food-maca-fuji-in-natura",
+        "food-cenoura-cru",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 680
+    },
+    {
+      "id": "arch_098_basket_hypertrophy",
+      "label": "Cesta vegetariana brasileira - hipertrofia proteico",
+      "slot": "basket",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-lentilha-marrom-cru-seco",
+        "food-grao-de-bico-cru-seco",
+        "food-arroz-integral-agulhinha-cru",
+        "food-abobora-moranga-cru",
+        "food-couve-manteiga-cru",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 710
+    },
+    {
+      "id": "arch_099_basket_hypertrophy",
+      "label": "Cesta café da manhã simples - hipertrofia proteico",
+      "slot": "basket",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-pao-de-forma-integral",
+        "food-iogurte-natural-integral-natural",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 610
+    },
+    {
+      "id": "arch_100_basket_hypertrophy",
+      "label": "Cesta baixo sódio caseira - hipertrofia proteico",
+      "slot": "basket",
+      "objective": "hypertrophy",
+      "food_ids": [
+        "food-arroz-branco-tipo-1-cru",
+        "food-feijao-preto-cru-seco",
+        "food-peixe-tilapia-cru-limpo",
+        "food-abobrinha-italiana-cru",
+        "food-laranja-pera-in-natura",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho"
+      ],
+      "approximate_calories": 660
+    },
+    {
+      "id": "arch_101_breakfast_metabolic_health",
+      "label": "Pão integral com ovos e mamão - saúde metabólica rico em fibras",
+      "slot": "breakfast",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-ovo-mexido-base-cozido",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 330
+    },
+    {
+      "id": "arch_102_breakfast_metabolic_health",
+      "label": "Aveia com banana e iogurte natural - saúde metabólica rico em fibras",
+      "slot": "breakfast",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-banana-prata-in-natura",
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 360
+    },
+    {
+      "id": "arch_103_breakfast_metabolic_health",
+      "label": "Tapioca com queijo branco e fruta - saúde metabólica rico em fibras",
+      "slot": "breakfast",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 320
+    },
+    {
+      "id": "arch_104_breakfast_metabolic_health",
+      "label": "Cuscuz com ovo e café - saúde metabólica rico em fibras",
+      "slot": "breakfast",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-cuscuz-de-milho-cozido-porcao-simples",
+        "food-ovo-de-galinha-inteiro-cozido",
+        "food-melancia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 340
+    },
+    {
+      "id": "arch_105_morning_snack_metabolic_health",
+      "label": "Fruta com castanhas - saúde metabólica rico em fibras",
+      "slot": "morning_snack",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-maca-fuji-in-natura",
+        "food-castanha-de-caju-torrada-sem-sal",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 170
+    },
+    {
+      "id": "arch_106_morning_snack_metabolic_health",
+      "label": "Iogurte natural com chia - saúde metabólica rico em fibras",
+      "slot": "morning_snack",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 170
+    },
+    {
+      "id": "arch_107_morning_snack_metabolic_health",
+      "label": "Banana com aveia - saúde metabólica rico em fibras",
+      "slot": "morning_snack",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 190
+    },
+    {
+      "id": "arch_108_lunch_metabolic_health",
+      "label": "Arroz, feijão, frango grelhado e salada - saúde metabólica rico em fibras",
+      "slot": "lunch",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-alface-crespa-salada-temperada",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 590
+    },
+    {
+      "id": "arch_109_lunch_metabolic_health",
+      "label": "Arroz, feijão, carne magra e legumes - saúde metabólica rico em fibras",
+      "slot": "lunch",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-arroz-branco-tipo-1-cozido-sem-sal",
+        "food-feijao-preto-cozido-sem-sal-com-caldo",
+        "food-carne-bovina-patinho-cru-limpo",
+        "food-brocolis-cozido-sem-sal",
+        "food-cenoura-cozido-sem-sal",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 630
+    },
+    {
+      "id": "arch_110_lunch_metabolic_health",
+      "label": "Peixe assado com mandioca e salada - saúde metabólica rico em fibras",
+      "slot": "lunch",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-peixe-tilapia-assado-com-azeite",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru",
+        "food-azeite-de-oliva-extra-virgem-cru-para-salada",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 570
+    },
+    {
+      "id": "arch_111_lunch_metabolic_health",
+      "label": "Omelete com arroz, feijão e legumes - saúde metabólica rico em fibras",
+      "slot": "lunch",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 560
+    },
+    {
+      "id": "arch_112_lunch_metabolic_health",
+      "label": "Prato vegetariano brasileiro - saúde metabólica rico em fibras",
+      "slot": "lunch",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-lentilha-marrom-cozido-sem-sal-com-caldo",
+        "food-grao-de-bico-cozido-sem-sal-com-caldo",
+        "food-alface-crespa-salada-temperada",
+        "food-beterraba-cozido-sem-sal",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 600
+    },
+    {
+      "id": "arch_113_afternoon_snack_metabolic_health",
+      "label": "Pão integral com queijo branco - saúde metabólica rico em fibras",
+      "slot": "afternoon_snack",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "bev_cafe_coado_sem_acucar",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 240
+    },
+    {
+      "id": "arch_114_afternoon_snack_metabolic_health",
+      "label": "Vitamina de banana com aveia - saúde metabólica rico em fibras",
+      "slot": "afternoon_snack",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "bev_leite_desnatado",
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 280
+    },
+    {
+      "id": "arch_115_afternoon_snack_metabolic_health",
+      "label": "Crepioca simples com fruta - saúde metabólica rico em fibras",
+      "slot": "afternoon_snack",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 260
+    },
+    {
+      "id": "arch_116_dinner_metabolic_health",
+      "label": "Frango com legumes e batata-doce - saúde metabólica rico em fibras",
+      "slot": "dinner",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-batata-doce-cozido-sem-sal",
+        "food-brocolis-cozido-sem-sal",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 480
+    },
+    {
+      "id": "arch_117_dinner_metabolic_health",
+      "label": "Sopa brasileira de legumes com carne - saúde metabólica rico em fibras",
+      "slot": "dinner",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-sopa-de-legumes-caseiro",
+        "food-carne-bovina-patinho-cozido-sem-sal",
+        "food-mandioquinha-cru",
+        "food-couve-manteiga-cru",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 440
+    },
+    {
+      "id": "arch_118_dinner_metabolic_health",
+      "label": "Peixe com arroz integral e salada - saúde metabólica rico em fibras",
+      "slot": "dinner",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-peixe-tilapia-grelhado-sem-oleo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-azeite-de-oliva-extra-virgem-cru-para-salada",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 460
+    },
+    {
+      "id": "arch_119_dinner_metabolic_health",
+      "label": "Omelete com salada e mandioca - saúde metabólica rico em fibras",
+      "slot": "dinner",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 470
+    },
+    {
+      "id": "arch_120_dinner_metabolic_health",
+      "label": "Arroz, feijão e legumes com proteína - saúde metabólica rico em fibras",
+      "slot": "dinner",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 520
+    },
+    {
+      "id": "arch_121_basket_metabolic_health",
+      "label": "Cesta base arroz, feijão e ovos - saúde metabólica rico em fibras",
+      "slot": "basket",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cru",
+        "food-feijao-carioca-cru-seco",
+        "food-ovo-de-galinha-inteiro-cru",
+        "food-banana-prata-in-natura",
+        "food-alface-crespa-cru",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 480
+    },
+    {
+      "id": "arch_122_basket_metabolic_health",
+      "label": "Cesta frango, legumes e frutas - saúde metabólica rico em fibras",
+      "slot": "basket",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-cru-limpo",
+        "food-batata-doce-cru",
+        "food-brocolis-cru",
+        "food-maca-fuji-in-natura",
+        "food-cenoura-cru",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 520
+    },
+    {
+      "id": "arch_123_basket_metabolic_health",
+      "label": "Cesta vegetariana brasileira - saúde metabólica rico em fibras",
+      "slot": "basket",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-lentilha-marrom-cru-seco",
+        "food-grao-de-bico-cru-seco",
+        "food-arroz-integral-agulhinha-cru",
+        "food-abobora-moranga-cru",
+        "food-couve-manteiga-cru",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 530
+    },
+    {
+      "id": "arch_124_basket_metabolic_health",
+      "label": "Cesta café da manhã simples - saúde metabólica rico em fibras",
+      "slot": "basket",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-pao-de-forma-integral",
+        "food-iogurte-natural-integral-natural",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 460
+    },
+    {
+      "id": "arch_125_basket_metabolic_health",
+      "label": "Cesta baixo sódio caseira - saúde metabólica rico em fibras",
+      "slot": "basket",
+      "objective": "metabolic_health",
+      "food_ids": [
+        "food-arroz-branco-tipo-1-cru",
+        "food-feijao-preto-cru-seco",
+        "food-peixe-tilapia-cru-limpo",
+        "food-abobrinha-italiana-cru",
+        "food-laranja-pera-in-natura",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 500
+    },
+    {
+      "id": "arch_126_breakfast_diabetes",
+      "label": "Pão integral com ovos e mamão - diabetes controle glicêmico",
+      "slot": "breakfast",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-ovo-mexido-base-cozido",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 320
+    },
+    {
+      "id": "arch_127_breakfast_diabetes",
+      "label": "Aveia com banana e iogurte natural - diabetes controle glicêmico",
+      "slot": "breakfast",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-banana-prata-in-natura",
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 350
+    },
+    {
+      "id": "arch_128_breakfast_diabetes",
+      "label": "Tapioca com queijo branco e fruta - diabetes controle glicêmico",
+      "slot": "breakfast",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 320
+    },
+    {
+      "id": "arch_129_breakfast_diabetes",
+      "label": "Cuscuz com ovo e café - diabetes controle glicêmico",
+      "slot": "breakfast",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-cuscuz-de-milho-cozido-porcao-simples",
+        "food-ovo-de-galinha-inteiro-cozido",
+        "food-melancia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 330
+    },
+    {
+      "id": "arch_130_morning_snack_diabetes",
+      "label": "Fruta com castanhas - diabetes controle glicêmico",
+      "slot": "morning_snack",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-maca-fuji-in-natura",
+        "food-castanha-de-caju-torrada-sem-sal",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 170
+    },
+    {
+      "id": "arch_131_morning_snack_diabetes",
+      "label": "Iogurte natural com chia - diabetes controle glicêmico",
+      "slot": "morning_snack",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 160
+    },
+    {
+      "id": "arch_132_morning_snack_diabetes",
+      "label": "Banana com aveia - diabetes controle glicêmico",
+      "slot": "morning_snack",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 190
+    },
+    {
+      "id": "arch_133_lunch_diabetes",
+      "label": "Arroz, feijão, frango grelhado e salada - diabetes controle glicêmico",
+      "slot": "lunch",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-alface-crespa-salada-temperada",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 580
+    },
+    {
+      "id": "arch_134_lunch_diabetes",
+      "label": "Arroz, feijão, carne magra e legumes - diabetes controle glicêmico",
+      "slot": "lunch",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-preto-cozido-sem-sal-com-caldo",
+        "food-carne-bovina-patinho-cru-limpo",
+        "food-brocolis-cozido-sem-sal",
+        "food-cenoura-cozido-sem-sal",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 610
+    },
+    {
+      "id": "arch_135_lunch_diabetes",
+      "label": "Peixe assado com mandioca e salada - diabetes controle glicêmico",
+      "slot": "lunch",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-peixe-tilapia-assado-com-azeite",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru",
+        "food-azeite-de-oliva-extra-virgem-cru-para-salada",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 560
+    },
+    {
+      "id": "arch_136_lunch_diabetes",
+      "label": "Omelete com arroz, feijão e legumes - diabetes controle glicêmico",
+      "slot": "lunch",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 550
+    },
+    {
+      "id": "arch_137_lunch_diabetes",
+      "label": "Prato vegetariano brasileiro - diabetes controle glicêmico",
+      "slot": "lunch",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-lentilha-marrom-cozido-sem-sal-com-caldo",
+        "food-grao-de-bico-cozido-sem-sal-com-caldo",
+        "food-alface-crespa-salada-temperada",
+        "food-beterraba-cozido-sem-sal",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 580
+    },
+    {
+      "id": "arch_138_afternoon_snack_diabetes",
+      "label": "Pão integral com queijo branco - diabetes controle glicêmico",
+      "slot": "afternoon_snack",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "bev_cafe_coado_sem_acucar",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 230
+    },
+    {
+      "id": "arch_139_afternoon_snack_diabetes",
+      "label": "Vitamina de banana com aveia - diabetes controle glicêmico",
+      "slot": "afternoon_snack",
+      "objective": "diabetes",
+      "food_ids": [
+        "bev_leite_desnatado",
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 270
+    },
+    {
+      "id": "arch_140_afternoon_snack_diabetes",
+      "label": "Crepioca simples com fruta - diabetes controle glicêmico",
+      "slot": "afternoon_snack",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 250
+    },
+    {
+      "id": "arch_141_dinner_diabetes",
+      "label": "Frango com legumes e batata-doce - diabetes controle glicêmico",
+      "slot": "dinner",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-batata-doce-cozido-sem-sal",
+        "food-brocolis-cozido-sem-sal",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 470
+    },
+    {
+      "id": "arch_142_dinner_diabetes",
+      "label": "Sopa brasileira de legumes com carne - diabetes controle glicêmico",
+      "slot": "dinner",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-sopa-de-legumes-caseiro",
+        "food-carne-bovina-patinho-cozido-sem-sal",
+        "food-mandioquinha-cru",
+        "food-couve-manteiga-cru",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 430
+    },
+    {
+      "id": "arch_143_dinner_diabetes",
+      "label": "Peixe com arroz integral e salada - diabetes controle glicêmico",
+      "slot": "dinner",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-peixe-tilapia-grelhado-sem-oleo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-azeite-de-oliva-extra-virgem-cru-para-salada",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 450
+    },
+    {
+      "id": "arch_144_dinner_diabetes",
+      "label": "Omelete com salada e mandioca - diabetes controle glicêmico",
+      "slot": "dinner",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 460
+    },
+    {
+      "id": "arch_145_dinner_diabetes",
+      "label": "Arroz, feijão e legumes com proteína - diabetes controle glicêmico",
+      "slot": "dinner",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 500
+    },
+    {
+      "id": "arch_146_basket_diabetes",
+      "label": "Cesta base arroz, feijão e ovos - diabetes controle glicêmico",
+      "slot": "basket",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cru",
+        "food-feijao-carioca-cru-seco",
+        "food-ovo-de-galinha-inteiro-cru",
+        "food-banana-prata-in-natura",
+        "food-alface-crespa-cru",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 470
+    },
+    {
+      "id": "arch_147_basket_diabetes",
+      "label": "Cesta frango, legumes e frutas - diabetes controle glicêmico",
+      "slot": "basket",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-cru-limpo",
+        "food-batata-doce-cru",
+        "food-brocolis-cru",
+        "food-maca-fuji-in-natura",
+        "food-cenoura-cru",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 500
+    },
+    {
+      "id": "arch_148_basket_diabetes",
+      "label": "Cesta vegetariana brasileira - diabetes controle glicêmico",
+      "slot": "basket",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-lentilha-marrom-cru-seco",
+        "food-grao-de-bico-cru-seco",
+        "food-arroz-integral-agulhinha-cru",
+        "food-abobora-moranga-cru",
+        "food-couve-manteiga-cru",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 520
+    },
+    {
+      "id": "arch_149_basket_diabetes",
+      "label": "Cesta café da manhã simples - diabetes controle glicêmico",
+      "slot": "basket",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-pao-de-forma-integral",
+        "food-iogurte-natural-integral-natural",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 450
+    },
+    {
+      "id": "arch_150_basket_diabetes",
+      "label": "Cesta baixo sódio caseira - diabetes controle glicêmico",
+      "slot": "basket",
+      "objective": "diabetes",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cru",
+        "food-feijao-preto-cru-seco",
+        "food-peixe-tilapia-cru-limpo",
+        "food-abobrinha-italiana-cru",
+        "food-laranja-pera-in-natura",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 490
+    },
+    {
+      "id": "arch_151_breakfast_hypertension",
+      "label": "Pão integral com ovos e mamão - hipertensão baixo sódio",
+      "slot": "breakfast",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-ovo-mexido-base-cozido",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 340
+    },
+    {
+      "id": "arch_152_breakfast_hypertension",
+      "label": "Aveia com banana e iogurte natural - hipertensão baixo sódio",
+      "slot": "breakfast",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-banana-prata-in-natura",
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 370
+    },
+    {
+      "id": "arch_153_breakfast_hypertension",
+      "label": "Tapioca com queijo branco e fruta - hipertensão baixo sódio",
+      "slot": "breakfast",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 330
+    },
+    {
+      "id": "arch_154_breakfast_hypertension",
+      "label": "Cuscuz com ovo e café - hipertensão baixo sódio",
+      "slot": "breakfast",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-cuscuz-de-milho-cozido-porcao-simples",
+        "food-ovo-de-galinha-inteiro-cozido",
+        "food-melancia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 350
+    },
+    {
+      "id": "arch_155_morning_snack_hypertension",
+      "label": "Fruta com castanhas - hipertensão baixo sódio",
+      "slot": "morning_snack",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-maca-fuji-in-natura",
+        "food-castanha-de-caju-torrada-sem-sal",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 180
+    },
+    {
+      "id": "arch_156_morning_snack_hypertension",
+      "label": "Iogurte natural com chia - hipertensão baixo sódio",
+      "slot": "morning_snack",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 170
+    },
+    {
+      "id": "arch_157_morning_snack_hypertension",
+      "label": "Banana com aveia - hipertensão baixo sódio",
+      "slot": "morning_snack",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 200
+    },
+    {
+      "id": "arch_158_lunch_hypertension",
+      "label": "Arroz, feijão, frango grelhado e salada - hipertensão baixo sódio",
+      "slot": "lunch",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-alface-crespa-salada-temperada",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 610
+    },
+    {
+      "id": "arch_159_lunch_hypertension",
+      "label": "Arroz, feijão, carne magra e legumes - hipertensão baixo sódio",
+      "slot": "lunch",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-arroz-branco-tipo-1-cozido-sem-sal",
+        "food-feijao-preto-cozido-sem-sal-com-caldo",
+        "food-carne-bovina-patinho-cru-limpo",
+        "food-brocolis-cozido-sem-sal",
+        "food-cenoura-cozido-sem-sal",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 650
+    },
+    {
+      "id": "arch_160_lunch_hypertension",
+      "label": "Peixe assado com mandioca e salada - hipertensão baixo sódio",
+      "slot": "lunch",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-peixe-tilapia-assado-com-azeite",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru",
+        "food-azeite-de-oliva-extra-virgem-cru-para-salada",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 590
+    },
+    {
+      "id": "arch_161_lunch_hypertension",
+      "label": "Omelete com arroz, feijão e legumes - hipertensão baixo sódio",
+      "slot": "lunch",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 580
+    },
+    {
+      "id": "arch_162_lunch_hypertension",
+      "label": "Prato vegetariano brasileiro - hipertensão baixo sódio",
+      "slot": "lunch",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-lentilha-marrom-cozido-sem-sal-com-caldo",
+        "food-grao-de-bico-cozido-sem-sal-com-caldo",
+        "food-alface-crespa-salada-temperada",
+        "food-beterraba-cozido-sem-sal",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 620
+    },
+    {
+      "id": "arch_163_afternoon_snack_hypertension",
+      "label": "Pão integral com queijo branco - hipertensão baixo sódio",
+      "slot": "afternoon_snack",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "bev_cafe_coado_sem_acucar",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 250
+    },
+    {
+      "id": "arch_164_afternoon_snack_hypertension",
+      "label": "Vitamina de banana com aveia - hipertensão baixo sódio",
+      "slot": "afternoon_snack",
+      "objective": "hypertension",
+      "food_ids": [
+        "bev_leite_desnatado",
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 280
+    },
+    {
+      "id": "arch_165_afternoon_snack_hypertension",
+      "label": "Crepioca simples com fruta - hipertensão baixo sódio",
+      "slot": "afternoon_snack",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 270
+    },
+    {
+      "id": "arch_166_dinner_hypertension",
+      "label": "Frango com legumes e batata-doce - hipertensão baixo sódio",
+      "slot": "dinner",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-batata-doce-cozido-sem-sal",
+        "food-brocolis-cozido-sem-sal",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 490
+    },
+    {
+      "id": "arch_167_dinner_hypertension",
+      "label": "Sopa brasileira de legumes com carne - hipertensão baixo sódio",
+      "slot": "dinner",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-sopa-de-legumes-caseiro",
+        "food-carne-bovina-patinho-cozido-sem-sal",
+        "food-mandioquinha-cru",
+        "food-couve-manteiga-cru",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 460
+    },
+    {
+      "id": "arch_168_dinner_hypertension",
+      "label": "Peixe com arroz integral e salada - hipertensão baixo sódio",
+      "slot": "dinner",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-peixe-tilapia-grelhado-sem-oleo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-azeite-de-oliva-extra-virgem-cru-para-salada",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 480
+    },
+    {
+      "id": "arch_169_dinner_hypertension",
+      "label": "Omelete com salada e mandioca - hipertensão baixo sódio",
+      "slot": "dinner",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 480
+    },
+    {
+      "id": "arch_170_dinner_hypertension",
+      "label": "Arroz, feijão e legumes com proteína - hipertensão baixo sódio",
+      "slot": "dinner",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 530
+    },
+    {
+      "id": "arch_171_basket_hypertension",
+      "label": "Cesta base arroz, feijão e ovos - hipertensão baixo sódio",
+      "slot": "basket",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cru",
+        "food-feijao-carioca-cru-seco",
+        "food-ovo-de-galinha-inteiro-cru",
+        "food-banana-prata-in-natura",
+        "food-alface-crespa-cru",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 490
+    },
+    {
+      "id": "arch_172_basket_hypertension",
+      "label": "Cesta frango, legumes e frutas - hipertensão baixo sódio",
+      "slot": "basket",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-cru-limpo",
+        "food-batata-doce-cru",
+        "food-brocolis-cru",
+        "food-maca-fuji-in-natura",
+        "food-cenoura-cru",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 530
+    },
+    {
+      "id": "arch_173_basket_hypertension",
+      "label": "Cesta vegetariana brasileira - hipertensão baixo sódio",
+      "slot": "basket",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-lentilha-marrom-cru-seco",
+        "food-grao-de-bico-cru-seco",
+        "food-arroz-integral-agulhinha-cru",
+        "food-abobora-moranga-cru",
+        "food-couve-manteiga-cru",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 550
+    },
+    {
+      "id": "arch_174_basket_hypertension",
+      "label": "Cesta café da manhã simples - hipertensão baixo sódio",
+      "slot": "basket",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-pao-de-forma-integral",
+        "food-iogurte-natural-integral-natural",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 480
+    },
+    {
+      "id": "arch_175_basket_hypertension",
+      "label": "Cesta baixo sódio caseira - hipertensão baixo sódio",
+      "slot": "basket",
+      "objective": "hypertension",
+      "food_ids": [
+        "food-arroz-branco-tipo-1-cru",
+        "food-feijao-preto-cru-seco",
+        "food-peixe-tilapia-cru-limpo",
+        "food-abobrinha-italiana-cru",
+        "food-laranja-pera-in-natura",
+        "food-cebolinha-fresca-cru"
+      ],
+      "approximate_calories": 510
+    },
+    {
+      "id": "arch_176_breakfast_other",
+      "label": "Pão integral com ovos e mamão - equilibrado equilibrado",
+      "slot": "breakfast",
+      "objective": "other",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-ovo-mexido-base-cozido",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar"
+      ],
+      "approximate_calories": 360
+    },
+    {
+      "id": "arch_177_breakfast_other",
+      "label": "Aveia com banana e iogurte natural - equilibrado equilibrado",
+      "slot": "breakfast",
+      "objective": "other",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-banana-prata-in-natura",
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 390
+    },
+    {
+      "id": "arch_178_breakfast_other",
+      "label": "Tapioca com queijo branco e fruta - equilibrado equilibrado",
+      "slot": "breakfast",
+      "objective": "other",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar"
+      ],
+      "approximate_calories": 350
+    },
+    {
+      "id": "arch_179_breakfast_other",
+      "label": "Cuscuz com ovo e café - equilibrado equilibrado",
+      "slot": "breakfast",
+      "objective": "other",
+      "food_ids": [
+        "food-cuscuz-de-milho-cozido-porcao-simples",
+        "food-ovo-de-galinha-inteiro-cozido",
+        "food-melancia-in-natura",
+        "bev_cafe_coado_sem_acucar"
+      ],
+      "approximate_calories": 370
+    },
+    {
+      "id": "arch_180_morning_snack_other",
+      "label": "Fruta com castanhas - equilibrado equilibrado",
+      "slot": "morning_snack",
+      "objective": "other",
+      "food_ids": [
+        "food-maca-fuji-in-natura",
+        "food-castanha-de-caju-torrada-sem-sal"
+      ],
+      "approximate_calories": 190
+    },
+    {
+      "id": "arch_181_morning_snack_other",
+      "label": "Iogurte natural com chia - equilibrado equilibrado",
+      "slot": "morning_snack",
+      "objective": "other",
+      "food_ids": [
+        "food-iogurte-natural-integral-natural",
+        "food-chia-crua-sem-sal"
+      ],
+      "approximate_calories": 180
+    },
+    {
+      "id": "arch_182_morning_snack_other",
+      "label": "Banana com aveia - equilibrado equilibrado",
+      "slot": "morning_snack",
+      "objective": "other",
+      "food_ids": [
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco"
+      ],
+      "approximate_calories": 210
+    },
+    {
+      "id": "arch_183_lunch_other",
+      "label": "Arroz, feijão, frango grelhado e salada - equilibrado equilibrado",
+      "slot": "lunch",
+      "objective": "other",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-alface-crespa-salada-temperada",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo"
+      ],
+      "approximate_calories": 640
+    },
+    {
+      "id": "arch_184_lunch_other",
+      "label": "Arroz, feijão, carne magra e legumes - equilibrado equilibrado",
+      "slot": "lunch",
+      "objective": "other",
+      "food_ids": [
+        "food-arroz-branco-tipo-1-cozido-sem-sal",
+        "food-feijao-preto-cozido-sem-sal-com-caldo",
+        "food-carne-bovina-patinho-cru-limpo",
+        "food-brocolis-cozido-sem-sal",
+        "food-cenoura-cozido-sem-sal"
+      ],
+      "approximate_calories": 680
+    },
+    {
+      "id": "arch_185_lunch_other",
+      "label": "Peixe assado com mandioca e salada - equilibrado equilibrado",
+      "slot": "lunch",
+      "objective": "other",
+      "food_ids": [
+        "food-peixe-tilapia-assado-com-azeite",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru",
+        "food-azeite-de-oliva-extra-virgem-cru-para-salada"
+      ],
+      "approximate_calories": 620
+    },
+    {
+      "id": "arch_186_lunch_other",
+      "label": "Omelete com arroz, feijão e legumes - equilibrado equilibrado",
+      "slot": "lunch",
+      "objective": "other",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal"
+      ],
+      "approximate_calories": 610
+    },
+    {
+      "id": "arch_187_lunch_other",
+      "label": "Prato vegetariano brasileiro - equilibrado equilibrado",
+      "slot": "lunch",
+      "objective": "other",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-lentilha-marrom-cozido-sem-sal-com-caldo",
+        "food-grao-de-bico-cozido-sem-sal-com-caldo",
+        "food-alface-crespa-salada-temperada",
+        "food-beterraba-cozido-sem-sal"
+      ],
+      "approximate_calories": 650
+    },
+    {
+      "id": "arch_188_afternoon_snack_other",
+      "label": "Pão integral com queijo branco - equilibrado equilibrado",
+      "slot": "afternoon_snack",
+      "objective": "other",
+      "food_ids": [
+        "food-pao-de-forma-integral",
+        "food-queijo-minas-frescal-fatia-tradicional",
+        "bev_cafe_coado_sem_acucar"
+      ],
+      "approximate_calories": 260
+    },
+    {
+      "id": "arch_189_afternoon_snack_other",
+      "label": "Vitamina de banana com aveia - equilibrado equilibrado",
+      "slot": "afternoon_snack",
+      "objective": "other",
+      "food_ids": [
+        "bev_leite_desnatado",
+        "food-banana-prata-in-natura",
+        "food-aveia-em-flocos-finos-seco"
+      ],
+      "approximate_calories": 300
+    },
+    {
+      "id": "arch_190_afternoon_snack_other",
+      "label": "Crepioca simples com fruta - equilibrado equilibrado",
+      "slot": "afternoon_snack",
+      "objective": "other",
+      "food_ids": [
+        "food-beiju-de-tapioca-simples-porcao-simples",
+        "food-maca-fuji-in-natura",
+        "bev_cha_preto_sem_acucar"
+      ],
+      "approximate_calories": 280
+    },
+    {
+      "id": "arch_191_dinner_other",
+      "label": "Frango com legumes e batata-doce - equilibrado equilibrado",
+      "slot": "dinner",
+      "objective": "other",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-grelhado-sem-oleo",
+        "food-batata-doce-cozido-sem-sal",
+        "food-brocolis-cozido-sem-sal",
+        "food-abobrinha-italiana-refogado-com-alho-e-oleo"
+      ],
+      "approximate_calories": 520
+    },
+    {
+      "id": "arch_192_dinner_other",
+      "label": "Sopa brasileira de legumes com carne - equilibrado equilibrado",
+      "slot": "dinner",
+      "objective": "other",
+      "food_ids": [
+        "food-sopa-de-legumes-caseiro",
+        "food-carne-bovina-patinho-cozido-sem-sal",
+        "food-mandioquinha-cru",
+        "food-couve-manteiga-cru"
+      ],
+      "approximate_calories": 480
+    },
+    {
+      "id": "arch_193_dinner_other",
+      "label": "Peixe com arroz integral e salada - equilibrado equilibrado",
+      "slot": "dinner",
+      "objective": "other",
+      "food_ids": [
+        "food-peixe-tilapia-grelhado-sem-oleo",
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-azeite-de-oliva-extra-virgem-cru-para-salada"
+      ],
+      "approximate_calories": 500
+    },
+    {
+      "id": "arch_194_dinner_other",
+      "label": "Omelete com salada e mandioca - equilibrado equilibrado",
+      "slot": "dinner",
+      "objective": "other",
+      "food_ids": [
+        "food-ovo-de-galinha-inteiro-omelete-com-queijo",
+        "food-mandioca-cozido-sem-sal",
+        "food-alface-crespa-salada-temperada",
+        "food-tomate-cru"
+      ],
+      "approximate_calories": 510
+    },
+    {
+      "id": "arch_195_dinner_other",
+      "label": "Arroz, feijão e legumes com proteína - equilibrado equilibrado",
+      "slot": "dinner",
+      "objective": "other",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cozido-sem-sal",
+        "food-feijao-carioca-cozido-sem-sal-com-caldo",
+        "food-ave-peito-de-frango-sem-pele-desfiado-ao-molho",
+        "food-couve-manteiga-refogado-com-alho-e-oleo",
+        "food-abobora-moranga-cozido-sem-sal"
+      ],
+      "approximate_calories": 560
+    },
+    {
+      "id": "arch_196_basket_other",
+      "label": "Cesta base arroz, feijão e ovos - equilibrado equilibrado",
+      "slot": "basket",
+      "objective": "other",
+      "food_ids": [
+        "food-arroz-integral-agulhinha-cru",
+        "food-feijao-carioca-cru-seco",
+        "food-ovo-de-galinha-inteiro-cru",
+        "food-banana-prata-in-natura",
+        "food-alface-crespa-cru"
+      ],
+      "approximate_calories": 520
+    },
+    {
+      "id": "arch_197_basket_other",
+      "label": "Cesta frango, legumes e frutas - equilibrado equilibrado",
+      "slot": "basket",
+      "objective": "other",
+      "food_ids": [
+        "food-ave-peito-de-frango-sem-pele-cru-limpo",
+        "food-batata-doce-cru",
+        "food-brocolis-cru",
+        "food-maca-fuji-in-natura",
+        "food-cenoura-cru"
+      ],
+      "approximate_calories": 560
+    },
+    {
+      "id": "arch_198_basket_other",
+      "label": "Cesta vegetariana brasileira - equilibrado equilibrado",
+      "slot": "basket",
+      "objective": "other",
+      "food_ids": [
+        "food-lentilha-marrom-cru-seco",
+        "food-grao-de-bico-cru-seco",
+        "food-arroz-integral-agulhinha-cru",
+        "food-abobora-moranga-cru",
+        "food-couve-manteiga-cru"
+      ],
+      "approximate_calories": 580
+    },
+    {
+      "id": "arch_199_basket_other",
+      "label": "Cesta café da manhã simples - equilibrado equilibrado",
+      "slot": "basket",
+      "objective": "other",
+      "food_ids": [
+        "food-aveia-em-flocos-finos-seco",
+        "food-pao-de-forma-integral",
+        "food-iogurte-natural-integral-natural",
+        "food-mamao-papaia-in-natura",
+        "bev_cafe_coado_sem_acucar"
+      ],
+      "approximate_calories": 500
+    },
+    {
+      "id": "arch_200_basket_other",
+      "label": "Cesta baixo sódio caseira - equilibrado equilibrado",
+      "slot": "basket",
+      "objective": "other",
+      "food_ids": [
+        "food-arroz-branco-tipo-1-cru",
+        "food-feijao-preto-cru-seco",
+        "food-peixe-tilapia-cru-limpo",
+        "food-abobrinha-italiana-cru",
+        "food-laranja-pera-in-natura"
+      ],
+      "approximate_calories": 540
+    }
+  ]
+}

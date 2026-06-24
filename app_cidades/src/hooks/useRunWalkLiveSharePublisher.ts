@@ -2,14 +2,17 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   appendLiveSharePoint,
   createLiveShareSession,
+  clearActiveLiveShareSession,
   endLiveShareSession,
   loadActiveLiveShareSession,
+  shouldReplaceLiveShareSession,
 } from '../data/runWalkLiveShareService'
 import { useRunWalkLocation } from './useRunWalkLocation'
 import type { RegistrationAddress } from '../types/auth'
 import type { LiveShareSessionSnapshot } from '../types/runWalkLiveShare'
 
-const PUBLISH_INTERVAL_MS = 2 * 60 * 1000
+const PUBLISH_INTERVAL_MS = 30 * 1000
+const MIN_PUBLISH_GAP_MS = 10_000
 
 type UseRunWalkLiveSharePublisherOptions = {
   enabled: boolean
@@ -24,15 +27,53 @@ export function useRunWalkLiveSharePublisher({
   participantName,
   activityName,
 }: UseRunWalkLiveSharePublisherOptions) {
-  const location = useRunWalkLocation({ address, enabled, trackHeading: enabled })
+  const location = useRunWalkLocation({
+    address,
+    enabled,
+    trackHeading: enabled,
+    trackingMode: enabled ? 'activity' : 'default',
+  })
   const [session, setSession] = useState<LiveShareSessionSnapshot | null>(null)
   const [shouldPublish, setShouldPublish] = useState(false)
   const lastPublishedAtRef = useRef<number>(0)
   const sessionRef = useRef<LiveShareSessionSnapshot | null>(null)
+  const shouldPublishRef = useRef(false)
 
   useEffect(() => {
     sessionRef.current = session
   }, [session])
+
+  useEffect(() => {
+    shouldPublishRef.current = shouldPublish
+  }, [shouldPublish])
+
+  const activateSharing = useCallback(async (): Promise<LiveShareSessionSnapshot | null> => {
+    if (!enabled) return null
+
+    let activeSession = await loadActiveLiveShareSession()
+
+    if (shouldReplaceLiveShareSession(activeSession) && location.coordinates) {
+      activeSession = await createLiveShareSession({
+        participantName,
+        activityName,
+        latitude: location.coordinates.latitude,
+        longitude: location.coordinates.longitude,
+        accuracyMeters: location.accuracyMeters,
+      })
+    }
+
+    if (!activeSession?.isActive) return null
+
+    setSession(activeSession)
+    setShouldPublish(true)
+    return activeSession
+  }, [
+    activityName,
+    enabled,
+    location.accuracyMeters,
+    location.coordinates,
+    participantName,
+  ])
 
   useEffect(() => {
     if (!enabled) return
@@ -44,9 +85,13 @@ export function useRunWalkLiveSharePublisher({
 
       if (!active) return
 
-      setShouldPublish(Boolean(saved?.isActive))
+      if (saved?.isActive && shouldReplaceLiveShareSession(saved)) {
+        await clearActiveLiveShareSession()
+        return
+      }
 
       if (saved?.isActive) {
+        setShouldPublish(true)
         setSession(saved)
       }
     }
@@ -89,13 +134,16 @@ export function useRunWalkLiveSharePublisher({
   ])
 
   const publishCurrentLocation = useCallback(async () => {
-    if (!enabled || !shouldPublish || !session?.isActive || !location.coordinates) return
+    if (!enabled || !shouldPublishRef.current || !sessionRef.current?.isActive || !location.coordinates) {
+      return
+    }
 
     const now = Date.now()
-    if (now - lastPublishedAtRef.current < 15_000) return
+    if (now - lastPublishedAtRef.current < MIN_PUBLISH_GAP_MS) return
 
+    const activeSession = sessionRef.current
     const point = await appendLiveSharePoint({
-      sessionId: session.id,
+      sessionId: activeSession.id,
       latitude: location.coordinates.latitude,
       longitude: location.coordinates.longitude,
       accuracyMeters: location.accuracyMeters,
@@ -112,10 +160,10 @@ export function useRunWalkLiveSharePublisher({
           }
         : current,
     )
-  }, [enabled, location.accuracyMeters, location.coordinates, session, shouldPublish])
+  }, [enabled, location.accuracyMeters, location.coordinates])
 
   useEffect(() => {
-    if (!enabled || !session?.isActive || !location.coordinates) return
+    if (!enabled || !shouldPublish || !session?.isActive || !location.coordinates) return
 
     void publishCurrentLocation()
 
@@ -124,23 +172,31 @@ export function useRunWalkLiveSharePublisher({
     }, PUBLISH_INTERVAL_MS)
 
     return () => clearInterval(timer)
-  }, [enabled, location.coordinates, publishCurrentLocation, session?.id, session?.isActive])
+  }, [
+    enabled,
+    location.coordinates,
+    publishCurrentLocation,
+    session?.id,
+    session?.isActive,
+    shouldPublish,
+  ])
 
-  useEffect(() => {
-    return () => {
-      const activeSession = sessionRef.current
-      if (activeSession?.isActive) {
-        void endLiveShareSession(activeSession.id)
-      }
-    }
+  const endActiveLiveShareSession = useCallback(async () => {
+    const activeSession = sessionRef.current
+    if (!activeSession?.isActive) return
+    await endLiveShareSession(activeSession.id)
+    setSession(null)
+    setShouldPublish(false)
   }, [])
 
   return {
     session,
     setSession,
     location,
+    activateSharing,
     publishCurrentLocation,
     publishIntervalMs: PUBLISH_INTERVAL_MS,
+    endActiveLiveShareSession,
   }
 }
 

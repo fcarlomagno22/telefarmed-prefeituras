@@ -2,6 +2,8 @@ export type ScheduleCareMode = 'in_person' | 'remote'
 
 export type ScheduleAppointmentStep =
   | 'care_mode'
+  | 'remote_request'
+  | 'remote_success'
   | 'specialty'
   | 'ubt'
   | 'schedule_mode'

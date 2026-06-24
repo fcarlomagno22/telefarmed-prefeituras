@@ -31,7 +31,7 @@ const POLICY_SECTIONS = [
   {
     title: 'Limitações do recurso',
     body:
-      'Este módulo complementa o cuidado em saúde mental, mas não substitui avaliação, diagnóstico ou tratamento profissional. Em situações de risco imediato, procure atendimento de emergência.',
+      'Este módulo complementa o cuidado em saúde mental, mas não substitui avaliação ou tratamento por um profissional de saúde. Em situações de risco imediato, procure atendimento de emergência.',
   },
 ] as const
 

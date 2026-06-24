@@ -17,6 +17,8 @@ import { ScheduleConfirmStep } from '../components/schedule/ScheduleConfirmStep'
 import { ScheduleDateStep } from '../components/schedule/ScheduleDateStep'
 import { ScheduleDoctorStep } from '../components/schedule/ScheduleDoctorStep'
 import { ScheduleModeStep } from '../components/schedule/ScheduleModeStep'
+import { ScheduleRemoteCareRequestStep } from '../components/schedule/ScheduleRemoteCareRequestStep'
+import { ScheduleRemoteCareSuccessStep } from '../components/schedule/ScheduleRemoteCareSuccessStep'
 import { ScheduleSpecialtyStep } from '../components/schedule/ScheduleSpecialtyStep'
 import { ScheduleSuccessStep } from '../components/schedule/ScheduleSuccessStep'
 import { ScheduleTimeStep } from '../components/schedule/ScheduleTimeStep'
@@ -30,6 +32,7 @@ import {
 } from '../data/mockScheduleCatalog'
 import { scheduleUbts } from '../data/mockScheduleUbts'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
 import {
@@ -39,6 +42,7 @@ import {
   ScheduleViewMode,
 } from '../types/scheduleAppointment'
 import { playSuccessSound } from '../utils/appSounds'
+import { submitRemoteCareRequest } from '../utils/remoteCareRequest'
 import {
   getScheduleStartDate,
   SCHEDULE_DAY_COUNT,
@@ -54,6 +58,7 @@ const SCHEDULE_FOOTER_HEIGHT = 80
 export function ScheduleAppointmentScreen() {
   const insets = useSafeAreaInsets()
   const { user, navigateTo, logout } = useAuth()
+  const { requireAuth } = useGuestAuth()
 
   const [step, setStep] = useState<ScheduleAppointmentStep>('care_mode')
   const [careMode, setCareMode] = useState<ScheduleCareMode | ''>('')
@@ -68,7 +73,9 @@ export function ScheduleAppointmentScreen() {
   const [selectedDoctorName, setSelectedDoctorName] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isRemoteSubmitting, setIsRemoteSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [remoteSubmitError, setRemoteSubmitError] = useState<string | null>(null)
 
   const [menuVisible, setMenuVisible] = useState(false)
   const [bottomTab, setBottomTab] = useState<BottomTabId | null>('agendar')
@@ -87,6 +94,8 @@ export function ScheduleAppointmentScreen() {
   const tabBarOffset = TAB_BAR_DOCK_HEIGHT + Math.max(insets.bottom, 8)
 
   const showFooter = step === 'confirm' || step === 'success'
+
+  const hideTimeline = step === 'success' || step === 'remote_success'
 
   const bottomContentPadding = showFooter
     ? SCHEDULE_FOOTER_HEIGHT + tabBarOffset + 16
@@ -119,8 +128,14 @@ export function ScheduleAppointmentScreen() {
   }
 
   function handleBack() {
-    if (step === 'success') {
+    if (step === 'success' || step === 'remote_success') {
       navigateTo('home')
+      return
+    }
+
+    if (step === 'remote_request') {
+      setRemoteSubmitError(null)
+      setStep('care_mode')
       return
     }
 
@@ -170,8 +185,14 @@ export function ScheduleAppointmentScreen() {
       return true
     }
 
-    if (step === 'success') {
+    if (step === 'success' || step === 'remote_success') {
       navigateTo('home')
+      return true
+    }
+
+    if (step === 'remote_request') {
+      setRemoteSubmitError(null)
+      setStep('care_mode')
       return true
     }
 
@@ -230,10 +251,40 @@ export function ScheduleAppointmentScreen() {
   }
 
   function handleCareModeSelect(mode: ScheduleCareMode) {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    setCareMode(mode)
-    if (mode === 'in_person') {
-      setStep('specialty')
+    requireAuth('quick:schedule', () => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+      setCareMode(mode)
+      setRemoteSubmitError(null)
+
+      if (mode === 'in_person') {
+        setStep('specialty')
+        return
+      }
+
+      setStep('remote_request')
+    })
+  }
+
+  async function handleRemoteCareSubmit(payload: { reason: string; evidenceUri: string }) {
+    if (!user || isRemoteSubmitting) return
+
+    setIsRemoteSubmitting(true)
+    setRemoteSubmitError(null)
+
+    try {
+      await submitRemoteCareRequest({
+        reason: payload.reason,
+        evidenceUri: payload.evidenceUri,
+        patientCpf: user.cpf,
+        patientName: user.name,
+        patientPhone: user.phone,
+      })
+      void playSuccessSound()
+      setStep('remote_success')
+    } catch {
+      setRemoteSubmitError('Não foi possível enviar sua solicitação. Tente novamente.')
+    } finally {
+      setIsRemoteSubmitting(false)
     }
   }
 
@@ -429,12 +480,14 @@ export function ScheduleAppointmentScreen() {
           <View style={styles.headerTextCol}>
             <Text style={styles.headerTitle}>Agendar consulta</Text>
             <Text style={styles.headerSubtitle}>
-              Modalidade · Especialidade · Unidade · Agendamento · Confirmação
+              {careMode === 'remote'
+                ? 'Modalidade · Solicitação · Resposta'
+                : 'Modalidade · Especialidade · Unidade · Agendamento · Confirmação'}
             </Text>
           </View>
         </View>
 
-        {step !== 'success' ? <ScheduleTimeline step={step} /> : null}
+        {hideTimeline ? null : <ScheduleTimeline step={step} />}
 
         <ScrollView
           style={styles.body}
@@ -451,6 +504,21 @@ export function ScheduleAppointmentScreen() {
               onSelectMode={handleCareModeSelect}
               onBack={handleBack}
             />
+          ) : null}
+
+          {step === 'remote_request' ? (
+            <>
+              <ScheduleRemoteCareRequestStep
+                onBack={handleBack}
+                isSubmitting={isRemoteSubmitting}
+                onSubmit={(payload) => void handleRemoteCareSubmit(payload)}
+              />
+              {remoteSubmitError ? <Text style={styles.errorText}>{remoteSubmitError}</Text> : null}
+            </>
+          ) : null}
+
+          {step === 'remote_success' && user ? (
+            <ScheduleRemoteCareSuccessStep patientName={user.name} />
           ) : null}
 
           {step === 'specialty' ? (

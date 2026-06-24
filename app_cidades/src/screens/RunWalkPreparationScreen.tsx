@@ -16,6 +16,7 @@ import { RunWalkPreparationInfoGrid } from '../components/runWalk/preparation/Ru
 import { RunWalkShareLocationDrawer } from '../components/runWalk/preparation/RunWalkShareLocationDrawer'
 import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import {
   ACTIVITY_MODALITY_LABELS,
   MODALITY_DEFAULTS,
@@ -39,6 +40,7 @@ const runnerAnimation = require('../../assets/runner.json')
 export function RunWalkPreparationScreen() {
   const insets = useSafeAreaInsets()
   const { routeParams, navigateTo, goBack, user } = useAuth()
+  const { requireAuth } = useGuestAuth()
   const initial = getRunWalkRouteParams(routeParams)
 
   const [modality, setModality] = useState<ActivityModality>(initial.modality ?? 'walk')
@@ -215,13 +217,15 @@ export function RunWalkPreparationScreen() {
   })
 
   function proceedToChecklist() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setStartFlowActive(false)
-    navigateTo('run-walk-checklist', {
-      modality,
-      activityName,
-      intensity,
-      durationMinutes,
+    requireAuth('vida:run-walk', () => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setStartFlowActive(false)
+      navigateTo('run-walk-checklist', {
+        modality,
+        activityName,
+        intensity,
+        durationMinutes,
+      })
     })
   }
 
@@ -237,8 +241,10 @@ export function RunWalkPreparationScreen() {
   }
 
   function handleStartPress() {
-    setStartFlowActive(true)
-    openShareLocationDrawer()
+    requireAuth('vida:run-walk', () => {
+      setStartFlowActive(true)
+      openShareLocationDrawer()
+    })
   }
 
   function handleShareLocationComplete() {

@@ -1,0 +1,94 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "total_items": 6100,
+  "chunks": [
+    {
+      "file": "food_database_lote_10_doces_snacks.json",
+      "lot": "Lote 10/10",
+      "scope": "doces, sobremesas, biscoitos e snacks",
+      "total": 400
+    },
+    {
+      "file": "food_database_lote_11_temperos_molhos.json",
+      "lot": "Lote 11/12",
+      "scope": "temperos, condimentos e molhos",
+      "total": 300
+    },
+    {
+      "file": "food_database_lote_12_bebidas.json",
+      "lot": "Lote 12/12",
+      "scope": "bebidas brasileiras e industrializadas",
+      "total": 300
+    },
+    {
+      "file": "food_database_lote_1_cereais_massas_paes.json",
+      "lot": "Lote 1/10",
+      "scope": "cereais, massas e pães",
+      "total": 500
+    },
+    {
+      "file": "food_database_lote_2_carnes_aves_peixes_ovos.json",
+      "lot": "Lote 2/10",
+      "scope": "carnes, aves, peixes e ovos",
+      "total": 700
+    },
+    {
+      "file": "food_database_lote_3_leguminosas.json",
+      "lot": "Lote 3/10",
+      "scope": "leguminosas",
+      "total": 200
+    },
+    {
+      "file": "food_database_lote_4_verduras_legumes.json",
+      "lot": "Lote 4/10",
+      "scope": "verduras e legumes",
+      "total": 800
+    },
+    {
+      "file": "food_database_lote_5_frutas.json",
+      "lot": "Lote 5/10",
+      "scope": "frutas",
+      "total": 500
+    },
+    {
+      "file": "food_database_lote_6_laticinios.json",
+      "lot": "Lote 6/10",
+      "scope": "laticínios",
+      "total": 400
+    },
+    {
+      "file": "food_database_lote_7_oleos_gorduras_castanhas.json",
+      "lot": "Lote 7/10",
+      "scope": "óleos, gorduras, castanhas e sementes",
+      "total": 200
+    },
+    {
+      "file": "food_database_lote_8_pratos_preparados_br.json",
+      "lot": "Lote 8/10",
+      "scope": "pratos preparados brasileiros",
+      "total": 1200
+    },
+    {
+      "file": "food_database_lote_9_padaria_lanches_fast_food.json",
+      "lot": "Lote 9/10",
+      "scope": "padaria, lanches e fast food",
+      "total": 600
+    }
+  ],
+  "engine_files": [
+    "beverage_catalog.json",
+    "dietary_constraints.json",
+    "food_search_synonyms.json",
+    "food_substitution_rules.json",
+    "insight_templates.json",
+    "meal_composition_templates.json",
+    "meal_plan_archetypes.json",
+    "menu_generation_rules.json",
+    "nutrition_calculation_rules.json",
+    "photo_label_mapping.json",
+    "portion_units_registry.json",
+    "meal_role_mapping.json"
+  ],
+  "generated_at": "2026-06-23"
+}

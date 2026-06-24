@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Animated, Easing, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useAndroidBackHandler } from '../../hooks/useAndroidBackHandler'
 import { engineContent } from '../../mentalHealthEngine/content/loadEngineContent'
 import { computeAnamnesisCompletion } from '../../mentalHealthEngine/anamnesisScoring'
@@ -45,20 +46,6 @@ function buildAnswerRecord(value: AnamnesisAnswerRecord['value']): AnamnesisAnsw
   }
 }
 
-function detectCrisisFromAnswers(answers: Record<string, AnamnesisAnswerRecord>) {
-  for (const question of engineContent.anamnesisModules.questions) {
-    const answer = answers[question.id]
-    if (!answer || answer.skipped) continue
-    for (const branch of question.branching ?? []) {
-      if (branch.action !== 'trigger_red_flag') continue
-      const when = branch.when as { answer_in?: string[] } | undefined
-      if (when?.answer_in?.includes(String(answer.value))) {
-        return true
-      }
-    }
-  }
-  return false
-}
 
 function isQuestionAnswered(question: FlatQuestion, answers: Record<string, AnamnesisAnswerRecord>) {
   const answer = answers[question.id]
@@ -77,6 +64,56 @@ function getModuleQuestionIds(moduleId: string, mode: AnamnesisDrawerMode) {
     .map((question) => question.id)
 }
 
+const PROGRESS_GRADIENT = ['#0e7490', '#0891b2', '#22d3ee', '#a5f3fc'] as const
+
+function AnamnesisProgressBar({ progress }: { progress: number }) {
+  const [trackWidth, setTrackWidth] = useState(0)
+  const animatedProgress = useRef(new Animated.Value(progress)).current
+  const skipAnimationRef = useRef(true)
+
+  useEffect(() => {
+    if (skipAnimationRef.current) {
+      animatedProgress.setValue(progress)
+      skipAnimationRef.current = false
+      return
+    }
+
+    Animated.timing(animatedProgress, {
+      toValue: progress,
+      duration: 520,
+      easing: Easing.bezier(0.22, 1, 0.36, 1),
+      useNativeDriver: false,
+    }).start()
+  }, [animatedProgress, progress])
+
+  const fillWidth = animatedProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, Math.max(trackWidth, 1)],
+    extrapolate: 'clamp',
+  })
+
+  return (
+    <View
+      style={styles.progressTrack}
+      onLayout={(event) => {
+        const width = event.nativeEvent.layout.width
+        if (width > 0) setTrackWidth(width)
+      }}
+    >
+      {trackWidth > 0 ? (
+        <Animated.View style={[styles.progressFillClip, { width: fillWidth }]}>
+          <LinearGradient
+            colors={[...PROGRESS_GRADIENT]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={[styles.progressGradient, { width: trackWidth }]}
+          />
+        </Animated.View>
+      ) : null}
+    </View>
+  )
+}
+
 export function MentalHealthAnamnesisDrawer({
   visible,
   mode = 'initial',
@@ -91,7 +128,6 @@ export function MentalHealthAnamnesisDrawer({
   const [questionIndex, setQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, AnamnesisAnswerRecord>>({})
   const [isSaving, setIsSaving] = useState(false)
-  const [showCrisisBanner, setShowCrisisBanner] = useState(false)
   const savedModulesRef = useRef<Set<string>>(new Set())
   const hasInitializedRef = useRef(false)
   const isAdvancingRef = useRef(false)
@@ -116,8 +152,10 @@ export function MentalHealthAnamnesisDrawer({
     const firstIncomplete = flatQuestions.findIndex(
       (question) => !isQuestionAnswered(question, initialAnswers),
     )
+
+    if (flatQuestions.length === 0) return
+
     setQuestionIndex(firstIncomplete >= 0 ? firstIncomplete : 0)
-    setShowCrisisBanner(detectCrisisFromAnswers(initialAnswers))
     setIsSaving(false)
   }, [flatQuestions, initialAnswers, visible])
 
@@ -215,7 +253,6 @@ export function MentalHealthAnamnesisDrawer({
 
     const next = { ...answers, [questionId]: buildAnswerRecord(value) }
     setAnswers(next)
-    setShowCrisisBanner(detectCrisisFromAnswers(next))
     void Promise.resolve(onPersistAnswers(next))
 
     if (!autoAdvance) return
@@ -392,19 +429,14 @@ export function MentalHealthAnamnesisDrawer({
           <Pressable onPress={handleBack} style={styles.backButton} hitSlop={8}>
             <Ionicons name="chevron-back" size={20} color={colors.textMuted} />
           </Pressable>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${progressRatio * 100}%` }]} />
-          </View>
+          <AnamnesisProgressBar
+            key={visible ? 'open' : 'closed'}
+            progress={progressRatio}
+          />
           <Text style={styles.progressCount}>
             {questionIndex + 1}/{totalQuestions}
           </Text>
         </View>
-
-        {showCrisisBanner ? (
-          <Text style={styles.crisisText}>
-            Se precisar conversar agora, ligue 188 (CVV).
-          </Text>
-        ) : null}
 
         {isFirstInModule ? (
           <Text style={styles.moduleEyebrow}>{currentQuestion.moduleTitle}</Text>
@@ -441,15 +473,19 @@ const styles = StyleSheet.create({
   },
   progressTrack: {
     flex: 1,
-    height: 3,
+    height: 4,
     borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.08)',
     overflow: 'hidden',
   },
-  progressFill: {
+  progressFillClip: {
     height: '100%',
     borderRadius: 999,
-    backgroundColor: '#0891b2',
+    overflow: 'hidden',
+  },
+  progressGradient: {
+    height: '100%',
+    borderRadius: 999,
   },
   progressCount: {
     color: colors.textSubtle,
@@ -457,12 +493,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     minWidth: 42,
     textAlign: 'right',
-  },
-  crisisText: {
-    color: '#fecaca',
-    fontSize: 12,
-    lineHeight: 17,
-    textAlign: 'center',
   },
   moduleEyebrow: {
     color: colors.textSubtle,

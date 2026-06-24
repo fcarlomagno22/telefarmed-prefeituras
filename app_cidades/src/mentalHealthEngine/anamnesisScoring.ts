@@ -3,6 +3,25 @@ import type { AnamnesisAnswerRecord } from '../types/mentalHealthEngine'
 
 type Question = (typeof engineContent.anamnesisModules.questions)[number]
 
+function resolveDurationDaysFromAnswer(
+  questionId: string,
+  answersIndex: Record<string, AnamnesisAnswerRecord>,
+): number | null {
+  const answer = answersIndex[questionId]
+  if (!answer || answer.skipped || answer.value == null) return null
+
+  if (typeof answer.value === 'number') {
+    return answer.value
+  }
+
+  const question = engineContent.anamnesisModules.questions.find((item) => item.id === questionId)
+  if (!question || question.type !== 'single') return null
+
+  const option = question.options?.find((item) => String(item.value) === String(answer.value))
+  const estimate = (option as { duration_days_estimate?: number } | undefined)?.duration_days_estimate
+  return typeof estimate === 'number' ? estimate : null
+}
+
 function applyPoints(
   scores: Record<string, number | boolean>,
   symptom: string,
@@ -120,6 +139,12 @@ export function computeDerivedMetrics(
     const values: number[] = []
 
     for (const sourceId of sources) {
+      const durationDays = resolveDurationDaysFromAnswer(sourceId, answersIndex)
+      if (durationDays != null) {
+        values.push(durationDays)
+        continue
+      }
+
       const answer = answersIndex[sourceId]
       if (answer?.value != null && typeof answer.value === 'number') {
         values.push(answer.value)

@@ -14,5 +14,17 @@ export function normalizeLiveShareToken(value: string): string {
 
 export function isValidLiveShareToken(value: string): boolean {
   const normalized = normalizeLiveShareToken(value)
-  return normalized.length >= 6 && normalized.length <= 12
+  if (normalized.length < 6 || normalized.length > 12) return false
+  return /^[A-HJ-NP-Z2-9]+$/.test(normalized)
+}
+
+/** Token curto na URL (8 chars) — evita conflito com rotas como /login no portal. */
+export function isLiveShareDedicatedUrlToken(value: string): boolean {
+  if (isLiveShareDemoToken(value)) return true
+  const normalized = normalizeLiveShareToken(value)
+  return normalized.length === 8 && /^[A-HJ-NP-Z2-9]{8}$/.test(normalized)
+}
+
+export function isLiveShareDemoToken(value: string): boolean {
+  return normalizeLiveShareToken(value) === 'DEMO'
 }

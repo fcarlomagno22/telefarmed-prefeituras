@@ -14,8 +14,8 @@
     "ordering"
   ],
   "global_settings": {
-    "min_activities_per_day": 1,
-    "max_activities_per_day": 3,
+    "min_activities_per_day": 2,
+    "max_activities_per_day": 4,
     "default_exclude_recent_days": 3,
     "default_exclude_not_helpful_days": 7,
     "boost_helpful_activity_weight": 1.5,
@@ -152,6 +152,24 @@
       "target_tracks": [
         "substance_use_disorders"
       ],
+      "enabled": true
+    },
+    "wellness_maintenance": {
+      "label_internal": "Humor bom — manutenção e fortalecimento",
+      "activity_ids": [
+        "act_journaling_small_wins",
+        "act_journaling_three_facts",
+        "act_journaling_energy_map",
+        "act_behavioral_activation_pleasant_five",
+        "act_behavioral_activation_outdoor_light",
+        "act_behavioral_activation_one_surface",
+        "act_mindfulness_sound_window",
+        "act_grounding_five_senses",
+        "act_self_compassion_friend_voice",
+        "act_journaling_body_neutral"
+      ],
+      "default_intensity": "low",
+      "target_tracks": [],
       "enabled": true
     },
     "universal_low_intensity": {
@@ -700,6 +718,77 @@
       "assign_slot": "now",
       "why_internal": "checkin_anxiety_emotions → grounding",
       "why_user_moment": "Uma pausa curta pode ajudar neste momento de preocupação.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_checkin_mood_well_01",
+      "priority": 238,
+      "enabled": true,
+      "description_internal": "Humor bem/muito bem — manutenção do dia",
+      "when": {
+        "all": [
+          {
+            "today_mood": {
+              "in": [
+                "very-good",
+                "good"
+              ]
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "wellness_maintenance",
+        "count": 1,
+        "exclude_recent_days": 2,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "universal_low_intensity"
+      },
+      "assign_slot": "now",
+      "why_internal": "good_mood_maintenance",
+      "why_user_moment": "Que bom! Vamos fortalecer o que está ajudando você hoje.",
+      "unless": [],
+      "notes_internal": ""
+    },
+    {
+      "id": "select_checkin_mood_neutral_01",
+      "priority": 237,
+      "enabled": true,
+      "description_internal": "Humor neutro — equilíbrio do dia",
+      "when": {
+        "all": [
+          {
+            "today_mood": {
+              "eq": "neutral"
+            }
+          },
+          {
+            "no_active_red_flags": {
+              "eq": true
+            }
+          }
+        ]
+      },
+      "pick": {
+        "from_pool": "universal_low_intensity",
+        "count": 1,
+        "exclude_recent_days": 2,
+        "intensity_in": [
+          "low"
+        ],
+        "fallback_pool": "fallback_safe_low"
+      },
+      "assign_slot": "now",
+      "why_internal": "neutral_mood_maintenance",
+      "why_user_moment": "Um cuidado leve para manter o equilíbrio do dia.",
       "unless": [],
       "notes_internal": ""
     },

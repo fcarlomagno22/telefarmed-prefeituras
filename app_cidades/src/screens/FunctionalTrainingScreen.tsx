@@ -23,6 +23,7 @@ import { MenuDrawer } from '../components/MenuDrawer'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import type { ExerciseTimerConfig } from '../hooks/useExerciseTimer'
 import {
@@ -54,6 +55,7 @@ const TAB_BAR_ESTIMATED_HEIGHT = 78
 export function FunctionalTrainingScreen() {
   const insets = useSafeAreaInsets()
   const { user, navigateTo, goBack, canGoBack, logout, routeParams } = useAuth()
+  const { requireAuth } = useGuestAuth()
   const functionalParams = getFunctionalRouteParams(routeParams)
 
   const [menuVisible, setMenuVisible] = useState(false)
@@ -136,14 +138,16 @@ export function FunctionalTrainingScreen() {
   )
 
   function startCircuitSession() {
-    const exercises = buildQuickWorkoutExercises()
-    setSessionConfig({
-      mode: 'circuit',
-      workSec: 30,
-      restSec: 10,
-      exerciseIds: exercises.map((e) => e.id),
+    requireAuth('vida:functional-training', () => {
+      const exercises = buildQuickWorkoutExercises()
+      setSessionConfig({
+        mode: 'circuit',
+        workSec: 30,
+        restSec: 10,
+        exerciseIds: exercises.map((e) => e.id),
+      })
+      setSessionVisible(true)
     })
-    setSessionVisible(true)
   }
 
   async function handleToggleFavorite(exerciseId: string) {
@@ -285,9 +289,15 @@ export function FunctionalTrainingScreen() {
                   exercise={exercise}
                   isFavorite={favoriteIds.includes(exercise.id)}
                   onPress={() =>
-                    navigateTo('functional-exercise', { exerciseId: exercise.id })
+                    requireAuth('vida:functional-training', () => {
+                      navigateTo('functional-exercise', { exerciseId: exercise.id })
+                    })
                   }
-                  onToggleFavorite={() => void handleToggleFavorite(exercise.id)}
+                  onToggleFavorite={() =>
+                    requireAuth('vida:functional-training', () => {
+                      void handleToggleFavorite(exercise.id)
+                    })
+                  }
                 />
               ))}
             </View>

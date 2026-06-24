@@ -8,7 +8,7 @@ import {
   getFunctionalLottieExtraPadding,
 } from '../../utils/functionalLottieBackground'
 
-type FunctionalLottieVariant = 'thumb' | 'card' | 'hero' | 'session' | 'immersive'
+type FunctionalLottieVariant = 'thumb' | 'card' | 'hero' | 'session'
 
 type FunctionalLottieProps = {
   source: AnimationObject
@@ -26,8 +26,7 @@ const VARIANT_LAYOUT: Record<
   thumb: { padding: 3, aspectRatio: 1 },
   card: { padding: 6, aspectRatio: 1 },
   hero: { padding: 10, aspectRatio: 1 },
-  session: { padding: 8, aspectRatio: 1 },
-  immersive: { padding: 12, aspectRatio: 1 },
+  session: { padding: 14, aspectRatio: 1 },
 }
 
 export function FunctionalLottie({
@@ -50,7 +49,7 @@ export function FunctionalLottie({
       style={[
         styles.base,
         variantStyles[variant],
-        variant !== 'immersive' && { aspectRatio: layout.aspectRatio },
+        { aspectRatio: layout.aspectRatio },
         style,
       ]}
     >
@@ -103,15 +102,7 @@ const variantStyles = StyleSheet.create({
     width: '100%',
   },
   session: {
-    borderRadius: 16,
+    borderRadius: 20,
     width: '100%',
-    height: '100%',
-  },
-  immersive: {
-    borderRadius: 0,
-    borderWidth: 0,
-    width: '100%',
-    height: '100%',
-    alignSelf: 'stretch',
   },
 })

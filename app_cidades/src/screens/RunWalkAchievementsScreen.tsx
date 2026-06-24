@@ -11,6 +11,7 @@ import { RunWalkAchievementsSpotlight } from '../components/runWalk/achievements
 import { RunWalkAchievementsUpcoming } from '../components/runWalk/achievements/RunWalkAchievementsUpcoming'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { MOCK_RUN_WALK_ACHIEVEMENTS } from '../data/mockRunWalkAchievements'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
@@ -26,6 +27,7 @@ const TAB_BAR_ESTIMATED_HEIGHT = 78
 export function RunWalkAchievementsScreen() {
   const insets = useSafeAreaInsets()
   const { user, goBack, navigateTo, logout } = useAuth()
+  const { requireAuth } = useGuestAuth()
   const [menuVisible, setMenuVisible] = useState(false)
 
   const bottomContentPadding = TAB_BAR_ESTIMATED_HEIGHT + Math.max(insets.bottom, 8) + 16
@@ -54,7 +56,9 @@ export function RunWalkAchievementsScreen() {
   )
 
   function handleAchievementPress(achievementId: string) {
-    navigateTo('run-walk-achievement-detail', { achievementId })
+    requireAuth('vida:run-walk', () => {
+      navigateTo('run-walk-achievement-detail', { achievementId })
+    })
   }
 
   function handleTabPress(tab: BottomTabId) {

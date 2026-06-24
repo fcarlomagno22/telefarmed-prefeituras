@@ -1,7 +1,5 @@
 node_modules/
 dist/
 .env
-referencias/sigtap/**/*.txt
-referencias/sigtap/**/versao
-referencias/sigtap/**/config.inf
-referencias/sigtap/**/*.xls
+# Pacotes SIGTAP (DATASUS) — dados locais, não versionar
+referencias/sigtap/

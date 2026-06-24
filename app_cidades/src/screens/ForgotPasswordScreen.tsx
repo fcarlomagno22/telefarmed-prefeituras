@@ -18,7 +18,6 @@ import {
   resolveRecoveryTimelineStep,
 } from '../config/passwordRecovery'
 import { useAuth } from '../contexts/AuthContext'
-import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import {
   mockCompletePasswordRecovery,
   mockRequestPasswordRecovery,
@@ -187,15 +186,6 @@ export function ForgotPasswordScreen() {
       setConfirmPassword('')
     }
   }
-
-  useAndroidBackHandler(() => {
-    if (step === 'emailSent') return true
-
-    if (step === 'success') return false
-
-    handleBack()
-    return step !== 'cpf'
-  })
 
   if (step === 'success') {
     return (

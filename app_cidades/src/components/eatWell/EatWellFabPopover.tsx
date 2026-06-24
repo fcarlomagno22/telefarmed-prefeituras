@@ -6,9 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
   Animated,
   Easing,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -20,7 +18,10 @@ import { getMealSlotConfig, MEAL_SLOT_ORDER } from '../../utils/eatWellMealSlots
 
 const FAB_RIGHT = 18
 const POPOVER_WIDTH = 292
-const CARD_MAX_HEIGHT = 420
+const OPTION_ROW_HEIGHT = 62
+const HEADER_BLOCK_HEIGHT = 68
+const CARD_MAX_HEIGHT =
+  HEADER_BLOCK_HEIGHT + MEAL_SLOT_ORDER.length * OPTION_ROW_HEIGHT + 12
 const BASE_LINE_HEIGHT = 0.5
 const SEPARATOR_LEFT_INSET = 14
 const OPEN_TOTAL_MS = 500
@@ -111,10 +112,9 @@ export function EatWellFabPopover({
     <AppModal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.host}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
+          <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <View style={styles.backdropTint} />
           <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-          {Platform.OS === 'ios' ? (
-            <BlurView intensity={22} tint="dark" style={StyleSheet.absoluteFillObject} />
-          ) : null}
         </Animated.View>
 
         <View
@@ -153,13 +153,7 @@ export function EatWellFabPopover({
                   <View style={styles.rowSeparator} />
                 </View>
 
-                <ScrollView
-                  style={styles.optionsScroll}
-                  contentContainerStyle={styles.optionsList}
-                  showsVerticalScrollIndicator={false}
-                  bounces={false}
-                  nestedScrollEnabled
-                >
+                <View style={styles.optionsList}>
                   {MEAL_SLOT_ORDER.map((slot, index) => {
                     const config = getMealSlotConfig(slot)
                     const isLast = index === MEAL_SLOT_ORDER.length - 1
@@ -197,7 +191,7 @@ export function EatWellFabPopover({
                       </View>
                     )
                   })}
-                </ScrollView>
+                </View>
               </View>
             </LinearGradient>
             </Animated.View>
@@ -223,7 +217,11 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.38)',
+    overflow: 'hidden',
+  },
+  backdropTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.58)',
   },
   anchor: {
     position: 'absolute',
@@ -300,11 +298,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 15,
   },
-  optionsScroll: {
-    maxHeight: 360,
-  },
   optionsList: {
-    paddingBottom: 4,
+    paddingBottom: 6,
   },
   rowSeparator: {
     height: 0.5,

@@ -12,11 +12,6 @@ export type NavigationTarget = {
 
 export type NavigationApp = 'google-maps' | 'waze'
 
-export type DirectionsDestination = {
-  ubtId: string
-  ubtName: string
-}
-
 function buildFullAddress(parts: {
   address: string
   neighborhood: string

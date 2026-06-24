@@ -19,6 +19,7 @@ import { NeonSectionDivider } from '../components/NeonSectionDivider'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { loadActiveLiveShareSession } from '../data/runWalkLiveShareService'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { formatBatteryLevel, useDeviceBattery } from '../hooks/useDeviceBattery'
@@ -169,6 +170,7 @@ function ChecklistRow({
 export function RunWalkPreparationChecklistScreen() {
   const insets = useSafeAreaInsets()
   const { routeParams, navigateTo, goBack, user } = useAuth()
+  const { requireAuth } = useGuestAuth()
   const params = getRunWalkRouteParams(routeParams)
 
   const [liveShareConfigured, setLiveShareConfigured] = useState(false)
@@ -254,13 +256,15 @@ export function RunWalkPreparationChecklistScreen() {
   })
 
   function handleProceed() {
-    if (!canStart) return
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    navigateTo('run-walk-countdown', {
-      modality: params.modality,
-      activityName: params.activityName,
-      intensity: params.intensity,
-      durationMinutes: params.durationMinutes,
+    requireAuth('vida:run-walk', () => {
+      if (!canStart) return
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      navigateTo('run-walk-countdown', {
+        modality: params.modality,
+        activityName: params.activityName,
+        intensity: params.intensity,
+        durationMinutes: params.durationMinutes,
+      })
     })
   }
 

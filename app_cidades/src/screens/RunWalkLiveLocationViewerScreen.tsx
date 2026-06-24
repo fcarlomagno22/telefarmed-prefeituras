@@ -86,6 +86,13 @@ export function RunWalkLiveLocationViewerScreen() {
         )}
       </View>
 
+      <LinearGradient
+        colors={['rgba(10, 10, 12, 0.88)', 'transparent', 'rgba(10, 10, 12, 0.92)']}
+        locations={[0, 0.42, 1]}
+        style={StyleSheet.absoluteFillObject}
+        pointerEvents="none"
+      />
+
       <View style={[styles.topBar, { paddingTop: Math.max(insets.top, 12) + 4 }]}>
         <Pressable
           onPress={handleClose}

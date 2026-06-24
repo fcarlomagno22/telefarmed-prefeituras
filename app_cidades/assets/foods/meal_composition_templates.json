@@ -1,0 +1,626 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "file": "meal_composition_templates.json",
+  "engine_mode": "deterministic",
+  "runtime_ai_generation": false,
+  "description": "Templates determinísticos de composição por slot de refeição e objetivo nutricional. Cada template define papéis alimentares esperados, quantidade de itens, participação calórica relativa dentro do slot e limites de itens.",
+  "clinical_validation": {
+    "status": "requires_nutritionist_review",
+    "note": "Templates iniciais para geração algorítmica. Devem ser revisados por nutricionista antes de uso assistencial."
+  },
+  "semantics": {
+    "count": "Quantidade de itens daquele papel no slot.",
+    "calorie_share": "Fração aproximada das calorias do slot dedicada ao papel. A soma dos papéis principais deve ficar próxima de 1.0.",
+    "optional": "Quando true, o papel pode ser removido pelo motor se houver restrição, baixa meta calórica, ausência no catálogo ou conflito com preferência/intolerância.",
+    "min_items": "Mínimo de itens distintos no slot.",
+    "max_items": "Máximo de itens distintos no slot."
+  },
+  "role_catalog": {
+    "beverage_unsweetened": "Bebida sem açúcar ou sem calorias relevantes, como água, café sem açúcar ou chá sem açúcar.",
+    "fruit": "Fruta in natura ou porção equivalente.",
+    "low_glycemic_fruit": "Fruta com melhor encaixe para controle glicêmico, combinada preferencialmente com fibra/proteína.",
+    "protein": "Fonte proteica geral.",
+    "lean_protein": "Fonte proteica magra.",
+    "plant_protein": "Fonte proteica vegetal.",
+    "dairy_or_alternative": "Leite, iogurte, queijo ou alternativa vegetal adequada.",
+    "lactose_free_dairy_or_alternative": "Lácteo sem lactose ou alternativa vegetal fortificada.",
+    "complex_carbohydrate": "Carboidrato complexo, cereal, pão, tubérculo ou preparação equivalente.",
+    "whole_grain": "Cereal integral ou preparação com grão integral.",
+    "low_glycemic_carbohydrate": "Carboidrato de menor carga glicêmica ou porção controlada.",
+    "legume": "Feijão, lentilha, grão-de-bico, ervilha ou similar.",
+    "vegetable": "Legumes e verduras em geral.",
+    "non_starchy_vegetable": "Verduras e legumes com baixa densidade calórica.",
+    "cooked_vegetable": "Legume ou verdura cozida/refogada com pouco óleo.",
+    "salad": "Salada crua ou mista.",
+    "healthy_fat": "Fonte de gordura boa, como azeite, abacate, castanhas ou sementes.",
+    "fiber_booster": "Item rico em fibras, como chia, linhaça, aveia, farelo ou leguminosas.",
+    "satiety_booster": "Item para aumentar saciedade, geralmente rico em proteína, fibra ou volume.",
+    "energy_booster": "Item para elevar calorias com boa densidade nutricional.",
+    "training_carbohydrate": "Carboidrato útil para pré/pós-treino ou maior demanda energética.",
+    "low_sodium_flavor": "Temperos naturais e componentes de sabor com baixo sódio.",
+    "dessert_controlled": "Sobremesa controlada ou doce de encaixe eventual.",
+    "basket_base": "Base da cesta alimentar do dia ou semana.",
+    "basket_protein": "Proteínas previstas para compor a cesta.",
+    "basket_produce": "Hortifruti previsto para compor a cesta.",
+    "basket_snack": "Itens de lanche previstos para compor a cesta.",
+    "basket_restriction_safe": "Itens da cesta compatíveis com restrições declaradas.",
+    "hydration_item": "Água, água saborizada sem açúcar, chá ou item de suporte à hidratação."
+  },
+  "slots": {
+    "breakfast": {
+      "label": "Café da manhã",
+      "templates": {
+        "weight_loss": {
+          "min_items": 3,
+          "max_items": 5,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.32, "optional": false },
+            { "role": "fruit", "count": 1, "calorie_share": 0.22, "optional": false },
+            { "role": "whole_grain", "count": 1, "calorie_share": 0.26, "optional": false },
+            { "role": "fiber_booster", "count": 1, "calorie_share": 0.1, "optional": true },
+            { "role": "beverage_unsweetened", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "maintain_weight": {
+          "min_items": 3,
+          "max_items": 5,
+          "required_roles": [
+            { "role": "protein", "count": 1, "calorie_share": 0.25, "optional": false },
+            { "role": "fruit", "count": 1, "calorie_share": 0.2, "optional": false },
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.35, "optional": false },
+            { "role": "dairy_or_alternative", "count": 1, "calorie_share": 0.15, "optional": true },
+            { "role": "beverage_unsweetened", "count": 1, "calorie_share": 0.05, "optional": true }
+          ]
+        },
+        "gain_weight": {
+          "min_items": 4,
+          "max_items": 6,
+          "required_roles": [
+            { "role": "protein", "count": 1, "calorie_share": 0.22, "optional": false },
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.38, "optional": false },
+            { "role": "fruit", "count": 1, "calorie_share": 0.16, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.14, "optional": false },
+            { "role": "dairy_or_alternative", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "hypertrophy": {
+          "min_items": 4,
+          "max_items": 6,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.3, "optional": false },
+            { "role": "training_carbohydrate", "count": 1, "calorie_share": 0.35, "optional": false },
+            { "role": "fruit", "count": 1, "calorie_share": 0.16, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.12, "optional": true },
+            { "role": "dairy_or_alternative", "count": 1, "calorie_share": 0.07, "optional": true }
+          ]
+        },
+        "metabolic_health": {
+          "min_items": 3,
+          "max_items": 5,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.28, "optional": false },
+            { "role": "low_glycemic_fruit", "count": 1, "calorie_share": 0.2, "optional": false },
+            { "role": "whole_grain", "count": 1, "calorie_share": 0.27, "optional": false },
+            { "role": "fiber_booster", "count": 1, "calorie_share": 0.15, "optional": true },
+            { "role": "beverage_unsweetened", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "diabetes": {
+          "min_items": 3,
+          "max_items": 5,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.32, "optional": false },
+            { "role": "low_glycemic_carbohydrate", "count": 1, "calorie_share": 0.25, "optional": false },
+            { "role": "low_glycemic_fruit", "count": 1, "calorie_share": 0.18, "optional": true },
+            { "role": "fiber_booster", "count": 1, "calorie_share": 0.15, "optional": false },
+            { "role": "beverage_unsweetened", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "hypertension": {
+          "min_items": 3,
+          "max_items": 5,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.25, "optional": false },
+            { "role": "fruit", "count": 1, "calorie_share": 0.22, "optional": false },
+            { "role": "whole_grain", "count": 1, "calorie_share": 0.28, "optional": false },
+            { "role": "low_sodium_flavor", "count": 1, "calorie_share": 0.05, "optional": true },
+            { "role": "dairy_or_alternative", "count": 1, "calorie_share": 0.2, "optional": true }
+          ]
+        },
+        "other": {
+          "min_items": 3,
+          "max_items": 5,
+          "required_roles": [
+            { "role": "protein", "count": 1, "calorie_share": 0.25, "optional": false },
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.35, "optional": false },
+            { "role": "fruit", "count": 1, "calorie_share": 0.2, "optional": true },
+            { "role": "beverage_unsweetened", "count": 1, "calorie_share": 0.1, "optional": true },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        }
+      }
+    },
+    "morning_snack": {
+      "label": "Lanche da manhã",
+      "templates": {
+        "weight_loss": {
+          "min_items": 1,
+          "max_items": 3,
+          "required_roles": [
+            { "role": "fruit", "count": 1, "calorie_share": 0.45, "optional": false },
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.35, "optional": true },
+            { "role": "fiber_booster", "count": 1, "calorie_share": 0.2, "optional": true }
+          ]
+        },
+        "maintain_weight": {
+          "min_items": 1,
+          "max_items": 3,
+          "required_roles": [
+            { "role": "fruit", "count": 1, "calorie_share": 0.45, "optional": false },
+            { "role": "dairy_or_alternative", "count": 1, "calorie_share": 0.35, "optional": true },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.2, "optional": true }
+          ]
+        },
+        "gain_weight": {
+          "min_items": 2,
+          "max_items": 4,
+          "required_roles": [
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.4, "optional": false },
+            { "role": "protein", "count": 1, "calorie_share": 0.3, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.2, "optional": true },
+            { "role": "fruit", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "hypertrophy": {
+          "min_items": 2,
+          "max_items": 4,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.4, "optional": false },
+            { "role": "training_carbohydrate", "count": 1, "calorie_share": 0.4, "optional": false },
+            { "role": "fruit", "count": 1, "calorie_share": 0.2, "optional": true }
+          ]
+        },
+        "metabolic_health": {
+          "min_items": 1,
+          "max_items": 3,
+          "required_roles": [
+            { "role": "low_glycemic_fruit", "count": 1, "calorie_share": 0.4, "optional": false },
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.35, "optional": true },
+            { "role": "fiber_booster", "count": 1, "calorie_share": 0.25, "optional": true }
+          ]
+        },
+        "diabetes": {
+          "min_items": 1,
+          "max_items": 3,
+          "required_roles": [
+            { "role": "low_glycemic_fruit", "count": 1, "calorie_share": 0.35, "optional": false },
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.4, "optional": true },
+            { "role": "fiber_booster", "count": 1, "calorie_share": 0.25, "optional": true }
+          ]
+        },
+        "hypertension": {
+          "min_items": 1,
+          "max_items": 3,
+          "required_roles": [
+            { "role": "fruit", "count": 1, "calorie_share": 0.45, "optional": false },
+            { "role": "lactose_free_dairy_or_alternative", "count": 1, "calorie_share": 0.35, "optional": true },
+            { "role": "hydration_item", "count": 1, "calorie_share": 0.2, "optional": true }
+          ]
+        },
+        "other": {
+          "min_items": 1,
+          "max_items": 3,
+          "required_roles": [
+            { "role": "fruit", "count": 1, "calorie_share": 0.45, "optional": false },
+            { "role": "protein", "count": 1, "calorie_share": 0.35, "optional": true },
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.2, "optional": true }
+          ]
+        }
+      }
+    },
+    "lunch": {
+      "label": "Almoço",
+      "templates": {
+        "weight_loss": {
+          "min_items": 4,
+          "max_items": 7,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.3, "optional": false },
+            { "role": "non_starchy_vegetable", "count": 2, "calorie_share": 0.2, "optional": false },
+            { "role": "legume", "count": 1, "calorie_share": 0.18, "optional": false },
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.22, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "maintain_weight": {
+          "min_items": 4,
+          "max_items": 7,
+          "required_roles": [
+            { "role": "protein", "count": 1, "calorie_share": 0.25, "optional": false },
+            { "role": "salad", "count": 1, "calorie_share": 0.12, "optional": false },
+            { "role": "cooked_vegetable", "count": 1, "calorie_share": 0.13, "optional": true },
+            { "role": "legume", "count": 1, "calorie_share": 0.2, "optional": false },
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.25, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.05, "optional": true }
+          ]
+        },
+        "gain_weight": {
+          "min_items": 5,
+          "max_items": 8,
+          "required_roles": [
+            { "role": "protein", "count": 1, "calorie_share": 0.22, "optional": false },
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.32, "optional": false },
+            { "role": "legume", "count": 1, "calorie_share": 0.2, "optional": false },
+            { "role": "vegetable", "count": 2, "calorie_share": 0.12, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.14, "optional": false }
+          ]
+        },
+        "hypertrophy": {
+          "min_items": 5,
+          "max_items": 8,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.32, "optional": false },
+            { "role": "training_carbohydrate", "count": 1, "calorie_share": 0.3, "optional": false },
+            { "role": "legume", "count": 1, "calorie_share": 0.16, "optional": false },
+            { "role": "vegetable", "count": 2, "calorie_share": 0.14, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.08, "optional": true }
+          ]
+        },
+        "metabolic_health": {
+          "min_items": 5,
+          "max_items": 7,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.28, "optional": false },
+            { "role": "non_starchy_vegetable", "count": 2, "calorie_share": 0.22, "optional": false },
+            { "role": "legume", "count": 1, "calorie_share": 0.2, "optional": false },
+            { "role": "whole_grain", "count": 1, "calorie_share": 0.2, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "diabetes": {
+          "min_items": 5,
+          "max_items": 7,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.3, "optional": false },
+            { "role": "non_starchy_vegetable", "count": 2, "calorie_share": 0.22, "optional": false },
+            { "role": "legume", "count": 1, "calorie_share": 0.2, "optional": false },
+            { "role": "low_glycemic_carbohydrate", "count": 1, "calorie_share": 0.18, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "hypertension": {
+          "min_items": 5,
+          "max_items": 7,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.25, "optional": false },
+            { "role": "vegetable", "count": 2, "calorie_share": 0.22, "optional": false },
+            { "role": "legume", "count": 1, "calorie_share": 0.2, "optional": false },
+            { "role": "whole_grain", "count": 1, "calorie_share": 0.23, "optional": false },
+            { "role": "low_sodium_flavor", "count": 1, "calorie_share": 0.05, "optional": true },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.05, "optional": true }
+          ]
+        },
+        "other": {
+          "min_items": 4,
+          "max_items": 7,
+          "required_roles": [
+            { "role": "protein", "count": 1, "calorie_share": 0.25, "optional": false },
+            { "role": "vegetable", "count": 2, "calorie_share": 0.2, "optional": false },
+            { "role": "legume", "count": 1, "calorie_share": 0.2, "optional": true },
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.25, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        }
+      }
+    },
+    "afternoon_snack": {
+      "label": "Lanche da tarde",
+      "templates": {
+        "weight_loss": {
+          "min_items": 2,
+          "max_items": 4,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.4, "optional": false },
+            { "role": "fruit", "count": 1, "calorie_share": 0.3, "optional": true },
+            { "role": "fiber_booster", "count": 1, "calorie_share": 0.2, "optional": true },
+            { "role": "beverage_unsweetened", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "maintain_weight": {
+          "min_items": 2,
+          "max_items": 4,
+          "required_roles": [
+            { "role": "protein", "count": 1, "calorie_share": 0.3, "optional": false },
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.35, "optional": false },
+            { "role": "fruit", "count": 1, "calorie_share": 0.25, "optional": true },
+            { "role": "beverage_unsweetened", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "gain_weight": {
+          "min_items": 3,
+          "max_items": 5,
+          "required_roles": [
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.38, "optional": false },
+            { "role": "protein", "count": 1, "calorie_share": 0.28, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.22, "optional": false },
+            { "role": "fruit", "count": 1, "calorie_share": 0.12, "optional": true }
+          ]
+        },
+        "hypertrophy": {
+          "min_items": 3,
+          "max_items": 5,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.38, "optional": false },
+            { "role": "training_carbohydrate", "count": 1, "calorie_share": 0.38, "optional": false },
+            { "role": "fruit", "count": 1, "calorie_share": 0.14, "optional": true },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "metabolic_health": {
+          "min_items": 2,
+          "max_items": 4,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.35, "optional": false },
+            { "role": "low_glycemic_fruit", "count": 1, "calorie_share": 0.3, "optional": true },
+            { "role": "fiber_booster", "count": 1, "calorie_share": 0.25, "optional": true },
+            { "role": "beverage_unsweetened", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "diabetes": {
+          "min_items": 2,
+          "max_items": 4,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.38, "optional": false },
+            { "role": "low_glycemic_fruit", "count": 1, "calorie_share": 0.27, "optional": true },
+            { "role": "fiber_booster", "count": 1, "calorie_share": 0.25, "optional": true },
+            { "role": "beverage_unsweetened", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "hypertension": {
+          "min_items": 2,
+          "max_items": 4,
+          "required_roles": [
+            { "role": "fruit", "count": 1, "calorie_share": 0.35, "optional": false },
+            { "role": "lactose_free_dairy_or_alternative", "count": 1, "calorie_share": 0.35, "optional": true },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.2, "optional": true },
+            { "role": "hydration_item", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "other": {
+          "min_items": 2,
+          "max_items": 4,
+          "required_roles": [
+            { "role": "protein", "count": 1, "calorie_share": 0.3, "optional": false },
+            { "role": "fruit", "count": 1, "calorie_share": 0.3, "optional": true },
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.3, "optional": true },
+            { "role": "beverage_unsweetened", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        }
+      }
+    },
+    "dinner": {
+      "label": "Jantar",
+      "templates": {
+        "weight_loss": {
+          "min_items": 3,
+          "max_items": 6,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.35, "optional": false },
+            { "role": "non_starchy_vegetable", "count": 2, "calorie_share": 0.3, "optional": false },
+            { "role": "low_glycemic_carbohydrate", "count": 1, "calorie_share": 0.22, "optional": true },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.13, "optional": true }
+          ]
+        },
+        "maintain_weight": {
+          "min_items": 3,
+          "max_items": 6,
+          "required_roles": [
+            { "role": "protein", "count": 1, "calorie_share": 0.3, "optional": false },
+            { "role": "vegetable", "count": 2, "calorie_share": 0.25, "optional": false },
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.3, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.15, "optional": true }
+          ]
+        },
+        "gain_weight": {
+          "min_items": 4,
+          "max_items": 7,
+          "required_roles": [
+            { "role": "protein", "count": 1, "calorie_share": 0.26, "optional": false },
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.35, "optional": false },
+            { "role": "vegetable", "count": 2, "calorie_share": 0.16, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.15, "optional": false },
+            { "role": "legume", "count": 1, "calorie_share": 0.08, "optional": true }
+          ]
+        },
+        "hypertrophy": {
+          "min_items": 4,
+          "max_items": 7,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.35, "optional": false },
+            { "role": "training_carbohydrate", "count": 1, "calorie_share": 0.3, "optional": false },
+            { "role": "vegetable", "count": 2, "calorie_share": 0.2, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.1, "optional": true },
+            { "role": "legume", "count": 1, "calorie_share": 0.05, "optional": true }
+          ]
+        },
+        "metabolic_health": {
+          "min_items": 4,
+          "max_items": 6,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.32, "optional": false },
+            { "role": "non_starchy_vegetable", "count": 2, "calorie_share": 0.28, "optional": false },
+            { "role": "legume", "count": 1, "calorie_share": 0.18, "optional": true },
+            { "role": "low_glycemic_carbohydrate", "count": 1, "calorie_share": 0.12, "optional": true },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "diabetes": {
+          "min_items": 4,
+          "max_items": 6,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.35, "optional": false },
+            { "role": "non_starchy_vegetable", "count": 2, "calorie_share": 0.3, "optional": false },
+            { "role": "legume", "count": 1, "calorie_share": 0.18, "optional": true },
+            { "role": "low_glycemic_carbohydrate", "count": 1, "calorie_share": 0.1, "optional": true },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.07, "optional": true }
+          ]
+        },
+        "hypertension": {
+          "min_items": 4,
+          "max_items": 6,
+          "required_roles": [
+            { "role": "lean_protein", "count": 1, "calorie_share": 0.3, "optional": false },
+            { "role": "vegetable", "count": 2, "calorie_share": 0.3, "optional": false },
+            { "role": "whole_grain", "count": 1, "calorie_share": 0.22, "optional": true },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.1, "optional": true },
+            { "role": "low_sodium_flavor", "count": 1, "calorie_share": 0.08, "optional": true }
+          ]
+        },
+        "other": {
+          "min_items": 3,
+          "max_items": 6,
+          "required_roles": [
+            { "role": "protein", "count": 1, "calorie_share": 0.3, "optional": false },
+            { "role": "vegetable", "count": 2, "calorie_share": 0.25, "optional": false },
+            { "role": "complex_carbohydrate", "count": 1, "calorie_share": 0.3, "optional": true },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.15, "optional": true }
+          ]
+        }
+      }
+    },
+    "basket": {
+      "label": "Cesta do dia",
+      "templates": {
+        "weight_loss": {
+          "min_items": 5,
+          "max_items": 10,
+          "required_roles": [
+            { "role": "basket_protein", "count": 2, "calorie_share": 0.3, "optional": false },
+            { "role": "basket_produce", "count": 3, "calorie_share": 0.25, "optional": false },
+            { "role": "basket_base", "count": 2, "calorie_share": 0.25, "optional": false },
+            { "role": "basket_snack", "count": 1, "calorie_share": 0.1, "optional": true },
+            { "role": "hydration_item", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "maintain_weight": {
+          "min_items": 5,
+          "max_items": 10,
+          "required_roles": [
+            { "role": "basket_protein", "count": 2, "calorie_share": 0.25, "optional": false },
+            { "role": "basket_produce", "count": 3, "calorie_share": 0.22, "optional": false },
+            { "role": "basket_base", "count": 2, "calorie_share": 0.33, "optional": false },
+            { "role": "basket_snack", "count": 2, "calorie_share": 0.15, "optional": true },
+            { "role": "hydration_item", "count": 1, "calorie_share": 0.05, "optional": true }
+          ]
+        },
+        "gain_weight": {
+          "min_items": 6,
+          "max_items": 12,
+          "required_roles": [
+            { "role": "basket_protein", "count": 2, "calorie_share": 0.23, "optional": false },
+            { "role": "basket_base", "count": 3, "calorie_share": 0.38, "optional": false },
+            { "role": "basket_produce", "count": 3, "calorie_share": 0.16, "optional": false },
+            { "role": "healthy_fat", "count": 2, "calorie_share": 0.15, "optional": false },
+            { "role": "basket_snack", "count": 2, "calorie_share": 0.08, "optional": true }
+          ]
+        },
+        "hypertrophy": {
+          "min_items": 6,
+          "max_items": 12,
+          "required_roles": [
+            { "role": "basket_protein", "count": 3, "calorie_share": 0.32, "optional": false },
+            { "role": "basket_base", "count": 3, "calorie_share": 0.34, "optional": false },
+            { "role": "basket_produce", "count": 3, "calorie_share": 0.16, "optional": false },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.1, "optional": true },
+            { "role": "basket_snack", "count": 2, "calorie_share": 0.08, "optional": true }
+          ]
+        },
+        "metabolic_health": {
+          "min_items": 6,
+          "max_items": 11,
+          "required_roles": [
+            { "role": "basket_protein", "count": 2, "calorie_share": 0.27, "optional": false },
+            { "role": "basket_produce", "count": 4, "calorie_share": 0.28, "optional": false },
+            { "role": "basket_base", "count": 2, "calorie_share": 0.25, "optional": false },
+            { "role": "fiber_booster", "count": 1, "calorie_share": 0.1, "optional": true },
+            { "role": "healthy_fat", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        },
+        "diabetes": {
+          "min_items": 6,
+          "max_items": 11,
+          "required_roles": [
+            { "role": "basket_protein", "count": 2, "calorie_share": 0.3, "optional": false },
+            { "role": "basket_produce", "count": 4, "calorie_share": 0.28, "optional": false },
+            { "role": "low_glycemic_carbohydrate", "count": 2, "calorie_share": 0.22, "optional": false },
+            { "role": "fiber_booster", "count": 1, "calorie_share": 0.12, "optional": false },
+            { "role": "basket_restriction_safe", "count": 1, "calorie_share": 0.08, "optional": true }
+          ]
+        },
+        "hypertension": {
+          "min_items": 6,
+          "max_items": 11,
+          "required_roles": [
+            { "role": "basket_protein", "count": 2, "calorie_share": 0.25, "optional": false },
+            { "role": "basket_produce", "count": 4, "calorie_share": 0.3, "optional": false },
+            { "role": "whole_grain", "count": 2, "calorie_share": 0.25, "optional": false },
+            { "role": "low_sodium_flavor", "count": 1, "calorie_share": 0.08, "optional": true },
+            { "role": "hydration_item", "count": 1, "calorie_share": 0.12, "optional": true }
+          ]
+        },
+        "other": {
+          "min_items": 5,
+          "max_items": 10,
+          "required_roles": [
+            { "role": "basket_protein", "count": 2, "calorie_share": 0.25, "optional": false },
+            { "role": "basket_produce", "count": 3, "calorie_share": 0.25, "optional": false },
+            { "role": "basket_base", "count": 2, "calorie_share": 0.3, "optional": false },
+            { "role": "basket_snack", "count": 1, "calorie_share": 0.1, "optional": true },
+            { "role": "basket_restriction_safe", "count": 1, "calorie_share": 0.1, "optional": true }
+          ]
+        }
+      }
+    }
+  },
+  "validation_rules": {
+    "required_slots": [
+      "breakfast",
+      "morning_snack",
+      "lunch",
+      "afternoon_snack",
+      "dinner",
+      "basket"
+    ],
+    "required_objectives": [
+      "weight_loss",
+      "maintain_weight",
+      "gain_weight",
+      "hypertrophy",
+      "metabolic_health",
+      "diabetes",
+      "hypertension",
+      "other"
+    ],
+    "calorie_share_sum_tolerance": {
+      "min": 0.95,
+      "max": 1.05
+    },
+    "count_must_be_integer": true,
+    "min_items_must_be_lte_max_items": true
+  },
+  "output_schema": {
+    "slot": "string",
+    "objective": "string",
+    "min_items": "integer",
+    "max_items": "integer",
+    "required_roles": [
+      {
+        "role": "string",
+        "count": "integer",
+        "calorie_share": "number",
+        "optional": "boolean"
+      }
+    ]
+  }
+}

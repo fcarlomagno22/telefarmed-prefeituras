@@ -9,7 +9,6 @@ import {
 import { RegisterStepPassword } from '../components/register/RegisterStepPassword'
 import { RegisterStepProfile } from '../components/register/RegisterStepProfile'
 import { useAuth } from '../contexts/AuthContext'
-import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { RegistrationAddress, RegistrationData, RegistrationProfile } from '../types/auth'
 
 const emptyAddress = (): RegistrationAddress => ({
@@ -39,14 +38,6 @@ export function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [selfieUri, setSelfieUri] = useState<string | null>(null)
   const [legalAcceptances, setLegalAcceptances] = useState(emptyLegalAcceptances)
-
-  useAndroidBackHandler(() => {
-    if (step > 1) {
-      setStep(step - 1)
-      return true
-    }
-    return false
-  })
 
   async function handleFinishRegistration() {
     setIsSubmitting(true)

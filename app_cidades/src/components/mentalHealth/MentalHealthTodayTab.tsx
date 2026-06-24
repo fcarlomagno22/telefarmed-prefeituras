@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import {
   type MentalHealthCheckInCardData,
+  isCrisisCheckInMood,
   type MentalHealthMoodLevelId,
   type MentalHealthTodayState,
 } from '../../types/mentalHealth'
@@ -12,6 +13,7 @@ import {
   buildCheckInSupportMessage,
 } from '../../utils/mentalHealthCheckIn'
 import type { MentalHealthJourneyState } from '../../utils/mentalHealthJourney'
+import { MentalHealthJourneyTimeline } from './MentalHealthJourneyTimeline'
 import { MentalHealthMoodIcon } from './MentalHealthMoodIcon'
 import { MentalHealthMoodPicker } from './MentalHealthMoodPicker'
 
@@ -19,40 +21,78 @@ type MentalHealthTodayTabProps = {
   bottomPadding: number
   todayState: MentalHealthTodayState
   journey: MentalHealthJourneyState
+  crisisBlocksPlan: boolean
+  microPlanLoading?: boolean
+  microPlanError?: string | null
+  onStartInitialAnamnesis: () => void
   onStartExtendedAnamnesis: () => void
   onQuickMoodSelect: (mood: MentalHealthMoodLevelId) => void
-  onAnswerQuickQuestions: () => void
   onViewRecentRecords: () => void
+  onViewTodayRecord: () => void
+  onExplainMessage: () => void
+  onOpenHowItWorks: () => void
   onCreateMicroPlan: () => void
   onOpenTodayPlan: () => void
-  onTalkPress: () => void
+  onOpenCrisisSupport: () => void
+  onFeelingBetter?: () => void
 }
 
 function PrimaryAction({
   label,
   onPress,
   subtle = false,
+  crisis = false,
+  loading = false,
+  disabled = false,
+  accessibilityLabel,
 }: {
   label: string
   onPress: () => void
   subtle?: boolean
+  crisis?: boolean
+  loading?: boolean
+  disabled?: boolean
+  accessibilityLabel?: string
 }) {
   return (
     <Pressable
       onPress={() => {
+        if (loading || disabled) return
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
         onPress()
       }}
+      disabled={loading || disabled}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ disabled: loading || disabled, busy: loading }}
       style={({ pressed }) => [
         styles.primaryAction,
         subtle && styles.primaryActionSubtle,
-        pressed && styles.pressed,
+        crisis && styles.primaryActionCrisis,
+        (pressed && !loading && !disabled) && styles.pressed,
+        (loading || disabled) && styles.primaryActionDisabled,
       ]}
     >
-      <Text style={[styles.primaryActionText, subtle && styles.primaryActionTextSubtle]}>
-        {label}
-      </Text>
-      {!subtle ? <Ionicons name="arrow-forward" size={18} color="#1a1208" /> : null}
+      {loading ? (
+        <ActivityIndicator color={subtle ? colors.text : '#1a1208'} size="small" />
+      ) : (
+        <>
+          <Text
+            style={[
+              styles.primaryActionText,
+              subtle && styles.primaryActionTextSubtle,
+              crisis && styles.primaryActionTextCrisis,
+            ]}
+          >
+            {label}
+          </Text>
+          {!subtle && !crisis ? (
+            <Ionicons name="arrow-forward" size={18} color="#1a1208" />
+          ) : crisis ? (
+            <Ionicons name="arrow-forward" size={18} color="#fda4af" />
+          ) : null}
+        </>
+      )}
     </Pressable>
   )
 }
@@ -64,6 +104,8 @@ function GhostLink({ label, onPress }: { label: string; onPress: () => void }) {
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
         onPress()
       }}
+      accessibilityRole="button"
+      accessibilityLabel={label}
       style={({ pressed }) => [styles.ghostLink, pressed && styles.pressed]}
     >
       <Text style={styles.ghostLinkText}>{label}</Text>
@@ -105,6 +147,36 @@ function TellUsMorePhase({
   )
 }
 
+function KnowYouPhase({
+  journey,
+  onStartInitialAnamnesis,
+  onOpenHowItWorks,
+}: {
+  journey: MentalHealthJourneyState
+  onStartInitialAnamnesis: () => void
+  onOpenHowItWorks: () => void
+}) {
+  return (
+    <View style={styles.phaseBlock}>
+      <Text style={styles.eyebrow}>Conhecer você</Text>
+      <Text style={styles.heroTitle}>Antes do check-in{'\n'}de hoje</Text>
+      <Text style={styles.heroBody}>
+        Precisamos de algumas respostas iniciais para personalizar seu cuidado com segurança.
+        São 11 perguntas rápidas — cerca de 3 minutos.
+      </Text>
+
+      {journey.initialAnamnesisPercent > 0 ? (
+        <Text style={styles.progressMeta}>
+          {journey.initialAnamnesisPercent}% das 11 perguntas iniciais concluídas
+        </Text>
+      ) : null}
+
+      <PrimaryAction label="Responder as 11 perguntas" onPress={onStartInitialAnamnesis} />
+      <GhostLink label="Como funciona" onPress={onOpenHowItWorks} />
+    </View>
+  )
+}
+
 function CheckInPhase({
   onQuickMoodSelect,
 }: {
@@ -126,16 +198,77 @@ function CheckInPhase({
   )
 }
 
+function FeelingBetterLink({ onPress }: { onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={() => {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+        onPress()
+      }}
+      accessibilityRole="button"
+      accessibilityLabel="Estou melhor — retomar cuidados"
+      style={({ pressed }) => [styles.feelingBetterLink, pressed && styles.pressed]}
+    >
+      <Text style={styles.feelingBetterLinkText}>Estou melhor</Text>
+    </Pressable>
+  )
+}
+
+function CrisisPhase({
+  onOpenCrisisSupport,
+  onFeelingBetter,
+}: {
+  onOpenCrisisSupport: () => void
+  onFeelingBetter?: () => void
+}) {
+  return (
+    <View style={styles.phaseBlock}>
+      <Text style={styles.crisisEyebrow}>Apoio agora</Text>
+      <Text style={styles.heroTitle}>Você não precisa{'\n'}passar por isso sozinho(a).</Text>
+      <Text style={styles.heroBody}>
+        O que você compartilhou indica que falar com alguém agora pode fazer diferença. Separamos
+        opções de apoio — sem julgamento e sem pressa.
+      </Text>
+      <PrimaryAction
+        label="Ver opções de apoio"
+        onPress={onOpenCrisisSupport}
+        crisis
+        accessibilityLabel="Ver opções de apoio em situação de crise"
+      />
+      <Text style={styles.crisisNote}>
+        As sugestões automáticas de atividades estão pausadas enquanto você busca apoio.
+      </Text>
+      {onFeelingBetter ? <FeelingBetterLink onPress={onFeelingBetter} /> : null}
+    </View>
+  )
+}
+
 function ReflectPhase({
   checkInCard,
+  crisisBlocksPlan,
+  hasTodayPlan,
+  microPlanLoading,
+  microPlanError,
   onCreateMicroPlan,
+  onOpenTodayPlan,
   onViewRecentRecords,
-  onAnswerQuickQuestions,
+  onViewTodayRecord,
+  onExplainMessage,
+  onOpenCrisisSupport,
+  onFeelingBetter,
 }: {
   checkInCard: MentalHealthCheckInCardData
+  crisisBlocksPlan: boolean
+  hasTodayPlan: boolean
+  microPlanLoading?: boolean
+  microPlanError?: string | null
   onCreateMicroPlan: () => void
+  onOpenTodayPlan: () => void
   onViewRecentRecords: () => void
-  onAnswerQuickQuestions: () => void
+  onViewTodayRecord: () => void
+  onExplainMessage: () => void
+  onOpenCrisisSupport: () => void
+  onFeelingBetter?: () => void
 }) {
   const entry = checkInCard.latestEntry
   if (!entry) return null
@@ -143,26 +276,76 @@ function ReflectPhase({
   const summary = buildCheckInSummarySentence(entry)
   const support = buildCheckInSupportMessage(entry)
   const isChange = checkInCard.state === 'relevant-change'
+  const showCrisisSupport = crisisBlocksPlan || isCrisisCheckInMood(entry.mood)
 
   return (
     <View style={styles.phaseBlock}>
       <Text style={styles.eyebrow}>{isChange ? 'Algo mudou' : 'Registrado hoje'}</Text>
 
-      <View style={styles.moodHero}>
-        <MentalHealthMoodIcon mood={entry.mood} size="hero" />
-      </View>
+      <Pressable
+        onPress={() => {
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+          onViewTodayRecord()
+        }}
+        style={({ pressed }) => [styles.recordTapArea, pressed && styles.pressed]}
+        accessibilityRole="button"
+        accessibilityLabel="Ver registro de hoje"
+      >
+        <View style={styles.moodHero}>
+          <MentalHealthMoodIcon mood={entry.mood} size="hero" />
+        </View>
 
-      <Text style={styles.quoteText}>{summary}</Text>
-      <Text style={styles.supportText}>{support}</Text>
+        <Text style={styles.quoteText}>{summary}</Text>
+        <Text style={styles.supportText}>{support}</Text>
+        <Text style={styles.recordTapHint}>Toque para ver o registro completo</Text>
+      </Pressable>
 
       {isChange && checkInCard.relevantChangeMessage ? (
         <Text style={styles.changeNote}>{checkInCard.relevantChangeMessage}</Text>
       ) : null}
 
-      <PrimaryAction label="Montar cuidados para hoje" onPress={onCreateMicroPlan} />
+      <PrimaryAction
+        label={
+          showCrisisSupport
+            ? 'Ver opções de apoio'
+            : hasTodayPlan
+              ? 'Ver seus cuidados de hoje'
+              : microPlanLoading
+                ? 'Montando seus cuidados…'
+                : 'Montar cuidados para hoje'
+        }
+        crisis={showCrisisSupport}
+        loading={!showCrisisSupport && !hasTodayPlan && microPlanLoading}
+        disabled={!showCrisisSupport && !hasTodayPlan && microPlanLoading}
+        onPress={
+          showCrisisSupport
+            ? onOpenCrisisSupport
+            : hasTodayPlan
+              ? onOpenTodayPlan
+              : onCreateMicroPlan
+        }
+        accessibilityLabel={
+          showCrisisSupport
+            ? 'Ver opções de apoio em situação de crise'
+            : hasTodayPlan
+              ? 'Ver seus cuidados de hoje'
+              : 'Montar cuidados personalizados para hoje'
+        }
+      />
+
+      {microPlanError && !showCrisisSupport && !hasTodayPlan ? (
+        <View style={styles.planErrorBlock}>
+          <Text style={styles.planErrorText}>{microPlanError}</Text>
+          <GhostLink label="Tentar novamente" onPress={onCreateMicroPlan} />
+        </View>
+      ) : null}
+
+      {crisisBlocksPlan && onFeelingBetter ? (
+        <FeelingBetterLink onPress={onFeelingBetter} />
+      ) : null}
 
       <View style={styles.secondaryLinks}>
-        <GhostLink label="Entender mais sobre meu momento" onPress={onAnswerQuickQuestions} />
+        <GhostLink label="Por que esta mensagem?" onPress={onExplainMessage} />
         <GhostLink label="Ver registros recentes" onPress={onViewRecentRecords} />
       </View>
     </View>
@@ -171,16 +354,28 @@ function ReflectPhase({
 
 function CareTodayPhase({
   journey,
+  crisisBlocksPlan,
   onOpenTodayPlan,
   onQuickMoodSelect,
+  onOpenCrisisSupport,
   checkInDone,
+  onFeelingBetter,
 }: {
   journey: MentalHealthJourneyState
+  crisisBlocksPlan: boolean
   onOpenTodayPlan: () => void
   onQuickMoodSelect: (mood: MentalHealthMoodLevelId) => void
+  onOpenCrisisSupport: () => void
   checkInDone: boolean
+  onFeelingBetter?: () => void
 }) {
   const remaining = Math.max(journey.planActivitiesTotal - journey.planActivitiesCompleted, 0)
+
+  if (crisisBlocksPlan) {
+    return (
+      <CrisisPhase onOpenCrisisSupport={onOpenCrisisSupport} onFeelingBetter={onFeelingBetter} />
+    )
+  }
 
   return (
     <View style={styles.phaseBlock}>
@@ -195,7 +390,7 @@ function CareTodayPhase({
       </Text>
 
       {remaining > 0 ? (
-        <PrimaryAction label="Ver plano de hoje" onPress={onOpenTodayPlan} />
+        <PrimaryAction label="Ver seus cuidados de hoje" onPress={onOpenTodayPlan} />
       ) : (
         <PrimaryAction label="Abrir plano de hoje" onPress={onOpenTodayPlan} subtle />
       )}
@@ -214,16 +409,22 @@ export function MentalHealthTodayTab({
   bottomPadding,
   todayState,
   journey,
+  crisisBlocksPlan,
+  microPlanLoading = false,
+  microPlanError = null,
+  onStartInitialAnamnesis,
   onStartExtendedAnamnesis,
   onQuickMoodSelect,
-  onAnswerQuickQuestions,
   onViewRecentRecords,
+  onViewTodayRecord,
+  onExplainMessage,
+  onOpenHowItWorks,
   onCreateMicroPlan,
   onOpenTodayPlan,
-  onTalkPress,
+  onOpenCrisisSupport,
+  onFeelingBetter,
 }: MentalHealthTodayTabProps) {
-  const phase =
-    journey.phase === 'know_you' ? 'check_in' : journey.phase
+  const phase = journey.phase
 
   return (
     <ScrollView
@@ -231,7 +432,24 @@ export function MentalHealthTodayTab({
       contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
       showsVerticalScrollIndicator={false}
     >
+      <MentalHealthJourneyTimeline phase={phase} />
+
       <View style={styles.mainColumn}>
+        {phase === 'crisis' ? (
+          <CrisisPhase
+            onOpenCrisisSupport={onOpenCrisisSupport}
+            onFeelingBetter={onFeelingBetter}
+          />
+        ) : null}
+
+        {phase === 'know_you' ? (
+          <KnowYouPhase
+            journey={journey}
+            onStartInitialAnamnesis={onStartInitialAnamnesis}
+            onOpenHowItWorks={onOpenHowItWorks}
+          />
+        ) : null}
+
         {phase === 'check_in' ? (
           <CheckInPhase onQuickMoodSelect={onQuickMoodSelect} />
         ) : null}
@@ -239,18 +457,29 @@ export function MentalHealthTodayTab({
         {phase === 'reflect' ? (
           <ReflectPhase
             checkInCard={todayState.checkInCard}
+            crisisBlocksPlan={crisisBlocksPlan}
+            hasTodayPlan={journey.hasTodayPlan}
+            microPlanLoading={microPlanLoading}
+            microPlanError={microPlanError}
             onCreateMicroPlan={onCreateMicroPlan}
+            onOpenTodayPlan={onOpenTodayPlan}
             onViewRecentRecords={onViewRecentRecords}
-            onAnswerQuickQuestions={onAnswerQuickQuestions}
+            onViewTodayRecord={onViewTodayRecord}
+            onExplainMessage={onExplainMessage}
+            onOpenCrisisSupport={onOpenCrisisSupport}
+            onFeelingBetter={onFeelingBetter}
           />
         ) : null}
 
         {phase === 'care_today' ? (
           <CareTodayPhase
             journey={journey}
+            crisisBlocksPlan={crisisBlocksPlan}
             onOpenTodayPlan={onOpenTodayPlan}
             onQuickMoodSelect={onQuickMoodSelect}
+            onOpenCrisisSupport={onOpenCrisisSupport}
             checkInDone={journey.checkInDone}
+            onFeelingBetter={onFeelingBetter}
           />
         ) : null}
       </View>
@@ -258,16 +487,6 @@ export function MentalHealthTodayTab({
       {journey.showTellUsMore ? (
         <TellUsMorePhase journey={journey} onStartExtendedAnamnesis={onStartExtendedAnamnesis} />
       ) : null}
-
-      <Pressable
-        onPress={() => {
-          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-          onTalkPress()
-        }}
-        style={({ pressed }) => [styles.talkLink, pressed && styles.pressed]}
-      >
-        <Text style={styles.talkLinkText}>Preciso conversar com alguém</Text>
-      </Pressable>
     </ScrollView>
   )
 }
@@ -327,12 +546,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 184, 106, 0.28)',
   },
+  primaryActionDisabled: {
+    opacity: 0.72,
+  },
   primaryActionText: {
     flex: 1,
     color: '#1a1208',
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: -0.2,
+  },
+  primaryActionCrisis: {
+    backgroundColor: 'rgba(244, 63, 94, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(244, 63, 94, 0.3)',
+  },
+  primaryActionTextCrisis: {
+    color: '#fda4af',
   },
   primaryActionTextSubtle: {
     color: '#ffd8a8',
@@ -346,6 +576,19 @@ const styles = StyleSheet.create({
   moodHero: {
     alignItems: 'flex-start',
     paddingVertical: 4,
+  },
+  recordTapArea: {
+    gap: 8,
+  },
+  recordTapHint: {
+    color: colors.textSubtle,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  progressMeta: {
+    color: colors.textMuted,
+    fontSize: 13,
+    lineHeight: 19,
   },
   quoteText: {
     color: colors.text,
@@ -370,6 +613,15 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingTop: 4,
   },
+  planErrorBlock: {
+    gap: 4,
+    paddingTop: 2,
+  },
+  planErrorText: {
+    color: '#fca5a5',
+    fontSize: 14,
+    lineHeight: 20,
+  },
   ghostLink: {
     paddingVertical: 8,
   },
@@ -390,14 +642,27 @@ const styles = StyleSheet.create({
     color: colors.textSubtle,
     fontSize: 13,
   },
-  talkLink: {
-    alignSelf: 'center',
-    paddingVertical: 10,
+  crisisEyebrow: {
+    color: '#fda4af',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
-  talkLinkText: {
+  crisisNote: {
     color: colors.textSubtle,
     fontSize: 13,
-    fontWeight: '500',
+    lineHeight: 19,
+  },
+  feelingBetterLink: {
+    alignSelf: 'center',
+    paddingVertical: 8,
+    marginTop: -4,
+  },
+  feelingBetterLinkText: {
+    color: '#86efac',
+    fontSize: 14,
+    fontWeight: '600',
   },
   tellUsMoreBlock: {
     gap: 10,

@@ -1,0 +1,97 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "file": "nutrition_calculation_rules.json",
+  "engine_mode": "deterministic",
+  "runtime_ai_generation": false,
+  "description": "Regras para calcular metas calóricas e de macronutrientes a partir do wizard de cardápio.",
+  "bmr": {
+    "formula": "mifflin_st_jor",
+    "sex_fallback": "average",
+    "male": "10 * weightKg + 6.25 * heightCm - 5 * ageYears + 5",
+    "female": "10 * weightKg + 6.25 * heightCm - 5 * ageYears - 161",
+    "average_offset": -78,
+    "default_age_years": 35
+  },
+  "activity_multipliers": {
+    "sedentary": 1.2,
+    "light": 1.375,
+    "moderate": 1.55,
+    "intense": 1.725,
+    "very_intense": 1.9
+  },
+  "objective_adjustments_pct": {
+    "weight_loss": -15,
+    "maintain_weight": 0,
+    "gain_weight": 10,
+    "hypertrophy": 12,
+    "metabolic_health": -8,
+    "diabetes": -10,
+    "hypertension": -5,
+    "other": 0
+  },
+  "macro_splits_pct": {
+    "weight_loss": {
+      "protein": 30,
+      "carbs": 40,
+      "fat": 30
+    },
+    "maintain_weight": {
+      "protein": 25,
+      "carbs": 45,
+      "fat": 30
+    },
+    "gain_weight": {
+      "protein": 25,
+      "carbs": 45,
+      "fat": 30
+    },
+    "hypertrophy": {
+      "protein": 30,
+      "carbs": 45,
+      "fat": 25
+    },
+    "metabolic_health": {
+      "protein": 28,
+      "carbs": 42,
+      "fat": 30
+    },
+    "diabetes": {
+      "protein": 28,
+      "carbs": 40,
+      "fat": 32
+    },
+    "hypertension": {
+      "protein": 25,
+      "carbs": 45,
+      "fat": 30
+    },
+    "other": {
+      "protein": 25,
+      "carbs": 45,
+      "fat": 30
+    }
+  },
+  "limits": {
+    "fiber_g_per_1000kcal": 14,
+    "sugars_max_pct_of_calories": 10,
+    "saturated_fat_max_pct_of_calories": 10,
+    "water_ml_per_kg": 35,
+    "water_ml_minimum": 1800,
+    "water_ml_maximum": 3500
+  },
+  "modifiers": {
+    "hunger_level": {
+      "min": 1,
+      "max": 10,
+      "calorie_adjust_per_point": -15
+    },
+    "has_compulsion": {
+      "calorie_adjust_pct": -5
+    },
+    "sleep_quality_low_threshold": 4,
+    "sleep_quality_low_calorie_adjust_pct": -3,
+    "stress_level_high_threshold": 7,
+    "stress_level_high_calorie_adjust_pct": -2
+  }
+}

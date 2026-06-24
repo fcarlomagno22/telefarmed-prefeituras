@@ -37,6 +37,12 @@
       "permanent": true
     },
     {
+      "source": "/:token",
+      "has": [{ "type": "host", "value": "ca.telefarmed.com.br" }],
+      "destination": "https://seguranca.telefarmed.com.br/:token",
+      "permanent": false
+    },
+    {
       "source": "/",
       "has": [{ "type": "host", "value": "admin.telefarmed.com.br" }],
       "destination": "/login",

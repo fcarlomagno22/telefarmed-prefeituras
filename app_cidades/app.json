@@ -8,7 +8,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "androidNavigationBar": {
-      "backgroundColor": "#0a0a0c",
+      "backgroundColor": "#00000000",
       "barStyle": "light-content",
       "enforceContrast": false
     },
@@ -42,7 +42,9 @@
         ],
         "NSLocationWhenInUseUsageDescription": "Permitir acesso à localização para monitorar sua atividade, clima e segurança durante caminhadas e corridas.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Permitir compartilhamento de localização ao vivo com seu contato de confiança durante a atividade.",
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       },
       "bundleIdentifier": "com.fcarlomagno2.app-cidades"
     },
@@ -67,19 +69,45 @@
       "package": "com.fcarlomagno2.app_cidades",
       "softwareKeyboardLayoutMode": "resize",
       "queries": [
-        { "scheme": "whatsapp" },
-        { "scheme": "spotify" },
-        { "scheme": "youtubemusic" },
-        { "scheme": "vnd.youtube" },
-        { "scheme": "deezer" },
-        { "scheme": "deezer-standalone" },
-        { "scheme": "amazonmusic" },
-        { "scheme": "amznmp3" },
-        { "package": "com.spotify.music" },
-        { "package": "com.google.android.apps.youtube.music" },
-        { "package": "deezer.android.app" },
-        { "package": "com.amazon.mp3" },
-        { "package": "com.whatsapp" }
+        {
+          "scheme": "whatsapp"
+        },
+        {
+          "scheme": "spotify"
+        },
+        {
+          "scheme": "youtubemusic"
+        },
+        {
+          "scheme": "vnd.youtube"
+        },
+        {
+          "scheme": "deezer"
+        },
+        {
+          "scheme": "deezer-standalone"
+        },
+        {
+          "scheme": "amazonmusic"
+        },
+        {
+          "scheme": "amznmp3"
+        },
+        {
+          "package": "com.spotify.music"
+        },
+        {
+          "package": "com.google.android.apps.youtube.music"
+        },
+        {
+          "package": "deezer.android.app"
+        },
+        {
+          "package": "com.amazon.mp3"
+        },
+        {
+          "package": "com.whatsapp"
+        }
       ]
     },
     "web": {
@@ -114,8 +142,10 @@
       [
         "expo-navigation-bar",
         {
+          "backgroundColor": "#00000000",
           "enforceContrast": false,
-          "barStyle": "light"
+          "barStyle": "light",
+          "position": "absolute"
         }
       ],
       [
@@ -124,7 +154,8 @@
           "locationWhenInUsePermission": "Permitir acesso à localização para monitorar sua atividade, clima e segurança durante caminhadas e corridas.",
           "locationAlwaysAndWhenInUsePermission": "Permitir compartilhamento de localização ao vivo com seu contato de confiança durante a atividade."
         }
-      ]
+      ],
+      "expo-mail-composer"
     ],
     "extra": {
       "eas": {

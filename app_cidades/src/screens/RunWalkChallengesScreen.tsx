@@ -21,6 +21,7 @@ import { RunWalkChallengeRankingBoardView } from '../components/runWalk/challeng
 import { RunWalkSegmentTabs } from '../components/runWalk/RunWalkSegmentTabs'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import {
   buildDefaultRankingPeriod,
@@ -55,6 +56,7 @@ export function RunWalkChallengesScreen({ view = 'explore' }: RunWalkChallengesS
   const insets = useSafeAreaInsets()
   const { width: screenWidth } = useWindowDimensions()
   const { user, goBack, navigateTo, logout } = useAuth()
+  const { requireAuth } = useGuestAuth()
   const patientCpf = user?.cpf ?? 'guest'
   const patientName = user?.name ?? 'Você'
 
@@ -200,15 +202,21 @@ export function RunWalkChallengesScreen({ view = 'explore' }: RunWalkChallengesS
   )
 
   async function handleParticipate(challengeId: string) {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    await joinRunWalkChallenge(patientCpf, challengeId)
-    setJoinedIds((current) =>
-      current.includes(challengeId) ? current : [...current, challengeId],
-    )
+    requireAuth('vida:run-walk', () => {
+      void (async () => {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+        await joinRunWalkChallenge(patientCpf, challengeId)
+        setJoinedIds((current) =>
+          current.includes(challengeId) ? current : [...current, challengeId],
+        )
+      })()
+    })
   }
 
   function handleRulesPress(challengeId: string) {
-    navigateTo('run-walk-challenge-rules', { challengeId })
+    requireAuth('vida:run-walk', () => {
+      navigateTo('run-walk-challenge-rules', { challengeId })
+    })
   }
 
   if (isLoading) {

@@ -1,0 +1,1211 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "file": "dietary_constraints.json",
+  "engine_mode": "deterministic",
+  "runtime_ai_generation": false,
+  "description": "Mapeamento de restricoes alimentares, doencas, intolerancias e preferencias do wizard para regras deterministicas de inclusao, exclusao, penalizacao e limites diarios por tags.",
+  "clinical_validation": {
+    "status": "requires_nutritionist_review",
+    "note": "Este arquivo nao substitui avaliacao profissional. Regras clinicas, limites e conflitos devem ser validados por nutricionista responsavel antes de uso assistencial."
+  },
+  "wizard_mapping": {
+    "input_fields": {
+      "diseases": {
+        "type": "array",
+        "maps_to": "constraints.diseases"
+      },
+      "intolerances": {
+        "type": "array",
+        "maps_to": "constraints.intolerances"
+      },
+      "dietaryPreferences": {
+        "type": "array",
+        "maps_to": "constraints.dietaryPreferences"
+      }
+    },
+    "normalization": {
+      "case": "lowercase",
+      "trim": true,
+      "remove_accents": true,
+      "replace_spaces_with": "_",
+      "unknown_value_action": "ignore_and_log"
+    }
+  },
+  "rule_semantics": {
+    "exclude_tags": "Alimentos com qualquer uma dessas tags nao devem entrar no plano, salvo regra explicitamente marcada como relaxavel.",
+    "require_tags": "O plano deve priorizar pelo menos uma quantidade minima de alimentos com essas tags ao longo do dia ou da semana.",
+    "penalize_tags": "Alimentos com essas tags permanecem elegiveis, mas recebem penalidade no scoring.",
+    "max_per_day": "Limites diarios por tag. Valor 0 significa nao usar no dia; null significa sem limite especifico neste arquivo.",
+    "conflict_resolution_order": [
+      "medical_allergy_or_celiac_exclusion",
+      "ethical_or_religious_preference",
+      "disease_specific_exclusion",
+      "intolerance_exclusion",
+      "dietary_preference",
+      "scoring_penalty"
+    ],
+    "merge_strategy": {
+      "exclude_tags": "union",
+      "require_tags": "union_after_removing_conflicts_with_exclude_tags",
+      "penalize_tags": "union_after_removing_conflicts_with_exclude_tags",
+      "max_per_day": "use_most_restrictive_numeric_limit"
+    }
+  },
+  "global_defaults": {
+    "exclude_tags": [],
+    "require_tags": [
+      "minimally_processed",
+      "whole_food"
+    ],
+    "penalize_tags": [
+      "ultraprocessed",
+      "deep_fried",
+      "high_sugar",
+      "high_sodium",
+      "high_saturated_fat"
+    ],
+    "max_per_day": {
+      "sugary_drink": 0,
+      "ultraprocessed": 1,
+      "deep_fried": 1,
+      "dessert": 1
+    }
+  },
+  "constraints": {
+    "diseases": {
+      "diabetes": {
+        "label": "Diabetes",
+        "wizard_values": [
+          "diabetes",
+          "diabetes_mellitus",
+          "diabetes_tipo_1",
+          "diabetes_tipo_2",
+          "pre_diabetes",
+          "resistencia_insulinica"
+        ],
+        "exclude_tags": [
+          "sugary_drink",
+          "added_sugar_high",
+          "candy",
+          "sweetened_condensed_milk",
+          "syrup",
+          "regular_soda"
+        ],
+        "require_tags": [
+          "high_fiber",
+          "low_added_sugar",
+          "low_glycemic_load",
+          "lean_protein",
+          "non_starchy_vegetable",
+          "whole_grain_or_legume"
+        ],
+        "penalize_tags": [
+          "refined_carbohydrate",
+          "sweet_bakery",
+          "fruit_juice",
+          "dried_fruit",
+          "large_starch_portion",
+          "ultraprocessed"
+        ],
+        "max_per_day": {
+          "fruit_juice": 0,
+          "dessert": 0,
+          "sweet_fruit_portion": 2,
+          "refined_carbohydrate": 1,
+          "large_starch_portion": 1,
+          "white_flour": 1
+        }
+      },
+      "hypertension": {
+        "label": "Hipertensao",
+        "wizard_values": [
+          "hipertensao",
+          "pressao_alta",
+          "has",
+          "hipertensao_arterial"
+        ],
+        "exclude_tags": [
+          "very_high_sodium",
+          "instant_noodles",
+          "bouillon_cube",
+          "salted_preserved_meat",
+          "soy_sauce_regular"
+        ],
+        "require_tags": [
+          "low_sodium",
+          "potassium_source",
+          "fresh_food",
+          "non_starchy_vegetable",
+          "fruit",
+          "whole_food"
+        ],
+        "penalize_tags": [
+          "high_sodium",
+          "processed_meat",
+          "canned_with_salt",
+          "pickled",
+          "ready_to_eat_meal",
+          "salty_snack",
+          "cheese_high_sodium"
+        ],
+        "max_per_day": {
+          "processed_meat": 0,
+          "salty_snack": 0,
+          "canned_with_salt": 1,
+          "cheese_high_sodium": 1,
+          "ready_to_eat_meal": 0,
+          "high_sodium": 1
+        }
+      },
+      "high_cholesterol": {
+        "label": "Colesterol alto / dislipidemia",
+        "wizard_values": [
+          "colesterol",
+          "colesterol_alto",
+          "dislipidemia",
+          "ldl_alto",
+          "triglicerides",
+          "triglicerideos"
+        ],
+        "exclude_tags": [
+          "trans_fat",
+          "hydrogenated_fat"
+        ],
+        "require_tags": [
+          "high_fiber",
+          "soluble_fiber",
+          "unsaturated_fat",
+          "omega_3_source",
+          "legume",
+          "whole_grain"
+        ],
+        "penalize_tags": [
+          "high_saturated_fat",
+          "processed_meat",
+          "deep_fried",
+          "cream_based",
+          "fatty_meat",
+          "sweet_bakery",
+          "ultraprocessed"
+        ],
+        "max_per_day": {
+          "processed_meat": 0,
+          "deep_fried": 0,
+          "fatty_meat": 1,
+          "high_saturated_fat": 1,
+          "cream_based": 1,
+          "egg_yolk_rich_preparation": 1
+        }
+      },
+      "gastritis": {
+        "label": "Gastrite",
+        "wizard_values": [
+          "gastrite",
+          "gastrite_cronica",
+          "dor_estomago",
+          "queimacao_estomago"
+        ],
+        "exclude_tags": [
+          "very_spicy",
+          "alcoholic",
+          "energy_drink"
+        ],
+        "require_tags": [
+          "mild_flavor",
+          "low_acidity",
+          "simple_preparation",
+          "cooked_vegetable",
+          "lean_protein"
+        ],
+        "penalize_tags": [
+          "acidic",
+          "caffeinated",
+          "coffee",
+          "citrus",
+          "tomato_sauce",
+          "pepper",
+          "deep_fried",
+          "high_fat",
+          "carbonated"
+        ],
+        "max_per_day": {
+          "coffee": 1,
+          "citrus": 1,
+          "tomato_sauce": 1,
+          "deep_fried": 0,
+          "pepper": 0,
+          "carbonated": 1
+        }
+      },
+      "reflux": {
+        "label": "Refluxo gastroesofagico",
+        "wizard_values": [
+          "refluxo",
+          "azia",
+          "drge",
+          "refluxo_gastroesofagico"
+        ],
+        "exclude_tags": [
+          "alcoholic",
+          "very_spicy"
+        ],
+        "require_tags": [
+          "low_fat",
+          "mild_flavor",
+          "small_portion_friendly",
+          "simple_preparation"
+        ],
+        "penalize_tags": [
+          "caffeinated",
+          "coffee",
+          "chocolate",
+          "mint",
+          "tomato_sauce",
+          "citrus",
+          "deep_fried",
+          "high_fat",
+          "carbonated",
+          "late_heavy_meal"
+        ],
+        "max_per_day": {
+          "coffee": 1,
+          "chocolate": 1,
+          "tomato_sauce": 1,
+          "citrus": 1,
+          "deep_fried": 0,
+          "late_heavy_meal": 0
+        }
+      },
+      "obesity": {
+        "label": "Obesidade",
+        "wizard_values": [
+          "obesidade",
+          "sobrepeso",
+          "imc_alto"
+        ],
+        "exclude_tags": [
+          "sugary_drink",
+          "extra_large_portion"
+        ],
+        "require_tags": [
+          "high_satiety",
+          "high_fiber",
+          "lean_protein",
+          "low_energy_density",
+          "non_starchy_vegetable"
+        ],
+        "penalize_tags": [
+          "high_energy_density",
+          "deep_fried",
+          "dessert",
+          "ultraprocessed",
+          "liquid_calories",
+          "sweet_bakery"
+        ],
+        "max_per_day": {
+          "dessert": 0,
+          "deep_fried": 0,
+          "liquid_calories": 0,
+          "high_energy_density": 1,
+          "ultraprocessed": 1
+        }
+      },
+      "fatty_liver": {
+        "label": "Esteatose hepatica",
+        "wizard_values": [
+          "esteatose",
+          "gordura_no_figado",
+          "esteatose_hepatica"
+        ],
+        "exclude_tags": [
+          "alcoholic",
+          "sugary_drink",
+          "added_sugar_high"
+        ],
+        "require_tags": [
+          "high_fiber",
+          "lean_protein",
+          "non_starchy_vegetable",
+          "whole_food",
+          "unsaturated_fat"
+        ],
+        "penalize_tags": [
+          "refined_carbohydrate",
+          "dessert",
+          "fruit_juice",
+          "deep_fried",
+          "high_saturated_fat",
+          "ultraprocessed"
+        ],
+        "max_per_day": {
+          "dessert": 0,
+          "fruit_juice": 0,
+          "deep_fried": 0,
+          "refined_carbohydrate": 1,
+          "high_saturated_fat": 1
+        }
+      },
+      "chronic_kidney_disease": {
+        "label": "Doenca renal cronica",
+        "wizard_values": [
+          "doenca_renal",
+          "doenca_renal_cronica",
+          "insuficiencia_renal",
+          "rim"
+        ],
+        "exclude_tags": [
+          "very_high_sodium",
+          "protein_supplement_without_review",
+          "potassium_supplement_without_review"
+        ],
+        "require_tags": [
+          "professional_review_required",
+          "low_sodium"
+        ],
+        "penalize_tags": [
+          "high_sodium",
+          "processed_meat",
+          "very_high_protein",
+          "high_potassium",
+          "high_phosphorus"
+        ],
+        "max_per_day": {
+          "processed_meat": 0,
+          "very_high_protein": 0,
+          "high_sodium": 1,
+          "high_potassium": 2,
+          "high_phosphorus": 2
+        },
+        "flags": [
+          "professional_review_required"
+        ]
+      },
+      "celiac_disease": {
+        "label": "Doenca celiaca",
+        "wizard_values": [
+          "doenca_celiaca",
+          "celiaca",
+          "celiaco",
+          "celiaquia"
+        ],
+        "exclude_tags": [
+          "gluten",
+          "wheat",
+          "barley",
+          "rye",
+          "malt",
+          "cross_contamination_gluten_risk"
+        ],
+        "require_tags": [
+          "certified_gluten_free",
+          "naturally_gluten_free"
+        ],
+        "penalize_tags": [
+          "processed_without_gluten_certification",
+          "shared_fryer",
+          "bakery_cross_contamination_risk"
+        ],
+        "max_per_day": {
+          "gluten": 0,
+          "wheat": 0,
+          "barley": 0,
+          "rye": 0,
+          "malt": 0,
+          "cross_contamination_gluten_risk": 0
+        }
+      },
+      "pregnancy": {
+        "label": "Gestacao",
+        "wizard_values": [
+          "gestante",
+          "gravidez",
+          "gestacao"
+        ],
+        "exclude_tags": [
+          "alcoholic",
+          "raw_fish",
+          "raw_egg",
+          "unpasteurized_dairy"
+        ],
+        "require_tags": [
+          "professional_review_required",
+          "iron_source",
+          "folate_source",
+          "calcium_source",
+          "safe_food_handling"
+        ],
+        "penalize_tags": [
+          "high_caffeine",
+          "high_mercury_fish",
+          "ultraprocessed",
+          "high_sodium"
+        ],
+        "max_per_day": {
+          "high_caffeine": 1,
+          "raw_fish": 0,
+          "raw_egg": 0,
+          "unpasteurized_dairy": 0,
+          "high_mercury_fish": 0
+        },
+        "flags": [
+          "professional_review_required"
+        ]
+      }
+    },
+    "intolerances": {
+      "gluten_free": {
+        "label": "Sem gluten",
+        "wizard_values": [
+          "sem_gluten",
+          "intolerancia_gluten",
+          "sensibilidade_gluten",
+          "gluten"
+        ],
+        "exclude_tags": [
+          "gluten",
+          "wheat",
+          "barley",
+          "rye",
+          "malt"
+        ],
+        "require_tags": [
+          "naturally_gluten_free"
+        ],
+        "penalize_tags": [
+          "processed_without_gluten_certification",
+          "cross_contamination_gluten_risk"
+        ],
+        "max_per_day": {
+          "gluten": 0,
+          "wheat": 0,
+          "barley": 0,
+          "rye": 0,
+          "malt": 0
+        }
+      },
+      "lactose_free": {
+        "label": "Sem lactose",
+        "wizard_values": [
+          "sem_lactose",
+          "intolerancia_lactose",
+          "lactose"
+        ],
+        "exclude_tags": [
+          "lactose",
+          "regular_milk",
+          "condensed_milk",
+          "cream",
+          "fresh_cheese_high_lactose"
+        ],
+        "require_tags": [
+          "lactose_free",
+          "calcium_source_if_possible"
+        ],
+        "penalize_tags": [
+          "dairy_unspecified",
+          "milk_derivative",
+          "whey_with_lactose"
+        ],
+        "max_per_day": {
+          "lactose": 0,
+          "regular_milk": 0,
+          "condensed_milk": 0,
+          "cream": 0,
+          "dairy_unspecified": 0
+        }
+      },
+      "milk_protein_allergy": {
+        "label": "Alergia a proteina do leite",
+        "wizard_values": [
+          "alergia_leite",
+          "aplv",
+          "alergia_proteina_leite",
+          "proteina_do_leite"
+        ],
+        "exclude_tags": [
+          "milk",
+          "dairy",
+          "casein",
+          "whey",
+          "butter",
+          "cheese",
+          "yogurt",
+          "cream"
+        ],
+        "require_tags": [
+          "dairy_free",
+          "calcium_source_if_possible"
+        ],
+        "penalize_tags": [
+          "may_contain_milk",
+          "shared_equipment_milk"
+        ],
+        "max_per_day": {
+          "milk": 0,
+          "dairy": 0,
+          "casein": 0,
+          "whey": 0,
+          "may_contain_milk": 0
+        }
+      },
+      "egg_allergy": {
+        "label": "Alergia a ovo",
+        "wizard_values": [
+          "alergia_ovo",
+          "ovo",
+          "sem_ovo"
+        ],
+        "exclude_tags": [
+          "egg",
+          "egg_white",
+          "egg_yolk",
+          "mayonnaise_with_egg"
+        ],
+        "require_tags": [
+          "egg_free"
+        ],
+        "penalize_tags": [
+          "may_contain_egg",
+          "bakery_cross_contamination_risk"
+        ],
+        "max_per_day": {
+          "egg": 0,
+          "egg_white": 0,
+          "egg_yolk": 0,
+          "may_contain_egg": 0
+        }
+      },
+      "soy_allergy": {
+        "label": "Alergia a soja",
+        "wizard_values": [
+          "alergia_soja",
+          "soja",
+          "sem_soja"
+        ],
+        "exclude_tags": [
+          "soy",
+          "soy_protein",
+          "tofu",
+          "soy_sauce",
+          "soy_milk"
+        ],
+        "require_tags": [
+          "soy_free"
+        ],
+        "penalize_tags": [
+          "may_contain_soy",
+          "ultraprocessed_with_soy_derivatives"
+        ],
+        "max_per_day": {
+          "soy": 0,
+          "soy_protein": 0,
+          "tofu": 0,
+          "soy_sauce": 0,
+          "may_contain_soy": 0
+        }
+      },
+      "peanut_allergy": {
+        "label": "Alergia a amendoim",
+        "wizard_values": [
+          "alergia_amendoim",
+          "amendoim",
+          "sem_amendoim"
+        ],
+        "exclude_tags": [
+          "peanut",
+          "peanut_butter",
+          "peanut_oil"
+        ],
+        "require_tags": [
+          "peanut_free"
+        ],
+        "penalize_tags": [
+          "may_contain_peanut",
+          "shared_equipment_nuts"
+        ],
+        "max_per_day": {
+          "peanut": 0,
+          "peanut_butter": 0,
+          "peanut_oil": 0,
+          "may_contain_peanut": 0
+        }
+      },
+      "tree_nut_allergy": {
+        "label": "Alergia a castanhas/nozes",
+        "wizard_values": [
+          "alergia_castanhas",
+          "castanhas",
+          "nozes",
+          "amendoas",
+          "sem_castanhas"
+        ],
+        "exclude_tags": [
+          "tree_nut",
+          "cashew",
+          "brazil_nut",
+          "almond",
+          "walnut",
+          "hazelnut",
+          "pistachio"
+        ],
+        "require_tags": [
+          "tree_nut_free"
+        ],
+        "penalize_tags": [
+          "may_contain_tree_nut",
+          "shared_equipment_nuts"
+        ],
+        "max_per_day": {
+          "tree_nut": 0,
+          "cashew": 0,
+          "brazil_nut": 0,
+          "almond": 0,
+          "may_contain_tree_nut": 0
+        }
+      },
+      "seafood_allergy": {
+        "label": "Alergia a frutos do mar",
+        "wizard_values": [
+          "alergia_frutos_do_mar",
+          "frutos_do_mar",
+          "camarao",
+          "mariscos"
+        ],
+        "exclude_tags": [
+          "seafood",
+          "shellfish",
+          "shrimp",
+          "crab",
+          "mollusk"
+        ],
+        "require_tags": [
+          "seafood_free"
+        ],
+        "penalize_tags": [
+          "may_contain_seafood",
+          "shared_equipment_seafood"
+        ],
+        "max_per_day": {
+          "seafood": 0,
+          "shellfish": 0,
+          "shrimp": 0,
+          "may_contain_seafood": 0
+        }
+      },
+      "fish_allergy": {
+        "label": "Alergia a peixe",
+        "wizard_values": [
+          "alergia_peixe",
+          "peixe",
+          "sem_peixe"
+        ],
+        "exclude_tags": [
+          "fish",
+          "fish_sauce",
+          "anchovy"
+        ],
+        "require_tags": [
+          "fish_free"
+        ],
+        "penalize_tags": [
+          "may_contain_fish",
+          "shared_equipment_fish"
+        ],
+        "max_per_day": {
+          "fish": 0,
+          "fish_sauce": 0,
+          "anchovy": 0,
+          "may_contain_fish": 0
+        }
+      },
+      "fodmap_sensitive": {
+        "label": "Sensibilidade a FODMAP",
+        "wizard_values": [
+          "fodmap",
+          "baixo_fodmap",
+          "sindrome_intestino_irritavel",
+          "sii"
+        ],
+        "exclude_tags": [],
+        "require_tags": [
+          "low_fodmap_option",
+          "professional_review_recommended"
+        ],
+        "penalize_tags": [
+          "high_fodmap",
+          "onion",
+          "garlic",
+          "beans_large_portion",
+          "milk_lactose",
+          "wheat",
+          "polyol_sweetener"
+        ],
+        "max_per_day": {
+          "high_fodmap": 1,
+          "onion": 1,
+          "garlic": 1,
+          "beans_large_portion": 0,
+          "polyol_sweetener": 0
+        },
+        "flags": [
+          "professional_review_recommended"
+        ]
+      }
+    },
+    "dietaryPreferences": {
+      "vegetarian": {
+        "label": "Vegetariano",
+        "wizard_values": [
+          "vegetariano",
+          "ovolactovegetariano",
+          "sem_carne"
+        ],
+        "exclude_tags": [
+          "meat",
+          "beef",
+          "pork",
+          "poultry",
+          "fish",
+          "seafood",
+          "processed_meat",
+          "gelatin_animal"
+        ],
+        "require_tags": [
+          "vegetarian",
+          "plant_protein",
+          "legume",
+          "iron_source_plant"
+        ],
+        "penalize_tags": [
+          "animal_broth",
+          "hidden_meat_ingredient",
+          "low_protein_meal"
+        ],
+        "max_per_day": {
+          "meat": 0,
+          "poultry": 0,
+          "fish": 0,
+          "seafood": 0,
+          "processed_meat": 0
+        }
+      },
+      "vegan": {
+        "label": "Vegano",
+        "wizard_values": [
+          "vegano",
+          "plant_based",
+          "sem_produtos_animais"
+        ],
+        "exclude_tags": [
+          "animal_product",
+          "meat",
+          "beef",
+          "pork",
+          "poultry",
+          "fish",
+          "seafood",
+          "egg",
+          "dairy",
+          "milk",
+          "cheese",
+          "yogurt",
+          "honey",
+          "gelatin_animal",
+          "whey",
+          "casein"
+        ],
+        "require_tags": [
+          "vegan",
+          "plant_protein",
+          "legume",
+          "iron_source_plant",
+          "b12_attention"
+        ],
+        "penalize_tags": [
+          "may_contain_milk",
+          "may_contain_egg",
+          "hidden_animal_ingredient",
+          "low_protein_meal"
+        ],
+        "max_per_day": {
+          "animal_product": 0,
+          "dairy": 0,
+          "egg": 0,
+          "honey": 0,
+          "whey": 0
+        }
+      },
+      "low_carb": {
+        "label": "Low carb",
+        "wizard_values": [
+          "low_carb",
+          "baixo_carboidrato",
+          "reduzir_carboidrato"
+        ],
+        "exclude_tags": [
+          "sugary_drink",
+          "added_sugar_high"
+        ],
+        "require_tags": [
+          "low_carb",
+          "lean_protein",
+          "non_starchy_vegetable",
+          "healthy_fat",
+          "low_added_sugar"
+        ],
+        "penalize_tags": [
+          "large_starch_portion",
+          "refined_carbohydrate",
+          "sweet_bakery",
+          "dessert",
+          "fruit_juice",
+          "high_carb"
+        ],
+        "max_per_day": {
+          "large_starch_portion": 1,
+          "grain_portion": 2,
+          "root_starch": 1,
+          "sweet_fruit_portion": 2,
+          "dessert": 0,
+          "fruit_juice": 0
+        }
+      },
+      "gluten_free_preference": {
+        "label": "Preferencia sem gluten",
+        "wizard_values": [
+          "preferencia_sem_gluten",
+          "evitar_gluten"
+        ],
+        "exclude_tags": [
+          "gluten",
+          "wheat",
+          "barley",
+          "rye",
+          "malt"
+        ],
+        "require_tags": [
+          "naturally_gluten_free"
+        ],
+        "penalize_tags": [
+          "processed_without_gluten_certification",
+          "cross_contamination_gluten_risk"
+        ],
+        "max_per_day": {
+          "gluten": 0,
+          "wheat": 0,
+          "barley": 0,
+          "rye": 0,
+          "malt": 0
+        }
+      },
+      "lactose_free_preference": {
+        "label": "Preferencia sem lactose",
+        "wizard_values": [
+          "preferencia_sem_lactose",
+          "evitar_lactose"
+        ],
+        "exclude_tags": [
+          "lactose",
+          "regular_milk",
+          "condensed_milk",
+          "cream"
+        ],
+        "require_tags": [
+          "lactose_free"
+        ],
+        "penalize_tags": [
+          "dairy_unspecified",
+          "milk_derivative"
+        ],
+        "max_per_day": {
+          "lactose": 0,
+          "regular_milk": 0,
+          "condensed_milk": 0,
+          "cream": 0
+        }
+      },
+      "mediterranean": {
+        "label": "Mediterraneo",
+        "wizard_values": [
+          "mediterraneo",
+          "dieta_mediterranea"
+        ],
+        "exclude_tags": [],
+        "require_tags": [
+          "whole_food",
+          "vegetable",
+          "fruit",
+          "legume",
+          "whole_grain",
+          "unsaturated_fat",
+          "olive_oil",
+          "fish_or_plant_omega_3"
+        ],
+        "penalize_tags": [
+          "ultraprocessed",
+          "processed_meat",
+          "deep_fried",
+          "high_sugar",
+          "high_saturated_fat"
+        ],
+        "max_per_day": {
+          "processed_meat": 0,
+          "deep_fried": 0,
+          "dessert": 1,
+          "ultraprocessed": 1
+        }
+      },
+      "dash": {
+        "label": "DASH / foco em pressao arterial",
+        "wizard_values": [
+          "dash",
+          "dieta_dash",
+          "foco_pressao"
+        ],
+        "exclude_tags": [
+          "very_high_sodium",
+          "processed_meat"
+        ],
+        "require_tags": [
+          "low_sodium",
+          "fruit",
+          "vegetable",
+          "whole_grain",
+          "legume",
+          "low_fat_dairy_or_equivalent",
+          "potassium_source"
+        ],
+        "penalize_tags": [
+          "high_sodium",
+          "salty_snack",
+          "canned_with_salt",
+          "ready_to_eat_meal",
+          "sweetened_beverage",
+          "high_saturated_fat"
+        ],
+        "max_per_day": {
+          "high_sodium": 1,
+          "salty_snack": 0,
+          "ready_to_eat_meal": 0,
+          "sweetened_beverage": 0,
+          "processed_meat": 0
+        }
+      },
+      "high_protein": {
+        "label": "Alta proteina",
+        "wizard_values": [
+          "alta_proteina",
+          "mais_proteina",
+          "proteinada"
+        ],
+        "exclude_tags": [],
+        "require_tags": [
+          "protein_source",
+          "lean_protein",
+          "protein_each_main_meal"
+        ],
+        "penalize_tags": [
+          "low_protein_meal",
+          "mostly_refined_carbs",
+          "sugary_drink"
+        ],
+        "max_per_day": {
+          "protein_supplement_without_review": 0,
+          "processed_meat": 1,
+          "fatty_meat": 1
+        }
+      },
+      "pescatarian": {
+        "label": "Pescetariano",
+        "wizard_values": [
+          "pescetariano",
+          "pescatariano",
+          "come_peixe_sem_carne"
+        ],
+        "exclude_tags": [
+          "meat",
+          "beef",
+          "pork",
+          "poultry",
+          "processed_meat"
+        ],
+        "require_tags": [
+          "pescatarian",
+          "fish_or_plant_protein",
+          "vegetable"
+        ],
+        "penalize_tags": [
+          "high_mercury_fish",
+          "deep_fried_fish",
+          "hidden_meat_ingredient"
+        ],
+        "max_per_day": {
+          "meat": 0,
+          "poultry": 0,
+          "processed_meat": 0,
+          "high_mercury_fish": 0,
+          "deep_fried_fish": 0
+        }
+      },
+      "no_pork": {
+        "label": "Sem carne suina",
+        "wizard_values": [
+          "sem_porco",
+          "sem_suino",
+          "nao_come_porco",
+          "halal_like"
+        ],
+        "exclude_tags": [
+          "pork",
+          "bacon",
+          "ham",
+          "lard",
+          "pork_derivative"
+        ],
+        "require_tags": [],
+        "penalize_tags": [
+          "processed_meat_unspecified",
+          "hidden_pork_ingredient"
+        ],
+        "max_per_day": {
+          "pork": 0,
+          "bacon": 0,
+          "ham": 0,
+          "lard": 0,
+          "pork_derivative": 0
+        }
+      },
+      "no_red_meat": {
+        "label": "Sem carne vermelha",
+        "wizard_values": [
+          "sem_carne_vermelha",
+          "evitar_carne_vermelha",
+          "nao_come_carne_vermelha"
+        ],
+        "exclude_tags": [
+          "beef",
+          "pork",
+          "lamb",
+          "processed_red_meat"
+        ],
+        "require_tags": [
+          "alternative_protein",
+          "iron_source"
+        ],
+        "penalize_tags": [
+          "processed_meat_unspecified",
+          "fatty_meat"
+        ],
+        "max_per_day": {
+          "beef": 0,
+          "pork": 0,
+          "lamb": 0,
+          "processed_red_meat": 0
+        }
+      },
+      "whole_foods": {
+        "label": "Comida de verdade",
+        "wizard_values": [
+          "comida_de_verdade",
+          "caseiro",
+          "natural",
+          "sem_ultraprocessados"
+        ],
+        "exclude_tags": [
+          "ultraprocessed",
+          "sugary_drink"
+        ],
+        "require_tags": [
+          "whole_food",
+          "minimally_processed",
+          "home_style",
+          "fresh_food"
+        ],
+        "penalize_tags": [
+          "packaged_snack",
+          "ready_to_eat_meal",
+          "instant_food",
+          "processed_meat",
+          "sweet_bakery"
+        ],
+        "max_per_day": {
+          "ultraprocessed": 0,
+          "packaged_snack": 0,
+          "instant_food": 0,
+          "ready_to_eat_meal": 0
+        }
+      }
+    }
+  },
+  "tag_groups": {
+    "sugar_control": [
+      "sugary_drink",
+      "added_sugar_high",
+      "dessert",
+      "sweet_bakery",
+      "candy",
+      "regular_soda",
+      "fruit_juice"
+    ],
+    "sodium_control": [
+      "very_high_sodium",
+      "high_sodium",
+      "processed_meat",
+      "canned_with_salt",
+      "pickled",
+      "ready_to_eat_meal",
+      "salty_snack",
+      "soy_sauce_regular"
+    ],
+    "fat_quality_control": [
+      "trans_fat",
+      "hydrogenated_fat",
+      "high_saturated_fat",
+      "deep_fried",
+      "fatty_meat",
+      "cream_based"
+    ],
+    "digestive_sensitivity": [
+      "very_spicy",
+      "acidic",
+      "caffeinated",
+      "coffee",
+      "citrus",
+      "tomato_sauce",
+      "carbonated",
+      "high_fat"
+    ],
+    "plant_based_proteins": [
+      "beans",
+      "lentil",
+      "chickpea",
+      "pea",
+      "soy",
+      "tofu",
+      "tempeh",
+      "plant_protein"
+    ],
+    "brazilian_core_foods": [
+      "rice",
+      "beans",
+      "cassava",
+      "corn",
+      "egg",
+      "chicken",
+      "fish",
+      "salad",
+      "cooked_vegetable",
+      "fruit"
+    ]
+  },
+  "output_schema": {
+    "merged_exclude_tags": "array",
+    "merged_require_tags": "array",
+    "merged_penalize_tags": "array",
+    "merged_max_per_day": "object",
+    "flags": "array",
+    "matched_constraints": "array",
+    "ignored_unknown_values": "array"
+  }
+}

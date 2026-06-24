@@ -80,7 +80,7 @@ function buildLiveLocationTrackingMapHtml({
 
       if (trailPoints.length > 1) {
         polyline = L.polyline(trailPoints, {
-          color: '#22c55e',
+          color: '#ff8533',
           weight: 5,
           opacity: 0.92,
           lineCap: 'round',

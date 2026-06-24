@@ -4,7 +4,7 @@ import { brand } from '../config/brand'
 
 export type AdminNotificationPriority = 'normal' | 'important'
 
-export type AdminNotificationTargetChannel = 'prefeitura' | 'ubt' | 'medico'
+export type AdminNotificationTargetChannel = 'prefeitura' | 'ubt' | 'medico' | 'paciente_app'
 
 export type MedicoAudienceScope =
   | 'medico_all'

@@ -12,35 +12,35 @@ import {
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { RemoteCareRequestCard } from '../components/appointments/RemoteCareRequestCard'
 import { AppointmentCancelDrawer } from '../components/appointments/AppointmentCancelDrawer'
 import { AppointmentCard } from '../components/appointments/AppointmentCard'
 import { AppointmentDetailDrawer } from '../components/appointments/AppointmentDetailDrawer'
 import { AppointmentDirectionsDrawer } from '../components/appointments/AppointmentDirectionsDrawer'
 import { AppointmentDocumentsDrawer } from '../components/appointments/AppointmentDocumentsDrawer'
-import { AppointmentPostConsultationDrawer } from '../components/appointments/AppointmentPostConsultationDrawer'
 import { AppointmentEmptyState } from '../components/appointments/AppointmentEmptyState'
 import { AppointmentSegmentTabs } from '../components/appointments/AppointmentSegmentTabs'
-import { PosConsultaCheckinDrawer } from '../components/postConsultation/PosConsultaCheckinDrawer'
 import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
 import { MenuDrawer } from '../components/MenuDrawer'
 import { MetricsPeriodDrawer } from '../components/metrics/MetricsPeriodDrawer'
-import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { SkeletonBone } from '../components/SkeletonBone'
 import { appEnv } from '../config/env'
 import {
   cancelMyAppointment,
   fetchMyAppointments,
 } from '../data/mockMyAppointments'
+import {
+  fetchRemoteCareRequests,
+  getActiveRemoteCareRequests,
+} from '../data/mockRemoteCareRequests'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useSimulatedPageSkeleton } from '../hooks/useSimulatedPageSkeleton'
 import { colors } from '../theme/colors'
 import { PeriodSelection } from '../types/metrics'
-import type {
-  AppointmentPosConsultaCheckinItem,
-  AppointmentPosConsultaPlan,
-} from '../types/appointmentPostConsultation'
 import { MyAppointmentsTab, StoredAppointment } from '../types/myAppointments'
+import type { RemoteCareRequest } from '../types/remoteCareRequest'
 import {
   NavigationApp,
   openAppointmentDirections,
@@ -61,10 +61,12 @@ const TAB_BAR_ESTIMATED_HEIGHT = 78
 export function MyAppointmentsScreen() {
   const insets = useSafeAreaInsets()
   const { user, navigateTo, logout } = useAuth()
+  const { requireAuth } = useGuestAuth()
 
   const [segmentTab, setSegmentTab] = useState<MyAppointmentsTab>('upcoming')
   const [bottomTab, setBottomTab] = useState<BottomTabId | null>(null)
   const [appointments, setAppointments] = useState<StoredAppointment[]>([])
+  const [remoteCareRequests, setRemoteCareRequests] = useState<RemoteCareRequest[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<StoredAppointment | null>(null)
@@ -75,15 +77,6 @@ export function MyAppointmentsScreen() {
   const [directionsVisible, setDirectionsVisible] = useState(false)
   const [documentsTarget, setDocumentsTarget] = useState<StoredAppointment | null>(null)
   const [documentsVisible, setDocumentsVisible] = useState(false)
-  const [postConsultationTarget, setPostConsultationTarget] =
-    useState<StoredAppointment | null>(null)
-  const [postConsultationVisible, setPostConsultationVisible] = useState(false)
-  const [postConsultationPlan, setPostConsultationPlan] =
-    useState<AppointmentPosConsultaPlan | null>(null)
-  const [checkinTarget, setCheckinTarget] =
-    useState<AppointmentPosConsultaCheckinItem | null>(null)
-  const [checkinVisible, setCheckinVisible] = useState(false)
-  const [postConsultationRefreshKey, setPostConsultationRefreshKey] = useState(0)
   const [isCancelling, setIsCancelling] = useState(false)
   const [menuVisible, setMenuVisible] = useState(false)
   const [historyPeriod, setHistoryPeriod] = useState<PeriodSelection | null>(null)
@@ -104,8 +97,12 @@ export function MyAppointmentsScreen() {
     }
 
     try {
-      const data = await fetchMyAppointments(user.cpf)
+      const [data, remoteData] = await Promise.all([
+        fetchMyAppointments(user.cpf),
+        fetchRemoteCareRequests(user.cpf),
+      ])
       setAppointments(data)
+      setRemoteCareRequests(remoteData)
     } finally {
       setIsLoading(false)
       setIsRefreshing(false)
@@ -135,6 +132,10 @@ export function MyAppointmentsScreen() {
       return appointmentTime >= startTime && appointmentTime <= endTime
     })
   }, [historyAppointments, historyPeriod])
+  const activeRemoteCareRequests = useMemo(
+    () => getActiveRemoteCareRequests(remoteCareRequests),
+    [remoteCareRequests],
+  )
   const visibleAppointments =
     segmentTab === 'upcoming' ? upcomingAppointments : filteredHistoryAppointments
   const historyFilterActive = historyPeriod !== null
@@ -145,6 +146,7 @@ export function MyAppointmentsScreen() {
   )
 
   function handleBack() {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     navigateTo('home')
   }
 
@@ -156,16 +158,6 @@ export function MyAppointmentsScreen() {
 
     if (directionsVisible) {
       closeDirectionsDrawer()
-      return true
-    }
-
-    if (checkinVisible) {
-      closeCheckinDrawer()
-      return true
-    }
-
-    if (postConsultationVisible) {
-      closePostConsultationDrawer()
       return true
     }
 
@@ -193,8 +185,10 @@ export function MyAppointmentsScreen() {
   })
 
   function openDetail(appointment: StoredAppointment) {
-    setSelectedAppointment(appointment)
-    setDetailVisible(true)
+    requireAuth('quick:my-appointments', () => {
+      setSelectedAppointment(appointment)
+      setDetailVisible(true)
+    })
   }
 
   function closeDetail() {
@@ -203,9 +197,11 @@ export function MyAppointmentsScreen() {
   }
 
   function openCancelFlow(appointment: StoredAppointment) {
-    setDetailVisible(false)
-    setCancelTarget(appointment)
-    setCancelVisible(true)
+    requireAuth('quick:my-appointments', () => {
+      setDetailVisible(false)
+      setCancelTarget(appointment)
+      setCancelVisible(true)
+    })
   }
 
   function closeCancelFlow() {
@@ -214,8 +210,10 @@ export function MyAppointmentsScreen() {
   }
 
   function openDirectionsDrawer(appointment: StoredAppointment) {
-    setDirectionsTarget(appointment)
-    setDirectionsVisible(true)
+    requireAuth('quick:my-appointments', () => {
+      setDirectionsTarget(appointment)
+      setDirectionsVisible(true)
+    })
   }
 
   function closeDirectionsDrawer() {
@@ -231,8 +229,10 @@ export function MyAppointmentsScreen() {
   }
 
   function openDocumentsDrawer(appointment: StoredAppointment) {
-    setDocumentsTarget(appointment)
-    setDocumentsVisible(true)
+    requireAuth('quick:my-appointments', () => {
+      setDocumentsTarget(appointment)
+      setDocumentsVisible(true)
+    })
   }
 
   function closeDocumentsDrawer() {
@@ -240,54 +240,28 @@ export function MyAppointmentsScreen() {
     setDocumentsTarget(null)
   }
 
-  function openPostConsultationDrawer(appointment: StoredAppointment) {
-    setDetailVisible(false)
-    setPostConsultationTarget(appointment)
-    setPostConsultationVisible(true)
-  }
-
-  function closePostConsultationDrawer() {
-    setPostConsultationVisible(false)
-    setPostConsultationTarget(null)
-    setPostConsultationPlan(null)
-  }
-
-  function openCheckinDrawer(
-    checkin: AppointmentPosConsultaCheckinItem,
-    plan: AppointmentPosConsultaPlan,
-  ) {
-    setPostConsultationPlan(plan)
-    setCheckinTarget(checkin)
-    setCheckinVisible(true)
-  }
-
-  function closeCheckinDrawer() {
-    setCheckinVisible(false)
-    setCheckinTarget(null)
-  }
-
-  function handleCheckinSubmitted() {
-    setPostConsultationRefreshKey((value) => value + 1)
-  }
-
   function handlePrescriptionsPress(appointment: StoredAppointment) {
     openDocumentsDrawer(appointment)
   }
 
   async function handleAddToCalendar(appointment: StoredAppointment) {
-    if (!user) return
+    requireAuth('quick:my-appointments', () => {
+      void (async () => {
+        if (!user) return
 
-    const dateOnly = getAppointmentDateTime(appointment)
-    dateOnly.setHours(12, 0, 0, 0)
+        const dateOnly = getAppointmentDateTime(appointment)
+        dateOnly.setHours(12, 0, 0, 0)
 
-    await addScheduleAppointmentToDeviceCalendar({
-      specialtyName: appointment.specialtyName,
-      doctorName: appointment.selectedDoctorName,
-      selectedDate: dateOnly,
-      selectedTime: appointment.selectedTime,
-      patientName: user.name,
-      ubtName: appointment.selectedUbtName,
-      ubtAddress: appointment.selectedUbtAddress,
+        await addScheduleAppointmentToDeviceCalendar({
+          specialtyName: appointment.specialtyName,
+          doctorName: appointment.selectedDoctorName,
+          selectedDate: dateOnly,
+          selectedTime: appointment.selectedTime,
+          patientName: user.name,
+          ubtName: appointment.selectedUbtName,
+          ubtAddress: appointment.selectedUbtAddress,
+        })
+      })()
     })
   }
 
@@ -296,28 +270,34 @@ export function MyAppointmentsScreen() {
   }
 
   function handleReschedule() {
-    closeDetail()
-    closeCancelFlow()
-    navigateTo('schedule-appointment')
+    requireAuth('quick:my-appointments', () => {
+      closeDetail()
+      closeCancelFlow()
+      navigateTo('schedule-appointment')
+    })
   }
 
-  function handlePostConsultationPress(appointment: StoredAppointment) {
-    openPostConsultationDrawer(appointment)
+  function handlePostConsultationPress() {
+    closeDetail()
   }
 
   async function handleConfirmCancel(reason: string) {
-    if (!user || !cancelTarget) return
+    requireAuth('quick:my-appointments', () => {
+      void (async () => {
+        if (!user || !cancelTarget) return
 
-    setIsCancelling(true)
+        setIsCancelling(true)
 
-    try {
-      await cancelMyAppointment(user.cpf, cancelTarget.id, reason)
-      void playSuccessSound()
-      closeCancelFlow()
-      await loadAppointments(true)
-    } finally {
-      setIsCancelling(false)
-    }
+        try {
+          await cancelMyAppointment(user.cpf, cancelTarget.id, reason)
+          void playSuccessSound()
+          closeCancelFlow()
+          await loadAppointments(true)
+        } finally {
+          setIsCancelling(false)
+        }
+      })()
+    })
   }
 
   function handleTabPress(tab: BottomTabId) {
@@ -336,18 +316,6 @@ export function MyAppointmentsScreen() {
     if (tab === 'agendar') {
       setMenuVisible(false)
       navigateTo('schedule-appointment')
-      return
-    }
-
-    if (tab === 'my-metrics') {
-      setMenuVisible(false)
-      navigateTo('my-metrics')
-      return
-    }
-
-    if (tab === 'pos-consulta') {
-      setMenuVisible(false)
-      navigateTo('post-consultation')
       return
     }
 
@@ -382,12 +350,25 @@ export function MyAppointmentsScreen() {
           pointerEvents="none"
         />
 
-        <ScreenStackHeader
-          title="Minhas Consultas"
-          subtitle="Agendadas · Realizadas · Canceladas"
-          paddingTop={Math.max(insets.top, 12) + 8}
-          onBack={handleBack}
-        />
+        <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
+          <Pressable
+            onPress={handleBack}
+            style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
+          >
+            <Ionicons name="chevron-back" size={22} color={colors.text} />
+          </Pressable>
+
+          <View style={styles.headerTextCol}>
+            <Text style={styles.headerTitle}>Minhas Consultas</Text>
+            <Text style={styles.headerSubtitle}>
+              Agendadas · Realizadas · Canceladas
+            </Text>
+          </View>
+
+          <View style={styles.headerPlaceholder} />
+        </View>
 
         <ScrollView
           style={styles.body}
@@ -414,10 +395,21 @@ export function MyAppointmentsScreen() {
             <>
               <AppointmentSegmentTabs
                 activeTab={segmentTab}
-                upcomingCount={upcomingAppointments.length}
+                upcomingCount={upcomingAppointments.length + activeRemoteCareRequests.length}
                 historyCount={historyAppointments.length}
                 onChange={setSegmentTab}
               />
+
+              {segmentTab === 'upcoming' && activeRemoteCareRequests.length > 0 ? (
+                <>
+                  <Text style={styles.sectionTitle}>Consultas online</Text>
+                  <View style={styles.list}>
+                    {activeRemoteCareRequests.map((request) => (
+                      <RemoteCareRequestCard key={request.id} request={request} />
+                    ))}
+                  </View>
+                </>
+              ) : null}
 
               {segmentTab === 'upcoming' && nextAppointment ? (
                 <View style={styles.section}>
@@ -462,7 +454,8 @@ export function MyAppointmentsScreen() {
                 </View>
               ) : null}
 
-              {visibleAppointments.length === 0 ? (
+              {visibleAppointments.length === 0 &&
+              (segmentTab === 'history' || activeRemoteCareRequests.length === 0) ? (
                 <AppointmentEmptyState
                   tab={segmentTab}
                   filtered={segmentTab === 'history' && historyFilterActive}
@@ -548,42 +541,12 @@ export function MyAppointmentsScreen() {
         onCancelPress={() => {
           if (selectedAppointment) openCancelFlow(selectedAppointment)
         }}
-        onPostConsultationPress={(appointment) => {
-          closeDetail()
-          handlePostConsultationPress(appointment)
-        }}
-      />
-
-      <AppointmentPostConsultationDrawer
-        visible={postConsultationVisible}
-        appointment={postConsultationTarget}
-        patientCpf={user?.cpf}
-        patientName={user?.name}
-        refreshKey={postConsultationRefreshKey}
-        onClose={closePostConsultationDrawer}
-        onRespondCheckin={openCheckinDrawer}
-      />
-
-      <PosConsultaCheckinDrawer
-        visible={checkinVisible}
-        appointment={postConsultationTarget}
-        plan={postConsultationPlan}
-        checkin={checkinTarget}
-        patientCpf={user?.cpf}
-        onClose={closeCheckinDrawer}
-        onSubmitted={handleCheckinSubmitted}
+        onPostConsultationPress={handlePostConsultationPress}
       />
 
       <AppointmentDirectionsDrawer
         visible={directionsVisible}
-        destination={
-          directionsTarget
-            ? {
-                ubtId: directionsTarget.selectedUbtId,
-                ubtName: directionsTarget.selectedUbtName,
-              }
-            : null
-        }
+        appointment={directionsTarget}
         onClose={closeDirectionsDrawer}
         onSelectApp={(app) => void handleSelectNavigationApp(app)}
       />
@@ -636,6 +599,45 @@ const styles = StyleSheet.create({
   },
   screenOverlay: {
     ...StyleSheet.absoluteFillObject,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  headerPlaceholder: {
+    width: 40,
+    height: 40,
+  },
+  backButtonPressed: {
+    opacity: 0.82,
+  },
+  headerTextCol: {
+    flex: 1,
+    gap: 2,
+  },
+  headerTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  headerSubtitle: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '500',
   },
   body: {
     flex: 1,

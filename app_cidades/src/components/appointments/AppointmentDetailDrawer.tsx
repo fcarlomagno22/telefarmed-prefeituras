@@ -2,12 +2,21 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import { Animated, Easing, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import { AppModal } from '../AppModal'
+import {
+  Animated,
+  Easing,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { scheduleDoctors } from '../../data/mockScheduleCatalog'
 import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
 import { colors } from '../../theme/colors'
+import { AppModal } from '../AppModal'
 import { StoredAppointment } from '../../types/myAppointments'
 import {
   formatAppointmentDuration,
@@ -18,7 +27,6 @@ import {
 } from '../../utils/myAppointments'
 import { formatScheduleDayLabel } from '../../utils/scheduleDate'
 import { AppointmentQuickAction } from './AppointmentQuickAction'
-import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SHEET_OFFSET = 520
 
@@ -30,7 +38,7 @@ type AppointmentDetailDrawerProps = {
   onDirectionsPress: () => void
   onReschedulePress: () => void
   onCancelPress: () => void
-  onPostConsultationPress: (appointment: StoredAppointment) => void
+  onPostConsultationPress: () => void
 }
 
 export function AppointmentDetailDrawer({
@@ -111,7 +119,7 @@ export function AppointmentDetailDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: getModalFooterPadding(insets.bottom),
+              paddingBottom: Math.max(insets.bottom, 16),
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}
@@ -254,9 +262,7 @@ export function AppointmentDetailDrawer({
                   label="Pós-consulta"
                   icon="clipboard-pulse-outline"
                   palette={ACTION_ICON_PALETTES.postConsultation}
-                  onPress={() => {
-                    if (appointment) onPostConsultationPress(appointment)
-                  }}
+                  onPress={onPostConsultationPress}
                 />
               </View>
             ) : null}

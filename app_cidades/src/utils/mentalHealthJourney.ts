@@ -1,6 +1,6 @@
 import type { MentalHealthCheckInCardData } from '../types/mentalHealth'
 
-export type MentalHealthJourneyPhase = 'know_you' | 'check_in' | 'reflect' | 'care_today'
+export type MentalHealthJourneyPhase = 'know_you' | 'check_in' | 'reflect' | 'care_today' | 'crisis'
 
 export type MentalHealthJourneyState = {
   phase: MentalHealthJourneyPhase
@@ -23,12 +23,16 @@ export function resolveMentalHealthJourney(input: {
   hasTodayPlan: boolean
   planActivitiesTotal: number
   planActivitiesCompleted: number
+  crisisBlocksPlan?: boolean
 }): MentalHealthJourneyState {
   const checkInDone = input.checkInCard.state !== 'pending'
+  const crisisBlocksPlan = input.crisisBlocksPlan === true
 
   let phase: MentalHealthJourneyPhase = 'check_in'
 
-  if (!input.initialAnamnesisComplete) {
+  if (crisisBlocksPlan && !checkInDone) {
+    phase = 'crisis'
+  } else if (!input.initialAnamnesisComplete) {
     phase = 'know_you'
   } else if (input.hasTodayPlan) {
     phase = 'care_today'
@@ -43,9 +47,10 @@ export function resolveMentalHealthJourney(input: {
     initialAnamnesisComplete: input.initialAnamnesisComplete,
     initialAnamnesisPercent: input.initialAnamnesisPercent,
     extendedAnamnesisPercent: input.extendedAnamnesisPercent,
-    showTellUsMore: input.initialAnamnesisComplete && !input.extendedAnamnesisComplete,
+    showTellUsMore:
+      !crisisBlocksPlan && input.initialAnamnesisComplete && !input.extendedAnamnesisComplete,
     checkInDone,
-    hasTodayPlan: input.hasTodayPlan,
+    hasTodayPlan: crisisBlocksPlan ? false : input.hasTodayPlan,
     planActivitiesTotal: input.planActivitiesTotal,
     planActivitiesCompleted: input.planActivitiesCompleted,
   }
@@ -56,6 +61,7 @@ export const JOURNEY_STEPS = [
   { id: 'check_in', label: 'Momento de hoje' },
   { id: 'reflect', label: 'Seu registro' },
   { id: 'care_today', label: 'Cuidados do dia' },
+  { id: 'crisis', label: 'Apoio agora' },
 ] as const
 
 export type JourneyStepTheme = {

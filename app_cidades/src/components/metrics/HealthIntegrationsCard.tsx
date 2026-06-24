@@ -1,5 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
+import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useState } from 'react'
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
@@ -194,6 +195,9 @@ export function HealthIntegrationsCard({
         style={styles.cardBorder}
       >
         <View style={styles.cardInner}>
+          {Platform.OS === 'ios' ? (
+            <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />
+          ) : null}
           <LinearGradient
             colors={['rgba(28, 28, 36, 0.96)', 'rgba(14, 14, 20, 0.98)']}
             style={StyleSheet.absoluteFillObject}

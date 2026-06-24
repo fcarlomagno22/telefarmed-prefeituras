@@ -3,6 +3,7 @@ export { evaluateConditions, evaluateUnless } from './evaluateConditions'
 export {
   runClinicalEngine,
   generateDailyMicroPlan,
+  regenerateTodayMicroPlan,
   recalculateClinicalEngine,
   submitActivityFeedbackAndRecalc,
   rebuildTodayPlanFromState,

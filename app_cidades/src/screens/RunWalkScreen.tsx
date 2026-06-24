@@ -59,6 +59,7 @@ import {
 } from '../data/runWalkWeeklyProgressStorage'
 import { consumePendingWeeklyGoalCelebration } from '../data/runWalkWeeklyCelebration'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
 import type {
@@ -83,6 +84,7 @@ export function RunWalkScreen() {
   const insets = useSafeAreaInsets()
   const { width: screenWidth } = useWindowDimensions()
   const { user, navigateTo, goBack, canGoBack, logout, routeParams } = useAuth()
+  const { requireAuth } = useGuestAuth()
 
   const [segmentTab, setSegmentTab] = useState<RunWalkTab>('today')
   const [menuVisible, setMenuVisible] = useState(false)
@@ -247,7 +249,7 @@ export function RunWalkScreen() {
 
   useEffect(() => {
     if (getRunWalkRouteParams(routeParams).openModalityDrawer) {
-      setModalityDrawerVisible(true)
+      openModalityDrawer()
     }
   }, [routeParams])
 
@@ -397,8 +399,10 @@ export function RunWalkScreen() {
   }
 
   function handleOpenManualCheckin() {
-    setCheckinAllowSkip(false)
-    setCheckinVisible(true)
+    requireAuth('vida:run-walk', () => {
+      setCheckinAllowSkip(false)
+      setCheckinVisible(true)
+    })
   }
 
   function handleCheckinClose() {
@@ -407,14 +411,18 @@ export function RunWalkScreen() {
   }
 
   async function handleActivitySelect(presetId: TodayActivityPresetId) {
-    const preset = getTodayActivityPreset(presetId)
-    setActivity(preset.activity)
-    setHasTodayActivity(true)
-    setPlanNotice(`${preset.title} definida como sua atividade de hoje.`)
+    requireAuth('vida:run-walk', () => {
+      void (async () => {
+        const preset = getTodayActivityPreset(presetId)
+        setActivity(preset.activity)
+        setHasTodayActivity(true)
+        setPlanNotice(`${preset.title} definida como sua atividade de hoje.`)
 
-    if (user) {
-      await saveTodayActivitySelection(user.cpf, preset.activity.id)
-    }
+        if (user) {
+          await saveTodayActivitySelection(user.cpf, preset.activity.id)
+        }
+      })()
+    })
   }
 
   function handleActivityPreview(presetId: TodayActivityPresetId) {
@@ -424,8 +432,10 @@ export function RunWalkScreen() {
   }
 
   function handleChangeActivityPreview() {
-    setActivityPreviewVisible(false)
-    setActivityPickerVisible(true)
+    requireAuth('vida:run-walk', () => {
+      setActivityPreviewVisible(false)
+      setActivityPickerVisible(true)
+    })
   }
 
   async function handleAcceptActivityPreview(presetId: TodayActivityPresetId) {
@@ -440,29 +450,33 @@ export function RunWalkScreen() {
   }
 
   function openModalityDrawer() {
-    setModalityDrawerVisible(true)
+    requireAuth('vida:run-walk', () => {
+      setModalityDrawerVisible(true)
+    })
   }
 
   function navigateToPreparation(modality?: ActivityModality) {
-    void clearPreparationDraft()
+    requireAuth('vida:run-walk', () => {
+      void clearPreparationDraft()
 
-    if (activity && !modality) {
+      if (activity && !modality) {
+        navigateTo('run-walk-preparation', {
+          modality: activity.type,
+          activityName: activity.title,
+          intensity: activity.intensityLabel,
+          durationMinutes: activity.durationMinutes,
+        })
+        return
+      }
+
+      const selectedModality = modality ?? 'walk'
+      const defaults = MODALITY_DEFAULTS[selectedModality]
       navigateTo('run-walk-preparation', {
-        modality: activity.type,
-        activityName: activity.title,
-        intensity: activity.intensityLabel,
-        durationMinutes: activity.durationMinutes,
+        modality: selectedModality,
+        activityName: defaults.activityName,
+        intensity: defaults.intensity,
+        durationMinutes: defaults.durationMinutes,
       })
-      return
-    }
-
-    const selectedModality = modality ?? 'walk'
-    const defaults = MODALITY_DEFAULTS[selectedModality]
-    navigateTo('run-walk-preparation', {
-      modality: selectedModality,
-      activityName: defaults.activityName,
-      intensity: defaults.intensity,
-      durationMinutes: defaults.durationMinutes,
     })
   }
 
@@ -475,30 +489,31 @@ export function RunWalkScreen() {
   }
 
   function handleActivityMenuAction(action: ActivityMenuAction) {
-    if (!activity) return
+    requireAuth('vida:run-walk', () => {
+      if (!activity) return
 
-    if (action === 'remove-today') {
-      setActivity(null)
-      setHasTodayActivity(false)
-      setPlanNotice('Atividade de hoje removida.')
-      if (user) {
-        void clearTodayActivitySelection(user.cpf)
+      if (action === 'remove-today') {
+        setActivity(null)
+        setHasTodayActivity(false)
+        setPlanNotice('Atividade de hoje removida.')
+        if (user) {
+          void clearTodayActivitySelection(user.cpf)
+        }
+        return
       }
-      return
-    }
 
-    const nextActivity = applyActivityMenuAction(activity, action)
-    setActivity(nextActivity)
+      const nextActivity = applyActivityMenuAction(activity, action)
+      setActivity(nextActivity)
 
-    const notices: Partial<Record<ActivityMenuAction, string>> = {
-      later: 'Atividade movida para mais tarde. Seu plano foi reorganizado.',
-      reschedule: 'Escolha um novo horário em breve. O plano será ajustado automaticamente.',
-      tomorrow: 'Atividade remarcada para amanhã com recuperação leve hoje.',
-      'free-activity': 'Atividade livre disponível nos atalhos rápidos.',
-      'report-tired': 'Registramos seu cansaço e sugerimos uma sessão mais leve.',
-      'report-discomfort': 'Registramos o desconforto. Considere recuperação ou descanso.',
-      skip: 'Atividade de hoje adiada. Seu plano será reorganizado nos próximos dias.',
-    }
+      const notices: Partial<Record<ActivityMenuAction, string>> = {
+        later: 'Atividade movida para mais tarde. Seu plano foi reorganizado.',
+        reschedule: 'Escolha um novo horário em breve. O plano será ajustado automaticamente.',
+        tomorrow: 'Atividade remarcada para amanhã com recuperação leve hoje.',
+        'free-activity': 'Atividade livre disponível nos atalhos rápidos.',
+        'report-tired': 'Registramos seu cansaço e sugerimos uma sessão mais leve.',
+        'report-discomfort': 'Registramos o desconforto. Considere recuperação ou descanso.',
+        skip: 'Atividade de hoje adiada. Seu plano será reorganizado nos próximos dias.',
+      }
 
     if (notices[action]) {
       setPlanNotice(notices[action]!)
@@ -509,6 +524,7 @@ export function RunWalkScreen() {
     } else if (action === 'reduce-intensity') {
       setPlanNotice('Intensidade reduzida para priorizar bem-estar e consistência.')
     }
+    })
   }
 
   async function handleCheckinComplete(
@@ -521,21 +537,28 @@ export function RunWalkScreen() {
   }
 
   async function handleSaveWeeklyGoal(targets: WeeklyGoalTargets) {
-    await saveWeeklyGoalTargets(patientCpf, targets)
-    setWeeklyGoalTargets(targets)
-    setPlanNotice('Meta semanal atualizada.')
+    requireAuth('vida:run-walk', () => {
+      void (async () => {
+        await saveWeeklyGoalTargets(patientCpf, targets)
+        setWeeklyGoalTargets(targets)
+        setPlanNotice('Meta semanal atualizada.')
+      })()
+    })
   }
 
   function handleShortcutPress(id: RunWalkQuickShortcutId) {
     if (id === 'nearby-routes') {
-      navigateTo('nearby-running-routes')
+      requireAuth('vida:run-walk', () => navigateTo('nearby-running-routes'))
       return
     }
 
     if (id === 'start-activity') {
       navigateToPreparation()
-      return
     }
+  }
+
+  function openRunWalkFeature(screen: 'run-walk-challenges' | 'run-walk-achievements') {
+    requireAuth('vida:run-walk', () => navigateTo(screen))
   }
 
   return (
@@ -614,8 +637,8 @@ export function RunWalkScreen() {
                     <View style={styles.shortcutsInner}>
                       <RunWalkQuickShortcuts
                         onShortcutPress={handleShortcutPress}
-                        onChallengesPress={() => navigateTo('run-walk-challenges')}
-                        onAchievementsPress={() => navigateTo('run-walk-achievements')}
+                        onChallengesPress={() => openRunWalkFeature('run-walk-challenges')}
+                        onAchievementsPress={() => openRunWalkFeature('run-walk-achievements')}
                       />
                     </View>
                     <NeonSectionDivider embedded />
@@ -630,7 +653,9 @@ export function RunWalkScreen() {
                       stats={weeklyGoalStats}
                       days={todayState.weeklyCalendar}
                       onViewWeekPress={() => setWeekCalendarVisible(true)}
-                      onGoalActionPress={() => setGoalDrawerVisible(true)}
+                      onGoalActionPress={() =>
+                        requireAuth('vida:run-walk', () => setGoalDrawerVisible(true))
+                      }
                       celebrateDay={celebrateDay}
                       animateRings={segmentTab === 'today' && isDailyStateReady}
                     />
@@ -647,7 +672,9 @@ export function RunWalkScreen() {
                       activity={activity}
                       onStartPress={handleStartActivity}
                       onDetailsPress={() => setDetailVisible(true)}
-                      onMenuPress={() => setActivityMenuVisible(true)}
+                      onMenuPress={() =>
+                        requireAuth('vida:run-walk', () => setActivityMenuVisible(true))
+                      }
                     />
                   ) : null}
                 </ScrollView>

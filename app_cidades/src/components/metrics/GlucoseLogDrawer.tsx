@@ -3,8 +3,20 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import { Animated, Easing, Keyboard, KeyboardAvoidingView, PanResponder, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
-import { AppModal } from '../AppModal'
+import {
+  Animated,
+  Easing,
+  Keyboard,
+  KeyboardAvoidingView,
+  PanResponder,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, {
   Circle,
@@ -19,15 +31,10 @@ import Svg, {
   Stop,
 } from 'react-native-svg'
 import { colors } from '../../theme/colors'
-import { GlucoseReading, GlucoseReadingContext } from '../../types/glucose'
-import { getGlucoseZone } from '../../utils/glucose'
 import { playSuccessSound } from '../../utils/appSounds'
 import { PrimaryButton } from '../PrimaryButton'
+import { AppModal } from '../AppModal'
 import { MetricLogSuccessContent } from './MetricLogSuccessContent'
-import { getModalFooterPadding } from '../../utils/modalSafeArea'
-import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
-
-export type { GlucoseReading, GlucoseReadingContext }
 
 const SUCCESS_DISMISS_MS = 2600
 
@@ -152,6 +159,13 @@ function buildDropShinePath(width: number, height: number) {
 const DROP_SHAPE_PATH = buildBloodDropPath(DROP_WIDTH, DROP_HEIGHT)
 const DROP_SHINE_PATH = buildDropShinePath(DROP_WIDTH, DROP_HEIGHT)
 
+export type GlucoseReadingContext = 'fasting' | 'pre_meal' | 'post_meal' | 'bedtime' | 'other'
+
+export type GlucoseReading = {
+  amountMg: number
+  context: GlucoseReadingContext
+}
+
 type ContextOption = {
   id: GlucoseReadingContext
   label: string
@@ -244,6 +258,97 @@ function buildMeniscusPath(surfaceY: number, phase: number) {
     path += ` L ${x.toFixed(1)} ${y.toFixed(1)}`
   }
   return path
+}
+
+type ZoneStyle = {
+  label: string
+  color: string
+  bg: string
+  border: string
+}
+
+function getGlucoseZone(mg: number, context: GlucoseReadingContext): ZoneStyle {
+  if (mg < 70) {
+    return {
+      label: 'Baixa',
+      color: '#38bdf8',
+      bg: 'rgba(56, 189, 248, 0.14)',
+      border: 'rgba(56, 189, 248, 0.35)',
+    }
+  }
+
+  if (context === 'post_meal') {
+    if (mg <= 140) {
+      return {
+        label: 'Normal',
+        color: '#34d399',
+        bg: 'rgba(52, 211, 153, 0.14)',
+        border: 'rgba(52, 211, 153, 0.35)',
+      }
+    }
+    if (mg <= 180) {
+      return {
+        label: 'Elevada',
+        color: '#fbbf24',
+        bg: 'rgba(251, 191, 36, 0.14)',
+        border: 'rgba(251, 191, 36, 0.35)',
+      }
+    }
+    return {
+      label: 'Alta',
+      color: '#f87171',
+      bg: 'rgba(248, 113, 113, 0.14)',
+      border: 'rgba(248, 113, 113, 0.35)',
+    }
+  }
+
+  if (context === 'bedtime') {
+    if (mg <= 120) {
+      return {
+        label: 'Normal',
+        color: '#34d399',
+        bg: 'rgba(52, 211, 153, 0.14)',
+        border: 'rgba(52, 211, 153, 0.35)',
+      }
+    }
+    if (mg <= 160) {
+      return {
+        label: 'Elevada',
+        color: '#fbbf24',
+        bg: 'rgba(251, 191, 36, 0.14)',
+        border: 'rgba(251, 191, 36, 0.35)',
+      }
+    }
+    return {
+      label: 'Alta',
+      color: '#f87171',
+      bg: 'rgba(248, 113, 113, 0.14)',
+      border: 'rgba(248, 113, 113, 0.35)',
+    }
+  }
+
+  if (mg <= 99) {
+    return {
+      label: 'Normal',
+      color: '#34d399',
+      bg: 'rgba(52, 211, 153, 0.14)',
+      border: 'rgba(52, 211, 153, 0.35)',
+    }
+  }
+  if (mg <= 125) {
+    return {
+      label: 'Elevada',
+      color: '#fbbf24',
+      bg: 'rgba(251, 191, 36, 0.14)',
+      border: 'rgba(251, 191, 36, 0.35)',
+    }
+  }
+  return {
+    label: 'Alta',
+    color: '#f87171',
+    bg: 'rgba(248, 113, 113, 0.14)',
+    border: 'rgba(248, 113, 113, 0.35)',
+  }
 }
 
 function BloodCellView({
@@ -786,14 +891,14 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
         </Animated.View>
 
         <KeyboardAvoidingView
-          behavior={keyboardAvoidingBehavior}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardWrap}
         >
           <Animated.View
             style={[
               styles.sheet,
               {
-                paddingBottom: getModalFooterPadding(insets.bottom, 8),
+                paddingBottom: Math.max(insets.bottom, 16) + 8,
                 transform: [{ translateY: sheetTranslateY }],
               },
             ]}

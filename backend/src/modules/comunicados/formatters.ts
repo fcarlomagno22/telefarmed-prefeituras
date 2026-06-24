@@ -93,6 +93,9 @@ export function buildAdminRecipientSummary(targets: AdminBroadcastTargetSnapshot
       if (target.channel === 'medico') {
         return `${target.count} profissional${target.count === 1 ? '' : 'is'}`
       }
+      if (target.channel === 'paciente_app') {
+        return `${target.count} paciente${target.count === 1 ? '' : 's'} do app`
+      }
       const label = target.channel === 'prefeitura' ? 'prefeitura' : 'UBT'
       return `${target.count} ${label}${target.count === 1 ? '' : 's'}`
     })

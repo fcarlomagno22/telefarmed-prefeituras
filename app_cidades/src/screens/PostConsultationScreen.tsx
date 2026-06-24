@@ -21,6 +21,7 @@ import { PostConsultationSegmentTabs } from '../components/postConsultation/Post
 import { SkeletonBone } from '../components/SkeletonBone'
 import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useSimulatedPageSkeleton } from '../hooks/useSimulatedPageSkeleton'
 import { colors } from '../theme/colors'
@@ -44,6 +45,7 @@ const TAB_BAR_ESTIMATED_HEIGHT = 78
 export function PostConsultationScreen() {
   const insets = useSafeAreaInsets()
   const { user, navigateTo, logout } = useAuth()
+  const { requireAuth } = useGuestAuth()
 
   const [entries, setEntries] = useState<PostConsultationPlanEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -101,8 +103,10 @@ export function PostConsultationScreen() {
   }
 
   function openPlanDrawer(entry: PostConsultationPlanEntry) {
-    setPostConsultationTarget(entry.appointment)
-    setPostConsultationVisible(true)
+    requireAuth('quick:post-consultation', () => {
+      setPostConsultationTarget(entry.appointment)
+      setPostConsultationVisible(true)
+    })
   }
 
   function closePlanDrawer() {
@@ -133,8 +137,10 @@ export function PostConsultationScreen() {
   }
 
   function handleRespondFromHero() {
-    if (!hero || hero.kind !== 'pending') return
-    openCheckinDrawer(hero.entry.appointment, hero.entry.plan, hero.checkin)
+    requireAuth('quick:post-consultation', () => {
+      if (!hero || hero.kind !== 'pending') return
+      openCheckinDrawer(hero.entry.appointment, hero.entry.plan, hero.checkin)
+    })
   }
 
   function openCheckinFromPlanDrawer(

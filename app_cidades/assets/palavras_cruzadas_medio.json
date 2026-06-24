@@ -1,0 +1,3213 @@
+{
+  "jogo": "palavras_cruzadas",
+  "dificuldade": "medio",
+  "grid": {
+    "linhas": 9,
+    "colunas": 9,
+    "maximo_letras_por_palavra": 9
+  },
+  "total_palavras": 400,
+  "observacao": "Todas as palavras em palavra_grid foram normalizadas sem acentos e têm no máximo 9 letras para caber em grid 9x9.",
+  "palavras": [
+    {
+      "id": 1,
+      "palavra": "ontologia",
+      "palavra_grid": "ONTOLOGIA",
+      "dica": "Área que estuda o ser e a existência",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 2,
+      "palavra": "lógica",
+      "palavra_grid": "LOGICA",
+      "dica": "Estudo das regras do raciocínio correto",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 3,
+      "palavra": "semiótica",
+      "palavra_grid": "SEMIOTICA",
+      "dica": "Estudo dos signos e dos significados",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 4,
+      "palavra": "álgebra",
+      "palavra_grid": "ALGEBRA",
+      "dica": "Parte da matemática que usa letras e símbolos",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 5,
+      "palavra": "geometria",
+      "palavra_grid": "GEOMETRIA",
+      "dica": "Área que estuda formas, medidas e espaços",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 6,
+      "palavra": "cálculo",
+      "palavra_grid": "CALCULO",
+      "dica": "Área matemática que estuda variações e limites",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 7,
+      "palavra": "algoritmo",
+      "palavra_grid": "ALGORITMO",
+      "dica": "Sequência de passos para resolver um problema",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 8,
+      "palavra": "dado",
+      "palavra_grid": "DADO",
+      "dica": "Informação bruta que pode ser analisada",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 9,
+      "palavra": "hipótese",
+      "palavra_grid": "HIPOTESE",
+      "dica": "Suposição inicial que pode ser testada",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 10,
+      "palavra": "teoria",
+      "palavra_grid": "TEORIA",
+      "dica": "Conjunto organizado de ideias que explica fenômenos",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 11,
+      "palavra": "evidência",
+      "palavra_grid": "EVIDENCIA",
+      "dica": "Informação que ajuda a comprovar algo",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 12,
+      "palavra": "indicador",
+      "palavra_grid": "INDICADOR",
+      "dica": "Medida usada para acompanhar uma situação",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 13,
+      "palavra": "métrica",
+      "palavra_grid": "METRICA",
+      "dica": "Medida usada para avaliar desempenho ou resultado",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 14,
+      "palavra": "protocolo",
+      "palavra_grid": "PROTOCOLO",
+      "dica": "Conjunto de regras ou procedimentos definidos",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 15,
+      "palavra": "sintoma",
+      "palavra_grid": "SINTOMA",
+      "dica": "Sinal percebido por uma pessoa sobre sua condição",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 16,
+      "palavra": "síndrome",
+      "palavra_grid": "SINDROME",
+      "dica": "Conjunto de sinais e sintomas relacionados",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 17,
+      "palavra": "patologia",
+      "palavra_grid": "PATOLOGIA",
+      "dica": "Estudo das doenças e suas alterações",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 18,
+      "palavra": "anatomia",
+      "palavra_grid": "ANATOMIA",
+      "dica": "Estudo da estrutura do corpo",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 19,
+      "palavra": "virologia",
+      "palavra_grid": "VIROLOGIA",
+      "dica": "Estudo dos vírus",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 20,
+      "palavra": "citologia",
+      "palavra_grid": "CITOLOGIA",
+      "dica": "Estudo das células",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 21,
+      "palavra": "bioética",
+      "palavra_grid": "BIOETICA",
+      "dica": "Estudo ético das práticas ligadas à vida e à saúde",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 22,
+      "palavra": "triagem",
+      "palavra_grid": "TRIAGEM",
+      "dica": "Classificação inicial para definir prioridade de atendimento",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 23,
+      "palavra": "anamnese",
+      "palavra_grid": "ANAMNESE",
+      "dica": "Entrevista clínica sobre histórico e sintomas",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 24,
+      "palavra": "posologia",
+      "palavra_grid": "POSOLOGIA",
+      "dica": "Modo correto de usar um medicamento",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 25,
+      "palavra": "dosagem",
+      "palavra_grid": "DOSAGEM",
+      "dica": "Quantidade indicada de uma substância ou medicamento",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 26,
+      "palavra": "bula",
+      "palavra_grid": "BULA",
+      "dica": "Documento com informações sobre um medicamento",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 27,
+      "palavra": "laudo",
+      "palavra_grid": "LAUDO",
+      "dica": "Documento técnico com conclusão de uma avaliação",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 28,
+      "palavra": "parecer",
+      "palavra_grid": "PARECER",
+      "dica": "Opinião técnica ou jurídica fundamentada",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 29,
+      "palavra": "auditoria",
+      "palavra_grid": "AUDITORIA",
+      "dica": "Verificação organizada de processos ou informações",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 30,
+      "palavra": "logística",
+      "palavra_grid": "LOGISTICA",
+      "dica": "Organização do transporte, armazenamento e distribuição",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 31,
+      "palavra": "orçamento",
+      "palavra_grid": "ORCAMENTO",
+      "dica": "Previsão de receitas, despesas ou custos",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 32,
+      "palavra": "receita",
+      "palavra_grid": "RECEITA",
+      "dica": "Valor ou recurso que entra em uma organização",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 33,
+      "palavra": "despesa",
+      "palavra_grid": "DESPESA",
+      "dica": "Valor gasto para manter uma atividade",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 34,
+      "palavra": "contrato",
+      "palavra_grid": "CONTRATO",
+      "dica": "Acordo formal entre partes",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 35,
+      "palavra": "licitação",
+      "palavra_grid": "LICITACAO",
+      "dica": "Processo público para contratar obras, bens ou serviços",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 36,
+      "palavra": "edital",
+      "palavra_grid": "EDITAL",
+      "dica": "Documento que apresenta regras de uma seleção ou contratação",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 37,
+      "palavra": "proposta",
+      "palavra_grid": "PROPOSTA",
+      "dica": "Oferta apresentada para análise ou aceitação",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 38,
+      "palavra": "mediação",
+      "palavra_grid": "MEDIACAO",
+      "dica": "Método em que terceiro ajuda partes a chegar a acordo",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 39,
+      "palavra": "doutrina",
+      "palavra_grid": "DOUTRINA",
+      "dica": "Conjunto de estudos e opiniões de especialistas",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 40,
+      "palavra": "sentença",
+      "palavra_grid": "SENTENCA",
+      "dica": "Decisão final dada por um juiz em um processo",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 41,
+      "palavra": "recurso",
+      "palavra_grid": "RECURSO",
+      "dica": "Pedido para reexaminar uma decisão",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 42,
+      "palavra": "petição",
+      "palavra_grid": "PETICAO",
+      "dica": "Documento usado para fazer pedido formal ao juiz",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 43,
+      "palavra": "audiência",
+      "palavra_grid": "AUDIENCIA",
+      "dica": "Ato em que partes são ouvidas em um processo",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 44,
+      "palavra": "processo",
+      "palavra_grid": "PROCESSO",
+      "dica": "Conjunto de atos organizados para resolver uma questão",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 45,
+      "palavra": "prova",
+      "palavra_grid": "PROVA",
+      "dica": "Elemento usado para demonstrar a verdade de um fato",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 46,
+      "palavra": "documento",
+      "palavra_grid": "DOCUMENTO",
+      "dica": "Registro escrito, digital ou físico de uma informação",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 47,
+      "palavra": "backup",
+      "palavra_grid": "BACKUP",
+      "dica": "Cópia de segurança de dados",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 48,
+      "palavra": "servidor",
+      "palavra_grid": "SERVIDOR",
+      "dica": "Computador ou sistema que fornece serviços a outros",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 49,
+      "palavra": "interface",
+      "palavra_grid": "INTERFACE",
+      "dica": "Parte pela qual o usuário interage com um sistema",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 50,
+      "palavra": "endpoint",
+      "palavra_grid": "ENDPOINT",
+      "dica": "Ponto de acesso usado por uma API ou serviço",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 51,
+      "palavra": "versão",
+      "palavra_grid": "VERSAO",
+      "dica": "Edição específica de um arquivo, sistema ou produto",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 52,
+      "palavra": "protótipo",
+      "palavra_grid": "PROTOTIPO",
+      "dica": "Modelo inicial usado para testar uma ideia",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 53,
+      "palavra": "sprint",
+      "palavra_grid": "SPRINT",
+      "dica": "Ciclo curto de trabalho em métodos ágeis",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 54,
+      "palavra": "backlog",
+      "palavra_grid": "BACKLOG",
+      "dica": "Lista organizada de tarefas ou demandas pendentes",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 55,
+      "palavra": "escopo",
+      "palavra_grid": "ESCOPO",
+      "dica": "Limite do que será incluído em um projeto",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 56,
+      "palavra": "requisito",
+      "palavra_grid": "REQUISITO",
+      "dica": "Condição ou função necessária em um projeto",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 57,
+      "palavra": "academia",
+      "palavra_grid": "ACADEMIA",
+      "dica": "Ambiente de estudo, pesquisa ou formação",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 58,
+      "palavra": "pesquisa",
+      "palavra_grid": "PESQUISA",
+      "dica": "Busca organizada por informações ou respostas",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 59,
+      "palavra": "projeto",
+      "palavra_grid": "PROJETO",
+      "dica": "Plano criado para realizar uma ideia",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 60,
+      "palavra": "roteiro",
+      "palavra_grid": "ROTEIRO",
+      "dica": "Sequência organizada de etapas ou falas",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 61,
+      "palavra": "resumo",
+      "palavra_grid": "RESUMO",
+      "dica": "Versão curta com as ideias principais",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 62,
+      "palavra": "ensaio",
+      "palavra_grid": "ENSAIO",
+      "dica": "Texto ou teste feito para análise",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 63,
+      "palavra": "debate",
+      "palavra_grid": "DEBATE",
+      "dica": "Discussão organizada sobre um tema",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 64,
+      "palavra": "palestra",
+      "palavra_grid": "PALESTRA",
+      "dica": "Apresentação oral sobre um assunto",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 65,
+      "palavra": "oficina",
+      "palavra_grid": "OFICINA",
+      "dica": "Atividade prática de aprendizado",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 66,
+      "palavra": "apostila",
+      "palavra_grid": "APOSTILA",
+      "dica": "Material escrito usado para estudo",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 67,
+      "palavra": "materia",
+      "palavra_grid": "MATERIA",
+      "dica": "Conteúdo estudado em uma disciplina",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 68,
+      "palavra": "modulo",
+      "palavra_grid": "MODULO",
+      "dica": "Parte organizada de um curso ou sistema",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 69,
+      "palavra": "turma",
+      "palavra_grid": "TURMA",
+      "dica": "Grupo de alunos reunidos para estudar",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 70,
+      "palavra": "serie",
+      "palavra_grid": "SERIE",
+      "dica": "Etapa de ensino em uma escola",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 71,
+      "palavra": "campus",
+      "palavra_grid": "CAMPUS",
+      "dica": "Área onde funciona uma instituição de ensino",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 72,
+      "palavra": "graduacao",
+      "palavra_grid": "GRADUACAO",
+      "dica": "Curso superior de formação profissional",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 73,
+      "palavra": "mestrado",
+      "palavra_grid": "MESTRADO",
+      "dica": "Curso de pós-graduação acadêmica",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 74,
+      "palavra": "doutorado",
+      "palavra_grid": "DOUTORADO",
+      "dica": "Grau acadêmico avançado",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 75,
+      "palavra": "bolsista",
+      "palavra_grid": "BOLSISTA",
+      "dica": "Pessoa que recebe bolsa de estudo ou pesquisa",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 76,
+      "palavra": "monitoria",
+      "palavra_grid": "MONITORIA",
+      "dica": "Atividade de apoio ao aprendizado",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 77,
+      "palavra": "estagio",
+      "palavra_grid": "ESTAGIO",
+      "dica": "Prática profissional supervisionada",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 78,
+      "palavra": "curriculo",
+      "palavra_grid": "CURRICULO",
+      "dica": "Registro de formação e experiências",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 79,
+      "palavra": "diploma",
+      "palavra_grid": "DIPLOMA",
+      "dica": "Documento que comprova uma formação",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 80,
+      "palavra": "dossie",
+      "palavra_grid": "DOSSIE",
+      "dica": "Conjunto organizado de documentos",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 81,
+      "palavra": "tese",
+      "palavra_grid": "TESE",
+      "dica": "Trabalho acadêmico com defesa de ideia",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 82,
+      "palavra": "artigo",
+      "palavra_grid": "ARTIGO",
+      "dica": "Texto técnico ou científico publicado",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 83,
+      "palavra": "editora",
+      "palavra_grid": "EDITORA",
+      "dica": "Empresa ou instituição que publica obras",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 84,
+      "palavra": "leitor",
+      "palavra_grid": "LEITOR",
+      "dica": "Pessoa que lê textos ou livros",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 85,
+      "palavra": "autor",
+      "palavra_grid": "AUTOR",
+      "dica": "Pessoa que cria uma obra escrita",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 86,
+      "palavra": "citacao",
+      "palavra_grid": "CITACAO",
+      "dica": "Trecho ou referência usada em um texto",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 87,
+      "palavra": "fonte",
+      "palavra_grid": "FONTE",
+      "dica": "Origem de uma informação",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 88,
+      "palavra": "indice",
+      "palavra_grid": "INDICE",
+      "dica": "Lista ou medida usada para localizar ou avaliar",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 89,
+      "palavra": "sumario",
+      "palavra_grid": "SUMARIO",
+      "dica": "Lista das partes de uma obra",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 90,
+      "palavra": "capitulo",
+      "palavra_grid": "CAPITULO",
+      "dica": "Divisão principal de um livro",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 91,
+      "palavra": "pagina",
+      "palavra_grid": "PAGINA",
+      "dica": "Cada lado de uma folha escrita",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 92,
+      "palavra": "rodape",
+      "palavra_grid": "RODAPE",
+      "dica": "Texto ou nota na parte inferior da página",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 93,
+      "palavra": "glossario",
+      "palavra_grid": "GLOSSARIO",
+      "dica": "Lista de termos com explicações",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 94,
+      "palavra": "anexo",
+      "palavra_grid": "ANEXO",
+      "dica": "Documento complementar junto a outro",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 95,
+      "palavra": "matriz",
+      "palavra_grid": "MATRIZ",
+      "dica": "Organização de números em linhas e colunas",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 96,
+      "palavra": "vetor",
+      "palavra_grid": "VETOR",
+      "dica": "Grandeza com direção, sentido e valor",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 97,
+      "palavra": "grafico",
+      "palavra_grid": "GRAFICO",
+      "dica": "Representação visual de dados",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 98,
+      "palavra": "tabela",
+      "palavra_grid": "TABELA",
+      "dica": "Organização de dados em linhas e colunas",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 99,
+      "palavra": "escala",
+      "palavra_grid": "ESCALA",
+      "dica": "Relação de proporção entre medidas",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 100,
+      "palavra": "media",
+      "palavra_grid": "MEDIA",
+      "dica": "Valor central calculado por soma e divisão",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 101,
+      "palavra": "mediana",
+      "palavra_grid": "MEDIANA",
+      "dica": "Valor central em uma lista ordenada",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 102,
+      "palavra": "moda",
+      "palavra_grid": "MODA",
+      "dica": "Valor que aparece com maior frequência",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 103,
+      "palavra": "amostra",
+      "palavra_grid": "AMOSTRA",
+      "dica": "Parte selecionada de um conjunto maior",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 104,
+      "palavra": "censo",
+      "palavra_grid": "CENSO",
+      "dica": "Levantamento feito com todos os elementos de um grupo",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 105,
+      "palavra": "variavel",
+      "palavra_grid": "VARIAVEL",
+      "dica": "Elemento que pode mudar em uma análise",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 106,
+      "palavra": "formula",
+      "palavra_grid": "FORMULA",
+      "dica": "Expressão usada para calcular algo",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 107,
+      "palavra": "equacao",
+      "palavra_grid": "EQUACAO",
+      "dica": "Igualdade matemática com incógnitas",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 108,
+      "palavra": "funcao",
+      "palavra_grid": "FUNCAO",
+      "dica": "Relação matemática entre valores",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 109,
+      "palavra": "limite",
+      "palavra_grid": "LIMITE",
+      "dica": "Valor ao qual uma expressão se aproxima",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 110,
+      "palavra": "potencia",
+      "palavra_grid": "POTENCIA",
+      "dica": "Multiplicação repetida de um número",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 111,
+      "palavra": "decimal",
+      "palavra_grid": "DECIMAL",
+      "dica": "Número escrito com parte depois da vírgula",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 112,
+      "palavra": "fracao",
+      "palavra_grid": "FRACAO",
+      "dica": "Representação de uma parte de um todo",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 113,
+      "palavra": "porcento",
+      "palavra_grid": "PORCENTO",
+      "dica": "Valor indicado em relação a cem",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 114,
+      "palavra": "medida",
+      "palavra_grid": "MEDIDA",
+      "dica": "Resultado de uma comparação com uma unidade",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 115,
+      "palavra": "volume",
+      "palavra_grid": "VOLUME",
+      "dica": "Espaço ocupado por um corpo",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 116,
+      "palavra": "massa",
+      "palavra_grid": "MASSA",
+      "dica": "Quantidade de matéria de um corpo",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 117,
+      "palavra": "area",
+      "palavra_grid": "AREA",
+      "dica": "Medida de uma superfície",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 118,
+      "palavra": "perimetro",
+      "palavra_grid": "PERIMETRO",
+      "dica": "Soma dos lados de uma figura",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 119,
+      "palavra": "angulo",
+      "palavra_grid": "ANGULO",
+      "dica": "Abertura entre duas linhas",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 120,
+      "palavra": "reta",
+      "palavra_grid": "RETA",
+      "dica": "Linha sem curvas",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 121,
+      "palavra": "curva",
+      "palavra_grid": "CURVA",
+      "dica": "Linha que muda de direção",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 122,
+      "palavra": "eixo",
+      "palavra_grid": "EIXO",
+      "dica": "Linha de referência em um plano",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 123,
+      "palavra": "plano",
+      "palavra_grid": "PLANO",
+      "dica": "Superfície ideal sem espessura",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 124,
+      "palavra": "solucao",
+      "palavra_grid": "SOLUCAO",
+      "dica": "Resposta encontrada para um problema",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 125,
+      "palavra": "metodo",
+      "palavra_grid": "METODO",
+      "dica": "Modo organizado de fazer algo",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 126,
+      "palavra": "controle",
+      "palavra_grid": "CONTROLE",
+      "dica": "Acompanhamento para manter algo dentro do esperado",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 127,
+      "palavra": "clinica",
+      "palavra_grid": "CLINICA",
+      "dica": "Local ou prática ligada ao atendimento de saúde",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 128,
+      "palavra": "celula",
+      "palavra_grid": "CELULA",
+      "dica": "Menor unidade estrutural dos seres vivos",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 129,
+      "palavra": "tecido",
+      "palavra_grid": "TECIDO",
+      "dica": "Conjunto de células com função semelhante",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 130,
+      "palavra": "orgao",
+      "palavra_grid": "ORGAO",
+      "dica": "Parte do corpo com função específica",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 131,
+      "palavra": "musculo",
+      "palavra_grid": "MUSCULO",
+      "dica": "Tecido responsável por movimentos",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 132,
+      "palavra": "nervo",
+      "palavra_grid": "NERVO",
+      "dica": "Estrutura que transmite impulsos pelo corpo",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 133,
+      "palavra": "sangue",
+      "palavra_grid": "SANGUE",
+      "dica": "Líquido que circula pelo corpo",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 134,
+      "palavra": "plasma",
+      "palavra_grid": "PLASMA",
+      "dica": "Parte líquida do sangue",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 135,
+      "palavra": "pulso",
+      "palavra_grid": "PULSO",
+      "dica": "Batimento percebido nas artérias",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 136,
+      "palavra": "pressao",
+      "palavra_grid": "PRESSAO",
+      "dica": "Força exercida pelo sangue nas artérias",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 137,
+      "palavra": "glicose",
+      "palavra_grid": "GLICOSE",
+      "dica": "Açúcar presente no sangue",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 138,
+      "palavra": "insulina",
+      "palavra_grid": "INSULINA",
+      "dica": "Hormônio que ajuda a controlar a glicose",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 139,
+      "palavra": "dose",
+      "palavra_grid": "DOSE",
+      "dica": "Quantidade indicada de medicamento",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 140,
+      "palavra": "cuidado",
+      "palavra_grid": "CUIDADO",
+      "dica": "Ação de proteger ou tratar alguém",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 141,
+      "palavra": "higiene",
+      "palavra_grid": "HIGIENE",
+      "dica": "Conjunto de hábitos de limpeza",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 142,
+      "palavra": "repouso",
+      "palavra_grid": "REPOUSO",
+      "dica": "Período de descanso para recuperação",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 143,
+      "palavra": "dieta",
+      "palavra_grid": "DIETA",
+      "dica": "Conjunto de alimentos consumidos por alguém",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 144,
+      "palavra": "jejum",
+      "palavra_grid": "JEJUM",
+      "dica": "Período sem ingestão de alimentos",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 145,
+      "palavra": "edema",
+      "palavra_grid": "EDEMA",
+      "dica": "Inchaço causado por acúmulo de líquido",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 146,
+      "palavra": "trauma",
+      "palavra_grid": "TRAUMA",
+      "dica": "Lesão ou abalo físico ou emocional",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 147,
+      "palavra": "lesao",
+      "palavra_grid": "LESAO",
+      "dica": "Dano em tecido ou parte do corpo",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 148,
+      "palavra": "ferida",
+      "palavra_grid": "FERIDA",
+      "dica": "Abertura ou machucado na pele",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 149,
+      "palavra": "sutura",
+      "palavra_grid": "SUTURA",
+      "dica": "Fechamento de ferida com pontos",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 150,
+      "palavra": "enfermo",
+      "palavra_grid": "ENFERMO",
+      "dica": "Pessoa que está doente",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 151,
+      "palavra": "risco",
+      "palavra_grid": "RISCO",
+      "dica": "Possibilidade de ocorrer dano ou problema",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 152,
+      "palavra": "surto",
+      "palavra_grid": "SURTO",
+      "dica": "Aumento repentino de casos de uma doença",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 153,
+      "palavra": "endemia",
+      "palavra_grid": "ENDEMIA",
+      "dica": "Doença frequente em determinada região",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 154,
+      "palavra": "agente",
+      "palavra_grid": "AGENTE",
+      "dica": "Fator que causa ou transmite uma doença",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 155,
+      "palavra": "virus",
+      "palavra_grid": "VIRUS",
+      "dica": "Microrganismo que precisa de célula para se multiplicar",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 156,
+      "palavra": "bacteria",
+      "palavra_grid": "BACTERIA",
+      "dica": "Microrganismo de uma única célula",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 157,
+      "palavra": "fungo",
+      "palavra_grid": "FUNGO",
+      "dica": "Organismo que pode causar infecções ou decompor matéria",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 158,
+      "palavra": "toxina",
+      "palavra_grid": "TOXINA",
+      "dica": "Substância capaz de causar dano ao organismo",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 159,
+      "palavra": "codigo",
+      "palavra_grid": "CODIGO",
+      "dica": "Conjunto de instruções ou símbolos",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 160,
+      "palavra": "sistema",
+      "palavra_grid": "SISTEMA",
+      "dica": "Conjunto de partes que funcionam juntas",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 161,
+      "palavra": "cliente",
+      "palavra_grid": "CLIENTE",
+      "dica": "Usuário ou sistema que solicita um serviço",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 162,
+      "palavra": "usuario",
+      "palavra_grid": "USUARIO",
+      "dica": "Pessoa que utiliza um sistema",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 163,
+      "palavra": "login",
+      "palavra_grid": "LOGIN",
+      "dica": "Entrada identificada em um sistema",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 164,
+      "palavra": "token",
+      "palavra_grid": "TOKEN",
+      "dica": "Código usado para autenticação ou acesso",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 165,
+      "palavra": "registro",
+      "palavra_grid": "REGISTRO",
+      "dica": "Informação armazenada em um sistema",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 166,
+      "palavra": "filtro",
+      "palavra_grid": "FILTRO",
+      "dica": "Recurso usado para selecionar dados",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 167,
+      "palavra": "painel",
+      "palavra_grid": "PAINEL",
+      "dica": "Tela que reúne informações importantes",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 168,
+      "palavra": "pacote",
+      "palavra_grid": "PACOTE",
+      "dica": "Conjunto agrupado de arquivos ou recursos",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 169,
+      "palavra": "branch",
+      "palavra_grid": "BRANCH",
+      "dica": "Ramo de desenvolvimento de código",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 170,
+      "palavra": "commit",
+      "palavra_grid": "COMMIT",
+      "dica": "Registro de alteração em código",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 171,
+      "palavra": "deploy",
+      "palavra_grid": "DEPLOY",
+      "dica": "Publicação de uma versão de sistema",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 172,
+      "palavra": "build",
+      "palavra_grid": "BUILD",
+      "dica": "Versão gerada de um aplicativo ou sistema",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 173,
+      "palavra": "cache",
+      "palavra_grid": "CACHE",
+      "dica": "Armazenamento temporário para acesso rápido",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 174,
+      "palavra": "cookie",
+      "palavra_grid": "COOKIE",
+      "dica": "Dado salvo pelo navegador durante o uso de sites",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 175,
+      "palavra": "script",
+      "palavra_grid": "SCRIPT",
+      "dica": "Conjunto de comandos executáveis",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 176,
+      "palavra": "layout",
+      "palavra_grid": "LAYOUT",
+      "dica": "Organização visual de uma tela ou página",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 177,
+      "palavra": "icone",
+      "palavra_grid": "ICONE",
+      "dica": "Imagem pequena que representa uma ação ou item",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 178,
+      "palavra": "menu",
+      "palavra_grid": "MENU",
+      "dica": "Lista de opções em um sistema",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 179,
+      "palavra": "rota",
+      "palavra_grid": "ROTA",
+      "dica": "Caminho usado para acessar uma tela ou recurso",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 180,
+      "palavra": "link",
+      "palavra_grid": "LINK",
+      "dica": "Conexão que leva a outra página ou recurso",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 181,
+      "palavra": "bug",
+      "palavra_grid": "BUG",
+      "dica": "Erro de funcionamento em um sistema",
+      "dificuldade": "medio",
+      "tamanho": 3
+    },
+    {
+      "id": 182,
+      "palavra": "erro",
+      "palavra_grid": "ERRO",
+      "dica": "Resultado incorreto ou falha",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 183,
+      "palavra": "log",
+      "palavra_grid": "LOG",
+      "dica": "Registro de eventos de um sistema",
+      "dificuldade": "medio",
+      "tamanho": 3
+    },
+    {
+      "id": 184,
+      "palavra": "fila",
+      "palavra_grid": "FILA",
+      "dica": "Ordem de espera para atendimento ou processamento",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 185,
+      "palavra": "chat",
+      "palavra_grid": "CHAT",
+      "dica": "Conversa por mensagens em meio digital",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 186,
+      "palavra": "dominio",
+      "palavra_grid": "DOMINIO",
+      "dica": "Nome usado para identificar um site",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 187,
+      "palavra": "host",
+      "palavra_grid": "HOST",
+      "dica": "Servidor ou endereço que hospeda um serviço",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 188,
+      "palavra": "api",
+      "palavra_grid": "API",
+      "dica": "Interface para comunicação entre sistemas",
+      "dificuldade": "medio",
+      "tamanho": 3
+    },
+    {
+      "id": 189,
+      "palavra": "direito",
+      "palavra_grid": "DIREITO",
+      "dica": "Conjunto de normas que regulam relações sociais",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 190,
+      "palavra": "dever",
+      "palavra_grid": "DEVER",
+      "dica": "Obrigação que uma pessoa deve cumprir",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 191,
+      "palavra": "norma",
+      "palavra_grid": "NORMA",
+      "dica": "Regra estabelecida para orientar condutas",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 192,
+      "palavra": "regra",
+      "palavra_grid": "REGRA",
+      "dica": "Orientação que define o que pode ou deve ser feito",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 193,
+      "palavra": "lei",
+      "palavra_grid": "LEI",
+      "dica": "Norma criada pelo poder competente",
+      "dificuldade": "medio",
+      "tamanho": 3
+    },
+    {
+      "id": 194,
+      "palavra": "inciso",
+      "palavra_grid": "INCISO",
+      "dica": "Divisão numerada dentro de um artigo legal",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 195,
+      "palavra": "alinea",
+      "palavra_grid": "ALINEA",
+      "dica": "Subdivisão identificada por letra em texto legal",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 196,
+      "palavra": "prazo",
+      "palavra_grid": "PRAZO",
+      "dica": "Tempo limite para cumprir algo",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 197,
+      "palavra": "agravo",
+      "palavra_grid": "AGRAVO",
+      "dica": "Tipo de recurso contra decisão judicial",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 198,
+      "palavra": "tutela",
+      "palavra_grid": "TUTELA",
+      "dica": "Proteção ou medida concedida judicialmente",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 199,
+      "palavra": "liminar",
+      "palavra_grid": "LIMINAR",
+      "dica": "Decisão provisória dada no início do processo",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 200,
+      "palavra": "decisao",
+      "palavra_grid": "DECISAO",
+      "dica": "Ato de escolher ou determinar algo",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 201,
+      "palavra": "juiz",
+      "palavra_grid": "JUIZ",
+      "dica": "Autoridade que julga processos",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 202,
+      "palavra": "vara",
+      "palavra_grid": "VARA",
+      "dica": "Unidade judiciária onde tramitam processos",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 203,
+      "palavra": "foro",
+      "palavra_grid": "FORO",
+      "dica": "Local ou competência para julgar uma causa",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 204,
+      "palavra": "parte",
+      "palavra_grid": "PARTE",
+      "dica": "Pessoa ou entidade envolvida em processo",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 205,
+      "palavra": "reu",
+      "palavra_grid": "REU",
+      "dica": "Pessoa contra quem se move uma ação",
+      "dificuldade": "medio",
+      "tamanho": 3
+    },
+    {
+      "id": 206,
+      "palavra": "pericia",
+      "palavra_grid": "PERICIA",
+      "dica": "Exame técnico feito por especialista",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 207,
+      "palavra": "oficio",
+      "palavra_grid": "OFICIO",
+      "dica": "Comunicação formal enviada por autoridade ou órgão",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 208,
+      "palavra": "certidao",
+      "palavra_grid": "CERTIDAO",
+      "dica": "Documento que certifica uma informação oficial",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 209,
+      "palavra": "aditivo",
+      "palavra_grid": "ADITIVO",
+      "dica": "Alteração complementar de um contrato",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 210,
+      "palavra": "clausula",
+      "palavra_grid": "CLAUSULA",
+      "dica": "Item ou condição dentro de um contrato",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 211,
+      "palavra": "multa",
+      "palavra_grid": "MULTA",
+      "dica": "Valor cobrado por descumprimento de regra",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 212,
+      "palavra": "tributo",
+      "palavra_grid": "TRIBUTO",
+      "dica": "Valor pago ao poder público por obrigação legal",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 213,
+      "palavra": "imposto",
+      "palavra_grid": "IMPOSTO",
+      "dica": "Tributo cobrado sem destino específico obrigatório",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 214,
+      "palavra": "taxa",
+      "palavra_grid": "TAXA",
+      "dica": "Valor cobrado por serviço ou poder público",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 215,
+      "palavra": "alvara",
+      "palavra_grid": "ALVARA",
+      "dica": "Autorização formal para atividade ou funcionamento",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 216,
+      "palavra": "licenca",
+      "palavra_grid": "LICENCA",
+      "dica": "Permissão formal para fazer ou usar algo",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 217,
+      "palavra": "cadastro",
+      "palavra_grid": "CADASTRO",
+      "dica": "Registro organizado de dados",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 218,
+      "palavra": "acordo",
+      "palavra_grid": "ACORDO",
+      "dica": "Entendimento aceito por duas ou mais partes",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 219,
+      "palavra": "convenio",
+      "palavra_grid": "CONVENIO",
+      "dica": "Ajuste de cooperação entre entidades",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 220,
+      "palavra": "portaria",
+      "palavra_grid": "PORTARIA",
+      "dica": "Ato administrativo com regras ou determinações",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 221,
+      "palavra": "decreto",
+      "palavra_grid": "DECRETO",
+      "dica": "Ato normativo expedido por autoridade",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 222,
+      "palavra": "caixa",
+      "palavra_grid": "CAIXA",
+      "dica": "Controle de entrada e saída de dinheiro",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 223,
+      "palavra": "custo",
+      "palavra_grid": "CUSTO",
+      "dica": "Valor gasto para produzir ou manter algo",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 224,
+      "palavra": "preco",
+      "palavra_grid": "PRECO",
+      "dica": "Valor cobrado por produto ou serviço",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 225,
+      "palavra": "margem",
+      "palavra_grid": "MARGEM",
+      "dica": "Diferença entre custo e preço ou limite disponível",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 226,
+      "palavra": "lucro",
+      "palavra_grid": "LUCRO",
+      "dica": "Resultado positivo após descontar custos",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 227,
+      "palavra": "perda",
+      "palavra_grid": "PERDA",
+      "dica": "Resultado negativo ou diminuição de valor",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 228,
+      "palavra": "saldo",
+      "palavra_grid": "SALDO",
+      "dica": "Valor restante em uma conta",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 229,
+      "palavra": "boleto",
+      "palavra_grid": "BOLETO",
+      "dica": "Documento usado para pagamento",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 230,
+      "palavra": "fatura",
+      "palavra_grid": "FATURA",
+      "dica": "Cobrança com valores de uma compra ou serviço",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 231,
+      "palavra": "parcela",
+      "palavra_grid": "PARCELA",
+      "dica": "Parte de um pagamento dividido",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 232,
+      "palavra": "credito",
+      "palavra_grid": "CREDITO",
+      "dica": "Valor disponível ou confiança financeira",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 233,
+      "palavra": "debito",
+      "palavra_grid": "DEBITO",
+      "dica": "Valor devido ou lançado como saída",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 234,
+      "palavra": "capital",
+      "palavra_grid": "CAPITAL",
+      "dica": "Recurso financeiro ou patrimônio aplicado",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 235,
+      "palavra": "ativo",
+      "palavra_grid": "ATIVO",
+      "dica": "Bem ou direito com valor econômico",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 236,
+      "palavra": "passivo",
+      "palavra_grid": "PASSIVO",
+      "dica": "Obrigação ou dívida de uma entidade",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 237,
+      "palavra": "acao",
+      "palavra_grid": "ACAO",
+      "dica": "Participação em uma empresa ou ato realizado",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 238,
+      "palavra": "meta",
+      "palavra_grid": "META",
+      "dica": "Resultado que se deseja alcançar",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 239,
+      "palavra": "tarefa",
+      "palavra_grid": "TAREFA",
+      "dica": "Atividade específica a ser realizada",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 240,
+      "palavra": "demanda",
+      "palavra_grid": "DEMANDA",
+      "dica": "Necessidade ou pedido a ser atendido",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 241,
+      "palavra": "equipe",
+      "palavra_grid": "EQUIPE",
+      "dica": "Grupo de pessoas trabalhando juntas",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 242,
+      "palavra": "lider",
+      "palavra_grid": "LIDER",
+      "dica": "Pessoa que orienta ou conduz um grupo",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 243,
+      "palavra": "gestor",
+      "palavra_grid": "GESTOR",
+      "dica": "Pessoa responsável por administrar algo",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 244,
+      "palavra": "fluxo",
+      "palavra_grid": "FLUXO",
+      "dica": "Sequência de etapas de um processo",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 245,
+      "palavra": "ciclo",
+      "palavra_grid": "CICLO",
+      "dica": "Sequência que se repete em períodos",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 246,
+      "palavra": "etapa",
+      "palavra_grid": "ETAPA",
+      "dica": "Parte de um processo",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 247,
+      "palavra": "ganho",
+      "palavra_grid": "GANHO",
+      "dica": "Resultado positivo obtido",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 248,
+      "palavra": "setor",
+      "palavra_grid": "SETOR",
+      "dica": "Área específica de uma organização",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 249,
+      "palavra": "cargo",
+      "palavra_grid": "CARGO",
+      "dica": "Função ocupada por uma pessoa",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 250,
+      "palavra": "folha",
+      "palavra_grid": "FOLHA",
+      "dica": "Registro de pagamentos de funcionários",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 251,
+      "palavra": "ponto",
+      "palavra_grid": "PONTO",
+      "dica": "Registro de horário de trabalho",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 252,
+      "palavra": "estoque",
+      "palavra_grid": "ESTOQUE",
+      "dica": "Conjunto de produtos armazenados",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 253,
+      "palavra": "compra",
+      "palavra_grid": "COMPRA",
+      "dica": "Aquisição de produto ou serviço",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 254,
+      "palavra": "venda",
+      "palavra_grid": "VENDA",
+      "dica": "Ato de transferir algo mediante pagamento",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 255,
+      "palavra": "pedido",
+      "palavra_grid": "PEDIDO",
+      "dica": "Solicitação de produto, serviço ou providência",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 256,
+      "palavra": "entrega",
+      "palavra_grid": "ENTREGA",
+      "dica": "Ato de disponibilizar algo ao destinatário",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 257,
+      "palavra": "canal",
+      "palavra_grid": "CANAL",
+      "dica": "Meio usado para comunicação ou distribuição",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 258,
+      "palavra": "marca",
+      "palavra_grid": "MARCA",
+      "dica": "Identificação comercial de produto ou empresa",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 259,
+      "palavra": "produto",
+      "palavra_grid": "PRODUTO",
+      "dica": "Bem ou item oferecido ao mercado",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 260,
+      "palavra": "servico",
+      "palavra_grid": "SERVICO",
+      "dica": "Atividade oferecida para atender necessidade",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 261,
+      "palavra": "relevo",
+      "palavra_grid": "RELEVO",
+      "dica": "Formas da superfície terrestre",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 262,
+      "palavra": "clima",
+      "palavra_grid": "CLIMA",
+      "dica": "Conjunto de condições atmosféricas de uma região",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 263,
+      "palavra": "bioma",
+      "palavra_grid": "BIOMA",
+      "dica": "Grande conjunto natural com fauna e flora próprias",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 264,
+      "palavra": "cerrado",
+      "palavra_grid": "CERRADO",
+      "dica": "Bioma brasileiro de vegetação baixa e árvores retorcidas",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 265,
+      "palavra": "caatinga",
+      "palavra_grid": "CAATINGA",
+      "dica": "Bioma brasileiro típico do semiárido",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 266,
+      "palavra": "pampa",
+      "palavra_grid": "PAMPA",
+      "dica": "Bioma de campos no sul do Brasil",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 267,
+      "palavra": "mangue",
+      "palavra_grid": "MANGUE",
+      "dica": "Ecossistema costeiro de áreas alagadas",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 268,
+      "palavra": "pantanal",
+      "palavra_grid": "PANTANAL",
+      "dica": "Grande planície alagável brasileira",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 269,
+      "palavra": "bacia",
+      "palavra_grid": "BACIA",
+      "dica": "Área drenada por um rio e seus afluentes",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 270,
+      "palavra": "lago",
+      "palavra_grid": "LAGO",
+      "dica": "Massa de água cercada por terra",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 271,
+      "palavra": "ilha",
+      "palavra_grid": "ILHA",
+      "dica": "Porção de terra cercada por água",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 272,
+      "palavra": "vale",
+      "palavra_grid": "VALE",
+      "dica": "Área baixa entre elevações",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 273,
+      "palavra": "serra",
+      "palavra_grid": "SERRA",
+      "dica": "Conjunto de montanhas ou elevações",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 274,
+      "palavra": "pico",
+      "palavra_grid": "PICO",
+      "dica": "Ponto mais alto de uma elevação",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 275,
+      "palavra": "encosta",
+      "palavra_grid": "ENCOSTA",
+      "dica": "Lado inclinado de morro ou montanha",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 276,
+      "palavra": "planicie",
+      "palavra_grid": "PLANICIE",
+      "dica": "Área extensa e relativamente plana",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 277,
+      "palavra": "planalto",
+      "palavra_grid": "PLANALTO",
+      "dica": "Área elevada com superfície relativamente plana",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 278,
+      "palavra": "rocha",
+      "palavra_grid": "ROCHA",
+      "dica": "Material sólido que forma parte da crosta terrestre",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 279,
+      "palavra": "mineral",
+      "palavra_grid": "MINERAL",
+      "dica": "Substância natural presente nas rochas",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 280,
+      "palavra": "solo",
+      "palavra_grid": "SOLO",
+      "dica": "Camada superficial da terra",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 281,
+      "palavra": "areia",
+      "palavra_grid": "AREIA",
+      "dica": "Conjunto de pequenos grãos de rocha",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 282,
+      "palavra": "argila",
+      "palavra_grid": "ARGILA",
+      "dica": "Material fino usado em solos e cerâmica",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 283,
+      "palavra": "erosao",
+      "palavra_grid": "EROSAO",
+      "dica": "Desgaste do solo ou das rochas",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 284,
+      "palavra": "magma",
+      "palavra_grid": "MAGMA",
+      "dica": "Rocha derretida no interior da Terra",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 285,
+      "palavra": "lava",
+      "palavra_grid": "LAVA",
+      "dica": "Magma que chega à superfície",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 286,
+      "palavra": "vulcao",
+      "palavra_grid": "VULCAO",
+      "dica": "Abertura da crosta por onde saem lava e gases",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 287,
+      "palavra": "sismo",
+      "palavra_grid": "SISMO",
+      "dica": "Tremor causado por movimentos na crosta terrestre",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 288,
+      "palavra": "oceano",
+      "palavra_grid": "OCEANO",
+      "dica": "Grande massa de água salgada",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 289,
+      "palavra": "costa",
+      "palavra_grid": "COSTA",
+      "dica": "Faixa de terra próxima ao mar",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 290,
+      "palavra": "litoral",
+      "palavra_grid": "LITORAL",
+      "dica": "Região junto ao mar",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 291,
+      "palavra": "baia",
+      "palavra_grid": "BAIA",
+      "dica": "Entrada do mar cercada parcialmente por terra",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 292,
+      "palavra": "golfo",
+      "palavra_grid": "GOLFO",
+      "dica": "Grande entrada do mar na costa",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 293,
+      "palavra": "nascente",
+      "palavra_grid": "NASCENTE",
+      "dica": "Local onde um rio começa",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 294,
+      "palavra": "foz",
+      "palavra_grid": "FOZ",
+      "dica": "Local onde um rio termina",
+      "dificuldade": "medio",
+      "tamanho": 3
+    },
+    {
+      "id": 295,
+      "palavra": "afluente",
+      "palavra_grid": "AFLUENTE",
+      "dica": "Rio que deságua em outro rio",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 296,
+      "palavra": "corrente",
+      "palavra_grid": "CORRENTE",
+      "dica": "Movimento contínuo de água ou ar",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 297,
+      "palavra": "especie",
+      "palavra_grid": "ESPECIE",
+      "dica": "Grupo de seres vivos semelhantes",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 298,
+      "palavra": "habitat",
+      "palavra_grid": "HABITAT",
+      "dica": "Ambiente natural de uma espécie",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 299,
+      "palavra": "nicho",
+      "palavra_grid": "NICHO",
+      "dica": "Função de uma espécie em seu ambiente",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 300,
+      "palavra": "predador",
+      "palavra_grid": "PREDADOR",
+      "dica": "Animal que caça outro para se alimentar",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 301,
+      "palavra": "presa",
+      "palavra_grid": "PRESA",
+      "dica": "Animal caçado por outro",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 302,
+      "palavra": "cadeia",
+      "palavra_grid": "CADEIA",
+      "dica": "Sequência de relações alimentares",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 303,
+      "palavra": "polen",
+      "palavra_grid": "POLEN",
+      "dica": "Pó produzido por flores para reprodução",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 304,
+      "palavra": "alga",
+      "palavra_grid": "ALGA",
+      "dica": "Organismo simples que vive em ambientes úmidos ou aquáticos",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 305,
+      "palavra": "musgo",
+      "palavra_grid": "MUSGO",
+      "dica": "Planta pequena comum em locais úmidos",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 306,
+      "palavra": "liquen",
+      "palavra_grid": "LIQUEN",
+      "dica": "Associação entre fungo e alga ou bactéria",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 307,
+      "palavra": "viveiro",
+      "palavra_grid": "VIVEIRO",
+      "dica": "Local de criação ou cultivo de plantas e animais",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 308,
+      "palavra": "cultivo",
+      "palavra_grid": "CULTIVO",
+      "dica": "Ato de plantar e cuidar de vegetais",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 309,
+      "palavra": "safra",
+      "palavra_grid": "SAFRA",
+      "dica": "Período ou resultado de uma colheita",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 310,
+      "palavra": "mente",
+      "palavra_grid": "MENTE",
+      "dica": "Conjunto de pensamentos e processos psíquicos",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 311,
+      "palavra": "psique",
+      "palavra_grid": "PSIQUE",
+      "dica": "Conjunto de aspectos mentais de uma pessoa",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 312,
+      "palavra": "foco",
+      "palavra_grid": "FOCO",
+      "dica": "Concentração da atenção em algo",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 313,
+      "palavra": "atencao",
+      "palavra_grid": "ATENCAO",
+      "dica": "Capacidade de concentrar a mente",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 314,
+      "palavra": "memoria",
+      "palavra_grid": "MEMORIA",
+      "dica": "Capacidade de guardar e recuperar informações",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 315,
+      "palavra": "emocao",
+      "palavra_grid": "EMOCAO",
+      "dica": "Reação afetiva diante de uma situação",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 316,
+      "palavra": "humor",
+      "palavra_grid": "HUMOR",
+      "dica": "Estado emocional predominante",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 317,
+      "palavra": "afeto",
+      "palavra_grid": "AFETO",
+      "dica": "Sentimento de vínculo ou carinho",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 318,
+      "palavra": "medo",
+      "palavra_grid": "MEDO",
+      "dica": "Emoção diante de ameaça ou perigo",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 319,
+      "palavra": "raiva",
+      "palavra_grid": "RAIVA",
+      "dica": "Emoção ligada à irritação ou indignação",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 320,
+      "palavra": "culpa",
+      "palavra_grid": "CULPA",
+      "dica": "Sentimento por ter feito algo considerado errado",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 321,
+      "palavra": "luto",
+      "palavra_grid": "LUTO",
+      "dica": "Processo emocional diante de uma perda",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 322,
+      "palavra": "crise",
+      "palavra_grid": "CRISE",
+      "dica": "Momento de desequilíbrio ou dificuldade intensa",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 323,
+      "palavra": "desejo",
+      "palavra_grid": "DESEJO",
+      "dica": "Vontade dirigida a algo",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 324,
+      "palavra": "habito",
+      "palavra_grid": "HABITO",
+      "dica": "Comportamento repetido com frequência",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 325,
+      "palavra": "impulso",
+      "palavra_grid": "IMPULSO",
+      "dica": "Vontade súbita de agir",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 326,
+      "palavra": "vinculo",
+      "palavra_grid": "VINCULO",
+      "dica": "Ligação afetiva ou social entre pessoas",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 327,
+      "palavra": "empatia",
+      "palavra_grid": "EMPATIA",
+      "dica": "Capacidade de compreender o sentimento do outro",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 328,
+      "palavra": "escuta",
+      "palavra_grid": "ESCUTA",
+      "dica": "Ato de ouvir com atenção",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 329,
+      "palavra": "gesto",
+      "palavra_grid": "GESTO",
+      "dica": "Movimento corporal com significado",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 330,
+      "palavra": "olhar",
+      "palavra_grid": "OLHAR",
+      "dica": "Ato de dirigir a visão para algo",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 331,
+      "palavra": "postura",
+      "palavra_grid": "POSTURA",
+      "dica": "Modo de posicionar o corpo ou agir",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 332,
+      "palavra": "conduta",
+      "palavra_grid": "CONDUTA",
+      "dica": "Modo de agir de uma pessoa",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 333,
+      "palavra": "escolha",
+      "palavra_grid": "ESCOLHA",
+      "dica": "Decisão entre alternativas",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 334,
+      "palavra": "valor",
+      "palavra_grid": "VALOR",
+      "dica": "Princípio considerado importante",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 335,
+      "palavra": "crenca",
+      "palavra_grid": "CRENCA",
+      "dica": "Ideia aceita como verdadeira por alguém",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 336,
+      "palavra": "motivo",
+      "palavra_grid": "MOTIVO",
+      "dica": "Razão que leva alguém a agir",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 337,
+      "palavra": "conflito",
+      "palavra_grid": "CONFLITO",
+      "dica": "Oposição entre ideias, interesses ou pessoas",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 338,
+      "palavra": "apoio",
+      "palavra_grid": "APOIO",
+      "dica": "Ajuda oferecida a alguém",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 339,
+      "palavra": "rotina",
+      "palavra_grid": "ROTINA",
+      "dica": "Sequência habitual de atividades",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 340,
+      "palavra": "sonho",
+      "palavra_grid": "SONHO",
+      "dica": "Imagem ou desejo presente na mente",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 341,
+      "palavra": "estresse",
+      "palavra_grid": "ESTRESSE",
+      "dica": "Resposta do corpo a pressão ou tensão",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 342,
+      "palavra": "calma",
+      "palavra_grid": "CALMA",
+      "dica": "Estado de tranquilidade",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 343,
+      "palavra": "coragem",
+      "palavra_grid": "CORAGEM",
+      "dica": "Capacidade de agir apesar do medo",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 344,
+      "palavra": "timidez",
+      "palavra_grid": "TIMIDEZ",
+      "dica": "Dificuldade de se expor socialmente",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 345,
+      "palavra": "vergonha",
+      "palavra_grid": "VERGONHA",
+      "dica": "Sentimento de constrangimento",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 346,
+      "palavra": "orgulho",
+      "palavra_grid": "ORGULHO",
+      "dica": "Satisfação com algo próprio ou de alguém próximo",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 347,
+      "palavra": "ciume",
+      "palavra_grid": "CIUME",
+      "dica": "Sentimento de insegurança sobre perda de afeto",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 348,
+      "palavra": "poema",
+      "palavra_grid": "POEMA",
+      "dica": "Texto literário escrito em versos",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 349,
+      "palavra": "verso",
+      "palavra_grid": "VERSO",
+      "dica": "Linha de um poema",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 350,
+      "palavra": "rima",
+      "palavra_grid": "RIMA",
+      "dica": "Semelhança sonora entre palavras",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 351,
+      "palavra": "prosa",
+      "palavra_grid": "PROSA",
+      "dica": "Texto escrito sem divisão em versos",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 352,
+      "palavra": "conto",
+      "palavra_grid": "CONTO",
+      "dica": "Narrativa curta de ficção",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 353,
+      "palavra": "romance",
+      "palavra_grid": "ROMANCE",
+      "dica": "Narrativa longa de ficção",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 354,
+      "palavra": "cronica",
+      "palavra_grid": "CRONICA",
+      "dica": "Texto curto sobre fatos do cotidiano",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 355,
+      "palavra": "fabula",
+      "palavra_grid": "FABULA",
+      "dica": "Narrativa com moral, geralmente com animais",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 356,
+      "palavra": "drama",
+      "palavra_grid": "DRAMA",
+      "dica": "Obra marcada por conflito e emoção",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 357,
+      "palavra": "cena",
+      "palavra_grid": "CENA",
+      "dica": "Parte de uma peça, filme ou narrativa",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 358,
+      "palavra": "palco",
+      "palavra_grid": "PALCO",
+      "dica": "Espaço onde ocorre apresentação artística",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 359,
+      "palavra": "plateia",
+      "palavra_grid": "PLATEIA",
+      "dica": "Público que assiste a uma apresentação",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 360,
+      "palavra": "elenco",
+      "palavra_grid": "ELENCO",
+      "dica": "Conjunto de atores de uma obra",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 361,
+      "palavra": "figurino",
+      "palavra_grid": "FIGURINO",
+      "dica": "Conjunto de roupas usadas em cena",
+      "dificuldade": "medio",
+      "tamanho": 8
+    },
+    {
+      "id": 362,
+      "palavra": "pintura",
+      "palavra_grid": "PINTURA",
+      "dica": "Arte de aplicar tinta em superfície",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 363,
+      "palavra": "pincel",
+      "palavra_grid": "PINCEL",
+      "dica": "Instrumento usado para pintar",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 364,
+      "palavra": "tinta",
+      "palavra_grid": "TINTA",
+      "dica": "Material líquido usado para colorir",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 365,
+      "palavra": "galeria",
+      "palavra_grid": "GALERIA",
+      "dica": "Local de exposição de obras de arte",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 366,
+      "palavra": "quadro",
+      "palavra_grid": "QUADRO",
+      "dica": "Obra ou moldura exposta em parede",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 367,
+      "palavra": "escultura",
+      "palavra_grid": "ESCULTURA",
+      "dica": "Obra artística em três dimensões",
+      "dificuldade": "medio",
+      "tamanho": 9
+    },
+    {
+      "id": 368,
+      "palavra": "desenho",
+      "palavra_grid": "DESENHO",
+      "dica": "Representação feita com linhas ou traços",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 369,
+      "palavra": "cartaz",
+      "palavra_grid": "CARTAZ",
+      "dica": "Peça visual usada para divulgar informação",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 370,
+      "palavra": "frase",
+      "palavra_grid": "FRASE",
+      "dica": "Conjunto de palavras com sentido",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 371,
+      "palavra": "verbo",
+      "palavra_grid": "VERBO",
+      "dica": "Palavra que indica ação, estado ou fenômeno",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 372,
+      "palavra": "sujeito",
+      "palavra_grid": "SUJEITO",
+      "dica": "Termo da oração sobre o qual se declara algo",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 373,
+      "palavra": "objeto",
+      "palavra_grid": "OBJETO",
+      "dica": "Termo que completa o sentido de um verbo",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 374,
+      "palavra": "vogal",
+      "palavra_grid": "VOGAL",
+      "dica": "Som ou letra produzida sem bloqueio do ar",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 375,
+      "palavra": "silaba",
+      "palavra_grid": "SILABA",
+      "dica": "Unidade sonora de uma palavra",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 376,
+      "palavra": "acento",
+      "palavra_grid": "ACENTO",
+      "dica": "Sinal gráfico ou destaque sonoro em palavra",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 377,
+      "palavra": "sinal",
+      "palavra_grid": "SINAL",
+      "dica": "Marca usada para indicar informação",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 378,
+      "palavra": "virgula",
+      "palavra_grid": "VIRGULA",
+      "dica": "Sinal de pontuação que marca pausa curta",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 379,
+      "palavra": "texto",
+      "palavra_grid": "TEXTO",
+      "dica": "Conjunto organizado de palavras com sentido",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 380,
+      "palavra": "tema",
+      "palavra_grid": "TEMA",
+      "dica": "Assunto principal de um texto ou conversa",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 381,
+      "palavra": "genero",
+      "palavra_grid": "GENERO",
+      "dica": "Categoria de texto, obra ou classificação",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 382,
+      "palavra": "idioma",
+      "palavra_grid": "IDIOMA",
+      "dica": "Língua usada por um povo ou comunidade",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 383,
+      "palavra": "legenda",
+      "palavra_grid": "LEGENDA",
+      "dica": "Texto que acompanha imagem, vídeo ou fala",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 384,
+      "palavra": "audio",
+      "palavra_grid": "AUDIO",
+      "dica": "Som gravado ou transmitido",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 385,
+      "palavra": "imagem",
+      "palavra_grid": "IMAGEM",
+      "dica": "Representação visual de algo",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 386,
+      "palavra": "video",
+      "palavra_grid": "VIDEO",
+      "dica": "Registro de imagens em movimento",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 387,
+      "palavra": "ritmo",
+      "palavra_grid": "RITMO",
+      "dica": "Organização de sons ou movimentos no tempo",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 388,
+      "palavra": "melodia",
+      "palavra_grid": "MELODIA",
+      "dica": "Sequência de sons musicais",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 389,
+      "palavra": "bairro",
+      "palavra_grid": "BAIRRO",
+      "dica": "Parte de uma cidade",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 390,
+      "palavra": "povo",
+      "palavra_grid": "POVO",
+      "dica": "Conjunto de pessoas de uma comunidade ou nação",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 391,
+      "palavra": "nacao",
+      "palavra_grid": "NACAO",
+      "dica": "Comunidade política ou cultural organizada",
+      "dificuldade": "medio",
+      "tamanho": 5
+    },
+    {
+      "id": 392,
+      "palavra": "estado",
+      "palavra_grid": "ESTADO",
+      "dica": "Organização política de um território",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 393,
+      "palavra": "governo",
+      "palavra_grid": "GOVERNO",
+      "dica": "Grupo ou sistema que administra o poder público",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 394,
+      "palavra": "camara",
+      "palavra_grid": "CAMARA",
+      "dica": "Casa legislativa ou recinto de reunião",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 395,
+      "palavra": "senado",
+      "palavra_grid": "SENADO",
+      "dica": "Casa legislativa de representantes federativos",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 396,
+      "palavra": "voto",
+      "palavra_grid": "VOTO",
+      "dica": "Escolha formal em uma eleição",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 397,
+      "palavra": "urna",
+      "palavra_grid": "URNA",
+      "dica": "Objeto ou sistema usado para registrar votos",
+      "dificuldade": "medio",
+      "tamanho": 4
+    },
+    {
+      "id": 398,
+      "palavra": "pleito",
+      "palavra_grid": "PLEITO",
+      "dica": "Processo eleitoral",
+      "dificuldade": "medio",
+      "tamanho": 6
+    },
+    {
+      "id": 399,
+      "palavra": "eleitor",
+      "palavra_grid": "ELEITOR",
+      "dica": "Pessoa com direito de votar",
+      "dificuldade": "medio",
+      "tamanho": 7
+    },
+    {
+      "id": 400,
+      "palavra": "partido",
+      "palavra_grid": "PARTIDO",
+      "dica": "Organização política com ideias e candidatos",
+      "dificuldade": "medio",
+      "tamanho": 7
+    }
+  ]
+}

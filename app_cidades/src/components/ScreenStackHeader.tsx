@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View, type ReactNode } from 'react-native'
 import { colors } from '../theme/colors'
 
 type ScreenStackHeaderProps = {
@@ -9,6 +9,9 @@ type ScreenStackHeaderProps = {
   paddingTop: number
   onBack: () => void
   backAccessibilityLabel?: string
+  onSettingsPress?: () => void
+  settingsAccessibilityLabel?: string
+  headerRight?: ReactNode
 }
 
 export function ScreenStackHeader({
@@ -17,10 +20,18 @@ export function ScreenStackHeader({
   paddingTop,
   onBack,
   backAccessibilityLabel = 'Voltar',
+  onSettingsPress,
+  settingsAccessibilityLabel = 'Configurações',
+  headerRight,
 }: ScreenStackHeaderProps) {
   function handleBack() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     onBack()
+  }
+
+  function handleSettings() {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    onSettingsPress?.()
   }
 
   return (
@@ -39,7 +50,20 @@ export function ScreenStackHeader({
         <Text style={styles.headerSubtitle}>{subtitle}</Text>
       </View>
 
-      <View style={styles.headerPlaceholder} />
+      {headerRight ? (
+        <View style={styles.headerRight}>{headerRight}</View>
+      ) : onSettingsPress ? (
+        <Pressable
+          onPress={handleSettings}
+          style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+          accessibilityRole="button"
+          accessibilityLabel={settingsAccessibilityLabel}
+        >
+          <Ionicons name="settings-outline" size={20} color={colors.text} />
+        </Pressable>
+      ) : (
+        <View style={styles.headerPlaceholder} />
+      )}
     </View>
   )
 }
@@ -65,6 +89,10 @@ const styles = StyleSheet.create({
   headerPlaceholder: {
     width: 40,
     height: 40,
+  },
+  headerRight: {
+    minHeight: 40,
+    justifyContent: 'center',
   },
   backButtonPressed: {
     opacity: 0.82,

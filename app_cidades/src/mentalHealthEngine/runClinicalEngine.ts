@@ -6,6 +6,8 @@ import type {
   UserClinicalState,
 } from '../types/mentalHealthEngine'
 import { isInitialAnamnesisComplete } from '../utils/mentalHealthAnamnesisCore'
+import { shouldBlockPlanConsideringCheckIn } from '../utils/mentalHealthCrisis'
+import { toLocalDateIso } from '../utils/runWalkWeeklyChart'
 import { ENGINE_CONTENT_VERSION, engineContent } from './content/loadEngineContent'
 import {
   buildSymptomScoresFromAnamnesis,
@@ -20,7 +22,6 @@ import { runHypothesisEngine } from './runHypothesisEngine'
 import { runRedFlagEngine, shouldBlockMicroPlan } from './runRedFlags'
 import { runScoringRules } from './runScoringRules'
 import { loadMentalHealthClinicalState, saveMentalHealthClinicalState } from '../data/mentalHealthClinicalStateStorage'
-import { toLocalDateIso } from '../utils/runWalkWeeklyChart'
 
 function createInitialClinicalState(patientCpf: string): UserClinicalState {
   const now = new Date().toISOString()
@@ -107,6 +108,48 @@ function computeAdherence(history: UserClinicalState['activity_history']) {
   return completed / assigned.length
 }
 
+function buildExcludedActivityIds(history: UserClinicalState['activity_history']) {
+  const excludeRecentDays =
+    engineContent.activitySelectionRules.global_settings.default_exclude_recent_days ?? 3
+  const excludeNotHelpfulDays =
+    engineContent.activitySelectionRules.global_settings.default_exclude_not_helpful_days ?? 7
+  const now = Date.now()
+  const recentCutoff = now - excludeRecentDays * 24 * 60 * 60 * 1000
+  const notHelpfulCutoff = now - excludeNotHelpfulDays * 24 * 60 * 60 * 1000
+  const todayIso = toLocalDateIso(new Date())
+
+  const recentlyCompletedIds = new Set<string>()
+  const notHelpfulIds = new Set<string>()
+  const todayAssignedIds = new Set<string>()
+
+  for (const entry of history) {
+    if (entry.plan_date === todayIso && entry.status === 'assigned') {
+      todayAssignedIds.add(entry.activity_id)
+    }
+
+    const markerAt = entry.feedback_at ?? entry.completed_at ?? entry.assigned_at
+    const markerTime = new Date(markerAt).getTime()
+
+    if (entry.feedback === 'not_helpful' || entry.feedback === 'made_worse') {
+      if (markerTime >= notHelpfulCutoff) {
+        notHelpfulIds.add(entry.activity_id)
+      }
+      continue
+    }
+
+    if (entry.status === 'completed' || entry.feedback != null) {
+      if (markerTime >= recentCutoff) {
+        recentlyCompletedIds.add(entry.activity_id)
+      }
+    }
+  }
+
+  return {
+    completed_activity_ids: [...new Set([...recentlyCompletedIds, ...todayAssignedIds])],
+    not_helpful_activity_ids: [...notHelpfulIds],
+  }
+}
+
 function buildEngineContext(input: {
   state: UserClinicalState
   checkInEntries: MentalHealthCheckInEntry[]
@@ -117,12 +160,13 @@ function buildEngineContext(input: {
   const helpfulIds = input.state.activity_history
     .filter((entry) => entry.feedback === 'helpful')
     .map((entry) => entry.activity_id)
-  const completedIds = input.state.activity_history.map((entry) => entry.activity_id)
-  const notHelpfulIds = input.state.activity_history
-    .filter((entry) => entry.feedback === 'not_helpful')
-    .map((entry) => entry.activity_id)
+  const excludedIds = buildExcludedActivityIds(input.state.activity_history)
 
   const isFirstPlan = !input.state.plan_state.last_plan_date
+  const todayIso = toLocalDateIso(new Date())
+  const hasTodayCheckIn =
+    input.latestCheckIn != null &&
+    toLocalDateIso(new Date(input.latestCheckIn.recordedAt)) === todayIso
 
   return {
     symptom_scores: input.state.symptom_scores,
@@ -142,6 +186,8 @@ function buildEngineContext(input: {
     today_influences: input.latestCheckIn?.mainInfluence ? [input.latestCheckIn.mainInfluence] : [],
     today_influence_valence: input.latestCheckIn?.influenceValence ?? undefined,
     today_reactions: input.latestCheckIn?.reactions ?? [],
+    has_today_check_in: hasTodayCheckIn,
+    local_date: todayIso,
     primary_track_id: input.state.primary_track_id,
     active_hypotheses_count: input.state.active_hypotheses.filter(
       (item) => item.tier !== 'insufficient_data',
@@ -150,8 +196,8 @@ function buildEngineContext(input: {
     history: {
       adherence_7d: input.state.plan_state.adherence_7d,
       helpful_activity_ids: helpfulIds,
-      completed_activity_ids: completedIds,
-      not_helpful_activity_ids: notHelpfulIds,
+      completed_activity_ids: excludedIds.completed_activity_ids,
+      not_helpful_activity_ids: excludedIds.not_helpful_activity_ids,
       days_since_last_completion: 0,
     },
     profile: {
@@ -292,7 +338,18 @@ export async function runClinicalEngine(input: EngineRunInput): Promise<EngineRu
     })
 
     const selection = selectDailyActivities(ctx, state.active_red_flags)
-    const blocked = selection.blocked || shouldBlockMicroPlan(state.active_red_flags)
+    const hasTodayCheckIn =
+      latestCheckIn != null &&
+      toLocalDateIso(new Date(latestCheckIn.recordedAt)) === toLocalDateIso(new Date())
+    const blocked =
+      selection.blocked ||
+      (hasTodayCheckIn
+        ? shouldBlockPlanConsideringCheckIn(
+            state.active_red_flags,
+            latestCheckIn?.mood ?? null,
+            true,
+          )
+        : shouldBlockMicroPlan(state.active_red_flags))
     const blockReason = blocked
       ? shouldBlockMicroPlan(state.active_red_flags)
         ? 'red_flag'
@@ -428,7 +485,50 @@ export function rebuildTodayPlanFromState(
   }
 }
 
-export async function generateDailyMicroPlan(patientCpf: string): Promise<EngineRunResult> {
+export async function generateDailyMicroPlan(
+  patientCpf: string,
+  options?: { forceRegenerate?: boolean },
+): Promise<EngineRunResult> {
+  const { loadMentalHealthCheckInEntries } = await import('../data/mentalHealthCheckInStorage')
+  const { loadMentalHealthOnboardingRecord } = await import('../data/mentalHealthOnboardingStorage')
+  const { invalidateTodayMicroPlan } = await import('../data/mentalHealthClinicalStateStorage')
+
+  const [checkInEntries, onboarding] = await Promise.all([
+    loadMentalHealthCheckInEntries(patientCpf),
+    loadMentalHealthOnboardingRecord(patientCpf),
+  ])
+
+  let clinicalState = await loadMentalHealthClinicalState(patientCpf)
+
+  const answers = clinicalState?.anamnesis.answers_index ?? {}
+  if (!isInitialAnamnesisComplete(answers)) {
+    return {
+      state: clinicalState ?? createInitialClinicalState(patientCpf),
+      plan: null,
+    }
+  }
+
+  const today = toLocalDateIso(new Date())
+
+  if (options?.forceRegenerate) {
+    clinicalState = (await invalidateTodayMicroPlan(patientCpf, today)) ?? clinicalState
+  } else {
+    const existingPlan = clinicalState ? rebuildTodayPlanFromState(clinicalState, today) : null
+    if (existingPlan) {
+      return { state: clinicalState!, plan: existingPlan }
+    }
+  }
+
+  return runClinicalEngine({
+    patientCpf,
+    trigger: 'plan_request',
+    checkInEntries,
+    onboardingPreferences: onboarding.preferences,
+    generatePlan: true,
+  })
+}
+
+export async function regenerateTodayMicroPlan(patientCpf: string): Promise<EngineRunResult | null> {
   const { loadMentalHealthCheckInEntries } = await import('../data/mentalHealthCheckInStorage')
   const { loadMentalHealthOnboardingRecord } = await import('../data/mentalHealthOnboardingStorage')
 
@@ -440,23 +540,26 @@ export async function generateDailyMicroPlan(patientCpf: string): Promise<Engine
 
   const answers = clinicalState?.anamnesis.answers_index ?? {}
   if (!isInitialAnamnesisComplete(answers)) {
-    return {
-      state: clinicalState ?? createInitialClinicalState(patientCpf),
-      plan: null,
-    }
+    return null
   }
 
   const today = toLocalDateIso(new Date())
-  const existingPlan = clinicalState ? rebuildTodayPlanFromState(clinicalState, today) : null
-  if (existingPlan) {
-    return { state: clinicalState!, plan: existingPlan }
+  const latestCheckIn = getLatestCheckIn(checkInEntries)
+  const hasTodayCheckIn =
+    latestCheckIn != null &&
+    toLocalDateIso(new Date(latestCheckIn.recordedAt)) === today
+
+  const blocked = hasTodayCheckIn
+    ? shouldBlockPlanConsideringCheckIn(
+        clinicalState?.active_red_flags ?? [],
+        latestCheckIn?.mood ?? null,
+        true,
+      )
+    : shouldBlockMicroPlan(clinicalState?.active_red_flags ?? [])
+
+  if (blocked) {
+    return null
   }
 
-  return runClinicalEngine({
-    patientCpf,
-    trigger: 'plan_request',
-    checkInEntries,
-    onboardingPreferences: onboarding.preferences,
-    generatePlan: true,
-  })
+  return generateDailyMicroPlan(patientCpf, { forceRegenerate: true })
 }

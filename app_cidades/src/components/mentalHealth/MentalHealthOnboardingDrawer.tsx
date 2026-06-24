@@ -1,14 +1,24 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useAndroidBackHandler } from '../../hooks/useAndroidBackHandler'
 import {
   completeMentalHealthOnboarding,
   loadMentalHealthOnboardingRecord,
+  saveMentalHealthOnboardingRecord,
 } from '../../data/mentalHealthOnboardingStorage'
 import { useMentalHealthAnamnesisActions } from '../../hooks/useMentalHealthAnamnesisActions'
+import { computeAnamnesisCompletion } from '../../mentalHealthEngine/anamnesisScoring'
 import { colors } from '../../theme/colors'
+import { isInitialAnamnesisComplete } from '../../utils/mentalHealthAnamnesisCore'
+import {
+  resolveCrisisPresentationFromFlagIds,
+  resolveCrisisPresentationFromState,
+  shouldBlockMentalHealthPlan,
+  shouldShowCrisisFlow,
+  type CrisisPresentation,
+} from '../../utils/mentalHealthCrisis'
 import {
   emptyMentalHealthOnboardingRecord,
   MAX_MENTAL_HEALTH_CARE_FOCUS,
@@ -29,6 +39,8 @@ import { PrimaryButton } from '../PrimaryButton'
 import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import { MentalHealthHowItWorksDrawer } from './MentalHealthHowItWorksDrawer'
 import { MentalHealthAnamnesisDrawer } from './MentalHealthAnamnesisDrawer'
+import { MentalHealthCrisisDrawer } from './MentalHealthCrisisDrawer'
+import { MentalHealthEmergencyContactsDrawer } from './MentalHealthEmergencyContactsDrawer'
 import { MentalHealthPrivacyPolicyDrawer } from './MentalHealthPrivacyPolicyDrawer'
 
 const welcomeAnimation = require('../../../assets/avatar.json')
@@ -70,6 +82,11 @@ export function MentalHealthOnboardingDrawer({
   const [anamnesisInitialAnswers, setAnamnesisInitialAnswers] = useState<
     Record<string, import('../../types/mentalHealthEngine').AnamnesisAnswerRecord>
   >({})
+  const [anamnesisSessionComplete, setAnamnesisSessionComplete] = useState(false)
+  const [crisisDrawerVisible, setCrisisDrawerVisible] = useState(false)
+  const [crisisPresentation, setCrisisPresentation] = useState<CrisisPresentation | null>(null)
+  const [emergencyContactsDrawerVisible, setEmergencyContactsDrawerVisible] = useState(false)
+  const pendingAnamnesisCompleteStateRef = useRef<UserClinicalState | null>(null)
 
   const {
     loadInitialAnswers,
@@ -99,6 +116,10 @@ export function MentalHealthOnboardingDrawer({
       setHowItWorksVisible(false)
       setPolicyVisible(false)
       setAnamnesisInitialAnswers({})
+      setAnamnesisSessionComplete(false)
+      setCrisisDrawerVisible(false)
+      setCrisisPresentation(null)
+      setEmergencyContactsDrawerVisible(false)
     }
   }, [visible])
 
@@ -214,22 +235,48 @@ export function MentalHealthOnboardingDrawer({
     setIsSaving(true)
 
     try {
-      const completedRecord: MentalHealthOnboardingRecord = {
-        ...record,
-        completed: true,
-        completedAt: new Date().toISOString(),
-      }
-
-      await completeMentalHealthOnboarding(patientCpf, completedRecord)
+      await saveMentalHealthOnboardingRecord(patientCpf, record)
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      onSetupComplete(completedRecord)
 
       const answers = await loadInitialAnswers()
+      const completion = computeAnamnesisCompletion(answers)
+
+      if (isInitialAnamnesisComplete(answers)) {
+        await handleAnamnesisComplete(
+          answers,
+          completion.completion_ratio,
+          completion.completed_module_ids,
+        )
+        return
+      }
+
       setAnamnesisInitialAnswers(answers)
       setPhase('anamnesis')
     } finally {
       setIsSaving(false)
     }
+  }
+
+  async function handleAnamnesisDismiss() {
+    const completedRecord: MentalHealthOnboardingRecord = {
+      ...record,
+      completed: true,
+      completedAt: new Date().toISOString(),
+    }
+    await completeMentalHealthOnboarding(patientCpf, completedRecord)
+    onSetupComplete(completedRecord)
+    handleAnamnesisFlowComplete()
+  }
+
+  async function finalizeOnboardingFlow(clinicalState?: UserClinicalState | null) {
+    const completedRecord: MentalHealthOnboardingRecord = {
+      ...record,
+      completed: true,
+      completedAt: new Date().toISOString(),
+    }
+    await completeMentalHealthOnboarding(patientCpf, completedRecord)
+    onSetupComplete(completedRecord)
+    handleAnamnesisFlowComplete(clinicalState)
   }
 
   function handleAnamnesisBackToSpirituality() {
@@ -239,6 +286,37 @@ export function MentalHealthOnboardingDrawer({
 
   function handleAnamnesisFlowComplete(clinicalState?: UserClinicalState | null) {
     onFlowComplete(clinicalState ?? null)
+  }
+
+  function finishAnamnesisFlowAfterCrisis() {
+    const state = pendingAnamnesisCompleteStateRef.current
+    pendingAnamnesisCompleteStateRef.current = null
+    setCrisisDrawerVisible(false)
+    void finalizeOnboardingFlow(state ?? undefined)
+  }
+
+  async function handleAnamnesisComplete(
+    allAnswers: Record<string, import('../../types/mentalHealthEngine').AnamnesisAnswerRecord>,
+    completionRatio: number,
+    completedModuleIds: string[],
+  ) {
+    const state = await completeAnamnesis(allAnswers, completionRatio, completedModuleIds)
+    setAnamnesisSessionComplete(true)
+    const needsCrisis =
+      shouldBlockMentalHealthPlan(state.active_red_flags) ||
+      shouldShowCrisisFlow(state.active_red_flags)
+
+    if (needsCrisis) {
+      pendingAnamnesisCompleteStateRef.current = state
+      setCrisisPresentation(
+        resolveCrisisPresentationFromState(state.active_red_flags) ??
+          resolveCrisisPresentationFromFlagIds([]),
+      )
+      setCrisisDrawerVisible(true)
+      return
+    }
+
+    void finalizeOnboardingFlow(state)
   }
 
   function handleContinueFromConsent() {
@@ -331,20 +409,37 @@ export function MentalHealthOnboardingDrawer({
     return (
       <>
         <MentalHealthAnamnesisDrawer
-          visible={visible}
+          visible={visible && !anamnesisSessionComplete}
           mode="initial"
           initialAnswers={anamnesisInitialAnswers}
-          onClose={() => void handleAnamnesisFlowComplete()}
+          onClose={() => void handleAnamnesisDismiss()}
           onBackAtFirstQuestion={handleAnamnesisBackToSpirituality}
           onPersistAnswers={persistAnswers}
           onModuleComplete={(_moduleId, moduleAnswers, completionRatio, completedModuleIds) =>
             completeModule(moduleAnswers, completionRatio, completedModuleIds)
           }
           onComplete={(allAnswers, completionRatio, completedModuleIds) =>
-            completeAnamnesis(allAnswers, completionRatio, completedModuleIds).then((state) => {
-              handleAnamnesisFlowComplete(state)
-            })
+            handleAnamnesisComplete(allAnswers, completionRatio, completedModuleIds)
           }
+        />
+
+        <MentalHealthCrisisDrawer
+          visible={crisisDrawerVisible}
+          presentation={crisisPresentation}
+          onClose={finishAnamnesisFlowAfterCrisis}
+          onAcknowledge={finishAnamnesisFlowAfterCrisis}
+          onOpenEmergencyContacts={() => {
+            Keyboard.dismiss()
+            setEmergencyContactsDrawerVisible(true)
+          }}
+        />
+
+        <MentalHealthEmergencyContactsDrawer
+          visible={emergencyContactsDrawerVisible}
+          onClose={() => {
+            Keyboard.dismiss()
+            setEmergencyContactsDrawerVisible(false)
+          }}
         />
 
         <MentalHealthHowItWorksDrawer
@@ -416,8 +511,8 @@ export function MentalHealthOnboardingDrawer({
             <View style={styles.disclaimerCard}>
               <Ionicons name="alert-circle-outline" size={18} color="#67e8f9" />
               <Text style={styles.disclaimerText}>
-                Este recurso complementa o cuidado em saúde mental. Ele não substitui avaliação,
-                diagnóstico ou tratamento profissional.
+                Este recurso complementa o cuidado em saúde mental. Ele não substitui avaliação ou
+                tratamento por um profissional de saúde.
               </Text>
             </View>
           </View>

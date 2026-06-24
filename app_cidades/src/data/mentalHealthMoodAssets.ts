@@ -25,12 +25,28 @@ export const MENTAL_HEALTH_MOOD_LOTTIE_SCALE: Partial<Record<MentalHealthMoodLev
   'very-bad': 0.86,
 }
 
+// Inline snapshot (ex.: card em Cuidar) — tamanho visual ~30px em todos os humores.
+export const MENTAL_HEALTH_MOOD_LOTTIE_SNAPSHOT_FRAME: Record<
+  MentalHealthMoodLevelId,
+  { frame: number; scale: number }
+> = {
+  'very-good': { frame: 40, scale: 0.75 },
+  good: { frame: 40, scale: 0.78 },
+  neutral: { frame: 34, scale: 0.88 },
+  bad: { frame: 44, scale: 0.7 },
+  'very-bad': { frame: 44, scale: 0.7 },
+}
+
 export function getMentalHealthMoodLottie(mood: MentalHealthMoodLevelId) {
   return MENTAL_HEALTH_MOOD_LOTTIE[mood] ?? null
 }
 
 export function getMentalHealthMoodLottieScale(mood: MentalHealthMoodLevelId) {
   return MENTAL_HEALTH_MOOD_LOTTIE_SCALE[mood] ?? 1
+}
+
+export function getMentalHealthMoodLottieSnapshotFrame(mood: MentalHealthMoodLevelId) {
+  return MENTAL_HEALTH_MOOD_LOTTIE_SNAPSHOT_FRAME[mood]
 }
 
 export function hasMentalHealthMoodLottie(mood: MentalHealthMoodLevelId) {

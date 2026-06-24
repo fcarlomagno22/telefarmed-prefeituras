@@ -3,19 +3,27 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import { Animated, Easing, Keyboard, KeyboardAvoidingView, PanResponder, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
-import { AppModal } from '../AppModal'
+import {
+  Animated,
+  Easing,
+  Keyboard,
+  KeyboardAvoidingView,
+  PanResponder,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import LottieView from 'lottie-react-native'
 import bloodPressureAnimation from '../../../assets/bloodpressure.json'
 import { colors } from '../../theme/colors'
-import { BloodPressureReading } from '../../types/bloodPressure'
-import { getBloodPressureZone } from '../../utils/bloodPressure'
 import { playSuccessSound } from '../../utils/appSounds'
 import { PrimaryButton } from '../PrimaryButton'
+import { AppModal } from '../AppModal'
 import { MetricLogSuccessContent } from './MetricLogSuccessContent'
-import { getModalFooterPadding } from '../../utils/modalSafeArea'
-import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
 
 const SUCCESS_DISMISS_MS = 2600
 const SHEET_OFFSET = 510
@@ -39,9 +47,19 @@ const CONTENT_MIN_HEIGHT = VISUAL_HEIGHT + 32
 
 const BP_GRADIENT = ['#fbbf24', '#f59e0b', '#d97706'] as const
 
-export type { BloodPressureReading } from '../../types/bloodPressure'
+export type BloodPressureReading = {
+  systolic: number
+  diastolic: number
+}
 
 type AdjustTarget = 'systolic' | 'diastolic'
+
+type ZoneStyle = {
+  label: string
+  color: string
+  bg: string
+  border: string
+}
 
 function clampSystolic(value: number) {
   const stepped = Math.round(value / STEP) * STEP
@@ -69,6 +87,33 @@ function formatTickLabel(value: number, target: AdjustTarget) {
   if (rounded <= min) return String(min)
   if (rounded >= max) return String(max)
   return String(rounded)
+}
+
+function getBloodPressureZone(systolic: number, diastolic: number): ZoneStyle {
+  if (systolic >= 140 || diastolic >= 90) {
+    return {
+      label: 'Alta',
+      color: '#f87171',
+      bg: 'rgba(239, 68, 68, 0.14)',
+      border: 'rgba(248, 113, 113, 0.35)',
+    }
+  }
+
+  if (systolic >= 130 || diastolic >= 80 || systolic >= 120) {
+    return {
+      label: 'Elevada',
+      color: '#fbbf24',
+      bg: 'rgba(245, 158, 11, 0.14)',
+      border: 'rgba(251, 191, 36, 0.35)',
+    }
+  }
+
+  return {
+    label: 'Normal',
+    color: '#34d399',
+    bg: 'rgba(52, 211, 153, 0.14)',
+    border: 'rgba(52, 211, 153, 0.35)',
+  }
 }
 
 type BloodPressureLogDrawerProps = {
@@ -307,14 +352,14 @@ export function BloodPressureLogDrawer({
         </Animated.View>
 
         <KeyboardAvoidingView
-          behavior={keyboardAvoidingBehavior}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardWrap}
         >
           <Animated.View
             style={[
               styles.sheet,
               {
-                paddingBottom: getModalFooterPadding(insets.bottom, 16),
+                paddingBottom: Math.max(insets.bottom, 16) + 16,
                 transform: [{ translateY: sheetTranslateY }],
               },
             ]}

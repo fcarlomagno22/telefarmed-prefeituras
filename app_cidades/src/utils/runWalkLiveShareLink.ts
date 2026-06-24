@@ -2,7 +2,7 @@ import { appEnv } from '../config/env'
 import { isValidLiveShareToken, normalizeLiveShareToken } from './runWalkLiveShareToken'
 
 export const LIVE_SHARE_APP_SCHEME = 'telefarmedcidades'
-const LIVE_SHARE_WEB_HOST_PATTERN = /seguranca\.telefarmed\.com\.br/i
+const LIVE_SHARE_WEB_HOST_PATTERN = /(?:^|\.)telefarmed\.com\.br$/i
 
 function buildLiveShareWebPath(baseUrl: string, token: string): string {
   const normalizedBase = baseUrl.replace(/\/$/, '')
@@ -19,10 +19,17 @@ export function buildLiveShareViewerAppLink(shareToken: string): string {
 }
 
 export function buildLiveShareViewerWebLink(shareToken: string): string | null {
-  const baseUrl = appEnv.liveShareWebBaseUrl
-  if (!baseUrl) return null
-
   const token = normalizeLiveShareToken(shareToken)
+
+  if (!__DEV__) {
+    return `https://seguranca.telefarmed.com.br/${token}`
+  }
+
+  const baseUrl = appEnv.liveShareWebBaseUrl
+  if (!baseUrl) {
+    return `https://seguranca.telefarmed.com.br/${token}`
+  }
+
   return buildLiveShareWebPath(baseUrl, token)
 }
 
@@ -54,9 +61,11 @@ export function parseLiveShareViewerLink(url: string): string | null {
   try {
     const parsed = new URL(decoded.includes('://') ? decoded : `https://${decoded}`)
     if (LIVE_SHARE_WEB_HOST_PATTERN.test(parsed.hostname)) {
-      const segment = parsed.pathname.replace(/^\//, '').split('/').filter(Boolean)[0]
-      if (segment) {
-        const token = normalizeLiveShareToken(segment)
+      const segments = parsed.pathname.replace(/^\//, '').split('/').filter(Boolean)
+      const tokenSegment =
+        segments[0] === 'acompanhar' ? segments[1] : segments[0]
+      if (tokenSegment) {
+        const token = normalizeLiveShareToken(tokenSegment)
         return isValidLiveShareToken(token) ? token : null
       }
     }

@@ -264,12 +264,6 @@ export function RunWalkActivitySummaryScreen() {
               profilePhotoUri={user?.selfieUri}
             />
           </View>
-
-          <Text style={styles.mapCaption}>
-            {summary.trail.length > 1
-              ? `${summary.trail.length} pontos registrados no mapa`
-              : 'Percurso curto — movimento registrado mesmo assim'}
-          </Text>
         </View>
 
         <PrimaryButton
@@ -430,12 +424,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  mapCaption: {
-    color: colors.textSubtle,
-    fontSize: 11,
-    fontWeight: '500',
-    textAlign: 'center',
   },
   continueButton: {
     marginTop: 4,

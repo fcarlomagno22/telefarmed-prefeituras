@@ -4,12 +4,21 @@ import { Image } from 'expo-image'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import { Animated, Easing, ImageSourcePropType, ImageStyle, Pressable, StyleSheet, Text, View } from 'react-native'
-import { AppModal } from '../AppModal'
+import {
+  Animated,
+  Easing,
+  ImageSourcePropType,
+  ImageStyle,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
-import { DirectionsDestination, NavigationApp } from '../../utils/appointmentMaps'
-import { getModalFooterPadding } from '../../utils/modalSafeArea'
+import { AppModal } from '../AppModal'
+import { StoredAppointment } from '../../types/myAppointments'
+import { NavigationApp } from '../../utils/appointmentMaps'
 
 const SHEET_OFFSET = 420
 
@@ -18,7 +27,7 @@ const wazeLogo = require('../../../assets/svgviewer-output.svg')
 
 type AppointmentDirectionsDrawerProps = {
   visible: boolean
-  destination: DirectionsDestination | null
+  appointment: StoredAppointment | null
   onClose: () => void
   onSelectApp: (app: NavigationApp) => void
 }
@@ -46,7 +55,7 @@ function NavigationOption({ label, logo, logoStyle, onPress }: NavigationOptionP
 
 export function AppointmentDirectionsDrawer({
   visible,
-  destination,
+  appointment,
   onClose,
   onSelectApp,
 }: AppointmentDirectionsDrawerProps) {
@@ -56,7 +65,7 @@ export function AppointmentDirectionsDrawer({
   const backdropOpacity = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
-    if (visible && destination) {
+    if (visible && appointment) {
       setIsMounted(true)
       Animated.parallel([
         Animated.timing(backdropOpacity, {
@@ -94,9 +103,9 @@ export function AppointmentDirectionsDrawer({
     ]).start(({ finished }) => {
       if (finished) setIsMounted(false)
     })
-  }, [destination, backdropOpacity, isMounted, sheetTranslateY, visible])
+  }, [appointment, backdropOpacity, isMounted, sheetTranslateY, visible])
 
-  if (!isMounted || !destination) return null
+  if (!isMounted || !appointment) return null
 
   function handleSelect(app: NavigationApp) {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
@@ -115,7 +124,7 @@ export function AppointmentDirectionsDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: getModalFooterPadding(insets.bottom, 4),
+              paddingBottom: Math.max(insets.bottom, 16) + 4,
               transform: [{ translateY: sheetTranslateY }],
             },
           ]}
@@ -164,7 +173,7 @@ export function AppointmentDirectionsDrawer({
             <View style={styles.destinationRow}>
               <Ionicons name="location-outline" size={15} color="#ffffff" />
               <Text style={styles.destinationName} numberOfLines={1}>
-                {destination.ubtName}
+                {appointment.selectedUbtName}
               </Text>
             </View>
             <View style={styles.destinationDivider} />

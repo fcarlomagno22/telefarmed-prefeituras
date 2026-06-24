@@ -45,7 +45,7 @@
         "icon": "moon-outline"
       }
     ],
-    "max_activities": 3,
+    "max_activities": 4,
     "min_activities": 1
   },
   "slot_definitions": {

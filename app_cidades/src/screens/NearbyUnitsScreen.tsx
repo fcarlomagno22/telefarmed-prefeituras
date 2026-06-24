@@ -13,6 +13,7 @@ import { NearbyUnitsMap } from '../components/nearbyUnits/NearbyUnitsMap'
 import { NearbyUnitsOriginToggle } from '../components/nearbyUnits/NearbyUnitsOriginToggle'
 import { NearbyUnitsSearchBar } from '../components/nearbyUnits/NearbyUnitsSearchBar'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useNearbyOrigin } from '../hooks/useNearbyOrigin'
 import { colors } from '../theme/colors'
@@ -27,6 +28,7 @@ const TAB_BAR_ESTIMATED_HEIGHT = 78
 export function NearbyUnitsScreen() {
   const insets = useSafeAreaInsets()
   const { user, goBack, navigateTo, logout } = useAuth()
+  const { requireAuth } = useGuestAuth()
 
   const [ubts, setUbts] = useState<NearbyUbt[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -98,8 +100,10 @@ export function NearbyUnitsScreen() {
   }
 
   function openDirectionsDrawer(ubt: NearbyUbt) {
-    setDirectionsTarget(ubt)
-    setDirectionsVisible(true)
+    requireAuth('quick:nearby-units', () => {
+      setDirectionsTarget(ubt)
+      setDirectionsVisible(true)
+    })
   }
 
   function closeDirectionsDrawer() {
@@ -114,18 +118,24 @@ export function NearbyUnitsScreen() {
   }
 
   function handleSchedule(ubt: NearbyUbt) {
-    setScheduleUbtPrefill({
-      ubtId: ubt.id,
-      ubtName: ubt.name,
-      ubtAddress: `${ubt.address} · ${ubt.neighborhood}`,
+    requireAuth('quick:nearby-units', () => {
+      setScheduleUbtPrefill({
+        ubtId: ubt.id,
+        ubtName: ubt.name,
+        ubtAddress: `${ubt.address} · ${ubt.neighborhood}`,
+      })
+      navigateTo('schedule-appointment')
     })
-    navigateTo('schedule-appointment')
   }
 
   async function handleCall(ubt: NearbyUbt) {
-    if (!ubt.phone) return
-    const phone = ubt.phone.replace(/\D/g, '')
-    await Linking.openURL(`tel:${phone}`)
+    requireAuth('quick:nearby-units', () => {
+      void (async () => {
+        if (!ubt.phone) return
+        const phone = ubt.phone.replace(/\D/g, '')
+        await Linking.openURL(`tel:${phone}`)
+      })()
+    })
   }
 
   function handleBack() {

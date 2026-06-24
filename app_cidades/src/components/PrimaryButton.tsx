@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient'
-import { ActivityIndicator, Pressable, StyleProp, Text, ViewStyle } from 'react-native'
+import { ActivityIndicator, Pressable, Text } from 'react-native'
 import { formStyles } from './AppShell'
 
 type PrimaryButtonProps = {
@@ -7,23 +7,15 @@ type PrimaryButtonProps = {
   onPress: () => void
   loading?: boolean
   disabled?: boolean
-  style?: StyleProp<ViewStyle>
 }
 
-export function PrimaryButton({
-  label,
-  onPress,
-  loading = false,
-  disabled = false,
-  style,
-}: PrimaryButtonProps) {
+export function PrimaryButton({ label, onPress, loading = false, disabled = false }: PrimaryButtonProps) {
   return (
     <Pressable
       onPress={onPress}
       disabled={loading || disabled}
       style={({ pressed }) => [
         formStyles.primaryButton,
-        style,
         pressed && !loading && !disabled && formStyles.primaryButtonPressed,
         (loading || disabled) && formStyles.primaryButtonDisabled,
       ]}

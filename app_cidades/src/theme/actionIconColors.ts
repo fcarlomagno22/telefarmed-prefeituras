@@ -48,6 +48,10 @@ export const ACTION_ICON_PALETTES = {
     iconGradient: ['#67e8f9', '#0891b2', '#0e7490'],
     shadowColor: 'rgba(8, 145, 178, 0.38)',
   },
+  bible: {
+    iconGradient: ['#fde68a', '#d97706', '#b45309'],
+    shadowColor: 'rgba(217, 119, 6, 0.42)',
+  },
   activeMind: {
     iconGradient: ['#f9a8d4', '#f472b6', '#db2777'],
     shadowColor: 'rgba(244, 114, 182, 0.38)',

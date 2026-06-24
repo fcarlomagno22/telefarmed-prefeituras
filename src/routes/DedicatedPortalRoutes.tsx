@@ -14,6 +14,7 @@ import { UbtHomeRedirect, UbtPagePermissionGuard } from '../components/auth/UbtP
 import { UbtProtectedRoute } from '../components/auth/UbtProtectedRoute'
 import { adminRoutes } from '../config/adminRoutes'
 import type { PortalId } from '../config/portalHost'
+import { isLiveShareDedicatedHost, LIVE_SHARE_HOST } from '../config/portalHost'
 import { prefeituraRoutes } from '../config/prefeituraRoutes'
 import { ubtRoutes } from '../config/ubtRoutes'
 import { AdminLayout } from '../pages/AdminLayout'
@@ -123,6 +124,31 @@ function LiveShareHomePage() {
   )
 }
 
+function normalizeLiveSharePathToken(value: string): string {
+  return value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
+}
+
+function isLiveSharePathToken(value: string): boolean {
+  if (value.toLowerCase() === 'demo') return true
+  const normalized = normalizeLiveSharePathToken(value)
+  return normalized.length === 8 && /^[A-HJ-NP-Z2-9]{8}$/.test(normalized)
+}
+
+function LiveSharePublicTokenRoute() {
+  const { token = '' } = useParams<{ token: string }>()
+
+  if (!isLiveSharePathToken(token)) {
+    return <Navigate to="/" replace />
+  }
+
+  if (typeof window !== 'undefined' && !isLiveShareDedicatedHost(window.location.hostname)) {
+    window.location.replace(`https://${LIVE_SHARE_HOST}/${normalizeLiveSharePathToken(token)}`)
+    return null
+  }
+
+  return <RunWalkLiveSharePublicPage />
+}
+
 export function LiveShareDedicatedRoutes() {
   return (
     <>
@@ -140,6 +166,7 @@ function SharedPublicRoutes() {
       <Route path="/plantao/aceitar/:token" element={<PlantaoAceitePublicPage />} />
       <Route path="/plantao/disponiveis/:token" element={<PlantaoAceiteDisponiveisPublicPage />} />
       <Route path="/acompanhar/:token" element={<RunWalkLiveSharePublicPage />} />
+      <Route path="/:token" element={<LiveSharePublicTokenRoute />} />
       <Route path="/demo/sala-atendimento" element={<DoctorConsultationDemoPage />} />
     </>
   )

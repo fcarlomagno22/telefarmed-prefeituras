@@ -1,0 +1,3213 @@
+{
+  "jogo": "palavras_cruzadas",
+  "dificuldade": "dificil",
+  "grid": {
+    "linhas": 9,
+    "colunas": 9,
+    "maximo_letras_por_palavra": 9
+  },
+  "total_palavras": 400,
+  "observacao": "Todas as palavras em palavra_grid foram normalizadas sem acentos e têm no máximo 9 letras para caber em grid 9x9.",
+  "palavras": [
+    {
+      "id": 1,
+      "palavra": "abdução",
+      "palavra_grid": "ABDUCAO",
+      "dica": "Movimento que afasta uma parte do corpo da linha média",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 2,
+      "palavra": "ablação",
+      "palavra_grid": "ABLACAO",
+      "dica": "Remoção ou destruição de tecido por procedimento médico",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 3,
+      "palavra": "abrasão",
+      "palavra_grid": "ABRASAO",
+      "dica": "Desgaste causado por atrito",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 4,
+      "palavra": "abscesso",
+      "palavra_grid": "ABSCESSO",
+      "dica": "Acúmulo de pus em uma cavidade do corpo",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 5,
+      "palavra": "acádico",
+      "palavra_grid": "ACADICO",
+      "dica": "Idioma semítico antigo da Mesopotâmia",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 6,
+      "palavra": "acórdão",
+      "palavra_grid": "ACORDAO",
+      "dica": "Decisão colegiada de um tribunal",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 7,
+      "palavra": "acrasia",
+      "palavra_grid": "ACRASIA",
+      "dica": "Ação contra o próprio melhor julgamento",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 8,
+      "palavra": "acrônimo",
+      "palavra_grid": "ACRONIMO",
+      "dica": "Sigla pronunciada como palavra",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 9,
+      "palavra": "acróstico",
+      "palavra_grid": "ACROSTICO",
+      "dica": "Texto em que letras iniciais formam palavra ou frase",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 10,
+      "palavra": "adágio",
+      "palavra_grid": "ADAGIO",
+      "dica": "Frase curta que expressa sabedoria popular",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 11,
+      "palavra": "adstrito",
+      "palavra_grid": "ADSTRITO",
+      "dica": "Limitado ou vinculado a algo",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 12,
+      "palavra": "afasia",
+      "palavra_grid": "AFASIA",
+      "dica": "Perda ou alteração da capacidade de linguagem",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 13,
+      "palavra": "aférese",
+      "palavra_grid": "AFERESE",
+      "dica": "Retirada de parte de uma palavra ou componente do sangue",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 14,
+      "palavra": "agnosia",
+      "palavra_grid": "AGNOSIA",
+      "dica": "Incapacidade de reconhecer estímulos apesar dos sentidos preservados",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 15,
+      "palavra": "albedo",
+      "palavra_grid": "ALBEDO",
+      "dica": "Medida da capacidade de refletir luz",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 16,
+      "palavra": "alçada",
+      "palavra_grid": "ALCADA",
+      "dica": "Limite de competência de uma autoridade ou órgão",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 17,
+      "palavra": "alcano",
+      "palavra_grid": "ALCANO",
+      "dica": "Hidrocarboneto com ligações simples",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 18,
+      "palavra": "alceno",
+      "palavra_grid": "ALCENO",
+      "dica": "Hidrocarboneto com uma ligação dupla",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 19,
+      "palavra": "alcino",
+      "palavra_grid": "ALCINO",
+      "dica": "Hidrocarboneto com uma ligação tripla",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 20,
+      "palavra": "aldeído",
+      "palavra_grid": "ALDEIDO",
+      "dica": "Composto orgânico com grupo carbonila terminal",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 21,
+      "palavra": "alelo",
+      "palavra_grid": "ALELO",
+      "dica": "Forma alternativa de um gene",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 22,
+      "palavra": "alusão",
+      "palavra_grid": "ALUSAO",
+      "dica": "Referência indireta a algo",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 23,
+      "palavra": "amálgama",
+      "palavra_grid": "AMALGAMA",
+      "dica": "Mistura de elementos diferentes",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 24,
+      "palavra": "amida",
+      "palavra_grid": "AMIDA",
+      "dica": "Composto orgânico derivado de ácido carboxílico",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 25,
+      "palavra": "amina",
+      "palavra_grid": "AMINA",
+      "dica": "Composto orgânico derivado da amônia",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 26,
+      "palavra": "anáfora",
+      "palavra_grid": "ANAFORA",
+      "dica": "Repetição de palavra no início de frases ou versos",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 27,
+      "palavra": "análogo",
+      "palavra_grid": "ANALOGO",
+      "dica": "Aquilo que apresenta semelhança com outro",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 28,
+      "palavra": "anemia",
+      "palavra_grid": "ANEMIA",
+      "dica": "Redução de glóbulos vermelhos ou hemoglobina",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 29,
+      "palavra": "anedonia",
+      "palavra_grid": "ANEDONIA",
+      "dica": "Redução da capacidade de sentir prazer",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 30,
+      "palavra": "ânion",
+      "palavra_grid": "ANION",
+      "dica": "Íon com carga negativa",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 31,
+      "palavra": "anódico",
+      "palavra_grid": "ANODICO",
+      "dica": "Relativo ao ânodo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 32,
+      "palavra": "ânodo",
+      "palavra_grid": "ANODO",
+      "dica": "Eletrodo onde ocorre oxidação",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 33,
+      "palavra": "anomia",
+      "palavra_grid": "ANOMIA",
+      "dica": "Ausência ou enfraquecimento de normas sociais",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 34,
+      "palavra": "apátrida",
+      "palavra_grid": "APATRIDA",
+      "dica": "Pessoa sem nacionalidade reconhecida",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 35,
+      "palavra": "apneia",
+      "palavra_grid": "APNEIA",
+      "dica": "Interrupção temporária da respiração",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 36,
+      "palavra": "apócope",
+      "palavra_grid": "APOCOPE",
+      "dica": "Supressão de som no fim de uma palavra",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 37,
+      "palavra": "apócrifo",
+      "palavra_grid": "APOCRIFO",
+      "dica": "Texto de autoria ou autenticidade duvidosa",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 38,
+      "palavra": "apogeu",
+      "palavra_grid": "APOGEU",
+      "dica": "Ponto mais distante da Terra em uma órbita",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 39,
+      "palavra": "aporia",
+      "palavra_grid": "APORIA",
+      "dica": "Dificuldade lógica sem solução evidente",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 40,
+      "palavra": "apóstrofo",
+      "palavra_grid": "APOSTROFO",
+      "dica": "Sinal gráfico que indica supressão de letra",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 41,
+      "palavra": "apótema",
+      "palavra_grid": "APOTEMA",
+      "dica": "Segmento que liga o centro ao lado de polígono regular",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 42,
+      "palavra": "arbitrio",
+      "palavra_grid": "ARBITRIO",
+      "dica": "Poder de decidir segundo a própria vontade",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 43,
+      "palavra": "arconte",
+      "palavra_grid": "ARCONTE",
+      "dica": "Magistrado da antiga Grécia",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 44,
+      "palavra": "argila",
+      "palavra_grid": "ARGILA",
+      "dica": "Material fino usado em solos e cerâmica",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 45,
+      "palavra": "aríete",
+      "palavra_grid": "ARIETE",
+      "dica": "Instrumento antigo usado para romper portas ou muralhas",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 46,
+      "palavra": "arquetipo",
+      "palavra_grid": "ARQUETIPO",
+      "dica": "Modelo original ou padrão simbólico",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 47,
+      "palavra": "arresto",
+      "palavra_grid": "ARRESTO",
+      "dica": "Apreensão judicial de bens",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 48,
+      "palavra": "artéria",
+      "palavra_grid": "ARTERIA",
+      "dica": "Vaso que leva sangue do coração ao corpo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 49,
+      "palavra": "ascese",
+      "palavra_grid": "ASCESE",
+      "dica": "Prática de disciplina e renúncia pessoal",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 50,
+      "palavra": "assíntota",
+      "palavra_grid": "ASSINTOTA",
+      "dica": "Reta da qual uma curva se aproxima sem tocar",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 51,
+      "palavra": "asteroide",
+      "palavra_grid": "ASTEROIDE",
+      "dica": "Corpo rochoso que orbita o Sol",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 52,
+      "palavra": "átomo",
+      "palavra_grid": "ATOMO",
+      "dica": "Menor unidade de um elemento químico",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 53,
+      "palavra": "atonia",
+      "palavra_grid": "ATONIA",
+      "dica": "Perda ou diminuição do tônus muscular",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 54,
+      "palavra": "atopia",
+      "palavra_grid": "ATOPIA",
+      "dica": "Predisposição a reações alérgicas",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 55,
+      "palavra": "ataxia",
+      "palavra_grid": "ATAXIA",
+      "dica": "Falta de coordenação dos movimentos",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 56,
+      "palavra": "atavismo",
+      "palavra_grid": "ATAVISMO",
+      "dica": "Reaparecimento de característica ancestral",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 57,
+      "palavra": "átrio",
+      "palavra_grid": "ATRIO",
+      "dica": "Câmara superior do coração",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 58,
+      "palavra": "ausculta",
+      "palavra_grid": "AUSCULTA",
+      "dica": "Escuta de sons internos do corpo",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 59,
+      "palavra": "autarquia",
+      "palavra_grid": "AUTARQUIA",
+      "dica": "Entidade administrativa com autonomia própria",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 60,
+      "palavra": "axioma",
+      "palavra_grid": "AXIOMA",
+      "dica": "Proposição aceita como verdadeira sem demonstração",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 61,
+      "palavra": "axônio",
+      "palavra_grid": "AXONIO",
+      "dica": "Prolongamento do neurônio que conduz impulsos",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 62,
+      "palavra": "bactéria",
+      "palavra_grid": "BACTERIA",
+      "dica": "Microrganismo unicelular sem núcleo definido",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 63,
+      "palavra": "baquelite",
+      "palavra_grid": "BAQUELITE",
+      "dica": "Resina sintética usada como isolante",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 64,
+      "palavra": "basalto",
+      "palavra_grid": "BASALTO",
+      "dica": "Rocha vulcânica escura",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 65,
+      "palavra": "bayes",
+      "palavra_grid": "BAYES",
+      "dica": "Referência a método probabilístico de atualização de crenças",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 66,
+      "palavra": "bêquer",
+      "palavra_grid": "BEQUER",
+      "dica": "Recipiente de laboratório usado para líquidos",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 67,
+      "palavra": "bile",
+      "palavra_grid": "BILE",
+      "dica": "Líquido produzido pelo fígado que auxilia a digestão",
+      "dificuldade": "dificil",
+      "tamanho": 4
+    },
+    {
+      "id": 68,
+      "palavra": "biofilme",
+      "palavra_grid": "BIOFILME",
+      "dica": "Camada de microrganismos aderida a uma superfície",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 69,
+      "palavra": "biópsia",
+      "palavra_grid": "BIOPSIA",
+      "dica": "Retirada de tecido para exame",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 70,
+      "palavra": "biota",
+      "palavra_grid": "BIOTA",
+      "dica": "Conjunto de seres vivos de uma região",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 71,
+      "palavra": "blastula",
+      "palavra_grid": "BLASTULA",
+      "dica": "Estágio inicial do desenvolvimento embrionário",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 72,
+      "palavra": "booleana",
+      "palavra_grid": "BOOLEANA",
+      "dica": "Variável lógica com valor verdadeiro ou falso",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 73,
+      "palavra": "bráctea",
+      "palavra_grid": "BRACTEA",
+      "dica": "Folha modificada associada a flores",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 74,
+      "palavra": "bula",
+      "palavra_grid": "BULA",
+      "dica": "Documento informativo de medicamento",
+      "dificuldade": "dificil",
+      "tamanho": 4
+    },
+    {
+      "id": 75,
+      "palavra": "burocrata",
+      "palavra_grid": "BUROCRATA",
+      "dica": "Funcionário ligado a procedimentos administrativos",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 76,
+      "palavra": "bursite",
+      "palavra_grid": "BURSITE",
+      "dica": "Inflamação de bolsa cheia de líquido próxima a articulação",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 77,
+      "palavra": "cachexia",
+      "palavra_grid": "CACHEXIA",
+      "dica": "Perda extrema de peso e massa muscular",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 78,
+      "palavra": "cadência",
+      "palavra_grid": "CADENCIA",
+      "dica": "Ritmo regular de sons ou movimentos",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 79,
+      "palavra": "cânone",
+      "palavra_grid": "CANONE",
+      "dica": "Conjunto de obras ou regras consideradas referência",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 80,
+      "palavra": "cariotipo",
+      "palavra_grid": "CARIOTIPO",
+      "dica": "Conjunto organizado de cromossomos de um indivíduo",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 81,
+      "palavra": "cartismo",
+      "palavra_grid": "CARTISMO",
+      "dica": "Movimento político operário inglês do século XIX",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 82,
+      "palavra": "catálise",
+      "palavra_grid": "CATALISE",
+      "dica": "Aceleração de reação por catalisador",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 83,
+      "palavra": "catodo",
+      "palavra_grid": "CATODO",
+      "dica": "Eletrodo onde ocorre redução",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 84,
+      "palavra": "cáustico",
+      "palavra_grid": "CAUSTICO",
+      "dica": "Substância capaz de corroer tecidos ou materiais",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 85,
+      "palavra": "cautelar",
+      "palavra_grid": "CAUTELAR",
+      "dica": "Medida preventiva para proteger direito ou resultado",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 86,
+      "palavra": "caverna",
+      "palavra_grid": "CAVERNA",
+      "dica": "Cavidade natural subterrânea",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 87,
+      "palavra": "cefaleia",
+      "palavra_grid": "CEFALEIA",
+      "dica": "Dor de cabeça",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 88,
+      "palavra": "censura",
+      "palavra_grid": "CENSURA",
+      "dica": "Controle ou proibição de expressão",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 89,
+      "palavra": "césio",
+      "palavra_grid": "CESIO",
+      "dica": "Elemento químico metálico de símbolo Cs",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 90,
+      "palavra": "cesura",
+      "palavra_grid": "CESURA",
+      "dica": "Pausa rítmica no interior de um verso",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 91,
+      "palavra": "cetona",
+      "palavra_grid": "CETONA",
+      "dica": "Composto orgânico com carbonila entre carbonos",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 92,
+      "palavra": "cetose",
+      "palavra_grid": "CETOSE",
+      "dica": "Estado metabólico com produção de corpos cetônicos",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 93,
+      "palavra": "cianose",
+      "palavra_grid": "CIANOSE",
+      "dica": "Coloração azulada por baixa oxigenação",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 94,
+      "palavra": "cíclico",
+      "palavra_grid": "CICLICO",
+      "dica": "Que ocorre em ciclos",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 95,
+      "palavra": "cifose",
+      "palavra_grid": "CIFOSE",
+      "dica": "Curvatura acentuada da coluna para trás",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 96,
+      "palavra": "cílio",
+      "palavra_grid": "CILIO",
+      "dica": "Estrutura fina usada para movimento ou proteção celular",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 97,
+      "palavra": "cinética",
+      "palavra_grid": "CINETICA",
+      "dica": "Estudo do movimento ou da velocidade de reações",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 98,
+      "palavra": "cisão",
+      "palavra_grid": "CISAO",
+      "dica": "Separação ou divisão de algo",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 99,
+      "palavra": "cisto",
+      "palavra_grid": "CISTO",
+      "dica": "Bolsa anormal com conteúdo líquido ou semissólido",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 100,
+      "palavra": "citação",
+      "palavra_grid": "CITACAO",
+      "dica": "Chamamento formal ou referência a texto",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 101,
+      "palavra": "citologia",
+      "palavra_grid": "CITOLOGIA",
+      "dica": "Estudo das células",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 102,
+      "palavra": "clado",
+      "palavra_grid": "CLADO",
+      "dica": "Grupo de organismos com ancestral comum",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 103,
+      "palavra": "cláusula",
+      "palavra_grid": "CLAUSULA",
+      "dica": "Condição ou item de um contrato",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 104,
+      "palavra": "clivagem",
+      "palavra_grid": "CLIVAGEM",
+      "dica": "Divisão inicial das células do embrião",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 105,
+      "palavra": "coágulo",
+      "palavra_grid": "COAGULO",
+      "dica": "Massa formada pela coagulação do sangue",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 106,
+      "palavra": "códice",
+      "palavra_grid": "CODICE",
+      "dica": "Livro manuscrito antigo",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 107,
+      "palavra": "coerção",
+      "palavra_grid": "COERCAO",
+      "dica": "Uso de força ou pressão para obter conduta",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 108,
+      "palavra": "cognição",
+      "palavra_grid": "COGNICAO",
+      "dica": "Processo mental de conhecer e compreender",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 109,
+      "palavra": "cognato",
+      "palavra_grid": "COGNATO",
+      "dica": "Palavra com origem comum a outra",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 110,
+      "palavra": "coorte",
+      "palavra_grid": "COORTE",
+      "dica": "Grupo acompanhado em estudo ao longo do tempo",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 111,
+      "palavra": "colágeno",
+      "palavra_grid": "COLAGENO",
+      "dica": "Proteína estrutural presente em tecidos do corpo",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 112,
+      "palavra": "colapso",
+      "palavra_grid": "COLAPSO",
+      "dica": "Queda súbita de funcionamento ou estrutura",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 113,
+      "palavra": "coloide",
+      "palavra_grid": "COLOIDE",
+      "dica": "Mistura com partículas dispersas muito pequenas",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 114,
+      "palavra": "comarca",
+      "palavra_grid": "COMARCA",
+      "dica": "Área territorial de atuação de um juiz",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 115,
+      "palavra": "cometa",
+      "palavra_grid": "COMETA",
+      "dica": "Astro com cauda ao se aproximar do Sol",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 116,
+      "palavra": "concílio",
+      "palavra_grid": "CONCILIO",
+      "dica": "Reunião formal de autoridades religiosas",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 117,
+      "palavra": "conduta",
+      "palavra_grid": "CONDUTA",
+      "dica": "Modo de agir de uma pessoa",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 118,
+      "palavra": "cônjuge",
+      "palavra_grid": "CONJUGE",
+      "dica": "Pessoa casada em relação à outra",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 119,
+      "palavra": "córtex",
+      "palavra_grid": "CORTEX",
+      "dica": "Camada externa de órgão ou estrutura",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 120,
+      "palavra": "criptico",
+      "palavra_grid": "CRIPTICO",
+      "dica": "Difícil de compreender ou decifrar",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 121,
+      "palavra": "crisálida",
+      "palavra_grid": "CRISALIDA",
+      "dica": "Fase de transformação de certos insetos",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 122,
+      "palavra": "crônica",
+      "palavra_grid": "CRONICA",
+      "dica": "Texto curto ligado ao cotidiano ou relato histórico",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 123,
+      "palavra": "cromátide",
+      "palavra_grid": "CROMATIDE",
+      "dica": "Uma das cópias de um cromossomo duplicado",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 124,
+      "palavra": "cromatina",
+      "palavra_grid": "CROMATINA",
+      "dica": "Material formado por DNA e proteínas no núcleo celular",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 125,
+      "palavra": "cruzada",
+      "palavra_grid": "CRUZADA",
+      "dica": "Expedição militar religiosa medieval",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 126,
+      "palavra": "cúbito",
+      "palavra_grid": "CUBITO",
+      "dica": "Osso medial do antebraço",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 127,
+      "palavra": "curatela",
+      "palavra_grid": "CURATELA",
+      "dica": "Instituto jurídico de proteção a pessoa incapaz",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 128,
+      "palavra": "cutícula",
+      "palavra_grid": "CUTICULA",
+      "dica": "Camada fina protetora de plantas ou unhas",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 129,
+      "palavra": "dádiva",
+      "palavra_grid": "DADIVA",
+      "dica": "Aquilo que é dado gratuitamente",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 130,
+      "palavra": "decreto",
+      "palavra_grid": "DECRETO",
+      "dica": "Ato normativo expedido por autoridade",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 131,
+      "palavra": "deferido",
+      "palavra_grid": "DEFERIDO",
+      "dica": "Pedido aceito por autoridade competente",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 132,
+      "palavra": "deísmo",
+      "palavra_grid": "DEISMO",
+      "dica": "Crença em Deus sem revelação religiosa específica",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 133,
+      "palavra": "dendrito",
+      "palavra_grid": "DENDRITO",
+      "dica": "Extensão do neurônio que recebe estímulos",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 134,
+      "palavra": "deontico",
+      "palavra_grid": "DEONTICO",
+      "dica": "Relacionado a dever, obrigação ou permissão",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 135,
+      "palavra": "derme",
+      "palavra_grid": "DERME",
+      "dica": "Camada da pele abaixo da epiderme",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 136,
+      "palavra": "deságio",
+      "palavra_grid": "DESAGIO",
+      "dica": "Redução aplicada sobre valor nominal",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 137,
+      "palavra": "despacho",
+      "palavra_grid": "DESPACHO",
+      "dica": "Ato judicial ou administrativo de andamento",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 138,
+      "palavra": "dianoia",
+      "palavra_grid": "DIANOIA",
+      "dica": "Conhecimento racional discursivo na filosofia grega",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 139,
+      "palavra": "diáspora",
+      "palavra_grid": "DIASPORA",
+      "dica": "Dispersão de um povo para diferentes regiões",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 140,
+      "palavra": "diástole",
+      "palavra_grid": "DIASTOLE",
+      "dica": "Fase de relaxamento do coração",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 141,
+      "palavra": "dígrafo",
+      "palavra_grid": "DIGRAFO",
+      "dica": "Grupo de letras que representa um único som",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 142,
+      "palavra": "dique",
+      "palavra_grid": "DIQUE",
+      "dica": "Barreira ou intrusão geológica em forma de muro",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 143,
+      "palavra": "dislexia",
+      "palavra_grid": "DISLEXIA",
+      "dica": "Dificuldade específica de leitura",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 144,
+      "palavra": "dispneia",
+      "palavra_grid": "DISPNEIA",
+      "dica": "Dificuldade para respirar",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 145,
+      "palavra": "dissídio",
+      "palavra_grid": "DISSIDIO",
+      "dica": "Conflito coletivo levado à Justiça do Trabalho",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 146,
+      "palavra": "dolo",
+      "palavra_grid": "DOLO",
+      "dica": "Intenção de praticar ato ilícito",
+      "dificuldade": "dificil",
+      "tamanho": 4
+    },
+    {
+      "id": 147,
+      "palavra": "domínio",
+      "palavra_grid": "DOMINIO",
+      "dica": "Poder de propriedade ou controle sobre algo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 148,
+      "palavra": "dopamina",
+      "palavra_grid": "DOPAMINA",
+      "dica": "Neurotransmissor ligado a recompensa e movimento",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 149,
+      "palavra": "dorsal",
+      "palavra_grid": "DORSAL",
+      "dica": "Relacionado à parte das costas",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 150,
+      "palavra": "dossiê",
+      "palavra_grid": "DOSSIE",
+      "dica": "Conjunto organizado de documentos sobre tema ou pessoa",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 151,
+      "palavra": "dracma",
+      "palavra_grid": "DRACMA",
+      "dica": "Moeda da Grécia antiga",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 152,
+      "palavra": "drenagem",
+      "palavra_grid": "DRENAGEM",
+      "dica": "Retirada ou escoamento de líquido acumulado",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 153,
+      "palavra": "dualismo",
+      "palavra_grid": "DUALISMO",
+      "dica": "Doutrina que admite dois princípios fundamentais",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 154,
+      "palavra": "duna",
+      "palavra_grid": "DUNA",
+      "dica": "Monte de areia formado pelo vento",
+      "dificuldade": "dificil",
+      "tamanho": 4
+    },
+    {
+      "id": 155,
+      "palavra": "ecúmeno",
+      "palavra_grid": "ECUMENO",
+      "dica": "Parte habitada ou habitável da Terra",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 156,
+      "palavra": "edema",
+      "palavra_grid": "EDEMA",
+      "dica": "Inchaço causado por acúmulo de líquido",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 157,
+      "palavra": "edital",
+      "palavra_grid": "EDITAL",
+      "dica": "Documento público com regras e informações",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 158,
+      "palavra": "efusão",
+      "palavra_grid": "EFUSAO",
+      "dica": "Saída ou derramamento de líquido ou gás",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 159,
+      "palavra": "elipse",
+      "palavra_grid": "ELIPSE",
+      "dica": "Omissão de termo subentendido em uma frase",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 160,
+      "palavra": "êmbolo",
+      "palavra_grid": "EMBOLO",
+      "dica": "Material que obstrui vaso sanguíneo",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 161,
+      "palavra": "embrião",
+      "palavra_grid": "EMBRIAO",
+      "dica": "Organismo em fase inicial de desenvolvimento",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 162,
+      "palavra": "ementa",
+      "palavra_grid": "EMENTA",
+      "dica": "Resumo de decisão, lei ou conteúdo",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 163,
+      "palavra": "emese",
+      "palavra_grid": "EMESE",
+      "dica": "Vômito ou ato de vomitar",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 164,
+      "palavra": "empuxo",
+      "palavra_grid": "EMPUXO",
+      "dica": "Força vertical exercida por fluido sobre um corpo",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 165,
+      "palavra": "enantema",
+      "palavra_grid": "ENANTEMA",
+      "dica": "Lesão em mucosa, comum em algumas doenças",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 166,
+      "palavra": "encéfalo",
+      "palavra_grid": "ENCEFALO",
+      "dica": "Conjunto de estruturas nervosas dentro do crânio",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 167,
+      "palavra": "endemia",
+      "palavra_grid": "ENDEMIA",
+      "dica": "Doença presente de forma constante em região",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 168,
+      "palavra": "endosso",
+      "palavra_grid": "ENDOSSO",
+      "dica": "Assinatura que transfere ou garante título",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 169,
+      "palavra": "enfiteuse",
+      "palavra_grid": "ENFITEUSE",
+      "dica": "Direito real antigo sobre imóvel alheio",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 170,
+      "palavra": "enteógeno",
+      "palavra_grid": "ENTEOGENO",
+      "dica": "Substância usada para alterar consciência em rituais",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 171,
+      "palavra": "entorse",
+      "palavra_grid": "ENTORSE",
+      "dica": "Lesão causada por torção de articulação",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 172,
+      "palavra": "entropia",
+      "palavra_grid": "ENTROPIA",
+      "dica": "Medida de desordem ou dispersão de energia",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 173,
+      "palavra": "enxerto",
+      "palavra_grid": "ENXERTO",
+      "dica": "Tecido transplantado para reparar área do corpo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 174,
+      "palavra": "epiceno",
+      "palavra_grid": "EPICENO",
+      "dica": "Substantivo de um só gênero para animal de ambos os sexos",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 175,
+      "palavra": "epiderme",
+      "palavra_grid": "EPIDERME",
+      "dica": "Camada mais externa da pele",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 176,
+      "palavra": "epígrafe",
+      "palavra_grid": "EPIGRAFE",
+      "dica": "Citação colocada no início de texto ou capítulo",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 177,
+      "palavra": "epíteto",
+      "palavra_grid": "EPITETO",
+      "dica": "Palavra ou expressão que qualifica alguém ou algo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 178,
+      "palavra": "epistaxe",
+      "palavra_grid": "EPISTAXE",
+      "dica": "Sangramento pelo nariz",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 179,
+      "palavra": "epítema",
+      "palavra_grid": "EPITEMA",
+      "dica": "Aplicação medicinal externa sobre a pele",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 180,
+      "palavra": "epopeia",
+      "palavra_grid": "EPOPEIA",
+      "dica": "Poema narrativo de feitos grandiosos",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 181,
+      "palavra": "equidade",
+      "palavra_grid": "EQUIDADE",
+      "dica": "Justiça aplicada considerando particularidades do caso",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 182,
+      "palavra": "eritema",
+      "palavra_grid": "ERITEMA",
+      "dica": "Vermelhidão da pele por aumento de fluxo sanguíneo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 183,
+      "palavra": "erosão",
+      "palavra_grid": "EROSAO",
+      "dica": "Desgaste de solo, rocha ou tecido",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 184,
+      "palavra": "escambo",
+      "palavra_grid": "ESCAMBO",
+      "dica": "Troca direta de bens sem uso de dinheiro",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 185,
+      "palavra": "escopo",
+      "palavra_grid": "ESCOPO",
+      "dica": "Limite do que está incluído em projeto ou análise",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 186,
+      "palavra": "esfinge",
+      "palavra_grid": "ESFINGE",
+      "dica": "Figura mítica com corpo de leão e cabeça humana",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 187,
+      "palavra": "esmalte",
+      "palavra_grid": "ESMALTE",
+      "dica": "Camada dura que recobre os dentes",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 188,
+      "palavra": "espólio",
+      "palavra_grid": "ESPOLIO",
+      "dica": "Conjunto de bens deixados por pessoa falecida",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 189,
+      "palavra": "estase",
+      "palavra_grid": "ESTASE",
+      "dica": "Parada ou lentidão de fluxo corporal",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 190,
+      "palavra": "estepe",
+      "palavra_grid": "ESTEPE",
+      "dica": "Bioma de vegetação rasteira em regiões secas",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 191,
+      "palavra": "estigma",
+      "palavra_grid": "ESTIGMA",
+      "dica": "Marca social negativa atribuída a alguém",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 192,
+      "palavra": "estoma",
+      "palavra_grid": "ESTOMA",
+      "dica": "Abertura artificial ou natural em organismo",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 193,
+      "palavra": "estoico",
+      "palavra_grid": "ESTOICO",
+      "dica": "Relativo à filosofia que valoriza domínio das paixões",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 194,
+      "palavra": "estrato",
+      "palavra_grid": "ESTRATO",
+      "dica": "Camada em formação geológica ou social",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 195,
+      "palavra": "estrofe",
+      "palavra_grid": "ESTROFE",
+      "dica": "Conjunto de versos de um poema",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 196,
+      "palavra": "éter",
+      "palavra_grid": "ETER",
+      "dica": "Composto orgânico ou antigo conceito de meio sutil",
+      "dificuldade": "dificil",
+      "tamanho": 4
+    },
+    {
+      "id": 197,
+      "palavra": "eufonia",
+      "palavra_grid": "EUFONIA",
+      "dica": "Qualidade sonora agradável de uma palavra ou frase",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 198,
+      "palavra": "eufemismo",
+      "palavra_grid": "EUFEMISMO",
+      "dica": "Expressão suavizada para ideia desagradável",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 199,
+      "palavra": "eutrofia",
+      "palavra_grid": "EUTROFIA",
+      "dica": "Estado nutricional considerado adequado",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 200,
+      "palavra": "exegese",
+      "palavra_grid": "EXEGESE",
+      "dica": "Interpretação crítica de texto, especialmente religioso",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 201,
+      "palavra": "exequente",
+      "palavra_grid": "EXEQUENTE",
+      "dica": "Parte que promove uma execução judicial",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 202,
+      "palavra": "exórdio",
+      "palavra_grid": "EXORDIO",
+      "dica": "Parte inicial de discurso ou texto argumentativo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 203,
+      "palavra": "fácies",
+      "palavra_grid": "FACIES",
+      "dica": "Aspecto de rocha, tecido ou expressão clínica",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 204,
+      "palavra": "falácia",
+      "palavra_grid": "FALACIA",
+      "dica": "Raciocínio incorreto com aparência de validade",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 205,
+      "palavra": "faringe",
+      "palavra_grid": "FARINGE",
+      "dica": "Canal comum aos sistemas respiratório e digestório",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 206,
+      "palavra": "fáscia",
+      "palavra_grid": "FASCIA",
+      "dica": "Tecido conjuntivo que envolve músculos e órgãos",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 207,
+      "palavra": "fenol",
+      "palavra_grid": "FENOL",
+      "dica": "Composto orgânico com hidroxila ligada a anel aromático",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 208,
+      "palavra": "fenótipo",
+      "palavra_grid": "FENOTIPO",
+      "dica": "Características observáveis de um organismo",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 209,
+      "palavra": "feudo",
+      "palavra_grid": "FEUDO",
+      "dica": "Terra concedida em relação de vassalagem medieval",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 210,
+      "palavra": "fíbula",
+      "palavra_grid": "FIBULA",
+      "dica": "Osso lateral da perna",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 211,
+      "palavra": "filogenia",
+      "palavra_grid": "FILOGENIA",
+      "dica": "História evolutiva de uma espécie ou grupo",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 212,
+      "palavra": "fístula",
+      "palavra_grid": "FISTULA",
+      "dica": "Comunicação anormal entre órgãos ou superfícies",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 213,
+      "palavra": "flanco",
+      "palavra_grid": "FLANCO",
+      "dica": "Lado do corpo ou de uma formação",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 214,
+      "palavra": "floema",
+      "palavra_grid": "FLOEMA",
+      "dica": "Tecido vegetal que transporta seiva elaborada",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 215,
+      "palavra": "fóton",
+      "palavra_grid": "FOTON",
+      "dica": "Partícula associada à luz",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 216,
+      "palavra": "fratura",
+      "palavra_grid": "FRATURA",
+      "dica": "Rompimento ou quebra de osso",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 217,
+      "palavra": "fricção",
+      "palavra_grid": "FRICCAO",
+      "dica": "Atrito entre superfícies",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 218,
+      "palavra": "fruição",
+      "palavra_grid": "FRUICAO",
+      "dica": "Uso ou aproveitamento de bem ou direito",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 219,
+      "palavra": "fulcro",
+      "palavra_grid": "FULCRO",
+      "dica": "Ponto de apoio ou elemento central",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 220,
+      "palavra": "funil",
+      "palavra_grid": "FUNIL",
+      "dica": "Instrumento cônico usado para transferir líquidos",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 221,
+      "palavra": "fusão",
+      "palavra_grid": "FUSAO",
+      "dica": "Passagem do estado sólido para líquido",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 222,
+      "palavra": "gameta",
+      "palavra_grid": "GAMETA",
+      "dica": "Célula reprodutiva sexual",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 223,
+      "palavra": "gânglio",
+      "palavra_grid": "GANGLIO",
+      "dica": "Estrutura nervosa ou linfática em forma de nódulo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 224,
+      "palavra": "garrote",
+      "palavra_grid": "GARROTE",
+      "dica": "Faixa usada para comprimir vaso ou membro",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 225,
+      "palavra": "gastrula",
+      "palavra_grid": "GASTRULA",
+      "dica": "Estágio embrionário após a blástula",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 226,
+      "palavra": "genoma",
+      "palavra_grid": "GENOMA",
+      "dica": "Conjunto completo do material genético",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 227,
+      "palavra": "genótipo",
+      "palavra_grid": "GENOTIPO",
+      "dica": "Conjunto de genes de um organismo",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 228,
+      "palavra": "geodo",
+      "palavra_grid": "GEODO",
+      "dica": "Cavidade rochosa revestida por cristais",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 229,
+      "palavra": "gestalt",
+      "palavra_grid": "GESTALT",
+      "dica": "Teoria que destaca percepção de totalidades organizadas",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 230,
+      "palavra": "glândula",
+      "palavra_grid": "GLANDULA",
+      "dica": "Órgão que produz e libera substâncias",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 231,
+      "palavra": "glosa",
+      "palavra_grid": "GLOSA",
+      "dica": "Recusa ou anotação crítica sobre despesa ou texto",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 232,
+      "palavra": "gnaisse",
+      "palavra_grid": "GNAISSE",
+      "dica": "Rocha metamórfica de textura bandada",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 233,
+      "palavra": "gnose",
+      "palavra_grid": "GNOSE",
+      "dica": "Conhecimento espiritual ou intuitivo",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 234,
+      "palavra": "grafema",
+      "palavra_grid": "GRAFEMA",
+      "dica": "Menor unidade escrita de uma língua",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 235,
+      "palavra": "granito",
+      "palavra_grid": "GRANITO",
+      "dica": "Rocha ígnea formada por minerais visíveis",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 236,
+      "palavra": "gravame",
+      "palavra_grid": "GRAVAME",
+      "dica": "Ônus ou restrição sobre bem",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 237,
+      "palavra": "habeas",
+      "palavra_grid": "HABEAS",
+      "dica": "Parte de expressão jurídica ligada à liberdade de locomoção",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 238,
+      "palavra": "habitat",
+      "palavra_grid": "HABITAT",
+      "dica": "Ambiente natural de uma espécie",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 239,
+      "palavra": "haploide",
+      "palavra_grid": "HAPLOIDE",
+      "dica": "Célula com apenas um conjunto de cromossomos",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 240,
+      "palavra": "hedge",
+      "palavra_grid": "HEDGE",
+      "dica": "Estratégia usada para reduzir risco financeiro",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 241,
+      "palavra": "helenico",
+      "palavra_grid": "HELENICO",
+      "dica": "Relativo à Grécia antiga ou à cultura grega",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 242,
+      "palavra": "hemácia",
+      "palavra_grid": "HEMACIA",
+      "dica": "Célula vermelha do sangue",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 243,
+      "palavra": "hematoma",
+      "palavra_grid": "HEMATOMA",
+      "dica": "Acúmulo de sangue fora dos vasos",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 244,
+      "palavra": "hemólise",
+      "palavra_grid": "HEMOLISE",
+      "dica": "Ruptura de hemácias",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 245,
+      "palavra": "hemoptise",
+      "palavra_grid": "HEMOPTISE",
+      "dica": "Eliminação de sangue pela tosse",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 246,
+      "palavra": "heresia",
+      "palavra_grid": "HERESIA",
+      "dica": "Doutrina contrária a crença religiosa estabelecida",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 247,
+      "palavra": "hermenia",
+      "palavra_grid": "HERMENIA",
+      "dica": "Interpretação ou explicação de sentido obscuro",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 248,
+      "palavra": "hiato",
+      "palavra_grid": "HIATO",
+      "dica": "Encontro de vogais em sílabas separadas",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 249,
+      "palavra": "híbrido",
+      "palavra_grid": "HIBRIDO",
+      "dica": "Resultado da combinação de elementos diferentes",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 250,
+      "palavra": "hidrólise",
+      "palavra_grid": "HIDROLISE",
+      "dica": "Quebra de molécula pela ação da água",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 251,
+      "palavra": "hífen",
+      "palavra_grid": "HIFEN",
+      "dica": "Sinal gráfico usado para unir ou separar termos",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 252,
+      "palavra": "hipérbole",
+      "palavra_grid": "HIPERBOLE",
+      "dica": "Exagero intencional usado como figura de linguagem",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 253,
+      "palavra": "hipóxia",
+      "palavra_grid": "HIPOXIA",
+      "dica": "Baixa disponibilidade de oxigênio nos tecidos",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 254,
+      "palavra": "homólogo",
+      "palavra_grid": "HOMOLOGO",
+      "dica": "Que tem origem ou estrutura correspondente",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 255,
+      "palavra": "homônimo",
+      "palavra_grid": "HOMONIMO",
+      "dica": "Palavra igual a outra na forma ou no som",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 256,
+      "palavra": "icterícia",
+      "palavra_grid": "ICTERICIA",
+      "dica": "Coloração amarela da pele por bilirrubina elevada",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 257,
+      "palavra": "ícone",
+      "palavra_grid": "ICONE",
+      "dica": "Sinal que representa objeto por semelhança",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 258,
+      "palavra": "idílio",
+      "palavra_grid": "IDILIO",
+      "dica": "Composição ou situação amorosa e tranquila",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 259,
+      "palavra": "ilíaco",
+      "palavra_grid": "ILIACO",
+      "dica": "Relativo ao osso ou região do quadril",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 260,
+      "palavra": "imago",
+      "palavra_grid": "IMAGO",
+      "dica": "Fase adulta de inseto após metamorfose",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 261,
+      "palavra": "imanente",
+      "palavra_grid": "IMANENTE",
+      "dica": "Que está contido na própria realidade ou objeto",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 262,
+      "palavra": "impetigo",
+      "palavra_grid": "IMPETIGO",
+      "dica": "Infecção superficial da pele",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 263,
+      "palavra": "inépcia",
+      "palavra_grid": "INEPCIA",
+      "dica": "Falta de aptidão ou defeito grave em petição",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 264,
+      "palavra": "inércia",
+      "palavra_grid": "INERCIA",
+      "dica": "Tendência de um corpo manter seu estado de movimento",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 265,
+      "palavra": "infarto",
+      "palavra_grid": "INFARTO",
+      "dica": "Morte de tecido por falta de irrigação sanguínea",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 266,
+      "palavra": "ínfero",
+      "palavra_grid": "INFERO",
+      "dica": "Situado abaixo ou em posição inferior",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 267,
+      "palavra": "influxo",
+      "palavra_grid": "INFLUXO",
+      "dica": "Entrada ou influência exercida sobre algo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 268,
+      "palavra": "injunção",
+      "palavra_grid": "INJUNCAO",
+      "dica": "Ordem, imposição ou determinação",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 269,
+      "palavra": "inócuo",
+      "palavra_grid": "INOCUO",
+      "dica": "Que não causa efeito ou dano",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 270,
+      "palavra": "insight",
+      "palavra_grid": "INSIGHT",
+      "dica": "Compreensão súbita de uma situação",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 271,
+      "palavra": "isóbaro",
+      "palavra_grid": "ISOBARO",
+      "dica": "Átomo ou nuclídeo com mesmo número de massa",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 272,
+      "palavra": "isótopo",
+      "palavra_grid": "ISOTOPO",
+      "dica": "Átomo do mesmo elemento com nêutrons diferentes",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 273,
+      "palavra": "isquemia",
+      "palavra_grid": "ISQUEMIA",
+      "dica": "Redução de fluxo sanguíneo em tecido",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 274,
+      "palavra": "iteração",
+      "palavra_grid": "ITERACAO",
+      "dica": "Repetição de processo ou cálculo",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 275,
+      "palavra": "juntada",
+      "palavra_grid": "JUNTADA",
+      "dica": "Ato de anexar documento a processo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 276,
+      "palavra": "juris",
+      "palavra_grid": "JURIS",
+      "dica": "Relativo ao direito ou à esfera jurídica",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 277,
+      "palavra": "lactase",
+      "palavra_grid": "LACTASE",
+      "dica": "Enzima que digere lactose",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 278,
+      "palavra": "lacuna",
+      "palavra_grid": "LACUNA",
+      "dica": "Espaço vazio ou falta em texto, lei ou ideia",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 279,
+      "palavra": "lapso",
+      "palavra_grid": "LAPSO",
+      "dica": "Falha, esquecimento ou intervalo de tempo",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 280,
+      "palavra": "laudo",
+      "palavra_grid": "LAUDO",
+      "dica": "Documento técnico com conclusão de especialista",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 281,
+      "palavra": "legatário",
+      "palavra_grid": "LEGATARIO",
+      "dica": "Pessoa beneficiada por legado em testamento",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 282,
+      "palavra": "lexema",
+      "palavra_grid": "LEXEMA",
+      "dica": "Unidade mínima de significado lexical",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 283,
+      "palavra": "líbido",
+      "palavra_grid": "LIBIDO",
+      "dica": "Energia ligada ao desejo segundo a psicanálise",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 284,
+      "palavra": "líquen",
+      "palavra_grid": "LIQUEN",
+      "dica": "Associação entre fungo e alga ou bactéria",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 285,
+      "palavra": "liminar",
+      "palavra_grid": "LIMINAR",
+      "dica": "Decisão provisória no início de processo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 286,
+      "palavra": "lipídio",
+      "palavra_grid": "LIPIDIO",
+      "dica": "Molécula gordurosa presente em seres vivos",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 287,
+      "palavra": "lítico",
+      "palavra_grid": "LITICO",
+      "dica": "Relativo a pedra ou rocha",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 288,
+      "palavra": "litígio",
+      "palavra_grid": "LITIGIO",
+      "dica": "Conflito levado à esfera judicial",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 289,
+      "palavra": "locus",
+      "palavra_grid": "LOCUS",
+      "dica": "Posição específica de gene no cromossomo",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 290,
+      "palavra": "loess",
+      "palavra_grid": "LOESS",
+      "dica": "Depósito sedimentar fino levado pelo vento",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 291,
+      "palavra": "logaritmo",
+      "palavra_grid": "LOGARITMO",
+      "dica": "Operação inversa da potenciação",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 292,
+      "palavra": "lordose",
+      "palavra_grid": "LORDOSE",
+      "dica": "Curvatura natural ou acentuada da coluna lombar",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 293,
+      "palavra": "luxação",
+      "palavra_grid": "LUXACAO",
+      "dica": "Deslocamento de osso em uma articulação",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 294,
+      "palavra": "mácula",
+      "palavra_grid": "MACULA",
+      "dica": "Mancha na pele ou região da retina",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 295,
+      "palavra": "magma",
+      "palavra_grid": "MAGMA",
+      "dica": "Rocha fundida no interior da Terra",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 296,
+      "palavra": "malha",
+      "palavra_grid": "MALHA",
+      "dica": "Estrutura em rede ou conjunto de conexões",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 297,
+      "palavra": "mandado",
+      "palavra_grid": "MANDADO",
+      "dica": "Ordem escrita emitida por autoridade",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 298,
+      "palavra": "manto",
+      "palavra_grid": "MANTO",
+      "dica": "Camada interna da Terra entre crosta e núcleo",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 299,
+      "palavra": "matriz",
+      "palavra_grid": "MATRIZ",
+      "dica": "Organização de elementos em linhas e colunas",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 300,
+      "palavra": "mecenas",
+      "palavra_grid": "MECENAS",
+      "dica": "Pessoa que financia artistas ou projetos culturais",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 301,
+      "palavra": "meiose",
+      "palavra_grid": "MEIOSE",
+      "dica": "Divisão celular que forma gametas",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 302,
+      "palavra": "melena",
+      "palavra_grid": "MELENA",
+      "dica": "Fezes escuras por presença de sangue digerido",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 303,
+      "palavra": "metáfora",
+      "palavra_grid": "METAFORA",
+      "dica": "Figura que transfere sentido por semelhança",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 304,
+      "palavra": "metástase",
+      "palavra_grid": "METASTASE",
+      "dica": "Disseminação de câncer para outro local do corpo",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 305,
+      "palavra": "metonímia",
+      "palavra_grid": "METONIMIA",
+      "dica": "Figura que troca termos por relação de proximidade",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 306,
+      "palavra": "métrica",
+      "palavra_grid": "METRICA",
+      "dica": "Medida ou padrão rítmico de versos",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 307,
+      "palavra": "mielina",
+      "palavra_grid": "MIELINA",
+      "dica": "Camada que envolve axônios e acelera impulsos",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 308,
+      "palavra": "miocárdio",
+      "palavra_grid": "MIOCARDIO",
+      "dica": "Músculo do coração",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 309,
+      "palavra": "miosina",
+      "palavra_grid": "MIOSINA",
+      "dica": "Proteína envolvida na contração muscular",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 310,
+      "palavra": "miríade",
+      "palavra_grid": "MIRIADE",
+      "dica": "Quantidade muito grande ou incontável",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 311,
+      "palavra": "mitose",
+      "palavra_grid": "MITOSE",
+      "dica": "Divisão celular que gera células iguais",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 312,
+      "palavra": "mnemônico",
+      "palavra_grid": "MNEMONICO",
+      "dica": "Recurso usado para facilitar memorização",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 313,
+      "palavra": "modal",
+      "palavra_grid": "MODAL",
+      "dica": "Relacionado a modo, modalidade ou transporte",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 314,
+      "palavra": "mórula",
+      "palavra_grid": "MORULA",
+      "dica": "Estágio inicial do embrião em forma compacta",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 315,
+      "palavra": "mucosa",
+      "palavra_grid": "MUCOSA",
+      "dica": "Tecido que reveste cavidades internas do corpo",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 316,
+      "palavra": "mútuo",
+      "palavra_grid": "MUTUO",
+      "dica": "Empréstimo de coisa fungível, como dinheiro",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 317,
+      "palavra": "nadir",
+      "palavra_grid": "NADIR",
+      "dica": "Ponto oposto ao zênite",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 318,
+      "palavra": "nebulosa",
+      "palavra_grid": "NEBULOSA",
+      "dica": "Nuvem de gás e poeira no espaço",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 319,
+      "palavra": "necrose",
+      "palavra_grid": "NECROSE",
+      "dica": "Morte de tecido em organismo vivo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 320,
+      "palavra": "nefron",
+      "palavra_grid": "NEFRON",
+      "dica": "Unidade funcional do rim",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 321,
+      "palavra": "neoplasia",
+      "palavra_grid": "NEOPLASIA",
+      "dica": "Crescimento anormal de células",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 322,
+      "palavra": "neurônio",
+      "palavra_grid": "NEURONIO",
+      "dica": "Célula do sistema nervoso",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 323,
+      "palavra": "nicho",
+      "palavra_grid": "NICHO",
+      "dica": "Função ecológica de uma espécie",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 324,
+      "palavra": "niilismo",
+      "palavra_grid": "NIILISMO",
+      "dica": "Doutrina que nega valores ou sentidos absolutos",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 325,
+      "palavra": "nódulo",
+      "palavra_grid": "NODULO",
+      "dica": "Pequena massa ou elevação em tecido",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 326,
+      "palavra": "nômade",
+      "palavra_grid": "NOMADE",
+      "dica": "Pessoa ou grupo sem moradia fixa",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 327,
+      "palavra": "notação",
+      "palavra_grid": "NOTACAO",
+      "dica": "Sistema de símbolos para representar informações",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 328,
+      "palavra": "novação",
+      "palavra_grid": "NOVACAO",
+      "dica": "Substituição de obrigação por outra",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 329,
+      "palavra": "núcleo",
+      "palavra_grid": "NUCLEO",
+      "dica": "Parte central da célula ou estrutura",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 330,
+      "palavra": "oblação",
+      "palavra_grid": "OBLACAO",
+      "dica": "Oferta ou ato de oferecer algo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 331,
+      "palavra": "oblíquo",
+      "palavra_grid": "OBLIQUO",
+      "dica": "Inclinado ou não perpendicular",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 332,
+      "palavra": "oclusão",
+      "palavra_grid": "OCLUSAO",
+      "dica": "Fechamento ou bloqueio de passagem",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 333,
+      "palavra": "oligarca",
+      "palavra_grid": "OLIGARCA",
+      "dica": "Membro de pequeno grupo que concentra poder",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 334,
+      "palavra": "omissão",
+      "palavra_grid": "OMISSAO",
+      "dica": "Ausência de ação ou informação devida",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 335,
+      "palavra": "oncogene",
+      "palavra_grid": "ONCOGENE",
+      "dica": "Gene associado ao desenvolvimento de câncer",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 336,
+      "palavra": "ontico",
+      "palavra_grid": "ONTICO",
+      "dica": "Relacionado ao ser concreto ou existente",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 337,
+      "palavra": "opúsculo",
+      "palavra_grid": "OPUSCULO",
+      "dica": "Obra escrita breve",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 338,
+      "palavra": "órbita",
+      "palavra_grid": "ORBITA",
+      "dica": "Trajetória de corpo ao redor de outro",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 339,
+      "palavra": "órfão",
+      "palavra_grid": "ORFAO",
+      "dica": "Pessoa que perdeu pai, mãe ou ambos",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 340,
+      "palavra": "outorga",
+      "palavra_grid": "OUTORGA",
+      "dica": "Concessão formal de direito ou poder",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 341,
+      "palavra": "oxidação",
+      "palavra_grid": "OXIDACAO",
+      "dica": "Perda de elétrons em reação química",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 342,
+      "palavra": "palato",
+      "palavra_grid": "PALATO",
+      "dica": "Parte superior interna da boca",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 343,
+      "palavra": "paleolito",
+      "palavra_grid": "PALEOLITO",
+      "dica": "Período inicial da Idade da Pedra",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 344,
+      "palavra": "papiro",
+      "palavra_grid": "PAPIRO",
+      "dica": "Material antigo usado para escrita",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 345,
+      "palavra": "parábola",
+      "palavra_grid": "PARABOLA",
+      "dica": "Narrativa curta com ensinamento moral",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 346,
+      "palavra": "paradoxo",
+      "palavra_grid": "PARADOXO",
+      "dica": "Ideia aparentemente contraditória mas possível",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 347,
+      "palavra": "paródia",
+      "palavra_grid": "PARODIA",
+      "dica": "Imitação crítica ou cômica de obra",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 348,
+      "palavra": "patente",
+      "palavra_grid": "PATENTE",
+      "dica": "Título que garante direito sobre invenção",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 349,
+      "palavra": "patricio",
+      "palavra_grid": "PATRICIO",
+      "dica": "Membro da elite social na Roma antiga",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 350,
+      "palavra": "penhora",
+      "palavra_grid": "PENHORA",
+      "dica": "Apreensão judicial de bem para garantir dívida",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 351,
+      "palavra": "peptídeo",
+      "palavra_grid": "PEPTIDEO",
+      "dica": "Molécula formada por aminoácidos ligados",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 352,
+      "palavra": "perícia",
+      "palavra_grid": "PERICIA",
+      "dica": "Exame técnico feito por especialista",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 353,
+      "palavra": "perigeu",
+      "palavra_grid": "PERIGEU",
+      "dica": "Ponto mais próximo da Terra em uma órbita",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 354,
+      "palavra": "período",
+      "palavra_grid": "PERIODO",
+      "dica": "Intervalo de tempo ou ciclo regular",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 355,
+      "palavra": "perjúrio",
+      "palavra_grid": "PERJURIO",
+      "dica": "Falso testemunho prestado em juízo",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 356,
+      "palavra": "permease",
+      "palavra_grid": "PERMEASE",
+      "dica": "Proteína que transporta substâncias pela membrana",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 357,
+      "palavra": "phmetro",
+      "palavra_grid": "PHMETRO",
+      "dica": "Aparelho usado para medir acidez ou alcalinidade",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 358,
+      "palavra": "plebe",
+      "palavra_grid": "PLEBE",
+      "dica": "Classe popular na Roma antiga",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 359,
+      "palavra": "pleito",
+      "palavra_grid": "PLEITO",
+      "dica": "Processo eleitoral ou disputa formal",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 360,
+      "palavra": "pleura",
+      "palavra_grid": "PLEURA",
+      "dica": "Membrana que envolve os pulmões",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 361,
+      "palavra": "plasma",
+      "palavra_grid": "PLASMA",
+      "dica": "Parte líquida do sangue ou estado da matéria",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 362,
+      "palavra": "plasmídeo",
+      "palavra_grid": "PLASMIDEO",
+      "dica": "DNA circular presente em bactérias",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 363,
+      "palavra": "plausível",
+      "palavra_grid": "PLAUSIVEL",
+      "dica": "Que parece aceitável ou possível",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 364,
+      "palavra": "polímero",
+      "palavra_grid": "POLIMERO",
+      "dica": "Molécula grande formada por unidades repetidas",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 365,
+      "palavra": "pólipo",
+      "palavra_grid": "POLIPO",
+      "dica": "Crescimento anormal em mucosa",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 366,
+      "palavra": "posse",
+      "palavra_grid": "POSSE",
+      "dica": "Exercício de fato sobre coisa ou cargo",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 367,
+      "palavra": "postulado",
+      "palavra_grid": "POSTULADO",
+      "dica": "Proposição aceita como base de raciocínio",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 368,
+      "palavra": "práxis",
+      "palavra_grid": "PRAXIS",
+      "dica": "Ação prática orientada por teoria",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 369,
+      "palavra": "precário",
+      "palavra_grid": "PRECARIO",
+      "dica": "Instável, provisório ou sem garantia",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 370,
+      "palavra": "preclusão",
+      "palavra_grid": "PRECLUSAO",
+      "dica": "Perda de faculdade processual por decurso ou ato",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 371,
+      "palavra": "predicado",
+      "palavra_grid": "PREDICADO",
+      "dica": "Termo que declara algo sobre o sujeito",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 372,
+      "palavra": "prisma",
+      "palavra_grid": "PRISMA",
+      "dica": "Sólido geométrico com bases paralelas",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 373,
+      "palavra": "pródromo",
+      "palavra_grid": "PRODROMO",
+      "dica": "Sinal inicial que antecede doença",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 374,
+      "palavra": "prolixo",
+      "palavra_grid": "PROLIXO",
+      "dica": "Excessivamente longo ou detalhado",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 375,
+      "palavra": "próton",
+      "palavra_grid": "PROTON",
+      "dica": "Partícula de carga positiva no núcleo atômico",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 376,
+      "palavra": "pulsar",
+      "palavra_grid": "PULSAR",
+      "dica": "Estrela de nêutrons que emite pulsos regulares",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 377,
+      "palavra": "quântico",
+      "palavra_grid": "QUANTICO",
+      "dica": "Relativo aos fenômenos em escala atômica",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 378,
+      "palavra": "quasar",
+      "palavra_grid": "QUASAR",
+      "dica": "Núcleo galáctico extremamente luminoso",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 379,
+      "palavra": "quelato",
+      "palavra_grid": "QUELATO",
+      "dica": "Composto em que íon metálico é ligado por molécula orgânica",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 380,
+      "palavra": "quesito",
+      "palavra_grid": "QUESITO",
+      "dica": "Pergunta técnica formulada a perito",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 381,
+      "palavra": "quinhão",
+      "palavra_grid": "QUINHAO",
+      "dica": "Parte que cabe a alguém em divisão de bens",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 382,
+      "palavra": "quórum",
+      "palavra_grid": "QUORUM",
+      "dica": "Número mínimo de presentes para decisão válida",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 383,
+      "palavra": "reagente",
+      "palavra_grid": "REAGENTE",
+      "dica": "Substância que participa de reação química",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 384,
+      "palavra": "rebate",
+      "palavra_grid": "REBATE",
+      "dica": "Desconto, abatimento ou resposta a argumento",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 385,
+      "palavra": "reclusão",
+      "palavra_grid": "RECLUSAO",
+      "dica": "Pena privativa de liberdade em regime fechado ou semiaberto",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 386,
+      "palavra": "recurso",
+      "palavra_grid": "RECURSO",
+      "dica": "Pedido de reexame de decisão",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 387,
+      "palavra": "redação",
+      "palavra_grid": "REDACAO",
+      "dica": "Ato ou resultado de escrever texto organizado",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 388,
+      "palavra": "redox",
+      "palavra_grid": "REDOX",
+      "dica": "Reação com oxidação e redução",
+      "dificuldade": "dificil",
+      "tamanho": 5
+    },
+    {
+      "id": 389,
+      "palavra": "refrão",
+      "palavra_grid": "REFRAO",
+      "dica": "Verso ou trecho repetido em música ou poema",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 390,
+      "palavra": "refração",
+      "palavra_grid": "REFRACAO",
+      "dica": "Mudança de direção da luz ao passar de meio",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 391,
+      "palavra": "relicto",
+      "palavra_grid": "RELICTO",
+      "dica": "Remanescente de formação antiga",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 392,
+      "palavra": "reologia",
+      "palavra_grid": "REOLOGIA",
+      "dica": "Estudo da deformação e fluxo da matéria",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 393,
+      "palavra": "resíduo",
+      "palavra_grid": "RESIDUO",
+      "dica": "Material que sobra após processo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 394,
+      "palavra": "retículo",
+      "palavra_grid": "RETICULO",
+      "dica": "Estrutura em forma de rede",
+      "dificuldade": "dificil",
+      "tamanho": 8
+    },
+    {
+      "id": 395,
+      "palavra": "revelia",
+      "palavra_grid": "REVELIA",
+      "dica": "Situação de réu que não se defende no prazo",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 396,
+      "palavra": "ribossomo",
+      "palavra_grid": "RIBOSSOMO",
+      "dica": "Estrutura celular que produz proteínas",
+      "dificuldade": "dificil",
+      "tamanho": 9
+    },
+    {
+      "id": 397,
+      "palavra": "rizoma",
+      "palavra_grid": "RIZOMA",
+      "dica": "Caule subterrâneo de certas plantas",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 398,
+      "palavra": "rúbrica",
+      "palavra_grid": "RUBRICA",
+      "dica": "Assinatura abreviada ou indicação em texto",
+      "dificuldade": "dificil",
+      "tamanho": 7
+    },
+    {
+      "id": 399,
+      "palavra": "safena",
+      "palavra_grid": "SAFENA",
+      "dica": "Veia superficial da perna",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    },
+    {
+      "id": 400,
+      "palavra": "sálico",
+      "palavra_grid": "SALICO",
+      "dica": "Relativo a antiga lei dos francos",
+      "dificuldade": "dificil",
+      "tamanho": 6
+    }
+  ]
+}

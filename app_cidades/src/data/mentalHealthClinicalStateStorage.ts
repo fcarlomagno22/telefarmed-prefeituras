@@ -2,6 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { AnamnesisAnswerRecord, UserClinicalState } from '../types/mentalHealthEngine'
 import { ENGINE_CONTENT_VERSION } from '../mentalHealthEngine/content/loadEngineContent'
 import { computeAnamnesisCompletion } from '../mentalHealthEngine/anamnesisScoring'
+import { INITIAL_ANAMNESIS_QUESTION_IDS } from '../utils/mentalHealthAnamnesisCore'
+import { getCrisisAnamnesisQuestionIds } from '../utils/mentalHealthCrisis'
+import { toLocalDateIso } from '../utils/runWalkWeeklyChart'
 
 const STORAGE_KEY = '@telefarmed/mental-health-clinical-state-v1'
 
@@ -185,6 +188,43 @@ export async function updateActivityHistoryEntry(
   return state
 }
 
+export async function ensureActivityHistoryEntry(
+  patientCpf: string,
+  activityId: string,
+  planDate: string,
+  slot: 'now' | 'daytime' | 'evening' = 'now',
+) {
+  const state = await loadMentalHealthClinicalState(patientCpf)
+  if (!state) return null
+
+  const existingIndex = state.activity_history.findIndex(
+    (entry) => entry.activity_id === activityId && entry.plan_date === planDate,
+  )
+
+  if (existingIndex >= 0) {
+    return state
+  }
+
+  const now = new Date().toISOString()
+  state.activity_history.push({
+    activity_id: activityId,
+    plan_id: state.plan_state.current_plan_id,
+    plan_date: planDate,
+    slot,
+    status: 'assigned',
+    assigned_at: now,
+    completed_at: null,
+    duration_actual_sec: null,
+    feedback: null,
+    feedback_at: null,
+    matched_rule_id: 'library_self_start',
+  })
+  state.updated_at = now
+
+  await saveMentalHealthClinicalState(patientCpf, state)
+  return state
+}
+
 export async function submitActivityFeedback(
   patientCpf: string,
   activityId: string,
@@ -198,4 +238,94 @@ export async function submitActivityFeedback(
     feedback,
     feedback_at: now,
   })
+}
+
+function getReanamnesisQuestionIdsToClear() {
+  return new Set<string>([
+    ...INITIAL_ANAMNESIS_QUESTION_IDS,
+    ...getCrisisAnamnesisQuestionIds(),
+  ])
+}
+
+export async function recoverFromCrisisForReanamnesis(patientCpf: string) {
+  const state = await loadMentalHealthClinicalState(patientCpf)
+  if (!state) return null
+
+  const hasOpenFlags = state.active_red_flags.some((flag) => flag.status === 'open')
+  if (!hasOpenFlags) return null
+
+  const now = new Date().toISOString()
+  const questionIdsToClear = getReanamnesisQuestionIdsToClear()
+  const nextAnswers = { ...state.anamnesis.answers_index }
+
+  for (const questionId of questionIdsToClear) {
+    delete nextAnswers[questionId]
+  }
+
+  const completion = computeAnamnesisCompletion(nextAnswers)
+  const nextRedFlags = state.active_red_flags.map((flag) => {
+    if (flag.status !== 'open') return flag
+    return {
+      ...flag,
+      status: 'acknowledged' as const,
+      resolved_at: now,
+    }
+  })
+
+  const next: UserClinicalState = {
+    ...state,
+    anamnesis: {
+      ...state.anamnesis,
+      answers_index: nextAnswers,
+      completion_ratio: completion.completion_ratio,
+      completed_module_ids: completion.completed_module_ids,
+      completed_at: null,
+      last_updated_at: now,
+    },
+    active_red_flags: nextRedFlags,
+    plan_state: {
+      ...state.plan_state,
+      last_plan_blocked: true,
+      last_block_reason: 'red_flag',
+    },
+    updated_at: now,
+  }
+
+  await saveMentalHealthClinicalState(patientCpf, next)
+  return next
+}
+
+/** Remove o plano de hoje para permitir remontagem (mantém atividades já concluídas). */
+export async function invalidateTodayMicroPlan(
+  patientCpf: string,
+  planDate = toLocalDateIso(new Date()),
+) {
+  const state = await loadMentalHealthClinicalState(patientCpf)
+  if (!state || state.plan_state.last_plan_date !== planDate) {
+    return state
+  }
+
+  const nextHistory = state.activity_history.filter(
+    (entry) =>
+      entry.plan_date !== planDate ||
+      entry.status === 'completed' ||
+      entry.feedback != null,
+  )
+
+  const next: UserClinicalState = {
+    ...state,
+    activity_history: nextHistory,
+    plan_state: {
+      ...state.plan_state,
+      last_plan_date: null,
+      last_plan_generated_at: null,
+      last_plan_blocked: false,
+      last_block_reason: null,
+      current_plan_id: null,
+    },
+    updated_at: new Date().toISOString(),
+  }
+
+  await saveMentalHealthClinicalState(patientCpf, next)
+  return next
 }

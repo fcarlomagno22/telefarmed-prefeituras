@@ -1,0 +1,3213 @@
+{
+  "jogo": "palavras_cruzadas",
+  "dificuldade": "facil",
+  "grid": {
+    "linhas": 9,
+    "colunas": 9,
+    "maximo_letras_por_palavra": 9
+  },
+  "total_palavras": 400,
+  "observacao": "Todas as palavras em palavra_grid foram normalizadas sem acentos e têm no máximo 9 letras para caber em grid 9x9.",
+  "palavras": [
+    {
+      "id": 1,
+      "palavra": "casa",
+      "palavra_grid": "CASA",
+      "dica": "Lugar onde você mora",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 2,
+      "palavra": "gato",
+      "palavra_grid": "GATO",
+      "dica": "Animal doméstico que mia",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 3,
+      "palavra": "sol",
+      "palavra_grid": "SOL",
+      "dica": "Estrela que ilumina o dia",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 4,
+      "palavra": "lua",
+      "palavra_grid": "LUA",
+      "dica": "Satélite natural da Terra",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 5,
+      "palavra": "mar",
+      "palavra_grid": "MAR",
+      "dica": "Grande massa de água salgada",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 6,
+      "palavra": "rio",
+      "palavra_grid": "RIO",
+      "dica": "Corrente de água doce",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 7,
+      "palavra": "pé",
+      "palavra_grid": "PE",
+      "dica": "Parte do corpo usada para caminhar",
+      "dificuldade": "facil",
+      "tamanho": 2
+    },
+    {
+      "id": 8,
+      "palavra": "mão",
+      "palavra_grid": "MAO",
+      "dica": "Parte do corpo com cinco dedos",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 9,
+      "palavra": "olho",
+      "palavra_grid": "OLHO",
+      "dica": "Órgão da visão",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 10,
+      "palavra": "cara",
+      "palavra_grid": "CARA",
+      "dica": "Parte frontal da cabeça",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 11,
+      "palavra": "boca",
+      "palavra_grid": "BOCA",
+      "dica": "Órgão usado para falar e comer",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 12,
+      "palavra": "nariz",
+      "palavra_grid": "NARIZ",
+      "dica": "Órgão do olfato",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 13,
+      "palavra": "orelha",
+      "palavra_grid": "ORELHA",
+      "dica": "Órgão da audição",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 14,
+      "palavra": "cabelo",
+      "palavra_grid": "CABELO",
+      "dica": "Fios que crescem na cabeça",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 15,
+      "palavra": "braço",
+      "palavra_grid": "BRACO",
+      "dica": "Membro superior do corpo",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 16,
+      "palavra": "perna",
+      "palavra_grid": "PERNA",
+      "dica": "Membro inferior do corpo",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 17,
+      "palavra": "dedo",
+      "palavra_grid": "DEDO",
+      "dica": "Parte da mão ou do pé",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 18,
+      "palavra": "unha",
+      "palavra_grid": "UNHA",
+      "dica": "Estrutura dura na ponta dos dedos",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 19,
+      "palavra": "pele",
+      "palavra_grid": "PELE",
+      "dica": "Camada externa do corpo",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 20,
+      "palavra": "água",
+      "palavra_grid": "AGUA",
+      "dica": "Líquido essencial para a vida",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 21,
+      "palavra": "fogo",
+      "palavra_grid": "FOGO",
+      "dica": "Combustão que produz calor e luz",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 22,
+      "palavra": "terra",
+      "palavra_grid": "TERRA",
+      "dica": "Planeta onde vivemos",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 23,
+      "palavra": "ar",
+      "palavra_grid": "AR",
+      "dica": "Gás que respiramos",
+      "dificuldade": "facil",
+      "tamanho": 2
+    },
+    {
+      "id": 24,
+      "palavra": "vento",
+      "palavra_grid": "VENTO",
+      "dica": "Movimento do ar",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 25,
+      "palavra": "chuva",
+      "palavra_grid": "CHUVA",
+      "dica": "Precipitação de água",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 26,
+      "palavra": "neve",
+      "palavra_grid": "NEVE",
+      "dica": "Precipitação de cristais de gelo",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 27,
+      "palavra": "gelo",
+      "palavra_grid": "GELO",
+      "dica": "Água em estado sólido",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 28,
+      "palavra": "nuvem",
+      "palavra_grid": "NUVEM",
+      "dica": "Massa de vapor d'água no céu",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 29,
+      "palavra": "céu",
+      "palavra_grid": "CEU",
+      "dica": "Espaço acima da Terra",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 30,
+      "palavra": "dia",
+      "palavra_grid": "DIA",
+      "dica": "Período de 24 horas",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 31,
+      "palavra": "noite",
+      "palavra_grid": "NOITE",
+      "dica": "Período sem luz solar",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 32,
+      "palavra": "manhã",
+      "palavra_grid": "MANHA",
+      "dica": "Início do dia",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 33,
+      "palavra": "tarde",
+      "palavra_grid": "TARDE",
+      "dica": "Período após o meio-dia",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 34,
+      "palavra": "hora",
+      "palavra_grid": "HORA",
+      "dica": "Unidade de tempo",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 35,
+      "palavra": "minuto",
+      "palavra_grid": "MINUTO",
+      "dica": "60 segundos",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 36,
+      "palavra": "segundo",
+      "palavra_grid": "SEGUNDO",
+      "dica": "Unidade básica de tempo",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 37,
+      "palavra": "ano",
+      "palavra_grid": "ANO",
+      "dica": "365 dias",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 38,
+      "palavra": "mês",
+      "palavra_grid": "MES",
+      "dica": "Período de aproximadamente 30 dias",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 39,
+      "palavra": "semana",
+      "palavra_grid": "SEMANA",
+      "dica": "Período de 7 dias",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 40,
+      "palavra": "pai",
+      "palavra_grid": "PAI",
+      "dica": "Genitor masculino",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 41,
+      "palavra": "mãe",
+      "palavra_grid": "MAE",
+      "dica": "Genitora feminina",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 42,
+      "palavra": "filho",
+      "palavra_grid": "FILHO",
+      "dica": "Descendente masculino",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 43,
+      "palavra": "filha",
+      "palavra_grid": "FILHA",
+      "dica": "Descendente feminina",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 44,
+      "palavra": "irmão",
+      "palavra_grid": "IRMAO",
+      "dica": "Filho do mesmo pai e mãe",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 45,
+      "palavra": "irmã",
+      "palavra_grid": "IRMA",
+      "dica": "Filha do mesmo pai e mãe",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 46,
+      "palavra": "avô",
+      "palavra_grid": "AVO",
+      "dica": "Pai do pai ou da mãe",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 47,
+      "palavra": "tio",
+      "palavra_grid": "TIO",
+      "dica": "Irmão do pai ou da mãe",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 48,
+      "palavra": "tia",
+      "palavra_grid": "TIA",
+      "dica": "Irmã do pai ou da mãe",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 49,
+      "palavra": "amigo",
+      "palavra_grid": "AMIGO",
+      "dica": "Pessoa com quem você tem afinidade",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 50,
+      "palavra": "amiga",
+      "palavra_grid": "AMIGA",
+      "dica": "Mulher com quem você tem afinidade",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 51,
+      "palavra": "porta",
+      "palavra_grid": "PORTA",
+      "dica": "Abertura que permite entrada",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 52,
+      "palavra": "janela",
+      "palavra_grid": "JANELA",
+      "dica": "Abertura na parede para luz",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 53,
+      "palavra": "parede",
+      "palavra_grid": "PAREDE",
+      "dica": "Estrutura vertical de uma construção",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 54,
+      "palavra": "teto",
+      "palavra_grid": "TETO",
+      "dica": "Parte superior de um cômodo",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 55,
+      "palavra": "chão",
+      "palavra_grid": "CHAO",
+      "dica": "Superfície onde pisamos",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 56,
+      "palavra": "sala",
+      "palavra_grid": "SALA",
+      "dica": "Cômodo principal da casa",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 57,
+      "palavra": "quarto",
+      "palavra_grid": "QUARTO",
+      "dica": "Cômodo para dormir",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 58,
+      "palavra": "cama",
+      "palavra_grid": "CAMA",
+      "dica": "Móvel para dormir",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 59,
+      "palavra": "mesa",
+      "palavra_grid": "MESA",
+      "dica": "Móvel com superfície plana",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 60,
+      "palavra": "cadeira",
+      "palavra_grid": "CADEIRA",
+      "dica": "Móvel para sentar",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 61,
+      "palavra": "sofá",
+      "palavra_grid": "SOFA",
+      "dica": "Móvel confortável para sentar",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 62,
+      "palavra": "geladeira",
+      "palavra_grid": "GELADEIRA",
+      "dica": "Eletrodoméstico que resfria",
+      "dificuldade": "facil",
+      "tamanho": 9
+    },
+    {
+      "id": 63,
+      "palavra": "fogão",
+      "palavra_grid": "FOGAO",
+      "dica": "Eletrodoméstico para cozinhar",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 64,
+      "palavra": "pia",
+      "palavra_grid": "PIA",
+      "dica": "Recipiente para lavar",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 65,
+      "palavra": "banheiro",
+      "palavra_grid": "BANHEIRO",
+      "dica": "Cômodo para higiene",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 66,
+      "palavra": "cozinha",
+      "palavra_grid": "COZINHA",
+      "dica": "Cômodo para preparar comida",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 67,
+      "palavra": "varanda",
+      "palavra_grid": "VARANDA",
+      "dica": "Área externa coberta",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 68,
+      "palavra": "carro",
+      "palavra_grid": "CARRO",
+      "dica": "Veículo de quatro rodas",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 69,
+      "palavra": "ônibus",
+      "palavra_grid": "ONIBUS",
+      "dica": "Veículo de transporte coletivo",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 70,
+      "palavra": "bicicleta",
+      "palavra_grid": "BICICLETA",
+      "dica": "Veículo de duas rodas",
+      "dificuldade": "facil",
+      "tamanho": 9
+    },
+    {
+      "id": 71,
+      "palavra": "moto",
+      "palavra_grid": "MOTO",
+      "dica": "Veículo motorizado de duas rodas",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 72,
+      "palavra": "avião",
+      "palavra_grid": "AVIAO",
+      "dica": "Veículo que voa",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 73,
+      "palavra": "barco",
+      "palavra_grid": "BARCO",
+      "dica": "Veículo aquático",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 74,
+      "palavra": "trem",
+      "palavra_grid": "TREM",
+      "dica": "Veículo sobre trilhos",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 75,
+      "palavra": "metrô",
+      "palavra_grid": "METRO",
+      "dica": "Trem subterrâneo",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 76,
+      "palavra": "táxi",
+      "palavra_grid": "TAXI",
+      "dica": "Carro de aluguel",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 77,
+      "palavra": "caminhão",
+      "palavra_grid": "CAMINHAO",
+      "dica": "Veículo grande para carga",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 78,
+      "palavra": "rua",
+      "palavra_grid": "RUA",
+      "dica": "Via pública",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 79,
+      "palavra": "avenida",
+      "palavra_grid": "AVENIDA",
+      "dica": "Rua larga",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 80,
+      "palavra": "praça",
+      "palavra_grid": "PRACA",
+      "dica": "Área pública aberta",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 81,
+      "palavra": "parque",
+      "palavra_grid": "PARQUE",
+      "dica": "Área verde pública",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 82,
+      "palavra": "praia",
+      "palavra_grid": "PRAIA",
+      "dica": "Extensão de areia à beira-mar",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 83,
+      "palavra": "montanha",
+      "palavra_grid": "MONTANHA",
+      "dica": "Elevação natural do terreno",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 84,
+      "palavra": "floresta",
+      "palavra_grid": "FLORESTA",
+      "dica": "Grande área com árvores",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 85,
+      "palavra": "campo",
+      "palavra_grid": "CAMPO",
+      "dica": "Área aberta de terra",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 86,
+      "palavra": "cidade",
+      "palavra_grid": "CIDADE",
+      "dica": "Área urbana populosa",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 87,
+      "palavra": "país",
+      "palavra_grid": "PAIS",
+      "dica": "Nação soberana",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 88,
+      "palavra": "comida",
+      "palavra_grid": "COMIDA",
+      "dica": "Alimento para consumo",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 89,
+      "palavra": "pão",
+      "palavra_grid": "PAO",
+      "dica": "Alimento feito de farinha",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 90,
+      "palavra": "leite",
+      "palavra_grid": "LEITE",
+      "dica": "Bebida branca de origem animal",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 91,
+      "palavra": "ovo",
+      "palavra_grid": "OVO",
+      "dica": "Alimento de origem animal",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 92,
+      "palavra": "fruta",
+      "palavra_grid": "FRUTA",
+      "dica": "Alimento doce de plantas",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 93,
+      "palavra": "verdura",
+      "palavra_grid": "VERDURA",
+      "dica": "Vegetal comestível",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 94,
+      "palavra": "carne",
+      "palavra_grid": "CARNE",
+      "dica": "Alimento de origem animal",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 95,
+      "palavra": "peixe",
+      "palavra_grid": "PEIXE",
+      "dica": "Animal aquático comestível",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 96,
+      "palavra": "arroz",
+      "palavra_grid": "ARROZ",
+      "dica": "Cereal muito consumido",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 97,
+      "palavra": "feijão",
+      "palavra_grid": "FEIJAO",
+      "dica": "Leguminosa nutritiva",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 98,
+      "palavra": "café",
+      "palavra_grid": "CAFE",
+      "dica": "Bebida estimulante",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 99,
+      "palavra": "chá",
+      "palavra_grid": "CHA",
+      "dica": "Bebida feita com folhas",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 100,
+      "palavra": "suco",
+      "palavra_grid": "SUCO",
+      "dica": "Bebida de frutas",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 101,
+      "palavra": "cerveja",
+      "palavra_grid": "CERVEJA",
+      "dica": "Bebida alcoólica fermentada",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 102,
+      "palavra": "vinho",
+      "palavra_grid": "VINHO",
+      "dica": "Bebida alcoólica de uva",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 103,
+      "palavra": "queijo",
+      "palavra_grid": "QUEIJO",
+      "dica": "Derivado do leite",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 104,
+      "palavra": "manteiga",
+      "palavra_grid": "MANTEIGA",
+      "dica": "Gordura derivada do leite",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 105,
+      "palavra": "açúcar",
+      "palavra_grid": "ACUCAR",
+      "dica": "Adoçante natural",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 106,
+      "palavra": "escola",
+      "palavra_grid": "ESCOLA",
+      "dica": "Local de ensino",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 107,
+      "palavra": "livro",
+      "palavra_grid": "LIVRO",
+      "dica": "Objeto com páginas para ler",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 108,
+      "palavra": "caderno",
+      "palavra_grid": "CADERNO",
+      "dica": "Conjunto de folhas para escrever",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 109,
+      "palavra": "lápis",
+      "palavra_grid": "LAPIS",
+      "dica": "Instrumento para escrever",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 110,
+      "palavra": "caneta",
+      "palavra_grid": "CANETA",
+      "dica": "Instrumento com tinta para escrever",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 111,
+      "palavra": "borracha",
+      "palavra_grid": "BORRACHA",
+      "dica": "Objeto para apagar",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 112,
+      "palavra": "régua",
+      "palavra_grid": "REGUA",
+      "dica": "Instrumento para medir",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 113,
+      "palavra": "mochila",
+      "palavra_grid": "MOCHILA",
+      "dica": "Bolsa para carregar nas costas",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 114,
+      "palavra": "professor",
+      "palavra_grid": "PROFESSOR",
+      "dica": "Pessoa que ensina",
+      "dificuldade": "facil",
+      "tamanho": 9
+    },
+    {
+      "id": 115,
+      "palavra": "aluno",
+      "palavra_grid": "ALUNO",
+      "dica": "Pessoa que estuda",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 116,
+      "palavra": "trabalho",
+      "palavra_grid": "TRABALHO",
+      "dica": "Atividade profissional",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 117,
+      "palavra": "telefone",
+      "palavra_grid": "TELEFONE",
+      "dica": "Aparelho para comunicação",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 118,
+      "palavra": "celular",
+      "palavra_grid": "CELULAR",
+      "dica": "Telefone portátil",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 119,
+      "palavra": "internet",
+      "palavra_grid": "INTERNET",
+      "dica": "Rede mundial de computadores",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 120,
+      "palavra": "email",
+      "palavra_grid": "EMAIL",
+      "dica": "Correio eletrônico",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 121,
+      "palavra": "site",
+      "palavra_grid": "SITE",
+      "dica": "Página na internet",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 122,
+      "palavra": "rede",
+      "palavra_grid": "REDE",
+      "dica": "Sistema interconectado",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 123,
+      "palavra": "jogo",
+      "palavra_grid": "JOGO",
+      "dica": "Atividade lúdica",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 124,
+      "palavra": "brinquedo",
+      "palavra_grid": "BRINQUEDO",
+      "dica": "Objeto para brincar",
+      "dificuldade": "facil",
+      "tamanho": 9
+    },
+    {
+      "id": 125,
+      "palavra": "bola",
+      "palavra_grid": "BOLA",
+      "dica": "Objeto esférico",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 126,
+      "palavra": "boneca",
+      "palavra_grid": "BONECA",
+      "dica": "Brinquedo em forma de pessoa",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 127,
+      "palavra": "carrinho",
+      "palavra_grid": "CARRINHO",
+      "dica": "Brinquedo com rodas",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 128,
+      "palavra": "diversão",
+      "palavra_grid": "DIVERSAO",
+      "dica": "Atividade prazerosa",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 129,
+      "palavra": "riso",
+      "palavra_grid": "RISO",
+      "dica": "Expressão de alegria",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 130,
+      "palavra": "música",
+      "palavra_grid": "MUSICA",
+      "dica": "Arte dos sons",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 131,
+      "palavra": "canção",
+      "palavra_grid": "CANCAO",
+      "dica": "Composição musical",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 132,
+      "palavra": "violão",
+      "palavra_grid": "VIOLAO",
+      "dica": "Instrumento de cordas",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 133,
+      "palavra": "piano",
+      "palavra_grid": "PIANO",
+      "dica": "Instrumento de teclas",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 134,
+      "palavra": "bateria",
+      "palavra_grid": "BATERIA",
+      "dica": "Instrumento de percussão",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 135,
+      "palavra": "flauta",
+      "palavra_grid": "FLAUTA",
+      "dica": "Instrumento de sopro",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 136,
+      "palavra": "guitarra",
+      "palavra_grid": "GUITARRA",
+      "dica": "Instrumento elétrico de cordas",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 137,
+      "palavra": "violino",
+      "palavra_grid": "VIOLINO",
+      "dica": "Instrumento de cordas pequeno",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 138,
+      "palavra": "saxofone",
+      "palavra_grid": "SAXOFONE",
+      "dica": "Instrumento de sopro metálico",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 139,
+      "palavra": "filme",
+      "palavra_grid": "FILME",
+      "dica": "Obra cinematográfica",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 140,
+      "palavra": "cinema",
+      "palavra_grid": "CINEMA",
+      "dica": "Local para ver filmes",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 141,
+      "palavra": "teatro",
+      "palavra_grid": "TEATRO",
+      "dica": "Local para apresentações",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 142,
+      "palavra": "show",
+      "palavra_grid": "SHOW",
+      "dica": "Apresentação artística",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 143,
+      "palavra": "concerto",
+      "palavra_grid": "CONCERTO",
+      "dica": "Apresentação musical",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 144,
+      "palavra": "artista",
+      "palavra_grid": "ARTISTA",
+      "dica": "Pessoa que cria arte",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 145,
+      "palavra": "ator",
+      "palavra_grid": "ATOR",
+      "dica": "Artista que interpreta",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 146,
+      "palavra": "atriz",
+      "palavra_grid": "ATRIZ",
+      "dica": "Artista feminina que interpreta",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 147,
+      "palavra": "diretor",
+      "palavra_grid": "DIRETOR",
+      "dica": "Pessoa que dirige",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 148,
+      "palavra": "esporte",
+      "palavra_grid": "ESPORTE",
+      "dica": "Atividade física competitiva",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 149,
+      "palavra": "futebol",
+      "palavra_grid": "FUTEBOL",
+      "dica": "Esporte com bola e chute",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 150,
+      "palavra": "basquete",
+      "palavra_grid": "BASQUETE",
+      "dica": "Esporte com cesta",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 151,
+      "palavra": "vôlei",
+      "palavra_grid": "VOLEI",
+      "dica": "Esporte com rede",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 152,
+      "palavra": "tênis",
+      "palavra_grid": "TENIS",
+      "dica": "Esporte com raquete",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 153,
+      "palavra": "natação",
+      "palavra_grid": "NATACAO",
+      "dica": "Esporte na água",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 154,
+      "palavra": "corrida",
+      "palavra_grid": "CORRIDA",
+      "dica": "Esporte de velocidade",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 155,
+      "palavra": "ciclismo",
+      "palavra_grid": "CICLISMO",
+      "dica": "Esporte com bicicleta",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 156,
+      "palavra": "boxe",
+      "palavra_grid": "BOXE",
+      "dica": "Esporte de luta",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 157,
+      "palavra": "judô",
+      "palavra_grid": "JUDO",
+      "dica": "Arte marcial japonesa",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 158,
+      "palavra": "cor",
+      "palavra_grid": "COR",
+      "dica": "Característica visual",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 159,
+      "palavra": "vermelho",
+      "palavra_grid": "VERMELHO",
+      "dica": "Cor do sangue",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 160,
+      "palavra": "azul",
+      "palavra_grid": "AZUL",
+      "dica": "Cor do céu",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 161,
+      "palavra": "amarelo",
+      "palavra_grid": "AMARELO",
+      "dica": "Cor do sol",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 162,
+      "palavra": "verde",
+      "palavra_grid": "VERDE",
+      "dica": "Cor da grama",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 163,
+      "palavra": "preto",
+      "palavra_grid": "PRETO",
+      "dica": "Ausência de cor",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 164,
+      "palavra": "branco",
+      "palavra_grid": "BRANCO",
+      "dica": "Presença de todas as cores",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 165,
+      "palavra": "cinza",
+      "palavra_grid": "CINZA",
+      "dica": "Cor entre preto e branco",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 166,
+      "palavra": "rosa",
+      "palavra_grid": "ROSA",
+      "dica": "Cor suave avermelhada",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 167,
+      "palavra": "roxo",
+      "palavra_grid": "ROXO",
+      "dica": "Cor entre azul e vermelho",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 168,
+      "palavra": "número",
+      "palavra_grid": "NUMERO",
+      "dica": "Símbolo matemático",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 169,
+      "palavra": "um",
+      "palavra_grid": "UM",
+      "dica": "Primeiro número natural",
+      "dificuldade": "facil",
+      "tamanho": 2
+    },
+    {
+      "id": 170,
+      "palavra": "dois",
+      "palavra_grid": "DOIS",
+      "dica": "Segundo número natural",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 171,
+      "palavra": "três",
+      "palavra_grid": "TRES",
+      "dica": "Terceiro número natural",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 172,
+      "palavra": "quatro",
+      "palavra_grid": "QUATRO",
+      "dica": "Quarto número natural",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 173,
+      "palavra": "cinco",
+      "palavra_grid": "CINCO",
+      "dica": "Quinto número natural",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 174,
+      "palavra": "seis",
+      "palavra_grid": "SEIS",
+      "dica": "Sexto número natural",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 175,
+      "palavra": "sete",
+      "palavra_grid": "SETE",
+      "dica": "Sétimo número natural",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 176,
+      "palavra": "oito",
+      "palavra_grid": "OITO",
+      "dica": "Oitavo número natural",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 177,
+      "palavra": "nove",
+      "palavra_grid": "NOVE",
+      "dica": "Nono número natural",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 178,
+      "palavra": "dez",
+      "palavra_grid": "DEZ",
+      "dica": "Décimo número natural",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 179,
+      "palavra": "animal",
+      "palavra_grid": "ANIMAL",
+      "dica": "Ser vivo não vegetal",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 180,
+      "palavra": "cachorro",
+      "palavra_grid": "CACHORRO",
+      "dica": "Animal doméstico leal",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 181,
+      "palavra": "cavalo",
+      "palavra_grid": "CAVALO",
+      "dica": "Animal usado para montaria",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 182,
+      "palavra": "vaca",
+      "palavra_grid": "VACA",
+      "dica": "Animal que produz leite",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 183,
+      "palavra": "porco",
+      "palavra_grid": "PORCO",
+      "dica": "Animal de fazenda",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 184,
+      "palavra": "ovelha",
+      "palavra_grid": "OVELHA",
+      "dica": "Animal que produz lã",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 185,
+      "palavra": "galinha",
+      "palavra_grid": "GALINHA",
+      "dica": "Ave doméstica",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 186,
+      "palavra": "leão",
+      "palavra_grid": "LEAO",
+      "dica": "Rei da selva",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 187,
+      "palavra": "tigre",
+      "palavra_grid": "TIGRE",
+      "dica": "Felino listrado",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 188,
+      "palavra": "elefante",
+      "palavra_grid": "ELEFANTE",
+      "dica": "Animal de grande porte",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 189,
+      "palavra": "girafa",
+      "palavra_grid": "GIRAFA",
+      "dica": "Animal de pescoço longo",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 190,
+      "palavra": "macaco",
+      "palavra_grid": "MACACO",
+      "dica": "Primata arborícola",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 191,
+      "palavra": "urso",
+      "palavra_grid": "URSO",
+      "dica": "Animal grande e peludo",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 192,
+      "palavra": "coelho",
+      "palavra_grid": "COELHO",
+      "dica": "Animal de orelhas longas",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 193,
+      "palavra": "rato",
+      "palavra_grid": "RATO",
+      "dica": "Roedor pequeno",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 194,
+      "palavra": "cobra",
+      "palavra_grid": "COBRA",
+      "dica": "Réptil sem patas",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 195,
+      "palavra": "lagarto",
+      "palavra_grid": "LAGARTO",
+      "dica": "Réptil com patas",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 196,
+      "palavra": "flor",
+      "palavra_grid": "FLOR",
+      "dica": "Estrutura colorida das plantas",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 197,
+      "palavra": "margarida",
+      "palavra_grid": "MARGARIDA",
+      "dica": "Flor branca com centro amarelo",
+      "dificuldade": "facil",
+      "tamanho": 9
+    },
+    {
+      "id": 198,
+      "palavra": "tulipa",
+      "palavra_grid": "TULIPA",
+      "dica": "Flor em forma de taça",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 199,
+      "palavra": "girassol",
+      "palavra_grid": "GIRASSOL",
+      "dica": "Flor que segue o sol",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 200,
+      "palavra": "orquídea",
+      "palavra_grid": "ORQUIDEA",
+      "dica": "Flor exótica",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 201,
+      "palavra": "lírio",
+      "palavra_grid": "LIRIO",
+      "dica": "Flor perfumada",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 202,
+      "palavra": "jasmim",
+      "palavra_grid": "JASMIM",
+      "dica": "Flor muito perfumada",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 203,
+      "palavra": "violeta",
+      "palavra_grid": "VIOLETA",
+      "dica": "Flor roxa pequena",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 204,
+      "palavra": "cravo",
+      "palavra_grid": "CRAVO",
+      "dica": "Flor colorida",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 205,
+      "palavra": "árvore",
+      "palavra_grid": "ARVORE",
+      "dica": "Planta de grande porte",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 206,
+      "palavra": "folha",
+      "palavra_grid": "FOLHA",
+      "dica": "Parte verde da planta",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 207,
+      "palavra": "fruto",
+      "palavra_grid": "FRUTO",
+      "dica": "Resultado da flor",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 208,
+      "palavra": "semente",
+      "palavra_grid": "SEMENTE",
+      "dica": "Estrutura que gera nova planta",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 209,
+      "palavra": "raiz",
+      "palavra_grid": "RAIZ",
+      "dica": "Parte subterrânea da planta",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 210,
+      "palavra": "tronco",
+      "palavra_grid": "TRONCO",
+      "dica": "Parte principal da árvore",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 211,
+      "palavra": "galho",
+      "palavra_grid": "GALHO",
+      "dica": "Ramo da árvore",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 212,
+      "palavra": "casca",
+      "palavra_grid": "CASCA",
+      "dica": "Camada externa da árvore",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 213,
+      "palavra": "grande",
+      "palavra_grid": "GRANDE",
+      "dica": "De tamanho amplo",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 214,
+      "palavra": "pequeno",
+      "palavra_grid": "PEQUENO",
+      "dica": "De tamanho reduzido",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 215,
+      "palavra": "alto",
+      "palavra_grid": "ALTO",
+      "dica": "De grande altura",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 216,
+      "palavra": "baixo",
+      "palavra_grid": "BAIXO",
+      "dica": "De pouca altura",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 217,
+      "palavra": "gordo",
+      "palavra_grid": "GORDO",
+      "dica": "Com excesso de peso",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 218,
+      "palavra": "magro",
+      "palavra_grid": "MAGRO",
+      "dica": "Com pouco peso",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 219,
+      "palavra": "grosso",
+      "palavra_grid": "GROSSO",
+      "dica": "De grande espessura",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 220,
+      "palavra": "fino",
+      "palavra_grid": "FINO",
+      "dica": "De pouca espessura",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 221,
+      "palavra": "longo",
+      "palavra_grid": "LONGO",
+      "dica": "De grande comprimento",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 222,
+      "palavra": "curto",
+      "palavra_grid": "CURTO",
+      "dica": "De pequeno comprimento",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 223,
+      "palavra": "rápido",
+      "palavra_grid": "RAPIDO",
+      "dica": "Com alta velocidade",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 224,
+      "palavra": "lento",
+      "palavra_grid": "LENTO",
+      "dica": "Com baixa velocidade",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 225,
+      "palavra": "novo",
+      "palavra_grid": "NOVO",
+      "dica": "Recém criado",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 226,
+      "palavra": "velho",
+      "palavra_grid": "VELHO",
+      "dica": "De idade avançada",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 227,
+      "palavra": "jovem",
+      "palavra_grid": "JOVEM",
+      "dica": "De pouca idade",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 228,
+      "palavra": "adulto",
+      "palavra_grid": "ADULTO",
+      "dica": "Pessoa madura",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 229,
+      "palavra": "criança",
+      "palavra_grid": "CRIANCA",
+      "dica": "Pessoa pequena",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 230,
+      "palavra": "bebê",
+      "palavra_grid": "BEBE",
+      "dica": "Criança muito pequena",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 231,
+      "palavra": "idoso",
+      "palavra_grid": "IDOSO",
+      "dica": "Pessoa de idade avançada",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 232,
+      "palavra": "feliz",
+      "palavra_grid": "FELIZ",
+      "dica": "Estado de alegria",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 233,
+      "palavra": "triste",
+      "palavra_grid": "TRISTE",
+      "dica": "Estado de melancolia",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 234,
+      "palavra": "alegre",
+      "palavra_grid": "ALEGRE",
+      "dica": "Com disposição positiva",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 235,
+      "palavra": "choroso",
+      "palavra_grid": "CHOROSO",
+      "dica": "Que chora",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 236,
+      "palavra": "bravo",
+      "palavra_grid": "BRAVO",
+      "dica": "Com raiva",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 237,
+      "palavra": "calmo",
+      "palavra_grid": "CALMO",
+      "dica": "Tranquilo",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 238,
+      "palavra": "nervoso",
+      "palavra_grid": "NERVOSO",
+      "dica": "Ansioso",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 239,
+      "palavra": "ansioso",
+      "palavra_grid": "ANSIOSO",
+      "dica": "Com preocupação",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 240,
+      "palavra": "tranquilo",
+      "palavra_grid": "TRANQUILO",
+      "dica": "Sem agitação",
+      "dificuldade": "facil",
+      "tamanho": 9
+    },
+    {
+      "id": 241,
+      "palavra": "bom",
+      "palavra_grid": "BOM",
+      "dica": "De qualidade positiva",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 242,
+      "palavra": "ruim",
+      "palavra_grid": "RUIM",
+      "dica": "De qualidade negativa",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 243,
+      "palavra": "ótimo",
+      "palavra_grid": "OTIMO",
+      "dica": "Muito bom",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 244,
+      "palavra": "péssimo",
+      "palavra_grid": "PESSIMO",
+      "dica": "Muito ruim",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 245,
+      "palavra": "excelente",
+      "palavra_grid": "EXCELENTE",
+      "dica": "De qualidade superior",
+      "dificuldade": "facil",
+      "tamanho": 9
+    },
+    {
+      "id": 246,
+      "palavra": "terrível",
+      "palavra_grid": "TERRIVEL",
+      "dica": "Muito ruim",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 247,
+      "palavra": "horrível",
+      "palavra_grid": "HORRIVEL",
+      "dica": "Muito ruim",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 248,
+      "palavra": "fácil",
+      "palavra_grid": "FACIL",
+      "dica": "Simples de fazer",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 249,
+      "palavra": "difícil",
+      "palavra_grid": "DIFICIL",
+      "dica": "Complicado de fazer",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 250,
+      "palavra": "simples",
+      "palavra_grid": "SIMPLES",
+      "dica": "Sem complexidade",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 251,
+      "palavra": "claro",
+      "palavra_grid": "CLARO",
+      "dica": "Bem iluminado",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 252,
+      "palavra": "escuro",
+      "palavra_grid": "ESCURO",
+      "dica": "Sem luz",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 253,
+      "palavra": "brilhante",
+      "palavra_grid": "BRILHANTE",
+      "dica": "Que emite luz",
+      "dificuldade": "facil",
+      "tamanho": 9
+    },
+    {
+      "id": 254,
+      "palavra": "limpo",
+      "palavra_grid": "LIMPO",
+      "dica": "Sem sujeira",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 255,
+      "palavra": "sujo",
+      "palavra_grid": "SUJO",
+      "dica": "Com sujeira",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 256,
+      "palavra": "quente",
+      "palavra_grid": "QUENTE",
+      "dica": "Com alta temperatura",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 257,
+      "palavra": "frio",
+      "palavra_grid": "FRIO",
+      "dica": "Com baixa temperatura",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 258,
+      "palavra": "morno",
+      "palavra_grid": "MORNO",
+      "dica": "Com temperatura média",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 259,
+      "palavra": "gelado",
+      "palavra_grid": "GELADO",
+      "dica": "Muito frio",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 260,
+      "palavra": "fresco",
+      "palavra_grid": "FRESCO",
+      "dica": "Com temperatura agradável",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 261,
+      "palavra": "congelado",
+      "palavra_grid": "CONGELADO",
+      "dica": "Muito frio",
+      "dificuldade": "facil",
+      "tamanho": 9
+    },
+    {
+      "id": 262,
+      "palavra": "ardente",
+      "palavra_grid": "ARDENTE",
+      "dica": "Muito quente",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 263,
+      "palavra": "doce",
+      "palavra_grid": "DOCE",
+      "dica": "Sabor agradável",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 264,
+      "palavra": "azedo",
+      "palavra_grid": "AZEDO",
+      "dica": "Sabor ácido",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 265,
+      "palavra": "amargo",
+      "palavra_grid": "AMARGO",
+      "dica": "Sabor desagradável",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 266,
+      "palavra": "salgado",
+      "palavra_grid": "SALGADO",
+      "dica": "Com sal",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 267,
+      "palavra": "picante",
+      "palavra_grid": "PICANTE",
+      "dica": "Com pimenta",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 268,
+      "palavra": "saboroso",
+      "palavra_grid": "SABOROSO",
+      "dica": "Com bom sabor",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 269,
+      "palavra": "delicioso",
+      "palavra_grid": "DELICIOSO",
+      "dica": "Muito saboroso",
+      "dificuldade": "facil",
+      "tamanho": 9
+    },
+    {
+      "id": 270,
+      "palavra": "apetitoso",
+      "palavra_grid": "APETITOSO",
+      "dica": "Que dá apetite",
+      "dificuldade": "facil",
+      "tamanho": 9
+    },
+    {
+      "id": 271,
+      "palavra": "amizade",
+      "palavra_grid": "AMIZADE",
+      "dica": "Relação entre amigos",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 272,
+      "palavra": "família",
+      "palavra_grid": "FAMILIA",
+      "dica": "Grupo de parentes",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 273,
+      "palavra": "pessoa",
+      "palavra_grid": "PESSOA",
+      "dica": "Ser humano",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 274,
+      "palavra": "gente",
+      "palavra_grid": "GENTE",
+      "dica": "Conjunto de pessoas",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 275,
+      "palavra": "homem",
+      "palavra_grid": "HOMEM",
+      "dica": "Ser humano masculino",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 276,
+      "palavra": "mulher",
+      "palavra_grid": "MULHER",
+      "dica": "Ser humano feminino",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 277,
+      "palavra": "menino",
+      "palavra_grid": "MENINO",
+      "dica": "Criança masculina",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 278,
+      "palavra": "menina",
+      "palavra_grid": "MENINA",
+      "dica": "Criança feminina",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 279,
+      "palavra": "parente",
+      "palavra_grid": "PARENTE",
+      "dica": "Pessoa da família",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 280,
+      "palavra": "vizinho",
+      "palavra_grid": "VIZINHO",
+      "dica": "Pessoa que mora perto",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 281,
+      "palavra": "colega",
+      "palavra_grid": "COLEGA",
+      "dica": "Pessoa do mesmo grupo",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 282,
+      "palavra": "parceiro",
+      "palavra_grid": "PARCEIRO",
+      "dica": "Pessoa associada",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 283,
+      "palavra": "sócio",
+      "palavra_grid": "SOCIO",
+      "dica": "Pessoa em sociedade",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 284,
+      "palavra": "aliado",
+      "palavra_grid": "ALIADO",
+      "dica": "Pessoa em aliança",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 285,
+      "palavra": "garagem",
+      "palavra_grid": "GARAGEM",
+      "dica": "Local para guardar carro",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 286,
+      "palavra": "quintal",
+      "palavra_grid": "QUINTAL",
+      "dica": "Área externa da casa",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 287,
+      "palavra": "hospital",
+      "palavra_grid": "HOSPITAL",
+      "dica": "Local onde pessoas recebem atendimento médico",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 288,
+      "palavra": "médico",
+      "palavra_grid": "MEDICO",
+      "dica": "Profissional que diagnostica e trata doenças",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 289,
+      "palavra": "farmácia",
+      "palavra_grid": "FARMACIA",
+      "dica": "Local onde são vendidos medicamentos",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 290,
+      "palavra": "remédio",
+      "palavra_grid": "REMEDIO",
+      "dica": "Produto usado para tratar ou aliviar sintomas",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 291,
+      "palavra": "vacina",
+      "palavra_grid": "VACINA",
+      "dica": "Substância que ajuda a prevenir doenças",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 292,
+      "palavra": "exame",
+      "palavra_grid": "EXAME",
+      "dica": "Avaliação usada para verificar a saúde",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 293,
+      "palavra": "consulta",
+      "palavra_grid": "CONSULTA",
+      "dica": "Atendimento feito por um profissional de saúde",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 294,
+      "palavra": "paciente",
+      "palavra_grid": "PACIENTE",
+      "dica": "Pessoa que recebe atendimento de saúde",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 295,
+      "palavra": "saúde",
+      "palavra_grid": "SAUDE",
+      "dica": "Estado de bem-estar físico e mental",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 296,
+      "palavra": "doença",
+      "palavra_grid": "DOENCA",
+      "dica": "Condição que prejudica o funcionamento do corpo",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 297,
+      "palavra": "febre",
+      "palavra_grid": "FEBRE",
+      "dica": "Aumento anormal da temperatura do corpo",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 298,
+      "palavra": "tosse",
+      "palavra_grid": "TOSSE",
+      "dica": "Reflexo que expulsa ar dos pulmões pela boca",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 299,
+      "palavra": "dor",
+      "palavra_grid": "DOR",
+      "dica": "Sensação desagradável em alguma parte do corpo",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 300,
+      "palavra": "curativo",
+      "palavra_grid": "CURATIVO",
+      "dica": "Proteção colocada sobre um ferimento",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 301,
+      "palavra": "soro",
+      "palavra_grid": "SORO",
+      "dica": "Líquido usado para hidratar ou tratar pacientes",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 302,
+      "palavra": "máscara",
+      "palavra_grid": "MASCARA",
+      "dica": "Objeto usado para cobrir boca e nariz",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 303,
+      "palavra": "sabonete",
+      "palavra_grid": "SABONETE",
+      "dica": "Produto usado para lavar a pele",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 304,
+      "palavra": "toalha",
+      "palavra_grid": "TOALHA",
+      "dica": "Tecido usado para secar o corpo ou objetos",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 305,
+      "palavra": "escova",
+      "palavra_grid": "ESCOVA",
+      "dica": "Objeto usado para limpar ou pentear",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 306,
+      "palavra": "pente",
+      "palavra_grid": "PENTE",
+      "dica": "Objeto usado para desembaraçar cabelos",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 307,
+      "palavra": "perfume",
+      "palavra_grid": "PERFUME",
+      "dica": "Produto usado para deixar cheiro agradável",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 308,
+      "palavra": "shampoo",
+      "palavra_grid": "SHAMPOO",
+      "dica": "Produto usado para lavar os cabelos",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 309,
+      "palavra": "roupa",
+      "palavra_grid": "ROUPA",
+      "dica": "Peça usada para vestir o corpo",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 310,
+      "palavra": "camisa",
+      "palavra_grid": "CAMISA",
+      "dica": "Peça de roupa usada na parte de cima do corpo",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 311,
+      "palavra": "calça",
+      "palavra_grid": "CALCA",
+      "dica": "Peça de roupa usada nas pernas",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 312,
+      "palavra": "vestido",
+      "palavra_grid": "VESTIDO",
+      "dica": "Peça de roupa inteira, geralmente sem divisão entre blusa e saia",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 313,
+      "palavra": "sapato",
+      "palavra_grid": "SAPATO",
+      "dica": "Calçado fechado usado nos pés",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 314,
+      "palavra": "meia",
+      "palavra_grid": "MEIA",
+      "dica": "Peça usada para cobrir os pés",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 315,
+      "palavra": "chinelo",
+      "palavra_grid": "CHINELO",
+      "dica": "Calçado leve e aberto",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 316,
+      "palavra": "boné",
+      "palavra_grid": "BONE",
+      "dica": "Acessório com aba usado na cabeça",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 317,
+      "palavra": "casaco",
+      "palavra_grid": "CASACO",
+      "dica": "Roupa usada para proteger do frio",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 318,
+      "palavra": "bolsa",
+      "palavra_grid": "BOLSA",
+      "dica": "Objeto usado para carregar pertences",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 319,
+      "palavra": "carteira",
+      "palavra_grid": "CARTEIRA",
+      "dica": "Objeto usado para guardar dinheiro e documentos",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 320,
+      "palavra": "chave",
+      "palavra_grid": "CHAVE",
+      "dica": "Objeto usado para abrir fechaduras",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 321,
+      "palavra": "relógio",
+      "palavra_grid": "RELOGIO",
+      "dica": "Objeto usado para marcar ou mostrar as horas",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 322,
+      "palavra": "óculos",
+      "palavra_grid": "OCULOS",
+      "dica": "Objeto usado para corrigir ou proteger a visão",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 323,
+      "palavra": "anel",
+      "palavra_grid": "ANEL",
+      "dica": "Acessório usado no dedo",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 324,
+      "palavra": "brinco",
+      "palavra_grid": "BRINCO",
+      "dica": "Acessório usado na orelha",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 325,
+      "palavra": "colar",
+      "palavra_grid": "COLAR",
+      "dica": "Acessório usado ao redor do pescoço",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 326,
+      "palavra": "prato",
+      "palavra_grid": "PRATO",
+      "dica": "Objeto usado para servir alimentos",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 327,
+      "palavra": "copo",
+      "palavra_grid": "COPO",
+      "dica": "Objeto usado para beber líquidos",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 328,
+      "palavra": "garfo",
+      "palavra_grid": "GARFO",
+      "dica": "Talher usado para espetar alimentos",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 329,
+      "palavra": "faca",
+      "palavra_grid": "FACA",
+      "dica": "Talher usado para cortar alimentos",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 330,
+      "palavra": "colher",
+      "palavra_grid": "COLHER",
+      "dica": "Talher usado para pegar líquidos ou alimentos macios",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 331,
+      "palavra": "panela",
+      "palavra_grid": "PANELA",
+      "dica": "Utensílio usado para cozinhar alimentos",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 332,
+      "palavra": "forno",
+      "palavra_grid": "FORNO",
+      "dica": "Equipamento usado para assar ou aquecer alimentos",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 333,
+      "palavra": "vassoura",
+      "palavra_grid": "VASSOURA",
+      "dica": "Objeto usado para varrer o chão",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 334,
+      "palavra": "rodo",
+      "palavra_grid": "RODO",
+      "dica": "Objeto usado para puxar água do chão",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 335,
+      "palavra": "balde",
+      "palavra_grid": "BALDE",
+      "dica": "Recipiente usado para carregar líquidos",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 336,
+      "palavra": "sabão",
+      "palavra_grid": "SABAO",
+      "dica": "Produto usado para lavar e limpar",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 337,
+      "palavra": "esponja",
+      "palavra_grid": "ESPONJA",
+      "dica": "Objeto usado para esfregar superfícies",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 338,
+      "palavra": "lixo",
+      "palavra_grid": "LIXO",
+      "dica": "Material descartado por não ter mais uso",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 339,
+      "palavra": "jardim",
+      "palavra_grid": "JARDIM",
+      "dica": "Área com plantas, flores ou gramado",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 340,
+      "palavra": "piscina",
+      "palavra_grid": "PISCINA",
+      "dica": "Reservatório de água usado para nadar",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 341,
+      "palavra": "escada",
+      "palavra_grid": "ESCADA",
+      "dica": "Estrutura com degraus usada para subir ou descer",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 342,
+      "palavra": "elevador",
+      "palavra_grid": "ELEVADOR",
+      "dica": "Equipamento que leva pessoas entre andares",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 343,
+      "palavra": "mercado",
+      "palavra_grid": "MERCADO",
+      "dica": "Local onde se compram alimentos e produtos",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 344,
+      "palavra": "padaria",
+      "palavra_grid": "PADARIA",
+      "dica": "Local onde são vendidos pães e outros alimentos",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 345,
+      "palavra": "açougue",
+      "palavra_grid": "ACOUGUE",
+      "dica": "Local onde são vendidas carnes",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 346,
+      "palavra": "banco",
+      "palavra_grid": "BANCO",
+      "dica": "Instituição que guarda dinheiro e oferece serviços financeiros",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 347,
+      "palavra": "correio",
+      "palavra_grid": "CORREIO",
+      "dica": "Serviço usado para enviar cartas e encomendas",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 348,
+      "palavra": "igreja",
+      "palavra_grid": "IGREJA",
+      "dica": "Local destinado a culto religioso",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 349,
+      "palavra": "hotel",
+      "palavra_grid": "HOTEL",
+      "dica": "Local que oferece hospedagem temporária",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 350,
+      "palavra": "museu",
+      "palavra_grid": "MUSEU",
+      "dica": "Local que guarda e expõe objetos históricos ou artísticos",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 351,
+      "palavra": "loja",
+      "palavra_grid": "LOJA",
+      "dica": "Estabelecimento onde produtos são vendidos",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 352,
+      "palavra": "feira",
+      "palavra_grid": "FEIRA",
+      "dica": "Local com barracas para venda de produtos",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 353,
+      "palavra": "ponte",
+      "palavra_grid": "PONTE",
+      "dica": "Construção que permite passar sobre rio, vale ou estrada",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 354,
+      "palavra": "túnel",
+      "palavra_grid": "TUNEL",
+      "dica": "Passagem construída por baixo da terra ou de uma montanha",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 355,
+      "palavra": "estrada",
+      "palavra_grid": "ESTRADA",
+      "dica": "Caminho preparado para circulação de veículos",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 356,
+      "palavra": "rodovia",
+      "palavra_grid": "RODOVIA",
+      "dica": "Estrada larga destinada ao tráfego de veículos",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 357,
+      "palavra": "semáforo",
+      "palavra_grid": "SEMAFORO",
+      "dica": "Sinal luminoso que controla o trânsito",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 358,
+      "palavra": "placa",
+      "palavra_grid": "PLACA",
+      "dica": "Sinal usado para informar, orientar ou advertir",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 359,
+      "palavra": "calçada",
+      "palavra_grid": "CALCADA",
+      "dica": "Parte da via destinada aos pedestres",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 360,
+      "palavra": "esquina",
+      "palavra_grid": "ESQUINA",
+      "dica": "Ponto onde duas ruas se encontram",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 361,
+      "palavra": "bombeiro",
+      "palavra_grid": "BOMBEIRO",
+      "dica": "Profissional que combate incêndios e faz resgates",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 362,
+      "palavra": "policial",
+      "palavra_grid": "POLICIAL",
+      "dica": "Profissional que atua na segurança pública",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 363,
+      "palavra": "dentista",
+      "palavra_grid": "DENTISTA",
+      "dica": "Profissional que cuida dos dentes",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 364,
+      "palavra": "advogado",
+      "palavra_grid": "ADVOGADO",
+      "dica": "Profissional que trabalha com leis e defesa de direitos",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 365,
+      "palavra": "padeiro",
+      "palavra_grid": "PADEIRO",
+      "dica": "Profissional que prepara pães",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 366,
+      "palavra": "motorista",
+      "palavra_grid": "MOTORISTA",
+      "dica": "Pessoa que conduz veículos",
+      "dificuldade": "facil",
+      "tamanho": 9
+    },
+    {
+      "id": 367,
+      "palavra": "piloto",
+      "palavra_grid": "PILOTO",
+      "dica": "Pessoa que conduz avião ou veículo de competição",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 368,
+      "palavra": "vendedor",
+      "palavra_grid": "VENDEDOR",
+      "dica": "Pessoa que vende produtos ou serviços",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 369,
+      "palavra": "martelo",
+      "palavra_grid": "MARTELO",
+      "dica": "Ferramenta usada para bater pregos",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 370,
+      "palavra": "prego",
+      "palavra_grid": "PREGO",
+      "dica": "Peça metálica usada para fixar materiais",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 371,
+      "palavra": "serrote",
+      "palavra_grid": "SERROTE",
+      "dica": "Ferramenta usada para cortar madeira",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 372,
+      "palavra": "alicate",
+      "palavra_grid": "ALICATE",
+      "dica": "Ferramenta usada para segurar, dobrar ou cortar",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 373,
+      "palavra": "tesoura",
+      "palavra_grid": "TESOURA",
+      "dica": "Objeto usado para cortar papel, tecido ou outros materiais",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 374,
+      "palavra": "cola",
+      "palavra_grid": "COLA",
+      "dica": "Produto usado para unir ou fixar materiais",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 375,
+      "palavra": "papel",
+      "palavra_grid": "PAPEL",
+      "dica": "Material usado para escrever, imprimir ou desenhar",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 376,
+      "palavra": "envelope",
+      "palavra_grid": "ENVELOPE",
+      "dica": "Objeto de papel usado para guardar cartas",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 377,
+      "palavra": "jornal",
+      "palavra_grid": "JORNAL",
+      "dica": "Publicação com notícias e informações",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 378,
+      "palavra": "revista",
+      "palavra_grid": "REVISTA",
+      "dica": "Publicação periódica com textos e imagens",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 379,
+      "palavra": "banana",
+      "palavra_grid": "BANANA",
+      "dica": "Fruta amarela e alongada",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 380,
+      "palavra": "maçã",
+      "palavra_grid": "MACA",
+      "dica": "Fruta redonda que pode ser vermelha ou verde",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 381,
+      "palavra": "abacaxi",
+      "palavra_grid": "ABACAXI",
+      "dica": "Fruta tropical com casca espinhosa",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 382,
+      "palavra": "mamão",
+      "palavra_grid": "MAMAO",
+      "dica": "Fruta alaranjada com sementes pretas",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 383,
+      "palavra": "melancia",
+      "palavra_grid": "MELANCIA",
+      "dica": "Fruta grande com polpa vermelha e muita água",
+      "dificuldade": "facil",
+      "tamanho": 8
+    },
+    {
+      "id": 384,
+      "palavra": "morango",
+      "palavra_grid": "MORANGO",
+      "dica": "Fruta pequena, vermelha e doce",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 385,
+      "palavra": "uva",
+      "palavra_grid": "UVA",
+      "dica": "Fruta pequena que nasce em cachos",
+      "dificuldade": "facil",
+      "tamanho": 3
+    },
+    {
+      "id": 386,
+      "palavra": "laranja",
+      "palavra_grid": "LARANJA",
+      "dica": "Fruta cítrica rica em suco",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 387,
+      "palavra": "limão",
+      "palavra_grid": "LIMAO",
+      "dica": "Fruta cítrica de sabor azedo",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 388,
+      "palavra": "manga",
+      "palavra_grid": "MANGA",
+      "dica": "Fruta tropical de polpa doce",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 389,
+      "palavra": "pera",
+      "palavra_grid": "PERA",
+      "dica": "Fruta de formato alongado e sabor suave",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 390,
+      "palavra": "goiaba",
+      "palavra_grid": "GOIABA",
+      "dica": "Fruta com polpa rosada ou branca",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 391,
+      "palavra": "abóbora",
+      "palavra_grid": "ABOBORA",
+      "dica": "Legume grande usado em pratos doces e salgados",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 392,
+      "palavra": "batata",
+      "palavra_grid": "BATATA",
+      "dica": "Tubérculo muito usado em frituras e purês",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 393,
+      "palavra": "cenoura",
+      "palavra_grid": "CENOURA",
+      "dica": "Raiz alaranjada comestível",
+      "dificuldade": "facil",
+      "tamanho": 7
+    },
+    {
+      "id": 394,
+      "palavra": "tomate",
+      "palavra_grid": "TOMATE",
+      "dica": "Alimento vermelho usado em saladas e molhos",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 395,
+      "palavra": "alface",
+      "palavra_grid": "ALFACE",
+      "dica": "Folha verde muito usada em saladas",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 396,
+      "palavra": "cebola",
+      "palavra_grid": "CEBOLA",
+      "dica": "Ingrediente de sabor forte usado como tempero",
+      "dificuldade": "facil",
+      "tamanho": 6
+    },
+    {
+      "id": 397,
+      "palavra": "alho",
+      "palavra_grid": "ALHO",
+      "dica": "Tempero pequeno de cheiro marcante",
+      "dificuldade": "facil",
+      "tamanho": 4
+    },
+    {
+      "id": 398,
+      "palavra": "milho",
+      "palavra_grid": "MILHO",
+      "dica": "Grão amarelo que nasce em espigas",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 399,
+      "palavra": "trigo",
+      "palavra_grid": "TRIGO",
+      "dica": "Cereal usado para fazer farinha",
+      "dificuldade": "facil",
+      "tamanho": 5
+    },
+    {
+      "id": 400,
+      "palavra": "aveia",
+      "palavra_grid": "AVEIA",
+      "dica": "Cereal usado em mingaus e receitas saudáveis",
+      "dificuldade": "facil",
+      "tamanho": 5
+    }
+  ]
+}

@@ -1,0 +1,2802 @@
+[
+  {
+    "id": 1,
+    "calculo": "24 + 18",
+    "resposta": 42,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 2,
+    "calculo": "24 + 31",
+    "resposta": 55,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 3,
+    "calculo": "24 + 44",
+    "resposta": 68,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 4,
+    "calculo": "24 + 57",
+    "resposta": 81,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 5,
+    "calculo": "24 + 70",
+    "resposta": 94,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 6,
+    "calculo": "24 + 83",
+    "resposta": 107,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 7,
+    "calculo": "24 + 96",
+    "resposta": 120,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 8,
+    "calculo": "24 + 109",
+    "resposta": 133,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 9,
+    "calculo": "24 + 122",
+    "resposta": 146,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 10,
+    "calculo": "24 + 135",
+    "resposta": 159,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 11,
+    "calculo": "24 + 148",
+    "resposta": 172,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 12,
+    "calculo": "24 + 161",
+    "resposta": 185,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 13,
+    "calculo": "24 + 174",
+    "resposta": 198,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 14,
+    "calculo": "24 + 187",
+    "resposta": 211,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 15,
+    "calculo": "24 + 200",
+    "resposta": 224,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 16,
+    "calculo": "24 + 213",
+    "resposta": 237,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 17,
+    "calculo": "35 + 18",
+    "resposta": 53,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 18,
+    "calculo": "35 + 31",
+    "resposta": 66,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 19,
+    "calculo": "35 + 44",
+    "resposta": 79,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 20,
+    "calculo": "35 + 57",
+    "resposta": 92,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 21,
+    "calculo": "35 + 70",
+    "resposta": 105,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 22,
+    "calculo": "35 + 83",
+    "resposta": 118,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 23,
+    "calculo": "35 + 96",
+    "resposta": 131,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 24,
+    "calculo": "35 + 109",
+    "resposta": 144,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 25,
+    "calculo": "35 + 122",
+    "resposta": 157,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 26,
+    "calculo": "35 + 135",
+    "resposta": 170,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 27,
+    "calculo": "35 + 148",
+    "resposta": 183,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 28,
+    "calculo": "35 + 161",
+    "resposta": 196,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 29,
+    "calculo": "35 + 174",
+    "resposta": 209,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 30,
+    "calculo": "35 + 187",
+    "resposta": 222,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 31,
+    "calculo": "35 + 200",
+    "resposta": 235,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 32,
+    "calculo": "35 + 213",
+    "resposta": 248,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 33,
+    "calculo": "46 + 18",
+    "resposta": 64,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 34,
+    "calculo": "46 + 31",
+    "resposta": 77,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 35,
+    "calculo": "46 + 44",
+    "resposta": 90,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 36,
+    "calculo": "46 + 57",
+    "resposta": 103,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 37,
+    "calculo": "46 + 70",
+    "resposta": 116,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 38,
+    "calculo": "46 + 83",
+    "resposta": 129,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 39,
+    "calculo": "46 + 96",
+    "resposta": 142,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 40,
+    "calculo": "46 + 109",
+    "resposta": 155,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 41,
+    "calculo": "46 + 122",
+    "resposta": 168,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 42,
+    "calculo": "46 + 135",
+    "resposta": 181,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 43,
+    "calculo": "46 + 148",
+    "resposta": 194,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 44,
+    "calculo": "46 + 161",
+    "resposta": 207,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 45,
+    "calculo": "46 + 174",
+    "resposta": 220,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 46,
+    "calculo": "46 + 187",
+    "resposta": 233,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 47,
+    "calculo": "46 + 200",
+    "resposta": 246,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 48,
+    "calculo": "46 + 213",
+    "resposta": 259,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 49,
+    "calculo": "57 + 18",
+    "resposta": 75,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 50,
+    "calculo": "57 + 31",
+    "resposta": 88,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 51,
+    "calculo": "57 + 44",
+    "resposta": 101,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 52,
+    "calculo": "57 + 57",
+    "resposta": 114,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 53,
+    "calculo": "57 + 70",
+    "resposta": 127,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 54,
+    "calculo": "57 + 83",
+    "resposta": 140,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 55,
+    "calculo": "57 + 96",
+    "resposta": 153,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 56,
+    "calculo": "57 + 109",
+    "resposta": 166,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 57,
+    "calculo": "57 + 122",
+    "resposta": 179,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 58,
+    "calculo": "57 + 135",
+    "resposta": 192,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 59,
+    "calculo": "57 + 148",
+    "resposta": 205,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 60,
+    "calculo": "57 + 161",
+    "resposta": 218,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 61,
+    "calculo": "57 + 174",
+    "resposta": 231,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 62,
+    "calculo": "57 + 187",
+    "resposta": 244,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 63,
+    "calculo": "57 + 200",
+    "resposta": 257,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 64,
+    "calculo": "57 + 213",
+    "resposta": 270,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 65,
+    "calculo": "68 + 18",
+    "resposta": 86,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 66,
+    "calculo": "68 + 31",
+    "resposta": 99,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 67,
+    "calculo": "68 + 44",
+    "resposta": 112,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 68,
+    "calculo": "68 + 57",
+    "resposta": 125,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 69,
+    "calculo": "68 + 70",
+    "resposta": 138,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 70,
+    "calculo": "68 + 83",
+    "resposta": 151,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 71,
+    "calculo": "68 + 96",
+    "resposta": 164,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 72,
+    "calculo": "68 + 109",
+    "resposta": 177,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 73,
+    "calculo": "68 + 122",
+    "resposta": 190,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 74,
+    "calculo": "68 + 135",
+    "resposta": 203,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 75,
+    "calculo": "68 + 148",
+    "resposta": 216,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 76,
+    "calculo": "68 + 161",
+    "resposta": 229,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 77,
+    "calculo": "68 + 174",
+    "resposta": 242,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 78,
+    "calculo": "68 + 187",
+    "resposta": 255,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 79,
+    "calculo": "68 + 200",
+    "resposta": 268,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 80,
+    "calculo": "68 + 213",
+    "resposta": 281,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 81,
+    "calculo": "79 + 18",
+    "resposta": 97,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 82,
+    "calculo": "79 + 31",
+    "resposta": 110,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 83,
+    "calculo": "79 + 44",
+    "resposta": 123,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 84,
+    "calculo": "79 + 57",
+    "resposta": 136,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 85,
+    "calculo": "79 + 70",
+    "resposta": 149,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 86,
+    "calculo": "79 + 83",
+    "resposta": 162,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 87,
+    "calculo": "79 + 96",
+    "resposta": 175,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 88,
+    "calculo": "79 + 109",
+    "resposta": 188,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 89,
+    "calculo": "79 + 122",
+    "resposta": 201,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 90,
+    "calculo": "79 + 135",
+    "resposta": 214,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 91,
+    "calculo": "79 + 148",
+    "resposta": 227,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 92,
+    "calculo": "79 + 161",
+    "resposta": 240,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 93,
+    "calculo": "79 + 174",
+    "resposta": 253,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 94,
+    "calculo": "79 + 187",
+    "resposta": 266,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 95,
+    "calculo": "79 + 200",
+    "resposta": 279,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 96,
+    "calculo": "79 + 213",
+    "resposta": 292,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 97,
+    "calculo": "90 + 18",
+    "resposta": 108,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 98,
+    "calculo": "90 + 31",
+    "resposta": 121,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 99,
+    "calculo": "90 + 44",
+    "resposta": 134,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 100,
+    "calculo": "90 + 57",
+    "resposta": 147,
+    "operacao": "adição",
+    "nivel": "medio"
+  },
+  {
+    "id": 101,
+    "calculo": "80 - 12",
+    "resposta": 68,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 102,
+    "calculo": "80 - 21",
+    "resposta": 59,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 103,
+    "calculo": "80 - 30",
+    "resposta": 50,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 104,
+    "calculo": "80 - 39",
+    "resposta": 41,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 105,
+    "calculo": "80 - 48",
+    "resposta": 32,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 106,
+    "calculo": "80 - 57",
+    "resposta": 23,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 107,
+    "calculo": "80 - 66",
+    "resposta": 14,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 108,
+    "calculo": "80 - 75",
+    "resposta": 5,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 109,
+    "calculo": "97 - 12",
+    "resposta": 85,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 110,
+    "calculo": "97 - 21",
+    "resposta": 76,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 111,
+    "calculo": "97 - 30",
+    "resposta": 67,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 112,
+    "calculo": "97 - 39",
+    "resposta": 58,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 113,
+    "calculo": "97 - 48",
+    "resposta": 49,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 114,
+    "calculo": "97 - 57",
+    "resposta": 40,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 115,
+    "calculo": "97 - 66",
+    "resposta": 31,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 116,
+    "calculo": "97 - 75",
+    "resposta": 22,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 117,
+    "calculo": "97 - 84",
+    "resposta": 13,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 118,
+    "calculo": "97 - 93",
+    "resposta": 4,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 119,
+    "calculo": "114 - 12",
+    "resposta": 102,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 120,
+    "calculo": "114 - 21",
+    "resposta": 93,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 121,
+    "calculo": "114 - 30",
+    "resposta": 84,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 122,
+    "calculo": "114 - 39",
+    "resposta": 75,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 123,
+    "calculo": "114 - 48",
+    "resposta": 66,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 124,
+    "calculo": "114 - 57",
+    "resposta": 57,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 125,
+    "calculo": "114 - 66",
+    "resposta": 48,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 126,
+    "calculo": "114 - 75",
+    "resposta": 39,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 127,
+    "calculo": "114 - 84",
+    "resposta": 30,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 128,
+    "calculo": "114 - 93",
+    "resposta": 21,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 129,
+    "calculo": "114 - 102",
+    "resposta": 12,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 130,
+    "calculo": "114 - 111",
+    "resposta": 3,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 131,
+    "calculo": "131 - 12",
+    "resposta": 119,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 132,
+    "calculo": "131 - 21",
+    "resposta": 110,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 133,
+    "calculo": "131 - 30",
+    "resposta": 101,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 134,
+    "calculo": "131 - 39",
+    "resposta": 92,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 135,
+    "calculo": "131 - 48",
+    "resposta": 83,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 136,
+    "calculo": "131 - 57",
+    "resposta": 74,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 137,
+    "calculo": "131 - 66",
+    "resposta": 65,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 138,
+    "calculo": "131 - 75",
+    "resposta": 56,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 139,
+    "calculo": "131 - 84",
+    "resposta": 47,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 140,
+    "calculo": "131 - 93",
+    "resposta": 38,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 141,
+    "calculo": "131 - 102",
+    "resposta": 29,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 142,
+    "calculo": "131 - 111",
+    "resposta": 20,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 143,
+    "calculo": "131 - 120",
+    "resposta": 11,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 144,
+    "calculo": "131 - 129",
+    "resposta": 2,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 145,
+    "calculo": "148 - 12",
+    "resposta": 136,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 146,
+    "calculo": "148 - 21",
+    "resposta": 127,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 147,
+    "calculo": "148 - 30",
+    "resposta": 118,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 148,
+    "calculo": "148 - 39",
+    "resposta": 109,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 149,
+    "calculo": "148 - 48",
+    "resposta": 100,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 150,
+    "calculo": "148 - 57",
+    "resposta": 91,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 151,
+    "calculo": "148 - 66",
+    "resposta": 82,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 152,
+    "calculo": "148 - 75",
+    "resposta": 73,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 153,
+    "calculo": "148 - 84",
+    "resposta": 64,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 154,
+    "calculo": "148 - 93",
+    "resposta": 55,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 155,
+    "calculo": "148 - 102",
+    "resposta": 46,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 156,
+    "calculo": "148 - 111",
+    "resposta": 37,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 157,
+    "calculo": "148 - 120",
+    "resposta": 28,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 158,
+    "calculo": "148 - 129",
+    "resposta": 19,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 159,
+    "calculo": "148 - 138",
+    "resposta": 10,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 160,
+    "calculo": "148 - 147",
+    "resposta": 1,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 161,
+    "calculo": "165 - 12",
+    "resposta": 153,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 162,
+    "calculo": "165 - 21",
+    "resposta": 144,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 163,
+    "calculo": "165 - 30",
+    "resposta": 135,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 164,
+    "calculo": "165 - 39",
+    "resposta": 126,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 165,
+    "calculo": "165 - 48",
+    "resposta": 117,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 166,
+    "calculo": "165 - 57",
+    "resposta": 108,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 167,
+    "calculo": "165 - 66",
+    "resposta": 99,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 168,
+    "calculo": "165 - 75",
+    "resposta": 90,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 169,
+    "calculo": "165 - 84",
+    "resposta": 81,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 170,
+    "calculo": "165 - 93",
+    "resposta": 72,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 171,
+    "calculo": "165 - 102",
+    "resposta": 63,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 172,
+    "calculo": "165 - 111",
+    "resposta": 54,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 173,
+    "calculo": "165 - 120",
+    "resposta": 45,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 174,
+    "calculo": "165 - 129",
+    "resposta": 36,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 175,
+    "calculo": "165 - 138",
+    "resposta": 27,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 176,
+    "calculo": "165 - 147",
+    "resposta": 18,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 177,
+    "calculo": "165 - 156",
+    "resposta": 9,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 178,
+    "calculo": "182 - 12",
+    "resposta": 170,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 179,
+    "calculo": "182 - 21",
+    "resposta": 161,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 180,
+    "calculo": "182 - 30",
+    "resposta": 152,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 181,
+    "calculo": "182 - 39",
+    "resposta": 143,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 182,
+    "calculo": "182 - 48",
+    "resposta": 134,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 183,
+    "calculo": "182 - 57",
+    "resposta": 125,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 184,
+    "calculo": "182 - 66",
+    "resposta": 116,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 185,
+    "calculo": "182 - 75",
+    "resposta": 107,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 186,
+    "calculo": "182 - 84",
+    "resposta": 98,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 187,
+    "calculo": "182 - 93",
+    "resposta": 89,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 188,
+    "calculo": "182 - 102",
+    "resposta": 80,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 189,
+    "calculo": "182 - 111",
+    "resposta": 71,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 190,
+    "calculo": "182 - 120",
+    "resposta": 62,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 191,
+    "calculo": "182 - 129",
+    "resposta": 53,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 192,
+    "calculo": "182 - 138",
+    "resposta": 44,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 193,
+    "calculo": "182 - 147",
+    "resposta": 35,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 194,
+    "calculo": "182 - 156",
+    "resposta": 26,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 195,
+    "calculo": "199 - 12",
+    "resposta": 187,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 196,
+    "calculo": "199 - 21",
+    "resposta": 178,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 197,
+    "calculo": "199 - 30",
+    "resposta": 169,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 198,
+    "calculo": "199 - 39",
+    "resposta": 160,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 199,
+    "calculo": "199 - 48",
+    "resposta": 151,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 200,
+    "calculo": "199 - 57",
+    "resposta": 142,
+    "operacao": "subtração",
+    "nivel": "medio"
+  },
+  {
+    "id": 201,
+    "calculo": "3 x 7",
+    "resposta": 21,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 202,
+    "calculo": "3 x 8",
+    "resposta": 24,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 203,
+    "calculo": "3 x 9",
+    "resposta": 27,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 204,
+    "calculo": "3 x 10",
+    "resposta": 30,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 205,
+    "calculo": "3 x 11",
+    "resposta": 33,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 206,
+    "calculo": "3 x 12",
+    "resposta": 36,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 207,
+    "calculo": "3 x 13",
+    "resposta": 39,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 208,
+    "calculo": "3 x 14",
+    "resposta": 42,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 209,
+    "calculo": "3 x 15",
+    "resposta": 45,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 210,
+    "calculo": "3 x 16",
+    "resposta": 48,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 211,
+    "calculo": "3 x 17",
+    "resposta": 51,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 212,
+    "calculo": "3 x 18",
+    "resposta": 54,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 213,
+    "calculo": "3 x 19",
+    "resposta": 57,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 214,
+    "calculo": "3 x 20",
+    "resposta": 60,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 215,
+    "calculo": "4 x 5",
+    "resposta": 20,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 216,
+    "calculo": "4 x 6",
+    "resposta": 24,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 217,
+    "calculo": "4 x 7",
+    "resposta": 28,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 218,
+    "calculo": "4 x 8",
+    "resposta": 32,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 219,
+    "calculo": "4 x 9",
+    "resposta": 36,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 220,
+    "calculo": "4 x 10",
+    "resposta": 40,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 221,
+    "calculo": "4 x 11",
+    "resposta": 44,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 222,
+    "calculo": "4 x 12",
+    "resposta": 48,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 223,
+    "calculo": "4 x 13",
+    "resposta": 52,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 224,
+    "calculo": "4 x 14",
+    "resposta": 56,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 225,
+    "calculo": "4 x 15",
+    "resposta": 60,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 226,
+    "calculo": "4 x 16",
+    "resposta": 64,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 227,
+    "calculo": "4 x 17",
+    "resposta": 68,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 228,
+    "calculo": "4 x 18",
+    "resposta": 72,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 229,
+    "calculo": "4 x 19",
+    "resposta": 76,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 230,
+    "calculo": "4 x 20",
+    "resposta": 80,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 231,
+    "calculo": "5 x 4",
+    "resposta": 20,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 232,
+    "calculo": "5 x 5",
+    "resposta": 25,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 233,
+    "calculo": "5 x 6",
+    "resposta": 30,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 234,
+    "calculo": "5 x 7",
+    "resposta": 35,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 235,
+    "calculo": "5 x 8",
+    "resposta": 40,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 236,
+    "calculo": "5 x 9",
+    "resposta": 45,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 237,
+    "calculo": "5 x 10",
+    "resposta": 50,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 238,
+    "calculo": "5 x 11",
+    "resposta": 55,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 239,
+    "calculo": "5 x 12",
+    "resposta": 60,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 240,
+    "calculo": "5 x 13",
+    "resposta": 65,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 241,
+    "calculo": "5 x 14",
+    "resposta": 70,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 242,
+    "calculo": "5 x 15",
+    "resposta": 75,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 243,
+    "calculo": "5 x 16",
+    "resposta": 80,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 244,
+    "calculo": "5 x 17",
+    "resposta": 85,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 245,
+    "calculo": "5 x 18",
+    "resposta": 90,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 246,
+    "calculo": "5 x 19",
+    "resposta": 95,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 247,
+    "calculo": "5 x 20",
+    "resposta": 100,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 248,
+    "calculo": "6 x 4",
+    "resposta": 24,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 249,
+    "calculo": "6 x 5",
+    "resposta": 30,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 250,
+    "calculo": "6 x 6",
+    "resposta": 36,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 251,
+    "calculo": "6 x 7",
+    "resposta": 42,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 252,
+    "calculo": "6 x 8",
+    "resposta": 48,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 253,
+    "calculo": "6 x 9",
+    "resposta": 54,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 254,
+    "calculo": "6 x 10",
+    "resposta": 60,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 255,
+    "calculo": "6 x 11",
+    "resposta": 66,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 256,
+    "calculo": "6 x 12",
+    "resposta": 72,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 257,
+    "calculo": "6 x 13",
+    "resposta": 78,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 258,
+    "calculo": "6 x 14",
+    "resposta": 84,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 259,
+    "calculo": "6 x 15",
+    "resposta": 90,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 260,
+    "calculo": "6 x 16",
+    "resposta": 96,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 261,
+    "calculo": "6 x 17",
+    "resposta": 102,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 262,
+    "calculo": "6 x 18",
+    "resposta": 108,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 263,
+    "calculo": "6 x 19",
+    "resposta": 114,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 264,
+    "calculo": "6 x 20",
+    "resposta": 120,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 265,
+    "calculo": "7 x 4",
+    "resposta": 28,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 266,
+    "calculo": "7 x 5",
+    "resposta": 35,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 267,
+    "calculo": "7 x 6",
+    "resposta": 42,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 268,
+    "calculo": "7 x 7",
+    "resposta": 49,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 269,
+    "calculo": "7 x 8",
+    "resposta": 56,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 270,
+    "calculo": "7 x 9",
+    "resposta": 63,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 271,
+    "calculo": "7 x 10",
+    "resposta": 70,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 272,
+    "calculo": "7 x 11",
+    "resposta": 77,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 273,
+    "calculo": "7 x 12",
+    "resposta": 84,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 274,
+    "calculo": "7 x 13",
+    "resposta": 91,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 275,
+    "calculo": "7 x 14",
+    "resposta": 98,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 276,
+    "calculo": "7 x 15",
+    "resposta": 105,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 277,
+    "calculo": "7 x 16",
+    "resposta": 112,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 278,
+    "calculo": "7 x 17",
+    "resposta": 119,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 279,
+    "calculo": "7 x 18",
+    "resposta": 126,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 280,
+    "calculo": "7 x 19",
+    "resposta": 133,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 281,
+    "calculo": "7 x 20",
+    "resposta": 140,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 282,
+    "calculo": "8 x 4",
+    "resposta": 32,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 283,
+    "calculo": "8 x 5",
+    "resposta": 40,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 284,
+    "calculo": "8 x 6",
+    "resposta": 48,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 285,
+    "calculo": "8 x 7",
+    "resposta": 56,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 286,
+    "calculo": "8 x 8",
+    "resposta": 64,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 287,
+    "calculo": "8 x 9",
+    "resposta": 72,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 288,
+    "calculo": "8 x 10",
+    "resposta": 80,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 289,
+    "calculo": "8 x 11",
+    "resposta": 88,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 290,
+    "calculo": "8 x 12",
+    "resposta": 96,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 291,
+    "calculo": "8 x 13",
+    "resposta": 104,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 292,
+    "calculo": "8 x 14",
+    "resposta": 112,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 293,
+    "calculo": "8 x 15",
+    "resposta": 120,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 294,
+    "calculo": "8 x 16",
+    "resposta": 128,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 295,
+    "calculo": "8 x 17",
+    "resposta": 136,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 296,
+    "calculo": "8 x 18",
+    "resposta": 144,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 297,
+    "calculo": "8 x 19",
+    "resposta": 152,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 298,
+    "calculo": "8 x 20",
+    "resposta": 160,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 299,
+    "calculo": "9 x 4",
+    "resposta": 36,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 300,
+    "calculo": "9 x 5",
+    "resposta": 45,
+    "operacao": "multiplicação",
+    "nivel": "medio"
+  },
+  {
+    "id": 301,
+    "calculo": "21 ÷ 3",
+    "resposta": 7,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 302,
+    "calculo": "24 ÷ 3",
+    "resposta": 8,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 303,
+    "calculo": "27 ÷ 3",
+    "resposta": 9,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 304,
+    "calculo": "30 ÷ 3",
+    "resposta": 10,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 305,
+    "calculo": "33 ÷ 3",
+    "resposta": 11,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 306,
+    "calculo": "36 ÷ 3",
+    "resposta": 12,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 307,
+    "calculo": "39 ÷ 3",
+    "resposta": 13,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 308,
+    "calculo": "42 ÷ 3",
+    "resposta": 14,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 309,
+    "calculo": "45 ÷ 3",
+    "resposta": 15,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 310,
+    "calculo": "48 ÷ 3",
+    "resposta": 16,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 311,
+    "calculo": "51 ÷ 3",
+    "resposta": 17,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 312,
+    "calculo": "54 ÷ 3",
+    "resposta": 18,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 313,
+    "calculo": "57 ÷ 3",
+    "resposta": 19,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 314,
+    "calculo": "60 ÷ 3",
+    "resposta": 20,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 315,
+    "calculo": "63 ÷ 3",
+    "resposta": 21,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 316,
+    "calculo": "66 ÷ 3",
+    "resposta": 22,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 317,
+    "calculo": "69 ÷ 3",
+    "resposta": 23,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 318,
+    "calculo": "72 ÷ 3",
+    "resposta": 24,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 319,
+    "calculo": "75 ÷ 3",
+    "resposta": 25,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 320,
+    "calculo": "78 ÷ 3",
+    "resposta": 26,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 321,
+    "calculo": "81 ÷ 3",
+    "resposta": 27,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 322,
+    "calculo": "84 ÷ 3",
+    "resposta": 28,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 323,
+    "calculo": "87 ÷ 3",
+    "resposta": 29,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 324,
+    "calculo": "90 ÷ 3",
+    "resposta": 30,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 325,
+    "calculo": "20 ÷ 4",
+    "resposta": 5,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 326,
+    "calculo": "24 ÷ 4",
+    "resposta": 6,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 327,
+    "calculo": "28 ÷ 4",
+    "resposta": 7,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 328,
+    "calculo": "32 ÷ 4",
+    "resposta": 8,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 329,
+    "calculo": "36 ÷ 4",
+    "resposta": 9,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 330,
+    "calculo": "40 ÷ 4",
+    "resposta": 10,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 331,
+    "calculo": "44 ÷ 4",
+    "resposta": 11,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 332,
+    "calculo": "48 ÷ 4",
+    "resposta": 12,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 333,
+    "calculo": "52 ÷ 4",
+    "resposta": 13,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 334,
+    "calculo": "56 ÷ 4",
+    "resposta": 14,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 335,
+    "calculo": "60 ÷ 4",
+    "resposta": 15,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 336,
+    "calculo": "64 ÷ 4",
+    "resposta": 16,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 337,
+    "calculo": "68 ÷ 4",
+    "resposta": 17,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 338,
+    "calculo": "72 ÷ 4",
+    "resposta": 18,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 339,
+    "calculo": "76 ÷ 4",
+    "resposta": 19,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 340,
+    "calculo": "80 ÷ 4",
+    "resposta": 20,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 341,
+    "calculo": "84 ÷ 4",
+    "resposta": 21,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 342,
+    "calculo": "88 ÷ 4",
+    "resposta": 22,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 343,
+    "calculo": "92 ÷ 4",
+    "resposta": 23,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 344,
+    "calculo": "96 ÷ 4",
+    "resposta": 24,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 345,
+    "calculo": "100 ÷ 4",
+    "resposta": 25,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 346,
+    "calculo": "104 ÷ 4",
+    "resposta": 26,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 347,
+    "calculo": "108 ÷ 4",
+    "resposta": 27,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 348,
+    "calculo": "112 ÷ 4",
+    "resposta": 28,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 349,
+    "calculo": "116 ÷ 4",
+    "resposta": 29,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 350,
+    "calculo": "120 ÷ 4",
+    "resposta": 30,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 351,
+    "calculo": "20 ÷ 5",
+    "resposta": 4,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 352,
+    "calculo": "25 ÷ 5",
+    "resposta": 5,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 353,
+    "calculo": "30 ÷ 5",
+    "resposta": 6,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 354,
+    "calculo": "35 ÷ 5",
+    "resposta": 7,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 355,
+    "calculo": "40 ÷ 5",
+    "resposta": 8,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 356,
+    "calculo": "45 ÷ 5",
+    "resposta": 9,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 357,
+    "calculo": "50 ÷ 5",
+    "resposta": 10,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 358,
+    "calculo": "55 ÷ 5",
+    "resposta": 11,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 359,
+    "calculo": "60 ÷ 5",
+    "resposta": 12,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 360,
+    "calculo": "65 ÷ 5",
+    "resposta": 13,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 361,
+    "calculo": "70 ÷ 5",
+    "resposta": 14,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 362,
+    "calculo": "75 ÷ 5",
+    "resposta": 15,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 363,
+    "calculo": "80 ÷ 5",
+    "resposta": 16,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 364,
+    "calculo": "85 ÷ 5",
+    "resposta": 17,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 365,
+    "calculo": "90 ÷ 5",
+    "resposta": 18,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 366,
+    "calculo": "95 ÷ 5",
+    "resposta": 19,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 367,
+    "calculo": "100 ÷ 5",
+    "resposta": 20,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 368,
+    "calculo": "105 ÷ 5",
+    "resposta": 21,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 369,
+    "calculo": "110 ÷ 5",
+    "resposta": 22,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 370,
+    "calculo": "115 ÷ 5",
+    "resposta": 23,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 371,
+    "calculo": "120 ÷ 5",
+    "resposta": 24,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 372,
+    "calculo": "125 ÷ 5",
+    "resposta": 25,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 373,
+    "calculo": "130 ÷ 5",
+    "resposta": 26,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 374,
+    "calculo": "135 ÷ 5",
+    "resposta": 27,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 375,
+    "calculo": "140 ÷ 5",
+    "resposta": 28,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 376,
+    "calculo": "145 ÷ 5",
+    "resposta": 29,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 377,
+    "calculo": "150 ÷ 5",
+    "resposta": 30,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 378,
+    "calculo": "24 ÷ 6",
+    "resposta": 4,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 379,
+    "calculo": "30 ÷ 6",
+    "resposta": 5,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 380,
+    "calculo": "36 ÷ 6",
+    "resposta": 6,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 381,
+    "calculo": "42 ÷ 6",
+    "resposta": 7,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 382,
+    "calculo": "48 ÷ 6",
+    "resposta": 8,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 383,
+    "calculo": "54 ÷ 6",
+    "resposta": 9,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 384,
+    "calculo": "60 ÷ 6",
+    "resposta": 10,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 385,
+    "calculo": "66 ÷ 6",
+    "resposta": 11,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 386,
+    "calculo": "72 ÷ 6",
+    "resposta": 12,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 387,
+    "calculo": "78 ÷ 6",
+    "resposta": 13,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 388,
+    "calculo": "84 ÷ 6",
+    "resposta": 14,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 389,
+    "calculo": "90 ÷ 6",
+    "resposta": 15,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 390,
+    "calculo": "96 ÷ 6",
+    "resposta": 16,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 391,
+    "calculo": "102 ÷ 6",
+    "resposta": 17,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 392,
+    "calculo": "108 ÷ 6",
+    "resposta": 18,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 393,
+    "calculo": "114 ÷ 6",
+    "resposta": 19,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 394,
+    "calculo": "120 ÷ 6",
+    "resposta": 20,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 395,
+    "calculo": "126 ÷ 6",
+    "resposta": 21,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 396,
+    "calculo": "132 ÷ 6",
+    "resposta": 22,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 397,
+    "calculo": "138 ÷ 6",
+    "resposta": 23,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 398,
+    "calculo": "144 ÷ 6",
+    "resposta": 24,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 399,
+    "calculo": "150 ÷ 6",
+    "resposta": 25,
+    "operacao": "divisão",
+    "nivel": "medio"
+  },
+  {
+    "id": 400,
+    "calculo": "156 ÷ 6",
+    "resposta": 26,
+    "operacao": "divisão",
+    "nivel": "medio"
+  }
+]

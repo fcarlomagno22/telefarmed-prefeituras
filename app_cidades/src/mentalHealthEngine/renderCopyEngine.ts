@@ -243,21 +243,51 @@ export function renderMomentSummary(entry: MentalHealthCheckInEntry, recentEntri
   return composeMomentSummary(ctx)
 }
 
-export function renderMomentSupport(entry: MentalHealthCheckInEntry, recentEntries: MentalHealthCheckInEntry[]) {
-  const ctx = buildCheckInCopyContext(entry, recentEntries)
-  const rule = pickSelectionRule('moment_support', ctx)
-  const fromRule = rule ? resolveSupportText(rule as Record<string, unknown>, ctx) : null
-  if (fromRule) return fromRule
+function pickMoodSupportVariant(ctx: Record<string, unknown>) {
+  const mood = ctx.mood as MentalHealthMoodLevelId | undefined
+  if (!mood) return null
 
-  const mood = entry.mood
   const support = engineContent.copyTemplates.moment_support as {
     by_mood?: Record<string, { variants: Array<{ text: string }> }>
   }
   const variants = support.by_mood?.[mood]?.variants
-  if (variants?.length) {
-    const idx = stableHash(`${mood}-${entry.id}`) % variants.length
-    return variants[idx]?.text ?? variants[0].text
+  if (!variants?.length) return null
+
+  const seed = `${mood}-${(ctx.emotions as string[] | undefined)?.join(',') ?? ''}-${ctx.local_date ?? ''}`
+  const idx = stableHash(seed) % variants.length
+  return variants[idx]?.text ?? variants[0].text
+}
+
+function renderCrisisStyleMomentSupport() {
+  const messaging = engineContent.redFlags.user_messaging as {
+    crisis_screen_default?: { title?: string; message?: string }
   }
+  const title = messaging.crisis_screen_default?.title ?? 'Estamos aqui com você'
+  const message =
+    messaging.crisis_screen_default?.message ??
+    'Algumas respostas sugerem que falar com alguém agora é o melhor próximo passo.'
+  return `${title}. ${message}`
+}
+
+export function renderMomentSupport(entry: MentalHealthCheckInEntry, recentEntries: MentalHealthCheckInEntry[]) {
+  const ctx = buildCheckInCopyContext(entry, recentEntries)
+  const mood = entry.mood
+
+  if (mood === 'bad' || mood === 'very-bad') {
+    return renderCrisisStyleMomentSupport()
+  }
+
+  if (mood === 'good' || mood === 'very-good' || mood === 'neutral') {
+    const fromMood = pickMoodSupportVariant(ctx)
+    if (fromMood) return fromMood
+  }
+
+  const rule = pickSelectionRule('moment_support', ctx)
+  const fromRule = rule ? resolveSupportText(rule as Record<string, unknown>, ctx) : null
+  if (fromRule) return fromRule
+
+  const fromMoodFallback = pickMoodSupportVariant(ctx)
+  if (fromMoodFallback) return fromMoodFallback
 
   return 'Obrigado por registrar como você está.'
 }

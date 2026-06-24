@@ -43,6 +43,11 @@ const adminTargetSchema = z.union([
     userIds: z.array(z.string().uuid()).optional(),
   }),
   adminMedicoTargetSchema,
+  z.object({
+    channel: z.literal('paciente_app'),
+    mode: z.enum(['all', 'selected']),
+    entidadeIds: z.array(z.string().uuid()).optional(),
+  }),
 ])
 
 export const createAdminBroadcastSchema = z.object({

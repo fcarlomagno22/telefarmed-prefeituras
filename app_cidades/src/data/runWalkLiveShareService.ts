@@ -163,7 +163,12 @@ async function createRemoteSession(input: CreateLiveShareSessionInput): Promise<
   })
 
   if (!sessionResponse.ok) {
-    throw new Error('Não foi possível iniciar o compartilhamento ao vivo.')
+    const details = await sessionResponse.text().catch(() => '')
+    throw new Error(
+      details
+        ? `Não foi possível iniciar o compartilhamento ao vivo. (${sessionResponse.status})`
+        : 'Não foi possível iniciar o compartilhamento ao vivo.',
+    )
   }
 
   const sessionRows = (await sessionResponse.json()) as RemoteSessionRow[]
@@ -280,11 +285,7 @@ export async function createLiveShareSession(
   input: CreateLiveShareSessionInput,
 ): Promise<LiveShareSessionSnapshot> {
   if (isRemoteConfigured()) {
-    try {
-      return await createRemoteSession(input)
-    } catch {
-      return createLocalSession(input)
-    }
+    return createRemoteSession(input)
   }
 
   return createLocalSession(input)
@@ -294,11 +295,7 @@ export async function appendLiveSharePoint(
   input: AppendLiveSharePointInput,
 ): Promise<LiveSharePoint | null> {
   if (isRemoteConfigured() && !input.sessionId.startsWith('local-')) {
-    try {
-      return await appendRemotePoint(input)
-    } catch {
-      return appendLocalPoint(input)
-    }
+    return appendRemotePoint(input)
   }
 
   return appendLocalPoint(input)
@@ -349,6 +346,18 @@ export async function loadActiveLiveShareSession(): Promise<LiveShareSessionSnap
 
 export async function clearActiveLiveShareSession() {
   await AsyncStorage.removeItem(ACTIVE_SESSION_KEY)
+}
+
+export function isLocalLiveShareSession(session: Pick<LiveShareSessionSnapshot, 'id'>): boolean {
+  return session.id.startsWith('local-')
+}
+
+export function shouldReplaceLiveShareSession(
+  session: LiveShareSessionSnapshot | null | undefined,
+): boolean {
+  if (!session?.isActive) return true
+  if (isRemoteConfigured() && isLocalLiveShareSession(session)) return true
+  return false
 }
 
 export function isLiveShareRemoteEnabled() {

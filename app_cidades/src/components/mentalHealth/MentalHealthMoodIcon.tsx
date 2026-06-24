@@ -1,12 +1,12 @@
 import LottieView from 'lottie-react-native'
 import { StyleSheet, Text, View } from 'react-native'
-import { getMentalHealthMoodLottie, getMentalHealthMoodLottieScale } from '../../data/mentalHealthMoodAssets'
+import { getMentalHealthMoodLottie, getMentalHealthMoodLottieScale, getMentalHealthMoodLottieSnapshotFrame } from '../../data/mentalHealthMoodAssets'
 import type { MentalHealthMoodLevelId } from '../../types/mentalHealth'
 import { getMentalHealthMoodEmoji } from '../../utils/mentalHealthCheckIn'
 
 type MentalHealthMoodIconProps = {
   mood: MentalHealthMoodLevelId
-  size?: 'compact' | 'drawer' | 'hero' | 'large'
+  size?: 'compact' | 'drawer' | 'hero' | 'large' | 'snapshot'
 }
 
 const SIZE_MAP = {
@@ -14,18 +14,24 @@ const SIZE_MAP = {
   drawer: 54,
   hero: 62,
   large: 56,
+  snapshot: 36,
 } as const
 
 export function MentalHealthMoodIcon({ mood, size = 'compact' }: MentalHealthMoodIconProps) {
   const lottie = getMentalHealthMoodLottie(mood)
-  const dimension = SIZE_MAP[size]
-  const scale = getMentalHealthMoodLottieScale(mood)
+  const snapshotFrame = size === 'snapshot' ? getMentalHealthMoodLottieSnapshotFrame(mood) : null
+  const dimension = snapshotFrame?.frame ?? SIZE_MAP[size]
+  const scale = snapshotFrame?.scale ?? getMentalHealthMoodLottieScale(mood)
   const renderSize = dimension * scale
 
   if (lottie) {
     return (
       <View
-        style={[styles.lottieWrap, { width: dimension, height: dimension }]}
+        style={[
+          styles.lottieWrap,
+          { width: dimension, height: dimension },
+          size === 'snapshot' && styles.lottieWrapSnapshot,
+        ]}
         pointerEvents="none"
       >
         <LottieView
@@ -58,6 +64,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
     backgroundColor: 'transparent',
+  },
+  lottieWrapSnapshot: {
+    overflow: 'visible',
   },
   lottie: {
     backgroundColor: 'transparent',

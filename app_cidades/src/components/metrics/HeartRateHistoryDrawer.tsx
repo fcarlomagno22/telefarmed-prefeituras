@@ -3,8 +3,17 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ActivityIndicator, Animated, Easing, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import { AppModal } from '../AppModal'
+import {
+  ActivityIndicator,
+  Animated,
+  Easing,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   formatHeartRateTime,
@@ -15,7 +24,7 @@ import {
 import { colors } from '../../theme/colors'
 import { HeartRateReading } from '../../types/heartRate'
 import { PrimaryButton } from '../PrimaryButton'
-import { getModalFooterPadding } from '../../utils/modalSafeArea'
+import { AppModal } from '../AppModal'
 
 const SHEET_OFFSET = 560
 const HR_GRADIENT = ['#fca5a5', '#ef4444', '#dc2626'] as const
@@ -179,7 +188,7 @@ export function HeartRateHistoryDrawer({
           style={[
             styles.sheet,
             {
-              paddingBottom: getModalFooterPadding(insets.bottom, 12),
+              paddingBottom: Math.max(insets.bottom, 16) + 12,
               maxHeight: '88%',
               transform: [{ translateY: sheetTranslateY }],
             },
@@ -279,7 +288,7 @@ export function HeartRateHistoryDrawer({
                 <View style={styles.currentCard}>
                   <Text style={styles.sectionLabel}>Leitura atual</Text>
                   <View style={styles.currentRow}>
-                    <View style={styles.currentBpmCol}>
+                    <View>
                       <Text style={styles.currentBpm}>{latestReading?.bpm ?? '—'}</Text>
                       <Text style={styles.currentUnit}>bpm</Text>
                     </View>
@@ -483,8 +492,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     textTransform: 'uppercase',
     marginBottom: 10,
-    textAlign: 'center',
-    width: '100%',
   },
   currentCard: {
     borderRadius: 18,
@@ -492,17 +499,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     borderWidth: 1,
     borderColor: 'rgba(248, 113, 113, 0.28)',
-    alignItems: 'center',
   },
   currentRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     gap: 12,
-    width: '100%',
-  },
-  currentBpmCol: {
-    alignItems: 'center',
   },
   currentBpm: {
     color: colors.text,
@@ -511,22 +513,18 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
     lineHeight: 44,
     fontVariant: ['tabular-nums'],
-    textAlign: 'center',
   },
   currentUnit: {
     color: colors.textMuted,
     fontSize: 12,
     fontWeight: '600',
     marginTop: -2,
-    textAlign: 'center',
   },
   currentMeta: {
     color: colors.textSubtle,
     fontSize: 12,
     fontWeight: '500',
     marginTop: 8,
-    textAlign: 'center',
-    width: '100%',
   },
   zoneBadge: {
     flexDirection: 'row',
@@ -568,16 +566,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     textTransform: 'uppercase',
-    textAlign: 'center',
-    width: '100%',
   },
   summaryStatValue: {
     color: colors.text,
     fontSize: 22,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
-    textAlign: 'center',
-    width: '100%',
   },
   summaryStatValueHighlight: {
     color: '#fca5a5',
@@ -586,8 +580,6 @@ const styles = StyleSheet.create({
     color: colors.textSubtle,
     fontSize: 10,
     fontWeight: '600',
-    textAlign: 'center',
-    width: '100%',
   },
   summaryHint: {
     color: colors.textSubtle,

@@ -1,4 +1,9 @@
-import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio'
+import {
+  createAudioPlayer,
+  setAudioModeAsync,
+  setIsAudioActiveAsync,
+  type AudioPlayer,
+} from 'expo-audio'
 
 const failSound = require('../../assets/fail.mp3')
 const loginSound = require('../../assets/login.mp3')
@@ -191,4 +196,113 @@ export function isFunctionalGymMusicPlaying() {
 /** @deprecated Use startFunctionalAlarm / stopFunctionalAlarm */
 export function playFunctionalAlarmSound() {
   return startFunctionalAlarm()
+}
+
+async function waitForAudioPlayerReady(player: AudioPlayer, timeoutMs = 2000): Promise<void> {
+  if (player.isLoaded) return
+
+  await Promise.race([
+    new Promise<void>((resolve) => {
+      const subscription = player.addListener('playbackStatusUpdate', (status) => {
+        if (status.isLoaded) {
+          subscription.remove()
+          resolve()
+        }
+      })
+    }),
+    new Promise<void>((resolve) => {
+      setTimeout(resolve, timeoutMs)
+    }),
+  ])
+}
+
+async function playOneShotEffect(source: number) {
+  try {
+    await ensureAudioMode()
+    await setIsAudioActiveAsync(true)
+
+    const player = createAudioPlayer(source, { keepAudioSessionActive: true })
+    player.volume = 1
+
+    if (!player.isLoaded) {
+      await waitForAudioPlayerReady(player)
+    }
+
+    const subscription = player.addListener('playbackStatusUpdate', (status) => {
+      if (status.didJustFinish) {
+        subscription.remove()
+        try {
+          player.remove()
+        } catch {
+          // noop
+        }
+      }
+    })
+
+    player.play()
+  } catch {
+    // Falha silenciosa: áudio é feedback opcional.
+  }
+}
+
+function playOneShotEffectNow(source: number) {
+  void playOneShotEffect(source)
+}
+
+const sudokuCorrectSound = require('../../assets/sounds/correct.mp3')
+const sudokuWrongSound = require('../../assets/sounds/wrong.mp3')
+const sudokuRevealSound = require('../../assets/sounds/reveal.mp3')
+const sudokuCelebrationSound = require('../../assets/sounds/celebration.mp3')
+
+export function preloadSudokuSounds() {
+  void ensureAudioMode().then(() => setIsAudioActiveAsync(true))
+}
+
+export function releaseSudokuSounds() {
+  // Sons do sudoku usam players descartáveis por reprodução.
+}
+
+export function playSudokuCorrectSound() {
+  playOneShotEffectNow(sudokuCorrectSound)
+}
+
+export function playSudokuWrongSound() {
+  playOneShotEffectNow(sudokuWrongSound)
+}
+
+export function playSudokuRevealSound() {
+  playOneShotEffectNow(sudokuRevealSound)
+}
+
+export function playSudokuCelebrationSound() {
+  playOneShotEffectNow(sudokuCelebrationSound)
+}
+
+const palavrasClickSound = require('../../assets/sounds/palavras_click.mp3')
+const palavrasBackspaceSound = require('../../assets/sounds/palavras_backspace.mp3')
+const somaCorrectSound = require('../../assets/sounds/soma_correct.mp3')
+const somaWrongSound = require('../../assets/sounds/soma_wrong.mp3')
+
+export function preloadPalavrasSounds() {
+  void ensureAudioMode().then(() => setIsAudioActiveAsync(true))
+}
+
+export function releasePalavrasSounds() {
+  // Sons de palavras usam players descartáveis por reprodução.
+}
+
+export function playPalavrasClickSound() {
+  playOneShotEffectNow(palavrasClickSound)
+}
+
+export function playPalavrasBackspaceSound() {
+  playOneShotEffectNow(palavrasBackspaceSound)
+}
+
+export function playFormTheWordCorrectSound() {
+  playOneShotEffectNow(somaCorrectSound)
+}
+
+export function playFormTheWordWrongSound() {
+  playOneShotEffectNow(somaWrongSound)
 }

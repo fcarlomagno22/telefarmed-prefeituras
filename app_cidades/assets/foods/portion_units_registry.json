@@ -1,0 +1,600 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "file": "portion_units_registry.json",
+  "engine_mode": "deterministic",
+  "runtime_ai_generation": false,
+  "description": "Registro de unidades de porção em pt-BR para conversão determinística aproximada em gramas no motor de cardápio da Telefarmed.",
+  "clinical_validation": {
+    "status": "requires_nutritionist_review",
+    "note": "Equivalências médias para uso algorítmico. Devem ser refinadas por alimento, densidade, marca e validação nutricional."
+  },
+  "semantics": {
+    "id": "Identificador estável da unidade.",
+    "label": "Nome exibível em pt-BR.",
+    "grams_equivalent_default": "Equivalência média em gramas. Para líquidos aquosos, 1 ml foi aproximado como 1 g.",
+    "applicable_categories": "Categorias de alimentos/bebidas nas quais a unidade pode ser usada como padrão inicial."
+  },
+  "density_note": "Medidas volumétricas variam conforme densidade do alimento. O catálogo de alimentos pode sobrescrever grams_equivalent_default por food_id.",
+  "units": [
+    {
+      "id": "g",
+      "label": "grama",
+      "grams_equivalent_default": 1,
+      "applicable_categories": ["all"]
+    },
+    {
+      "id": "kg",
+      "label": "quilograma",
+      "grams_equivalent_default": 1000,
+      "applicable_categories": ["bulk_food", "raw_ingredient", "basket_item"]
+    },
+    {
+      "id": "ml",
+      "label": "mililitro",
+      "grams_equivalent_default": 1,
+      "applicable_categories": ["beverage", "milk", "juice", "soup", "sauce", "oil"]
+    },
+    {
+      "id": "l",
+      "label": "litro",
+      "grams_equivalent_default": 1000,
+      "applicable_categories": ["beverage", "milk", "juice", "water", "soup"]
+    },
+    {
+      "id": "cup_tea",
+      "label": "xícara de chá",
+      "grams_equivalent_default": 240,
+      "applicable_categories": ["beverage", "milk", "juice", "grain_cooked", "legume_cooked", "fruit_chopped", "soup"]
+    },
+    {
+      "id": "cup_coffee",
+      "label": "xícara de café",
+      "grams_equivalent_default": 50,
+      "applicable_categories": ["coffee", "tea", "beverage"]
+    },
+    {
+      "id": "american_cup",
+      "label": "copo americano",
+      "grams_equivalent_default": 200,
+      "applicable_categories": ["beverage", "milk", "juice", "water", "smoothie"]
+    },
+    {
+      "id": "glass_small",
+      "label": "copo pequeno",
+      "grams_equivalent_default": 150,
+      "applicable_categories": ["beverage", "water", "juice", "milk", "yogurt_drink"]
+    },
+    {
+      "id": "glass_medium",
+      "label": "copo médio",
+      "grams_equivalent_default": 200,
+      "applicable_categories": ["beverage", "water", "juice", "milk", "smoothie"]
+    },
+    {
+      "id": "glass_large",
+      "label": "copo grande",
+      "grams_equivalent_default": 300,
+      "applicable_categories": ["beverage", "water", "juice", "smoothie", "sports_drink"]
+    },
+    {
+      "id": "bottle_300ml",
+      "label": "garrafa 300 ml",
+      "grams_equivalent_default": 300,
+      "applicable_categories": ["beverage", "water", "juice", "soda", "sports_drink"]
+    },
+    {
+      "id": "bottle_500ml",
+      "label": "garrafa 500 ml",
+      "grams_equivalent_default": 500,
+      "applicable_categories": ["beverage", "water", "soda", "sports_drink", "tea"]
+    },
+    {
+      "id": "can_269ml",
+      "label": "lata 269 ml",
+      "grams_equivalent_default": 269,
+      "applicable_categories": ["soda", "beer", "energy_drink", "beverage"]
+    },
+    {
+      "id": "can_350ml",
+      "label": "lata 350 ml",
+      "grams_equivalent_default": 350,
+      "applicable_categories": ["soda", "beer", "energy_drink", "tea", "beverage"]
+    },
+    {
+      "id": "long_neck_330ml",
+      "label": "long neck 330 ml",
+      "grams_equivalent_default": 330,
+      "applicable_categories": ["beer", "beverage"]
+    },
+    {
+      "id": "wine_glass",
+      "label": "taça de vinho",
+      "grams_equivalent_default": 150,
+      "applicable_categories": ["wine", "alcoholic_beverage"]
+    },
+    {
+      "id": "shot",
+      "label": "dose",
+      "grams_equivalent_default": 50,
+      "applicable_categories": ["alcoholic_beverage", "distilled_beverage", "coffee"]
+    },
+    {
+      "id": "tablespoon",
+      "label": "colher de sopa",
+      "grams_equivalent_default": 15,
+      "applicable_categories": ["oil", "seed", "sauce", "spread", "powder", "grain", "dairy", "dessert"]
+    },
+    {
+      "id": "teaspoon",
+      "label": "colher de chá",
+      "grams_equivalent_default": 5,
+      "applicable_categories": ["oil", "seed", "sauce", "sugar", "salt", "powder", "seasoning"]
+    },
+    {
+      "id": "dessert_spoon",
+      "label": "colher de sobremesa",
+      "grams_equivalent_default": 10,
+      "applicable_categories": ["seed", "sauce", "spread", "powder", "dessert", "dairy"]
+    },
+    {
+      "id": "serving_spoon",
+      "label": "colher de servir",
+      "grams_equivalent_default": 35,
+      "applicable_categories": ["rice", "beans", "pasta", "cooked_vegetable", "stew", "side_dish"]
+    },
+    {
+      "id": "rice_spoon",
+      "label": "colher de arroz",
+      "grams_equivalent_default": 45,
+      "applicable_categories": ["rice", "grain_cooked", "side_dish"]
+    },
+    {
+      "id": "bean_ladle_small",
+      "label": "concha pequena",
+      "grams_equivalent_default": 80,
+      "applicable_categories": ["beans", "legume_cooked", "soup", "broth", "stew"]
+    },
+    {
+      "id": "bean_ladle_medium",
+      "label": "concha média",
+      "grams_equivalent_default": 120,
+      "applicable_categories": ["beans", "legume_cooked", "soup", "broth", "stew"]
+    },
+    {
+      "id": "bean_ladle_large",
+      "label": "concha grande",
+      "grams_equivalent_default": 160,
+      "applicable_categories": ["beans", "legume_cooked", "soup", "broth", "stew"]
+    },
+    {
+      "id": "pasta_tongs",
+      "label": "pegador de massa",
+      "grams_equivalent_default": 100,
+      "applicable_categories": ["pasta", "noodle", "grain_cooked"]
+    },
+    {
+      "id": "salad_tongs",
+      "label": "pegador de salada",
+      "grams_equivalent_default": 40,
+      "applicable_categories": ["salad", "leafy_vegetable", "raw_vegetable"]
+    },
+    {
+      "id": "skimmer",
+      "label": "escumadeira",
+      "grams_equivalent_default": 80,
+      "applicable_categories": ["cooked_vegetable", "pasta", "gnocchi", "fried_food", "legume_cooked"]
+    },
+    {
+      "id": "unit",
+      "label": "unidade",
+      "grams_equivalent_default": 100,
+      "applicable_categories": ["fruit", "egg", "bread", "snack", "packaged_item", "generic_item"]
+    },
+    {
+      "id": "unit_small",
+      "label": "unidade pequena",
+      "grams_equivalent_default": 60,
+      "applicable_categories": ["fruit", "bread", "root", "snack", "vegetable"]
+    },
+    {
+      "id": "unit_medium",
+      "label": "unidade média",
+      "grams_equivalent_default": 100,
+      "applicable_categories": ["fruit", "bread", "root", "snack", "vegetable"]
+    },
+    {
+      "id": "unit_large",
+      "label": "unidade grande",
+      "grams_equivalent_default": 150,
+      "applicable_categories": ["fruit", "bread", "root", "snack", "vegetable"]
+    },
+    {
+      "id": "egg_unit",
+      "label": "ovo",
+      "grams_equivalent_default": 50,
+      "applicable_categories": ["egg", "protein"]
+    },
+    {
+      "id": "egg_white_unit",
+      "label": "clara de ovo",
+      "grams_equivalent_default": 30,
+      "applicable_categories": ["egg", "protein"]
+    },
+    {
+      "id": "egg_yolk_unit",
+      "label": "gema de ovo",
+      "grams_equivalent_default": 18,
+      "applicable_categories": ["egg", "fat", "protein"]
+    },
+    {
+      "id": "slice",
+      "label": "fatia",
+      "grams_equivalent_default": 30,
+      "applicable_categories": ["bread", "cheese", "cake", "fruit", "processed_meat"]
+    },
+    {
+      "id": "slice_bread",
+      "label": "fatia de pão",
+      "grams_equivalent_default": 25,
+      "applicable_categories": ["bread", "toast"]
+    },
+    {
+      "id": "slice_cheese",
+      "label": "fatia de queijo",
+      "grams_equivalent_default": 30,
+      "applicable_categories": ["cheese", "dairy"]
+    },
+    {
+      "id": "slice_ham",
+      "label": "fatia de presunto",
+      "grams_equivalent_default": 20,
+      "applicable_categories": ["processed_meat", "cold_cut"]
+    },
+    {
+      "id": "slice_cake",
+      "label": "fatia de bolo",
+      "grams_equivalent_default": 70,
+      "applicable_categories": ["cake", "dessert", "bakery"]
+    },
+    {
+      "id": "french_bread_unit",
+      "label": "pão francês",
+      "grams_equivalent_default": 50,
+      "applicable_categories": ["bread"]
+    },
+    {
+      "id": "half_french_bread",
+      "label": "meio pão francês",
+      "grams_equivalent_default": 25,
+      "applicable_categories": ["bread"]
+    },
+    {
+      "id": "cheese_bread_unit",
+      "label": "pão de queijo",
+      "grams_equivalent_default": 35,
+      "applicable_categories": ["bread", "snack", "bakery"]
+    },
+    {
+      "id": "tapioca_disc",
+      "label": "disco de tapioca",
+      "grams_equivalent_default": 80,
+      "applicable_categories": ["tapioca", "starch", "breakfast"]
+    },
+    {
+      "id": "cuscuz_slice",
+      "label": "fatia de cuscuz",
+      "grams_equivalent_default": 100,
+      "applicable_categories": ["cuscuz", "corn", "breakfast", "starch"]
+    },
+    {
+      "id": "meat_piece_small",
+      "label": "pedaço pequeno de carne",
+      "grams_equivalent_default": 60,
+      "applicable_categories": ["beef", "pork", "chicken", "fish", "protein"]
+    },
+    {
+      "id": "meat_piece_medium",
+      "label": "pedaço médio de carne",
+      "grams_equivalent_default": 100,
+      "applicable_categories": ["beef", "pork", "chicken", "fish", "protein"]
+    },
+    {
+      "id": "meat_piece_large",
+      "label": "pedaço grande de carne",
+      "grams_equivalent_default": 150,
+      "applicable_categories": ["beef", "pork", "chicken", "fish", "protein"]
+    },
+    {
+      "id": "chicken_fillet",
+      "label": "filé de frango",
+      "grams_equivalent_default": 120,
+      "applicable_categories": ["chicken", "protein"]
+    },
+    {
+      "id": "fish_fillet",
+      "label": "filé de peixe",
+      "grams_equivalent_default": 120,
+      "applicable_categories": ["fish", "protein"]
+    },
+    {
+      "id": "beef_steak",
+      "label": "bife",
+      "grams_equivalent_default": 100,
+      "applicable_categories": ["beef", "protein"]
+    },
+    {
+      "id": "ground_meat_serving",
+      "label": "porção de carne moída",
+      "grams_equivalent_default": 100,
+      "applicable_categories": ["beef", "pork", "protein"]
+    },
+    {
+      "id": "shredded_chicken_serving",
+      "label": "porção de frango desfiado",
+      "grams_equivalent_default": 80,
+      "applicable_categories": ["chicken", "protein"]
+    },
+    {
+      "id": "fruit_small",
+      "label": "fruta pequena",
+      "grams_equivalent_default": 80,
+      "applicable_categories": ["fruit"]
+    },
+    {
+      "id": "fruit_medium",
+      "label": "fruta média",
+      "grams_equivalent_default": 120,
+      "applicable_categories": ["fruit"]
+    },
+    {
+      "id": "fruit_large",
+      "label": "fruta grande",
+      "grams_equivalent_default": 180,
+      "applicable_categories": ["fruit"]
+    },
+    {
+      "id": "banana_unit",
+      "label": "banana média",
+      "grams_equivalent_default": 86,
+      "applicable_categories": ["banana", "fruit"]
+    },
+    {
+      "id": "apple_unit",
+      "label": "maçã média",
+      "grams_equivalent_default": 130,
+      "applicable_categories": ["apple", "fruit"]
+    },
+    {
+      "id": "orange_unit",
+      "label": "laranja média",
+      "grams_equivalent_default": 150,
+      "applicable_categories": ["orange", "fruit"]
+    },
+    {
+      "id": "papaya_slice",
+      "label": "fatia de mamão",
+      "grams_equivalent_default": 100,
+      "applicable_categories": ["papaya", "fruit"]
+    },
+    {
+      "id": "watermelon_slice",
+      "label": "fatia de melancia",
+      "grams_equivalent_default": 200,
+      "applicable_categories": ["watermelon", "fruit"]
+    },
+    {
+      "id": "melon_slice",
+      "label": "fatia de melão",
+      "grams_equivalent_default": 150,
+      "applicable_categories": ["melon", "fruit"]
+    },
+    {
+      "id": "pineapple_slice",
+      "label": "fatia de abacaxi",
+      "grams_equivalent_default": 100,
+      "applicable_categories": ["pineapple", "fruit"]
+    },
+    {
+      "id": "mango_slice",
+      "label": "fatia de manga",
+      "grams_equivalent_default": 100,
+      "applicable_categories": ["mango", "fruit"]
+    },
+    {
+      "id": "grape_handful",
+      "label": "punhado de uvas",
+      "grams_equivalent_default": 80,
+      "applicable_categories": ["grape", "fruit"]
+    },
+    {
+      "id": "strawberry_unit",
+      "label": "morango",
+      "grams_equivalent_default": 12,
+      "applicable_categories": ["strawberry", "fruit"]
+    },
+    {
+      "id": "vegetable_portion",
+      "label": "porção de legumes",
+      "grams_equivalent_default": 100,
+      "applicable_categories": ["vegetable", "cooked_vegetable", "raw_vegetable"]
+    },
+    {
+      "id": "leafy_portion",
+      "label": "porção de folhas",
+      "grams_equivalent_default": 30,
+      "applicable_categories": ["leafy_vegetable", "salad"]
+    },
+    {
+      "id": "salad_plate",
+      "label": "prato de salada",
+      "grams_equivalent_default": 80,
+      "applicable_categories": ["salad", "leafy_vegetable", "raw_vegetable"]
+    },
+    {
+      "id": "dessert_plate",
+      "label": "prato de sobremesa",
+      "grams_equivalent_default": 180,
+      "applicable_categories": ["main_meal", "salad", "fruit", "cooked_vegetable", "pasta"]
+    },
+    {
+      "id": "shallow_plate",
+      "label": "prato raso",
+      "grams_equivalent_default": 350,
+      "applicable_categories": ["main_meal", "rice", "beans", "pasta", "salad", "mixed_dish"]
+    },
+    {
+      "id": "deep_plate",
+      "label": "prato fundo",
+      "grams_equivalent_default": 300,
+      "applicable_categories": ["soup", "broth", "stew", "pasta", "mixed_dish"]
+    },
+    {
+      "id": "bowl_small",
+      "label": "tigela pequena",
+      "grams_equivalent_default": 150,
+      "applicable_categories": ["soup", "yogurt", "fruit", "cereal", "açaí", "salad"]
+    },
+    {
+      "id": "bowl_medium",
+      "label": "tigela média",
+      "grams_equivalent_default": 250,
+      "applicable_categories": ["soup", "yogurt", "fruit", "cereal", "açaí", "salad"]
+    },
+    {
+      "id": "bowl_large",
+      "label": "tigela grande",
+      "grams_equivalent_default": 400,
+      "applicable_categories": ["soup", "yogurt", "fruit", "cereal", "açaí", "salad"]
+    },
+    {
+      "id": "handful_small",
+      "label": "punhado pequeno",
+      "grams_equivalent_default": 15,
+      "applicable_categories": ["nuts", "seeds", "dried_fruit", "snack"]
+    },
+    {
+      "id": "handful_medium",
+      "label": "punhado médio",
+      "grams_equivalent_default": 30,
+      "applicable_categories": ["nuts", "seeds", "dried_fruit", "snack", "popcorn"]
+    },
+    {
+      "id": "handful_large",
+      "label": "punhado grande",
+      "grams_equivalent_default": 50,
+      "applicable_categories": ["nuts", "seeds", "dried_fruit", "snack", "popcorn"]
+    },
+    {
+      "id": "pinch",
+      "label": "pitada",
+      "grams_equivalent_default": 1,
+      "applicable_categories": ["salt", "seasoning", "spice"]
+    },
+    {
+      "id": "drizzle",
+      "label": "fio",
+      "grams_equivalent_default": 5,
+      "applicable_categories": ["oil", "olive_oil", "sauce"]
+    },
+    {
+      "id": "sachet",
+      "label": "sachê",
+      "grams_equivalent_default": 5,
+      "applicable_categories": ["sugar", "sweetener", "sauce", "seasoning"]
+    },
+    {
+      "id": "packet_small",
+      "label": "pacote pequeno",
+      "grams_equivalent_default": 30,
+      "applicable_categories": ["snack", "cookie", "cracker", "processed_food"]
+    },
+    {
+      "id": "package_unit",
+      "label": "embalagem",
+      "grams_equivalent_default": 100,
+      "applicable_categories": ["packaged_item", "yogurt", "snack", "ready_to_eat"]
+    },
+    {
+      "id": "yogurt_cup",
+      "label": "pote de iogurte",
+      "grams_equivalent_default": 170,
+      "applicable_categories": ["yogurt", "dairy", "fermented_milk"]
+    },
+    {
+      "id": "curd_spoon",
+      "label": "colher de requeijão",
+      "grams_equivalent_default": 20,
+      "applicable_categories": ["spread", "dairy", "cream_cheese"]
+    },
+    {
+      "id": "butter_tip",
+      "label": "ponta de faca",
+      "grams_equivalent_default": 5,
+      "applicable_categories": ["butter", "margarine", "spread"]
+    },
+    {
+      "id": "soup_portion",
+      "label": "porção de sopa",
+      "grams_equivalent_default": 300,
+      "applicable_categories": ["soup", "broth", "stew"]
+    },
+    {
+      "id": "pizza_slice",
+      "label": "fatia de pizza",
+      "grams_equivalent_default": 120,
+      "applicable_categories": ["pizza", "mixed_dish", "fast_food"]
+    },
+    {
+      "id": "sandwich_unit",
+      "label": "sanduíche",
+      "grams_equivalent_default": 180,
+      "applicable_categories": ["sandwich", "snack", "fast_food"]
+    },
+    {
+      "id": "hamburger_unit",
+      "label": "hambúrguer",
+      "grams_equivalent_default": 220,
+      "applicable_categories": ["hamburger", "sandwich", "fast_food"]
+    },
+    {
+      "id": "wrap_unit",
+      "label": "wrap",
+      "grams_equivalent_default": 180,
+      "applicable_categories": ["wrap", "sandwich", "snack"]
+    },
+    {
+      "id": "açaí_cup_small",
+      "label": "copo pequeno de açaí",
+      "grams_equivalent_default": 200,
+      "applicable_categories": ["açaí", "dessert", "smoothie_bowl"]
+    },
+    {
+      "id": "açaí_cup_medium",
+      "label": "copo médio de açaí",
+      "grams_equivalent_default": 300,
+      "applicable_categories": ["açaí", "dessert", "smoothie_bowl"]
+    },
+    {
+      "id": "açaí_cup_large",
+      "label": "copo grande de açaí",
+      "grams_equivalent_default": 500,
+      "applicable_categories": ["açaí", "dessert", "smoothie_bowl"]
+    }
+  ],
+  "override_policy": {
+    "food_id_specific_override": true,
+    "priority_order": [
+      "food_id_portion_override",
+      "category_specific_unit",
+      "unit_default"
+    ],
+    "when_density_unknown": "use_grams_equivalent_default_and_flag_estimated_portion"
+  },
+  "output_schema": {
+    "unit_id": "string",
+    "label": "string",
+    "grams_equivalent_default": "number",
+    "applicable_categories": "array<string>"
+  }
+}

@@ -3,20 +3,25 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import { Animated, Easing, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
-import { AppModal } from '../AppModal'
+import {
+  Animated,
+  Easing,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
 import { EditableProfileFieldId, ProfileSnapshot } from '../../types/metrics'
-import { playSuccessSound } from '../../utils/appSounds'
 import { PrimaryButton } from '../PrimaryButton'
+import { AppModal } from '../AppModal'
 import { WaveTitle } from '../WaveTitle'
-import { MetricLogSuccessContent } from './MetricLogSuccessContent'
-import { getModalFooterPadding } from '../../utils/modalSafeArea'
-import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
 
 const SHEET_OFFSET = 400
-const SUCCESS_DISMISS_MS = 2600
 const GENDER_OPTIONS = ['Feminino', 'Masculino', 'Outro', 'Prefiro não informar'] as const
 
 type ProfileFieldEditDrawerProps = {
@@ -52,7 +57,7 @@ const FIELD_CONFIG: Record<EditableProfileFieldId, FieldConfig> = {
     subtitle: 'Atualize seu peso corporal',
     placeholder: 'Ex: 78',
     icon: 'weight-kilogram',
-    gradient: ['#ffffff', '#e2e8f0', '#cbd5e1'],
+    gradient: ['#fda4af', '#e11d48', '#be123c'],
     keyboardType: 'decimal-pad',
     suffix: ' kg',
   },
@@ -93,34 +98,15 @@ export function ProfileFieldEditDrawer({
   const insets = useSafeAreaInsets()
   const [isMounted, setIsMounted] = useState(false)
   const [draft, setDraft] = useState('')
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [savedWeightLabel, setSavedWeightLabel] = useState('')
 
   const sheetTranslateY = useRef(new Animated.Value(SHEET_OFFSET)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
-  const pendingSaveRef = useRef<{ field: EditableProfileFieldId; value: string } | null>(null)
-  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const config = field ? FIELD_CONFIG[field] : null
-
-  function clearSuccessTimer() {
-    if (successTimerRef.current) {
-      clearTimeout(successTimerRef.current)
-      successTimerRef.current = null
-    }
-  }
-
-  useEffect(() => {
-    return () => clearSuccessTimer()
-  }, [])
 
   useEffect(() => {
     if (visible && field) {
       setDraft(getDraftValue(field, profile))
-      setShowSuccess(false)
-      setSavedWeightLabel('')
-      pendingSaveRef.current = null
-      clearSuccessTimer()
       setIsMounted(true)
       sheetTranslateY.setValue(SHEET_OFFSET)
       backdropOpacity.setValue(0)
@@ -167,32 +153,13 @@ export function ProfileFieldEditDrawer({
 
   function handleDismiss() {
     if (!visible) return
-    const pending = pendingSaveRef.current
-    pendingSaveRef.current = null
-    clearSuccessTimer()
-    closeSheet(() => {
-      if (pending) onSave(pending.field, pending.value)
-      onClose()
-    })
+    closeSheet(onClose)
   }
 
   function handleSave() {
     if (!field) return
     const nextValue = formatSavedValue(field, draft)
     if (!nextValue) return
-
-    if (field === 'weight') {
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      void playSuccessSound()
-      setSavedWeightLabel(nextValue)
-      setShowSuccess(true)
-      pendingSaveRef.current = { field, value: nextValue }
-      clearSuccessTimer()
-      successTimerRef.current = setTimeout(() => {
-        handleDismiss()
-      }, SUCCESS_DISMISS_MS)
-      return
-    }
 
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     onSave(field, nextValue)
@@ -207,22 +174,18 @@ export function ProfileFieldEditDrawer({
     <AppModal visible transparent animationType="none" onRequestClose={handleDismiss}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
-          <Pressable
-            style={StyleSheet.absoluteFillObject}
-            onPress={showSuccess ? undefined : handleDismiss}
-            disabled={showSuccess}
-          />
+          <Pressable style={StyleSheet.absoluteFillObject} onPress={handleDismiss} />
         </Animated.View>
 
         <KeyboardAvoidingView
-          behavior={keyboardAvoidingBehavior}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardWrap}
         >
           <Animated.View
             style={[
               styles.sheet,
               {
-                paddingBottom: getModalFooterPadding(insets.bottom, 8),
+                paddingBottom: Math.max(insets.bottom, 16) + 8,
                 transform: [{ translateY: sheetTranslateY }],
               },
             ]}
@@ -235,22 +198,13 @@ export function ProfileFieldEditDrawer({
               <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
             ) : null}
 
-            {!showSuccess ? (
-              <LinearGradient
-                colors={[...config.gradient]}
-                start={{ x: 0, y: 0.5 }}
-                end={{ x: 1, y: 0.5 }}
-                style={styles.topAccent}
-              />
-            ) : null}
+            <LinearGradient
+              colors={[...config.gradient]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={styles.topAccent}
+            />
 
-            {showSuccess && field === 'weight' ? (
-              <MetricLogSuccessContent
-                title="Peso atualizado!"
-                message={`Seu peso foi registrado em ${savedWeightLabel}.`}
-              />
-            ) : (
-              <>
             <View style={styles.handle} />
 
             <View style={styles.headerRow}>
@@ -329,8 +283,6 @@ export function ProfileFieldEditDrawer({
               onPress={handleSave}
               disabled={!canSave}
             />
-              </>
-            )}
           </Animated.View>
         </KeyboardAvoidingView>
       </View>

@@ -1,3 +1,6 @@
+import type { BibleRouteParams, PeaceWordsRouteParams } from './bible'
+import type { ActiveMindRouteParams } from './activeMind'
+
 export type AppScreen =
   | 'login'
   | 'register'
@@ -29,6 +32,19 @@ export type AppScreen =
   | 'sleep-time'
   | 'sleep-stories'
   | 'mental-health'
+  | 'my-routine'
+  | 'active-mind'
+  | 'active-mind-difficulty'
+  | 'active-mind-sudoku'
+  | 'active-mind-form-the-word'
+  | 'active-mind-crosswords'
+  | 'active-mind-word-search'
+  | 'active-mind-calculations'
+  | 'active-mind-logic-sequence'
+  | 'bible'
+  | 'bible-chapters'
+  | 'bible-chapter-verses'
+  | 'bible-peace-words-topic'
 
 export type LiveShareViewerRouteParams = {
   token?: string
@@ -47,6 +63,7 @@ export type RunWalkRouteParams = {
   celebrateDateIso?: string
   celebrateFromMinutes?: number
   celebrateToMinutes?: number
+  myRoutineReturnTaskId?: string
 }
 
 export type FunctionalRouteParams = {
@@ -56,6 +73,11 @@ export type FunctionalRouteParams = {
 
 export type EatWellRouteParams = {
   menuId?: string
+  myRoutineReturnTaskId?: string
+}
+
+export type MyRoutineRouteParams = {
+  completeTaskId?: string
 }
 
 export type ActivityModality =
@@ -71,6 +93,32 @@ export type AppRouteParams =
   | RunWalkRouteParams
   | LiveShareViewerRouteParams
   | EatWellRouteParams
+  | MyRoutineRouteParams
+  | BibleRouteParams
+  | PeaceWordsRouteParams
+  | ActiveMindRouteParams
+
+export function getBibleRouteParams(params: AppRouteParams | null): BibleRouteParams {
+  if (!params) return {}
+  if (
+    'bookAbbrev' in params ||
+    'chapter' in params ||
+    'verse' in params ||
+    'segmentTab' in params ||
+    'peaceWordsExpandedCategoryId' in params
+  ) {
+    return params as BibleRouteParams
+  }
+  return {}
+}
+
+export function getPeaceWordsRouteParams(params: AppRouteParams | null): PeaceWordsRouteParams {
+  if (!params) return {}
+  if ('topicId' in params) {
+    return params as PeaceWordsRouteParams
+  }
+  return {}
+}
 
 export function getRunWalkRouteParams(params: AppRouteParams | null): RunWalkRouteParams {
   if (!params) return {}
@@ -104,6 +152,14 @@ export function getEatWellRouteParams(params: AppRouteParams | null): EatWellRou
   if (!params) return {}
   if ('menuId' in params) {
     return params as EatWellRouteParams
+  }
+  return {}
+}
+
+export function getActiveMindRouteParams(params: AppRouteParams | null): ActiveMindRouteParams {
+  if (!params) return {}
+  if ('gameId' in params || 'difficulty' in params) {
+    return params as ActiveMindRouteParams
   }
   return {}
 }

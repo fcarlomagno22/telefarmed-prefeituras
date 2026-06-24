@@ -1,0 +1,234 @@
+{
+  "version": "1.0.0",
+  "locale": "pt-BR",
+  "description": "Mapeia papéis do meal_composition_templates para filtros do catálogo alimentar.",
+  "roles": {
+    "lean_protein": {
+      "meal_roles": [
+        "protein_main"
+      ],
+      "tags_any": [
+        "high_protein"
+      ],
+      "exclude_tags": [
+        "processed_meat",
+        "high_saturated_fat"
+      ]
+    },
+    "protein": {
+      "meal_roles": [
+        "protein_main"
+      ],
+      "tags_any": [
+        "high_protein",
+        "egg",
+        "fish",
+        "seafood"
+      ]
+    },
+    "plant_protein": {
+      "meal_roles": [
+        "protein_main"
+      ],
+      "tags_any": [
+        "vegetarian",
+        "vegan"
+      ],
+      "categories": [
+        "legumes"
+      ]
+    },
+    "fruit": {
+      "meal_roles": [
+        "fruit"
+      ],
+      "categories": [
+        "fruits"
+      ]
+    },
+    "low_glycemic_fruit": {
+      "meal_roles": [
+        "fruit"
+      ],
+      "tags_any": [
+        "low_glycemic"
+      ],
+      "categories": [
+        "fruits"
+      ]
+    },
+    "whole_grain": {
+      "meal_roles": [
+        "carb_base"
+      ],
+      "name_keywords_any": [
+        "integral",
+        "aveia",
+        "quinoa",
+        "centeio"
+      ]
+    },
+    "complex_carbohydrate": {
+      "meal_roles": [
+        "carb_base"
+      ],
+      "categories": [
+        "cereals_grains",
+        "legumes"
+      ]
+    },
+    "low_glycemic_carbohydrate": {
+      "meal_roles": [
+        "carb_base"
+      ],
+      "tags_any": [
+        "low_glycemic",
+        "high_fiber"
+      ]
+    },
+    "legume": {
+      "meal_roles": [
+        "carb_base",
+        "protein_main"
+      ],
+      "categories": [
+        "legumes"
+      ]
+    },
+    "vegetable": {
+      "meal_roles": [
+        "vegetable"
+      ],
+      "categories": [
+        "vegetables"
+      ]
+    },
+    "non_starchy_vegetable": {
+      "meal_roles": [
+        "vegetable"
+      ],
+      "categories": [
+        "vegetables"
+      ],
+      "exclude_tags": [
+        "high_glycemic"
+      ]
+    },
+    "cooked_vegetable": {
+      "meal_roles": [
+        "vegetable"
+      ],
+      "categories": [
+        "vegetables"
+      ]
+    },
+    "salad": {
+      "meal_roles": [
+        "vegetable"
+      ],
+      "name_keywords_any": [
+        "salada",
+        "alface",
+        "folhas"
+      ]
+    },
+    "healthy_fat": {
+      "meal_roles": [
+        "fat_source"
+      ],
+      "tags_any": [
+        "tree_nut",
+        "seed",
+        "fat_source"
+      ],
+      "categories": [
+        "oils_fats"
+      ]
+    },
+    "fiber_booster": {
+      "tags_any": [
+        "high_fiber"
+      ],
+      "categories": [
+        "legumes",
+        "cereals_grains",
+        "fruits",
+        "vegetables"
+      ]
+    },
+    "dairy_or_alternative": {
+      "meal_roles": [
+        "dairy"
+      ],
+      "categories": [
+        "dairy"
+      ]
+    },
+    "lactose_free_dairy_or_alternative": {
+      "meal_roles": [
+        "dairy"
+      ],
+      "tags_any": [
+        "lactose_free",
+        "vegan"
+      ],
+      "categories": [
+        "dairy"
+      ]
+    },
+    "beverage_unsweetened": {
+      "meal_roles": [
+        "beverage"
+      ],
+      "tags_any": [
+        "zero_calorie",
+        "low_sugar"
+      ],
+      "categories": [
+        "beverages"
+      ]
+    },
+    "basket_base": {
+      "meal_roles": [
+        "carb_base"
+      ],
+      "suitable_slots": [
+        "basket"
+      ]
+    },
+    "basket_protein": {
+      "meal_roles": [
+        "protein_main"
+      ],
+      "suitable_slots": [
+        "basket"
+      ]
+    },
+    "basket_produce": {
+      "meal_roles": [
+        "fruit",
+        "vegetable"
+      ],
+      "suitable_slots": [
+        "basket"
+      ]
+    },
+    "basket_snack": {
+      "meal_roles": [
+        "snack"
+      ],
+      "suitable_slots": [
+        "basket"
+      ]
+    },
+    "hydration_item": {
+      "meal_roles": [
+        "beverage"
+      ],
+      "tags_any": [
+        "zero_calorie",
+        "beverage"
+      ]
+    }
+  }
+}

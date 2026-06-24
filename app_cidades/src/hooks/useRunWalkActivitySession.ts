@@ -3,6 +3,8 @@ import type { ActivityModality } from '../types/auth'
 import type { RunWalkActivityStep } from '../types/runWalk'
 import type { GeoCoordinates } from '../utils/geo'
 import {
+  calculateAverageSpeedKmh,
+  calculateInstantSpeedKmh,
   calculateRollingPaceAndSpeed,
   calculateTotalDistanceKm,
   estimateHeartRateBpm,
@@ -19,6 +21,7 @@ type UseRunWalkActivitySessionOptions = {
   modality: ActivityModality
   durationMinutes: number
   coordinates: GeoCoordinates | null
+  gpsSpeedMps?: number | null
   structure?: RunWalkActivityStep[]
   enabled?: boolean
 }
@@ -34,6 +37,7 @@ export function useRunWalkActivitySession({
   modality,
   durationMinutes,
   coordinates,
+  gpsSpeedMps = null,
   structure,
   enabled = true,
 }: UseRunWalkActivitySessionOptions) {
@@ -84,7 +88,7 @@ export function useRunWalkActivitySession({
     if (!isTracking || !coordinates) return
 
     setTrail((current) => {
-      if (!shouldAppendTrailPoint(current, coordinates)) {
+      if (!shouldAppendTrailPoint(current, coordinates, 4)) {
         return current
       }
 
@@ -102,12 +106,17 @@ export function useRunWalkActivitySession({
   }, [coordinates, isTracking])
 
   const liveDistanceKm = useMemo(() => calculateTotalDistanceKm(trail), [trail])
+  const liveAverageSpeedKmh = useMemo(
+    () => calculateAverageSpeedKmh(liveDistanceKm, elapsedSeconds),
+    [elapsedSeconds, liveDistanceKm],
+  )
   const rollingMetrics = useMemo(() => calculateRollingPaceAndSpeed(trail), [trail])
 
   const livePaceMinPerKm =
     rollingMetrics.paceMinPerKm ??
     (liveDistanceKm > 0 ? null : getFallbackPaceMinPerKm(modality))
   const liveSpeedKmh =
+    calculateInstantSpeedKmh(trail, gpsSpeedMps) ??
     rollingMetrics.speedKmh ??
     (livePaceMinPerKm != null ? paceMinPerKmToSpeedKmh(livePaceMinPerKm) : null)
 
@@ -121,7 +130,9 @@ export function useRunWalkActivitySession({
       rolling.paceMinPerKm ??
       (snapshotDistanceKm > 0 ? null : getFallbackPaceMinPerKm(modality))
     const speed =
-      rolling.speedKmh ?? (pace != null ? paceMinPerKmToSpeedKmh(pace) : null)
+      calculateInstantSpeedKmh(currentTrail, gpsSpeedMps) ??
+      rolling.speedKmh ??
+      (pace != null ? paceMinPerKmToSpeedKmh(pace) : null)
 
     const snapshot: ActivitySessionSnapshot = {
       elapsedSeconds: elapsedSecondsRef.current,
@@ -156,6 +167,9 @@ export function useRunWalkActivitySession({
 
   const activeElapsedSeconds = frozenSnapshot?.elapsedSeconds ?? elapsedSeconds
   const activeDistanceKm = frozenSnapshot?.distanceKm ?? liveDistanceKm
+  const activeAverageSpeedKmh = frozenSnapshot
+    ? calculateAverageSpeedKmh(frozenSnapshot.distanceKm, frozenSnapshot.elapsedSeconds)
+    : liveAverageSpeedKmh
   const activeSpeedKmh = frozenSnapshot?.currentSpeedKmh ?? liveSpeedKmh
   const activeTrail = frozenSnapshot?.trail ?? trail
   const stepCount = estimateStepsFromDistance(activeDistanceKm, modality)
@@ -171,6 +185,7 @@ export function useRunWalkActivitySession({
     distanceKm: activeDistanceKm,
     currentPaceMinPerKm: livePaceMinPerKm,
     currentSpeedKmh: activeSpeedKmh,
+    averageSpeedKmh: activeAverageSpeedKmh,
     stepCount,
     heartRateBpm,
     trail: activeTrail,

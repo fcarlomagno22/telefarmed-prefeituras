@@ -21,6 +21,8 @@ function resolveTimelineStep(step: ScheduleAppointmentStep): number {
   switch (step) {
     case 'care_mode':
       return 1
+    case 'remote_request':
+      return 2
     case 'specialty':
     case 'ubt':
       return 2
