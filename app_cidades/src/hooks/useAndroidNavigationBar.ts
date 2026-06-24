@@ -1,25 +1,13 @@
-import * as NavigationBar from 'expo-navigation-bar'
-import { useEffect } from 'react'
-import { Platform } from 'react-native'
+/**
+ * A navigation bar translúcida é aplicada no build via `app.json`:
+ * - expo-navigation-bar plugin (position, backgroundColor, barStyle)
+ * - androidNavigationBar
+ *
+ * Com edge-to-edge ativo, setPositionAsync/setBackgroundColorAsync em runtime
+ * só geram warnings e não alteram o comportamento.
+ */
+export function applyAndroidNavigationBar() {}
 
-export const TRANSPARENT_NAV_BAR = '#00000000'
+export function applyAndroidNavigationBarForModal() {}
 
-/** Navigation bar translúcida sobre o conteúdo — não altera insets/padding dos drawers. */
-export function applyAndroidNavigationBar() {
-  if (Platform.OS !== 'android') return
-
-  void NavigationBar.setPositionAsync('absolute')
-  void NavigationBar.setBackgroundColorAsync(TRANSPARENT_NAV_BAR)
-  void NavigationBar.setButtonStyleAsync('light')
-}
-
-/** Reaplica a nav bar transparente enquanto um modal/drawer está aberto (Android pode resetar no build). */
-export function applyAndroidNavigationBarForModal() {
-  applyAndroidNavigationBar()
-}
-
-export function useAndroidNavigationBar() {
-  useEffect(() => {
-    applyAndroidNavigationBar()
-  }, [])
-}
+export function useAndroidNavigationBar() {}

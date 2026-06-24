@@ -21,7 +21,6 @@ import { loadEatWellMenuDayLog, loadEatWellMenuCalendarDayStatuses, setEatWellMe
 import { loadEatWellMenus } from '../data/eatWellMenusStorage'
 import { useAuth } from '../contexts/AuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
-import { applyAndroidNavigationBar } from '../hooks/useAndroidNavigationBar'
 import { colors } from '../theme/colors'
 import type { EatWellMenuDayLog, EatWellMenuFoodStatus, EatWellSavedMenu, FoodEntry, MealSlot } from '../types/eatWell'
 import { getEatWellRouteParams } from '../types/auth'
@@ -108,15 +107,6 @@ export function EatWellMenuDetailScreen() {
       ),
     )
   }
-
-  useEffect(() => {
-    applyAndroidNavigationBar()
-  }, [])
-
-  useEffect(() => {
-    if (activeMealSlot || substituteDrawerVisible || monthPickerVisible) return
-    applyAndroidNavigationBar()
-  }, [activeMealSlot, monthPickerVisible, substituteDrawerVisible])
 
   useEffect(() => {
     void loadMenu()

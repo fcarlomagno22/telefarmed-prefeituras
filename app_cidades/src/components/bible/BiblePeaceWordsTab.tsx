@@ -9,7 +9,6 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  UIManager,
   View,
 } from 'react-native'
 import { PEACE_WORDS_CATEGORIES } from '../../data/peaceWordsCatalog'
@@ -17,10 +16,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { getBibleRouteParams } from '../../types/auth'
 import type { PeaceWordsCategory } from '../../types/bible'
 import { colors } from '../../theme/colors'
-
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true)
-}
 
 type BiblePeaceWordsTabProps = {
   bottomPadding: number

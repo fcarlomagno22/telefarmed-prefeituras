@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useState } from 'react'
-import { Image, LayoutAnimation, Platform, Pressable, StyleSheet, Text, UIManager, View } from 'react-native'
+import { Image, LayoutAnimation, Pressable, StyleSheet, Text, View } from 'react-native'
 import { scheduleDoctors } from '../../data/mockScheduleCatalog'
 import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
 import { colors } from '../../theme/colors'
@@ -16,10 +16,6 @@ import {
 } from '../../utils/myAppointments'
 import { formatScheduleDayLabel } from '../../utils/scheduleDate'
 import { AppointmentActionButton } from './AppointmentActionButton'
-
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true)
-}
 
 type AppointmentCardProps = {
   appointment: StoredAppointment

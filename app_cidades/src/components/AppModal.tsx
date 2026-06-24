@@ -1,9 +1,4 @@
-import { useEffect } from 'react'
 import { Modal, ModalProps, Platform, StyleSheet, View } from 'react-native'
-import {
-  applyAndroidNavigationBar,
-  applyAndroidNavigationBarForModal,
-} from '../hooks/useAndroidNavigationBar'
 import { colors } from '../theme/colors'
 
 type AppModalProps = ModalProps & {
@@ -20,17 +15,6 @@ export function AppModal({
   navigationBarTranslucent,
   ...rest
 }: AppModalProps) {
-  useEffect(() => {
-    if (Platform.OS !== 'android') return
-
-    if (visible) {
-      applyAndroidNavigationBarForModal()
-      return
-    }
-
-    applyAndroidNavigationBar()
-  }, [visible])
-
   return (
     <Modal
       visible={visible}

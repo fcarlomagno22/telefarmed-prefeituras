@@ -15,6 +15,7 @@ import { VidaSaudavelActions, VidaSaudavelActionId } from '../components/VidaSau
 import { appEnv } from '../config/env'
 import { getPromoBanners } from '../config/promoBanners'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useSimulatedPageSkeleton } from '../hooks/useSimulatedPageSkeleton'
 import { colors } from '../theme/colors'
@@ -42,6 +43,7 @@ export function HomeScreen() {
     dismissBiometricPrompt,
     isBootstrapping,
   } = useAuth()
+  const { requireAuth } = useGuestAuth()
 
   const showSkeleton = useSimulatedPageSkeleton(isBootstrapping)
 
@@ -55,17 +57,17 @@ export function HomeScreen() {
     }
 
     if (actionId === 'my-appointments') {
-      navigateTo('my-appointments')
+      requireAuth('quick:my-appointments', () => navigateTo('my-appointments'))
       return
     }
 
     if (actionId === 'post-consultation') {
-      navigateTo('post-consultation')
+      requireAuth('quick:post-consultation', () => navigateTo('post-consultation'))
       return
     }
 
     if (actionId === 'prescriptions') {
-      navigateTo('my-documents')
+      requireAuth('quick:prescriptions', () => navigateTo('my-documents'))
       return
     }
 
@@ -135,8 +137,10 @@ export function HomeScreen() {
     }
 
     if (tab === 'pos-consulta') {
-      setMenuVisible(false)
-      navigateTo('post-consultation')
+      requireAuth('tab:pos-consulta', () => {
+        setMenuVisible(false)
+        navigateTo('post-consultation')
+      })
       return
     }
 

@@ -96,7 +96,13 @@ export function MyAppointmentsScreen() {
     TAB_BAR_ESTIMATED_HEIGHT + Math.max(insets.bottom, 8) + 24
 
   const loadAppointments = useCallback(async (refresh = false) => {
-    if (!user) return
+    if (!user) {
+      setAppointments([])
+      setRemoteCareRequests([])
+      setIsLoading(false)
+      setIsRefreshing(false)
+      return
+    }
 
     if (refresh) {
       setIsRefreshing(true)

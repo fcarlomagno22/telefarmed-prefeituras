@@ -7,7 +7,6 @@ import { AuthProvider, useAuth } from './src/contexts/AuthContext'
 import { GuestAuthProvider } from './src/contexts/GuestAuthContext'
 import { ThemeProvider } from './src/contexts/ThemeContext'
 import { useAndroidBackHandler } from './src/hooks/useAndroidBackHandler'
-import { useAndroidNavigationBar } from './src/hooks/useAndroidNavigationBar'
 import { colors } from './src/theme/colors'
 import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen'
 import { HomeScreen } from './src/screens/HomeScreen'
@@ -111,8 +110,6 @@ function AppRouter() {
 }
 
 export default function App() {
-  useAndroidNavigationBar()
-
   useEffect(() => {
     void SystemUI.setBackgroundColorAsync(colors.background)
   }, [])

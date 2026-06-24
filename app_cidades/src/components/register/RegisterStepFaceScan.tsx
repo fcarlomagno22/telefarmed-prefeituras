@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Animated,
   Easing,
@@ -13,6 +13,7 @@ import {
   Text,
   View,
 } from 'react-native'
+import { CameraPermissionSheet } from '../CameraPermissionSheet'
 import { formStyles } from '../AppShell'
 import { PrimaryButton } from '../PrimaryButton'
 import { RegisterTimeline } from './RegisterTimeline'
@@ -80,6 +81,7 @@ export function RegisterStepFaceScan({
   const [error, setError] = useState<string | null>(null)
   const [isCapturing, setIsCapturing] = useState(false)
   const [cameraSession, setCameraSession] = useState(0)
+  const [permissionSheetVisible, setPermissionSheetVisible] = useState(false)
 
   const cameraRef = useRef<CameraView>(null)
   const scanPhaseRef = useRef<ScanPhase>('idle')
@@ -98,6 +100,28 @@ export function RegisterStepFaceScan({
   function setScanPhaseSafe(next: ScanPhase) {
     scanPhaseRef.current = next
     setScanPhase(next)
+  }
+
+  useEffect(() => {
+    if (!permission) return
+
+    if (permission.granted) {
+      setPermissionSheetVisible(false)
+      return
+    }
+
+    setPermissionSheetVisible(true)
+  }, [permission])
+
+  async function handleRequestCameraPermission() {
+    const result = await requestPermission()
+    if (result.granted) {
+      setPermissionSheetVisible(false)
+    }
+  }
+
+  function handleDismissPermissionSheet() {
+    setPermissionSheetVisible(false)
   }
 
   useEffect(() => {
@@ -393,19 +417,13 @@ export function RegisterStepFaceScan({
   }
 
   if (!permission) {
-    return <PermissionCard message="Verificando permissão da câmera..." />
-  }
-
-  if (!permission.granted) {
     return (
       <>
         <RegisterTimeline currentStep={3} />
-        <PermissionCard message="Precisamos da câmera frontal para registrar sua identidade com segurança.">
-          <PrimaryButton label="Permitir câmera" onPress={() => void requestPermission()} />
-          <Pressable onPress={onBack} style={formStyles.secondaryButton}>
-            <Text style={formStyles.secondaryButtonText}>Voltar</Text>
-          </Pressable>
-        </PermissionCard>
+        <View style={styles.permissionLoading}>
+          <Ionicons name="camera-outline" size={28} color={colors.primary} />
+          <Text style={styles.permissionLoadingText}>Verificando permissão da câmera...</Text>
+        </View>
       </>
     )
   }
@@ -433,6 +451,8 @@ export function RegisterStepFaceScan({
   const status = statusCopy[scanPhase]
   const showScanBeam = scanPhase === 'scanning' || scanPhase === 'locked'
   const showRotatingRing = scanPhase === 'seeking' || scanPhase === 'aligning' || scanPhase === 'off_center'
+
+  const cameraBlocked = !permission.granted && permission.canAskAgain === false
 
   return (
     <>
@@ -469,20 +489,41 @@ export function RegisterStepFaceScan({
           style={styles.glowShell}
         >
           <View style={styles.scannerFrame}>
-            <CameraView
-              key={`face-scan-camera-${cameraSession}`}
-              ref={cameraRef}
-              style={styles.camera}
-              facing="front"
-              mode="picture"
-              animateShutter={false}
-              onCameraReady={() => {
-                setCameraReady(true)
-                setScanPhaseSafe(nativeFaceDetection ? 'seeking' : 'idle')
-              }}
-            />
+            {!permission.granted ? (
+              <View style={styles.cameraPlaceholder}>
+                <LinearGradient
+                  colors={['rgba(255, 133, 51, 0.2)', 'rgba(255, 107, 0, 0.08)']}
+                  style={StyleSheet.absoluteFillObject}
+                />
+                <View style={styles.cameraPlaceholderIcon}>
+                  <Ionicons name="camera-outline" size={36} color={colors.primaryLight} />
+                </View>
+                <Text style={styles.cameraPlaceholderText}>
+                  Permita o acesso à câmera para iniciar a verificação facial
+                </Text>
+                <Pressable
+                  onPress={() => setPermissionSheetVisible(true)}
+                  style={({ pressed }) => [styles.reopenPermissionBtn, pressed && { opacity: 0.88 }]}
+                >
+                  <Text style={styles.reopenPermissionBtnText}>Permitir câmera</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <>
+                <CameraView
+                  key={`face-scan-camera-${cameraSession}`}
+                  ref={cameraRef}
+                  style={styles.camera}
+                  facing="front"
+                  mode="picture"
+                  animateShutter={false}
+                  onCameraReady={() => {
+                    setCameraReady(true)
+                    setScanPhaseSafe(nativeFaceDetection ? 'seeking' : 'idle')
+                  }}
+                />
 
-            <View style={styles.overlay} pointerEvents="none">
+                <View style={styles.overlay} pointerEvents="none">
               <LinearGradient
                 colors={['rgba(3, 3, 8, 0.78)', 'rgba(3, 3, 8, 0.42)', 'rgba(3, 3, 8, 0.78)']}
                 style={StyleSheet.absoluteFillObject}
@@ -576,6 +617,8 @@ export function RegisterStepFaceScan({
                 />
               </View>
             ) : null}
+              </>
+            )}
           </View>
         </LinearGradient>
       ) : (
@@ -625,6 +668,13 @@ export function RegisterStepFaceScan({
           </Pressable>
         </>
       )}
+
+      <CameraPermissionSheet
+        visible={permissionSheetVisible && !permission.granted}
+        blocked={cameraBlocked}
+        onAllow={() => void handleRequestCameraPermission()}
+        onDismiss={handleDismissPermissionSheet}
+      />
     </>
   )
 }
@@ -666,22 +716,6 @@ function statusIconColor(tone: 'neutral' | 'warn' | 'success' | 'active') {
     default:
       return colors.textMuted
   }
-}
-
-function PermissionCard({
-  message,
-  children,
-}: {
-  message: string
-  children?: ReactNode
-}) {
-  return (
-    <View style={styles.permissionCard}>
-      <Ionicons name="camera-outline" size={34} color={colors.primary} />
-      <Text style={styles.permissionText}>{message}</Text>
-      {children}
-    </View>
-  )
 }
 
 function wait(ms: number) {
@@ -917,18 +951,57 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  permissionCard: {
+  permissionLoading: {
     alignItems: 'center',
-    gap: 14,
-    paddingVertical: 24,
+    gap: 12,
+    paddingVertical: 32,
     paddingHorizontal: 12,
     marginBottom: 8,
   },
-  permissionText: {
+  permissionLoadingText: {
     color: colors.textMuted,
     fontSize: 14,
     lineHeight: 20,
     textAlign: 'center',
+  },
+  cameraPlaceholder: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+    gap: 14,
+    zIndex: 2,
+  },
+  cameraPlaceholderIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 107, 0, 0.14)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 133, 51, 0.28)',
+  },
+  cameraPlaceholderText: {
+    color: colors.textMuted,
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  reopenPermissionBtn: {
+    marginTop: 4,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255, 107, 0, 0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 133, 51, 0.35)',
+  },
+  reopenPermissionBtnText: {
+    color: colors.primaryLight,
+    fontSize: 13,
+    fontWeight: '700',
   },
   expoGoNotice: {
     flexDirection: 'row',

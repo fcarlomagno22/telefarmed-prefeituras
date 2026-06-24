@@ -1,14 +1,19 @@
 import { Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  FlatList,
   ImageBackground,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AppointmentDocumentsDrawer } from '../components/appointments/AppointmentDocumentsDrawer'
@@ -56,9 +61,11 @@ import { resolveBrandImage } from '../utils/resolveBrandImage'
 
 const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
+const DOCUMENTS_SEGMENT_PAGES: MyDocumentsTab[] = ['by-consultation', 'by-document']
 
 export function MyDocumentsScreen() {
   const insets = useSafeAreaInsets()
+  const { width: screenWidth } = useWindowDimensions()
   const { user, navigateTo, logout } = useAuth()
   const { requireAuth } = useGuestAuth()
 
@@ -66,6 +73,8 @@ export function MyDocumentsScreen() {
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [segmentTab, setSegmentTab] = useState<MyDocumentsTab>('by-consultation')
+  const segmentPagerRef = useRef<FlatList<MyDocumentsTab>>(null)
+  const segmentPagerProgrammaticScrollRef = useRef(false)
   const [kindFilter, setKindFilter] = useState<DocumentKindFilter>('all')
   const [period, setPeriod] = useState<PeriodSelection | null>(null)
   const [periodDrawerVisible, setPeriodDrawerVisible] = useState(false)
@@ -82,7 +91,12 @@ export function MyDocumentsScreen() {
 
   const loadDocuments = useCallback(
     async (refresh = false) => {
-      if (!user) return
+      if (!user) {
+        setEntries([])
+        setIsLoading(false)
+        setIsRefreshing(false)
+        return
+      }
 
       if (refresh) {
         setIsRefreshing(true)
@@ -138,6 +152,76 @@ export function MyDocumentsScreen() {
   const periodFilterActive = period !== null
   const providerFilterActive = providerFilter !== null
   const anyFilterActive = periodFilterActive || providerFilterActive
+
+  const scrollSegmentPagerTo = useCallback(
+    (tab: MyDocumentsTab, animated = true) => {
+      const index = DOCUMENTS_SEGMENT_PAGES.indexOf(tab)
+      if (index < 0) return
+
+      segmentPagerProgrammaticScrollRef.current = animated
+      segmentPagerRef.current?.scrollToOffset({
+        offset: index * screenWidth,
+        animated,
+      })
+
+      if (!animated) {
+        segmentPagerProgrammaticScrollRef.current = false
+      }
+    },
+    [screenWidth],
+  )
+
+  const handleSegmentTabChange = useCallback(
+    (tab: MyDocumentsTab) => {
+      setSegmentTab(tab)
+      scrollSegmentPagerTo(tab)
+    },
+    [scrollSegmentPagerTo],
+  )
+
+  const handleSegmentPagerIndexChange = useCallback(
+    (nextIndex: number, options?: { haptic?: boolean }) => {
+      const clampedIndex = Math.min(
+        Math.max(nextIndex, 0),
+        DOCUMENTS_SEGMENT_PAGES.length - 1,
+      )
+      const nextTab = DOCUMENTS_SEGMENT_PAGES[clampedIndex] ?? 'by-consultation'
+
+      setSegmentTab((current) => {
+        if (current === nextTab) return current
+        if (options?.haptic) {
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+        }
+        return nextTab
+      })
+    },
+    [],
+  )
+
+  const handleSegmentPagerScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (segmentPagerProgrammaticScrollRef.current) return
+
+      const nextIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth)
+      handleSegmentPagerIndexChange(nextIndex)
+    },
+    [handleSegmentPagerIndexChange, screenWidth],
+  )
+
+  const handleSegmentPagerScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const wasProgrammatic = segmentPagerProgrammaticScrollRef.current
+      segmentPagerProgrammaticScrollRef.current = false
+
+      const nextIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth)
+      handleSegmentPagerIndexChange(nextIndex, { haptic: !wasProgrammatic })
+    },
+    [handleSegmentPagerIndexChange, screenWidth],
+  )
+
+  useEffect(() => {
+    scrollSegmentPagerTo(segmentTab, false)
+  }, [screenWidth, scrollSegmentPagerTo, segmentTab])
 
   function clearFilters() {
     setPeriod(null)
@@ -243,6 +327,139 @@ export function MyDocumentsScreen() {
     void logout()
   }
 
+  const renderSegmentPage = useCallback(
+    (tab: MyDocumentsTab) => {
+      if (tab === 'by-consultation') {
+        return (
+          <ScrollView
+            style={styles.pageScroll}
+            contentContainerStyle={[
+              styles.pageContent,
+              { paddingBottom: bottomContentPadding },
+            ]}
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={() => void loadDocuments(true)}
+                tintColor={colors.primaryLight}
+              />
+            }
+          >
+            {filteredEntries.length === 0 ? (
+              <DocumentsEmptyState
+                filtered={anyFilterActive || kindFilter !== 'all'}
+                onViewAppointmentsPress={
+                  anyFilterActive || kindFilter !== 'all'
+                    ? undefined
+                    : () => navigateTo('my-appointments')
+                }
+              />
+            ) : (
+              <>
+                {heroEntry ? (
+                  <View style={styles.section}>
+                    <ConsultationDocumentsCard
+                      entry={heroEntry}
+                      featured
+                      onPress={() => openDocumentsDrawer(heroEntry.appointment)}
+                    />
+                  </View>
+                ) : null}
+
+                {listEntries.length > 0 && heroEntry ? (
+                  <Text style={styles.sectionTitle}>Outras consultas</Text>
+                ) : null}
+
+                {listEntries.length > 0 ? (
+                  <View style={styles.list}>
+                    {listEntries.map((entry) => (
+                      <ConsultationDocumentsCard
+                        key={entry.appointment.id}
+                        entry={entry}
+                        onPress={() => openDocumentsDrawer(entry.appointment)}
+                      />
+                    ))}
+                  </View>
+                ) : null}
+              </>
+            )}
+
+            {entries.length > 0 ? <DocumentsDisclaimer /> : null}
+          </ScrollView>
+        )
+      }
+
+      return (
+        <ScrollView
+          style={styles.pageScroll}
+          contentContainerStyle={[
+            styles.pageContent,
+            { paddingBottom: bottomContentPadding },
+          ]}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => void loadDocuments(true)}
+              tintColor={colors.primaryLight}
+            />
+          }
+        >
+          <DocumentsKindFilterChips
+            activeFilter={kindFilter}
+            counts={kindCounts}
+            onChange={setKindFilter}
+          />
+
+          {flatDocuments.length === 0 ? (
+            <DocumentsEmptyState
+              filtered={anyFilterActive || kindFilter !== 'all'}
+              onViewAppointmentsPress={
+                anyFilterActive || kindFilter !== 'all'
+                  ? undefined
+                  : () => navigateTo('my-appointments')
+              }
+            />
+          ) : (
+            <View style={styles.list}>
+              {flatDocuments.map((item) => (
+                <DocumentFlatRow
+                  key={item.document.id}
+                  item={item}
+                  downloading={downloadingId === item.document.id}
+                  onDownload={() =>
+                    void handleDownloadFlatDocument(item.document, item.appointment)
+                  }
+                />
+              ))}
+            </View>
+          )}
+
+          {entries.length > 0 ? <DocumentsDisclaimer /> : null}
+        </ScrollView>
+      )
+    },
+    [
+      anyFilterActive,
+      bottomContentPadding,
+      downloadingId,
+      entries.length,
+      filteredEntries.length,
+      flatDocuments,
+      handleDownloadFlatDocument,
+      heroEntry,
+      isRefreshing,
+      kindCounts,
+      kindFilter,
+      listEntries,
+      loadDocuments,
+      navigateTo,
+    ],
+  )
+
   return (
     <>
       <View style={styles.root}>
@@ -267,34 +484,26 @@ export function MyDocumentsScreen() {
           onBack={handleBack}
         />
 
-        <ScrollView
-          style={styles.body}
-          contentContainerStyle={[
-            styles.bodyContent,
-            { paddingBottom: bottomContentPadding },
-          ]}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={() => void loadDocuments(true)}
-              tintColor={colors.primaryLight}
-            />
-          }
-        >
+        <View style={styles.body}>
           {showSkeleton ? (
-            <View style={styles.skeletonBlock}>
+            <ScrollView
+              contentContainerStyle={[
+                styles.skeletonBlock,
+                { paddingBottom: bottomContentPadding },
+              ]}
+              showsVerticalScrollIndicator={false}
+            >
               <SkeletonBone width="100%" height={46} borderRadius={14} />
               <SkeletonBone width="100%" height={160} borderRadius={18} />
               <SkeletonBone width="100%" height={120} borderRadius={18} />
-            </View>
+            </ScrollView>
           ) : (
             <>
               <DocumentsSegmentTabs
                 activeTab={segmentTab}
                 consultationCount={filteredEntries.length}
                 documentCount={flattenDocumentEntries(filteredEntries).length}
-                onChange={setSegmentTab}
+                onChange={handleSegmentTabChange}
               />
 
               <View style={styles.sectionTitleRow}>
@@ -368,81 +577,35 @@ export function MyDocumentsScreen() {
                 </View>
               </View>
 
-              {segmentTab === 'by-document' ? (
-                <DocumentsKindFilterChips
-                  activeFilter={kindFilter}
-                  counts={kindCounts}
-                  onChange={setKindFilter}
-                />
-              ) : null}
-
-              {segmentTab === 'by-consultation' ? (
-                filteredEntries.length === 0 ? (
-                  <DocumentsEmptyState
-                    filtered={anyFilterActive || kindFilter !== 'all'}
-                    onViewAppointmentsPress={
-                      anyFilterActive || kindFilter !== 'all'
-                        ? undefined
-                        : () => navigateTo('my-appointments')
-                    }
-                  />
-                ) : (
-                  <>
-                    {heroEntry ? (
-                      <View style={styles.section}>
-                        <ConsultationDocumentsCard
-                          entry={heroEntry}
-                          featured
-                          onPress={() => openDocumentsDrawer(heroEntry.appointment)}
-                        />
-                      </View>
-                    ) : null}
-
-                    {listEntries.length > 0 && heroEntry ? (
-                      <Text style={styles.sectionTitle}>Outras consultas</Text>
-                    ) : null}
-
-                    {listEntries.length > 0 ? (
-                      <View style={styles.list}>
-                        {listEntries.map((entry) => (
-                          <ConsultationDocumentsCard
-                            key={entry.appointment.id}
-                            entry={entry}
-                            onPress={() => openDocumentsDrawer(entry.appointment)}
-                          />
-                        ))}
-                      </View>
-                    ) : null}
-                  </>
-                )
-              ) : flatDocuments.length === 0 ? (
-                <DocumentsEmptyState
-                  filtered={anyFilterActive || kindFilter !== 'all'}
-                  onViewAppointmentsPress={
-                    anyFilterActive || kindFilter !== 'all'
-                      ? undefined
-                      : () => navigateTo('my-appointments')
-                  }
-                />
-              ) : (
-                <View style={styles.list}>
-                  {flatDocuments.map((item) => (
-                    <DocumentFlatRow
-                      key={item.document.id}
-                      item={item}
-                      downloading={downloadingId === item.document.id}
-                      onDownload={() =>
-                        void handleDownloadFlatDocument(item.document, item.appointment)
-                      }
-                    />
-                  ))}
-                </View>
-              )}
-
-              {entries.length > 0 ? <DocumentsDisclaimer /> : null}
+              <FlatList
+                ref={segmentPagerRef}
+                data={DOCUMENTS_SEGMENT_PAGES}
+                keyExtractor={(item) => item}
+                horizontal
+                pagingEnabled
+                nestedScrollEnabled
+                bounces={false}
+                showsHorizontalScrollIndicator={false}
+                decelerationRate="fast"
+                scrollEventThrottle={16}
+                onScroll={handleSegmentPagerScroll}
+                onMomentumScrollEnd={handleSegmentPagerScrollEnd}
+                onScrollEndDrag={handleSegmentPagerScrollEnd}
+                getItemLayout={(_, index) => ({
+                  length: screenWidth,
+                  offset: screenWidth * index,
+                  index,
+                })}
+                style={styles.segmentPager}
+                renderItem={({ item }) => (
+                  <View style={[styles.segmentPage, { width: screenWidth }]}>
+                    {renderSegmentPage(item)}
+                  </View>
+                )}
+              />
             </>
           )}
-        </ScrollView>
+        </View>
 
         <BottomTabBar activeTab={null} onTabPress={handleTabPress} />
       </View>
@@ -501,7 +664,16 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
   },
-  bodyContent: {
+  segmentPager: {
+    flex: 1,
+  },
+  segmentPage: {
+    flex: 1,
+  },
+  pageScroll: {
+    flex: 1,
+  },
+  pageContent: {
     gap: 14,
     paddingTop: 4,
   },
