@@ -1,14 +1,18 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  FlatList,
   ImageBackground,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -57,13 +61,17 @@ import { addScheduleAppointmentToDeviceCalendar } from '../utils/scheduleCalenda
 
 const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
+const APPOINTMENT_SEGMENT_PAGES: MyAppointmentsTab[] = ['upcoming', 'history']
 
 export function MyAppointmentsScreen() {
   const insets = useSafeAreaInsets()
+  const { width: screenWidth } = useWindowDimensions()
   const { user, navigateTo, logout } = useAuth()
   const { requireAuth } = useGuestAuth()
 
   const [segmentTab, setSegmentTab] = useState<MyAppointmentsTab>('upcoming')
+  const segmentPagerRef = useRef<FlatList<MyAppointmentsTab>>(null)
+  const segmentPagerProgrammaticScrollRef = useRef(false)
   const [bottomTab, setBottomTab] = useState<BottomTabId | null>(null)
   const [appointments, setAppointments] = useState<StoredAppointment[]>([])
   const [remoteCareRequests, setRemoteCareRequests] = useState<RemoteCareRequest[]>([])
@@ -136,14 +144,93 @@ export function MyAppointmentsScreen() {
     () => getActiveRemoteCareRequests(remoteCareRequests),
     [remoteCareRequests],
   )
-  const visibleAppointments =
-    segmentTab === 'upcoming' ? upcomingAppointments : filteredHistoryAppointments
   const historyFilterActive = historyPeriod !== null
   const historyPeriodDraft = historyPeriod ?? buildPeriodSelection('last30days')
   const nextAppointment = useMemo(
     () => getNextUpcomingAppointment(appointments),
     [appointments],
   )
+  const otherUpcomingAppointments = useMemo(
+    () =>
+      upcomingAppointments.filter((item) =>
+        nextAppointment ? item.id !== nextAppointment.id : true,
+      ),
+    [nextAppointment, upcomingAppointments],
+  )
+  const showUpcomingEmptyState =
+    !nextAppointment &&
+    activeRemoteCareRequests.length === 0 &&
+    otherUpcomingAppointments.length === 0
+
+  const scrollSegmentPagerTo = useCallback(
+    (tab: MyAppointmentsTab, animated = true) => {
+      const index = APPOINTMENT_SEGMENT_PAGES.indexOf(tab)
+      if (index < 0) return
+
+      segmentPagerProgrammaticScrollRef.current = animated
+      segmentPagerRef.current?.scrollToOffset({
+        offset: index * screenWidth,
+        animated,
+      })
+
+      if (!animated) {
+        segmentPagerProgrammaticScrollRef.current = false
+      }
+    },
+    [screenWidth],
+  )
+
+  const handleSegmentTabChange = useCallback(
+    (tab: MyAppointmentsTab) => {
+      setSegmentTab(tab)
+      scrollSegmentPagerTo(tab)
+    },
+    [scrollSegmentPagerTo],
+  )
+
+  const handleSegmentPagerIndexChange = useCallback(
+    (nextIndex: number, options?: { haptic?: boolean }) => {
+      const clampedIndex = Math.min(
+        Math.max(nextIndex, 0),
+        APPOINTMENT_SEGMENT_PAGES.length - 1,
+      )
+      const nextTab = APPOINTMENT_SEGMENT_PAGES[clampedIndex] ?? 'upcoming'
+
+      setSegmentTab((current) => {
+        if (current === nextTab) return current
+        if (options?.haptic) {
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+        }
+        return nextTab
+      })
+    },
+    [],
+  )
+
+  const handleSegmentPagerScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (segmentPagerProgrammaticScrollRef.current) return
+
+      const nextIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth)
+      handleSegmentPagerIndexChange(nextIndex)
+    },
+    [handleSegmentPagerIndexChange, screenWidth],
+  )
+
+  const handleSegmentPagerScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const wasProgrammatic = segmentPagerProgrammaticScrollRef.current
+      segmentPagerProgrammaticScrollRef.current = false
+
+      const nextIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth)
+      handleSegmentPagerIndexChange(nextIndex, { haptic: !wasProgrammatic })
+    },
+    [handleSegmentPagerIndexChange, screenWidth],
+  )
+
+  useEffect(() => {
+    scrollSegmentPagerTo(segmentTab, false)
+  }, [screenWidth, scrollSegmentPagerTo, segmentTab])
 
   function handleBack() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
@@ -333,6 +420,168 @@ export function MyAppointmentsScreen() {
     void logout()
   }
 
+  const renderAppointmentSegmentPage = useCallback(
+    (tab: MyAppointmentsTab) => {
+      if (tab === 'upcoming') {
+        return (
+          <ScrollView
+            style={styles.pageScroll}
+            contentContainerStyle={[
+              styles.pageContent,
+              { paddingBottom: bottomContentPadding },
+            ]}
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={() => void loadAppointments(true)}
+                tintColor={colors.primaryLight}
+              />
+            }
+          >
+            {activeRemoteCareRequests.length > 0 ? (
+              <>
+                <Text style={styles.sectionTitle}>Consultas online</Text>
+                <View style={styles.list}>
+                  {activeRemoteCareRequests.map((request) => (
+                    <RemoteCareRequestCard key={request.id} request={request} />
+                  ))}
+                </View>
+              </>
+            ) : null}
+
+            {nextAppointment ? (
+              <View style={styles.section}>
+                <AppointmentCard
+                  appointment={nextAppointment}
+                  highlighted
+                  onCalendarPress={() => void handleAddToCalendar(nextAppointment)}
+                  onDirectionsPress={() => handleDirections(nextAppointment)}
+                  onReschedulePress={handleReschedule}
+                  onCancelPress={() => openCancelFlow(nextAppointment)}
+                  onPostConsultationPress={handlePostConsultationPress}
+                  onPrescriptionsPress={() => handlePrescriptionsPress(nextAppointment)}
+                />
+              </View>
+            ) : null}
+
+            {upcomingAppointments.length > 1 ? (
+              <Text style={styles.sectionTitle}>Outras consultas</Text>
+            ) : null}
+
+            {showUpcomingEmptyState ? (
+              <AppointmentEmptyState
+                tab="upcoming"
+                filtered={false}
+                onSchedulePress={() => navigateTo('schedule-appointment')}
+              />
+            ) : (
+              <View style={styles.list}>
+                {otherUpcomingAppointments.map((appointment) => (
+                  <AppointmentCard
+                    key={appointment.id}
+                    appointment={appointment}
+                    onCalendarPress={() => void handleAddToCalendar(appointment)}
+                    onDirectionsPress={() => handleDirections(appointment)}
+                    onReschedulePress={handleReschedule}
+                    onCancelPress={() => openCancelFlow(appointment)}
+                    onPostConsultationPress={handlePostConsultationPress}
+                    onPrescriptionsPress={() => handlePrescriptionsPress(appointment)}
+                  />
+                ))}
+              </View>
+            )}
+          </ScrollView>
+        )
+      }
+
+      return (
+        <ScrollView
+          style={styles.pageScroll}
+          contentContainerStyle={[
+            styles.pageContent,
+            { paddingBottom: bottomContentPadding },
+          ]}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => void loadAppointments(true)}
+              tintColor={colors.primaryLight}
+            />
+          }
+        >
+          <View style={styles.sectionTitleRow}>
+            <View style={styles.sectionTitleCol}>
+              <Text style={styles.sectionTitleText}>Realizadas e canceladas</Text>
+              {historyFilterActive ? (
+                <Text style={styles.sectionPeriod}>{formatPeriodLabel(historyPeriod)}</Text>
+              ) : null}
+            </View>
+
+            <Pressable
+              onPress={() => setHistoryPeriodDrawerVisible(true)}
+              hitSlop={8}
+              style={({ pressed }) => [
+                styles.calendarButton,
+                pressed && styles.calendarButtonPressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Filtrar histórico por período"
+            >
+              <Ionicons name="calendar-outline" size={19} color={colors.textMuted} />
+            </Pressable>
+          </View>
+
+          {filteredHistoryAppointments.length === 0 ? (
+            <AppointmentEmptyState
+              tab="history"
+              filtered={historyFilterActive}
+              onSchedulePress={() => navigateTo('schedule-appointment')}
+            />
+          ) : (
+            <View style={styles.list}>
+              {filteredHistoryAppointments.map((appointment) => (
+                <AppointmentCard
+                  key={appointment.id}
+                  appointment={appointment}
+                  onCalendarPress={() => void handleAddToCalendar(appointment)}
+                  onDirectionsPress={() => handleDirections(appointment)}
+                  onReschedulePress={handleReschedule}
+                  onCancelPress={() => openCancelFlow(appointment)}
+                  onPostConsultationPress={handlePostConsultationPress}
+                  onPrescriptionsPress={() => handlePrescriptionsPress(appointment)}
+                />
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      )
+    },
+    [
+      activeRemoteCareRequests,
+      bottomContentPadding,
+      filteredHistoryAppointments,
+      handleAddToCalendar,
+      handleDirections,
+      handlePostConsultationPress,
+      handlePrescriptionsPress,
+      handleReschedule,
+      historyFilterActive,
+      historyPeriod,
+      isRefreshing,
+      loadAppointments,
+      navigateTo,
+      nextAppointment,
+      openCancelFlow,
+      otherUpcomingAppointments,
+      showUpcomingEmptyState,
+      upcomingAppointments.length,
+    ],
+  )
+
   return (
     <>
       <View style={styles.root}>
@@ -370,122 +619,57 @@ export function MyAppointmentsScreen() {
           <View style={styles.headerPlaceholder} />
         </View>
 
-        <ScrollView
-          style={styles.body}
-          contentContainerStyle={[
-            styles.bodyContent,
-            { paddingBottom: bottomContentPadding },
-          ]}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={() => void loadAppointments(true)}
-              tintColor={colors.primaryLight}
-            />
-          }
-        >
+        <View style={styles.body}>
           {showSkeleton ? (
-            <View style={styles.skeletonBlock}>
+            <ScrollView
+              contentContainerStyle={[
+                styles.skeletonBlock,
+                { paddingBottom: bottomContentPadding },
+              ]}
+              showsVerticalScrollIndicator={false}
+            >
               <SkeletonBone width="100%" height={46} borderRadius={14} />
               <SkeletonBone width="100%" height={180} borderRadius={18} />
               <SkeletonBone width="100%" height={180} borderRadius={18} />
-            </View>
+            </ScrollView>
           ) : (
             <>
               <AppointmentSegmentTabs
                 activeTab={segmentTab}
                 upcomingCount={upcomingAppointments.length + activeRemoteCareRequests.length}
                 historyCount={historyAppointments.length}
-                onChange={setSegmentTab}
+                onChange={handleSegmentTabChange}
               />
 
-              {segmentTab === 'upcoming' && activeRemoteCareRequests.length > 0 ? (
-                <>
-                  <Text style={styles.sectionTitle}>Consultas online</Text>
-                  <View style={styles.list}>
-                    {activeRemoteCareRequests.map((request) => (
-                      <RemoteCareRequestCard key={request.id} request={request} />
-                    ))}
+              <FlatList
+                ref={segmentPagerRef}
+                data={APPOINTMENT_SEGMENT_PAGES}
+                keyExtractor={(item) => item}
+                horizontal
+                pagingEnabled
+                nestedScrollEnabled
+                bounces={false}
+                showsHorizontalScrollIndicator={false}
+                decelerationRate="fast"
+                scrollEventThrottle={16}
+                onScroll={handleSegmentPagerScroll}
+                onMomentumScrollEnd={handleSegmentPagerScrollEnd}
+                onScrollEndDrag={handleSegmentPagerScrollEnd}
+                getItemLayout={(_, index) => ({
+                  length: screenWidth,
+                  offset: screenWidth * index,
+                  index,
+                })}
+                style={styles.segmentPager}
+                renderItem={({ item }) => (
+                  <View style={[styles.segmentPage, { width: screenWidth }]}>
+                    {renderAppointmentSegmentPage(item)}
                   </View>
-                </>
-              ) : null}
-
-              {segmentTab === 'upcoming' && nextAppointment ? (
-                <View style={styles.section}>
-                  <AppointmentCard
-                    appointment={nextAppointment}
-                    highlighted
-                    onCalendarPress={() => void handleAddToCalendar(nextAppointment)}
-                    onDirectionsPress={() => handleDirections(nextAppointment)}
-                    onReschedulePress={handleReschedule}
-                    onCancelPress={() => openCancelFlow(nextAppointment)}
-                    onPostConsultationPress={handlePostConsultationPress}
-                    onPrescriptionsPress={() => handlePrescriptionsPress(nextAppointment)}
-                  />
-                </View>
-              ) : null}
-
-              {segmentTab === 'upcoming' && upcomingAppointments.length > 1 ? (
-                <Text style={styles.sectionTitle}>Outras consultas</Text>
-              ) : null}
-
-              {segmentTab === 'history' ? (
-                <View style={styles.sectionTitleRow}>
-                  <View style={styles.sectionTitleCol}>
-                    <Text style={styles.sectionTitleText}>Realizadas e canceladas</Text>
-                    {historyFilterActive ? (
-                      <Text style={styles.sectionPeriod}>{formatPeriodLabel(historyPeriod)}</Text>
-                    ) : null}
-                  </View>
-
-                  <Pressable
-                    onPress={() => setHistoryPeriodDrawerVisible(true)}
-                    hitSlop={8}
-                    style={({ pressed }) => [
-                      styles.calendarButton,
-                      pressed && styles.calendarButtonPressed,
-                    ]}
-                    accessibilityRole="button"
-                    accessibilityLabel="Filtrar histórico por período"
-                  >
-                    <Ionicons name="calendar-outline" size={19} color={colors.textMuted} />
-                  </Pressable>
-                </View>
-              ) : null}
-
-              {visibleAppointments.length === 0 &&
-              (segmentTab === 'history' || activeRemoteCareRequests.length === 0) ? (
-                <AppointmentEmptyState
-                  tab={segmentTab}
-                  filtered={segmentTab === 'history' && historyFilterActive}
-                  onSchedulePress={() => navigateTo('schedule-appointment')}
-                />
-              ) : (
-                <View style={styles.list}>
-                  {visibleAppointments
-                    .filter((item) =>
-                      segmentTab === 'upcoming' && nextAppointment
-                        ? item.id !== nextAppointment.id
-                        : true,
-                    )
-                    .map((appointment) => (
-                      <AppointmentCard
-                        key={appointment.id}
-                        appointment={appointment}
-                        onCalendarPress={() => void handleAddToCalendar(appointment)}
-                        onDirectionsPress={() => handleDirections(appointment)}
-                        onReschedulePress={handleReschedule}
-                        onCancelPress={() => openCancelFlow(appointment)}
-                        onPostConsultationPress={handlePostConsultationPress}
-                        onPrescriptionsPress={() => handlePrescriptionsPress(appointment)}
-                      />
-                    ))}
-                </View>
-              )}
+                )}
+              />
             </>
           )}
-        </ScrollView>
+        </View>
 
         <Pressable
           onPress={() => {
@@ -642,13 +826,23 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
   },
-  bodyContent: {
+  segmentPager: {
+    flex: 1,
+  },
+  segmentPage: {
+    flex: 1,
+  },
+  pageScroll: {
+    flex: 1,
+  },
+  pageContent: {
     gap: 14,
     paddingTop: 4,
   },
   skeletonBlock: {
     paddingHorizontal: 16,
     gap: 12,
+    paddingTop: 4,
   },
   section: {
     paddingHorizontal: 16,
