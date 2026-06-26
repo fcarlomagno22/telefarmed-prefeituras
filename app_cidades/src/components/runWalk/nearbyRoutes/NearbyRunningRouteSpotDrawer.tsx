@@ -1,5 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
+import { Image } from 'expo-image'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
@@ -21,6 +23,7 @@ import type {
 } from '../../../types/nearbyRunningRoutes'
 import {
   formatRunningRouteSpotMeta,
+  formatRunningRouteSpotAddress,
   getRunningRouteSpotTypeLabel,
 } from '../../../utils/nearbyRunningRoutes'
 import { colors } from '../../../theme/colors'
@@ -195,7 +198,31 @@ export function NearbyRunningRouteSpotDrawer({
       fullScreen
       footer={footer}
     >
+      {activeSpot.coverPhotoUri ? (
+        <Image
+          source={{ uri: activeSpot.coverPhotoUri }}
+          style={styles.heroImage}
+          contentFit="cover"
+        />
+      ) : (
+        <LinearGradient
+          colors={['rgba(255, 107, 0, 0.22)', 'rgba(14, 14, 20, 0.6)']}
+          style={styles.heroFallback}
+        />
+      )}
+
       <Text style={styles.description}>{activeSpot.description}</Text>
+
+      <View style={styles.addressCard}>
+        <Ionicons name="location-outline" size={16} color="#ff8533" />
+        <Text style={styles.addressText}>{formatRunningRouteSpotAddress(activeSpot)}</Text>
+      </View>
+
+      {activeSpot.submittedByName ? (
+        <Text style={styles.submittedBy}>
+          Cadastrado por {activeSpot.submittedByName}
+        </Text>
+      ) : null}
 
       <View style={styles.voteSection}>
         <Text style={styles.sectionTitle}>Você recomenda este local?</Text>
@@ -287,11 +314,45 @@ export function NearbyRunningRouteSpotDrawer({
 }
 
 const styles = StyleSheet.create({
+  heroImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 18,
+    marginBottom: 14,
+  },
+  heroFallback: {
+    width: '100%',
+    height: 180,
+    borderRadius: 18,
+    marginBottom: 14,
+  },
   description: {
     color: colors.textMuted,
     fontSize: 14,
     lineHeight: 21,
-    marginBottom: 18,
+    marginBottom: 12,
+  },
+  addressCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    padding: 12,
+    marginBottom: 10,
+  },
+  addressText: {
+    flex: 1,
+    color: colors.text,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  submittedBy: {
+    color: colors.textSubtle,
+    fontSize: 11,
+    marginBottom: 16,
   },
   voteSection: {
     marginBottom: 20,

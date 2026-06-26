@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
+import LottieView from 'lottie-react-native'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Animated,
@@ -33,6 +34,7 @@ const INNER_DELAY_MS = 480
 
 const ACCENT = '#67e8f9'
 const ACCENT_SOFT = 'rgba(103, 232, 249, 0.28)'
+const calmAnimation = require('../../../assets/Calm.json')
 
 export function SleepTimeBreathingDrawer({ visible, onClose }: SleepTimeBreathingDrawerProps) {
   const { width: screenWidth } = useWindowDimensions()
@@ -236,6 +238,8 @@ export function SleepTimeBreathingDrawer({ visible, onClose }: SleepTimeBreathin
   }
 
   const phaseText = getPhaseText(phase, countdownValue)
+  const showCalmLottie = phase === 'intro'
+  const showBreathingCircle = phase === 'inhale' || phase === 'exhale'
 
   return (
     <RunWalkSheetDrawer
@@ -245,6 +249,8 @@ export function SleepTimeBreathingDrawer({ visible, onClose }: SleepTimeBreathin
       onClose={handleClose}
       fullScreen
       scrollable={false}
+      keyboardAware={false}
+      extraBottomInset={12}
       sheetBackground={
         <>
           <LinearGradient
@@ -267,32 +273,45 @@ export function SleepTimeBreathingDrawer({ visible, onClose }: SleepTimeBreathin
       }
     >
       <View style={styles.content}>
-        <View style={[styles.circleStage, { width: circleSize, height: circleSize }]}>
-          <Animated.View
-            style={[
-              styles.outerCircle,
-              {
-                width: circleSize,
-                height: circleSize,
-                borderRadius: circleSize / 2,
-                opacity: outerOpacity,
-                transform: [{ scale: outerScale }],
-              },
-            ]}
-          />
+        <View style={[styles.visualZone, { minHeight: circleSize }]}>
+          {showCalmLottie ? (
+            <LottieView
+              source={calmAnimation}
+              autoPlay
+              loop
+              style={{ width: circleSize, height: circleSize }}
+            />
+          ) : null}
 
-          <Animated.View
-            style={[
-              styles.innerCircle,
-              {
-                width: circleSize * 0.62,
-                height: circleSize * 0.62,
-                borderRadius: (circleSize * 0.62) / 2,
-                opacity: innerOpacity,
-                transform: [{ scale: innerScale }],
-              },
-            ]}
-          />
+          {showBreathingCircle ? (
+            <View style={[styles.circleStage, { width: circleSize, height: circleSize }]}>
+              <Animated.View
+                style={[
+                  styles.outerCircle,
+                  {
+                    width: circleSize,
+                    height: circleSize,
+                    borderRadius: circleSize / 2,
+                    opacity: outerOpacity,
+                    transform: [{ scale: outerScale }],
+                  },
+                ]}
+              />
+
+              <Animated.View
+                style={[
+                  styles.innerCircle,
+                  {
+                    width: circleSize * 0.62,
+                    height: circleSize * 0.62,
+                    borderRadius: (circleSize * 0.62) / 2,
+                    opacity: innerOpacity,
+                    transform: [{ scale: innerScale }],
+                  },
+                ]}
+              />
+            </View>
+          ) : null}
         </View>
 
         <Animated.View style={[styles.textBlock, { opacity: textOpacity }]}>
@@ -334,10 +353,12 @@ function getPhaseText(phase: BreathingPhase, countdownValue: number) {
 const styles = StyleSheet.create({
   content: {
     flex: 1,
+    paddingTop: 4,
+  },
+  visualZone: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 36,
-    paddingTop: 8,
   },
   circleStage: {
     alignItems: 'center',
@@ -359,7 +380,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     paddingHorizontal: 28,
-    minHeight: 88,
+    paddingTop: 28,
+    paddingBottom: 8,
+    minHeight: 96,
   },
   phaseLabel: {
     color: colors.text,
@@ -379,6 +402,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 12,
     paddingHorizontal: 12,
+    marginBottom: 4,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',

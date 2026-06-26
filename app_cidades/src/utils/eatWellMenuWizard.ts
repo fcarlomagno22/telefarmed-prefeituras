@@ -36,6 +36,8 @@ export type EatWellMenuWizardForm = {
   dietaryPreferences: string[]
   likedFoods: string
   avoidedFoods: string
+  isPregnant: boolean | null
+  isLactating: boolean | null
   hungerLevel: number
   hasCompulsion: boolean | null
   compulsionFrequency: EatWellFrequency | null
@@ -52,7 +54,7 @@ export type EatWellMenuWizardForm = {
   informationAccuracyConfirmed: boolean
 }
 
-export const MENU_WIZARD_TOTAL_STEPS = 12
+export const MENU_WIZARD_TOTAL_STEPS = 14
 export const MENU_WIZARD_LOADING_MS = 12_000
 
 export const MENU_WIZARD_TIMELINE_STEPS = [
@@ -146,16 +148,18 @@ export const MENU_WIZARD_STEP_META: Record<
 > = {
   1: { title: 'Aviso médico', subtitle: 'Leia com atenção antes de continuar' },
   2: { title: 'Dados básicos', subtitle: 'Informações para personalizar seu cardápio' },
-  3: { title: 'Histórico de doenças', subtitle: 'Etapa 3 de 12' },
-  4: { title: 'Medicamentos em uso', subtitle: 'Etapa 4 de 12' },
-  5: { title: 'Intolerâncias alimentares', subtitle: 'Etapa 5 de 12' },
-  6: { title: 'Fome e compulsão', subtitle: 'Etapa 6 de 12' },
-  7: { title: 'Consumo de álcool', subtitle: 'Etapa 7 de 12' },
-  8: { title: 'Qualidade do sono', subtitle: 'Etapa opcional · 8 de 12', optional: true },
-  9: { title: 'Nível de estresse', subtitle: 'Etapa opcional · 9 de 12', optional: true },
-  10: { title: 'Frequência intestinal', subtitle: 'Etapa opcional · 10 de 12', optional: true },
-  11: { title: 'Dietas anteriores', subtitle: 'Etapa 11 de 12' },
-  12: {
+  3: { title: 'Histórico de doenças', subtitle: 'Etapa 3 de 14' },
+  4: { title: 'Medicamentos em uso', subtitle: 'Etapa 4 de 14' },
+  5: { title: 'Intolerâncias alimentares', subtitle: 'Etapa 5 de 14' },
+  6: { title: 'Preferências alimentares', subtitle: 'Etapa 6 de 14' },
+  7: { title: 'Gestação e amamentação', subtitle: 'Etapa 7 de 14' },
+  8: { title: 'Fome e compulsão', subtitle: 'Etapa 8 de 14' },
+  9: { title: 'Consumo de álcool', subtitle: 'Etapa 9 de 14' },
+  10: { title: 'Qualidade do sono', subtitle: 'Etapa opcional · 10 de 14', optional: true },
+  11: { title: 'Nível de estresse', subtitle: 'Etapa opcional · 11 de 14', optional: true },
+  12: { title: 'Frequência intestinal', subtitle: 'Etapa opcional · 12 de 14', optional: true },
+  13: { title: 'Dietas anteriores', subtitle: 'Etapa 13 de 14' },
+  14: {
     title: 'Declaração de veracidade',
     subtitle: 'Confirme antes de gerar o cardápio',
   },
@@ -179,6 +183,8 @@ export function createEmptyMenuWizardForm(): EatWellMenuWizardForm {
     dietaryPreferences: [],
     likedFoods: '',
     avoidedFoods: '',
+    isPregnant: null,
+    isLactating: null,
     hungerLevel: 5,
     hasCompulsion: null,
     compulsionFrequency: null,
@@ -223,13 +229,13 @@ export function maskHeightMetersInput(raw: string): string {
   return `${digits[0]},${digits.slice(1)}`
 }
 
-/** Máscara de peso: aceita vírgula (78,5) ou 3 dígitos (785 → 78,5). */
+/** Máscara de peso: aceita vírgula (78,5) ou 3 dígitos (785 → 78,5; 120 permanece 120). */
 export function maskWeightKgInput(raw: string): string {
   const cleaned = raw.replace(/[^\d,]/g, '')
 
   if (cleaned.includes(',')) {
     const [intPart = '', decPart = ''] = cleaned.split(',')
-    const intLimited = intPart.slice(0, 2)
+    const intLimited = intPart.slice(0, 3)
     const decLimited = decPart.slice(0, 1)
 
     if (cleaned.endsWith(',') && decLimited.length === 0) {
@@ -247,8 +253,17 @@ export function maskWeightKgInput(raw: string): string {
   if (!digits) return ''
   if (digits.length < 3) return digits
 
-  const value = parseInt(digits, 10) / 10
-  return value.toFixed(1).replace('.', ',')
+  const asInteger = parseInt(digits, 10)
+  if (asInteger >= 100 && asInteger <= 300) {
+    return digits
+  }
+
+  const asDecimal = asInteger / 10
+  if (asDecimal > 0 && asDecimal <= 99.9) {
+    return asDecimal.toFixed(1).replace('.', ',')
+  }
+
+  return digits
 }
 
 export function parseHeightMeters(value: string): number | null {
@@ -281,9 +296,18 @@ export function parseWeightKg(value: string): number | null {
   }
 
   const digits = trimmed.replace(/\D/g, '')
-  if (digits.length === 3) {
-    const parsed = parseInt(digits, 10) / 10
+  if (digits.length === 1 || digits.length === 2) {
+    const parsed = parseInt(digits, 10)
     return parsed > 0 && parsed <= 300 ? parsed : null
+  }
+
+  if (digits.length === 3) {
+    const asInteger = parseInt(digits, 10)
+    if (asInteger >= 100 && asInteger <= 300) {
+      return asInteger
+    }
+    const parsed = asInteger / 10
+    return parsed > 0 && parsed <= 99.9 ? parsed : null
   }
 
   return null
@@ -326,18 +350,26 @@ export function isMenuWizardStepFiveValid(form: EatWellMenuWizardForm): boolean 
 }
 
 export function isMenuWizardStepSixValid(form: EatWellMenuWizardForm): boolean {
-  return form.hasCompulsion !== null
+  return true
 }
 
 export function isMenuWizardStepSevenValid(form: EatWellMenuWizardForm): boolean {
+  return form.isPregnant !== null && form.isLactating !== null
+}
+
+export function isMenuWizardStepEightValid(form: EatWellMenuWizardForm): boolean {
+  return form.hasCompulsion !== null
+}
+
+export function isMenuWizardStepNineValid(form: EatWellMenuWizardForm): boolean {
   return form.consumesAlcohol !== null
 }
 
-export function isMenuWizardStepElevenValid(form: EatWellMenuWizardForm): boolean {
+export function isMenuWizardStepThirteenValid(form: EatWellMenuWizardForm): boolean {
   return form.neverTriedDiets || form.previousDiets.length > 0
 }
 
-export function isMenuWizardStepTwelveValid(form: EatWellMenuWizardForm): boolean {
+export function isMenuWizardStepFourteenValid(form: EatWellMenuWizardForm): boolean {
   return form.informationAccuracyConfirmed
 }
 
@@ -355,10 +387,14 @@ export function isMenuWizardStepValid(step: number, form: EatWellMenuWizardForm)
       return isMenuWizardStepSixValid(form)
     case 7:
       return isMenuWizardStepSevenValid(form)
-    case 11:
-      return isMenuWizardStepElevenValid(form)
-    case 12:
-      return isMenuWizardStepTwelveValid(form)
+    case 8:
+      return isMenuWizardStepEightValid(form)
+    case 9:
+      return isMenuWizardStepNineValid(form)
+    case 13:
+      return isMenuWizardStepThirteenValid(form)
+    case 14:
+      return isMenuWizardStepFourteenValid(form)
     default:
       return true
   }

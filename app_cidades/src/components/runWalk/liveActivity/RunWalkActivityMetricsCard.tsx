@@ -13,6 +13,7 @@ type RunWalkActivityMetricsCardProps = {
   elapsedSeconds: number
   distanceKm: number
   speedKmh: number | null
+  speedLabel?: string
   isFinished: boolean
   isPaused?: boolean
   onFinishPress: () => void
@@ -49,6 +50,7 @@ export function RunWalkActivityMetricsCard({
   elapsedSeconds,
   distanceKm,
   speedKmh,
+  speedLabel = 'Vel. média',
   isFinished,
   isPaused = false,
   onFinishPress,
@@ -74,7 +76,7 @@ export function RunWalkActivityMetricsCard({
       ) : null}
 
       <View style={styles.metricsRow}>
-        <MetricColumn label="Vel. média" metricParts={formatSpeedKmhParts(speedKmh)} />
+        <MetricColumn label={speedLabel} metricParts={formatSpeedKmhParts(speedKmh)} />
         <View style={styles.divider} />
         <MetricColumn label="Tempo" metricParts={formatElapsedActivityTimeParts(elapsedSeconds)} />
         <View style={styles.divider} />

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import type { EatWellSavedMenu } from '../../../types/eatWell'
 import { colors } from '../../../theme/colors'
 import { formatEatWellMenuSubtitle } from '../../../utils/eatWellMenuGeneration'
@@ -8,24 +8,13 @@ import { formatEatWellMenuSubtitle } from '../../../utils/eatWellMenuGeneration'
 type EatWellMenuCardProps = {
   menu: EatWellSavedMenu
   onPress: () => void
-  onDelete: () => void
+  onDeletePress: () => void
 }
 
-export function EatWellMenuCard({ menu, onPress, onDelete }: EatWellMenuCardProps) {
+export function EatWellMenuCard({ menu, onPress, onDeletePress }: EatWellMenuCardProps) {
   function handleDeletePress() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    Alert.alert(
-      'Excluir cardápio',
-      `Deseja excluir "${menu.name}"? Esta ação não pode ser desfeita.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: onDelete,
-        },
-      ],
-    )
+    onDeletePress()
   }
 
   return (

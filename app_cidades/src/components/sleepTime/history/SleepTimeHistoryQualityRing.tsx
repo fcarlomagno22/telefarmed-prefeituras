@@ -35,6 +35,7 @@ export function SleepTimeHistoryQualityRing({ summary, animate = true }: SleepTi
             gradientId="sleep-history-quality"
             gradientColors={tier.gradientColors}
             animate={animate}
+            preserveFinal={false}
           />
 
           <View style={styles.statsCol}>

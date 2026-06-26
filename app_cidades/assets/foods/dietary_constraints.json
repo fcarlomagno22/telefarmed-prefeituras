@@ -238,6 +238,116 @@
           "carbonated": 1
         }
       },
+      "thyroid": {
+        "label": "Tireoide",
+        "wizard_values": [
+          "tireoide",
+          "hipotireoidismo",
+          "hipertireoidismo",
+          "tireoidite"
+        ],
+        "exclude_tags": [],
+        "require_tags": [
+          "lean_protein",
+          "whole_food",
+          "non_starchy_vegetable",
+          "iodine_aware"
+        ],
+        "penalize_tags": [
+          "soy",
+          "ultraprocessed",
+          "high_sugar",
+          "high_sodium"
+        ],
+        "max_per_day": {
+          "soy": 2,
+          "ultraprocessed": 1
+        }
+      },
+      "anemia": {
+        "label": "Anemia",
+        "wizard_values": [
+          "anemia",
+          "anemia_ferropriva",
+          "ferropenia"
+        ],
+        "exclude_tags": [],
+        "require_tags": [
+          "iron_source",
+          "lean_protein",
+          "legume",
+          "whole_grain",
+          "fruit"
+        ],
+        "penalize_tags": [
+          "ultraprocessed",
+          "high_sugar",
+          "liquid_calories"
+        ],
+        "max_per_day": {
+          "liquid_calories": 0,
+          "dessert": 1
+        }
+      },
+      "osteoporosis": {
+        "label": "Osteoporose",
+        "wizard_values": [
+          "osteoporose",
+          "baixa_densidade_ossea"
+        ],
+        "exclude_tags": [
+          "alcoholic"
+        ],
+        "require_tags": [
+          "calcium_source",
+          "protein_source",
+          "leafy_green",
+          "whole_food"
+        ],
+        "penalize_tags": [
+          "high_sodium",
+          "caffeinated",
+          "soft_drink_phosphoric",
+          "ultraprocessed"
+        ],
+        "max_per_day": {
+          "high_sodium": 1,
+          "caffeinated": 2,
+          "alcoholic": 0
+        }
+      },
+      "irritable_bowel": {
+        "label": "Intestino irritavel",
+        "wizard_values": [
+          "intestino_irritavel",
+          "colon_irritavel",
+          "sindrome_intestino_irritavel",
+          "sii"
+        ],
+        "exclude_tags": [],
+        "require_tags": [
+          "low_fodmap_option",
+          "high_fiber",
+          "lean_protein"
+        ],
+        "penalize_tags": [
+          "high_fodmap",
+          "onion",
+          "garlic",
+          "beans_large_portion",
+          "milk_lactose",
+          "wheat",
+          "polyol_sweetener",
+          "ultraprocessed"
+        ],
+        "max_per_day": {
+          "high_fodmap": 1,
+          "onion": 1,
+          "garlic": 1,
+          "beans_large_portion": 0,
+          "polyol_sweetener": 0
+        }
+      },
       "reflux": {
         "label": "Refluxo gastroesofagico",
         "wizard_values": [
@@ -451,6 +561,42 @@
         "flags": [
           "professional_review_required"
         ]
+      },
+      "lactation": {
+        "label": "Lactacao / amamentacao",
+        "wizard_values": [
+          "lactante",
+          "lactacao",
+          "amamentacao",
+          "amamentando"
+        ],
+        "exclude_tags": [
+          "alcoholic",
+          "high_mercury_fish",
+          "energy_drink"
+        ],
+        "require_tags": [
+          "hydration_item",
+          "calcium_source",
+          "iron_source",
+          "lean_protein",
+          "high_fiber"
+        ],
+        "penalize_tags": [
+          "high_caffeine",
+          "ultraprocessed",
+          "high_sugar",
+          "deep_fried"
+        ],
+        "max_per_day": {
+          "alcoholic": 0,
+          "high_caffeine": 2,
+          "high_mercury_fish": 0,
+          "deep_fried": 0
+        },
+        "flags": [
+          "professional_review_recommended"
+        ]
       }
     },
     "intolerances": {
@@ -554,6 +700,7 @@
         "wizard_values": [
           "alergia_ovo",
           "ovo",
+          "ovos",
           "sem_ovo"
         ],
         "exclude_tags": [
@@ -669,6 +816,7 @@
         "wizard_values": [
           "alergia_frutos_do_mar",
           "frutos_do_mar",
+          "frutos do mar",
           "camarao",
           "mariscos"
         ],
@@ -717,6 +865,66 @@
           "fish_sauce": 0,
           "anchovy": 0,
           "may_contain_fish": 0
+        }
+      },
+      "fructose_intolerance": {
+        "label": "Intolerancia a frutose",
+        "wizard_values": [
+          "frutose",
+          "intolerancia_frutose",
+          "mal_absorcao_frutose"
+        ],
+        "exclude_tags": [
+          "high_fructose",
+          "honey",
+          "fruit_juice",
+          "high_fructose_sweetener"
+        ],
+        "require_tags": [
+          "low_added_sugar",
+          "whole_food"
+        ],
+        "penalize_tags": [
+          "fruit",
+          "dried_fruit",
+          "syrup",
+          "dessert"
+        ],
+        "max_per_day": {
+          "high_fructose": 0,
+          "fruit_juice": 0,
+          "honey": 0,
+          "dried_fruit": 1
+        }
+      },
+      "sucrose_intolerance": {
+        "label": "Intolerancia a sacarose",
+        "wizard_values": [
+          "sacarose",
+          "intolerancia_sacarose",
+          "sucrose"
+        ],
+        "exclude_tags": [
+          "added_sugar_high",
+          "candy",
+          "syrup",
+          "sweetened_condensed_milk"
+        ],
+        "require_tags": [
+          "low_added_sugar",
+          "whole_food"
+        ],
+        "penalize_tags": [
+          "high_sugar",
+          "dessert",
+          "sweet_bakery",
+          "sugary_drink"
+        ],
+        "max_per_day": {
+          "added_sugar_high": 0,
+          "candy": 0,
+          "dessert": 0,
+          "sugary_drink": 0
         }
       },
       "fodmap_sensitive": {
@@ -871,11 +1079,45 @@
           "fruit_juice": 0
         }
       },
+      "no_added_sugar": {
+        "label": "Sem acucar adicionado",
+        "wizard_values": [
+          "sem_acucar",
+          "sem_acucar_adicionado",
+          "no_added_sugar"
+        ],
+        "exclude_tags": [
+          "added_sugar_high",
+          "sugary_drink",
+          "candy",
+          "syrup",
+          "sweetened_condensed_milk"
+        ],
+        "require_tags": [
+          "low_added_sugar",
+          "whole_food",
+          "fruit"
+        ],
+        "penalize_tags": [
+          "high_sugar",
+          "dessert",
+          "sweet_bakery",
+          "fruit_juice"
+        ],
+        "max_per_day": {
+          "added_sugar_high": 0,
+          "sugary_drink": 0,
+          "candy": 0,
+          "dessert": 0,
+          "fruit_juice": 0
+        }
+      },
       "gluten_free_preference": {
         "label": "Preferencia sem gluten",
         "wizard_values": [
           "preferencia_sem_gluten",
-          "evitar_gluten"
+          "evitar_gluten",
+          "sem_gluten"
         ],
         "exclude_tags": [
           "gluten",
@@ -903,7 +1145,8 @@
         "label": "Preferencia sem lactose",
         "wizard_values": [
           "preferencia_sem_lactose",
-          "evitar_lactose"
+          "evitar_lactose",
+          "sem_lactose"
         ],
         "exclude_tags": [
           "lactose",

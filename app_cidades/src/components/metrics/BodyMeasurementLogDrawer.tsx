@@ -3,7 +3,20 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import { Animated, Easing, Keyboard, KeyboardAvoidingView, PanResponder, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import {
+  Animated,
+  Easing,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type KeyboardEvent,
+} from 'react-native'
 import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
@@ -20,7 +33,7 @@ import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
 
 const SUCCESS_DISMISS_MS = 2600
 const SHEET_OFFSET = 440
-const DRAG_THRESHOLD_PX = 12
+const KEYBOARD_EXTRA_PADDING = 20
 const ACCENT_GRADIENT = ['#f0abfc', '#d946ef', '#a21caf'] as const
 
 type BodyMeasurementLogDrawerProps = {
@@ -50,21 +63,39 @@ export function BodyMeasurementLogDrawer({
   const [isMounted, setIsMounted] = useState(false)
   const [value, setValue] = useState(initialValue)
   const [inputDraft, setInputDraft] = useState(String(initialValue))
-  const [gesturesReady, setGesturesReady] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [keyboardInset, setKeyboardInset] = useState(0)
 
   const sheetTranslateY = useRef(new Animated.Value(SHEET_OFFSET)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingValueRef = useRef<number | null>(null)
 
-  const valueRef = useRef(value)
-  const dragStartValue = useRef(initialValue)
-  const appliedStepsRef = useRef(0)
-  const gesturesReadyRef = useRef(false)
+  useEffect(() => {
+    if (!visible) {
+      setKeyboardInset(0)
+      return
+    }
 
-  valueRef.current = value
-  gesturesReadyRef.current = gesturesReady
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'
+
+    function handleKeyboardShow(event: KeyboardEvent) {
+      setKeyboardInset(event.endCoordinates.height)
+    }
+
+    function handleKeyboardHide() {
+      setKeyboardInset(0)
+    }
+
+    const showSubscription = Keyboard.addListener(showEvent, handleKeyboardShow)
+    const hideSubscription = Keyboard.addListener(hideEvent, handleKeyboardHide)
+
+    return () => {
+      showSubscription.remove()
+      hideSubscription.remove()
+    }
+  }, [visible])
 
   useEffect(() => {
     if (!visible || !config) return
@@ -91,10 +122,6 @@ export function BodyMeasurementLogDrawer({
         useNativeDriver: true,
       }),
     ]).start()
-
-    setGesturesReady(false)
-    const timer = setTimeout(() => setGesturesReady(true), 350)
-    return () => clearTimeout(timer)
   }, [visible, initialValue, measurementId, config])
 
   useEffect(() => {
@@ -107,42 +134,6 @@ export function BodyMeasurementLogDrawer({
       if (successTimerRef.current) clearTimeout(successTimerRef.current)
     }
   }, [])
-
-  const rulerPanResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => gesturesReadyRef.current,
-      onMoveShouldSetPanResponder: () => gesturesReadyRef.current,
-      onPanResponderGrant: () => {
-        Keyboard.dismiss()
-        dragStartValue.current = valueRef.current
-        appliedStepsRef.current = 0
-      },
-      onPanResponderMove: (_, gesture) => {
-        if (!config) return
-        const steps = Math.trunc(-gesture.dy / DRAG_THRESHOLD_PX)
-        if (steps === appliedStepsRef.current) return
-
-        appliedStepsRef.current = steps
-        const next = clampValue(
-          dragStartValue.current + steps * config.step,
-          config.min,
-          config.max,
-          config.step,
-        )
-        if (next === valueRef.current) return
-
-        setValue(next)
-        setInputDraft(next.toString().replace('.', ','))
-        void Haptics.selectionAsync()
-      },
-      onPanResponderRelease: () => {
-        appliedStepsRef.current = 0
-      },
-      onPanResponderTerminate: () => {
-        appliedStepsRef.current = 0
-      },
-    }),
-  ).current
 
   function closeSheet(done?: () => void) {
     Animated.parallel([
@@ -165,6 +156,7 @@ export function BodyMeasurementLogDrawer({
 
   function handleDismiss() {
     if (!visible || !measurementId) return
+    Keyboard.dismiss()
 
     if (successTimerRef.current) {
       clearTimeout(successTimerRef.current)
@@ -197,6 +189,18 @@ export function BodyMeasurementLogDrawer({
     setInputDraft(value.toString().replace('.', ','))
   }
 
+  function adjustValue(delta: number) {
+    if (!config) return
+
+    Keyboard.dismiss()
+    const next = clampValue(value + delta, config.min, config.max, config.step)
+    if (next === value) return
+
+    setValue(next)
+    setInputDraft(next.toString().replace('.', ','))
+    void Haptics.selectionAsync()
+  }
+
   function handleRegister() {
     if (!measurementId || !config || showSuccess) return
 
@@ -214,6 +218,10 @@ export function BodyMeasurementLogDrawer({
   if (!isMounted || !config || !measurementId) return null
 
   const unitLabel = config.unit || 'índice'
+  const keyboardLift =
+    keyboardInset > 0
+      ? Math.max(0, keyboardInset - Math.max(insets.bottom, 0) + KEYBOARD_EXTRA_PADDING)
+      : 0
 
   return (
     <AppModal visible transparent animationType="none" onRequestClose={handleDismiss}>
@@ -229,22 +237,32 @@ export function BodyMeasurementLogDrawer({
         <KeyboardAvoidingView
           behavior={keyboardAvoidingBehavior}
           style={styles.keyboardWrap}
+          enabled={Platform.OS === 'ios'}
         >
           <Animated.View
             style={[
               styles.sheet,
               {
                 paddingBottom: getModalFooterPadding(insets.bottom, 8),
-                transform: [{ translateY: sheetTranslateY }],
+                transform: [
+                  { translateY: sheetTranslateY },
+                  { translateY: -keyboardLift },
+                ],
               },
             ]}
           >
             <LinearGradient
               colors={['rgba(36, 36, 46, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+              pointerEvents="none"
               style={StyleSheet.absoluteFillObject}
             />
             {Platform.OS === 'ios' ? (
-              <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+              <BlurView
+                intensity={28}
+                tint="dark"
+                pointerEvents="none"
+                style={StyleSheet.absoluteFillObject}
+              />
             ) : null}
 
             {!showSuccess ? (
@@ -252,6 +270,7 @@ export function BodyMeasurementLogDrawer({
                 colors={[...ACCENT_GRADIENT]}
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
+                pointerEvents="none"
                 style={styles.topAccent}
               />
             ) : null}
@@ -262,10 +281,20 @@ export function BodyMeasurementLogDrawer({
                 message={`${formatBodyMeasurementValue(measurementId, value)} adicionados ao seu histórico.`}
               />
             ) : (
-              <>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="interactive"
+                automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+                contentContainerStyle={[
+                  styles.scrollContent,
+                  keyboardInset > 0 && { paddingBottom: KEYBOARD_EXTRA_PADDING },
+                ]}
+                bounces={keyboardInset === 0}
+              >
                 <View style={styles.handle} />
 
-                <View style={styles.headerRow}>
+                <View style={[styles.headerRow, keyboardInset > 0 && styles.headerRowCompact]}>
                   <View style={styles.iconOrb}>
                     <MaterialCommunityIcons
                       name={config.icon as keyof typeof MaterialCommunityIcons.glyphMap}
@@ -275,7 +304,7 @@ export function BodyMeasurementLogDrawer({
                   </View>
                   <View style={styles.headerTextCol}>
                     <Text style={styles.title}>{config.label}</Text>
-                    <Text style={styles.subtitle}>Arraste ou digite para ajustar</Text>
+                    <Text style={styles.subtitle}>Digite para ajustar</Text>
                   </View>
                   <Pressable
                     onPress={handleDismiss}
@@ -288,8 +317,7 @@ export function BodyMeasurementLogDrawer({
                   </Pressable>
                 </View>
 
-                <View style={styles.rulerCard} {...rulerPanResponder.panHandlers}>
-                  <Text style={styles.rulerHint}>Deslize para cima ou para baixo</Text>
+                <View style={styles.valueCard}>
                   <View style={styles.valueRow}>
                     <TextInput
                       value={inputDraft}
@@ -301,10 +329,46 @@ export function BodyMeasurementLogDrawer({
                     />
                     <Text style={styles.valueUnit}>{unitLabel}</Text>
                   </View>
+
+                  <View
+                    style={[
+                      styles.stepperRow,
+                      keyboardInset > 0 && styles.stepperRowDimmed,
+                    ]}
+                    pointerEvents={keyboardInset > 0 ? 'none' : 'auto'}
+                  >
+                    <Pressable
+                      onPress={() => adjustValue(-config.step)}
+                      style={({ pressed }) => [
+                        styles.stepperButton,
+                        pressed && styles.stepperButtonPressed,
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityLabel="Diminuir valor"
+                    >
+                      <Ionicons name="remove" size={20} color={colors.text} />
+                    </Pressable>
+
+                    <Text style={styles.stepperValue}>
+                      {formatBodyMeasurementValue(measurementId, value)}
+                    </Text>
+
+                    <Pressable
+                      onPress={() => adjustValue(config.step)}
+                      style={({ pressed }) => [
+                        styles.stepperButton,
+                        pressed && styles.stepperButtonPressed,
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityLabel="Aumentar valor"
+                    >
+                      <Ionicons name="add" size={20} color={colors.text} />
+                    </Pressable>
+                  </View>
                 </View>
 
                 <PrimaryButton label="Registrar medida" onPress={handleRegister} />
-              </>
+              </ScrollView>
             )}
           </Animated.View>
         </KeyboardAvoidingView>
@@ -323,6 +387,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
   keyboardWrap: {
+    flex: 1,
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -331,9 +396,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     paddingHorizontal: 20,
     paddingTop: 10,
-    gap: 18,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
+    maxHeight: '92%',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    gap: 18,
   },
   topAccent: {
     position: 'absolute',
@@ -354,6 +423,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+  headerRowCompact: {
+    marginBottom: -4,
   },
   iconOrb: {
     width: 42,
@@ -391,7 +463,7 @@ const styles = StyleSheet.create({
   closeButtonPressed: {
     opacity: 0.8,
   },
-  rulerCard: {
+  valueCard: {
     borderRadius: 20,
     paddingVertical: 22,
     paddingHorizontal: 18,
@@ -399,12 +471,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
-    gap: 10,
-  },
-  rulerHint: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '500',
+    gap: 16,
   },
   valueRow: {
     flexDirection: 'row',
@@ -424,5 +491,35 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     paddingBottom: 8,
+  },
+  stepperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    width: '100%',
+  },
+  stepperRowDimmed: {
+    opacity: 0.28,
+  },
+  stepperButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  stepperButtonPressed: {
+    opacity: 0.8,
+  },
+  stepperValue: {
+    color: colors.textMuted,
+    fontSize: 13,
+    fontWeight: '600',
+    minWidth: 72,
+    textAlign: 'center',
   },
 })

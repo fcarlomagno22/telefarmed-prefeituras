@@ -47,7 +47,7 @@ import {
 import { loadEatWellFavorites } from '../data/eatWellFavoritesStorage'
 import { addEatWellMenu, deleteEatWellMenu, loadEatWellMenus } from '../data/eatWellMenusStorage'
 import { loadNutritionGoals, saveNutritionGoals } from '../data/eatWellGoalsStorage'
-import { computeNutritionGoalsFromWizard, generateEatWellMenuFromWizard } from '../eatWellEngine'
+import { computeNutritionGoalsFromWizard } from '../eatWellEngine/computeNutritionGoals'
 import { useAuth } from '../contexts/AuthContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
@@ -85,6 +85,7 @@ import { getAdjustedCalorieTarget, loadRunWalkDayEnergy } from '../utils/eatWell
 import { loadEatWellWeekSummary } from '../utils/eatWellWeekStats'
 import type { EatWellMenuWizardForm } from '../utils/eatWellMenuWizard'
 import { toLocalDateIso } from '../utils/runWalkWeeklyChart'
+import { getEatWellRouteParams } from '../types/auth'
 import { resolveBrandImage } from '../utils/resolveBrandImage'
 
 const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
@@ -96,6 +97,23 @@ const EAT_WELL_TABS: RunWalkSegmentTabItem<EatWellTab>[] = [
   { id: 'week', label: 'Semana', available: true },
   { id: 'menus', label: 'Meus Cardápios', available: true },
 ]
+
+const FALLBACK_GOALS: NutritionGoals = {
+  baseCalories: 2200,
+  proteinG: 120,
+  carbsG: 260,
+  fatG: 70,
+  fiberG: 25,
+  sugarsMaxG: 50,
+  saturatedFatMaxG: 22,
+  waterMl: 2000,
+}
+
+function scheduleDiaryHeroAnimation(setAnimateHero: (value: boolean) => void) {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => setAnimateHero(true))
+  })
+}
 
 function upsertMeal(record: EatWellDailyRecord, meal: MealLog): EatWellDailyRecord {
   const withoutSlot = record.meals.filter(
@@ -110,7 +128,8 @@ function upsertMeal(record: EatWellDailyRecord, meal: MealLog): EatWellDailyReco
 export function EatWellScreen() {
   const insets = useSafeAreaInsets()
   const { width: screenWidth } = useWindowDimensions()
-  const { user, navigateTo, goBack, canGoBack, logout } = useAuth()
+  const { user, navigateTo, goBack, canGoBack, logout, routeParams } = useAuth()
+  const { segmentTab: segmentTabParam } = getEatWellRouteParams(routeParams)
 
   const [segmentTab, setSegmentTab] = useState<EatWellTab>('diary')
   const [menuVisible, setMenuVisible] = useState(false)
@@ -148,6 +167,7 @@ export function EatWellScreen() {
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [segmentPagerScrollEnabled, setSegmentPagerScrollEnabled] = useState(true)
   const [animateHero, setAnimateHero] = useState(false)
+  const [weekTabAnimate, setWeekTabAnimate] = useState(false)
   const [weekSummary, setWeekSummary] = useState<EatWellWeekSummary | null>(null)
   const [isWeekRefreshing, setIsWeekRefreshing] = useState(false)
   const [hydrationDrawerVisible, setHydrationDrawerVisible] = useState(false)
@@ -160,6 +180,7 @@ export function EatWellScreen() {
   const segmentPagerProgrammaticScrollRef = useRef(false)
   const skipDiaryResetRef = useRef(false)
   const replayDiaryAnimationRef = useRef(false)
+  const weekDataRequestedRef = useRef(false)
 
   const { requireAuth } = useGuestAuth()
   const withEatWellAuth = (action: () => void) => {
@@ -197,6 +218,12 @@ export function EatWellScreen() {
     },
     [scrollSegmentPagerTo],
   )
+
+  useEffect(() => {
+    if (!segmentTabParam || !SEGMENT_PAGES.includes(segmentTabParam)) return
+    setSegmentTab(segmentTabParam)
+    scrollSegmentPagerTo(segmentTabParam, false)
+  }, [scrollSegmentPagerTo, segmentTabParam])
 
   const handleSegmentPagerIndexChange = useCallback(
     (nextIndex: number, options?: { haptic?: boolean }) => {
@@ -263,14 +290,9 @@ export function EatWellScreen() {
 
     if (replayDiaryAnimationRef.current) {
       replayDiaryAnimationRef.current = false
-      setAnimateHero(false)
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setAnimateHero(true))
-      })
-      return
     }
 
-    setAnimateHero(true)
+    scheduleDiaryHeroAnimation(setAnimateHero)
   }, [patientCpf, selectedDateIso, calendarMonthKey])
 
   useEffect(() => {
@@ -290,31 +312,40 @@ export function EatWellScreen() {
   }, [loadDayData])
 
   useEffect(() => {
-    void loadWeekData()
-  }, [loadWeekData])
+    if (segmentTab !== 'week') {
+      setWeekTabAnimate(false)
+      return
+    }
+
+    if (!weekDataRequestedRef.current) {
+      weekDataRequestedRef.current = true
+      void loadWeekData()
+    }
+
+    let cancelled = false
+    setWeekTabAnimate(false)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!cancelled) setWeekTabAnimate(true)
+      })
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [segmentTab, loadWeekData])
+
+  const resolvedGoals = goals ?? FALLBACK_GOALS
 
   const totals = useMemo(() => computeDailyTotals(dailyRecord), [dailyRecord])
   const adjustedCalorieTarget = useMemo(
-    () => getAdjustedCalorieTarget(goals?.baseCalories ?? 2200, runWalkEnergy.totalCaloriesBurned),
-    [goals?.baseCalories, runWalkEnergy.totalCaloriesBurned],
+    () =>
+      getAdjustedCalorieTarget(resolvedGoals.baseCalories, runWalkEnergy.totalCaloriesBurned),
+    [resolvedGoals.baseCalories, runWalkEnergy.totalCaloriesBurned],
   )
   const balance = useMemo(
-    () =>
-      computeBalanceScore(
-        totals,
-        goals ?? {
-          baseCalories: 2200,
-          proteinG: 120,
-          carbsG: 260,
-          fatG: 70,
-          fiberG: 25,
-          sugarsMaxG: 50,
-          saturatedFatMaxG: 22,
-          waterMl: 2000,
-        },
-        adjustedCalorieTarget,
-      ),
-    [totals, goals, adjustedCalorieTarget],
+    () => computeBalanceScore(totals, resolvedGoals, adjustedCalorieTarget),
+    [totals, resolvedGoals, adjustedCalorieTarget],
   )
   const contributions = useMemo(() => computeAllMealContributions(dailyRecord), [dailyRecord])
 
@@ -330,7 +361,7 @@ export function EatWellScreen() {
     setDailyRecord(nextRecord)
     await saveEatWellDailyRecord(patientCpf, nextRecord)
     if (notice) showToast(notice)
-    setAnimateHero(true)
+    scheduleDiaryHeroAnimation(setAnimateHero)
     await Promise.all([loadDayData(), loadWeekData()])
   }
 
@@ -462,10 +493,10 @@ export function EatWellScreen() {
     })
   }
 
-  async function handleMenuWizardComplete(form: EatWellMenuWizardForm) {
+  async function handleMenuWizardComplete(payload: { form: EatWellMenuWizardForm; menu: EatWellSavedMenu }) {
     withEatWellAuth(() => {
       void (async () => {
-        const menu = generateEatWellMenuFromWizard(form)
+        const { form, menu } = payload
         const nextGoals = computeNutritionGoalsFromWizard(form)
         const nextMenus = await addEatWellMenu(patientCpf, menu)
         await saveNutritionGoals(patientCpf, nextGoals)
@@ -490,6 +521,7 @@ export function EatWellScreen() {
 
   function handleOpenMenu(menu: EatWellSavedMenu) {
     withEatWellAuth(() => {
+      navigateTo('eat-well', { segmentTab: 'menus' })
       navigateTo('eat-well-menu', { menuId: menu.id })
     })
   }
@@ -563,10 +595,7 @@ export function EatWellScreen() {
 
   const diaryVisualKey = `${selectedDateIso}-${diaryAnimationEpoch}`
   const diaryAnimate = isReady && animateHero && segmentTab === 'diary'
-
-  if (!goals) {
-    return <View style={styles.root} />
-  }
+  const diaryIdleProgress = animateHero && !diaryAnimate
 
   return (
     <>
@@ -646,10 +675,11 @@ export function EatWellScreen() {
                   <EatWellBalanceHero
                     key={`balance-${diaryVisualKey}`}
                     totals={totals}
-                    goals={goals}
+                    goals={resolvedGoals}
                     adjustedCalorieTarget={adjustedCalorieTarget}
                     balance={balance}
                     animate={diaryAnimate}
+                    idleProgress={diaryIdleProgress}
                     onBalancePress={() => setBalanceDrawerVisible(true)}
                     onMacroChipPress={setMacroDrawerId}
                   />
@@ -667,13 +697,15 @@ export function EatWellScreen() {
                     selectedSlot={filterSlot}
                     onSelectSlot={setFilterSlot}
                     animate={diaryAnimate}
+                    idleProgress={diaryIdleProgress}
                   />
 
                   <EatWellWaterStrip
                     key={`water-${diaryVisualKey}`}
                     consumedMl={totals.waterMl}
-                    goalMl={goals.waterMl}
+                    goalMl={resolvedGoals.waterMl}
                     animate={diaryAnimate}
+                    idleProgress={diaryIdleProgress}
                     onRegisterPress={() => setHydrationDrawerVisible(true)}
                     onUndoLast={() => void handleUndoWater()}
                     canUndo={dailyRecord.waterLogs.length > 0}
@@ -697,9 +729,9 @@ export function EatWellScreen() {
               ) : item === 'week' ? (
                 <EatWellWeekTab
                   summary={weekSummary}
-                  goals={goals}
+                  goals={resolvedGoals}
                   bottomPadding={weekBottomPadding}
-                  isActive={segmentTab === 'week'}
+                  isActive={weekTabAnimate}
                   isRefreshing={isWeekRefreshing}
                   onRefresh={() => void handleWeekRefresh()}
                   onSelectDay={handleSelectDayFromWeek}
@@ -796,7 +828,7 @@ export function EatWellScreen() {
         visible={macroDrawerId != null}
         macroId={macroDrawerId}
         totals={totals}
-        goals={goals}
+        goals={resolvedGoals}
         meals={dailyRecord.meals}
         onClose={() => setMacroDrawerId(null)}
       />
@@ -804,7 +836,7 @@ export function EatWellScreen() {
       <EatWellRunWalkEnergyDrawer
         visible={energyDrawerVisible}
         energy={runWalkEnergy}
-        baseCalories={goals.baseCalories}
+        baseCalories={resolvedGoals.baseCalories}
         adjustedCalorieTarget={adjustedCalorieTarget}
         onClose={() => setEnergyDrawerVisible(false)}
       />
@@ -828,7 +860,7 @@ export function EatWellScreen() {
       <EatWellMenuWizardDrawer
         visible={menuWizardVisible}
         onClose={() => setMenuWizardVisible(false)}
-        onComplete={(form) => void handleMenuWizardComplete(form)}
+        onComplete={(payload) => void handleMenuWizardComplete(payload)}
       />
 
       <MenuDrawer

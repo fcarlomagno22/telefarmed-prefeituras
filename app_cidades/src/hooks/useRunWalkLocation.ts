@@ -230,12 +230,19 @@ export function useRunWalkLocation({
     }
 
     let active = true
+    let lastAppliedAt = 0
+    const headingThrottleMs = trackingMode === 'activity' ? 500 : 0
 
     void Location.watchHeadingAsync((update) => {
       if (!active) return
 
-      const heading =
-        update.trueHeading >= 0 ? update.trueHeading : update.magHeading
+      const now = Date.now()
+      if (headingThrottleMs > 0 && now - lastAppliedAt < headingThrottleMs) return
+
+      const heading = update.trueHeading >= 0 ? update.trueHeading : update.magHeading
+      if (!Number.isFinite(heading) || heading < 0) return
+
+      lastAppliedAt = now
       applyHeading(heading)
     })
       .then((subscription) => {
@@ -252,7 +259,7 @@ export function useRunWalkLocation({
       active = false
       stopHeadingWatch()
     }
-  }, [applyHeading, enabled, stopHeadingWatch, trackHeading])
+  }, [applyHeading, enabled, stopHeadingWatch, trackHeading, trackingMode])
 
   return {
     ...state,

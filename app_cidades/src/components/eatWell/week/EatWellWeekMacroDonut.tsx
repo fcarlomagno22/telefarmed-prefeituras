@@ -188,6 +188,7 @@ function SecondaryBar({
       <RunWalkHistoryAnimatedBar
         progress={Math.min(progress, inverse ? 1.2 : 1)}
         animate={animate}
+        preserveFinal={animate}
         color={color}
         trackStyle={styles.barTrack}
       />

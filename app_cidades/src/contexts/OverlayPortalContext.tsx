@@ -11,54 +11,61 @@ import { StyleSheet, View } from 'react-native'
 
 type OverlayLayer = {
   id: string
-  node: ReactNode
   zIndex: number
 }
 
 type OverlayPortalContextValue = {
-  mount: (id: string, node: ReactNode) => void
+  mount: (id: string) => void
   unmount: (id: string) => void
-  update: (id: string, node: ReactNode) => void
+  setContent: (id: string, node: ReactNode) => void
+  clearContent: (id: string) => void
 }
 
 const OverlayPortalContext = createContext<OverlayPortalContextValue | null>(null)
 
 export function OverlayPortalProvider({ children }: { children: ReactNode }) {
   const [layers, setLayers] = useState<OverlayLayer[]>([])
+  const [contentVersion, setContentVersion] = useState(0)
   const zCounterRef = useRef(0)
+  const contentRef = useRef(new Map<string, ReactNode>())
 
-  const mount = useCallback((id: string, node: ReactNode) => {
+  const mount = useCallback((id: string) => {
     setLayers((prev) => {
-      const existing = prev.find((layer) => layer.id === id)
-      if (existing) {
-        return prev.map((layer) => (layer.id === id ? { ...layer, node } : layer))
-      }
+      if (prev.some((layer) => layer.id === id)) return prev
 
       zCounterRef.current += 1
-      return [...prev, { id, node, zIndex: zCounterRef.current }].sort(
+      return [...prev, { id, zIndex: zCounterRef.current }].sort(
         (a, b) => a.zIndex - b.zIndex,
       )
     })
   }, [])
 
-  const update = useCallback((id: string, node: ReactNode) => {
-    setLayers((prev) =>
-      prev.map((layer) => (layer.id === id ? { ...layer, node } : layer)),
-    )
+  const unmount = useCallback((id: string) => {
+    contentRef.current.delete(id)
+    setLayers((prev) => prev.filter((layer) => layer.id !== id))
   }, [])
 
-  const unmount = useCallback((id: string) => {
-    setLayers((prev) => prev.filter((layer) => layer.id !== id))
+  const setContent = useCallback((id: string, node: ReactNode) => {
+    contentRef.current.set(id, node)
+    setContentVersion((version) => version + 1)
+  }, [])
+
+  const clearContent = useCallback((id: string) => {
+    contentRef.current.delete(id)
+    setContentVersion((version) => version + 1)
   }, [])
 
   const value = useMemo(
     () => ({
       mount,
       unmount,
-      update,
+      setContent,
+      clearContent,
     }),
-    [mount, unmount, update],
+    [mount, unmount, setContent, clearContent],
   )
+
+  void contentVersion
 
   return (
     <OverlayPortalContext.Provider value={value}>
@@ -71,7 +78,7 @@ export function OverlayPortalProvider({ children }: { children: ReactNode }) {
               style={[styles.layer, { zIndex: layer.zIndex, elevation: layer.zIndex }]}
               pointerEvents="box-none"
             >
-              {layer.node}
+              {contentRef.current.get(layer.id) ?? null}
             </View>
           ))}
         </View>

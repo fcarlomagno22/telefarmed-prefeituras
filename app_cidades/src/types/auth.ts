@@ -1,5 +1,6 @@
 import type { BibleRouteParams, PeaceWordsRouteParams } from './bible'
 import type { ActiveMindRouteParams } from './activeMind'
+import type { EatWellTab } from './eatWell'
 
 export type AppScreen =
   | 'login'
@@ -74,6 +75,7 @@ export type FunctionalRouteParams = {
 
 export type EatWellRouteParams = {
   menuId?: string
+  segmentTab?: EatWellTab
   myRoutineReturnTaskId?: string
 }
 
@@ -151,7 +153,7 @@ export function getFunctionalRouteParams(params: AppRouteParams | null): Functio
 
 export function getEatWellRouteParams(params: AppRouteParams | null): EatWellRouteParams {
   if (!params) return {}
-  if ('menuId' in params) {
+  if ('menuId' in params || 'segmentTab' in params || 'myRoutineReturnTaskId' in params) {
     return params as EatWellRouteParams
   }
   return {}

@@ -6,22 +6,28 @@ import { useEffect, useRef, useState } from 'react'
 import {
   Animated,
   Easing,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
+  type KeyboardEvent,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
 import { EditableProfileFieldId, ProfileSnapshot } from '../../types/metrics'
+import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 import { PrimaryButton } from '../PrimaryButton'
 import { AppModal } from '../AppModal'
 import { WaveTitle } from '../WaveTitle'
 
 const SHEET_OFFSET = 400
+const KEYBOARD_EXTRA_PADDING = 20
 const GENDER_OPTIONS = ['Feminino', 'Masculino', 'Outro', 'Prefiro não informar'] as const
 
 type ProfileFieldEditDrawerProps = {
@@ -98,11 +104,39 @@ export function ProfileFieldEditDrawer({
   const insets = useSafeAreaInsets()
   const [isMounted, setIsMounted] = useState(false)
   const [draft, setDraft] = useState('')
+  const [keyboardInset, setKeyboardInset] = useState(0)
 
   const sheetTranslateY = useRef(new Animated.Value(SHEET_OFFSET)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
+  const scrollRef = useRef<ScrollView>(null)
 
   const config = field ? FIELD_CONFIG[field] : null
+
+  useEffect(() => {
+    if (!visible) {
+      setKeyboardInset(0)
+      return
+    }
+
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'
+
+    function handleKeyboardShow(event: KeyboardEvent) {
+      setKeyboardInset(event.endCoordinates.height)
+    }
+
+    function handleKeyboardHide() {
+      setKeyboardInset(0)
+    }
+
+    const showSubscription = Keyboard.addListener(showEvent, handleKeyboardShow)
+    const hideSubscription = Keyboard.addListener(hideEvent, handleKeyboardHide)
+
+    return () => {
+      showSubscription.remove()
+      hideSubscription.remove()
+    }
+  }, [visible])
 
   useEffect(() => {
     if (visible && field) {
@@ -153,6 +187,7 @@ export function ProfileFieldEditDrawer({
 
   function handleDismiss() {
     if (!visible) return
+    Keyboard.dismiss()
     closeSheet(onClose)
   }
 
@@ -167,6 +202,10 @@ export function ProfileFieldEditDrawer({
   }
 
   const canSave = draft.trim().length > 0
+  const keyboardLift =
+    keyboardInset > 0
+      ? Math.max(0, keyboardInset - Math.max(insets.bottom, 0) + KEYBOARD_EXTRA_PADDING)
+      : 0
 
   if (!isMounted || !config || !field) return null
 
@@ -178,15 +217,19 @@ export function ProfileFieldEditDrawer({
         </Animated.View>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={keyboardAvoidingBehavior}
           style={styles.keyboardWrap}
+          enabled={Platform.OS === 'ios'}
         >
           <Animated.View
             style={[
               styles.sheet,
               {
-                paddingBottom: Math.max(insets.bottom, 16) + 8,
-                transform: [{ translateY: sheetTranslateY }],
+                paddingBottom: getModalFooterPadding(insets.bottom, 8),
+                transform: [
+                  { translateY: sheetTranslateY },
+                  { translateY: -keyboardLift },
+                ],
               },
             ]}
           >
@@ -205,84 +248,104 @@ export function ProfileFieldEditDrawer({
               style={styles.topAccent}
             />
 
-            <View style={styles.handle} />
+            <ScrollView
+              ref={scrollRef}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
+              automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+              contentContainerStyle={[
+                styles.scrollContent,
+                keyboardInset > 0 && { paddingBottom: KEYBOARD_EXTRA_PADDING },
+              ]}
+              bounces={keyboardInset === 0}
+            >
+              <View style={styles.handle} />
 
-            <View style={styles.headerRow}>
-              <LinearGradient
-                colors={[...config.gradient]}
-                start={{ x: 0.2, y: 0 }}
-                end={{ x: 0.85, y: 1 }}
-                style={styles.fieldIconOrb}
-              >
-                <MaterialCommunityIcons name={config.icon} size={22} color="#fff" />
-              </LinearGradient>
+              <View style={[styles.headerRow, keyboardInset > 0 && styles.headerRowCompact]}>
+                <LinearGradient
+                  colors={[...config.gradient]}
+                  start={{ x: 0.2, y: 0 }}
+                  end={{ x: 0.85, y: 1 }}
+                  style={styles.fieldIconOrb}
+                >
+                  <MaterialCommunityIcons name={config.icon} size={22} color="#fff" />
+                </LinearGradient>
 
-              <View style={styles.headerTextCol}>
-                <WaveTitle text={config.title} active={visible} />
-                <Text style={styles.subtitle}>{config.subtitle}</Text>
-              </View>
-
-              <Pressable
-                onPress={handleDismiss}
-                style={({ pressed }) => [styles.closeButton, pressed && styles.closeButtonPressed]}
-                accessibilityRole="button"
-                accessibilityLabel="Fechar edição"
-              >
-                <Ionicons name="close" size={18} color={colors.textMuted} />
-              </Pressable>
-            </View>
-
-            {field === 'gender' ? (
-              <View style={styles.genderGrid}>
-                {GENDER_OPTIONS.map((option) => {
-                  const active = draft === option
-                  return (
-                    <Pressable
-                      key={option}
-                      onPress={() => setDraft(option)}
-                      style={({ pressed }) => [
-                        styles.genderChip,
-                        active && styles.genderChipActive,
-                        pressed && styles.genderChipPressed,
-                      ]}
-                    >
-                      <Text style={[styles.genderChipText, active && styles.genderChipTextActive]}>
-                        {option}
-                      </Text>
-                    </Pressable>
-                  )
-                })}
-              </View>
-            ) : (
-              <View style={styles.inputCard}>
-                <Text style={styles.inputLabel}>
-                  {field === 'height' ? 'Metros' : 'Quilogramas'}
-                </Text>
-                <View style={styles.inputWrap}>
-                  <TextInput
-                    value={draft}
-                    onChangeText={setDraft}
-                    placeholder={config.placeholder}
-                    placeholderTextColor={colors.textSubtle}
-                    keyboardType={config.keyboardType}
-                    style={styles.input}
-                    autoFocus
-                    selectionColor={colors.primary}
-                  />
-                  <Text style={styles.inputSuffix}>
-                    {field === 'height' ? 'm' : 'kg'}
-                  </Text>
+                <View style={styles.headerTextCol}>
+                  <WaveTitle text={config.title} active={visible} />
+                  <Text style={styles.subtitle}>{config.subtitle}</Text>
                 </View>
+
+                <Pressable
+                  onPress={handleDismiss}
+                  style={({ pressed }) => [styles.closeButton, pressed && styles.closeButtonPressed]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Fechar edição"
+                >
+                  <Ionicons name="close" size={18} color={colors.textMuted} />
+                </Pressable>
               </View>
-            )}
 
-            <Text style={styles.hint}>Segure o card na tela anterior para editar novamente</Text>
+              {field === 'gender' ? (
+                <View style={styles.genderGrid}>
+                  {GENDER_OPTIONS.map((option) => {
+                    const active = draft === option
+                    return (
+                      <Pressable
+                        key={option}
+                        onPress={() => setDraft(option)}
+                        style={({ pressed }) => [
+                          styles.genderChip,
+                          active && styles.genderChipActive,
+                          pressed && styles.genderChipPressed,
+                        ]}
+                      >
+                        <Text style={[styles.genderChipText, active && styles.genderChipTextActive]}>
+                          {option}
+                        </Text>
+                      </Pressable>
+                    )
+                  })}
+                </View>
+              ) : (
+                <View style={styles.inputCard}>
+                  <Text style={styles.inputLabel}>
+                    {field === 'height' ? 'Metros' : 'Quilogramas'}
+                  </Text>
+                  <View style={styles.inputWrap}>
+                    <TextInput
+                      value={draft}
+                      onChangeText={setDraft}
+                      placeholder={config.placeholder}
+                      placeholderTextColor={colors.textSubtle}
+                      keyboardType={config.keyboardType}
+                      style={styles.input}
+                      autoFocus
+                      selectionColor={colors.primary}
+                      onFocus={() => {
+                        requestAnimationFrame(() => {
+                          scrollRef.current?.scrollToEnd({ animated: true })
+                        })
+                      }}
+                    />
+                    <Text style={styles.inputSuffix}>
+                      {field === 'height' ? 'm' : 'kg'}
+                    </Text>
+                  </View>
+                </View>
+              )}
 
-            <PrimaryButton
-              label="Salvar alteração"
-              onPress={handleSave}
-              disabled={!canSave}
-            />
+              {keyboardInset === 0 ? (
+                <Text style={styles.hint}>Segure o card na tela anterior para editar novamente</Text>
+              ) : null}
+
+              <PrimaryButton
+                label="Salvar alteração"
+                onPress={handleSave}
+                disabled={!canSave}
+              />
+            </ScrollView>
           </Animated.View>
         </KeyboardAvoidingView>
       </View>
@@ -300,6 +363,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
   keyboardWrap: {
+    flex: 1,
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -310,6 +374,10 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
+    maxHeight: '92%',
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   topAccent: {
     position: 'absolute',
@@ -332,6 +400,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 12,
     marginBottom: 18,
+  },
+  headerRowCompact: {
+    marginBottom: 12,
   },
   fieldIconOrb: {
     width: 46,

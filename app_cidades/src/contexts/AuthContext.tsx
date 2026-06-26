@@ -64,6 +64,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [biometricAsked, setBiometricAsked] = useState(false)
   const [biometricAvailable, setBiometricAvailable] = useState(false)
   const [hasBiometricSession, setHasBiometricSession] = useState(false)
+  const [biometricPromptSuppressed, setBiometricPromptSuppressed] = useState(false)
+  const biometricReleaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (biometricReleaseTimerRef.current) {
+        clearTimeout(biometricReleaseTimerRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -117,7 +127,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigateTo = useCallback((nextScreen: AppScreen, params?: AppRouteParams) => {
     setScreen((current) => {
       if (current === nextScreen) {
-        setRouteParams(params ?? null)
+        const nextParams = params ?? null
+        setRouteParams(nextParams)
+        routeParamsRef.current = nextParams
         return current
       }
 
@@ -133,7 +145,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ]
       }
 
-      setRouteParams(params ?? null)
+      const nextParams = params ?? null
+      setRouteParams(nextParams)
+      routeParamsRef.current = nextParams
       return nextScreen
     })
   }, [])
@@ -187,6 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const previous = history[history.length - 1]
     screenHistoryRef.current = history.slice(0, -1)
     setRouteParams(previous.params)
+    routeParamsRef.current = previous.params
     setScreen(previous.screen)
     return true
   }, [])
@@ -204,6 +219,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const completeRegistration = useCallback(
     async (data: RegistrationData) => {
+      if (biometricReleaseTimerRef.current) {
+        clearTimeout(biometricReleaseTimerRef.current)
+        biometricReleaseTimerRef.current = null
+      }
+
+      setBiometricPromptSuppressed(true)
+
       const nextUser: AuthUser = {
         name: data.profile.name.trim(),
         cpf: data.profile.cpf,
@@ -214,6 +236,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       await finalizeLogin(nextUser)
+
+      biometricReleaseTimerRef.current = setTimeout(() => {
+        setBiometricPromptSuppressed(false)
+        biometricReleaseTimerRef.current = null
+      }, 500)
     },
     [finalizeLogin],
   )
@@ -339,7 +366,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       biometricEnabled,
       canUseBiometricLogin,
       shouldAskBiometric:
-        user !== null && biometricAvailable && !biometricAsked && !biometricEnabled,
+        user !== null &&
+        biometricAvailable &&
+        !biometricAsked &&
+        !biometricEnabled &&
+        !biometricPromptSuppressed,
       biometricAvailable,
       navigateTo,
       goBack,
@@ -361,6 +392,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       canUseBiometricLogin,
       biometricAsked,
       biometricAvailable,
+      biometricPromptSuppressed,
       navigateTo,
       goBack,
       canGoBack,

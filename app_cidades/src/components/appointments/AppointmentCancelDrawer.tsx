@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import { Animated, Easing, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Animated, Easing, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native'
 import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
@@ -11,7 +11,7 @@ import { PrimaryButton } from '../PrimaryButton'
 import { getModalFooterPadding } from '../../utils/modalSafeArea'
 import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
 
-const SHEET_OFFSET = 360
+const SHEET_OFFSET = 480
 
 type AppointmentCancelDrawerProps = {
   visible: boolean
@@ -29,6 +29,8 @@ export function AppointmentCancelDrawer({
   onConfirm,
 }: AppointmentCancelDrawerProps) {
   const insets = useSafeAreaInsets()
+  const { height: screenHeight } = useWindowDimensions()
+  const sheetMinHeight = Math.round(screenHeight * 0.54)
   const [isMounted, setIsMounted] = useState(false)
   const [reason, setReason] = useState('')
   const sheetTranslateY = useRef(new Animated.Value(SHEET_OFFSET)).current
@@ -91,6 +93,7 @@ export function AppointmentCancelDrawer({
             style={[
               styles.sheet,
               {
+                minHeight: sheetMinHeight,
                 paddingBottom: getModalFooterPadding(insets.bottom),
                 transform: [{ translateY: sheetTranslateY }],
               },
@@ -99,57 +102,56 @@ export function AppointmentCancelDrawer({
             <ScrollView
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
+              bounces={false}
               contentContainerStyle={styles.scrollContent}
+              style={styles.scroll}
             >
-              <View style={styles.handle} />
+              <View style={styles.topContent}>
+                <View style={styles.handle} />
 
-              <View style={styles.iconWrap}>
-                <LinearGradient
-                  colors={['#fca5a5', '#ef4444', '#dc2626']}
-                  start={{ x: 0.2, y: 0 }}
-                  end={{ x: 0.85, y: 1 }}
-                  style={styles.icon}
-                >
-                  <Ionicons name="calendar-clear-outline" size={24} color="#fff" />
-                </LinearGradient>
+                <View style={styles.iconWrap}>
+                  <LinearGradient
+                    colors={['#fca5a5', '#ef4444', '#dc2626']}
+                    start={{ x: 0.2, y: 0 }}
+                    end={{ x: 0.85, y: 1 }}
+                    style={styles.icon}
+                  >
+                    <Ionicons name="calendar-clear-outline" size={24} color="#fff" />
+                  </LinearGradient>
+                </View>
+
+                <Text style={styles.title}>Cancelar consulta?</Text>
+                <Text style={styles.message}>
+                  Você está cancelando a consulta de{' '}
+                  <Text style={styles.messageStrong}>{appointment.specialtyName}</Text> em{' '}
+                  {appointment.selectedDate.split('-').reverse().join('/')} às {appointment.selectedTime}.
+                </Text>
+
+                <Text style={styles.inputLabel}>Motivo (opcional)</Text>
               </View>
 
-              <Text style={styles.title}>Cancelar consulta?</Text>
-              <Text style={styles.message}>
-                Você está cancelando a consulta de{' '}
-                <Text style={styles.messageStrong}>{appointment.specialtyName}</Text> em{' '}
-                {appointment.selectedDate.split('-').reverse().join('/')} às {appointment.selectedTime}.
-              </Text>
-
-              <Text style={styles.inputLabel}>Motivo (opcional)</Text>
-              <TextInput
-                value={reason}
-                onChangeText={setReason}
-                placeholder="Ex: conflito de horário"
-                placeholderTextColor={colors.textSubtle}
-                style={styles.input}
-                multiline
-                maxLength={120}
-              />
+              <View style={styles.inputWrap}>
+                <TextInput
+                  value={reason}
+                  onChangeText={setReason}
+                  placeholder="Ex: conflito de horário"
+                  placeholderTextColor={colors.textSubtle}
+                  style={styles.input}
+                  multiline
+                  maxLength={120}
+                />
+              </View>
             </ScrollView>
 
             <View style={styles.actions}>
-            <Pressable
-              onPress={onClose}
-              disabled={loading}
-              style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
-            >
-              <Text style={styles.secondaryButtonText}>Manter consulta</Text>
-            </Pressable>
-
-            <PrimaryButton
-              label={loading ? 'Cancelando…' : 'Confirmar cancelamento'}
-              onPress={() => onConfirm(reason)}
-              loading={loading}
-              disabled={loading}
-              style={styles.primaryButton}
-            />
-          </View>
+              <PrimaryButton
+                label={loading ? 'Cancelando…' : 'Confirmar cancelamento'}
+                onPress={() => onConfirm(reason)}
+                loading={loading}
+                disabled={loading}
+                style={styles.primaryButton}
+              />
+            </View>
         </Animated.View>
         </KeyboardAvoidingView>
       </View>
@@ -177,11 +179,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     paddingHorizontal: 16,
-    gap: 10,
+    gap: 8,
+  },
+  scroll: {
+    flexGrow: 1,
+    flexShrink: 1,
   },
   scrollContent: {
+    flexGrow: 1,
+    gap: 10,
+  },
+  topContent: {
     gap: 12,
-    paddingBottom: 8,
   },
   handle: {
     alignSelf: 'center',
@@ -232,8 +241,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 4,
   },
+  inputWrap: {
+    flex: 1,
+    minHeight: 96,
+  },
   input: {
-    minHeight: 72,
+    flex: 1,
+    minHeight: 96,
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -246,27 +260,9 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   actions: {
-    gap: 10,
-    marginTop: 6,
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  secondaryButtonText: {
-    color: colors.text,
-    fontSize: 15,
-    fontWeight: '700',
+    marginTop: 0,
   },
   primaryButton: {
     width: '100%',
-  },
-  buttonPressed: {
-    opacity: 0.86,
   },
 })

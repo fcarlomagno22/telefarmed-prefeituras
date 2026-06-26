@@ -77,8 +77,10 @@ const PADDING_LEFT = 42
 const PADDING_RIGHT = 12
 const PADDING_TOP = 16
 const PADDING_BOTTOM = 30
-const LIVE_ANIM_MS = 1800
+const LIVE_ANIM_MS = 2100
 const REVEAL_MS = 920
+const SCROLL_PHASE_RATIO = 0.45
+const DRAW_X_PHASE_RATIO = 0.38
 const DEFAULT_CHART_HEIGHT = 210
 const DEFAULT_PLOT_HEIGHT = DEFAULT_CHART_HEIGHT - PADDING_TOP - PADDING_BOTTOM
 
@@ -324,6 +326,10 @@ function clamp01(t: number) {
   return Math.max(0, Math.min(1, t))
 }
 
+function easeOutQuart(t: number) {
+  return 1 - Math.pow(1 - t, 4)
+}
+
 function easeInOutCubic(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 }
@@ -347,14 +353,33 @@ function detectLiveMode(prevData: ChartPoint[], nextData: ChartPoint[]): LiveAni
 }
 
 function getAnimPhases(progress: number, mode: LiveAnimMode) {
-  if (mode === 'idle') return { scroll: 1, draw: 1 }
+  if (mode === 'idle') return { scroll: 1, drawX: 1, drawY: 1 }
 
-  const t = easeInOutCubic(clamp01(progress))
-  return { scroll: t, draw: t }
+  const p = clamp01(progress)
+
+  if (mode === 'extend') {
+    return { scroll: 1, drawX: 1, drawY: easeOutQuart(p) }
+  }
+
+  const scrollRaw = Math.min(1, p / SCROLL_PHASE_RATIO)
+  const drawRaw =
+    p <= SCROLL_PHASE_RATIO ? 0 : (p - SCROLL_PHASE_RATIO) / (1 - SCROLL_PHASE_RATIO)
+
+  const drawXRaw = Math.min(1, drawRaw / DRAW_X_PHASE_RATIO)
+  const drawYRaw =
+    drawRaw <= DRAW_X_PHASE_RATIO
+      ? 0
+      : (drawRaw - DRAW_X_PHASE_RATIO) / (1 - DRAW_X_PHASE_RATIO)
+
+  return {
+    scroll: easeInOutCubic(scrollRaw),
+    drawX: easeInOutCubic(drawXRaw),
+    drawY: easeOutQuart(drawYRaw),
+  }
 }
 
-function getLiveSlotOffset(draw: number, columnStep: number) {
-  return columnStep * (1 - draw)
+function getLiveSlotOffset(drawX: number, columnStep: number) {
+  return columnStep * (1 - drawX)
 }
 
 function getColumnStep(
@@ -389,7 +414,7 @@ function buildRenderPoints(
 ): { points: RenderPoint[]; mode: LiveAnimMode; isAnimating: boolean } {
   const length = nextData.length
   const mode = progress >= 1 || prevData.length === 0 ? 'idle' : detectLiveMode(prevData, nextData)
-  const { draw } = getAnimPhases(progress, mode)
+  const { drawX, drawY } = getAnimPhases(progress, mode)
   const isAnimating = mode !== 'idle' && progress < 1
 
   if (mode === 'idle') {
@@ -413,15 +438,15 @@ function buildRenderPoints(
       return {
         ...point,
         x: getPlotXByTime(point, fullPeriod, hourly, contentWidth),
-        y: isLast ? lerp(fromY, toY, draw) : getYPosition(point.value, yRange, chartHeight),
-        value: isLast ? lerp(prevLast.value, nextLast.value, draw) : point.value,
+        y: isLast ? lerp(fromY, toY, drawY) : getYPosition(point.value, yRange, chartHeight),
+        value: isLast ? lerp(prevLast.value, nextLast.value, drawY) : point.value,
       }
     })
 
     return { points, mode, isAnimating: true }
   }
 
-  const slotOffset = getLiveSlotOffset(draw, columnStep)
+  const slotOffset = getLiveSlotOffset(drawX, columnStep)
   const points: RenderPoint[] = []
 
   for (let index = 0; index < length - 1; index += 1) {
@@ -434,8 +459,8 @@ function buildRenderPoints(
 
     points.push({
       ...nextPoint,
-      x: lerp(fromX, toX, draw),
-      y: lerp(fromY, toY, draw),
+      x: lerp(fromX, toX, drawX),
+      y: lerp(fromY, toY, drawY),
     })
   }
 
@@ -446,9 +471,9 @@ function buildRenderPoints(
 
   points.push({
     ...nextLast,
-    x: lerp(fromX, toX, draw),
-    y: lerp(fromY, toY, draw),
-    value: lerp(prevLast.value, nextLast.value, draw),
+    x: lerp(fromX, toX, drawX),
+    y: lerp(fromY, toY, drawY),
+    value: lerp(prevLast.value, nextLast.value, drawY),
   })
 
   return { points, mode, isAnimating: true }
@@ -748,7 +773,7 @@ function MetricsAreaChartComponent({
     if (!isLiveFrame || !animFromData) return 'idle'
     return detectLiveMode(animFromData, data)
   }, [isLiveFrame, animFromData, data])
-  const { scroll: scrollPhase, draw: drawPhase } = getAnimPhases(
+  const { scroll: scrollPhase, drawX: drawXPhase, drawY: drawYPhase } = getAnimPhases(
     frameProgress,
     isLiveFrame ? liveMode : 'idle',
   )
@@ -758,10 +783,10 @@ function MetricsAreaChartComponent({
     if (!isLiveFrame) return lockedYRange
 
     return {
-      paddedMin: lerp(lockedYRange.paddedMin, endYRange.paddedMin, drawPhase),
-      paddedRange: lerp(lockedYRange.paddedRange, endYRange.paddedRange, drawPhase),
+      paddedMin: lerp(lockedYRange.paddedMin, endYRange.paddedMin, drawYPhase),
+      paddedRange: lerp(lockedYRange.paddedRange, endYRange.paddedRange, drawYPhase),
     }
-  }, [lockedYRange, endYRange, isLiveFrame, drawPhase])
+  }, [lockedYRange, endYRange, isLiveFrame, drawYPhase])
   const liveColumnStep = useMemo(() => {
     const basis = animFromData ?? snapshotData
     if (basis.length === 0) return plotWidth / Math.max(viewportSize - 1, 1)
@@ -776,8 +801,8 @@ function MetricsAreaChartComponent({
   }, [animFromData, snapshotData, prevPeriod, hourly, prevContentWidth, plotWidth, viewportSize])
   const liveSlotOffset = useMemo(() => {
     if (!isLiveFrame) return 0
-    return getLiveSlotOffset(drawPhase, liveColumnStep)
-  }, [isLiveFrame, drawPhase, liveColumnStep])
+    return getLiveSlotOffset(drawXPhase, liveColumnStep)
+  }, [isLiveFrame, drawXPhase, liveColumnStep])
   const contentScrollX = useMemo(() => {
     if (holdPreviousFrame || !isLiveFrame) return scrollX
 

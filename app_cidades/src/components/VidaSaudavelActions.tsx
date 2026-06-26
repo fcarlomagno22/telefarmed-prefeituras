@@ -30,9 +30,9 @@ type ActionConfig = {
   shadowColor: string
 }
 
-const ICON_SIZE = 52
-const ICON_RADIUS = 13
-const ICON_GLYPH_SIZE = 35
+const ICON_SIZE = 60
+const ICON_RADIUS = 15
+const ICON_GLYPH_SIZE = 40
 const HORIZONTAL_PADDING = 16
 const ITEM_GAP = 10
 const ROW_GAP = 20
@@ -187,7 +187,7 @@ export function VidaSaudavelActions({ onActionPress, skeleton = false }: VidaSau
             {row.map((action) => (
               <View key={action.id} style={[styles.appButton, { width: itemWidth }]}>
                 <SkeletonBone width={ICON_SIZE} height={ICON_SIZE} borderRadius={ICON_RADIUS} />
-                <SkeletonBone width="82%" height={10} borderRadius={4} />
+                <SkeletonBone width="82%" height={12} borderRadius={4} />
               </View>
             ))}
           </View>
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   },
   appButton: {
     alignItems: 'center',
-    gap: 7,
+    gap: 8,
   },
   appButtonPressed: {
     opacity: 0.82,
@@ -256,10 +256,10 @@ const styles = StyleSheet.create({
   },
   appLabel: {
     color: colors.text,
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '500',
     letterSpacing: -0.1,
-    lineHeight: 12,
+    lineHeight: 14,
     textAlign: 'center',
     width: '100%',
     paddingHorizontal: 2,

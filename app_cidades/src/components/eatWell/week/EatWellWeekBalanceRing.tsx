@@ -27,7 +27,7 @@ export function EatWellWeekBalanceRing({ summary, animate = true }: EatWellWeekB
           <RunWalkProgressRing
             progress={summary.avgBalanceScore / 100}
             value={String(summary.avgBalanceScore)}
-            countTo={animate ? summary.avgBalanceScore : undefined}
+            countTo={summary.avgBalanceScore}
             formatCount={(value) => String(Math.round(value))}
             label="Equilíbrio médio"
             size={104}
@@ -35,6 +35,7 @@ export function EatWellWeekBalanceRing({ summary, animate = true }: EatWellWeekB
             gradientId="eat-well-week-balance"
             gradientColors={tier.gradientColors}
             animate={animate}
+            preserveFinal={animate}
           />
 
           <View style={styles.statsCol}>

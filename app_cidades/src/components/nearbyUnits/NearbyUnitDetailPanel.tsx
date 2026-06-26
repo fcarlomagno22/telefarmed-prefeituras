@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
-import { AppointmentQuickAction } from '../appointments/AppointmentQuickAction'
+import { AppointmentActionButton } from '../appointments/AppointmentActionButton'
 import { PrimaryButton } from '../PrimaryButton'
 import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
 import { colors } from '../../theme/colors'
@@ -88,7 +88,7 @@ export function NearbyUnitDetailPanel({
         </View>
 
         <View style={styles.quickActions}>
-          <AppointmentQuickAction
+          <AppointmentActionButton
             label="Como chegar"
             icon="map-marker-radius"
             palette={ACTION_ICON_PALETTES.nearbyUnits}
@@ -96,7 +96,7 @@ export function NearbyUnitDetailPanel({
           />
 
           {ubt.phone ? (
-            <AppointmentQuickAction
+            <AppointmentActionButton
               label="Ligar"
               icon="phone-outline"
               palette={ACTION_ICON_PALETTES.myAppointments}
@@ -105,7 +105,9 @@ export function NearbyUnitDetailPanel({
           ) : null}
         </View>
 
-        <PrimaryButton label="Agendar nesta unidade" onPress={onSchedule} />
+        <View style={styles.scheduleSection}>
+          <PrimaryButton label="Agendar nesta unidade" onPress={onSchedule} />
+        </View>
       </View>
     </View>
   )
@@ -143,6 +145,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
     gap: 10,
+    paddingBottom: 20,
   },
   titleRow: {
     flexDirection: 'row',
@@ -256,7 +259,8 @@ const styles = StyleSheet.create({
   quickActions: {
     flexDirection: 'row',
     gap: 10,
-    justifyContent: 'center',
-    paddingVertical: 4,
+  },
+  scheduleSection: {
+    marginBottom: 6,
   },
 })

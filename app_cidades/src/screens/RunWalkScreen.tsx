@@ -57,7 +57,7 @@ import {
   loadWeeklyProgress,
   mergeWeeklyProgressIntoState,
 } from '../data/runWalkWeeklyProgressStorage'
-import { consumePendingWeeklyGoalCelebration } from '../data/runWalkWeeklyCelebration'
+import { consumePendingWeeklyGoalCelebration, peekPendingWeeklyGoalCelebration } from '../data/runWalkWeeklyCelebration'
 import { useAuth } from '../contexts/AuthContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
@@ -109,12 +109,24 @@ export function RunWalkScreen() {
   const [modalityDrawerVisible, setModalityDrawerVisible] = useState(false)
   const [weeklyGoalTargets, setWeeklyGoalTargets] = useState<WeeklyGoalTargets | null>(null)
   const [planNotice, setPlanNotice] = useState<string | null>(null)
-  const [celebrateDay, setCelebrateDay] = useState<RunWalkWeeklyBarCelebrateDay | null>(null)
+  const [weeklyGoalAnimateRings, setWeeklyGoalAnimateRings] = useState(false)
+  const [weeklyGoalAnimateChart, setWeeklyGoalAnimateChart] = useState(false)
+  const [celebrateDay, setCelebrateDay] = useState<RunWalkWeeklyBarCelebrateDay | null>(() => {
+    const pending = peekPendingWeeklyGoalCelebration()
+    if (!pending) return null
+
+    return {
+      dateIso: pending.dateIso,
+      fromMinutes: pending.fromMinutes,
+      toMinutes: pending.toMinutes,
+    }
+  })
   const [segmentPagerScrollEnabled, setSegmentPagerScrollEnabled] = useState(true)
 
   const scrollRef = useRef<ScrollView>(null)
   const segmentPagerRef = useRef<FlatList<RunWalkTab>>(null)
   const segmentPagerIndexRef = useRef(0)
+  const segmentPagerProgrammaticScrollRef = useRef(false)
   const weeklyGoalSectionY = useRef(0)
   const celebrationTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
 
@@ -126,11 +138,16 @@ export function RunWalkScreen() {
       const index = SEGMENT_PAGES.indexOf(tab)
       if (index < 0) return
 
+      segmentPagerProgrammaticScrollRef.current = animated
       segmentPagerIndexRef.current = index
       segmentPagerRef.current?.scrollToOffset({
         offset: index * screenWidth,
         animated,
       })
+
+      if (!animated) {
+        segmentPagerProgrammaticScrollRef.current = false
+      }
     },
     [screenWidth],
   )
@@ -148,22 +165,23 @@ export function RunWalkScreen() {
       const clampedIndex = Math.min(Math.max(nextIndex, 0), SEGMENT_PAGES.length - 1)
       const nextTab = SEGMENT_PAGES[clampedIndex] ?? 'today'
 
-      if (clampedIndex !== segmentPagerIndexRef.current) {
-        segmentPagerIndexRef.current = clampedIndex
-      }
+      segmentPagerIndexRef.current = clampedIndex
 
-      if (nextTab !== segmentTab) {
+      setSegmentTab((current) => {
+        if (current === nextTab) return current
         if (options?.haptic) {
           void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
         }
-        setSegmentTab(nextTab)
-      }
+        return nextTab
+      })
     },
-    [segmentTab],
+    [],
   )
 
   const handleSegmentPagerScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (segmentPagerProgrammaticScrollRef.current) return
+
       const nextIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth)
       handleSegmentPagerIndexChange(nextIndex)
     },
@@ -172,18 +190,14 @@ export function RunWalkScreen() {
 
   const handleSegmentPagerScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const wasProgrammatic = segmentPagerProgrammaticScrollRef.current
+      segmentPagerProgrammaticScrollRef.current = false
+
       const nextIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth)
-      handleSegmentPagerIndexChange(nextIndex, { haptic: true })
+      handleSegmentPagerIndexChange(nextIndex, { haptic: !wasProgrammatic })
     },
     [handleSegmentPagerIndexChange, screenWidth],
   )
-
-  useEffect(() => {
-    const index = segmentTab === 'today' ? 0 : 1
-    if (segmentPagerIndexRef.current !== index) {
-      scrollSegmentPagerTo(segmentTab)
-    }
-  }, [scrollSegmentPagerTo, segmentTab])
 
   const disposition = useMemo(
     () => ({
@@ -248,6 +262,31 @@ export function RunWalkScreen() {
   }, [loadDailyState])
 
   useEffect(() => {
+    if (!isDailyStateReady || segmentTab !== 'today' || celebrateDay) {
+      setWeeklyGoalAnimateRings(false)
+      setWeeklyGoalAnimateChart(false)
+      return
+    }
+
+    setWeeklyGoalAnimateRings(false)
+    setWeeklyGoalAnimateChart(false)
+
+    let cancelled = false
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!cancelled) {
+          setWeeklyGoalAnimateRings(true)
+          setWeeklyGoalAnimateChart(true)
+        }
+      })
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [celebrateDay, isDailyStateReady, segmentTab])
+
+  useEffect(() => {
     if (getRunWalkRouteParams(routeParams).openModalityDrawer) {
       openModalityDrawer()
     }
@@ -267,6 +306,7 @@ export function RunWalkScreen() {
       if (!active) return
 
       setSegmentTab('today')
+      scrollSegmentPagerTo('today')
       setCelebrateDay({
         dateIso: pending.dateIso,
         fromMinutes: pending.fromMinutes,
@@ -285,7 +325,7 @@ export function RunWalkScreen() {
       celebrationTimersRef.current.push(
         setTimeout(() => {
           setCelebrateDay(null)
-        }, 1600),
+        }, 1700),
       )
     })()
 
@@ -294,7 +334,7 @@ export function RunWalkScreen() {
       celebrationTimersRef.current.forEach(clearTimeout)
       celebrationTimersRef.current = []
     }
-  }, [loadDailyState])
+  }, [loadDailyState, scrollSegmentPagerTo])
 
   const refreshData = useCallback(async () => {
     const weeklyProgress = await loadWeeklyProgress(patientCpf)
@@ -657,7 +697,8 @@ export function RunWalkScreen() {
                         requireAuth('vida:run-walk', () => setGoalDrawerVisible(true))
                       }
                       celebrateDay={celebrateDay}
-                      animateRings={segmentTab === 'today' && isDailyStateReady}
+                      animateRings={weeklyGoalAnimateRings}
+                      animateChart={weeklyGoalAnimateChart}
                     />
                   </View>
 

@@ -9,7 +9,7 @@ import { getMenuDetailSuggestedTime } from '../../../utils/eatWellMenuDetail'
 import {
   delaySubstitutionLoading,
   findSimilarFoodAlternatives,
-} from '../../../utils/eatWellMenuSubstitution'
+} from '../../../eatWellEngine'
 import { getMealSlotConfig } from '../../../utils/eatWellMealSlots'
 import { RunWalkSheetDrawer } from '../../runWalk/RunWalkSheetDrawer'
 import { EatWellFoodMacroSummary } from './EatWellFoodMacroSummary'
@@ -81,7 +81,7 @@ export function EatWellMenuSubstituteDrawer({
     setPhase('loading')
 
     await delaySubstitutionLoading()
-    setOptions(findSimilarFoodAlternatives(entry, 5))
+    setOptions(findSimilarFoodAlternatives(entry, { count: 5, slot: slot ?? undefined }))
     setPhase('options')
   }
 

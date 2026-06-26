@@ -1,11 +1,11 @@
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native'
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
 import Svg, { Circle, Defs, Line, LinearGradient as SvgLinearGradient, Path, Rect, Stop, Text as SvgText } from 'react-native-svg'
 import { colors } from '../../../theme/colors'
 import type { SleepWeekSummary } from '../../../types/sleepHistory'
-import { formatSleepDuration } from '../../../utils/sleepLogFormat'
+import { formatSleepDuration, getSleepQualityLabel } from '../../../utils/sleepLogFormat'
 
 type SleepTimeHistoryComboChartProps = {
   summary: SleepWeekSummary
@@ -21,6 +21,9 @@ const CARD_PADDING = 14
 const PADDING = { top: 16, right: 8, bottom: 34, left: 8 }
 const BAR_RADIUS = 7
 const TARGET_MINUTES = 8 * 60
+const HIT_PADDING_X = 4
+const TOOLTIP_ESTIMATED_WIDTH = 156
+const TOOLTIP_HEIGHT = 68
 
 export function SleepTimeHistoryComboChart({
   summary,
@@ -30,8 +33,8 @@ export function SleepTimeHistoryComboChart({
   onSelectDay,
 }: SleepTimeHistoryComboChartProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
-  const progress = useRef(new Animated.Value(animate ? 0 : 1)).current
-  const [drawProgress, setDrawProgress] = useState(animate ? 0 : 1)
+  const progress = useRef(new Animated.Value(0)).current
+  const [drawProgress, setDrawProgress] = useState(0)
 
   const days = summary.dayStats
   const activeDays = days.filter((day) => !day.isFuture && day.hasData)
@@ -106,9 +109,21 @@ export function SleepTimeHistoryComboChart({
   }
 
   const selected = selectedIndex != null ? barGeometries[selectedIndex] : null
-  const tooltipLabel = selected?.day.hasData
-    ? `${selected.day.weekdayLabel} · ${formatSleepDuration(selected.day.durationMinutes)} · ${selected.day.quality ?? '—'}/5`
-    : null
+
+  const tooltipLeft = selected
+    ? Math.min(
+        Math.max(selected.x + selected.barWidth / 2 - TOOLTIP_ESTIMATED_WIDTH / 2, 4),
+        chartWidth - TOOLTIP_ESTIMATED_WIDTH - 4,
+      )
+    : 0
+
+  const tooltipAnchorY = selected
+    ? Math.min(selected.y, selected.qualityY)
+    : 0
+
+  const tooltipTop = selected
+    ? Math.max(4, tooltipAnchorY - TOOLTIP_HEIGHT - 8)
+    : 0
 
   return (
     <View style={styles.wrap}>
@@ -119,17 +134,11 @@ export function SleepTimeHistoryComboChart({
         style={styles.card}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Horas dormidas e qualidade</Text>
-          {tooltipLabel ? (
-            <Text style={styles.tooltipInline} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
-              {tooltipLabel}
-            </Text>
-          ) : (
-            <Text style={styles.subtitle}>Barras = duração · Linha = qualidade (1–5)</Text>
-          )}
+          <Text style={styles.title}>Esta semana</Text>
+          <Text style={styles.subtitle}>Barras = horas dormidas · Linha = qualidade do sono (1–5)</Text>
         </View>
 
-        <View style={styles.chartArea}>
+        <View style={[styles.chartArea, { width: chartWidth, height: CHART_HEIGHT }]}>
           <Svg width={chartWidth} height={CHART_HEIGHT}>
             <Defs>
               <SvgLinearGradient id="sleepDurationBar" x1="0" y1="0" x2="0" y2="1">
@@ -165,7 +174,6 @@ export function SleepTimeHistoryComboChart({
                   rx={BAR_RADIUS}
                   fill={item.day.isFuture ? 'rgba(255,255,255,0.06)' : fill}
                   opacity={item.day.isFuture ? 0.55 : item.day.hasData ? 1 : 0.35}
-                  onPress={() => handleSelectDay(item.index)}
                 />
               )
             })}
@@ -189,7 +197,6 @@ export function SleepTimeHistoryComboChart({
                       cy={item.qualityY}
                       r={selectedIndex === item.index ? 5 : 3.5}
                       fill="#e879f9"
-                      onPress={() => handleSelectDay(item.index)}
                     />
                   ))}
               </>
@@ -217,6 +224,67 @@ export function SleepTimeHistoryComboChart({
               stroke="rgba(255,255,255,0.08)"
             />
           </Svg>
+
+          {barGeometries.map((item) =>
+            item.day.isFuture ? null : (
+              <Pressable
+                key={`hit-${item.day.dateIso}`}
+                onPress={() => handleSelectDay(item.index)}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  item.day.hasData
+                    ? `${item.day.weekdayLabel}: ${formatSleepDuration(item.day.durationMinutes)}, qualidade ${item.day.quality ?? '—'} de 5`
+                    : `${item.day.weekdayLabel}: sem registro`
+                }
+                style={[
+                  styles.barHitTarget,
+                  {
+                    left: item.x - HIT_PADDING_X,
+                    top: PADDING.top,
+                    width: item.barWidth + HIT_PADDING_X * 2,
+                    height: plotHeight,
+                  },
+                ]}
+              />
+            ),
+          )}
+
+          {selected ? (
+            <View
+              pointerEvents="none"
+              style={[
+                styles.tooltip,
+                {
+                  left: tooltipLeft,
+                  top: tooltipTop,
+                  width: TOOLTIP_ESTIMATED_WIDTH,
+                  borderColor: selected.day.isToday
+                    ? 'rgba(165, 180, 252, 0.55)'
+                    : 'rgba(99, 102, 241, 0.45)',
+                },
+              ]}
+            >
+              <Text style={styles.tooltipWhen}>
+                {selected.day.weekdayLabel} · {selected.day.dayNumber}
+                {selected.day.isToday ? ' · Hoje' : ''}
+              </Text>
+              {selected.day.hasData ? (
+                <>
+                  <Text style={styles.tooltipValue}>
+                    {formatSleepDuration(selected.day.durationMinutes)}
+                  </Text>
+                  <Text style={styles.tooltipMeta}>
+                    Qualidade{' '}
+                    {selected.day.quality != null
+                      ? `${selected.day.quality}/5 · ${getSleepQualityLabel(selected.day.quality)}`
+                      : 'não informada'}
+                  </Text>
+                </>
+              ) : (
+                <Text style={styles.tooltipEmpty}>Sem registro neste dia</Text>
+              )}
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.legendRow}>
@@ -245,6 +313,7 @@ const styles = StyleSheet.create({
     gap: 8,
     borderWidth: 1,
     borderColor: 'rgba(99, 102, 241, 0.16)',
+    overflow: 'visible',
   },
   header: {
     gap: 4,
@@ -259,14 +328,49 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
   },
-  tooltipInline: {
-    color: colors.text,
+  chartArea: {
+    position: 'relative',
+    overflow: 'visible',
+    alignSelf: 'center',
+  },
+  barHitTarget: {
+    position: 'absolute',
+  },
+  tooltip: {
+    position: 'absolute',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(14, 14, 20, 0.96)',
+    borderWidth: 1,
+    gap: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.28,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  tooltipWhen: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  tooltipValue: {
+    color: '#c7d2fe',
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  tooltipMeta: {
+    color: '#f0abfc',
     fontSize: 11,
     fontWeight: '700',
   },
-  chartArea: {
-    width: '100%',
-    alignItems: 'center',
+  tooltipEmpty: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '700',
   },
   legendRow: {
     flexDirection: 'row',

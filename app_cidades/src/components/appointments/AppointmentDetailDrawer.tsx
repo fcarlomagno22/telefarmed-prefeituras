@@ -223,7 +223,7 @@ export function AppointmentDetailDrawer({
             {isUpcoming ? (
               <View style={styles.actionsGrid}>
                 <AppointmentQuickAction
-                  label="Calendário"
+                  label="Marcar na Agenda"
                   icon="calendar-plus"
                   palette={ACTION_ICON_PALETTES.schedule}
                   onPress={onCalendarPress}

@@ -23,7 +23,9 @@ import { AppointmentDetailDrawer } from '../components/appointments/AppointmentD
 import { AppointmentDirectionsDrawer } from '../components/appointments/AppointmentDirectionsDrawer'
 import { AppointmentDocumentsDrawer } from '../components/appointments/AppointmentDocumentsDrawer'
 import { AppointmentEmptyState } from '../components/appointments/AppointmentEmptyState'
+import { AppointmentPostConsultationDrawer } from '../components/appointments/AppointmentPostConsultationDrawer'
 import { AppointmentSegmentTabs } from '../components/appointments/AppointmentSegmentTabs'
+import { PosConsultaCheckinDrawer } from '../components/postConsultation/PosConsultaCheckinDrawer'
 import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
 import { MenuDrawer } from '../components/MenuDrawer'
 import { MetricsPeriodDrawer } from '../components/metrics/MetricsPeriodDrawer'
@@ -43,6 +45,10 @@ import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useSimulatedPageSkeleton } from '../hooks/useSimulatedPageSkeleton'
 import { colors } from '../theme/colors'
 import { PeriodSelection } from '../types/metrics'
+import type {
+  AppointmentPosConsultaCheckinItem,
+  AppointmentPosConsultaPlan,
+} from '../types/appointmentPostConsultation'
 import { MyAppointmentsTab, StoredAppointment } from '../types/myAppointments'
 import type { RemoteCareRequest } from '../types/remoteCareRequest'
 import {
@@ -89,6 +95,15 @@ export function MyAppointmentsScreen() {
   const [menuVisible, setMenuVisible] = useState(false)
   const [historyPeriod, setHistoryPeriod] = useState<PeriodSelection | null>(null)
   const [historyPeriodDrawerVisible, setHistoryPeriodDrawerVisible] = useState(false)
+  const [postConsultationTarget, setPostConsultationTarget] =
+    useState<StoredAppointment | null>(null)
+  const [postConsultationVisible, setPostConsultationVisible] = useState(false)
+  const [postConsultationPlan, setPostConsultationPlan] =
+    useState<AppointmentPosConsultaPlan | null>(null)
+  const [checkinTarget, setCheckinTarget] =
+    useState<AppointmentPosConsultaCheckinItem | null>(null)
+  const [checkinVisible, setCheckinVisible] = useState(false)
+  const [postConsultationRefreshKey, setPostConsultationRefreshKey] = useState(0)
 
   const showSkeleton = useSimulatedPageSkeleton(isLoading)
 
@@ -264,6 +279,16 @@ export function MyAppointmentsScreen() {
       return true
     }
 
+    if (checkinVisible) {
+      closeCheckinDrawer()
+      return true
+    }
+
+    if (postConsultationVisible) {
+      closePostConsultationDrawer()
+      return true
+    }
+
     if (historyPeriodDrawerVisible) {
       setHistoryPeriodDrawerVisible(false)
       return true
@@ -370,8 +395,50 @@ export function MyAppointmentsScreen() {
     })
   }
 
-  function handlePostConsultationPress() {
-    closeDetail()
+  function openPostConsultationDrawer(appointment: StoredAppointment) {
+    requireAuth('quick:my-appointments', () => {
+      closeDetail()
+      setPostConsultationTarget(appointment)
+      setPostConsultationVisible(true)
+    })
+  }
+
+  function closePostConsultationDrawer() {
+    setPostConsultationVisible(false)
+    setPostConsultationTarget(null)
+    setPostConsultationPlan(null)
+  }
+
+  function openCheckinDrawer(
+    appointment: StoredAppointment,
+    plan: AppointmentPosConsultaPlan,
+    checkin: AppointmentPosConsultaCheckinItem,
+  ) {
+    setPostConsultationPlan(plan)
+    setPostConsultationTarget(appointment)
+    setCheckinTarget(checkin)
+    setCheckinVisible(true)
+  }
+
+  function closeCheckinDrawer() {
+    setCheckinVisible(false)
+    setCheckinTarget(null)
+  }
+
+  function handleCheckinSubmitted() {
+    setPostConsultationRefreshKey((value) => value + 1)
+  }
+
+  function openCheckinFromPlanDrawer(
+    checkin: AppointmentPosConsultaCheckinItem,
+    plan: AppointmentPosConsultaPlan,
+  ) {
+    if (!postConsultationTarget) return
+    openCheckinDrawer(postConsultationTarget, plan, checkin)
+  }
+
+  function handlePostConsultationPress(appointment: StoredAppointment) {
+    openPostConsultationDrawer(appointment)
   }
 
   async function handleConfirmCancel(reason: string) {
@@ -731,7 +798,29 @@ export function MyAppointmentsScreen() {
         onCancelPress={() => {
           if (selectedAppointment) openCancelFlow(selectedAppointment)
         }}
-        onPostConsultationPress={handlePostConsultationPress}
+        onPostConsultationPress={() => {
+          if (selectedAppointment) handlePostConsultationPress(selectedAppointment)
+        }}
+      />
+
+      <AppointmentPostConsultationDrawer
+        visible={postConsultationVisible}
+        appointment={postConsultationTarget}
+        patientCpf={user?.cpf}
+        patientName={user?.name}
+        refreshKey={postConsultationRefreshKey}
+        onClose={closePostConsultationDrawer}
+        onRespondCheckin={openCheckinFromPlanDrawer}
+      />
+
+      <PosConsultaCheckinDrawer
+        visible={checkinVisible}
+        appointment={postConsultationTarget}
+        plan={postConsultationPlan}
+        checkin={checkinTarget}
+        patientCpf={user?.cpf}
+        onClose={closeCheckinDrawer}
+        onSubmitted={handleCheckinSubmitted}
       />
 
       <AppointmentDirectionsDrawer

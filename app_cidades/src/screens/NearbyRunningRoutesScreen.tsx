@@ -7,6 +7,7 @@ import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { NearbyRunningRouteSpotDrawer } from '../components/runWalk/nearbyRoutes/NearbyRunningRouteSpotDrawer'
 import { NearbyRunningRoutesMap } from '../components/runWalk/nearbyRoutes/NearbyRunningRoutesMap'
 import { NearbyRunningRoutesSafetyBanner } from '../components/runWalk/nearbyRoutes/NearbyRunningRoutesSafetyBanner'
+import { SubmitRunningRouteSpotDrawer } from '../components/runWalk/nearbyRoutes/SubmitRunningRouteSpotDrawer'
 import { useAuth } from '../contexts/AuthContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
@@ -38,6 +39,7 @@ export function NearbyRunningRoutesScreen() {
   const [isLoadingSpots, setIsLoadingSpots] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [drawerVisible, setDrawerVisible] = useState(false)
+  const [submitDrawerVisible, setSubmitDrawerVisible] = useState(false)
 
   const loadSpots = useCallback(async () => {
     if (!origin) return
@@ -73,12 +75,23 @@ export function NearbyRunningRoutesScreen() {
   }
 
   function handleBack() {
+    if (submitDrawerVisible) {
+      setSubmitDrawerVisible(false)
+      return true
+    }
     if (drawerVisible) {
       handleCloseDrawer()
       return true
     }
     goBack()
     return true
+  }
+
+  function handleOpenSubmit() {
+    requireAuth('vida:run-walk', () => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+      setSubmitDrawerVisible(true)
+    })
   }
 
   useAndroidBackHandler(handleBack)
@@ -103,8 +116,8 @@ export function NearbyRunningRoutesScreen() {
           style={styles.headerGradient}
         >
           <ScreenStackHeader
-            title="Rotas próximas"
-            subtitle="Parques e locais onde as pessoas costumam correr"
+            title="Locais para correr"
+            subtitle="Cadastros da comunidade perto de você"
             paddingTop={8}
             onBack={handleBack}
           />
@@ -121,6 +134,14 @@ export function NearbyRunningRoutesScreen() {
             </Pressable>
           ) : null}
 
+          {!isBusy && spots.length === 0 ? (
+            <View style={styles.emptyChip}>
+              <Text style={styles.emptyChipText}>
+                Nenhum local cadastrado ainda. Seja o primeiro a compartilhar um lugar.
+              </Text>
+            </View>
+          ) : null}
+
           {!isBusy && spots.length > 0 ? (
             <View style={styles.spotsChip}>
               <Text style={styles.spotsChipText}>
@@ -135,10 +156,39 @@ export function NearbyRunningRoutesScreen() {
         <View style={styles.loadingOverlay}>
           <ActivityIndicator color="#ff8533" size="large" />
           <Text style={styles.loadingText}>
-            {isLocating ? 'Obtendo sua localização...' : 'Buscando locais para corrida...'}
+            {isLocating ? 'Obtendo sua localização...' : 'Carregando locais da comunidade...'}
           </Text>
         </View>
       ) : null}
+
+      {!isBusy ? (
+        <View style={[styles.fabWrap, { bottom: insets.bottom + 20 }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Cadastrar local para corrida"
+            onPress={handleOpenSubmit}
+            style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
+          >
+            <LinearGradient
+              colors={['#ff8533', '#ff6b00']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.fabGradient}
+            >
+              <Text style={styles.fabText}>+ Cadastrar local</Text>
+            </LinearGradient>
+          </Pressable>
+        </View>
+      ) : null}
+
+      <SubmitRunningRouteSpotDrawer
+        visible={submitDrawerVisible}
+        patientCpf={patientCpf}
+        patientName={user?.name ?? 'Usuário'}
+        defaultAddress={address}
+        onClose={() => setSubmitDrawerVisible(false)}
+        onSubmitted={() => void loadSpots()}
+      />
 
       <NearbyRunningRouteSpotDrawer
         visible={drawerVisible}
@@ -208,5 +258,44 @@ const styles = StyleSheet.create({
   loadingText: {
     color: colors.textMuted,
     fontSize: 13,
+  },
+  emptyChip: {
+    marginHorizontal: 16,
+    marginTop: 10,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  emptyChipText: {
+    color: colors.textMuted,
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  fabWrap: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    zIndex: 12,
+  },
+  fab: {
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+  fabPressed: {
+    opacity: 0.92,
+  },
+  fabGradient: {
+    minHeight: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+  },
+  fabText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '800',
   },
 })

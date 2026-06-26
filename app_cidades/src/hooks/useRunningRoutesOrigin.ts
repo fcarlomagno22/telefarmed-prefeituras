@@ -1,9 +1,10 @@
+import * as Location from 'expo-location'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { RegistrationAddress } from '../types/auth'
 import type { RunningRoutesOrigin } from '../types/nearbyRunningRoutes'
 import { GeoCoordinates } from '../utils/geo'
-import { getMockGpsCoordinates } from '../utils/nearbyUnits'
 import { getHomeCoordinatesFromAddress } from '../utils/mockHomeLocation'
+import { resolveAddressLabelFromCoordinates } from '../utils/runningRouteGeocoding'
 
 type UseRunningRoutesOriginOptions = {
   address: RegistrationAddress
@@ -11,6 +12,7 @@ type UseRunningRoutesOriginOptions = {
 
 export function useRunningRoutesOrigin({ address }: UseRunningRoutesOriginOptions) {
   const [coordinates, setCoordinates] = useState<GeoCoordinates | null>(null)
+  const [originLabel, setOriginLabel] = useState('Sua localização')
   const [isLocating, setIsLocating] = useState(true)
   const [locationError, setLocationError] = useState<string | null>(null)
 
@@ -24,11 +26,33 @@ export function useRunningRoutesOrigin({ address }: UseRunningRoutesOriginOption
     setLocationError(null)
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 520))
-      setCoordinates(getMockGpsCoordinates(homeCoordinates))
+      const permission = await Location.requestForegroundPermissionsAsync()
+      if (!permission.granted) {
+        setLocationError('Permita o acesso à localização para ver locais perto de você.')
+        setCoordinates(homeCoordinates)
+        setOriginLabel('Endereço cadastrado')
+        return
+      }
+
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      })
+
+      const nextCoordinates = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      }
+
+      setCoordinates(nextCoordinates)
+      const label = await resolveAddressLabelFromCoordinates(
+        nextCoordinates.latitude,
+        nextCoordinates.longitude,
+      )
+      setOriginLabel(label)
     } catch {
       setLocationError('Não foi possível obter sua localização.')
       setCoordinates(homeCoordinates)
+      setOriginLabel('Endereço cadastrado')
     } finally {
       setIsLocating(false)
     }
@@ -43,9 +67,9 @@ export function useRunningRoutesOrigin({ address }: UseRunningRoutesOriginOption
 
     return {
       ...coordinates,
-      label: 'Sua localização',
+      label: originLabel,
     }
-  }, [coordinates])
+  }, [coordinates, originLabel])
 
   return {
     origin,

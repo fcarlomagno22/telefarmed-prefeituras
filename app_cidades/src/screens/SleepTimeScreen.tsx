@@ -100,6 +100,9 @@ export function SleepTimeScreen() {
 
   const segmentPagerRef = useRef<FlatList<SleepTimeTab>>(null)
   const segmentPagerIndexRef = useRef(0)
+  const segmentPagerProgrammaticScrollRef = useRef(false)
+  const [historyTabMounted, setHistoryTabMounted] = useState(segmentTab === 'history')
+  const [historyTabFocused, setHistoryTabFocused] = useState(segmentTab === 'history')
 
   const showMiniPlayer =
     (sessionSoundId != null || engine.isActive()) && drawerSoundId == null
@@ -203,11 +206,16 @@ export function SleepTimeScreen() {
       const index = SEGMENT_PAGES.indexOf(tab)
       if (index < 0) return
 
+      segmentPagerProgrammaticScrollRef.current = animated
       segmentPagerIndexRef.current = index
       segmentPagerRef.current?.scrollToOffset({
         offset: index * screenWidth,
         animated,
       })
+
+      if (!animated) {
+        segmentPagerProgrammaticScrollRef.current = false
+      }
     },
     [screenWidth],
   )
@@ -215,25 +223,37 @@ export function SleepTimeScreen() {
   const handleSegmentTabChange = useCallback(
     (tab: SleepTimeTab) => {
       setSegmentTab(tab)
+      setHistoryTabFocused(tab === 'history')
+      if (tab === 'history') {
+        setHistoryTabMounted(true)
+      }
       scrollSegmentPagerTo(tab)
     },
     [scrollSegmentPagerTo],
   )
 
-  const handleSegmentPagerIndexChange = useCallback((nextIndex: number) => {
-    const clampedIndex = Math.min(Math.max(nextIndex, 0), SEGMENT_PAGES.length - 1)
-    const nextTab = SEGMENT_PAGES[clampedIndex] ?? 'general'
+  const handleSegmentPagerIndexChange = useCallback(
+    (nextIndex: number, options?: { haptic?: boolean }) => {
+      const clampedIndex = Math.min(Math.max(nextIndex, 0), SEGMENT_PAGES.length - 1)
+      const nextTab = SEGMENT_PAGES[clampedIndex] ?? 'general'
 
-    if (clampedIndex !== segmentPagerIndexRef.current) {
       segmentPagerIndexRef.current = clampedIndex
-      void Haptics.selectionAsync()
-    }
 
-    setSegmentTab(nextTab)
-  }, [])
+      setSegmentTab((current) => {
+        if (current === nextTab) return current
+        if (options?.haptic) {
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+        }
+        return nextTab
+      })
+    },
+    [],
+  )
 
   const handleSegmentPagerScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (segmentPagerProgrammaticScrollRef.current) return
+
       const nextIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth)
       handleSegmentPagerIndexChange(nextIndex)
     },
@@ -242,10 +262,19 @@ export function SleepTimeScreen() {
 
   const handleSegmentPagerScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const wasProgrammatic = segmentPagerProgrammaticScrollRef.current
+      segmentPagerProgrammaticScrollRef.current = false
+
       const nextIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth)
-      handleSegmentPagerIndexChange(nextIndex)
+      const nextTab = SEGMENT_PAGES[Math.min(Math.max(nextIndex, 0), SEGMENT_PAGES.length - 1)] ?? 'general'
+
+      handleSegmentPagerIndexChange(nextIndex, { haptic: !wasProgrammatic })
+      setHistoryTabFocused(nextTab === 'history')
+      if (nextTab === 'history') {
+        setHistoryTabMounted(true)
+      }
     },
-    [handleSegmentPagerIndexChange],
+    [handleSegmentPagerIndexChange, screenWidth],
   )
 
   function handleBack() {
@@ -455,18 +484,20 @@ export function SleepTimeScreen() {
                   onBreathingPress={handleBreathingPress}
                   onStoriesPress={handleStoriesPress}
                 />
-              ) : (
+              ) : historyTabMounted ? (
                 <SleepTimeHistoryTab
                   bottomPadding={bottomContentPadding}
                   patientCpf={patientCpf}
                   refreshKey={sleepLogRefreshKey}
-                  isActive={segmentTab === 'history'}
+                  isActive={historyTabFocused}
                   calendarMonthKey={calendarMonthKey}
                   selectedDateIso={selectedDateIso}
                   onSelectDate={handleHistorySelectDate}
                   onOpenMonthPicker={() => setMonthPickerVisible(true)}
                   onHorizontalScrollActive={(active) => setSegmentPagerScrollEnabled(!active)}
                 />
+              ) : (
+                <View style={styles.segmentPlaceholder} />
               )}
             </View>
           )}
@@ -545,6 +576,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   segmentPage: {
+    flex: 1,
+  },
+  segmentPlaceholder: {
     flex: 1,
   },
 })

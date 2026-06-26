@@ -4,6 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient'
 import type { AnimationObject } from 'lottie-react-native'
 import { useEffect, useRef, useState } from 'react'
 import {
+  ActivityIndicator,
+  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -37,12 +39,15 @@ import {
   MENU_FREQUENCY_OPTIONS,
   MENU_INTOLERANCE_OPTIONS,
   MENU_PREVIOUS_DIET_OPTIONS,
-  MENU_WIZARD_LOADING_MS,
   MENU_WIZARD_STEP_META,
   toggleStringList,
   type EatWellMenuWizardForm,
   type EatWellFrequency,
 } from '../../../utils/eatWellMenuWizard'
+import { generateEatWellMenuFromWizardAsync } from '../../../eatWellEngine'
+import { isOpenAiMenuGenerationEnabled } from '../../../config/openai'
+import { warmMenuGenerationIndex } from '../../../eatWellEngine/menuGenerationIndex'
+import type { EatWellSavedMenu } from '../../../types/eatWell'
 import { stripLottieBackground } from '../../../utils/eatWellMenuLottie'
 import { LottiePlayer } from '../../LottiePlayer'
 import { RunWalkSheetDrawer } from '../../runWalk/RunWalkSheetDrawer'
@@ -69,7 +74,7 @@ type WizardPhase = 'steps' | 'loading' | 'success'
 type EatWellMenuWizardDrawerProps = {
   visible: boolean
   onClose: () => void
-  onComplete?: (form: EatWellMenuWizardForm) => void
+  onComplete?: (payload: { form: EatWellMenuWizardForm; menu: EatWellSavedMenu }) => void
 }
 
 const ACCURACY_DECLARATION_LINES = [
@@ -205,8 +210,10 @@ export function EatWellMenuWizardDrawer({
   const [step, setStep] = useState(1)
   const [form, setForm] = useState<EatWellMenuWizardForm>(() => createEmptyMenuWizardForm())
   const [loadingProgress, setLoadingProgress] = useState(0)
+  const [isFinishing, setIsFinishing] = useState(false)
   const successSoundPlayedRef = useRef(false)
   const formSnapshotRef = useRef(form)
+  const generatedMenuRef = useRef<EatWellSavedMenu | null>(null)
   formSnapshotRef.current = form
 
   function patchForm(patch: Partial<EatWellMenuWizardForm>) {
@@ -218,31 +225,57 @@ export function EatWellMenuWizardDrawer({
     setStep(1)
     setForm(createEmptyMenuWizardForm())
     setLoadingProgress(0)
+    setIsFinishing(false)
+    generatedMenuRef.current = null
     successSoundPlayedRef.current = false
   }
 
   useEffect(() => {
     if (!visible) {
       resetWizard()
+      return
     }
+
+    warmMenuGenerationIndex()
   }, [visible])
 
   useEffect(() => {
     if (phase !== 'loading') return
 
-    const startedAt = Date.now()
-    const timer = setInterval(() => {
-      const elapsed = Date.now() - startedAt
-      const progress = Math.min(100, (elapsed / MENU_WIZARD_LOADING_MS) * 100)
-      setLoadingProgress(progress)
+    let cancelled = false
+    generatedMenuRef.current = null
+    setLoadingProgress(0)
 
-      if (elapsed >= MENU_WIZARD_LOADING_MS) {
-        clearInterval(timer)
+    void (async () => {
+      try {
+        const menu = await generateEatWellMenuFromWizardAsync(
+          formSnapshotRef.current,
+          (progress) => {
+            if (!cancelled) setLoadingProgress(progress)
+          },
+        )
+
+        if (cancelled) return
+
+        generatedMenuRef.current = menu
+        setLoadingProgress(100)
         setPhase('success')
+      } catch (error) {
+        if (cancelled) return
+        setLoadingProgress(0)
+        setPhase('steps')
+        const message =
+          error instanceof Error ? error.message : 'Não foi possível gerar o cardápio.'
+        Alert.alert(
+          isOpenAiMenuGenerationEnabled() ? 'Erro na geração com IA' : 'Erro ao gerar cardápio',
+          message,
+        )
       }
-    }, 80)
+    })()
 
-    return () => clearInterval(timer)
+    return () => {
+      cancelled = true
+    }
   }, [phase])
 
   useEffect(() => {
@@ -274,7 +307,13 @@ export function EatWellMenuWizardDrawer({
   }
 
   function handleFinishSuccess() {
-    onComplete?.(formSnapshotRef.current)
+    if (isFinishing || !generatedMenuRef.current) return
+
+    setIsFinishing(true)
+    const formSnapshot = formSnapshotRef.current
+    const menu = generatedMenuRef.current
+
+    onComplete?.({ form: formSnapshot, menu })
     handleClose()
   }
 
@@ -509,6 +548,27 @@ export function EatWellMenuWizardDrawer({
     )
   }
 
+  function renderReproductiveStatus() {
+    return (
+      <View style={styles.formStack}>
+        <StepLottie source={WIZARD_LOTTIES.baby} />
+        <FieldLabel label="Você está gestante?" />
+        <YesNoToggle
+          value={form.isPregnant}
+          onChange={(isPregnant) => patchForm({ isPregnant })}
+        />
+        <FieldLabel label="Você está amamentando?" />
+        <YesNoToggle
+          value={form.isLactating}
+          onChange={(isLactating) => patchForm({ isLactating })}
+        />
+        <Text style={styles.activityHint}>
+          Essas informações ajustam calorias, exclusões e prioridades do cardápio.
+        </Text>
+      </View>
+    )
+  }
+
   function renderHunger() {
     return (
       <View style={styles.formStack}>
@@ -721,7 +781,9 @@ export function EatWellMenuWizardDrawer({
         />
         <Text style={styles.loadingTitle}>Gerando seu cardápio</Text>
         <Text style={styles.loadingSubtitle}>
-          Analisando suas respostas e montando sugestões personalizadas…
+          {isOpenAiMenuGenerationEnabled()
+            ? 'Personalizando seu carápio a partir do seu perfil. Pode levar alguns minutinhos… Se a barra ficar travada, não liga não, só estamos pensando mesmo!'
+            : 'Cruzando seu perfil completo com milhares de combinações práticas. Pode levar até 2 minutos…'}
         </Text>
         <View style={styles.progressTrack}>
           <LinearGradient
@@ -774,18 +836,22 @@ export function EatWellMenuWizardDrawer({
       case 5:
         return renderIntolerances()
       case 6:
-        return renderHunger()
+        return renderPreferences()
       case 7:
-        return renderAlcohol()
+        return renderReproductiveStatus()
       case 8:
-        return renderSleep()
+        return renderHunger()
       case 9:
-        return renderStress()
+        return renderAlcohol()
       case 10:
-        return renderBowel()
+        return renderSleep()
       case 11:
-        return renderDiets()
+        return renderStress()
       case 12:
+        return renderBowel()
+      case 13:
+        return renderDiets()
+      case 14:
         return renderAccuracyDeclaration()
       default:
         return null
@@ -799,10 +865,19 @@ export function EatWellMenuWizardDrawer({
       return (
         <Pressable
           onPress={handleFinishSuccess}
-          style={({ pressed }) => [styles.greenBtn, pressed && styles.greenBtnPressed]}
+          disabled={isFinishing || !generatedMenuRef.current}
+          style={({ pressed }) => [
+            styles.greenBtn,
+            pressed && styles.greenBtnPressed,
+            isFinishing && styles.greenBtnDisabled,
+          ]}
         >
           <View style={styles.greenBtnInner}>
-            <Text style={styles.greenBtnText}>Concluir</Text>
+            {isFinishing ? (
+              <ActivityIndicator color="#0a0a0c" size="small" />
+            ) : (
+              <Text style={styles.greenBtnText}>Concluir</Text>
+            )}
           </View>
         </Pressable>
       )
@@ -823,7 +898,7 @@ export function EatWellMenuWizardDrawer({
       )
     }
 
-    if (step === 12) {
+    if (step === 14) {
       return (
         <View style={styles.footerRow}>
           <Pressable
@@ -855,7 +930,7 @@ export function EatWellMenuWizardDrawer({
       )
     }
 
-    if (step === 11) {
+    if (step === 13) {
       return (
         <View style={styles.footerRow}>
           <Pressable

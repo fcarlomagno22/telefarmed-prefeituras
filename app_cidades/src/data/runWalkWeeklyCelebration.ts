@@ -15,3 +15,7 @@ export function consumePendingWeeklyGoalCelebration(): PendingWeeklyGoalCelebrat
   pendingCelebration = null
   return celebration
 }
+
+export function peekPendingWeeklyGoalCelebration(): PendingWeeklyGoalCelebration | null {
+  return pendingCelebration
+}

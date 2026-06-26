@@ -53,6 +53,11 @@ export function resolveMapMarkerHeading(
   deviceHeadingDegrees: number | null | undefined,
   lastHeadingDegrees: number | null,
 ): number | null {
+  const movementHeading = computeTrailHeadingDegrees(trail)
+  if (movementHeading != null) {
+    return movementHeading
+  }
+
   if (
     deviceHeadingDegrees != null &&
     Number.isFinite(deviceHeadingDegrees) &&
@@ -61,8 +66,6 @@ export function resolveMapMarkerHeading(
     return deviceHeadingDegrees % 360
   }
 
-  const movementHeading = computeTrailHeadingDegrees(trail)
-  if (movementHeading != null) return movementHeading
   if (lastHeadingDegrees != null) return lastHeadingDegrees
 
   return trail.length > 0 ? 0 : null

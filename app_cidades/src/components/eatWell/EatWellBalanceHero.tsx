@@ -24,6 +24,7 @@ type EatWellBalanceHeroProps = {
   adjustedCalorieTarget: number
   balance: BalanceScoreBreakdown
   animate?: boolean
+  idleProgress?: boolean
   onBalancePress: () => void
   onMacroChipPress: (macroId: MacroChipId) => void
 }
@@ -58,12 +59,14 @@ function MacroBarRow({
   target,
   color,
   animate,
+  idleProgress,
 }: {
   label: string
   consumed: number
   target: number
   color: string
   animate: boolean
+  idleProgress: boolean
 }) {
   const progress = target > 0 ? consumed / target : 0
 
@@ -76,6 +79,7 @@ function MacroBarRow({
       <RunWalkHistoryAnimatedBar
         progress={Math.min(progress, 1)}
         animate={animate}
+        preserveFinal={animate || idleProgress}
         color={color}
         trackStyle={styles.macroBarTrack}
       />
@@ -101,9 +105,11 @@ export function EatWellBalanceHero({
   adjustedCalorieTarget,
   balance,
   animate = true,
+  idleProgress = true,
   onBalancePress,
   onMacroChipPress,
 }: EatWellBalanceHeroProps) {
+  const showProgress = animate || idleProgress
   const tier = getBalanceTier(balance.score)
   const calorieProgress =
     adjustedCalorieTarget > 0 ? totals.calories / adjustedCalorieTarget : 0
@@ -150,7 +156,7 @@ export function EatWellBalanceHero({
             <RunWalkProgressRing
               progress={balance.score / 100}
               value={String(balance.score)}
-              countTo={animate ? balance.score : undefined}
+              countTo={balance.score}
               formatCount={(value) => String(Math.round(value))}
               label="de 100"
               size={RING_SIZE}
@@ -158,6 +164,7 @@ export function EatWellBalanceHero({
               gradientId="eat-well-balance-ring"
               gradientColors={tier.gradientColors}
               animate={animate}
+              preserveFinal={showProgress}
             />
             <View style={[styles.tierBadge, { borderColor: `${tier.gradientColors[1]}66` }]}>
               <Text style={[styles.tierBadgeText, { color: tier.gradientColors[0] }]}>
@@ -172,12 +179,15 @@ export function EatWellBalanceHero({
             <RunWalkProgressRing
               progress={Math.min(calorieProgress, 1)}
               value={formatCalories(totals.calories)}
+              countTo={totals.calories}
+              formatCount={formatCalories}
               label="consumidas"
               size={RING_SIZE}
               stroke={RING_STROKE}
               gradientId="eat-well-calorie-ring"
               gradientColors={['#fde68a', '#f59e0b', '#d97706']}
               animate={animate}
+              preserveFinal={showProgress}
             />
             <View style={styles.waterMini}>
               <Ionicons name="water" size={14} color="#67e8f9" />
@@ -195,6 +205,7 @@ export function EatWellBalanceHero({
             target={goals.proteinG}
             color="#60a5fa"
             animate={animate}
+            idleProgress={idleProgress}
           />
           <MacroBarRow
             label="Carboidratos"
@@ -202,6 +213,7 @@ export function EatWellBalanceHero({
             target={goals.carbsG}
             color="#fbbf24"
             animate={animate}
+            idleProgress={idleProgress}
           />
           <MacroBarRow
             label="Gorduras"
@@ -209,6 +221,7 @@ export function EatWellBalanceHero({
             target={goals.fatG}
             color="#f472b6"
             animate={animate}
+            idleProgress={idleProgress}
           />
         </View>
 

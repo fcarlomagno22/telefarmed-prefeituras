@@ -54,21 +54,29 @@ function resolveSnap(
   dragDy: number,
   offsets: { collapsed: number; mid: number; expanded: number },
   hasSelection: boolean,
+  fromSnap: NearbySheetSnap,
 ): NearbySheetSnap {
   if (velocityY < -0.2 || dragDy < -40) {
     if (hasSelection) return 'expanded'
+    if (fromSnap === 'collapsed') return 'expanded'
     if (projected <= offsets.expanded + 40) return 'expanded'
     return 'mid'
   }
 
   if (velocityY > 0.2 || dragDy > 40) {
     if (hasSelection && projected > offsets.mid + 30) return 'mid'
+    if (fromSnap === 'expanded' && !hasSelection && projected > offsets.mid + 30) {
+      return 'mid'
+    }
     return 'collapsed'
   }
+
+  if (fromSnap === 'collapsed' && dragDy < -12) return 'expanded'
 
   const thresholdCollapsedMid = (offsets.collapsed + offsets.mid) / 2
   const thresholdMidExpanded = (offsets.mid + offsets.expanded) / 2
 
+  if (fromSnap === 'collapsed' && projected < thresholdCollapsedMid) return 'expanded'
   if (projected <= thresholdMidExpanded) return 'expanded'
   if (projected <= thresholdCollapsedMid) return 'mid'
   return 'collapsed'
@@ -95,6 +103,7 @@ export function NearbyUnitsBottomSheet({
 
   const translateY = useRef(new Animated.Value(offsets.collapsed)).current
   const dragStartY = useRef(offsets.collapsed)
+  const dragStartSnap = useRef<NearbySheetSnap>('collapsed')
   const isDragging = useRef(false)
   const selectedIdRef = useRef(selectedId)
   const sheetSnapRef = useRef(sheetSnap)
@@ -150,6 +159,7 @@ export function NearbyUnitsBottomSheet({
         onPanResponderTerminationRequest: () => false,
         onPanResponderGrant: () => {
           isDragging.current = true
+          dragStartSnap.current = sheetSnapRef.current
           translateY.stopAnimation((value) => {
             dragStartY.current = value
           })
@@ -170,6 +180,7 @@ export function NearbyUnitsBottomSheet({
             gesture.dy,
             offsets,
             Boolean(selectedIdRef.current),
+            dragStartSnap.current,
           )
           animateToSnap(snap)
         },
@@ -205,7 +216,7 @@ export function NearbyUnitsBottomSheet({
         <View style={styles.dragZone}>
           <View style={styles.handle} />
           <Text style={styles.dragHint}>
-            {showCollapsed ? 'Arraste para ver as unidades' : 'Arraste para ajustar'}
+            {showCollapsed ? 'Arraste para ver as unidades' : 'Arraste para ver mais'}
           </Text>
         </View>
 
@@ -339,7 +350,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   detailScroll: {
-    paddingBottom: 16,
+    paddingBottom: 24,
   },
   empty: {
     paddingHorizontal: 24,

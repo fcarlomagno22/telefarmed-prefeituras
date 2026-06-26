@@ -16,6 +16,7 @@ import {
   Text,
   TextInput,
   View,
+  type KeyboardEvent,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, {
@@ -32,11 +33,14 @@ import Svg, {
 } from 'react-native-svg'
 import { colors } from '../../theme/colors'
 import { playSuccessSound } from '../../utils/appSounds'
+import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 import { PrimaryButton } from '../PrimaryButton'
 import { AppModal } from '../AppModal'
 import { MetricLogSuccessContent } from './MetricLogSuccessContent'
 
 const SUCCESS_DISMISS_MS = 2600
+const KEYBOARD_EXTRA_PADDING = 20
 
 const SHEET_OFFSET = 480
 const STEP_MG = 5
@@ -706,11 +710,13 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
   const [readingContext, setReadingContext] = useState<GlucoseReadingContext>('fasting')
   const [dropGesturesReady, setDropGesturesReady] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [keyboardInset, setKeyboardInset] = useState(0)
 
   const sheetTranslateY = useRef(new Animated.Value(SHEET_OFFSET)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingRegistrationRef = useRef<GlucoseReading | null>(null)
+  const scrollRef = useRef<ScrollView>(null)
 
   const amountRef = useRef(amountMg)
   const dragStartMg = useRef(DEFAULT_MG)
@@ -752,6 +758,32 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
 
     if (isMounted) {
       closeSheet(onClose)
+    }
+  }, [visible])
+
+  useEffect(() => {
+    if (!visible) {
+      setKeyboardInset(0)
+      return
+    }
+
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'
+
+    function handleKeyboardShow(event: KeyboardEvent) {
+      setKeyboardInset(event.endCoordinates.height)
+    }
+
+    function handleKeyboardHide() {
+      setKeyboardInset(0)
+    }
+
+    const showSubscription = Keyboard.addListener(showEvent, handleKeyboardShow)
+    const hideSubscription = Keyboard.addListener(hideEvent, handleKeyboardHide)
+
+    return () => {
+      showSubscription.remove()
+      hideSubscription.remove()
     }
   }, [visible])
 
@@ -821,6 +853,7 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
 
   function handleDismiss() {
     if (!visible) return
+    Keyboard.dismiss()
     clearSuccessTimer()
     const pending = pendingRegistrationRef.current
     pendingRegistrationRef.current = null
@@ -876,6 +909,10 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
   const rulerStepMg = (MAX_MG - MIN_MG) / RULER_SEGMENTS
   const selectedContextLabel =
     CONTEXT_OPTIONS.find((option) => option.id === readingContext)?.label ?? 'Jejum'
+  const keyboardLift =
+    keyboardInset > 0
+      ? Math.max(0, keyboardInset - Math.max(insets.bottom, 0) + KEYBOARD_EXTRA_PADDING)
+      : 0
 
   if (!isMounted) return null
 
@@ -891,15 +928,19 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
         </Animated.View>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={keyboardAvoidingBehavior}
           style={styles.keyboardWrap}
+          enabled={Platform.OS === 'ios'}
         >
           <Animated.View
             style={[
               styles.sheet,
               {
-                paddingBottom: Math.max(insets.bottom, 16) + 8,
-                transform: [{ translateY: sheetTranslateY }],
+                paddingBottom: getModalFooterPadding(insets.bottom, 8),
+                transform: [
+                  { translateY: sheetTranslateY },
+                  { translateY: -keyboardLift },
+                ],
               },
             ]}
           >
@@ -926,10 +967,21 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
                 message={`${formatMgLabel(amountMg)} · ${selectedContextLabel} salvos no seu histórico.`}
               />
             ) : (
-              <>
+              <ScrollView
+                ref={scrollRef}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="interactive"
+                automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+                contentContainerStyle={[
+                  styles.scrollContent,
+                  keyboardInset > 0 && { paddingBottom: KEYBOARD_EXTRA_PADDING },
+                ]}
+                bounces={keyboardInset === 0}
+              >
                 <View style={styles.handle} />
 
-                <View style={styles.headerRow}>
+                <View style={[styles.headerRow, keyboardInset > 0 && styles.headerRowCompact]}>
                   <LinearGradient
                     colors={[...BLOOD_GRADIENT]}
                     start={{ x: 0.2, y: 0 }}
@@ -958,40 +1010,47 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
                 </View>
 
                 <View style={styles.contentRow}>
-                  <View style={styles.dropColumn}>
-                    <Text style={styles.dropHint}>Arraste na gota</Text>
+                  {keyboardInset === 0 ? (
+                    <View style={styles.dropColumn}>
+                      <Text style={styles.dropHint}>Arraste na gota</Text>
 
-                    <View style={styles.dropStage}>
-                      <View style={styles.tickColumn} pointerEvents="none">
-                        <View style={[styles.fillIndicator, { top: fillIndicatorTop }]} />
+                      <View style={styles.dropStage}>
+                        <View style={styles.tickColumn} pointerEvents="none">
+                          <View style={[styles.fillIndicator, { top: fillIndicatorTop }]} />
 
-                        {Array.from({ length: RULER_SEGMENTS + 1 }, (_, index) => {
-                          const tickMg = MAX_MG - index * rulerStepMg
-                          const active = amountMg >= tickMg
-                          const showLabel =
-                            index % 2 === 0 || tickMg === MIN_MG || tickMg === MAX_MG
-                          return (
-                            <View key={tickMg} style={styles.tickRow}>
-                              <View style={[styles.tickMark, active && styles.tickMarkActive]} />
-                              {showLabel ? (
-                                <Text style={[styles.tickLabel, active && styles.tickLabelActive]}>
-                                  {formatTickLabel(tickMg)}
-                                </Text>
-                              ) : (
-                                <View style={styles.tickLabelSpacer} />
-                              )}
-                            </View>
-                          )
-                        })}
-                      </View>
+                          {Array.from({ length: RULER_SEGMENTS + 1 }, (_, index) => {
+                            const tickMg = MAX_MG - index * rulerStepMg
+                            const active = amountMg >= tickMg
+                            const showLabel =
+                              index % 2 === 0 || tickMg === MIN_MG || tickMg === MAX_MG
+                            return (
+                              <View key={tickMg} style={styles.tickRow}>
+                                <View style={[styles.tickMark, active && styles.tickMarkActive]} />
+                                {showLabel ? (
+                                  <Text style={[styles.tickLabel, active && styles.tickLabelActive]}>
+                                    {formatTickLabel(tickMg)}
+                                  </Text>
+                                ) : (
+                                  <View style={styles.tickLabelSpacer} />
+                                )}
+                              </View>
+                            )
+                          })}
+                        </View>
 
-                      <View style={styles.dropTouchArea} {...dropPanResponder.panHandlers}>
-                        <BloodDropVisual amountMg={amountMg} active={dropGesturesReady} />
+                        <View style={styles.dropTouchArea} {...dropPanResponder.panHandlers}>
+                          <BloodDropVisual amountMg={amountMg} active={dropGesturesReady} />
+                        </View>
                       </View>
                     </View>
-                  </View>
+                  ) : null}
 
-                  <View style={styles.amountColumn}>
+                  <View
+                    style={[
+                      styles.amountColumn,
+                      keyboardInset > 0 && styles.amountColumnExpanded,
+                    ]}
+                  >
                     <Text style={styles.amountLabel}>Medição</Text>
 
                     <View style={styles.amountDisplayCard}>
@@ -1023,6 +1082,11 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
                           style={styles.input}
                           selectionColor={colors.primary}
                           maxLength={3}
+                          onFocus={() => {
+                            requestAnimationFrame(() => {
+                              scrollRef.current?.scrollTo({ y: 120, animated: true })
+                            })
+                          }}
                         />
                         <Text style={styles.inputSuffix}>mg/dL</Text>
                       </View>
@@ -1036,6 +1100,7 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.contextRow}
                   keyboardShouldPersistTaps="handled"
+                  nestedScrollEnabled
                 >
                   {CONTEXT_OPTIONS.map((option) => (
                     <GlucoseContextChip
@@ -1048,7 +1113,7 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
                 </ScrollView>
 
                 <PrimaryButton label="Registrar glicemia" onPress={handleRegister} />
-              </>
+              </ScrollView>
             )}
           </Animated.View>
         </KeyboardAvoidingView>
@@ -1067,6 +1132,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
   keyboardWrap: {
+    flex: 1,
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -1077,6 +1143,10 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
+    maxHeight: '92%',
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   topAccent: {
     position: 'absolute',
@@ -1099,6 +1169,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 12,
     marginBottom: 16,
+  },
+  headerRowCompact: {
+    marginBottom: 10,
   },
   fieldIconOrb: {
     width: 46,
@@ -1242,6 +1315,10 @@ const styles = StyleSheet.create({
     height: DROP_HEIGHT + 28,
     justifyContent: 'center',
     gap: 8,
+  },
+  amountColumnExpanded: {
+    height: undefined,
+    minHeight: 0,
   },
   amountLabel: {
     color: colors.textMuted,

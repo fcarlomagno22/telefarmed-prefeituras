@@ -37,6 +37,7 @@ export function EatWellWeekHero({ summary, animate = true }: EatWellWeekHeroProp
             <RunWalkHistoryAnimatedNumber
               value={summary.totalCalories}
               animate={animate}
+              preserveFinal={animate}
               formatter={(value) => formatCalories(value)}
               style={styles.bigNumberLeft}
             />
@@ -48,7 +49,7 @@ export function EatWellWeekHero({ summary, animate = true }: EatWellWeekHeroProp
             <RunWalkHistoryAnimatedNumber
               value={summary.totalWaterMl}
               animate={animate}
-              preserveFinal={false}
+              preserveFinal={animate}
               formatter={(value) => formatLitersFromMl(value)}
               style={styles.bigNumberRight}
             />

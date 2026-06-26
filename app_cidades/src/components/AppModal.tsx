@@ -46,29 +46,31 @@ export function AppModal({
     }
 
     if (!visible) {
+      overlayPortal.clearContent(overlayId)
       overlayPortal.unmount(overlayId)
       return
     }
 
-    overlayPortal.mount(
+    overlayPortal.mount(overlayId)
+
+    return () => {
+      overlayPortal.clearContent(overlayId)
+      overlayPortal.unmount(overlayId)
+    }
+  }, [overlayId, overlayPortal, useAndroidOverlay, visible])
+
+  useLayoutEffect(() => {
+    if (!useAndroidOverlay || !visible) {
+      return
+    }
+
+    overlayPortal.setContent(
       overlayId,
       <ModalShell transparent={transparent} navBarUnderlayColor={navBarUnderlayColor}>
         {children}
       </ModalShell>,
     )
-
-    return () => {
-      overlayPortal.unmount(overlayId)
-    }
-  }, [
-    children,
-    navBarUnderlayColor,
-    overlayId,
-    overlayPortal,
-    transparent,
-    useAndroidOverlay,
-    visible,
-  ])
+  }, [children, navBarUnderlayColor, overlayId, overlayPortal, transparent, useAndroidOverlay, visible])
 
   if (useAndroidOverlay) {
     return null

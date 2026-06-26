@@ -1,4 +1,9 @@
-import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio'
+import {
+  createAudioPlayer,
+  setAudioModeAsync,
+  setIsAudioActiveAsync,
+  type AudioPlayer,
+} from 'expo-audio'
 
 const introSound = require('../../assets/sono/inicio_respirar.mp3')
 const inhaleSound = require('../../assets/sono/inspira.mp3')
@@ -12,19 +17,34 @@ const SOUND_SOURCES: Record<SleepBreathingSoundId, number> = {
   exhale: exhaleSound,
 }
 
-let audioModeReady = false
 let activePlayer: AudioPlayer | null = null
 let activeSubscription: { remove: () => void } | null = null
 
 async function ensureAudioMode() {
-  if (audioModeReady) return
-
+  await setIsAudioActiveAsync(true)
   await setAudioModeAsync({
     playsInSilentMode: true,
     shouldPlayInBackground: false,
-    interruptionMode: 'mixWithOthers',
+    interruptionMode: 'duckOthers',
   })
-  audioModeReady = true
+}
+
+async function waitUntilPlayerLoaded(player: AudioPlayer, timeoutMs = 3000) {
+  if (player.isLoaded) return
+
+  await Promise.race([
+    new Promise<void>((resolve) => {
+      const subscription = player.addListener('playbackStatusUpdate', (status) => {
+        if (status.isLoaded) {
+          subscription.remove()
+          resolve()
+        }
+      })
+    }),
+    new Promise<void>((resolve) => {
+      setTimeout(resolve, timeoutMs)
+    }),
+  ])
 }
 
 function clearActivePlayer() {
@@ -57,7 +77,9 @@ export async function playSleepBreathingSound(
     await ensureAudioMode()
     clearActivePlayer()
 
-    const player = createAudioPlayer(SOUND_SOURCES[soundId])
+    const player = createAudioPlayer(SOUND_SOURCES[soundId], {
+      keepAudioSessionActive: true,
+    })
     activePlayer = player
 
     const subscription = player.addListener('playbackStatusUpdate', (status) => {
@@ -82,6 +104,7 @@ export async function playSleepBreathingSound(
     })
 
     activeSubscription = subscription
+    await waitUntilPlayerLoaded(player)
     player.play()
   } catch {
     onFinish?.()

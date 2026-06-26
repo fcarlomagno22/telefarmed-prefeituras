@@ -2,7 +2,16 @@ import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
-import Svg, { Circle, Defs, Line, LinearGradient as SvgLinearGradient, Path, Rect, Stop, Text as SvgText } from 'react-native-svg'
+import Svg, {
+  Circle,
+  Defs,
+  Line,
+  LinearGradient as SvgLinearGradient,
+  Path,
+  Rect,
+  Stop,
+  Text as SvgText,
+} from 'react-native-svg'
 import type { EatWellWeekChartMode, EatWellWeekSummary } from '../../../types/eatWell'
 import { colors } from '../../../theme/colors'
 import { formatCalories, formatLitersFromMl } from '../../../utils/eatWellNutritionStats'
@@ -11,6 +20,7 @@ type EatWellWeekComboChartProps = {
   summary: EatWellWeekSummary
   width: number
   animate?: boolean
+  idleProgress?: boolean
 }
 
 const CHART_HEIGHT = 180
@@ -19,15 +29,41 @@ const CARD_PADDING = 14
 const PADDING = { top: 16, right: 8, bottom: 34, left: 8 }
 const BAR_RADIUS = 7
 
+const TOTAL_BAR_ANIMATION_MS = 1000
+const BAR_STAGGER_MS = 12
+const WATER_PHASE_GAP_MS = 80
+const DOT_STAGGER_MS = 45
+const DOT_REVEAL_MS = 180
+const LINE_DRAW_MS = 650
+
+function computePolylineLength(points: { x: number; y: number }[]) {
+  let length = 0
+
+  for (let index = 1; index < points.length; index += 1) {
+    const previous = points[index - 1]!
+    const current = points[index]!
+    length += Math.hypot(current.x - previous.x, current.y - previous.y)
+  }
+
+  return length
+}
+
 export function EatWellWeekComboChart({
   summary,
   width,
   animate = true,
+  idleProgress = false,
 }: EatWellWeekComboChartProps) {
+  const showProgress = animate || idleProgress
   const [mode, setMode] = useState<EatWellWeekChartMode>('both')
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
-  const progress = useRef(new Animated.Value(animate ? 0 : 1)).current
-  const [drawProgress, setDrawProgress] = useState(animate ? 0 : 1)
+  const [barProgressRatios, setBarProgressRatios] = useState<number[]>(() =>
+    summary.dayStats.map((day) => (day.isFuture ? 1 : showProgress ? 1 : 0)),
+  )
+  const [dotRevealRatios, setDotRevealRatios] = useState<number[]>([])
+  const [lineDrawProgress, setLineDrawProgress] = useState(showProgress ? 1 : 0)
+
+  const animationRunRef = useRef(0)
 
   const days = summary.dayStats
   const activeDays = days.filter((day) => !day.isFuture)
@@ -43,47 +79,170 @@ export function EatWellWeekComboChart({
   const barGeometries = useMemo(
     () =>
       days.map((day, index) => {
+        const progress = barProgressRatios[index] ?? 1
         const x = PADDING.left + index * slotWidth + (slotWidth - barWidth) / 2
         const rawHeight =
           day.isFuture || day.calories <= 0
             ? 0
-            : (day.calories / maxCalories) * plotHeight * drawProgress
+            : (day.calories / maxCalories) * plotHeight * progress
         const barHeight = Math.max(rawHeight, day.calories > 0 ? 4 : 0)
         const y = PADDING.top + plotHeight - barHeight
         const waterY =
           day.isFuture || day.waterMl <= 0
             ? PADDING.top + plotHeight
-            : PADDING.top + plotHeight - (day.waterMl / maxWater) * plotHeight * drawProgress
+            : PADDING.top + plotHeight - (day.waterMl / maxWater) * plotHeight
 
         return { day, index, x, y, barHeight, barWidth, waterY }
       }),
-    [barWidth, days, drawProgress, maxCalories, maxWater, plotHeight, slotWidth],
+    [barProgressRatios, barWidth, days, maxCalories, maxWater, plotHeight, slotWidth],
   )
 
-  const linePath = barGeometries
-    .filter((item) => !item.day.isFuture && item.day.waterMl > 0)
-    .map((item, index) => `${index === 0 ? 'M' : 'L'} ${item.x + item.barWidth / 2} ${item.waterY}`)
-    .join(' ')
+  const waterPoints = useMemo(
+    () =>
+      barGeometries
+        .filter((item) => !item.day.isFuture && item.day.waterMl > 0)
+        .map((item) => ({
+          ...item,
+          cx: item.x + item.barWidth / 2,
+          cy: item.waterY,
+        })),
+    [barGeometries],
+  )
+
+  const linePath = useMemo(
+    () =>
+      waterPoints
+        .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.cx} ${point.cy}`)
+        .join(' '),
+    [waterPoints],
+  )
+
+  const linePathLength = useMemo(
+    () => computePolylineLength(waterPoints.map((point) => ({ x: point.cx, y: point.cy }))),
+    [waterPoints],
+  )
 
   useEffect(() => {
+    const animatableIndices = days
+      .map((day, index) => (!day.isFuture ? index : -1))
+      .filter((index) => index >= 0)
+    const waterPointCount = days.filter((day) => !day.isFuture && day.waterMl > 0).length
+
     if (!animate) {
-      progress.setValue(1)
-      setDrawProgress(1)
+      setBarProgressRatios(days.map((day) => (day.isFuture ? 1 : showProgress ? 1 : 0)))
+      setDotRevealRatios(Array.from({ length: waterPointCount }, () => (showProgress ? 1 : 0)))
+      setLineDrawProgress(showProgress ? 1 : 0)
       return
     }
 
-    progress.setValue(0)
-    setDrawProgress(0)
-    const listenerId = progress.addListener(({ value }) => setDrawProgress(value))
-    Animated.timing(progress, {
-      toValue: 1,
-      duration: 1200,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: false,
-    }).start()
+    const runId = animationRunRef.current + 1
+    animationRunRef.current = runId
 
-    return () => progress.removeListener(listenerId)
-  }, [animate, progress, summary.weekLabel])
+    const initialBarRatios = days.map((day, index) =>
+      day.isFuture || !animatableIndices.includes(index) ? 1 : 0,
+    )
+    setBarProgressRatios(initialBarRatios)
+    setDotRevealRatios(Array.from({ length: waterPointCount }, () => 0))
+    setLineDrawProgress(0)
+
+    const barCount = animatableIndices.length
+    const barDuration = Math.max(
+      140,
+      TOTAL_BAR_ANIMATION_MS - Math.max(0, barCount - 1) * BAR_STAGGER_MS,
+    )
+
+    const barValues = animatableIndices.map(() => new Animated.Value(0))
+    const dotValues = Array.from({ length: waterPointCount }, () => new Animated.Value(0))
+    const lineValue = new Animated.Value(0)
+
+    const barListeners = animatableIndices.map((dayIndex, orderIndex) =>
+      barValues[orderIndex]!.addListener(({ value }) => {
+        if (animationRunRef.current !== runId) return
+
+        setBarProgressRatios((current) => {
+          if (current[dayIndex] === value) return current
+          const next = [...current]
+          next[dayIndex] = value
+          return next
+        })
+      }),
+    )
+
+    const dotListeners = dotValues.map((value, dotIndex) =>
+      value.addListener(({ value: ratio }) => {
+        if (animationRunRef.current !== runId) return
+
+        setDotRevealRatios((current) => {
+          if (current[dotIndex] === ratio) return current
+          const next = [...current]
+          next[dotIndex] = ratio
+          return next
+        })
+      }),
+    )
+
+    const lineListener = lineValue.addListener(({ value }) => {
+      if (animationRunRef.current !== runId) return
+      setLineDrawProgress(value)
+    })
+
+    const barAnimations = animatableIndices.map((_, orderIndex) =>
+      Animated.timing(barValues[orderIndex]!, {
+        toValue: 1,
+        duration: barDuration,
+        delay: orderIndex * BAR_STAGGER_MS,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }),
+    )
+
+    const dotsStartDelay = TOTAL_BAR_ANIMATION_MS + WATER_PHASE_GAP_MS
+    const dotAnimations = dotValues.map((value, dotIndex) =>
+      Animated.timing(value, {
+        toValue: 1,
+        duration: DOT_REVEAL_MS,
+        delay: dotsStartDelay + dotIndex * DOT_STAGGER_MS,
+        easing: Easing.out(Easing.back(1.2)),
+        useNativeDriver: false,
+      }),
+    )
+
+    const lineStartDelay =
+      waterPointCount > 1
+        ? dotsStartDelay + (waterPointCount - 1) * DOT_STAGGER_MS + DOT_REVEAL_MS + 40
+        : dotsStartDelay
+
+    const lineAnimation =
+      waterPointCount > 1
+        ? Animated.timing(lineValue, {
+            toValue: 1,
+            duration: LINE_DRAW_MS,
+            delay: lineStartDelay,
+            easing: Easing.inOut(Easing.cubic),
+            useNativeDriver: false,
+          })
+        : null
+
+    Animated.parallel([
+      ...barAnimations,
+      ...dotAnimations,
+      ...(lineAnimation ? [lineAnimation] : []),
+    ]).start()
+
+    return () => {
+      animationRunRef.current += 1
+      barListeners.forEach((listenerId, orderIndex) => {
+        barValues[orderIndex]?.removeListener(listenerId)
+      })
+      dotListeners.forEach((listenerId, dotIndex) => {
+        dotValues[dotIndex]?.removeListener(listenerId)
+      })
+      lineValue.removeListener(lineListener)
+      barValues.forEach((value) => value.stopAnimation())
+      dotValues.forEach((value) => value.stopAnimation())
+      lineValue.stopAnimation()
+    }
+  }, [animate, days, showProgress, summary.weekLabel])
 
   function handleModePress(nextMode: EatWellWeekChartMode) {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
@@ -127,7 +286,12 @@ export function EatWellWeekComboChart({
               ))}
             </View>
             {tooltipLabel ? (
-              <Text style={styles.tooltipInline} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+              <Text
+                style={styles.tooltipInline}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
                 {tooltipLabel}
               </Text>
             ) : null}
@@ -136,49 +300,48 @@ export function EatWellWeekComboChart({
 
         <View style={styles.chartArea}>
           <Svg width={chartWidth} height={CHART_HEIGHT}>
-          <Defs>
-            <SvgLinearGradient id="eatWellCalorieBar" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor="#fde68a" stopOpacity={1} />
-              <Stop offset="100%" stopColor="#d97706" stopOpacity={0.92} />
-            </SvgLinearGradient>
-            <SvgLinearGradient id="eatWellCalorieBarSelected" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor="#fef08a" stopOpacity={1} />
-              <Stop offset="100%" stopColor="#f59e0b" stopOpacity={1} />
-            </SvgLinearGradient>
-            <SvgLinearGradient id="eatWellCalorieBarFuture" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor="rgba(255,255,255,0.08)" stopOpacity={1} />
-              <Stop offset="100%" stopColor="rgba(255,255,255,0.03)" stopOpacity={1} />
-            </SvgLinearGradient>
-          </Defs>
+            <Defs>
+              <SvgLinearGradient id="eatWellCalorieBar" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0%" stopColor="#fde68a" stopOpacity={1} />
+                <Stop offset="100%" stopColor="#d97706" stopOpacity={0.92} />
+              </SvgLinearGradient>
+              <SvgLinearGradient id="eatWellCalorieBarSelected" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0%" stopColor="#fef08a" stopOpacity={1} />
+                <Stop offset="100%" stopColor="#f59e0b" stopOpacity={1} />
+              </SvgLinearGradient>
+              <SvgLinearGradient id="eatWellCalorieBarFuture" x1="0" y1="0" x2="0" y2="1">
+                <Stop offset="0%" stopColor="rgba(255,255,255,0.08)" stopOpacity={1} />
+                <Stop offset="100%" stopColor="rgba(255,255,255,0.03)" stopOpacity={1} />
+              </SvgLinearGradient>
+            </Defs>
 
-          {barGeometries.map((item) => {
-            const isSelected = selectedIndex === item.index
-            const showBar = mode === 'both' || mode === 'calories'
-            if (!showBar) return null
+            {barGeometries.map((item) => {
+              const isSelected = selectedIndex === item.index
+              const showBar = mode === 'both' || mode === 'calories'
+              if (!showBar) return null
 
-            const fill = item.day.isFuture
-              ? 'url(#eatWellCalorieBarFuture)'
-              : isSelected
-                ? 'url(#eatWellCalorieBarSelected)'
-                : 'url(#eatWellCalorieBar)'
+              const fill = item.day.isFuture
+                ? 'url(#eatWellCalorieBarFuture)'
+                : isSelected
+                  ? 'url(#eatWellCalorieBarSelected)'
+                  : 'url(#eatWellCalorieBar)'
 
-            return (
-              <Rect
-                key={`bar-${item.day.dateIso}`}
-                x={item.x}
-                y={item.y}
-                width={item.barWidth}
-                height={Math.max(item.barHeight, item.day.isFuture ? 6 : 0)}
-                rx={BAR_RADIUS}
-                fill={fill}
-                opacity={item.day.isFuture ? 0.55 : 1}
-                onPress={() => handleSelectDay(item.index)}
-              />
-            )
-          })}
+              return (
+                <Rect
+                  key={`bar-${item.day.dateIso}`}
+                  x={item.x}
+                  y={item.y}
+                  width={item.barWidth}
+                  height={Math.max(item.barHeight, item.day.isFuture ? 6 : 0)}
+                  rx={BAR_RADIUS}
+                  fill={fill}
+                  opacity={item.day.isFuture ? 0.55 : 1}
+                  onPress={() => handleSelectDay(item.index)}
+                />
+              )
+            })}
 
-          {(mode === 'both' || mode === 'water') && linePath ? (
-            <>
+            {(mode === 'both' || mode === 'water') && linePath && linePathLength > 0 ? (
               <Path
                 d={linePath}
                 stroke="#22d3ee"
@@ -186,56 +349,63 @@ export function EatWellWeekComboChart({
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                strokeDasharray={`${linePathLength} ${linePathLength}`}
+                strokeDashoffset={linePathLength * (1 - lineDrawProgress)}
               />
-              {barGeometries
-                .filter((item) => !item.day.isFuture && item.day.waterMl > 0)
-                .map((item) => (
+            ) : null}
+
+            {(mode === 'both' || mode === 'water') &&
+              waterPoints.map((item, waterIndex) => {
+                const reveal = dotRevealRatios[waterIndex] ?? (animate ? 0 : 1)
+                const baseRadius = selectedIndex === item.index ? 5 : 3.5
+
+                return (
                   <Circle
                     key={`dot-${item.day.dateIso}`}
-                    cx={item.x + item.barWidth / 2}
-                    cy={item.waterY}
-                    r={selectedIndex === item.index ? 5 : 3.5}
+                    cx={item.cx}
+                    cy={item.cy}
+                    r={baseRadius * (0.35 + reveal * 0.65)}
                     fill="#67e8f9"
+                    opacity={reveal}
                     onPress={() => handleSelectDay(item.index)}
                   />
-                ))}
-            </>
-          ) : null}
+                )
+              })}
 
-          {barGeometries.map((item) => (
-            <SvgText
-              key={`label-${item.day.dateIso}`}
-              x={item.x + item.barWidth / 2}
-              y={CHART_HEIGHT - 10}
-              fill={item.day.isFuture ? 'rgba(245,245,247,0.28)' : colors.textSubtle}
-              fontSize={10}
-              fontWeight="700"
-              textAnchor="middle"
-            >
-              {item.day.weekdayLabel}
-            </SvgText>
-          ))}
+            {barGeometries.map((item) => (
+              <SvgText
+                key={`label-${item.day.dateIso}`}
+                x={item.x + item.barWidth / 2}
+                y={CHART_HEIGHT - 10}
+                fill={item.day.isFuture ? 'rgba(245,245,247,0.28)' : colors.textSubtle}
+                fontSize={10}
+                fontWeight="700"
+                textAnchor="middle"
+              >
+                {item.day.weekdayLabel}
+              </SvgText>
+            ))}
 
-          <Line
-            x1={PADDING.left}
-            y1={PADDING.top + plotHeight}
-            x2={PADDING.left + plotWidth}
-            y2={PADDING.top + plotHeight}
-            stroke="rgba(255,255,255,0.08)"
-          />
-
-          {barGeometries.map((item) => (
-            <Rect
-              key={`hit-${item.day.dateIso}`}
-              x={PADDING.left + item.index * slotWidth}
-              y={PADDING.top}
-              width={slotWidth}
-              height={plotHeight}
-              fill="transparent"
-              onPress={() => handleSelectDay(item.index)}
+            <Line
+              x1={PADDING.left}
+              y1={PADDING.top + plotHeight}
+              x2={PADDING.left + plotWidth}
+              y2={PADDING.top + plotHeight}
+              stroke="rgba(255,255,255,0.08)"
             />
-          ))}
-        </Svg>
+
+            {barGeometries.map((item) => (
+              <Rect
+                key={`hit-${item.day.dateIso}`}
+                x={PADDING.left + item.index * slotWidth}
+                y={PADDING.top}
+                width={slotWidth}
+                height={plotHeight}
+                fill="transparent"
+                onPress={() => handleSelectDay(item.index)}
+              />
+            ))}
+          </Svg>
         </View>
 
         <View style={styles.legendRow}>

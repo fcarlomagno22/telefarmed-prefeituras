@@ -48,9 +48,13 @@ const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_log
 
 export function EatWellMenuDetailScreen() {
   const insets = useSafeAreaInsets()
-  const { user, goBack, routeParams } = useAuth()
+  const { user, navigateTo, routeParams } = useAuth()
   const { menuId } = getEatWellRouteParams(routeParams)
   const patientCpf = user?.cpf ?? 'guest'
+
+  const handleBackToMenus = useCallback(() => {
+    navigateTo('eat-well', { segmentTab: 'menus' })
+  }, [navigateTo])
 
   const [menu, setMenu] = useState<EatWellSavedMenu | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -68,7 +72,7 @@ export function EatWellMenuDetailScreen() {
 
   const loadMenu = useCallback(async () => {
     if (!menuId) {
-      goBack()
+      handleBackToMenus()
       return
     }
 
@@ -78,9 +82,9 @@ export function EatWellMenuDetailScreen() {
     setIsLoading(false)
 
     if (!found) {
-      goBack()
+      handleBackToMenus()
     }
-  }, [goBack, menuId, patientCpf])
+  }, [handleBackToMenus, menuId, patientCpf])
 
   const loadDayLog = useCallback(async () => {
     if (!menuId) return
@@ -182,9 +186,9 @@ export function EatWellMenuDetailScreen() {
         setActiveMealSlot(null)
         return true
       }
-      goBack()
+      handleBackToMenus()
       return true
-    }, [activeMealSlot, goBack, monthPickerVisible, substituteDrawerVisible]),
+    }, [activeMealSlot, handleBackToMenus, monthPickerVisible, substituteDrawerVisible]),
   )
 
   if (isLoading || !menu) {
@@ -222,7 +226,7 @@ export function EatWellMenuDetailScreen() {
           title={menu.name}
           subtitle={headerSubtitle}
           paddingTop={Math.max(insets.top, 12) + 8}
-          onBack={goBack}
+          onBack={handleBackToMenus}
         />
 
         <ScrollView

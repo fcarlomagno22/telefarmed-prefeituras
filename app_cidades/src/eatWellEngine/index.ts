@@ -13,17 +13,28 @@ export {
 export {
   createDemoEatWellMenu,
   generateEatWellMenuFromWizard,
+  generateEatWellMenuFromWizardAsync,
 } from './generateMenuFromWizard'
+export { generateMenuWithOpenAI } from './generateMenuWithOpenAI'
+export {
+  ensureMenuGenerationIndex,
+  isMenuGenerationIndexReady,
+  warmMenuGenerationIndex,
+} from './menuGenerationIndex'
 export {
   delaySubstitutionLoading,
   findSimilarFoodAlternatives,
   SUBSTITUTION_LOADING_MS,
 } from './findFoodSubstitutions'
+export { refineGeneratedMenu } from './menuPostGenerationRefinement'
 export {
+  createMenuDayConstraintTracker,
   foodMatchesConstraints,
   resolveDietaryConstraints,
+  scoreConstraintAlignment,
   scoreFoodPreferenceMatch,
 } from './resolveDietaryConstraints'
+export { MenuDayConstraintTracker } from './menuDayConstraintTracker'
 export { normalizeEatWellText } from './normalizeText'
 export { scaleMacros, scaleMacrosFrom100g } from './scaleMacros'
 export type {

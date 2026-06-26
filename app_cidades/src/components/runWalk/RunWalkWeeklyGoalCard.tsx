@@ -20,6 +20,7 @@ type RunWalkWeeklyGoalCardProps = {
   onGoalActionPress: () => void
   celebrateDay?: RunWalkWeeklyBarCelebrateDay | null
   animateRings?: boolean
+  animateChart?: boolean
 }
 
 export function RunWalkWeeklyGoalCard({
@@ -29,6 +30,7 @@ export function RunWalkWeeklyGoalCard({
   onGoalActionPress,
   celebrateDay = null,
   animateRings = true,
+  animateChart = true,
 }: RunWalkWeeklyGoalCardProps) {
   const { width: screenWidth } = useWindowDimensions()
   const chartWidth = screenWidth - 32 - 28
@@ -171,7 +173,7 @@ export function RunWalkWeeklyGoalCard({
           days={days}
           width={chartWidth}
           celebrateDay={celebrateDay}
-          animate={animateRings}
+          animate={animateChart}
           preserveFinal={false}
         />
       </View>

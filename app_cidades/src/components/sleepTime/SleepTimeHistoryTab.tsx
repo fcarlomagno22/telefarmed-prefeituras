@@ -14,9 +14,8 @@ import {
   buildSleepMonthDayStats,
   filterEntriesForDate,
   indexSleepLogsByDay,
-  mapSleepDayStatsToWeeklyChartDays,
 } from '../../utils/sleepHistoryStats'
-import { RunWalkWeeklyBarChart } from '../runWalk/RunWalkWeeklyBarChart'
+import { SleepTimeMonthlyBarChart } from './history/SleepTimeMonthlyBarChart'
 import { SleepTimeDayStrip } from './history/SleepTimeDayStrip'
 import { SleepTimeHistoryComboChart } from './history/SleepTimeHistoryComboChart'
 import { SleepTimeHistoryEntryList } from './history/SleepTimeHistoryEntryList'
@@ -87,11 +86,6 @@ export function SleepTimeHistoryTab({
   const monthDayStats = useMemo(
     () => buildSleepMonthDayStats(entries, calendarMonthKey),
     [entries, calendarMonthKey],
-  )
-
-  const monthChartDays = useMemo(
-    () => mapSleepDayStatsToWeeklyChartDays(monthDayStats),
-    [monthDayStats],
   )
 
   const selectedDayEntries = useMemo(
@@ -182,21 +176,15 @@ export function SleepTimeHistoryTab({
             onSelectDay={handleSelectDay}
           />
 
-          <View style={styles.monthChartSection}>
-            <Text style={styles.sectionTitle}>Horas dormidas em {monthLabel}</Text>
-            <RunWalkWeeklyBarChart
-              days={monthChartDays}
-              width={width - 32}
-              targetMinutesPerDay={SLEEP_TARGET_MINUTES}
-              selectedDateIso={selectedDateIso}
-              onSelectDay={handleSelectDay}
-              layoutMode="chronological"
-              scrollable
-              visibleBars={7}
-              showLegend
-              animate={isActive}
-            />
-          </View>
+          <SleepTimeMonthlyBarChart
+            dayStats={monthDayStats}
+            width={width - 32}
+            monthLabel={monthLabel}
+            targetMinutesPerDay={SLEEP_TARGET_MINUTES}
+            selectedDateIso={selectedDateIso}
+            onSelectDay={handleSelectDay}
+            animate={isActive}
+          />
 
           <SleepTimeHistoryQualityHeatmap
             summary={weekSummary}
@@ -271,14 +259,5 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 19,
     textAlign: 'center',
-  },
-  monthChartSection: {
-    paddingHorizontal: 16,
-    gap: 10,
-  },
-  sectionTitle: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '800',
   },
 })

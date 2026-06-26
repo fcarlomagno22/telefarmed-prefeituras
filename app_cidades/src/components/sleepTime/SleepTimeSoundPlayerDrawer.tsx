@@ -84,6 +84,8 @@ export function SleepTimeSoundPlayerDrawer({
       onClose={handleDismiss}
       fullScreen
       scrollable={false}
+      keyboardAware={false}
+      extraBottomInset={12}
       sheetBackground={
         <>
           <LinearGradient
@@ -227,6 +229,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 12,
     paddingHorizontal: 12,
+    marginBottom: 4,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',

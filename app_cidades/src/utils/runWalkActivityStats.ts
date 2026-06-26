@@ -297,7 +297,7 @@ export function mpsToKmh(speedMps: number | null | undefined): number | null {
 
 export function clampActivitySpeedKmh(speedKmh: number | null): number | null {
   if (speedKmh == null || !Number.isFinite(speedKmh) || speedKmh <= 0) return null
-  return Math.min(speedKmh, 35)
+  return Math.min(speedKmh, 120)
 }
 
 export function calculateInstantSpeedKmh(

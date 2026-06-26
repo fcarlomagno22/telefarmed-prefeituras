@@ -92,6 +92,8 @@
     "sleep_quality_low_threshold": 4,
     "sleep_quality_low_calorie_adjust_pct": -3,
     "stress_level_high_threshold": 7,
-    "stress_level_high_calorie_adjust_pct": -2
+    "stress_level_high_calorie_adjust_pct": -2,
+    "pregnancy_calorie_adjust_pct": 10,
+    "lactation_calorie_adjust_pct": 15
   }
 }

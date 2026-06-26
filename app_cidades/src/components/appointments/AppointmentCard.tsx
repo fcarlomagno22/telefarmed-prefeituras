@@ -199,7 +199,7 @@ export function AppointmentCard({
               <View style={styles.actionsGrid}>
                 <View style={styles.actionsRow}>
                   <AppointmentActionButton
-                    label="Calendário"
+                    label="Marcar na Agenda"
                     icon="calendar-plus"
                     palette={ACTION_ICON_PALETTES.schedule}
                     onPress={onCalendarPress}

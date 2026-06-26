@@ -35,6 +35,7 @@ export function SleepTimeHistoryHero({ summary, animate = true }: SleepTimeHisto
             <RunWalkHistoryAnimatedNumber
               value={summary.avgDurationMinutes}
               animate={animate}
+              preserveFinal={false}
               formatter={(value) => formatSleepDuration(Math.round(value))}
               style={styles.bigNumberLeft}
             />

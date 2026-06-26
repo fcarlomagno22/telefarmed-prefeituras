@@ -3,9 +3,10 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import { Animated, Easing, Keyboard, KeyboardAvoidingView, PanResponder, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Animated, Easing, Keyboard, KeyboardAvoidingView, PanResponder, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useDrawerKeyboardInset, getDrawerKeyboardLift, DRAWER_KEYBOARD_EXTRA_PADDING } from '../../hooks/useDrawerKeyboardInset'
 import Svg, {
   ClipPath,
   Defs,
@@ -293,11 +294,13 @@ export function HydrationLogDrawer({
   const [inputDraft, setInputDraft] = useState(String(DEFAULT_ML))
   const [cupGesturesReady, setCupGesturesReady] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const keyboardInset = useDrawerKeyboardInset(visible)
 
   const sheetTranslateY = useRef(new Animated.Value(SHEET_OFFSET)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingRegistrationRef = useRef<number | null>(null)
+  const scrollRef = useRef<ScrollView>(null)
 
   const amountRef = useRef(amountMl)
   const dragStartMl = useRef(DEFAULT_ML)
@@ -407,6 +410,7 @@ export function HydrationLogDrawer({
 
   function handleDismiss() {
     if (!visible) return
+    Keyboard.dismiss()
     clearSuccessTimer()
     const pending = pendingRegistrationRef.current
     pendingRegistrationRef.current = null
@@ -453,6 +457,7 @@ export function HydrationLogDrawer({
   const tickSteps = MAX_ML / STEP_ML
   const fillRatio = amountMl / MAX_ML
   const fillIndicatorTop = (1 - fillRatio) * (CUP_HEIGHT - 12) + 4
+  const keyboardLift = getDrawerKeyboardLift(keyboardInset, insets.bottom)
 
   if (!isMounted) return null
 
@@ -470,13 +475,17 @@ export function HydrationLogDrawer({
         <KeyboardAvoidingView
           behavior={keyboardAvoidingBehavior}
           style={styles.keyboardWrap}
+          enabled={Platform.OS === 'ios'}
         >
           <Animated.View
             style={[
               styles.sheet,
               {
                 paddingBottom: getModalFooterPadding(insets.bottom, 8),
-                transform: [{ translateY: sheetTranslateY }],
+                transform: [
+                  { translateY: sheetTranslateY },
+                  { translateY: -keyboardLift },
+                ],
               },
             ]}
           >
@@ -503,10 +512,21 @@ export function HydrationLogDrawer({
                 message={`${formatMlLabel(amountMl)} adicionados ao seu registro.`}
               />
             ) : (
-              <>
+              <ScrollView
+                ref={scrollRef}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="interactive"
+                automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+                contentContainerStyle={[
+                  styles.scrollContent,
+                  keyboardInset > 0 && { paddingBottom: DRAWER_KEYBOARD_EXTRA_PADDING },
+                ]}
+                bounces={keyboardInset === 0}
+              >
                 <View style={styles.handle} />
 
-                <View style={styles.headerRow}>
+                <View style={[styles.headerRow, keyboardInset > 0 && styles.headerRowCompact]}>
                   <LinearGradient
                     colors={[...CUP_GRADIENT]}
                     start={{ x: 0.2, y: 0 }}
@@ -534,39 +554,51 @@ export function HydrationLogDrawer({
                   </Pressable>
                 </View>
 
-                <View style={styles.contentRow}>
-                  <View style={styles.cupColumn}>
-                    <Text style={styles.cupHint}>Segure e arraste no copo</Text>
+                <View
+                  style={[
+                    styles.contentRow,
+                    keyboardInset > 0 && styles.contentRowCompact,
+                  ]}
+                >
+                  {keyboardInset === 0 ? (
+                    <View style={styles.cupColumn}>
+                      <Text style={styles.cupHint}>Segure e arraste no copo</Text>
 
-                    <View style={styles.cupStage}>
-                      <View style={styles.tickColumn} pointerEvents="none">
-                        <View style={[styles.fillIndicator, { top: fillIndicatorTop }]} />
+                      <View style={styles.cupStage}>
+                        <View style={styles.tickColumn} pointerEvents="none">
+                          <View style={[styles.fillIndicator, { top: fillIndicatorTop }]} />
 
-                        {Array.from({ length: tickSteps + 1 }, (_, index) => {
-                          const tickMl = MAX_ML - index * STEP_ML
-                          const active = amountMl >= tickMl && tickMl > 0
-                          return (
-                            <View key={tickMl} style={styles.tickRow}>
-                              <View style={[styles.tickMark, active && styles.tickMarkActive]} />
-                              {index % 2 === 0 ? (
-                                <Text style={[styles.tickLabel, active && styles.tickLabelActive]}>
-                                  {formatTickLabel(tickMl)}
-                                </Text>
-                              ) : (
-                                <View style={styles.tickLabelSpacer} />
-                              )}
-                            </View>
-                          )
-                        })}
-                      </View>
+                          {Array.from({ length: tickSteps + 1 }, (_, index) => {
+                            const tickMl = MAX_ML - index * STEP_ML
+                            const active = amountMl >= tickMl && tickMl > 0
+                            return (
+                              <View key={tickMl} style={styles.tickRow}>
+                                <View style={[styles.tickMark, active && styles.tickMarkActive]} />
+                                {index % 2 === 0 ? (
+                                  <Text style={[styles.tickLabel, active && styles.tickLabelActive]}>
+                                    {formatTickLabel(tickMl)}
+                                  </Text>
+                                ) : (
+                                  <View style={styles.tickLabelSpacer} />
+                                )}
+                              </View>
+                            )
+                          })}
+                        </View>
 
-                      <View style={styles.cupTouchArea} {...cupPanResponder.panHandlers}>
-                        <WaterCupVisual amountMl={amountMl} active={cupGesturesReady} />
+                        <View style={styles.cupTouchArea} {...cupPanResponder.panHandlers}>
+                          <WaterCupVisual amountMl={amountMl} active={cupGesturesReady} />
+                        </View>
                       </View>
                     </View>
-                  </View>
+                  ) : null}
 
-                  <View style={styles.amountColumn}>
+                  <View
+                    style={[
+                      styles.amountColumn,
+                      keyboardInset > 0 && styles.amountColumnExpanded,
+                    ]}
+                  >
                     <Text style={styles.amountLabel}>Vai registrar</Text>
 
                     <View style={styles.amountDisplayCard}>
@@ -586,6 +618,11 @@ export function HydrationLogDrawer({
                           style={styles.input}
                           selectionColor={colors.primary}
                           maxLength={4}
+                          onFocus={() => {
+                            requestAnimationFrame(() => {
+                              scrollRef.current?.scrollTo({ y: 120, animated: true })
+                            })
+                          }}
                         />
                         <Text style={styles.inputSuffix}>ml</Text>
                       </View>
@@ -594,7 +631,7 @@ export function HydrationLogDrawer({
                 </View>
 
                 <PrimaryButton label="Hidratar" onPress={handleRegister} disabled={amountMl <= 0} />
-              </>
+              </ScrollView>
             )}
           </Animated.View>
         </KeyboardAvoidingView>
@@ -613,6 +650,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
   keyboardWrap: {
+    flex: 1,
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -623,6 +661,10 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
+    maxHeight: '92%',
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   topAccent: {
     position: 'absolute',
@@ -645,6 +687,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 12,
     marginBottom: 16,
+  },
+  headerRowCompact: {
+    marginBottom: 10,
   },
   fieldIconOrb: {
     width: 46,
@@ -691,6 +736,10 @@ const styles = StyleSheet.create({
     gap: 14,
     marginBottom: 12,
     height: CUP_HEIGHT + 36,
+  },
+  contentRowCompact: {
+    height: undefined,
+    minHeight: 0,
   },
   cupColumn: {
     flex: 1.05,
@@ -771,6 +820,10 @@ const styles = StyleSheet.create({
     height: CUP_HEIGHT + 36,
     justifyContent: 'center',
     gap: 10,
+  },
+  amountColumnExpanded: {
+    height: undefined,
+    minHeight: 0,
   },
   amountLabel: {
     color: colors.textMuted,

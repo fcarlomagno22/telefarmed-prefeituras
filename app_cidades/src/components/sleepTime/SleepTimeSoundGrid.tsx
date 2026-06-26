@@ -11,9 +11,9 @@ type SleepTimeSoundGridProps = {
   onSoundPress: (soundId: SleepSoundId) => void
 }
 
-const ICON_SIZE = 52
-const ICON_RADIUS = 13
-const ICON_GLYPH_SIZE = 30
+const ICON_SIZE = 60
+const ICON_RADIUS = 15
+const ICON_GLYPH_SIZE = 40
 const HORIZONTAL_PADDING = 16
 const ITEM_GAP = 10
 const ROW_GAP = 20
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   },
   appButton: {
     alignItems: 'center',
-    gap: 7,
+    gap: 8,
   },
   appButtonPressed: {
     opacity: 0.82,
@@ -151,12 +151,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 10,
     elevation: 8,
-    borderRadius: ICON_RADIUS + 2,
-    padding: 2,
   },
   iconOuterActive: {
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.55)',
+    borderRadius: ICON_RADIUS,
   },
   iconShadowPressed: {
     transform: [{ scale: 0.94 }],
@@ -178,10 +177,10 @@ const styles = StyleSheet.create({
   },
   appLabel: {
     color: colors.text,
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '500',
     letterSpacing: -0.1,
-    lineHeight: 12,
+    lineHeight: 14,
     textAlign: 'center',
     width: '100%',
     paddingHorizontal: 2,

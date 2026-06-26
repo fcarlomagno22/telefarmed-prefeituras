@@ -86,7 +86,7 @@ export class GpsMotionEngine {
 
     const movingTimeSeconds = this.movingTimeMs / 1000
     const currentSpeedKmh =
-      this.state === 'stationary' ? 0 : Math.min(this.smoothedSpeedMps * 3.6, 35)
+      this.state === 'stationary' ? 0 : Math.max(0, this.smoothedSpeedMps * 3.6)
 
     let averageSpeedKmh = 0
     if (this.state === 'moving' && movingTimeSeconds >= 3 && this.distanceKm > 0) {
@@ -100,7 +100,7 @@ export class GpsMotionEngine {
       trail: [...this.trail],
       distanceKm: this.distanceKm,
       currentSpeedKmh,
-      averageSpeedKmh: Math.min(averageSpeedKmh, 35),
+      averageSpeedKmh,
       displayPosition,
       movingTimeSeconds,
     }

@@ -75,6 +75,22 @@ export function computeNutritionGoalsFromWizard(form: EatWellMenuWizardForm): Nu
     )
   }
 
+  if (form.isPregnant) {
+    baseCalories += Math.round(
+      (baseCalories *
+        (eatWellContent.nutritionCalculationRules.modifiers.pregnancy_calorie_adjust_pct ?? 0)) /
+        100,
+    )
+  }
+
+  if (form.isLactating) {
+    baseCalories += Math.round(
+      (baseCalories *
+        (eatWellContent.nutritionCalculationRules.modifiers.lactation_calorie_adjust_pct ?? 0)) /
+        100,
+    )
+  }
+
   const hungerDelta =
     (form.hungerLevel - 5) *
     (eatWellContent.nutritionCalculationRules.modifiers.hunger_level

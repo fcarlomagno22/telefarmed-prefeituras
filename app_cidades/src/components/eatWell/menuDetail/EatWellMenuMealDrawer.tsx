@@ -94,10 +94,14 @@ export function EatWellMenuMealDrawer({
       <View style={styles.macroCard}>
         <Text style={styles.macroTitle}>Macronutrientes consumidos nesta refeição</Text>
         <View style={styles.macroGrid}>
-          <MacroStat label="Calorias" value={consumedMacros.calories} unit=" kcal" color="#fde68a" />
-          <MacroStat label="Proteína" value={consumedMacros.proteinG} unit="g" color="#60a5fa" />
-          <MacroStat label="Carbo" value={consumedMacros.carbsG} unit="g" color="#fbbf24" />
-          <MacroStat label="Gordura" value={consumedMacros.fatG} unit="g" color="#f472b6" />
+          <View style={styles.macroRow}>
+            <MacroStat label="Calorias" value={consumedMacros.calories} unit=" kcal" color="#fde68a" />
+            <MacroStat label="Proteína" value={consumedMacros.proteinG} unit="g" color="#60a5fa" />
+          </View>
+          <View style={styles.macroRow}>
+            <MacroStat label="Carbo" value={consumedMacros.carbsG} unit="g" color="#fbbf24" />
+            <MacroStat label="Gordura" value={consumedMacros.fatG} unit="g" color="#f472b6" />
+          </View>
         </View>
         <Text style={styles.macroMeta}>
           Fibra {formatGrams(consumedMacros.fiberG)} · Açúcares {formatGrams(consumedMacros.sugarsG)} ·
@@ -272,6 +276,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.06)',
+    alignItems: 'center',
   },
   macroTitle: {
     color: colors.textMuted,
@@ -279,36 +284,48 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.3,
+    textAlign: 'center',
   },
   macroGrid: {
+    alignSelf: 'stretch',
+    gap: 12,
+  },
+  macroRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    justifyContent: 'space-around',
+    alignItems: 'flex-start',
   },
   macroStat: {
-    width: '47%',
+    flex: 1,
+    alignItems: 'center',
     gap: 2,
+    paddingHorizontal: 4,
+    minWidth: 0,
   },
   macroLabel: {
     color: colors.textSubtle,
     fontSize: 10,
     fontWeight: '700',
+    textAlign: 'center',
   },
   macroValue: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
     letterSpacing: -0.3,
+    textAlign: 'center',
   },
   macroMeta: {
     color: colors.textMuted,
     fontSize: 11,
     fontWeight: '600',
+    textAlign: 'center',
   },
   macroHint: {
     color: colors.textSubtle,
     fontSize: 10,
     fontWeight: '500',
     lineHeight: 14,
+    textAlign: 'center',
   },
   emptyWrap: {
     alignItems: 'center',

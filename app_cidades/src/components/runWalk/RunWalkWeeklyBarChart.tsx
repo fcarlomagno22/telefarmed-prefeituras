@@ -77,6 +77,7 @@ export function RunWalkWeeklyBarChart({
   preserveFinal = true,
 }: RunWalkWeeklyBarChartProps) {
   const scrollRef = useRef<ScrollView>(null)
+  const entranceLockedRef = useRef(Boolean(celebrateDay))
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [animatedMinutes, setAnimatedMinutes] = useState<number | null>(null)
   const chartDays = useMemo(
@@ -96,6 +97,7 @@ export function RunWalkWeeklyBarChart({
 
   const [barEntranceRatios, setBarEntranceRatios] = useState<number[]>(() =>
     Array.from({ length: chartDays.length }, (_, index) => {
+      if (celebrateDay) return 1
       if (shouldAnimateBarIndex(index)) return 0
       if (shouldAnimateEntrance) return 1
       return preserveFinal ? 1 : 0
@@ -116,17 +118,34 @@ export function RunWalkWeeklyBarChart({
     return () => clearTimeout(timer)
   }, [chartDays, scrollable, visibleBars, width])
 
+  function lockEntranceRatios() {
+    entranceLockedRef.current = true
+    setBarEntranceRatios(Array.from({ length: chartDays.length }, () => 1))
+    chartDays.forEach((_, index) => {
+      barEntranceValues[index]?.setValue(1)
+    })
+  }
+
   useEffect(() => {
     if (celebrateDay) {
       barEntranceValues.forEach((value) => value.stopAnimation())
-      setBarEntranceRatios(Array.from({ length: chartDays.length }, () => 1))
+      lockEntranceRatios()
+      return
+    }
+
+    if (entranceLockedRef.current) {
+      barEntranceValues.forEach((value) => value.stopAnimation())
+      lockEntranceRatios()
       return
     }
 
     if (!shouldAnimateEntrance) {
-      const ratio = preserveFinal || celebrateDay ? 1 : 0
+      const ratio = entranceLockedRef.current ? 1 : preserveFinal ? 1 : 0
       setBarEntranceRatios(Array.from({ length: chartDays.length }, () => ratio))
       barEntranceValues.forEach((value) => value.setValue(ratio))
+      if (ratio === 1) {
+        entranceLockedRef.current = true
+      }
       return
     }
 
@@ -171,7 +190,13 @@ export function RunWalkWeeklyBarChart({
     })
 
     if (animations.length > 0) {
-      Animated.parallel(animations).start()
+      Animated.parallel(animations).start(({ finished }) => {
+        if (finished) {
+          entranceLockedRef.current = true
+        }
+      })
+    } else {
+      entranceLockedRef.current = true
     }
 
     return () => {

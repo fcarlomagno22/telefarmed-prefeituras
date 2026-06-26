@@ -14,6 +14,7 @@ type EatWellMealContributionDonutProps = {
   selectedSlot: MealSlot | null
   onSelectSlot: (slot: MealSlot | null) => void
   animate?: boolean
+  idleProgress?: boolean
 }
 
 const SIZE = 168
@@ -122,8 +123,10 @@ export function EatWellMealContributionDonut({
   selectedSlot,
   onSelectSlot,
   animate = true,
+  idleProgress = true,
 }: EatWellMealContributionDonutProps) {
-  const revealProgress = useRef(new Animated.Value(animate ? 0 : 1)).current
+  const showProgress = animate || idleProgress
+  const revealProgress = useRef(new Animated.Value(showProgress ? 1 : 0)).current
   const segments = useMemo(
     () => buildDonutSegments(contributions, totalCalories),
     [contributions, totalCalories],
@@ -145,7 +148,7 @@ export function EatWellMealContributionDonut({
 
   useEffect(() => {
     if (!animate) {
-      revealProgress.setValue(1)
+      revealProgress.setValue(showProgress ? 1 : 0)
       return
     }
 
@@ -156,7 +159,7 @@ export function EatWellMealContributionDonut({
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start()
-  }, [animate, contributions, revealProgress, totalCalories])
+  }, [animate, contributions, revealProgress, showProgress, totalCalories])
 
   const chartScale = revealProgress.interpolate({
     inputRange: [0, 1],

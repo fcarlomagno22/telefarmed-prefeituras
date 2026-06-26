@@ -161,7 +161,8 @@
           "locationAlwaysAndWhenInUsePermission": "Permitir compartilhamento de localização ao vivo com seu contato de confiança durante a atividade."
         }
       ],
-      "expo-mail-composer"
+      "expo-mail-composer",
+      "expo-video"
     ],
     "extra": {
       "eas": {

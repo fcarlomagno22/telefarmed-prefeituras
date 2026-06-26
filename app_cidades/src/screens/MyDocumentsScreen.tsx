@@ -675,7 +675,7 @@ const styles = StyleSheet.create({
   },
   pageContent: {
     gap: 14,
-    paddingTop: 4,
+    paddingTop: 0,
   },
   skeletonBlock: {
     paddingHorizontal: 16,
@@ -687,6 +687,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
     paddingHorizontal: 16,
+    paddingVertical: 14,
   },
   sectionTitleCol: {
     flex: 1,

@@ -10,6 +10,7 @@ type EatWellWaterStripProps = {
   consumedMl: number
   goalMl: number
   animate?: boolean
+  idleProgress?: boolean
   onRegisterPress: () => void
   onUndoLast?: () => void
   canUndo?: boolean
@@ -19,11 +20,13 @@ export function EatWellWaterStrip({
   consumedMl,
   goalMl,
   animate = true,
+  idleProgress = true,
   onRegisterPress,
   onUndoLast,
   canUndo = false,
 }: EatWellWaterStripProps) {
   const progress = goalMl > 0 ? consumedMl / goalMl : 0
+  const showProgress = animate || idleProgress
 
   function handleRegisterPress() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
@@ -50,7 +53,7 @@ export function EatWellWaterStrip({
 
         <View style={styles.dropletsRow}>
           {Array.from({ length: 8 }, (_, index) => {
-            const filled = progress >= (index + 1) / 8
+            const filled = showProgress && progress >= (index + 1) / 8
             return (
               <Ionicons
                 key={index}
@@ -65,6 +68,7 @@ export function EatWellWaterStrip({
         <RunWalkHistoryAnimatedBar
           progress={Math.min(progress, 1)}
           animate={animate}
+          preserveFinal={showProgress}
           color="#22d3ee"
           trackStyle={styles.progressTrack}
         />

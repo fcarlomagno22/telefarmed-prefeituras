@@ -174,6 +174,7 @@ export function RunWalkLiveActivityScreen() {
         onUserPanned={() => setFollowUserOnMap(false)}
         profilePhotoUri={user?.selfieUri}
         deviceHeadingDegrees={location.headingDegrees}
+        currentSpeedKmh={session.currentSpeedKmh}
       />
 
       {!followUserOnMap ? (
@@ -224,7 +225,8 @@ export function RunWalkLiveActivityScreen() {
         <RunWalkActivityMetricsCard
           elapsedSeconds={session.elapsedSeconds}
           distanceKm={session.distanceKm}
-          speedKmh={session.averageSpeedKmh}
+          speedKmh={session.currentSpeedKmh}
+          speedLabel="Velocidade"
           isFinished={session.isFinished}
           isPaused={session.isPaused}
           onFinishPress={handleFinishPress}

@@ -24,8 +24,8 @@ export function SleepTimeHistoryQualityHeatmap({
         end={{ x: 1, y: 1 }}
         style={styles.card}
       >
-        <Text style={styles.title}>Mapa da semana</Text>
-        <Text style={styles.subtitle}>Toque em um dia para ver o registro</Text>
+        <Text style={styles.title}>Qualidade da semana</Text>
+        <Text style={styles.subtitle}>Toque em um dia para ver horas e qualidade do sono</Text>
 
         <View style={styles.grid}>
           {summary.dayStats.map((day) => {

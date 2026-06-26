@@ -11,6 +11,7 @@ import {
   PanResponder,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -20,7 +21,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import LottieView from 'lottie-react-native'
 import bloodPressureAnimation from '../../../assets/bloodpressure.json'
 import { colors } from '../../theme/colors'
+import { useDrawerKeyboardInset, getDrawerKeyboardLift, DRAWER_KEYBOARD_EXTRA_PADDING } from '../../hooks/useDrawerKeyboardInset'
 import { playSuccessSound } from '../../utils/appSounds'
+import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 import { PrimaryButton } from '../PrimaryButton'
 import { AppModal } from '../AppModal'
 import { MetricLogSuccessContent } from './MetricLogSuccessContent'
@@ -136,11 +140,13 @@ export function BloodPressureLogDrawer({
   const [adjustTarget, setAdjustTarget] = useState<AdjustTarget>('systolic')
   const [gesturesReady, setGesturesReady] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const keyboardInset = useDrawerKeyboardInset(visible)
 
   const sheetTranslateY = useRef(new Animated.Value(SHEET_OFFSET)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingRegistrationRef = useRef<BloodPressureReading | null>(null)
+  const scrollRef = useRef<ScrollView>(null)
 
   const systolicRef = useRef(systolic)
   const diastolicRef = useRef(diastolic)
@@ -268,6 +274,7 @@ export function BloodPressureLogDrawer({
 
   function handleDismiss() {
     if (!visible) return
+    Keyboard.dismiss()
     clearSuccessTimer()
     const pending = pendingRegistrationRef.current
     pendingRegistrationRef.current = null
@@ -337,6 +344,7 @@ export function BloodPressureLogDrawer({
   const fillIndicatorTop = (1 - fillRatio) * (LOTTIE_HEIGHT - 12) + 4
   const zone = getBloodPressureZone(systolic, diastolic)
   const isValidReading = diastolic < systolic
+  const keyboardLift = getDrawerKeyboardLift(keyboardInset, insets.bottom)
 
   if (!isMounted) return null
 
@@ -352,15 +360,19 @@ export function BloodPressureLogDrawer({
         </Animated.View>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={keyboardAvoidingBehavior}
           style={styles.keyboardWrap}
+          enabled={Platform.OS === 'ios'}
         >
           <Animated.View
             style={[
               styles.sheet,
               {
-                paddingBottom: Math.max(insets.bottom, 16) + 16,
-                transform: [{ translateY: sheetTranslateY }],
+                paddingBottom: getModalFooterPadding(insets.bottom, 8),
+                transform: [
+                  { translateY: sheetTranslateY },
+                  { translateY: -keyboardLift },
+                ],
               },
             ]}
           >
@@ -387,10 +399,21 @@ export function BloodPressureLogDrawer({
                 message={`${formatReadingLabel(systolic, diastolic)} mmHg salvos no seu histórico.`}
               />
             ) : (
-              <>
+              <ScrollView
+                ref={scrollRef}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="interactive"
+                automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+                contentContainerStyle={[
+                  styles.scrollContent,
+                  keyboardInset > 0 && { paddingBottom: DRAWER_KEYBOARD_EXTRA_PADDING },
+                ]}
+                bounces={keyboardInset === 0}
+              >
                 <View style={styles.handle} />
 
-                <View style={styles.headerRow}>
+                <View style={[styles.headerRow, keyboardInset > 0 && styles.headerRowCompact]}>
                   <LinearGradient
                     colors={[...BP_GRADIENT]}
                     start={{ x: 0.2, y: 0 }}
@@ -432,49 +455,56 @@ export function BloodPressureLogDrawer({
                 </View>
 
                 <View style={styles.contentRow}>
-                  <View style={styles.visualColumn}>
-                    <Text style={styles.visualHint}>
-                      Arraste para ajustar a {adjustTarget === 'systolic' ? 'sistólica' : 'diastólica'}
-                    </Text>
+                  {keyboardInset === 0 ? (
+                    <View style={styles.visualColumn}>
+                      <Text style={styles.visualHint}>
+                        Arraste para ajustar a {adjustTarget === 'systolic' ? 'sistólica' : 'diastólica'}
+                      </Text>
 
-                    <View style={styles.visualStage}>
-                      <View style={styles.tickColumn} pointerEvents="none">
-                        <View style={[styles.fillIndicator, { top: fillIndicatorTop }]} />
+                      <View style={styles.visualStage}>
+                        <View style={styles.tickColumn} pointerEvents="none">
+                          <View style={[styles.fillIndicator, { top: fillIndicatorTop }]} />
 
-                        {Array.from({ length: RULER_SEGMENTS + 1 }, (_, index) => {
-                          const tickValue = activeMax - index * rulerStep
-                          const active = activeValue >= tickValue
-                          const showLabel =
-                            index % 2 === 0 ||
-                            tickValue === activeMin ||
-                            tickValue === activeMax
-                          return (
-                            <View key={`${adjustTarget}-${tickValue}`} style={styles.tickRow}>
-                              <View style={[styles.tickMark, active && styles.tickMarkActive]} />
-                              {showLabel ? (
-                                <Text style={[styles.tickLabel, active && styles.tickLabelActive]}>
-                                  {formatTickLabel(tickValue, adjustTarget)}
-                                </Text>
-                              ) : (
-                                <View style={styles.tickLabelSpacer} />
-                              )}
-                            </View>
-                          )
-                        })}
-                      </View>
+                          {Array.from({ length: RULER_SEGMENTS + 1 }, (_, index) => {
+                            const tickValue = activeMax - index * rulerStep
+                            const active = activeValue >= tickValue
+                            const showLabel =
+                              index % 2 === 0 ||
+                              tickValue === activeMin ||
+                              tickValue === activeMax
+                            return (
+                              <View key={`${adjustTarget}-${tickValue}`} style={styles.tickRow}>
+                                <View style={[styles.tickMark, active && styles.tickMarkActive]} />
+                                {showLabel ? (
+                                  <Text style={[styles.tickLabel, active && styles.tickLabelActive]}>
+                                    {formatTickLabel(tickValue, adjustTarget)}
+                                  </Text>
+                                ) : (
+                                  <View style={styles.tickLabelSpacer} />
+                                )}
+                              </View>
+                            )
+                          })}
+                        </View>
 
-                      <View style={styles.lottieTouchArea} {...panResponder.panHandlers}>
-                        <LottieView
-                          source={bloodPressureAnimation}
-                          autoPlay
-                          loop
-                          style={styles.lottieAnimation}
-                        />
+                        <View style={styles.lottieTouchArea} {...panResponder.panHandlers}>
+                          <LottieView
+                            source={bloodPressureAnimation}
+                            autoPlay
+                            loop
+                            style={styles.lottieAnimation}
+                          />
+                        </View>
                       </View>
                     </View>
-                  </View>
+                  ) : null}
 
-                  <View style={styles.amountColumn}>
+                  <View
+                    style={[
+                      styles.amountColumn,
+                      keyboardInset > 0 && styles.amountColumnExpanded,
+                    ]}
+                  >
                     <Text style={styles.amountLabel}>Medição</Text>
 
                     <View style={styles.amountDisplayCard}>
@@ -510,6 +540,11 @@ export function BloodPressureLogDrawer({
                               style={styles.input}
                               selectionColor={colors.primary}
                               maxLength={3}
+                              onFocus={() => {
+                                requestAnimationFrame(() => {
+                                  scrollRef.current?.scrollTo({ y: 120, animated: true })
+                                })
+                              }}
                             />
                           </View>
                         </View>
@@ -529,6 +564,11 @@ export function BloodPressureLogDrawer({
                               style={styles.input}
                               selectionColor={colors.primary}
                               maxLength={3}
+                              onFocus={() => {
+                                requestAnimationFrame(() => {
+                                  scrollRef.current?.scrollTo({ y: 120, animated: true })
+                                })
+                              }}
                             />
                           </View>
                         </View>
@@ -550,7 +590,7 @@ export function BloodPressureLogDrawer({
                     disabled={!isValidReading}
                   />
                 </View>
-              </>
+              </ScrollView>
             )}
           </Animated.View>
         </KeyboardAvoidingView>
@@ -597,6 +637,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
   keyboardWrap: {
+    flex: 1,
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -607,6 +648,10 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
+    maxHeight: '92%',
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   topAccent: {
     position: 'absolute',
@@ -629,6 +674,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 12,
     marginBottom: 12,
+  },
+  headerRowCompact: {
+    marginBottom: 8,
   },
   fieldIconOrb: {
     width: 46,
@@ -781,6 +829,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     paddingTop: 2,
     gap: 10,
+  },
+  amountColumnExpanded: {
+    minHeight: 0,
   },
   amountLabel: {
     color: colors.textMuted,

@@ -1,5 +1,11 @@
 import { AppState, type AppStateStatus } from 'react-native'
-import { createAudioPlayer, setAudioModeAsync, type AudioPlayer, type AudioStatus } from 'expo-audio'
+import {
+  createAudioPlayer,
+  setAudioModeAsync,
+  setIsAudioActiveAsync,
+  type AudioPlayer,
+  type AudioStatus,
+} from 'expo-audio'
 import {
   SLEEP_SOUND_LOCK_SCREEN_ALBUM,
   SLEEP_SOUND_LOCK_SCREEN_ARTIST,
@@ -18,11 +24,30 @@ const LOCK_SCREEN_OPTIONS = {
 } as const
 
 async function ensureSleepAudioMode() {
+  await setIsAudioActiveAsync(true)
   await setAudioModeAsync({
     playsInSilentMode: true,
     shouldPlayInBackground: true,
-    interruptionMode: 'doNotMix',
+    interruptionMode: 'duckOthers',
   })
+}
+
+async function waitUntilPlayerLoaded(player: AudioPlayer, timeoutMs = 4000) {
+  if (player.isLoaded) return
+
+  await Promise.race([
+    new Promise<void>((resolve) => {
+      const subscription = player.addListener('playbackStatusUpdate', (status) => {
+        if (status.isLoaded) {
+          subscription.remove()
+          resolve()
+        }
+      })
+    }),
+    new Promise<void>((resolve) => {
+      setTimeout(resolve, timeoutMs)
+    }),
+  ])
 }
 
 function clampVolume(value: number) {
@@ -125,6 +150,7 @@ export class SleepSoundPlaybackEngine {
     })
 
     this.ensureLockScreenControls(this.playerA)
+    await waitUntilPlayerLoaded(this.playerA)
     this.playerA.play()
     this.isPaused = false
     this.userPaused = false
@@ -339,13 +365,6 @@ export class SleepSoundPlaybackEngine {
     return status.currentTime >= Math.max(0, status.duration - CROSSFADE_SECONDS - 0.25)
   }
 
-  private isMidTrackPause(status: AudioStatus) {
-    if (status.duration <= 0) return false
-    if (this.isAtLoopPoint(status)) return false
-
-    return status.currentTime > 0.2 && status.currentTime < status.duration - CROSSFADE_SECONDS - 0.5
-  }
-
   private handleStatusUpdate(slot: PlayerSlot, status: AudioStatus) {
     if (slot !== this.activeSlot) return
 
@@ -401,11 +420,11 @@ export class SleepSoundPlaybackEngine {
       return
     }
 
-    if (this.isMidTrackPause(status)) {
-      this.isPaused = true
-      this.playerA?.pause()
-      this.playerB?.pause()
-      this.onPlaybackStateChange?.(false)
+    if (!this.crossfadeStarted) {
+      const active = this.getPlayer(this.activeSlot)
+      if (active && !active.playing) {
+        active.play()
+      }
     }
   }
 

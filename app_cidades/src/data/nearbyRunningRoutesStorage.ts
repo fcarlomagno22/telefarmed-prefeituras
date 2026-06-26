@@ -3,7 +3,6 @@ import type {
   RunningRouteSpotComment,
   RunningRouteVote,
 } from '../types/nearbyRunningRoutes'
-import { getSeedCommentsForSpot } from '../utils/nearbyRunningRoutes'
 
 const STORAGE_KEY = '@telefarmed/nearby-running-routes'
 
@@ -32,16 +31,12 @@ async function writeStore(store: NearbyRunningRoutesStore) {
   await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(store))
 }
 
-function createEngagement(
-  spotId: string,
-  seedRecommend: number,
-  seedNotRecommend: number,
-): SpotEngagement {
+function createEngagement(seedRecommend: number, seedNotRecommend: number): SpotEngagement {
   return {
     recommendCount: seedRecommend,
     notRecommendCount: seedNotRecommend,
     userVote: null,
-    comments: getSeedCommentsForSpot(spotId),
+    comments: [],
   }
 }
 
@@ -55,21 +50,10 @@ export async function loadSpotEngagement(
   const patientStore = store[patientCpf]
 
   if (!patientStore?.[spotId]) {
-    return createEngagement(spotId, seedRecommend, seedNotRecommend)
+    return createEngagement(seedRecommend, seedNotRecommend)
   }
 
-  const stored = patientStore[spotId]
-  const seedComments = getSeedCommentsForSpot(spotId)
-  const storedIds = new Set(stored.comments.map((comment) => comment.id))
-  const mergedComments = [
-    ...stored.comments,
-    ...seedComments.filter((comment) => !storedIds.has(comment.id)),
-  ].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-
-  return {
-    ...stored,
-    comments: mergedComments,
-  }
+  return patientStore[spotId]
 }
 
 export async function setSpotVote(
@@ -82,7 +66,7 @@ export async function setSpotVote(
   const store = await readStore()
   const patientStore = store[patientCpf] ?? {}
   const current =
-    patientStore[spotId] ?? createEngagement(spotId, seedRecommend, seedNotRecommend)
+    patientStore[spotId] ?? createEngagement(seedRecommend, seedNotRecommend)
 
   let recommendCount = current.recommendCount
   let notRecommendCount = current.notRecommendCount
@@ -125,7 +109,7 @@ export async function addSpotComment(
   const store = await readStore()
   const patientStore = store[patientCpf] ?? {}
   const current =
-    patientStore[spotId] ?? createEngagement(spotId, seedRecommend, seedNotRecommend)
+    patientStore[spotId] ?? createEngagement(seedRecommend, seedNotRecommend)
 
   const comment: RunningRouteSpotComment = {
     id: `user-${Date.now()}`,

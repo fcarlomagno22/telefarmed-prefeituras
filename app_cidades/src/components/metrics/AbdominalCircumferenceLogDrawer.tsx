@@ -3,7 +3,20 @@ import * as Haptics from 'expo-haptics'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, useState } from 'react'
-import { Animated, Easing, Keyboard, KeyboardAvoidingView, PanResponder, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import {
+  Animated,
+  Easing,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type KeyboardEvent,
+} from 'react-native'
 import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
@@ -22,7 +35,7 @@ const STEP_CM = 1
 const MIN_CM = 50
 const MAX_CM = 150
 const DEFAULT_CM = 88
-const DRAG_THRESHOLD_PX = 12
+const KEYBOARD_EXTRA_PADDING = 20
 
 const ACCENT_GRADIENT = ['#fdba74', '#f97316', '#c2410c'] as const
 
@@ -98,23 +111,41 @@ export function AbdominalCircumferenceLogDrawer({
   const [isMounted, setIsMounted] = useState(false)
   const [valueCm, setValueCm] = useState(initialValueCm)
   const [inputDraft, setInputDraft] = useState(String(initialValueCm))
-  const [gesturesReady, setGesturesReady] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [keyboardInset, setKeyboardInset] = useState(0)
 
   const sheetTranslateY = useRef(new Animated.Value(SHEET_OFFSET)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingRegistrationRef = useRef<AbdominalCircumferenceReading | null>(null)
 
-  const valueRef = useRef(valueCm)
-  const dragStartValue = useRef(initialValueCm)
-  const appliedStepsRef = useRef(0)
-  const gesturesReadyRef = useRef(false)
-
-  valueRef.current = valueCm
-  gesturesReadyRef.current = gesturesReady
-
   const zone = getCircumferenceZone(valueCm, profile.gender)
+
+  useEffect(() => {
+    if (!visible) {
+      setKeyboardInset(0)
+      return
+    }
+
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow'
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide'
+
+    function handleKeyboardShow(event: KeyboardEvent) {
+      setKeyboardInset(event.endCoordinates.height)
+    }
+
+    function handleKeyboardHide() {
+      setKeyboardInset(0)
+    }
+
+    const showSubscription = Keyboard.addListener(showEvent, handleKeyboardShow)
+    const hideSubscription = Keyboard.addListener(hideEvent, handleKeyboardHide)
+
+    return () => {
+      showSubscription.remove()
+      hideSubscription.remove()
+    }
+  }, [visible])
 
   useEffect(() => {
     if (visible) {
@@ -140,16 +171,13 @@ export function AbdominalCircumferenceLogDrawer({
           useNativeDriver: true,
         }),
       ]).start()
-
-      setGesturesReady(false)
-      const timer = setTimeout(() => setGesturesReady(true), 350)
-      return () => clearTimeout(timer)
+      return
     }
 
     if (isMounted) {
       closeSheet(onClose)
     }
-  }, [visible, initialValueCm])
+  }, [visible])
 
   useEffect(() => {
     return () => {
@@ -158,36 +186,6 @@ export function AbdominalCircumferenceLogDrawer({
       }
     }
   }, [])
-
-  const rulerPanResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => gesturesReadyRef.current,
-      onMoveShouldSetPanResponder: () => gesturesReadyRef.current,
-      onPanResponderGrant: () => {
-        Keyboard.dismiss()
-        dragStartValue.current = valueRef.current
-        appliedStepsRef.current = 0
-      },
-      onPanResponderMove: (_, gesture) => {
-        const steps = Math.trunc(-gesture.dy / DRAG_THRESHOLD_PX)
-        if (steps === appliedStepsRef.current) return
-
-        appliedStepsRef.current = steps
-        const next = clampCm(dragStartValue.current + steps * STEP_CM)
-        if (next === valueRef.current) return
-
-        setValueCm(next)
-        setInputDraft(String(next))
-        void Haptics.selectionAsync()
-      },
-      onPanResponderRelease: () => {
-        appliedStepsRef.current = 0
-      },
-      onPanResponderTerminate: () => {
-        appliedStepsRef.current = 0
-      },
-    }),
-  ).current
 
   function closeSheet(done?: () => void) {
     Animated.parallel([
@@ -217,6 +215,7 @@ export function AbdominalCircumferenceLogDrawer({
 
   function handleDismiss() {
     if (!visible) return
+    Keyboard.dismiss()
     clearSuccessTimer()
     const pending = pendingRegistrationRef.current
     pendingRegistrationRef.current = null
@@ -242,6 +241,16 @@ export function AbdominalCircumferenceLogDrawer({
     setInputDraft(String(valueCm))
   }
 
+  function adjustValue(delta: number) {
+    Keyboard.dismiss()
+    const next = clampCm(valueCm + delta)
+    if (next === valueCm) return
+
+    setValueCm(next)
+    setInputDraft(String(next))
+    void Haptics.selectionAsync()
+  }
+
   function handleRegister() {
     if (showSuccess) return
     Keyboard.dismiss()
@@ -255,6 +264,11 @@ export function AbdominalCircumferenceLogDrawer({
       handleDismiss()
     }, SUCCESS_DISMISS_MS)
   }
+
+  const keyboardLift =
+    keyboardInset > 0
+      ? Math.max(0, keyboardInset - Math.max(insets.bottom, 0) + KEYBOARD_EXTRA_PADDING)
+      : 0
 
   if (!isMounted) return null
 
@@ -272,22 +286,32 @@ export function AbdominalCircumferenceLogDrawer({
         <KeyboardAvoidingView
           behavior={keyboardAvoidingBehavior}
           style={styles.keyboardWrap}
+          enabled={Platform.OS === 'ios'}
         >
           <Animated.View
             style={[
               styles.sheet,
               {
                 paddingBottom: getModalFooterPadding(insets.bottom, 8),
-                transform: [{ translateY: sheetTranslateY }],
+                transform: [
+                  { translateY: sheetTranslateY },
+                  { translateY: -keyboardLift },
+                ],
               },
             ]}
           >
             <LinearGradient
               colors={['rgba(36, 36, 46, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+              pointerEvents="none"
               style={StyleSheet.absoluteFillObject}
             />
             {Platform.OS === 'ios' ? (
-              <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+              <BlurView
+                intensity={28}
+                tint="dark"
+                pointerEvents="none"
+                style={StyleSheet.absoluteFillObject}
+              />
             ) : null}
 
             {!showSuccess ? (
@@ -295,6 +319,7 @@ export function AbdominalCircumferenceLogDrawer({
                 colors={[...ACCENT_GRADIENT]}
                 start={{ x: 0, y: 0.5 }}
                 end={{ x: 1, y: 0.5 }}
+                pointerEvents="none"
                 style={styles.topAccent}
               />
             ) : null}
@@ -305,10 +330,20 @@ export function AbdominalCircumferenceLogDrawer({
                 message={`${valueCm} cm adicionados ao seu histórico.`}
               />
             ) : (
-              <>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="interactive"
+                automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+                contentContainerStyle={[
+                  styles.scrollContent,
+                  keyboardInset > 0 && { paddingBottom: KEYBOARD_EXTRA_PADDING },
+                ]}
+                bounces={keyboardInset === 0}
+              >
                 <View style={styles.handle} />
 
-                <View style={styles.headerRow}>
+                <View style={[styles.headerRow, keyboardInset > 0 && styles.headerRowCompact]}>
                   <LinearGradient
                     colors={[...ACCENT_GRADIENT]}
                     start={{ x: 0.2, y: 0 }}
@@ -336,59 +371,83 @@ export function AbdominalCircumferenceLogDrawer({
                   </Pressable>
                 </View>
 
-                <View style={styles.contentRow}>
-                  <View style={styles.rulerColumn}>
-                    <Text style={styles.rulerHint}>Arraste para ajustar</Text>
+                <View style={[styles.zonePill, { backgroundColor: zone.bg, borderColor: zone.border }]}>
+                  <Text style={[styles.zoneLabel, { color: zone.color }]}>{zone.label}</Text>
+                  <Text style={styles.zoneHint}>{zone.hint}</Text>
+                </View>
 
-                    <View style={styles.rulerStage}>
-                      <View style={styles.visualTouchArea} {...rulerPanResponder.panHandlers}>
-                        <View style={styles.tapeVisual}>
-                          <FullBodyFigure size={72} />
-                          <Text
-                            style={[
-                              styles.tapeValue,
-                              { fontSize: getTapeValueFontSize(valueCm) },
-                            ]}
-                            numberOfLines={1}
-                            adjustsFontSizeToFit
-                            minimumFontScale={0.72}
-                          >
-                            {valueCm}
-                          </Text>
-                          <Text style={styles.tapeUnit}>cm</Text>
-                        </View>
-                      </View>
-                    </View>
+                <View style={styles.inputCard}>
+                  <Text style={styles.inputLabel}>Ou digite</Text>
+                  <View style={styles.inputWrap}>
+                    <TextInput
+                      value={inputDraft}
+                      onChangeText={handleInputChange}
+                      onBlur={handleInputBlur}
+                      placeholder="Ex: 88"
+                      placeholderTextColor={colors.textSubtle}
+                      keyboardType={Platform.OS === 'web' ? 'default' : 'number-pad'}
+                      style={styles.input}
+                      selectionColor={colors.primary}
+                      maxLength={3}
+                    />
+                    <Text style={styles.inputSuffix}>cm</Text>
                   </View>
+                </View>
 
-                  <View style={styles.valueColumn}>
-                    <View style={[styles.zonePill, { backgroundColor: zone.bg, borderColor: zone.border }]}>
-                      <Text style={[styles.zoneLabel, { color: zone.color }]}>{zone.label}</Text>
-                      <Text style={styles.zoneHint}>{zone.hint}</Text>
+                <View
+                  style={[
+                    styles.stepperSection,
+                    keyboardInset > 0 && styles.stepperSectionDimmed,
+                  ]}
+                  pointerEvents={keyboardInset > 0 ? 'none' : 'auto'}
+                >
+                  <Text style={styles.stepperHint}>Ou ajuste com os botões</Text>
+
+                  <View style={styles.stepperRow}>
+                    <Pressable
+                      onPress={() => adjustValue(-STEP_CM)}
+                      style={({ pressed }) => [
+                        styles.stepperButton,
+                        pressed && styles.stepperButtonPressed,
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityLabel="Diminuir medida"
+                    >
+                      <Ionicons name="remove" size={22} color={colors.text} />
+                    </Pressable>
+
+                    <View style={styles.tapeVisual} pointerEvents="none">
+                      <FullBodyFigure size={72} />
+                      <Text
+                        style={[
+                          styles.tapeValue,
+                          { fontSize: getTapeValueFontSize(valueCm) },
+                        ]}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.72}
+                      >
+                        {valueCm}
+                      </Text>
+                      <Text style={styles.tapeUnit}>cm</Text>
                     </View>
 
-                    <View style={styles.inputCard}>
-                      <Text style={styles.inputLabel}>Ou digite</Text>
-                      <View style={styles.inputWrap}>
-                        <TextInput
-                          value={inputDraft}
-                          onChangeText={handleInputChange}
-                          onBlur={handleInputBlur}
-                          placeholder="Ex: 88"
-                          placeholderTextColor={colors.textSubtle}
-                          keyboardType={Platform.OS === 'web' ? 'default' : 'number-pad'}
-                          style={styles.input}
-                          selectionColor={colors.primary}
-                          maxLength={3}
-                        />
-                        <Text style={styles.inputSuffix}>cm</Text>
-                      </View>
-                    </View>
+                    <Pressable
+                      onPress={() => adjustValue(STEP_CM)}
+                      style={({ pressed }) => [
+                        styles.stepperButton,
+                        pressed && styles.stepperButtonPressed,
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityLabel="Aumentar medida"
+                    >
+                      <Ionicons name="add" size={22} color={colors.text} />
+                    </Pressable>
                   </View>
                 </View>
 
                 <PrimaryButton label="Registrar medida" onPress={handleRegister} />
-              </>
+              </ScrollView>
             )}
           </Animated.View>
         </KeyboardAvoidingView>
@@ -407,6 +466,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
   keyboardWrap: {
+    flex: 1,
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -417,6 +477,11 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
+    maxHeight: '92%',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    gap: 12,
   },
   topAccent: {
     position: 'absolute',
@@ -438,7 +503,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
-    marginBottom: 16,
+    marginBottom: 4,
+  },
+  headerRowCompact: {
+    marginBottom: 0,
   },
   fieldIconOrb: {
     width: 46,
@@ -478,67 +546,6 @@ const styles = StyleSheet.create({
   },
   closeButtonPressed: {
     opacity: 0.8,
-  },
-  contentRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 14,
-    marginBottom: 12,
-    minHeight: 204,
-  },
-  rulerColumn: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  rulerHint: {
-    color: colors.textSubtle,
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
-    marginBottom: 6,
-  },
-  rulerStage: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 176,
-  },
-  visualTouchArea: {
-    width: 108,
-    height: 168,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tapeVisual: {
-    width: 108,
-    height: 168,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    overflow: 'hidden',
-  },
-  tapeValue: {
-    color: colors.text,
-    fontWeight: '800',
-    letterSpacing: -0.8,
-    fontVariant: ['tabular-nums'],
-    width: '100%',
-    textAlign: 'center',
-    paddingHorizontal: 4,
-  },
-  tapeUnit: {
-    color: '#fb923c',
-    fontSize: 13,
-    fontWeight: '700',
-    marginTop: -2,
-  },
-  valueColumn: {
-    flex: 1,
-    gap: 10,
-    justifyContent: 'center',
   },
   zonePill: {
     borderRadius: 14,
@@ -596,5 +603,65 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     marginLeft: 6,
+  },
+  stepperSection: {
+    gap: 8,
+    alignItems: 'center',
+  },
+  stepperSectionDimmed: {
+    opacity: 0.28,
+  },
+  stepperHint: {
+    color: colors.textSubtle,
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  stepperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    width: '100%',
+  },
+  stepperButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  stepperButtonPressed: {
+    opacity: 0.8,
+  },
+  tapeVisual: {
+    width: 108,
+    height: 168,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    overflow: 'hidden',
+  },
+  tapeValue: {
+    color: colors.text,
+    fontWeight: '800',
+    letterSpacing: -0.8,
+    fontVariant: ['tabular-nums'],
+    width: '100%',
+    textAlign: 'center',
+    paddingHorizontal: 4,
+  },
+  tapeUnit: {
+    color: '#fb923c',
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: -2,
   },
 })
