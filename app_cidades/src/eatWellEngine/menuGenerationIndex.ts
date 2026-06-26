@@ -68,8 +68,9 @@ function getRoleFilter(role: string): RoleFilter {
 
 function itemMatchesRoleFilter(item: EatWellCatalogItem, filter: RoleFilter, slot: MealSlot) {
   if (filter.suitable_slots?.length && !filter.suitable_slots.includes(slot)) return false
-  if (filter.meal_roles?.length && !filter.meal_roles.some((role) => item.meal_roles.includes(role))) {
-    return false
+  if (filter.meal_roles?.length) {
+    const itemRoles = item.meal_roles ?? []
+    if (!filter.meal_roles.some((role) => itemRoles.includes(role))) return false
   }
   if (filter.categories?.length && !filter.categories.includes(item.category)) return false
   if (filter.tags_any?.length && !filter.tags_any.some((tag) => item.tags.includes(tag))) {
@@ -279,7 +280,9 @@ export function getCandidatesForRole(
 
   const bucket = index.candidatesBySlotRole.get(slotRoleKey(slot, role)) ?? []
 
-  return bucket.filter((item) => !usedFoodIds.has(item.id) && constraintFilter(item))
+  return bucket.filter(
+    (item) => !(usedFoodIds ?? new Set()).has(item.id) && constraintFilter(item),
+  )
 }
 
 export function getArchetypesForSlotObjective(slot: MealSlot, objective: EatWellMenuObjective) {

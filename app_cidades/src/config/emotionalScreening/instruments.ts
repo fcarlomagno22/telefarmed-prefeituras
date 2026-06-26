@@ -2,7 +2,7 @@ import type {
   EmotionalScreeningInstrument,
   EmotionalScreeningQuestion,
   EmotionalScreeningQuestionOption,
-} from '../types/emotionalScreening'
+} from '../../types/emotionalScreening'
 
 const LIKERT_4_FREQUENCY: EmotionalScreeningQuestionOption[] = [
   { value: 0, label: 'Nenhum dia' },
@@ -270,6 +270,7 @@ export const EMOTIONAL_SCREENING_INSTRUMENTS: EmotionalScreeningInstrument[] = [
       'Triagem de ansiedade com base em sintomas recentes. O resultado indica intensidade dos sinais, não um diagnóstico.',
     questionPreamble: 'Nas últimas 2 semanas, com que frequência você foi incomodado(a) por:',
     questions: GAD7_QUESTIONS,
+    available: false,
   },
   {
     id: 'phq-9',
@@ -285,6 +286,7 @@ export const EMOTIONAL_SCREENING_INSTRUMENTS: EmotionalScreeningInstrument[] = [
       'Triagem de sintomas depressivos. Se houver pensamentos de autolesão, o app orientará busca de apoio imediato.',
     questionPreamble: 'Nas últimas 2 semanas, com que frequência você foi incomodado(a) por:',
     questions: PHQ9_QUESTIONS,
+    available: false,
   },
   {
     id: 'cssrs',
@@ -299,6 +301,7 @@ export const EMOTIONAL_SCREENING_INSTRUMENTS: EmotionalScreeningInstrument[] = [
     intro:
       'Perguntas diretas sobre segurança. Respostas que indicam risco acionam protocolo de apoio urgente.',
     questions: CSSRS_QUESTIONS,
+    available: false,
   },
   {
     id: 'asrs',
@@ -313,6 +316,7 @@ export const EMOTIONAL_SCREENING_INSTRUMENTS: EmotionalScreeningInstrument[] = [
     intro:
       'Triagem de sinais compatíveis com TDAH em adultos. Indica se vale a pena buscar avaliação especializada.',
     questions: ASRS_QUESTIONS,
+    available: false,
   },
   {
     id: 'isi',
@@ -326,6 +330,7 @@ export const EMOTIONAL_SCREENING_INSTRUMENTS: EmotionalScreeningInstrument[] = [
     accent: ['#a5b4fc', '#6366f1'],
     intro: 'Avalia como o sono tem afetado você nas últimas 2 semanas.',
     questions: ISI_QUESTIONS,
+    available: false,
   },
   {
     id: 'audit-c',
@@ -339,6 +344,7 @@ export const EMOTIONAL_SCREENING_INSTRUMENTS: EmotionalScreeningInstrument[] = [
     accent: ['#fde68a', '#d97706'],
     intro: 'Triagem breve de consumo de álcool. Não substitui avaliação clínica completa.',
     questions: AUDIT_QUESTIONS,
+    available: false,
   },
   {
     id: 'pcl-5',
@@ -353,6 +359,7 @@ export const EMOTIONAL_SCREENING_INSTRUMENTS: EmotionalScreeningInstrument[] = [
     intro:
       'Triagem de sintomas compatíveis com estresse pós-traumático. Considere um evento que tenha sido muito difícil para você.',
     questions: PCL5_QUESTIONS,
+    available: false,
   },
   {
     id: 'snap-iv',
@@ -367,6 +374,7 @@ export const EMOTIONAL_SCREENING_INSTRUMENTS: EmotionalScreeningInstrument[] = [
     intro:
       'Rastreio completo com SNAP-IV 26, prejuízo funcional, alertas de segurança e fatores associados. O resultado não fecha diagnóstico.',
     questions: SNAP_QUESTIONS,
+    available: true,
   },
   {
     id: 'scared',
@@ -380,6 +388,7 @@ export const EMOTIONAL_SCREENING_INSTRUMENTS: EmotionalScreeningInstrument[] = [
     accent: ['#86efac', '#16a34a'],
     intro: 'Triagem de ansiedade em crianças e adolescentes. Pode ser respondida com apoio de um adulto.',
     questions: SCARED_QUESTIONS,
+    available: false,
   },
   {
     id: 'psc-17',
@@ -394,6 +403,7 @@ export const EMOTIONAL_SCREENING_INSTRUMENTS: EmotionalScreeningInstrument[] = [
     intro:
       'Triagem geral de bem-estar emocional e comportamental. Preenchimento por responsável recomendado.',
     questions: PSC17_QUESTIONS,
+    available: false,
   },
   {
     id: 'mchat-r',
@@ -408,6 +418,7 @@ export const EMOTIONAL_SCREENING_INSTRUMENTS: EmotionalScreeningInstrument[] = [
     intro:
       'Triagem para sinais compatíveis com TEA em crianças pequenas. Responda com base no comportamento habitual da criança.',
     questions: MCHAT_QUESTIONS,
+    available: false,
   },
 ]
 

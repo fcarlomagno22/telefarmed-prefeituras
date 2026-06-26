@@ -505,10 +505,14 @@ export function runTdahTodEngine(
 
   const classificationMeta = tdahTodContent.cutoffs.classification_scale.find(
     (item) => item.id === classificationId,
-  )!
+  )
   const messageMeta = tdahTodContent.resultMessages.classification_messages.find(
     (item) => item.classification_id === classificationId,
-  )!
+  )
+
+  if (!classificationMeta || !messageMeta) {
+    throw new Error(`Classificação TDAH/TOD sem metadados: ${classificationId}`)
+  }
 
   const profiles = resolveProfiles({ desatencaoRelevant, hyperRelevant, oddRelevant })
   const schoolFormRecommended = !profile.professorAnswers
@@ -575,7 +579,7 @@ export function runTdahTodEngine(
     headline: messageMeta.headline,
     familySummary: messageMeta.family_summary,
     reassurance: messageMeta.reassurance,
-    nextSteps: messageMeta.next_steps,
+    nextSteps: messageMeta.next_steps ?? [],
     referrals,
     followupDays: followup.days,
     followupMessage: followup.message,

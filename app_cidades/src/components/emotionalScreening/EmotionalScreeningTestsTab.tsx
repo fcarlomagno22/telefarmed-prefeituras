@@ -13,14 +13,18 @@ import { EMOTIONAL_SCREENING_INSTRUMENTS } from '../../config/emotionalScreening
 import { colors } from '../../theme/colors'
 
 const AUDIENCE_ORDER: EmotionalScreeningAudience[] = [
-  'adult_adolescent',
-  'child_adolescent',
   'early_childhood',
+  'child_adolescent',
+  'adult_adolescent',
 ]
 
 type EmotionalScreeningTestsTabProps = {
   bottomPadding: number
   onSelectInstrument: (instrumentId: EmotionalScreeningInstrumentId) => void
+}
+
+function isInstrumentAvailable(instrument: EmotionalScreeningInstrument) {
+  return instrument.available === true
 }
 
 function InstrumentCard({
@@ -30,37 +34,78 @@ function InstrumentCard({
   instrument: EmotionalScreeningInstrument
   onPress: () => void
 }) {
+  const available = isInstrumentAvailable(instrument)
+
+  function handlePress() {
+    if (!available) return
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    onPress()
+  }
+
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={instrument.title}
-      onPress={() => {
-        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-        onPress()
-      }}
-      style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+      accessibilityState={{ disabled: !available }}
+      accessibilityLabel={
+        available
+          ? instrument.title
+          : `${instrument.title}. Em breve`
+      }
+      onPress={handlePress}
+      disabled={!available}
+      style={({ pressed }) => [
+        styles.card,
+        !available && styles.cardGhost,
+        available && pressed && styles.cardPressed,
+      ]}
     >
-      <LinearGradient colors={[...instrument.accent]} style={styles.cardIcon}>
-        <MaterialCommunityIcons
-          name={instrument.icon as keyof typeof MaterialCommunityIcons.glyphMap}
-          size={22}
-          color="#fff"
-        />
-      </LinearGradient>
+      {available ? (
+        <LinearGradient colors={[...instrument.accent]} style={styles.cardIcon}>
+          <MaterialCommunityIcons
+            name={instrument.icon as keyof typeof MaterialCommunityIcons.glyphMap}
+            size={22}
+            color="#fff"
+          />
+        </LinearGradient>
+      ) : (
+        <View style={[styles.cardIcon, styles.cardIconGhost]}>
+          <MaterialCommunityIcons
+            name={instrument.icon as keyof typeof MaterialCommunityIcons.glyphMap}
+            size={22}
+            color={colors.textSubtle}
+          />
+        </View>
+      )}
 
       <View style={styles.cardBody}>
-        <Text style={styles.cardTitle}>{instrument.title}</Text>
-        <Text style={styles.cardSubtitle} numberOfLines={2}>
+        <View style={styles.cardTitleRow}>
+          <Text style={[styles.cardTitle, !available && styles.cardTitleGhost]} numberOfLines={1}>
+            {instrument.title}
+          </Text>
+          {!available ? (
+            <View style={styles.soonBadge}>
+              <Text style={styles.soonBadgeText}>Em breve</Text>
+            </View>
+          ) : null}
+        </View>
+        <Text
+          style={[styles.cardSubtitle, !available && styles.cardSubtitleGhost]}
+          numberOfLines={2}
+        >
           {instrument.subtitle}
         </Text>
-        <View style={styles.cardMetaRow}>
-          <Text style={styles.cardMeta}>{instrument.instrumentCode}</Text>
-          <Text style={styles.cardMetaDot}>·</Text>
-          <Text style={styles.cardMeta}>~{instrument.estimatedMinutes} min</Text>
-        </View>
+        {available ? (
+          <View style={styles.cardMetaRow}>
+            <Text style={styles.cardMeta}>{instrument.instrumentCode}</Text>
+            <Text style={styles.cardMetaDot}>·</Text>
+            <Text style={styles.cardMeta}>~{instrument.estimatedMinutes} min</Text>
+          </View>
+        ) : null}
       </View>
 
-      <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSubtle} />
+      {available ? (
+        <MaterialCommunityIcons name="chevron-right" size={20} color={colors.textSubtle} />
+      ) : null}
     </Pressable>
   )
 }
@@ -142,6 +187,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
   },
+  cardGhost: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    opacity: 0.72,
+  },
   cardPressed: {
     opacity: 0.88,
   },
@@ -152,21 +202,53 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  cardIconGhost: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+  },
   cardBody: {
     flex: 1,
     gap: 3,
   },
+  cardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   cardTitle: {
+    flex: 1,
     color: colors.text,
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: -0.2,
+  },
+  cardTitleGhost: {
+    color: colors.textMuted,
+    fontWeight: '700',
   },
   cardSubtitle: {
     color: colors.textMuted,
     fontSize: 12,
     fontWeight: '500',
     lineHeight: 16,
+  },
+  cardSubtitleGhost: {
+    color: colors.textSubtle,
+  },
+  soonBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  soonBadgeText: {
+    color: colors.textSubtle,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   cardMetaRow: {
     flexDirection: 'row',

@@ -5,7 +5,6 @@ import {
   Animated,
   Easing,
   KeyboardAvoidingView,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -34,6 +33,7 @@ import type {
 } from '../../tdahTodInfantil/types'
 import { colors } from '../../theme/colors'
 import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
+import { AppModal } from '../AppModal'
 import { PrimaryButton } from '../PrimaryButton'
 import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import { TdahTodConsentTermDrawer } from './TdahTodConsentTermDrawer'
@@ -53,32 +53,46 @@ function createSessionId() {
 function ConsentRow({
   item,
   accepted,
-  onPress,
+  onToggleAccept,
+  onOpenDrawer,
 }: {
   item: TdahTodConsentItem
   accepted: boolean
-  onPress: () => void
+  onToggleAccept: () => void
+  onOpenDrawer: () => void
 }) {
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [styles.consentRow, pressed && styles.consentRowPressed]}
-      accessibilityRole="button"
-      accessibilityLabel={`${item.label}. ${accepted ? 'Aceito' : 'Toque para ler o termo'}`}
-    >
-      <Ionicons
-        name={accepted ? 'checkmark-circle' : 'ellipse-outline'}
-        size={20}
-        color={accepted ? '#a78bfa' : colors.textSubtle}
-      />
-      <View style={styles.consentRowBody}>
-        <Text style={styles.consentRowLabel}>{item.label}</Text>
-        <Text style={styles.consentRowHint}>
-          {accepted ? 'Aceito · toque para reler' : 'Toque para ler e aceitar'}
-        </Text>
-      </View>
-      <Ionicons name="chevron-forward" size={16} color={colors.textSubtle} />
-    </Pressable>
+    <View style={styles.consentRow}>
+      <Pressable
+        onPress={onToggleAccept}
+        hitSlop={8}
+        style={({ pressed }) => [styles.consentCheckBtn, pressed && styles.consentRowPressed]}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: accepted }}
+        accessibilityLabel={`${item.label}. ${accepted ? 'Aceito' : 'Marcar como aceito'}`}
+      >
+        <Ionicons
+          name={accepted ? 'checkmark-circle' : 'ellipse-outline'}
+          size={20}
+          color={accepted ? '#a78bfa' : colors.textSubtle}
+        />
+      </Pressable>
+
+      <Pressable
+        onPress={onOpenDrawer}
+        style={({ pressed }) => [styles.consentRowBodyPress, pressed && styles.consentRowPressed]}
+        accessibilityRole="button"
+        accessibilityLabel={`Ler termo: ${item.label}`}
+      >
+        <View style={styles.consentRowBody}>
+          <Text style={styles.consentRowLabel}>{item.label}</Text>
+          <Text style={styles.consentRowHint}>
+            {accepted ? 'Aceito · toque para reler' : 'Toque para ler o termo'}
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={16} color={colors.textSubtle} />
+      </Pressable>
+    </View>
   )
 }
 
@@ -116,6 +130,14 @@ export function TdahTodInfantilFlow({
   const optionalConsentItems = useMemo(
     () => consentItems.filter((item) => !item.required),
     [consentItems],
+  )
+  const allConsentItems = useMemo(
+    () => [...requiredConsentItems, ...optionalConsentItems],
+    [optionalConsentItems, requiredConsentItems],
+  )
+  const allConsentsAccepted = useMemo(
+    () => allConsentItems.every((item) => acceptedConsents[item.id]),
+    [acceptedConsents, allConsentItems],
   )
 
   const currentStep = TDAH_TOD_FLOW_STEPS[stepIndex] ?? 'consent'
@@ -326,6 +348,25 @@ export function TdahTodInfantilFlow({
     [goNextStep],
   )
 
+  const handleToggleConsent = useCallback((itemId: string) => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    setAcceptedConsents((current) => ({
+      ...current,
+      [itemId]: !current[itemId],
+    }))
+  }, [])
+
+  const handleAcceptAllConsents = useCallback(() => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    setAcceptedConsents((current) => {
+      const next = { ...current }
+      for (const item of allConsentItems) {
+        next[item.id] = true
+      }
+      return next
+    })
+  }, [allConsentItems])
+
   useEffect(() => {
     Animated.timing(progressAnimated, {
       toValue: stepProgress,
@@ -338,7 +379,14 @@ export function TdahTodInfantilFlow({
   if (!visible) return null
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={handleBack}>
+    <>
+    <AppModal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+      navBarUnderlayColor={colors.background}
+      onRequestClose={handleBack}
+    >
       <View style={[styles.root, { paddingTop: Math.max(insets.top, 12) }]}>
         <View style={styles.header}>
           <Pressable onPress={handleBack} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Voltar">
@@ -368,7 +416,11 @@ export function TdahTodInfantilFlow({
               />
             </View>
 
-            <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              contentContainerStyle={styles.scroll}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
               {currentStep === 'consent' ? (
                 <View style={styles.section}>
                   <Text style={styles.lead}>{consentDisclaimer}</Text>
@@ -380,7 +432,8 @@ export function TdahTodInfantilFlow({
                         <ConsentRow
                           item={item}
                           accepted={Boolean(acceptedConsents[item.id])}
-                          onPress={() => setActiveConsentItem(item)}
+                          onToggleAccept={() => handleToggleConsent(item.id)}
+                          onOpenDrawer={() => setActiveConsentItem(item)}
                         />
                         {index < requiredConsentItems.length - 1 ? (
                           <View style={styles.consentDivider} />
@@ -398,7 +451,8 @@ export function TdahTodInfantilFlow({
                             <ConsentRow
                               item={item}
                               accepted={Boolean(acceptedConsents[item.id])}
-                              onPress={() => setActiveConsentItem(item)}
+                              onToggleAccept={() => handleToggleConsent(item.id)}
+                              onOpenDrawer={() => setActiveConsentItem(item)}
                             />
                             {index < optionalConsentItems.length - 1 ? (
                               <View style={styles.consentDivider} />
@@ -407,6 +461,18 @@ export function TdahTodInfantilFlow({
                         ))}
                       </View>
                     </>
+                  ) : null}
+
+                  {!allConsentsAccepted ? (
+                    <Pressable
+                      onPress={handleAcceptAllConsents}
+                      style={({ pressed }) => [styles.acceptAllBtn, pressed && styles.consentRowPressed]}
+                      accessibilityRole="button"
+                      accessibilityLabel="Aceitar todos os termos"
+                    >
+                      <Ionicons name="checkmark-done-outline" size={18} color="#c4b5fd" />
+                      <Text style={styles.acceptAllBtnText}>Aceitar todos</Text>
+                    </Pressable>
                   ) : null}
 
                   <Pressable
@@ -505,16 +571,13 @@ export function TdahTodInfantilFlow({
             ) : null}
           </KeyboardAvoidingView>
         ) : (
-          <TdahTodInfantilResultView
-            result={result}
-            bottomPadding={Math.max(insets.bottom, 16) + 80}
-            onClose={handleClose}
-          />
+          <TdahTodInfantilResultView result={result} onClose={handleClose} />
         )}
       </View>
+    </AppModal>
 
       <TdahTodConsentTermDrawer
-        visible={activeConsentItem != null}
+        visible={visible && activeConsentItem != null}
         item={activeConsentItem}
         accepted={activeConsentItem ? Boolean(acceptedConsents[activeConsentItem.id]) : false}
         onClose={() => setActiveConsentItem(null)}
@@ -528,14 +591,14 @@ export function TdahTodInfantilFlow({
       />
 
       <RunWalkSheetDrawer
-        visible={dataNoticeVisible}
+        visible={visible && dataNoticeVisible}
         title={dataCollectionNotice.title}
         onClose={() => setDataNoticeVisible(false)}
         footer={<PrimaryButton label="Entendi" onPress={() => setDataNoticeVisible(false)} />}
       >
         <Text style={styles.dataNoticeText}>{dataCollectionNotice.plainText}</Text>
       </RunWalkSheetDrawer>
-    </Modal>
+    </>
   )
 }
 
@@ -642,9 +705,27 @@ const styles = StyleSheet.create({
   consentRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     paddingVertical: 14,
     paddingHorizontal: 14,
+  },
+  consentCheckBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+  },
+  consentRowBodyPress: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minWidth: 0,
+    borderRadius: 10,
+    marginVertical: -6,
+    paddingVertical: 6,
+    paddingRight: 2,
   },
   consentRowPressed: {
     backgroundColor: 'rgba(255, 255, 255, 0.04)',
@@ -668,7 +749,24 @@ const styles = StyleSheet.create({
   consentDivider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    marginLeft: 46,
+    marginLeft: 52,
+  },
+  acceptAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 4,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(196, 181, 253, 0.35)',
+    backgroundColor: 'rgba(139, 92, 246, 0.12)',
+  },
+  acceptAllBtnText: {
+    color: '#c4b5fd',
+    fontSize: 14,
+    fontWeight: '700',
   },
   dataNoticeLink: {
     flexDirection: 'row',

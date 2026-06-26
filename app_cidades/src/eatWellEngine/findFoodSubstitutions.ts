@@ -50,7 +50,7 @@ function findOriginalCatalogId(entry: FoodEntry) {
 
   if (entry.id.includes('-')) {
     const candidate = entry.id.split('-sub-')[0]?.split('-arch')[0]
-    if (candidate && index.byId.has(candidate)) return candidate
+    if (candidate && index.byId?.has(candidate)) return candidate
   }
 
   return null

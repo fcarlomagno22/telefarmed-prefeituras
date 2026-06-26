@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native'
+import { Text, View } from 'react-native'
 import type { MyRoutineWeeklyHistoryPoint } from '../../utils/myRoutineHistoryStats'
 import { useThemedStyles } from '../../hooks/useThemedStyles'
 import type { ThemeColors } from '../../theme/palettes'
@@ -82,10 +82,12 @@ export function MyRoutineHistoryBarLegend({
         <View key={point.weekStartIso} style={styles.legendItem}>
           <View style={[styles.legendSwatch, { opacity: point.trackedDays === 0 ? 0.35 : 1 }]} />
           <View style={styles.legendCopy}>
-            <View style={styles.legendWeek}>{point.weekLabel.split('–')[0]?.trim() ?? point.weekLabel}</View>
-            <View style={styles.legendValue}>
+            <Text style={styles.legendWeek} numberOfLines={1}>
+              {point.weekLabel.split('–')[0]?.trim() ?? point.weekLabel}
+            </Text>
+            <Text style={styles.legendValue}>
               {point.trackedDays === 0 ? '—' : `${point.adherencePercent}%`}
-            </View>
+            </Text>
           </View>
         </View>
       ))}

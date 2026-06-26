@@ -325,6 +325,7 @@ export function ActiveMindSudokuScreen() {
             <SudokuBoard
               session={session}
               selectedIndex={selectedIndex}
+              conflictIndexes={conflictIndexes}
               cellFeedback={feedback.cells}
               maxGridSize={maxGridSize}
               onSelectCell={handleSelectCell}

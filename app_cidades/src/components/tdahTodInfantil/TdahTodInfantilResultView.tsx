@@ -1,13 +1,14 @@
-import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { TdahTodEngineResult } from '../../tdahTodInfantil/types'
+import { normalizeTdahTodEngineResult } from '../../tdahTodInfantil/normalizeResult'
 import { colors } from '../../theme/colors'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
 import { PrimaryButton } from '../PrimaryButton'
 
 type TdahTodInfantilResultViewProps = {
   result: TdahTodEngineResult
-  bottomPadding: number
   onClose: () => void
 }
 
@@ -26,55 +27,41 @@ function severityColor(classificationId: string) {
   }
 }
 
-function dialPhone(phone: string) {
-  void Linking.openURL(`tel:${phone.replace(/\D/g, '')}`)
-}
-
 export function TdahTodInfantilResultView({
   result,
-  bottomPadding,
   onClose,
 }: TdahTodInfantilResultViewProps) {
-  const accent = severityColor(result.classificationId)
+  const insets = useSafeAreaInsets()
+  const footerBottomPadding = getModalFooterPadding(insets.bottom)
+  const normalized = normalizeTdahTodEngineResult(result)
+  if (!normalized) return null
+
+  const accent = severityColor(normalized.classificationId)
 
   return (
     <View style={styles.root}>
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]} showsVerticalScrollIndicator={false}>
-        {result.urgentRedFlag ? (
-          <View style={styles.urgentBox}>
-            <Text style={styles.urgentTitle}>Atenção imediata</Text>
-            <Text style={styles.urgentText}>
-              Há alertas que exigem busca de apoio profissional ou emergencial agora.
-            </Text>
-            <View style={styles.urgentActions}>
-              <Pressable onPress={() => dialPhone('188')} style={styles.urgentBtn}>
-                <Ionicons name="call-outline" size={16} color="#fff" />
-                <Text style={styles.urgentBtnText}>CVV 188</Text>
-              </Pressable>
-              <Pressable onPress={() => dialPhone('192')} style={styles.urgentBtn}>
-                <Ionicons name="medkit-outline" size={16} color="#fff" />
-                <Text style={styles.urgentBtnText}>SAMU 192</Text>
-              </Pressable>
-            </View>
-          </View>
-        ) : null}
-
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <LinearGradient colors={[`${accent}33`, 'rgba(16, 16, 20, 0.94)']} style={styles.hero}>
           <Text style={styles.heroLabel}>Classificação do rastreio</Text>
-          <Text style={[styles.heroValue, { color: accent }]}>{result.classificationLabel}</Text>
-          <Text style={styles.heroHeadline}>{result.headline}</Text>
-          <Text style={styles.heroSummary}>{result.familySummary}</Text>
+          <Text style={[styles.heroValue, { color: accent }]}>{normalized.classificationLabel}</Text>
+          <Text style={styles.heroHeadline}>{normalized.headline}</Text>
+          <Text style={styles.heroSummary}>{normalized.familySummary}</Text>
         </LinearGradient>
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Em linguagem simples</Text>
-          <Text style={styles.cardText}>{result.safeResultPhrase}</Text>
+          <Text style={styles.cardText}>{normalized.safeResultPhrase}</Text>
         </View>
 
-        {result.profilePhrases.length > 0 ? (
+        {normalized.profilePhrases.length > 0 ? (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Padrão observado</Text>
-            {result.profilePhrases.map((phrase) => (
+            {normalized.profilePhrases.map((phrase) => (
               <Text key={phrase} style={styles.cardText}>
                 • {phrase}
               </Text>
@@ -84,7 +71,7 @@ export function TdahTodInfantilResultView({
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Domínios (SNAP-IV 26)</Text>
-          {result.domainScores
+          {normalized.domainScores
             .filter((item) => item.respondent === 'responsavel')
             .map((domain) => (
               <View key={`${domain.domain}-${domain.respondent}`} style={styles.domainRow}>
@@ -99,37 +86,37 @@ export function TdahTodInfantilResultView({
               </View>
             ))}
           <Text style={styles.meta}>
-            Prejuízo funcional: {result.functionalImpairmentLabel} · Confiança: {result.confidence}
+            Prejuízo funcional: {normalized.functionalImpairmentLabel} · Confiança: {normalized.confidence}
           </Text>
         </View>
 
-        {result.differentialNote ? (
+        {normalized.differentialNote ? (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Fatores que podem influenciar</Text>
-            <Text style={styles.cardText}>{result.differentialNote}</Text>
+            <Text style={styles.cardText}>{normalized.differentialNote}</Text>
           </View>
         ) : null}
 
-        {result.informantNote ? (
+        {normalized.informantNote ? (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Informantes</Text>
-            <Text style={styles.cardText}>{result.informantNote}</Text>
+            <Text style={styles.cardText}>{normalized.informantNote}</Text>
           </View>
         ) : null}
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Próximos passos</Text>
-          {result.nextSteps.map((step) => (
+          {normalized.nextSteps.map((step) => (
             <Text key={step} style={styles.cardText}>
               • {step}
             </Text>
           ))}
         </View>
 
-        {result.referrals.length > 0 ? (
+        {normalized.referrals.length > 0 ? (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Encaminhamentos sugeridos</Text>
-            {result.referrals.map((referral) => (
+            {normalized.referrals.map((referral) => (
               <View key={`${referral.destination}-${referral.label}`} style={styles.referralRow}>
                 <Text style={styles.referralLabel}>{referral.label}</Text>
                 <Text style={styles.referralReason}>{referral.reason}</Text>
@@ -138,23 +125,23 @@ export function TdahTodInfantilResultView({
           </View>
         ) : null}
 
-        {result.followupDays ? (
+        {normalized.followupDays ? (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Reavaliação</Text>
             <Text style={styles.cardText}>
-              Sugestão: repetir o rastreio em cerca de {result.followupDays} dias, ou antes se houver piora.
+              Sugestão: repetir o rastreio em cerca de {normalized.followupDays} dias, ou antes se houver piora.
             </Text>
           </View>
         ) : null}
 
         <View style={styles.disclaimerBox}>
           <Text style={styles.disclaimerTitle}>Importante</Text>
-          <Text style={styles.disclaimerText}>{result.disclaimer}</Text>
-          <Text style={styles.disclaimerText}>{result.reassurance}</Text>
+          <Text style={styles.disclaimerText}>{normalized.disclaimer}</Text>
+          <Text style={styles.disclaimerText}>{normalized.reassurance}</Text>
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: footerBottomPadding }]}>
         <PrimaryButton label="Fechar relatório" onPress={onClose} />
       </View>
     </View>
@@ -165,46 +152,13 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
+  scroll: {
+    flex: 1,
+  },
   content: {
     padding: 16,
+    paddingBottom: 8,
     gap: 12,
-  },
-  urgentBox: {
-    borderRadius: 16,
-    padding: 14,
-    gap: 8,
-    backgroundColor: 'rgba(248, 113, 113, 0.14)',
-    borderWidth: 1,
-    borderColor: 'rgba(248, 113, 113, 0.35)',
-  },
-  urgentTitle: {
-    color: '#fecaca',
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  urgentText: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '500',
-    lineHeight: 19,
-  },
-  urgentActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  urgentBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    backgroundColor: '#dc2626',
-  },
-  urgentBtnText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '800',
   },
   hero: {
     borderRadius: 18,
@@ -318,8 +272,11 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   footer: {
+    flexShrink: 0,
     paddingHorizontal: 16,
-    paddingBottom: 16,
     paddingTop: 8,
+    backgroundColor: colors.background,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
   },
 })

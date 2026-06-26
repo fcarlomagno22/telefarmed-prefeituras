@@ -30,6 +30,7 @@ import { TdahTodInfantilFlow } from '../tdahTodInfantil/TdahTodInfantilFlow'
 import { TdahTodInfantilResultDrawer } from '../tdahTodInfantil/TdahTodInfantilResultDrawer'
 import type { EmotionalScreeningHistoryItem } from './emotionalScreeningHistoryTypes'
 import type { TdahTodEngineResult } from '../../tdahTodInfantil/types'
+import { normalizeTdahTodEngineResult } from '../../tdahTodInfantil/normalizeResult'
 
 const SEGMENT_PAGES: EmotionalScreeningTab[] = ['tests', 'history']
 
@@ -93,13 +94,14 @@ export function EmotionalScreeningHomeContent({
   }
 
   const handleSelectInstrument = useCallback((instrumentId: EmotionalScreeningInstrumentId) => {
+    const instrument = getEmotionalScreeningInstrument(instrumentId)
+    if (!instrument?.available) return
+
     const start = () => {
       if (instrumentId === 'snap-iv') {
         setTdahTodFlowVisible(true)
         return
       }
-      const instrument = getEmotionalScreeningInstrument(instrumentId)
-      if (!instrument) return
       setSelectedInstrument(instrument)
       setIntroVisible(true)
     }
@@ -138,7 +140,7 @@ export function EmotionalScreeningHomeContent({
 
   function handleOpenHistorySession(item: EmotionalScreeningHistoryItem) {
     if (item.kind === 'tdah-tod') {
-      setActiveTdahTodResult(item.session.result)
+      setActiveTdahTodResult(normalizeTdahTodEngineResult(item.session.result))
       setTdahTodResultVisible(true)
       return
     }
@@ -162,10 +164,10 @@ export function EmotionalScreeningHomeContent({
 
   return (
     <View style={styles.root}>
-      <RunWalkSegmentTabs
+      <RunWalkSegmentTabs<EmotionalScreeningTab>
         activeTab={segmentTab}
         tabs={EMOTIONAL_SCREENING_TABS}
-        onTabChange={handleSegmentTabChange}
+        onChange={handleSegmentTabChange}
       />
 
       <FlatList

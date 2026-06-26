@@ -49,6 +49,8 @@ export type EmotionalScreeningInstrument = {
   intro: string
   questionPreamble?: string
   questions: EmotionalScreeningQuestion[]
+  /** Quando false, o card aparece em ghost com "Em breve". */
+  available?: boolean
 }
 
 export type EmotionalScreeningAnswers = Record<string, number | string | boolean>
@@ -93,7 +95,7 @@ export const EMOTIONAL_SCREENING_DISCLAIMER =
   'Este resultado indica sinais compatíveis e recomenda uma avaliação profissional. Não constitui diagnóstico.'
 
 export const EMOTIONAL_SCREENING_AUDIENCE_LABELS: Record<EmotionalScreeningAudience, string> = {
-  adult_adolescent: 'Adultos e adolescentes',
+  adult_adolescent: 'Adultos',
   child_adolescent: 'Crianças e adolescentes',
   early_childhood: '16 a 30 meses',
 }

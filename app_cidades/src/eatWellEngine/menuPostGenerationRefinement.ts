@@ -192,7 +192,7 @@ function canAddFoodToSlot(
   mealEntries: FoodEntry[],
   ctx: RefinementContext,
 ) {
-  if (ctx.usedFoodIds.has(item.id)) return false
+  if (ctx.usedFoodIds?.has(item.id)) return false
   if (!foodMatchesConstraints(item, ctx.constraints, ctx.dayTracker)) return false
   if (!isFoodAllowedInSlot(item, slot)) return false
   if (item.suitable_slots.length > 0 && !item.suitable_slots.includes(slot)) return false

@@ -1,7 +1,8 @@
-import { Modal, StyleSheet, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { TdahTodEngineResult } from '../../tdahTodInfantil/types'
 import { colors } from '../../theme/colors'
+import { AppModal } from '../AppModal'
 import { TdahTodInfantilResultView } from './TdahTodInfantilResultView'
 
 type TdahTodInfantilResultDrawerProps = {
@@ -20,15 +21,17 @@ export function TdahTodInfantilResultDrawer({
   if (!result) return null
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
+    <AppModal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+      navBarUnderlayColor={colors.background}
+      onRequestClose={onClose}
+    >
       <View style={[styles.root, { paddingTop: insets.top }]}>
-        <TdahTodInfantilResultView
-          result={result}
-          bottomPadding={insets.bottom + 24}
-          onClose={onClose}
-        />
+        <TdahTodInfantilResultView result={result} onClose={onClose} />
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 

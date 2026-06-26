@@ -1,12 +1,14 @@
 import * as Haptics from 'expo-haptics'
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 import { colors } from '../../../theme/colors'
-import type { SudokuSession } from '../../../types/sudoku'
+import type { SudokuCellFeedback, SudokuSession } from '../../../types/sudoku'
 
 type SudokuBoardProps = {
   session: SudokuSession
   selectedIndex: number | null
-  conflictIndexes: Set<number>
+  conflictIndexes?: Set<number>
+  cellFeedback?: Partial<Record<number, SudokuCellFeedback>>
+  maxGridSize?: number
   onSelectCell: (index: number) => void
 }
 
@@ -36,6 +38,7 @@ type SudokuCellProps = {
   isRevealed: boolean
   isSelected: boolean
   isConflict: boolean
+  feedback?: SudokuCellFeedback
   onPress: (index: number) => void
 }
 
@@ -49,6 +52,7 @@ function SudokuCell({
   isRevealed,
   isSelected,
   isConflict,
+  feedback,
   onPress,
 }: SudokuCellProps) {
   const row = Math.floor(index / 9)
@@ -67,6 +71,9 @@ function SudokuCell({
         },
         isSelected && styles.cellSelected,
         isConflict && styles.cellConflict,
+        feedback === 'correct' && styles.cellCorrect,
+        feedback === 'wrong' && styles.cellWrong,
+        feedback === 'conflict-source' && styles.cellConflictSource,
       ]}
       accessibilityRole="button"
       accessibilityLabel={`Célula ${row + 1}, ${col + 1}${value ? `, valor ${value}` : ', vazia'}`}
@@ -95,10 +102,13 @@ export function SudokuBoard({
   session,
   selectedIndex,
   conflictIndexes,
+  cellFeedback,
+  maxGridSize,
   onSelectCell,
 }: SudokuBoardProps) {
   const { width: screenWidth } = useWindowDimensions()
-  const boardOuterSize = Math.min(screenWidth - 32, 360)
+  const conflicts = conflictIndexes ?? new Set<number>()
+  const boardOuterSize = maxGridSize ?? Math.min(screenWidth - 32, 360)
   const gridSize = boardOuterSize - BOARD_PADDING * 2
   const cellSize = Math.floor(gridSize / 9)
   const gridExactSize = cellSize * 9
@@ -139,7 +149,8 @@ export function SudokuBoard({
                   isGiven={session.givens[index]}
                   isRevealed={session.revealed[index]}
                   isSelected={selectedIndex === index}
-                  isConflict={conflictIndexes.has(index)}
+                  isConflict={conflicts.has(index)}
+                  feedback={cellFeedback?.[index]}
                   onPress={handleCellPress}
                 />
               )
@@ -179,6 +190,15 @@ const styles = StyleSheet.create({
   },
   cellConflict: {
     backgroundColor: 'rgba(255, 107, 107, 0.14)',
+  },
+  cellCorrect: {
+    backgroundColor: 'rgba(74, 222, 128, 0.18)',
+  },
+  cellWrong: {
+    backgroundColor: 'rgba(255, 107, 107, 0.22)',
+  },
+  cellConflictSource: {
+    backgroundColor: 'rgba(251, 191, 36, 0.16)',
   },
   cellValue: {
     fontWeight: '600',
