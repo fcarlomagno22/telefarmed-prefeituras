@@ -1,0 +1,564 @@
+{
+  "metadata": {
+    "module": "scared_infantil",
+    "file": "scared_infantil_functional_impairment.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "instrument_code": "SCARED",
+    "instrument_full_name": "Screen for Child Anxiety Related Disorders",
+    "instrument_item_count": 41,
+    "timeframe": "ultimos_3_meses",
+    "age_range_years": {
+      "min": 8,
+      "max": 17
+    },
+    "parent_proxy_age_range_years": {
+      "min": 4,
+      "max": 7
+    },
+    "diagnostic_disclaimer": "Este rastreio não diagnostica transtorno de ansiedade nem qualquer outra condição. Organiza sinais compatíveis e orienta encaminhamento.",
+    "depends_on": [
+      "scared_infantil_questions.json"
+    ],
+    "clinical_role": "Medir prejuízo funcional associado a sinais de ansiedade infantil para apoiar a definição de prioridade clínica sem substituir avaliação profissional.",
+    "score_dependency_note": "Score SCARED elevado sem prejuízo funcional relevante não deve, isoladamente, gerar prioridade clínica alta. Red flags de segurança continuam prioritárias."
+  },
+  "respondent_types": [
+    {
+      "id": "crianca_adolescente",
+      "label": "Criança/adolescente",
+      "context": "Autorrelato recomendado para 8 a 17 anos, quando houver compreensão suficiente e consentimento/assentimento aplicável."
+    },
+    {
+      "id": "responsavel",
+      "label": "Responsável",
+      "context": "Relato do responsável. Obrigatório para 4 a 7 anos e recomendado como informação complementar para 8 a 17 anos."
+    }
+  ],
+  "answer_scales": [
+    {
+      "id": "impairment_1_5",
+      "type": "single_choice",
+      "label": "Escala de prejuízo funcional 1-5",
+      "instructions": {
+        "crianca_adolescente": "Marque o quanto a ansiedade, medo ou preocupação tem atrapalhado sua vida nos últimos 3 meses.",
+        "responsavel": "Marque o quanto a ansiedade, medo ou preocupação tem atrapalhado a vida da criança/adolescente nos últimos 3 meses."
+      },
+      "answers": [
+        {
+          "label": "Não atrapalha",
+          "value": 1,
+          "severity": "sem_prejuizo"
+        },
+        {
+          "label": "Atrapalha um pouco",
+          "value": 2,
+          "severity": "leve"
+        },
+        {
+          "label": "Atrapalha moderadamente",
+          "value": 3,
+          "severity": "moderado"
+        },
+        {
+          "label": "Atrapalha bastante",
+          "value": 4,
+          "severity": "importante"
+        },
+        {
+          "label": "Atrapalha muito",
+          "value": 5,
+          "severity": "importante"
+        }
+      ],
+      "impairment_positive_values": [
+        4,
+        5
+      ],
+      "moderate_impairment_values": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "frequency_1_5",
+      "type": "single_choice",
+      "label": "Frequência nos últimos 3 meses",
+      "instructions": {
+        "crianca_adolescente": "Marque com que frequência isso aconteceu nos últimos 3 meses.",
+        "responsavel": "Marque com que frequência isso aconteceu nos últimos 3 meses."
+      },
+      "answers": [
+        {
+          "label": "Nunca ou quase nunca",
+          "value": 1,
+          "severity": "sem_prejuizo"
+        },
+        {
+          "label": "Raramente",
+          "value": 2,
+          "severity": "leve"
+        },
+        {
+          "label": "Às vezes",
+          "value": 3,
+          "severity": "moderado"
+        },
+        {
+          "label": "Frequentemente",
+          "value": 4,
+          "severity": "importante"
+        },
+        {
+          "label": "Quase sempre",
+          "value": 5,
+          "severity": "importante"
+        }
+      ],
+      "impairment_positive_values": [
+        4,
+        5
+      ],
+      "moderate_impairment_values": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "support_need_1_5",
+      "type": "single_choice",
+      "label": "Necessidade de apoio extra",
+      "instructions": {
+        "crianca_adolescente": "Compare com o que costuma ser esperado para a sua idade.",
+        "responsavel": "Compare com o que costuma ser esperado para a idade da criança/adolescente."
+      },
+      "answers": [
+        {
+          "label": "Não precisa de apoio extra",
+          "value": 1,
+          "severity": "sem_prejuizo"
+        },
+        {
+          "label": "Precisa de um pouco de apoio extra",
+          "value": 2,
+          "severity": "leve"
+        },
+        {
+          "label": "Precisa de apoio extra moderado",
+          "value": 3,
+          "severity": "moderado"
+        },
+        {
+          "label": "Precisa de bastante apoio extra",
+          "value": 4,
+          "severity": "importante"
+        },
+        {
+          "label": "Precisa de muito mais apoio que o esperado",
+          "value": 5,
+          "severity": "importante"
+        }
+      ],
+      "impairment_positive_values": [
+        4,
+        5
+      ],
+      "moderate_impairment_values": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "mood_impact_1_5",
+      "type": "single_choice",
+      "label": "Impacto no humor",
+      "instructions": {
+        "crianca_adolescente": "Pense nos últimos 3 meses e marque o quanto a ansiedade mudou seu humor.",
+        "responsavel": "Pense nos últimos 3 meses e marque o quanto a ansiedade mudou o humor da criança/adolescente."
+      },
+      "answers": [
+        {
+          "label": "Não afeta o humor",
+          "value": 1,
+          "severity": "sem_prejuizo"
+        },
+        {
+          "label": "Afeta um pouco o humor",
+          "value": 2,
+          "severity": "leve"
+        },
+        {
+          "label": "Afeta moderadamente o humor",
+          "value": 3,
+          "severity": "moderado"
+        },
+        {
+          "label": "Afeta bastante o humor",
+          "value": 4,
+          "severity": "importante"
+        },
+        {
+          "label": "Afeta muito o humor",
+          "value": 5,
+          "severity": "importante"
+        }
+      ],
+      "impairment_positive_values": [
+        4,
+        5
+      ],
+      "moderate_impairment_values": [
+        3,
+        4,
+        5
+      ]
+    }
+  ],
+  "functional_impairment_levels": [
+    {
+      "id": "sem_prejuizo",
+      "label": "Sem prejuízo funcional relevante",
+      "description": "Não há indicação consistente de prejuízo funcional associado à ansiedade nas áreas avaliadas."
+    },
+    {
+      "id": "leve",
+      "label": "Prejuízo funcional leve",
+      "description": "Há impacto leve em uma ou mais áreas, com preservação geral da rotina."
+    },
+    {
+      "id": "moderado",
+      "label": "Prejuízo funcional moderado",
+      "description": "Há impacto moderado em pelo menos duas respostas, sugerindo necessidade de acompanhamento e avaliação clínica conforme contexto."
+    },
+    {
+      "id": "importante",
+      "label": "Prejuízo funcional importante",
+      "description": "Há impacto importante ou muito frequente, aumentando a prioridade de avaliação clínica, especialmente quando combinado a score SCARED elevado ou red flags."
+    }
+  ],
+  "questions": [
+    {
+      "id": "func_escola_desempenho",
+      "domain": "escola",
+      "answer_scale": "impairment_1_5",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "A ansiedade/preocupação tem atrapalhado meu desempenho ou minha participação na escola?",
+        "responsavel": "A ansiedade/preocupação tem atrapalhado o desempenho ou a participação da criança/adolescente na escola?"
+      },
+      "clinical_construct": "prejuizo_escolar_desempenho_participacao",
+      "required": true
+    },
+    {
+      "id": "func_escola_faltas",
+      "domain": "escola",
+      "answer_scale": "frequency_1_5",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Nos últimos 3 meses, com que frequência você faltou, chegou atrasado(a) ou não quis ir à escola por medo ou mal-estar?",
+        "responsavel": "Nos últimos 3 meses, com que frequência houve faltas, atrasos ou recusa de ir à escola por medo ou mal-estar?"
+      },
+      "clinical_construct": "prejuizo_escolar_faltas_atrasos_recusa",
+      "required": true
+    },
+    {
+      "id": "func_social_amizades",
+      "domain": "social",
+      "answer_scale": "impairment_1_5",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "A ansiedade tem dificultado fazer ou manter amizades?",
+        "responsavel": "A ansiedade tem dificultado fazer ou manter amizades?"
+      },
+      "clinical_construct": "prejuizo_social_amizades",
+      "required": true
+    },
+    {
+      "id": "func_social_atividades",
+      "domain": "social",
+      "answer_scale": "frequency_1_5",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Nos últimos 3 meses, com que frequência você evita atividades, festas, esportes ou lugares novos por medo ou nervosismo?",
+        "responsavel": "Nos últimos 3 meses, com que frequência evita atividades, festas, esportes ou lugares novos por medo ou nervosismo?"
+      },
+      "clinical_construct": "prejuizo_social_evitacao_atividades",
+      "required": true
+    },
+    {
+      "id": "func_familiar_rotina",
+      "domain": "familiar",
+      "answer_scale": "impairment_1_5",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "A ansiedade tem gerado conflitos ou tensão na rotina da minha família?",
+        "responsavel": "A ansiedade tem gerado conflitos ou tensão na rotina familiar?"
+      },
+      "clinical_construct": "prejuizo_familiar_rotina_conflitos",
+      "required": true
+    },
+    {
+      "id": "func_sono",
+      "domain": "sono_somatico",
+      "answer_scale": "impairment_1_5",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "A ansiedade tem atrapalhado meu sono, como dificuldade para dormir, acordar assustado(a) ou pesadelos frequentes?",
+        "responsavel": "A ansiedade tem atrapalhado o sono, como dificuldade para dormir, acordar assustado(a) ou pesadelos frequentes?"
+      },
+      "clinical_construct": "prejuizo_sono_ansiedade",
+      "required": true
+    },
+    {
+      "id": "func_somatico",
+      "domain": "sono_somatico",
+      "answer_scale": "impairment_1_5",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Dores de cabeça, dor de barriga ou mal-estar frequentes têm atrapalhado minha rotina sem explicação médica clara?",
+        "responsavel": "Dores de cabeça, barriga ou mal-estar frequentes têm atrapalhado a rotina sem explicação médica clara?"
+      },
+      "clinical_construct": "prejuizo_somatico_sem_explicacao_clara",
+      "required": true
+    },
+    {
+      "id": "func_autonomia",
+      "domain": "familiar",
+      "answer_scale": "support_need_1_5",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Em situações do dia a dia (escola, dormir, tarefas, sair de casa), quanto apoio extra você precisa em relação ao esperado para a sua idade?",
+        "responsavel": "Em situações do dia a dia (escola, dormir, tarefas, sair de casa), quanto apoio extra ele(a) precisa em relação ao esperado para a idade?"
+      },
+      "clinical_construct": "prejuizo_autonomia_funcional",
+      "required": true
+    },
+    {
+      "id": "func_concentracao",
+      "domain": "escola_casa",
+      "answer_scale": "impairment_1_5",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "A preocupação tem atrapalhado minha concentração em tarefas escolares ou em casa?",
+        "responsavel": "A preocupação tem atrapalhado a concentração em tarefas escolares ou em casa?"
+      },
+      "clinical_construct": "prejuizo_concentracao_tarefas",
+      "required": true
+    },
+    {
+      "id": "func_humor_geral",
+      "domain": "humor_geral",
+      "answer_scale": "mood_impact_1_5",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Nos últimos 3 meses, quanto a ansiedade tem afetado seu humor (irritabilidade, tristeza ou cansaço)?",
+        "responsavel": "Nos últimos 3 meses, quanto a ansiedade tem afetado o humor dele(a) (irritabilidade, tristeza ou cansaço)?"
+      },
+      "clinical_construct": "prejuizo_humor_geral_ansiedade",
+      "required": true
+    }
+  ],
+  "aggregation_rules": [
+    {
+      "id": "nivel_importante",
+      "output_level": "importante",
+      "condition": "count(answers >= 4) >= 2 OR any answer == 5"
+    },
+    {
+      "id": "nivel_moderado",
+      "output_level": "moderado",
+      "condition": "count(answers >= 3) >= 2 AND not nivel_importante"
+    },
+    {
+      "id": "nivel_leve",
+      "output_level": "leve",
+      "condition": "count(answers >= 2) >= 1 AND not nivel_moderado"
+    },
+    {
+      "id": "nivel_sem_prejuizo",
+      "output_level": "sem_prejuizo",
+      "condition": "default"
+    }
+  ],
+  "domain_impairment": [
+    {
+      "domain": "escola",
+      "label": "Escola",
+      "question_ids": [
+        "func_escola_desempenho",
+        "func_escola_faltas"
+      ]
+    },
+    {
+      "domain": "social",
+      "label": "Social",
+      "question_ids": [
+        "func_social_amizades",
+        "func_social_atividades"
+      ]
+    },
+    {
+      "domain": "familiar",
+      "label": "Familiar",
+      "question_ids": [
+        "func_familiar_rotina",
+        "func_autonomia"
+      ]
+    },
+    {
+      "domain": "sono_somatico",
+      "label": "Sono e sintomas somáticos",
+      "question_ids": [
+        "func_sono",
+        "func_somatico"
+      ]
+    }
+  ],
+  "domain_scoring": {
+    "method": "max_answer_per_domain_and_positive_counts",
+    "domain_level_rule": "Para cada domínio, usar a maior resposta do domínio como intensidade principal e contar respostas >= 4 como prejuízo importante no domínio.",
+    "additional_cross_domain_items": [
+      {
+        "question_id": "func_concentracao",
+        "domain": "escola_casa",
+        "use_as_contextual_modifier": true
+      },
+      {
+        "question_id": "func_humor_geral",
+        "domain": "humor_geral",
+        "use_as_contextual_modifier": true
+      }
+    ]
+  },
+  "outputs": [
+    {
+      "id": "functional_impairment_level",
+      "type": "enum",
+      "values": [
+        "sem_prejuizo",
+        "leve",
+        "moderado",
+        "importante"
+      ],
+      "source": "aggregation_rules",
+      "required_for_clinical_priority": true
+    },
+    {
+      "id": "functional_impairment_label",
+      "type": "string",
+      "source": "functional_impairment_levels.label",
+      "locale": "pt-BR"
+    },
+    {
+      "id": "functional_impairment_positive_count",
+      "type": "integer",
+      "calculation": "count(answers >= 4)"
+    },
+    {
+      "id": "functional_impairment_moderate_count",
+      "type": "integer",
+      "calculation": "count(answers >= 3)"
+    },
+    {
+      "id": "functional_impairment_max_answer",
+      "type": "integer",
+      "calculation": "max(answers)"
+    }
+  ],
+  "clinical_use_rules": [
+    "Combinar este resultado ao score total e às subescalas do SCARED para estimar prioridade de avaliação.",
+    "Prejuízo funcional importante aumenta prioridade clínica mesmo quando o score total estiver próximo do ponto de corte.",
+    "Score elevado sem prejuízo funcional deve gerar orientação e monitoramento, mas não deve ser classificado automaticamente como prioridade clínica alta.",
+    "Qualquer red flag de segurança deve prevalecer sobre as regras de agregação deste arquivo."
+  ],
+  "clinical_guardrails": [
+    "Não apresentar como formulário oficial licenciado do SCARED.",
+    "Não usar isoladamente para diagnosticar transtorno de ansiedade ou qualquer outra condição.",
+    "Não prescrever nem alterar medicação.",
+    "Investigar causas médicas quando houver sintomas físicos frequentes, intensos ou novos.",
+    "Red flags de segurança têm prioridade sobre qualquer score ou nível de prejuízo funcional."
+  ]
+}

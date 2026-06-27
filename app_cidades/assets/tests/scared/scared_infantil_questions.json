@@ -1,0 +1,1121 @@
+{
+  "metadata": {
+    "module": "scared_infantil",
+    "file": "scared_infantil_questions.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "instrument_code": "SCARED",
+    "instrument_full_name": "Screen for Child Anxiety Related Disorders",
+    "instrument_authors_reference": "Birmaher et al., 1997",
+    "instrument_item_count": 41,
+    "timeframe": "ultimos_3_meses",
+    "age_range_years": {
+      "min": 8,
+      "max": 17
+    },
+    "parent_proxy_age_range_years": {
+      "min": 4,
+      "max": 7
+    },
+    "score_range": {
+      "min": 0,
+      "max": 82
+    },
+    "reference_total_cutoff": 25,
+    "diagnostic_disclaimer": "Este rastreio não diagnostica transtorno de ansiedade nem qualquer outra condição. Organiza sinais compatíveis e orienta encaminhamento.",
+    "depends_on": []
+  },
+  "respondent_types": [
+    {
+      "id": "crianca_adolescente",
+      "label": "Criança ou adolescente",
+      "context": "Autorrelato recomendado para crianças e adolescentes de 8 a 17 anos."
+    },
+    {
+      "id": "responsavel",
+      "label": "Responsável",
+      "context": "Resposta por responsável para crianças de 4 a 7 anos ou como informação complementar em crianças e adolescentes."
+    }
+  ],
+  "answer_scales": [
+    {
+      "id": "scared_frequency_0_2",
+      "type": "single_choice",
+      "label": "Frequência nos últimos 3 meses",
+      "instructions": {
+        "crianca_adolescente": "Nos últimos 3 meses, marque com que frequência cada frase aconteceu com você.",
+        "responsavel": "Nos últimos 3 meses, marque com que frequência cada frase aconteceu com a criança/adolescente."
+      },
+      "answers": [
+        {
+          "label": "Quase nunca",
+          "value": 0,
+          "meaning": "raro ou nunca nos últimos 3 meses"
+        },
+        {
+          "label": "Às vezes",
+          "value": 1,
+          "meaning": "algumas vezes nos últimos 3 meses"
+        },
+        {
+          "label": "Quase sempre",
+          "value": 2,
+          "meaning": "na maior parte do tempo nos últimos 3 meses"
+        }
+      ],
+      "positive_values": [
+        1,
+        2
+      ],
+      "high_positive_values": [
+        2
+      ]
+    }
+  ],
+  "scoring": {
+    "total": {
+      "id": "total",
+      "label": "Score total SCARED",
+      "item_numbers": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41
+      ],
+      "max_score": 82,
+      "reference_cutoff": 25,
+      "clinical_note": "Pontuação total igual ou superior a 25 sugere investigação clínica de transtorno de ansiedade, sem valor diagnóstico isolado."
+    }
+  },
+  "subscales": [
+    {
+      "id": "panico_somatico",
+      "label": "Pânico e sintomas somáticos",
+      "item_numbers": [
+        1,
+        6,
+        9,
+        12,
+        15,
+        18,
+        19,
+        22,
+        24,
+        27,
+        30,
+        34,
+        38
+      ],
+      "max_score": 26,
+      "reference_cutoff": 7
+    },
+    {
+      "id": "ansiedade_generalizada",
+      "label": "Ansiedade generalizada",
+      "item_numbers": [
+        5,
+        7,
+        14,
+        21,
+        23,
+        29,
+        33,
+        35,
+        37
+      ],
+      "max_score": 18,
+      "reference_cutoff": 9
+    },
+    {
+      "id": "ansiedade_separacao",
+      "label": "Ansiedade de separação",
+      "item_numbers": [
+        4,
+        8,
+        13,
+        16,
+        20,
+        25,
+        28,
+        31,
+        39
+      ],
+      "max_score": 18,
+      "reference_cutoff": 5
+    },
+    {
+      "id": "ansiedade_social",
+      "label": "Ansiedade social",
+      "item_numbers": [
+        3,
+        10,
+        26,
+        32,
+        39
+      ],
+      "max_score": 10,
+      "reference_cutoff": 8
+    },
+    {
+      "id": "evitacao_escolar",
+      "label": "Evitação escolar",
+      "item_numbers": [
+        2,
+        11,
+        17,
+        36,
+        40,
+        41
+      ],
+      "max_score": 12,
+      "reference_cutoff": 3
+    }
+  ],
+  "items": [
+    {
+      "id": "scared_q01",
+      "original_item_number": 1,
+      "subscale_id": "panico_somatico",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Quando fico com medo, tenho dificuldade para respirar.",
+        "responsavel": "Quando fica com medo, tem dificuldade para respirar."
+      },
+      "clinical_construct": "sintomas_fisicos_de_panico",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q02",
+      "original_item_number": 2,
+      "subscale_id": "evitacao_escolar",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Tenho dor de cabeça quando estou na escola.",
+        "responsavel": "Tem dor de cabeça quando está na escola."
+      },
+      "clinical_construct": "queixas_somaticas_em_contexto_escolar",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q03",
+      "original_item_number": 3,
+      "subscale_id": "ansiedade_social",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Não gosto de ficar com pessoas que não conheço bem.",
+        "responsavel": "Não gosta de ficar com pessoas que não conhece bem."
+      },
+      "clinical_construct": "desconforto_com_pessoas_pouco_conhecidas",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q04",
+      "original_item_number": 4,
+      "subscale_id": "ansiedade_separacao",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Fico com medo quando durmo fora de casa.",
+        "responsavel": "Fica com medo quando dorme fora de casa."
+      },
+      "clinical_construct": "medo_ao_dormir_fora_de_casa",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q05",
+      "original_item_number": 5,
+      "subscale_id": "ansiedade_generalizada",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Preocupo-me em ser tão bom(a) quanto as outras crianças.",
+        "responsavel": "Preocupa-se em ser tão bom(a) quanto as outras crianças."
+      },
+      "clinical_construct": "preocupacao_com_desempenho_comparativo",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q06",
+      "original_item_number": 6,
+      "subscale_id": "panico_somatico",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Quando fico com muito medo, sinto que vou desmaiar.",
+        "responsavel": "Quando fica com muito medo, sente que vai desmaiar."
+      },
+      "clinical_construct": "sensacao_de_desmaio_associada_a_medo",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q07",
+      "original_item_number": 7,
+      "subscale_id": "ansiedade_generalizada",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Fico nervoso(a) com frequência.",
+        "responsavel": "Fica nervoso(a) com frequência."
+      },
+      "clinical_construct": "nervosismo_frequente",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q08",
+      "original_item_number": 8,
+      "subscale_id": "ansiedade_separacao",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Sigo meu pai ou minha mãe por onde eles vão.",
+        "responsavel": "Segue o pai, a mãe ou responsável por onde vão."
+      },
+      "clinical_construct": "proximidade_excessiva_com_responsaveis",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q09",
+      "original_item_number": 9,
+      "subscale_id": "panico_somatico",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "As pessoas dizem que eu pareço nervoso(a).",
+        "responsavel": "As pessoas dizem que parece nervoso(a)."
+      },
+      "clinical_construct": "aparencia_observavel_de_nervosismo",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q10",
+      "original_item_number": 10,
+      "subscale_id": "ansiedade_social",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Fico nervoso(a) com pessoas que não conheço bem.",
+        "responsavel": "Fica nervoso(a) com pessoas que não conhece bem."
+      },
+      "clinical_construct": "nervosismo_com_pessoas_pouco_conhecidas",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q11",
+      "original_item_number": 11,
+      "subscale_id": "evitacao_escolar",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Tenho dor de barriga quando estou na escola.",
+        "responsavel": "Tem dor de barriga quando está na escola."
+      },
+      "clinical_construct": "dor_abdominal_em_contexto_escolar",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q12",
+      "original_item_number": 12,
+      "subscale_id": "panico_somatico",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Quando fico com muito medo, sinto uma sensação estranha, como se estivesse perdendo o controle.",
+        "responsavel": "Quando fica com muito medo, sente uma sensação estranha, como se estivesse perdendo o controle."
+      },
+      "clinical_construct": "sensacao_de_perda_de_controle_associada_a_medo",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q13",
+      "original_item_number": 13,
+      "subscale_id": "ansiedade_separacao",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Preocupo-me em dormir sozinho(a).",
+        "responsavel": "Preocupa-se em dormir sozinho(a)."
+      },
+      "clinical_construct": "preocupacao_ao_dormir_sozinho",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q14",
+      "original_item_number": 14,
+      "subscale_id": "ansiedade_generalizada",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Preocupo-me em ser tão bom(a) quanto outras crianças do meu sexo.",
+        "responsavel": "Preocupa-se em ser tão bom(a) quanto outras crianças do mesmo sexo."
+      },
+      "clinical_construct": "preocupacao_com_comparacao_por_pares",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q15",
+      "original_item_number": 15,
+      "subscale_id": "panico_somatico",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Quando fico com muito medo, sinto que as coisas não são reais.",
+        "responsavel": "Quando fica com muito medo, sente que as coisas não são reais."
+      },
+      "clinical_construct": "desrealizacao_associada_a_medo",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q16",
+      "original_item_number": 16,
+      "subscale_id": "ansiedade_separacao",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Tenho pesadelos de que algo ruim aconteça com meus pais.",
+        "responsavel": "Tem pesadelos de que algo ruim aconteça com os pais ou responsáveis."
+      },
+      "clinical_construct": "pesadelos_com_dano_a_responsaveis",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q17",
+      "original_item_number": 17,
+      "subscale_id": "evitacao_escolar",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Preocupo-me em ir à escola.",
+        "responsavel": "Preocupa-se em ir à escola."
+      },
+      "clinical_construct": "preocupacao_antecipatoria_com_escola",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q18",
+      "original_item_number": 18,
+      "subscale_id": "panico_somatico",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Quando fico com medo, meu coração dispara.",
+        "responsavel": "Quando fica com medo, o coração dispara."
+      },
+      "clinical_construct": "palpitacao_associada_a_medo",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q19",
+      "original_item_number": 19,
+      "subscale_id": "panico_somatico",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Fico tremendo quando tenho medo.",
+        "responsavel": "Fica tremendo quando tem medo."
+      },
+      "clinical_construct": "tremor_associado_a_medo",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q20",
+      "original_item_number": 20,
+      "subscale_id": "ansiedade_separacao",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Tenho pesadelos de que algo ruim aconteça comigo.",
+        "responsavel": "Tem pesadelos de que algo ruim aconteça com ele(a)."
+      },
+      "clinical_construct": "pesadelos_com_dano_a_si",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q21",
+      "original_item_number": 21,
+      "subscale_id": "ansiedade_generalizada",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Preocupo-me se as coisas vão dar certo para mim.",
+        "responsavel": "Preocupa-se se as coisas vão dar certo para ele(a)."
+      },
+      "clinical_construct": "preocupacao_com_resultados_futuros",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q22",
+      "original_item_number": 22,
+      "subscale_id": "panico_somatico",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Quando fico com medo, suo muito.",
+        "responsavel": "Quando fica com medo, sua muito."
+      },
+      "clinical_construct": "sudorese_associada_a_medo",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q23",
+      "original_item_number": 23,
+      "subscale_id": "ansiedade_generalizada",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Sou uma pessoa que se preocupa muito.",
+        "responsavel": "É uma pessoa que se preocupa muito."
+      },
+      "clinical_construct": "preocupacao_excessiva_geral",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q24",
+      "original_item_number": 24,
+      "subscale_id": "panico_somatico",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Fico com muito medo sem motivo aparente.",
+        "responsavel": "Fica com muito medo sem motivo aparente."
+      },
+      "clinical_construct": "medo_intenso_sem_gatilho_aparente",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q25",
+      "original_item_number": 25,
+      "subscale_id": "ansiedade_separacao",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Tenho medo de ficar sozinho(a) em casa.",
+        "responsavel": "Tem medo de ficar sozinho(a) em casa."
+      },
+      "clinical_construct": "medo_de_ficar_sozinho_em_casa",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q26",
+      "original_item_number": 26,
+      "subscale_id": "ansiedade_social",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "É difícil para mim conversar com pessoas que não conheço bem.",
+        "responsavel": "É difícil para ele(a) conversar com pessoas que não conhece bem."
+      },
+      "clinical_construct": "dificuldade_de_conversar_com_pessoas_pouco_conhecidas",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q27",
+      "original_item_number": 27,
+      "subscale_id": "panico_somatico",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Quando fico com medo, sinto que estou engasgando.",
+        "responsavel": "Quando fica com medo, sente que está engasgando."
+      },
+      "clinical_construct": "sensacao_de_engasgo_associada_a_medo",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q28",
+      "original_item_number": 28,
+      "subscale_id": "ansiedade_separacao",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Família, amigos ou professores já disseram que você se preocupa demais.",
+        "responsavel": "Família, amigos ou professores já disseram que ele(a) se preocupa demais."
+      },
+      "clinical_construct": "preocupacao_excessiva_observada_por_terceiros",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q29",
+      "original_item_number": 29,
+      "subscale_id": "ansiedade_generalizada",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Não gosto de ficar longe da minha família.",
+        "responsavel": "Não gosta de ficar longe da família."
+      },
+      "clinical_construct": "desconforto_ao_ficar_longe_da_familia",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q30",
+      "original_item_number": 30,
+      "subscale_id": "panico_somatico",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Tenho medo de ter ataques de pânico ou de ansiedade.",
+        "responsavel": "Tem medo de ter ataques de pânico ou de ansiedade."
+      },
+      "clinical_construct": "medo_de_ataques_de_panico_ou_ansiedade",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q31",
+      "original_item_number": 31,
+      "subscale_id": "ansiedade_separacao",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Preocupo-me de que algo ruim possa acontecer com meus pais.",
+        "responsavel": "Preocupa-se de que algo ruim possa acontecer com os pais ou responsáveis."
+      },
+      "clinical_construct": "preocupacao_com_dano_a_responsaveis",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q32",
+      "original_item_number": 32,
+      "subscale_id": "ansiedade_social",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Fico tímido(a) com pessoas que não conheço bem.",
+        "responsavel": "Fica tímido(a) com pessoas que não conhece bem."
+      },
+      "clinical_construct": "timidez_com_pessoas_pouco_conhecidas",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q33",
+      "original_item_number": 33,
+      "subscale_id": "ansiedade_generalizada",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Preocupo-me com o que vai acontecer.",
+        "responsavel": "Preocupa-se com o que vai acontecer."
+      },
+      "clinical_construct": "preocupacao_com_eventos_futuros",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q34",
+      "original_item_number": 34,
+      "subscale_id": "panico_somatico",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Quando fico com medo, sinto que vou vomitar.",
+        "responsavel": "Quando fica com medo, sente que vai vomitar."
+      },
+      "clinical_construct": "nausea_ou_vomito_associado_a_medo",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q35",
+      "original_item_number": 35,
+      "subscale_id": "ansiedade_generalizada",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Preocupo-me com a qualidade do que faço.",
+        "responsavel": "Preocupa-se com a qualidade do que faz."
+      },
+      "clinical_construct": "preocupacao_com_qualidade_do_desempenho",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q36",
+      "original_item_number": 36,
+      "subscale_id": "evitacao_escolar",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Tenho medo de ir à escola.",
+        "responsavel": "Tem medo de ir à escola."
+      },
+      "clinical_construct": "medo_de_ir_a_escola",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q37",
+      "original_item_number": 37,
+      "subscale_id": "ansiedade_generalizada",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Preocupo-me com coisas que já aconteceram.",
+        "responsavel": "Preocupa-se com coisas que já aconteceram."
+      },
+      "clinical_construct": "ruminacao_sobre_eventos_passados",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q38",
+      "original_item_number": 38,
+      "subscale_id": "panico_somatico",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Quando fico com medo, sinto tontura.",
+        "responsavel": "Quando fica com medo, sente tontura."
+      },
+      "clinical_construct": "tontura_associada_a_medo",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q39",
+      "original_item_number": 39,
+      "subscale_id": "ansiedade_social",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Fico nervoso(a) quando estou com outras crianças ou adultos e preciso fazer algo enquanto observam.",
+        "responsavel": "Fica nervoso(a) quando está com outras crianças ou adultos e precisa fazer algo enquanto observam."
+      },
+      "clinical_construct": "ansiedade_de_desempenho_sob_observacao",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q40",
+      "original_item_number": 40,
+      "subscale_id": "evitacao_escolar",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Fico nervoso(a) quando vou a festas, bailes ou lugares com pessoas que não conheço bem.",
+        "responsavel": "Fica nervoso(a) quando vai a festas, bailes ou lugares com pessoas que não conhece bem."
+      },
+      "clinical_construct": "nervosismo_em_ambientes_sociais_com_desconhecidos",
+      "reverse_scored": false,
+      "required": true
+    },
+    {
+      "id": "scared_q41",
+      "original_item_number": 41,
+      "subscale_id": "evitacao_escolar",
+      "answer_scale": "scared_frequency_0_2",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "age_range": {
+        "min": 8,
+        "max": 17
+      },
+      "parent_proxy_only_below_age": 8,
+      "question": {
+        "crianca_adolescente": "Sou tímido(a).",
+        "responsavel": "É tímido(a)."
+      },
+      "clinical_construct": "timidez",
+      "reverse_scored": false,
+      "required": true
+    }
+  ],
+  "clinical_guardrails": [
+    "Não apresentar como formulário oficial licenciado do SCARED.",
+    "Não usar isoladamente para diagnosticar.",
+    "Não prescrever nem alterar medicação.",
+    "Red flags de segurança têm prioridade sobre qualquer score."
+  ]
+}

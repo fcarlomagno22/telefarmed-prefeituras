@@ -1,0 +1,292 @@
+{
+  "metadata": {
+    "module": "scared_infantil",
+    "file": "scared_infantil_followup_rules.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "instrument_code": "SCARED",
+    "instrument_full_name": "Screen for Child Anxiety Related Disorders",
+    "instrument_authors_reference": "Birmaher et al., 1997",
+    "instrument_item_count": 41,
+    "timeframe": "ultimos_3_meses",
+    "age_range_years": {
+      "min": 8,
+      "max": 17
+    },
+    "parent_proxy_age_range_years": {
+      "min": 4,
+      "max": 7
+    },
+    "diagnostic_disclaimer": "Este rastreio não diagnostica transtorno de ansiedade nem qualquer outra condição. Organiza sinais compatíveis e orienta encaminhamento.",
+    "depends_on": [
+      "scared_infantil_questions.json",
+      "scared_infantil_functional_impairment.json",
+      "scared_infantil_red_flags.json",
+      "scared_infantil_differential_screening.json",
+      "scared_infantil_cutoffs.json",
+      "scared_infantil_age_rules.json",
+      "scared_infantil_informants.json",
+      "scared_infantil_consent_terms.json",
+      "scared_infantil_result_messages.json",
+      "scared_infantil_referral_rules.json"
+    ]
+  },
+  "purpose": {
+    "objective": "Definir quando reavaliar, o que monitorar e quando escalar o cuidado após o resultado do rastreio.",
+    "clinical_use": "Gera prazos de follow-up, mensagens e gatilhos de escalonamento para o app e painel.",
+    "priority_note": "Follow-up programado não substitui contato imediato quando houver red flag ativa."
+  },
+  "followup_schedule": [
+    {
+      "classification_id": "baixo_indicativo",
+      "followup_days": 90,
+      "action": "reaplicar SCARED se persistência",
+      "action_id": "reapply_if_persistent",
+      "required": false,
+      "message_key": "followup_baixo_indicativo"
+    },
+    {
+      "classification_id": "sinais_leves",
+      "followup_days": 60,
+      "action": "reaplicar SCARED completo",
+      "action_id": "reapply_full_scared",
+      "required": true,
+      "message_key": "followup_sinais_leves"
+    },
+    {
+      "classification_id": "sinais_moderados",
+      "followup_days": 30,
+      "action": "reaplicar + verificar encaminhamento",
+      "action_id": "reapply_and_check_referral",
+      "required": true,
+      "message_key": "followup_sinais_moderados"
+    },
+    {
+      "classification_id": "sinais_importantes",
+      "followup_days": 14,
+      "action": "reaplicar + confirmar consulta agendada",
+      "action_id": "reapply_and_confirm_appointment",
+      "required": true,
+      "message_key": "followup_sinais_importantes"
+    },
+    {
+      "classification_id": "prioridade_clinica",
+      "followup_days": 7,
+      "action": "contato de segurança + não adiar consulta",
+      "action_id": "safety_contact_do_not_delay_care",
+      "required": true,
+      "message_key": "followup_prioridade_clinica"
+    }
+  ],
+  "escalation_triggers": [
+    {
+      "id": "worsening_total_score",
+      "condition": "current_total_score - previous_total_score >= 5",
+      "threshold": 5,
+      "actions": [
+        "increase_priority_one_level",
+        "recommend_professional_evaluation",
+        "review_red_flags"
+      ],
+      "message_key": "escala_piora_score"
+    },
+    {
+      "id": "new_red_flag",
+      "condition": "new_red_flag == true OR current_red_flag_highest_severity IN (urgente, salvaguarda)",
+      "actions": [
+        "activate_red_flag_flow",
+        "do_not_wait_for_scheduled_followup",
+        "recommend_immediate_professional_contact"
+      ],
+      "message_key": "escala_nova_red_flag"
+    },
+    {
+      "id": "school_refusal_persists",
+      "condition": "school_refusal_persists == true OR func_escola_faltas >= 4 on followup",
+      "actions": [
+        "recommend_school_support",
+        "recommend_professional_evaluation",
+        "review_bullying_and_learning_difficulties"
+      ],
+      "message_key": "escala_recusa_escolar"
+    },
+    {
+      "id": "no_professional_contact_after_14_days",
+      "condition": "requires_professional_evaluation == true AND no_professional_contact_after_14_days == true",
+      "actions": [
+        "increase_referral_priority",
+        "send_care_navigation_reminder",
+        "offer_available_service_options"
+      ],
+      "message_key": "escala_sem_contato_profissional"
+    }
+  ],
+  "monitoring_checklist": [
+    {
+      "id": "sintomas",
+      "label": "Sintomas de ansiedade",
+      "items": [
+        "Medo, preocupação ou nervosismo ficaram mais frequentes?",
+        "Apareceram crises de medo intenso, falta de ar, tontura ou sensação de morte?",
+        "Sintomas físicos como dor de cabeça, dor de barriga ou mal-estar aumentaram?"
+      ]
+    },
+    {
+      "id": "sono",
+      "label": "Sono",
+      "items": [
+        "Está demorando mais para dormir?",
+        "Tem acordado assustado(a) ou com pesadelos frequentes?",
+        "O sono está muito irregular ou insuficiente?"
+      ]
+    },
+    {
+      "id": "escola",
+      "label": "Escola",
+      "items": [
+        "Houve faltas, atrasos ou recusa de ir à escola?",
+        "A participação, concentração ou desempenho piorou?",
+        "Há sinais de bullying, humilhação, conflito ou dificuldade de aprendizagem?"
+      ]
+    },
+    {
+      "id": "humor",
+      "label": "Humor e comportamento",
+      "items": [
+        "Está mais irritável, triste, isolado(a) ou cansado(a)?",
+        "Perdeu interesse em atividades de que gostava?",
+        "Houve regressão ou mudança abrupta de comportamento?"
+      ]
+    },
+    {
+      "id": "encaminhamento",
+      "label": "Encaminhamento e cuidado",
+      "items": [
+        "A consulta recomendada foi agendada?",
+        "A família conseguiu contato com serviço de saúde ou profissional?",
+        "A escola ou rede de apoio foi acionada quando necessário?"
+      ]
+    },
+    {
+      "id": "seguranca",
+      "label": "Segurança",
+      "items": [
+        "Surgiu fala sobre se machucar, morrer ou não querer estar vivo?",
+        "Há suspeita de ameaça, violência, abuso ou maus-tratos?",
+        "Houve uso de álcool, drogas ou medicação sem orientação para tentar se acalmar?"
+      ]
+    }
+  ],
+  "followup_messages": {
+    "followup_baixo_indicativo": {
+      "title": "Acompanhar e reavaliar se persistir",
+      "message": "O resultado atual foi de baixo indicativo. Se os sinais persistirem, piorarem ou começarem a atrapalhar a rotina, reaplique o rastreio em até 90 dias ou procure orientação antes."
+    },
+    "followup_sinais_leves": {
+      "title": "Reavaliar em 60 dias",
+      "message": "Para sinais leves, acompanhe rotina, sono, escola e humor. Reaplique o SCARED completo em 60 dias, ou antes se houver piora."
+    },
+    "followup_sinais_moderados": {
+      "title": "Reavaliar em 30 dias e verificar encaminhamento",
+      "message": "Para sinais moderados, recomenda-se reavaliar em 30 dias e verificar se a família conseguiu orientação profissional ou porta de entrada de cuidado."
+    },
+    "followup_sinais_importantes": {
+      "title": "Reavaliar em 14 dias e confirmar consulta",
+      "message": "Para sinais importantes, confirme se há consulta ou avaliação agendada e reavalie em 14 dias. Não espere a reavaliação se houver piora ou red flag."
+    },
+    "followup_prioridade_clinica": {
+      "title": "Acompanhar nos próximos dias",
+      "message": "Para atenção reforçada, confirme se a família conseguiu contato com profissional em até 7 dias. Se houver sinal de risco ativo, não espere — busque ajuda imediata."
+    }
+  },
+  "escalation_messages": {
+    "escala_piora_score": {
+      "title": "Piora relevante no score",
+      "message": "O score aumentou 5 pontos ou mais em relação à aplicação anterior. Revise red flags, prejuízo funcional e necessidade de avaliação profissional."
+    },
+    "escala_nova_red_flag": {
+      "title": "Nova red flag identificada",
+      "message": "Surgiu uma nova informação de segurança. Não aguarde o próximo acompanhamento programado; acione o fluxo de red flag."
+    },
+    "escala_recusa_escolar": {
+      "title": "Recusa escolar persistente",
+      "message": "A recusa escolar ou faltas frequentes persistem. Investigue bullying, dificuldades de aprendizagem, sintomas físicos e necessidade de apoio escolar/profissional."
+    },
+    "escala_sem_contato_profissional": {
+      "title": "Encaminhamento ainda não realizado",
+      "message": "A avaliação profissional foi recomendada, mas não houve contato em até 14 dias. A prioridade deve ser reforçada e a família pode precisar de apoio para acessar a rede."
+    }
+  },
+  "do_not_delay_rules": [
+    {
+      "id": "nao_adiar_red_flag_ativa",
+      "condition": "current_red_flag_highest_severity IN (urgente, salvaguarda)",
+      "actions": [
+        "show_crisis_notice",
+        "recommend_immediate_professional_contact",
+        "skip_waiting_period",
+        "preserve_priority_clinica"
+      ],
+      "message": "Com red flag urgente ou de salvaguarda ativa, não aguarde a data de follow-up. Busque ajuda imediata ou rede de proteção conforme a situação."
+    },
+    {
+      "id": "nao_adiar_autoagressao",
+      "condition": "red_flag_triggered_question_ids contains rf_suicidio_ideacao OR red_flag_triggered_question_ids contains rf_automutilacao",
+      "actions": [
+        "show_crisis_notice",
+        "recommend_immediate_professional_contact",
+        "do_not_leave_child_alone_if_current_risk"
+      ],
+      "message": "Quando houver pensamento de morte ou autoagressão, o acompanhamento programado não substitui ajuda imediata."
+    },
+    {
+      "id": "nao_adiar_abuso_violencia",
+      "condition": "red_flag_triggered_question_ids contains rf_abuso_violencia",
+      "actions": [
+        "trigger_safeguarding_flow",
+        "recommend_protective_adult_contact",
+        "recommend_local_protection_network"
+      ],
+      "message": "Quando houver suspeita de violência, ameaça, abuso ou maus-tratos, acione proteção conforme protocolo local."
+    }
+  ],
+  "outputs": [
+    {
+      "id": "next_followup_days",
+      "type": "integer",
+      "description": "Prazo recomendado para follow-up conforme classificação."
+    },
+    {
+      "id": "followup_action_id",
+      "type": "string",
+      "description": "Ação de acompanhamento recomendada."
+    },
+    {
+      "id": "followup_message",
+      "type": "object",
+      "description": "Mensagem em pt-BR sobre o acompanhamento."
+    },
+    {
+      "id": "escalation_triggered",
+      "type": "boolean",
+      "description": "Indica se algum gatilho de escalação foi acionado."
+    },
+    {
+      "id": "escalation_actions",
+      "type": "array",
+      "description": "Ações geradas pelos gatilhos de escalação."
+    },
+    {
+      "id": "monitoring_checklist",
+      "type": "array",
+      "description": "Checklist de sintomas, sono, escola, humor, encaminhamento e segurança."
+    }
+  ],
+  "clinical_guardrails": [
+    "Follow-up programado não substitui avaliação profissional quando ela foi recomendada.",
+    "Red flag ativa exige ação imediata ou rede de proteção; não aguardar 7, 14, 30, 60 ou 90 dias.",
+    "Reaplicação do SCARED não deve ser usada para adiar consulta necessária.",
+    "Piora de score, recusa escolar persistente ou ausência de contato profissional devem escalar prioridade.",
+    "Acompanhamento deve considerar sintomas, sono, escola, humor, encaminhamento e segurança."
+  ]
+}

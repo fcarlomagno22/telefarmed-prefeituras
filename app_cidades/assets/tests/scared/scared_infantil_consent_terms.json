@@ -1,0 +1,259 @@
+{
+  "metadata": {
+    "module": "scared_infantil",
+    "file": "scared_infantil_consent_terms.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "instrument_code": "SCARED",
+    "instrument_full_name": "Screen for Child Anxiety Related Disorders",
+    "instrument_authors_reference": "Birmaher et al., 1997",
+    "instrument_item_count": 41,
+    "timeframe": "ultimos_3_meses",
+    "age_range_years": {
+      "min": 8,
+      "max": 17
+    },
+    "parent_proxy_age_range_years": {
+      "min": 4,
+      "max": 7
+    },
+    "diagnostic_disclaimer": "Este rastreio não diagnostica transtorno de ansiedade nem qualquer outra condição. Organiza sinais compatíveis e orienta encaminhamento.",
+    "depends_on": [
+      "scared_infantil_questions.json",
+      "scared_infantil_functional_impairment.json",
+      "scared_infantil_red_flags.json",
+      "scared_infantil_differential_screening.json",
+      "scared_infantil_cutoffs.json",
+      "scared_infantil_age_rules.json",
+      "scared_infantil_informants.json"
+    ]
+  },
+  "legal_context": {
+    "country": "BR",
+    "law_name": "Lei Geral de Proteção de Dados Pessoais",
+    "law_short_name": "LGPD",
+    "law_number": "Lei nº 13.709/2018",
+    "sensitive_data_context": "Dados relacionados à saúde, saúde mental, comportamento, idade, escola, rotina familiar e respostas de criança/adolescente podem ser tratados como dados pessoais sensíveis ou dados de menor de idade.",
+    "plain_language_required": true,
+    "effective_date": "2026-06-27",
+    "legal_note": "Os textos deste arquivo são avisos operacionais de consentimento e transparência para triagem digital. Devem ser revisados pelo jurídico, encarregado de dados e responsável técnico antes do uso em produção."
+  },
+  "term_sets": [
+    {
+      "id": "main_guardian_consent",
+      "title": "Autorização do responsável para iniciar o rastreio",
+      "audience": [
+        "mae",
+        "pai",
+        "responsavel_legal"
+      ],
+      "required": true,
+      "blocking": true,
+      "display_position": "before_screening_start",
+      "summary": "O responsável autoriza a participação da criança/adolescente no rastreio digital de sinais de ansiedade e confirma que compreendeu a finalidade do formulário.",
+      "full_text": "Autorizo a realização deste rastreio digital de sinais de ansiedade infantil pela criança/adolescente sob minha responsabilidade, ou por mim como responsável quando a idade exigir resposta por responsável. Entendo que o objetivo é organizar informações sobre medo, preocupação, sintomas físicos, prejuízo funcional e sinais de segurança, para apoiar orientação e eventual encaminhamento. Declaro que fui informado(a) de que este rastreio não substitui consulta médica, psicológica ou avaliação clínica presencial ou remota. Estou ciente de que as respostas podem envolver dados pessoais e dados de saúde sensíveis, que devem ser tratados com segurança, finalidade definida e acesso restrito conforme a LGPD.",
+      "acceptance_label": "Li, entendi e autorizo o início do rastreio",
+      "decline_behavior": {
+        "action": "block_screening_start",
+        "score_status": "blocked",
+        "classification_id": "bloqueado",
+        "message": "Sem a autorização do responsável, o rastreio não pode ser iniciado."
+      }
+    },
+    {
+      "id": "non_diagnostic_notice",
+      "title": "Aviso de não diagnóstico",
+      "audience": [
+        "responsavel",
+        "crianca_adolescente"
+      ],
+      "required": true,
+      "blocking": true,
+      "display_position": "before_result_display",
+      "summary": "O usuário confirma que entende que o resultado é apenas um rastreio e não um diagnóstico.",
+      "full_text": "Este resultado não é um diagnóstico de transtorno de ansiedade, depressão, TDAH, trauma, TOC, autismo ou qualquer outra condição. O rastreio apenas organiza respostas compatíveis com sinais de ansiedade e aponta quando pode ser recomendada avaliação profissional. Um resultado baixo não elimina sofrimento, risco ou necessidade de cuidado se houver piora, prejuízo funcional, sintomas físicos importantes ou preocupação da família. Um resultado alto também não confirma diagnóstico, pois a interpretação depende de entrevista clínica, histórico, contexto familiar, escola, desenvolvimento e avaliação profissional.",
+      "acceptance_label": "Entendi que o resultado não é diagnóstico",
+      "decline_behavior": {
+        "action": "block_result_display",
+        "score_status": "complete",
+        "classification_id": "pendente",
+        "message": "Para visualizar o resultado, é necessário confirmar o entendimento de que se trata de rastreio não diagnóstico."
+      }
+    },
+    {
+      "id": "sensitive_data_notice",
+      "title": "Aviso sobre dados pessoais sensíveis e LGPD",
+      "audience": [
+        "responsavel"
+      ],
+      "required": true,
+      "blocking": true,
+      "display_position": "before_screening_start",
+      "summary": "Explica que o rastreio trata dados de saúde e dados de menor de idade, exigindo cuidado especial conforme a LGPD.",
+      "full_text": "As respostas deste rastreio podem conter dados pessoais sensíveis, incluindo informações sobre saúde, saúde mental, comportamento, escola, rotina familiar, sono, sintomas físicos e sinais de segurança. Esses dados devem ser usados apenas para as finalidades informadas: realizar o rastreio, gerar orientação, apoiar cuidado, permitir acompanhamento autorizado e registrar informações necessárias ao serviço. O tratamento deve observar a LGPD, Lei nº 13.709/2018, incluindo princípios de finalidade, necessidade, transparência, segurança, prevenção e acesso restrito. Quando houver compartilhamento com profissionais, serviços de saúde, escola ou rede de proteção, isso deve ocorrer somente quando autorizado, necessário para cuidado ou exigido por protocolo de segurança e proteção.",
+      "acceptance_label": "Li e compreendi o tratamento de dados sensíveis",
+      "decline_behavior": {
+        "action": "block_screening_start",
+        "score_status": "blocked",
+        "classification_id": "bloqueado",
+        "message": "Sem ciência sobre o tratamento de dados sensíveis, o rastreio não pode ser iniciado."
+      }
+    },
+    {
+      "id": "child_assent",
+      "title": "Assentimento da criança/adolescente",
+      "audience": [
+        "crianca_adolescente"
+      ],
+      "required": false,
+      "blocking": false,
+      "display_position": "before_child_self_report",
+      "summary": "A criança/adolescente é convidada a concordar com a participação, em linguagem simples e adequada.",
+      "full_text": "Este formulário faz perguntas sobre medo, preocupação, escola, sono, corpo, família e situações que podem causar sofrimento. Você pode pedir ajuda para entender uma pergunta e deve responder do jeito mais verdadeiro possível. Suas respostas servem para ajudar adultos e profissionais a entenderem melhor como você está se sentindo, não para brigar com você ou te culpar. Se alguma pergunta deixar você desconfortável, conte a um adulto de confiança ou peça ajuda para continuar.",
+      "acceptance_label": "Entendi e quero responder",
+      "decline_behavior": {
+        "action": "allow_parent_proxy_or_pause_self_report",
+        "score_status": "incomplete",
+        "classification_id": "pendente",
+        "message": "A criança/adolescente não confirmou assentimento. O autorrelato pode ser pausado e o responsável pode continuar quando permitido pelas regras de idade."
+      }
+    },
+    {
+      "id": "crisis_notice",
+      "title": "Aviso de segurança e busca de ajuda imediata",
+      "audience": [
+        "responsavel",
+        "crianca_adolescente"
+      ],
+      "required": true,
+      "blocking": true,
+      "display_position": "when_urgent_red_flag_triggered",
+      "trigger_condition": "red_flag_highest_severity IN (urgente, salvaguarda)",
+      "summary": "Quando houver red flag urgente ou de salvaguarda, orienta que o resultado não deve ser usado como tranquilização e que ajuda imediata pode ser necessária.",
+      "full_text": "As respostas indicaram um sinal de segurança que precisa de atenção imediata ou proteção. Este aplicativo não realiza atendimento de emergência e não deve ser usado para esperar, adiar ou substituir ajuda profissional quando há risco. Procure imediatamente um adulto responsável, profissional de saúde, serviço de urgência, emergência local ou rede de proteção se houver risco de autoagressão, violência, abuso, ameaça, alteração importante do comportamento ou sofrimento intenso. Se a criança/adolescente estiver em perigo agora, não a deixe sozinha e acione ajuda presencial imediatamente.",
+      "acceptance_label": "Entendi que devo buscar ajuda imediata se houver risco",
+      "decline_behavior": {
+        "action": "keep_urgent_flow_visible",
+        "score_status": "complete",
+        "classification_id": "prioridade_clinica",
+        "message": "O aviso de segurança permanecerá visível enquanto houver red flag urgente ou de salvaguarda."
+      }
+    },
+    {
+      "id": "school_sharing_consent",
+      "title": "Autorização opcional para compartilhar resumo com a escola",
+      "audience": [
+        "mae",
+        "pai",
+        "responsavel_legal"
+      ],
+      "required": false,
+      "blocking": false,
+      "display_position": "after_result_or_when_school_support_requested",
+      "summary": "Permite, de forma opcional, compartilhar com a escola um resumo restrito sobre impacto escolar e orientações de apoio.",
+      "full_text": "Autorizo, de forma opcional, o compartilhamento de um resumo restrito com a escola para apoiar adaptações, acolhimento e acompanhamento do impacto escolar. Esse resumo não deve conter o questionário completo, respostas sensíveis desnecessárias, detalhes de red flags, informações familiares íntimas ou classificação apresentada como diagnóstico. O compartilhamento deve se limitar ao necessário para apoio escolar, como sinais de dificuldade de participação, faltas, concentração, necessidade de acolhimento e orientação para procurar a família quando houver piora. Posso recusar este compartilhamento sem impedir o rastreio ou a visualização do resultado.",
+      "acceptance_label": "Autorizo compartilhar resumo restrito com a escola",
+      "decline_behavior": {
+        "action": "do_not_share_with_school",
+        "score_status": "complete",
+        "classification_id": "unchanged",
+        "message": "O resumo não será compartilhado com a escola. O rastreio e o resultado seguem normalmente."
+      }
+    }
+  ],
+  "display_flow": [
+    {
+      "step": "before_screening_start",
+      "required_term_ids": [
+        "main_guardian_consent",
+        "sensitive_data_notice"
+      ],
+      "blocking_if_declined": true
+    },
+    {
+      "step": "before_child_self_report",
+      "required_term_ids": [
+        "child_assent"
+      ],
+      "blocking_if_declined": false
+    },
+    {
+      "step": "before_result_display",
+      "required_term_ids": [
+        "non_diagnostic_notice"
+      ],
+      "blocking_if_declined": true
+    },
+    {
+      "step": "when_urgent_red_flag_triggered",
+      "required_term_ids": [
+        "crisis_notice"
+      ],
+      "blocking_if_declined": true
+    },
+    {
+      "step": "after_result_or_when_school_support_requested",
+      "required_term_ids": [
+        "school_sharing_consent"
+      ],
+      "blocking_if_declined": false
+    }
+  ],
+  "data_collection_notice": {
+    "title": "Quais dados podem ser coletados",
+    "plain_text": "Para realizar o rastreio SCARED, podemos coletar idade, relação do respondente com a criança/adolescente, respostas sobre medo, preocupação, sintomas físicos, prejuízo funcional, alertas de segurança e fatores associados."
+  },
+  "required_checkboxes": [
+    {
+      "id": "confirm_guardian_role",
+      "required": true,
+      "label": "Declaro que sou mãe, pai ou responsável legal, ou que possuo autorização para responder pela criança/adolescente.",
+      "blocks_if_false": true
+    },
+    {
+      "id": "accept_screening_not_diagnosis",
+      "required": true,
+      "label": "Entendo que este rastreio não fecha diagnóstico e não substitui avaliação profissional.",
+      "blocks_if_false": true
+    },
+    {
+      "id": "authorize_sensitive_data",
+      "required": true,
+      "label": "Autorizo o tratamento dos dados necessários para triagem, resultado e encaminhamento.",
+      "blocks_if_false": true
+    },
+    {
+      "id": "understand_urgent_risk",
+      "required": true,
+      "label": "Entendo que situações de risco exigem atendimento imediato e não devem aguardar o app.",
+      "blocks_if_false": true
+    }
+  ],
+  "optional_checkboxes": [
+    {
+      "id": "authorize_school_sharing",
+      "label": "Autorizo compartilhar resumo restrito com a escola, se necessário.",
+      "default": false,
+      "maps_to_term_set": "school_sharing_consent"
+    }
+  ],
+  "acceptance_record_schema": {
+    "term_id": "string",
+    "term_version": "string",
+    "accepted": "boolean",
+    "accepted_at": "datetime_iso8601",
+    "accepted_by_informant_type": "string",
+    "accepted_by_respondent_id": "string",
+    "minor_age_years": "integer",
+    "ip_address_hash": "string",
+    "device_id_hash": "string"
+  },
+  "clinical_guardrails": [
+    "Não iniciar rastreio sem consentimento do responsável quando o participante for menor de idade.",
+    "Não mostrar resultado sem aviso de não diagnóstico.",
+    "Não ocultar aviso de crise quando houver red flag urgente ou de salvaguarda.",
+    "Não compartilhar resumo com escola sem consentimento específico.",
+    "Não compartilhar questionário completo com escola como rotina.",
+    "Textos de consentimento devem ser revisados por jurídico, encarregado de dados e responsável técnico antes de produção."
+  ]
+}

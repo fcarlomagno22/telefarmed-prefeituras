@@ -1,20 +1,40 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
-import { useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import {
+  loadSleepStoryFontSize,
+  saveSleepStoryFontSize,
+  SLEEP_STORY_FONT_DEFAULT,
+  SLEEP_STORY_FONT_MAX,
+  SLEEP_STORY_FONT_MIN,
+  SLEEP_STORY_FONT_STEP,
+} from '../../data/sleepStoryReaderPreferencesStorage'
 import { getSleepStoryCategoryById, getSleepStoryById } from '../../config/sleepStories'
 import { getSleepStoryContent } from '../../config/sleepStoryContents'
 import { colors } from '../../theme/colors'
 import type { SleepStoryId } from '../../types/sleepStories'
 import { estimateSleepStoryReadingMinutes } from '../../utils/sleepStoryReadingTime'
+import { BibleVerseFontControls } from '../bible/BibleVerseFontControls'
 import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import { SleepTimeStarfield } from '../sleepTime/SleepTimeStarfield'
+import { SleepStoryReaderParagraph } from './SleepStoryReaderParagraph'
 
 type SleepStoryReaderDrawerProps = {
   visible: boolean
   storyId: SleepStoryId | null
   onClose: () => void
+}
+
+function StorySceneDivider({ accent }: { accent: string }) {
+  return (
+    <View style={styles.dividerRow}>
+      <View style={[styles.dividerLine, { backgroundColor: `${accent}33` }]} />
+      <MaterialCommunityIcons name="star-four-points" size={10} color={`${accent}88`} />
+      <View style={[styles.dividerLine, { backgroundColor: `${accent}33` }]} />
+    </View>
+  )
 }
 
 export function SleepStoryReaderDrawer({ visible, storyId, onClose }: SleepStoryReaderDrawerProps) {
@@ -23,11 +43,38 @@ export function SleepStoryReaderDrawer({ visible, storyId, onClose }: SleepStory
   const category = story ? getSleepStoryCategoryById(story.categoryId) : null
   const accent = category?.gradient[1] ?? '#6366f1'
 
+  const [fontSize, setFontSize] = useState(SLEEP_STORY_FONT_DEFAULT)
+
+  useEffect(() => {
+    if (!visible) return
+    void loadSleepStoryFontSize().then(setFontSize)
+  }, [visible])
+
+  const lineHeight = useMemo(() => Math.round(fontSize * 1.68), [fontSize])
+  const lessonFontSize = useMemo(() => Math.round(fontSize * 0.84), [fontSize])
+  const lessonLineHeight = useMemo(() => Math.round(lessonFontSize * 1.55), [lessonFontSize])
+
   const subtitle = useMemo(() => {
     if (!content) return 'Em breve'
     const minutes = estimateSleepStoryReadingMinutes(content)
     return `${minutes} min de leitura · ${category?.label ?? 'História'}`
   }, [category?.label, content])
+
+  const handleDecreaseFont = useCallback(() => {
+    setFontSize((current) => {
+      const next = Math.max(SLEEP_STORY_FONT_MIN, current - SLEEP_STORY_FONT_STEP)
+      void saveSleepStoryFontSize(next)
+      return next
+    })
+  }, [])
+
+  const handleIncreaseFont = useCallback(() => {
+    setFontSize((current) => {
+      const next = Math.min(SLEEP_STORY_FONT_MAX, current + SLEEP_STORY_FONT_STEP)
+      void saveSleepStoryFontSize(next)
+      return next
+    })
+  }, [])
 
   function handleClose() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
@@ -90,22 +137,57 @@ export function SleepStoryReaderDrawer({ visible, storyId, onClose }: SleepStory
 
         {content ? (
           <>
-            <View style={styles.storyBody}>
-              {content.paragraphs.map((paragraph, index) => (
-                <Text
-                  key={`${story.id}-p-${index}`}
-                  style={[
-                    styles.paragraph,
-                    paragraph.variant === 'dialogue' && [
-                      styles.paragraphDialogue,
-                      { color: `${accent}ee` },
-                    ],
-                    paragraph.variant === 'thought' && styles.paragraphThought,
-                  ]}
-                >
-                  {paragraph.text}
-                </Text>
-              ))}
+            <View style={[styles.readerToolbar, { borderColor: `${accent}33` }]}>
+              <View style={styles.readerToolbarCopy}>
+                <MaterialCommunityIcons name="book-open-variant" size={16} color={accent} />
+                <Text style={styles.readerToolbarLabel}>Leitura confortável</Text>
+              </View>
+              <View style={styles.readerToolbarControls}>
+                <Text style={styles.fontSizeBadge}>{fontSize}</Text>
+                <BibleVerseFontControls
+                  fontSize={fontSize}
+                  minSize={SLEEP_STORY_FONT_MIN}
+                  maxSize={SLEEP_STORY_FONT_MAX}
+                  onDecrease={handleDecreaseFont}
+                  onIncrease={handleIncreaseFont}
+                />
+              </View>
+            </View>
+
+            <View style={[styles.pageCard, { borderColor: `${accent}28` }]}>
+              <LinearGradient
+                colors={['rgba(255,255,255,0.06)', 'rgba(255,255,255,0.02)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={StyleSheet.absoluteFillObject}
+              />
+
+              <View style={styles.pageInner}>
+                <View style={styles.storyBody}>
+                  {content.paragraphs.map((paragraph, index) => {
+                    const previous = content.paragraphs[index - 1]
+                    const showDivider =
+                      index > 0 &&
+                      previous &&
+                      paragraph.variant === 'normal' &&
+                      previous.variant === 'normal' &&
+                      index % 4 === 0
+
+                    return (
+                      <View key={`${story.id}-p-${index}`} style={styles.paragraphSlot}>
+                        {showDivider ? <StorySceneDivider accent={accent} /> : null}
+                        <SleepStoryReaderParagraph
+                          paragraph={paragraph}
+                          accent={accent}
+                          fontSize={fontSize}
+                          lineHeight={lineHeight}
+                          isFirst={index === 0}
+                        />
+                      </View>
+                    )
+                  })}
+                </View>
+              </View>
             </View>
 
             {content.lesson ? (
@@ -118,11 +200,21 @@ export function SleepStoryReaderDrawer({ visible, storyId, onClose }: SleepStory
                 />
                 <View style={styles.lessonHeader}>
                   <MaterialCommunityIcons name="star-four-points" size={16} color={accent} />
-                  <Text style={[styles.lessonTitle, { color: accent }]}>
+                  <Text style={[styles.lessonTitle, { color: accent, fontSize: lessonFontSize * 0.86 }]}>
                     {content.lesson.title}
                   </Text>
                 </View>
-                <Text style={styles.lessonText}>{content.lesson.text}</Text>
+                <Text
+                  style={[
+                    styles.lessonText,
+                    {
+                      fontSize: lessonFontSize,
+                      lineHeight: lessonLineHeight,
+                    },
+                  ]}
+                >
+                  {content.lesson.text}
+                </Text>
               </View>
             ) : null}
           </>
@@ -140,14 +232,14 @@ export function SleepStoryReaderDrawer({ visible, storyId, onClose }: SleepStory
 
 const styles = StyleSheet.create({
   content: {
-    gap: 24,
+    gap: 18,
     paddingBottom: 8,
   },
   hero: {
     alignItems: 'center',
     gap: 10,
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingTop: 4,
+    paddingBottom: 2,
   },
   heroGlow: {
     position: 'absolute',
@@ -183,27 +275,72 @@ const styles = StyleSheet.create({
     lineHeight: 30,
     paddingHorizontal: 12,
   },
-  storyBody: {
-    gap: 18,
+  readerToolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 16,
+    borderWidth: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
   },
-  paragraph: {
-    color: 'rgba(255, 255, 255, 0.92)',
-    fontSize: 17,
-    fontWeight: '500',
-    lineHeight: 28,
-    letterSpacing: 0.15,
+  readerToolbarCopy: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minWidth: 0,
   },
-  paragraphDialogue: {
-    fontStyle: 'italic',
-    paddingLeft: 14,
-    borderLeftWidth: 2,
-    borderLeftColor: 'rgba(199, 210, 254, 0.35)',
+  readerToolbarLabel: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: -0.1,
   },
-  paragraphThought: {
-    color: '#ddd6fe',
-    fontStyle: 'italic',
+  readerToolbarControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  fontSizeBadge: {
+    minWidth: 28,
     textAlign: 'center',
-    paddingHorizontal: 8,
+    color: colors.textSubtle,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+  },
+  pageCard: {
+    borderRadius: 24,
+    borderWidth: 1,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    elevation: 6,
+  },
+  pageInner: {
+    paddingHorizontal: 22,
+    paddingVertical: 24,
+  },
+  storyBody: {
+    gap: 20,
+  },
+  paragraphSlot: {
+    gap: 16,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 2,
+  },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
   },
   lessonCard: {
     borderRadius: 20,
@@ -218,16 +355,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   lessonTitle: {
-    fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.4,
     textTransform: 'uppercase',
   },
   lessonText: {
     color: colors.textMuted,
-    fontSize: 14,
     fontWeight: '500',
-    lineHeight: 22,
   },
   placeholderCard: {
     alignItems: 'center',

@@ -1,5 +1,6 @@
 import type { EmotionalScreeningSessionRecord } from '../../types/emotionalScreening'
 import type { TdahTodSessionRecord } from '../../tdahTodInfantil/types'
+import type { ScaredSessionRecord } from '../../scaredInfantil/types'
 
 export type EmotionalScreeningHistoryItem =
   | {
@@ -12,8 +13,13 @@ export type EmotionalScreeningHistoryItem =
       completedAt: string
       session: TdahTodSessionRecord
     }
+  | {
+      kind: 'scared'
+      completedAt: string
+      session: ScaredSessionRecord
+    }
 
-export function getTdahTodClassificationColor(classificationId: string) {
+export function getScreeningClassificationColor(classificationId: string) {
   switch (classificationId) {
     case 'prioridade_clinica':
       return '#f87171'
@@ -26,4 +32,8 @@ export function getTdahTodClassificationColor(classificationId: string) {
     default:
       return '#93c5fd'
   }
+}
+
+export function getTdahTodClassificationColor(classificationId: string) {
+  return getScreeningClassificationColor(classificationId)
 }

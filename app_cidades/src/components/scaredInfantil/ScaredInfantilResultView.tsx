@@ -1,0 +1,282 @@
+import { LinearGradient } from 'expo-linear-gradient'
+import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import type { ScaredEngineResult } from '../../scaredInfantil/types'
+import { normalizeScaredEngineResult } from '../../scaredInfantil/normalizeResult'
+import { colors } from '../../theme/colors'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
+import { PrimaryButton } from '../PrimaryButton'
+
+type ScaredInfantilResultViewProps = {
+  result: ScaredEngineResult
+  onClose: () => void
+}
+
+function severityColor(classificationId: string) {
+  switch (classificationId) {
+    case 'prioridade_clinica':
+      return '#fb923c'
+    case 'sinais_importantes':
+      return '#fb923c'
+    case 'sinais_moderados':
+      return '#fbbf24'
+    case 'sinais_leves':
+      return '#86efac'
+    default:
+      return '#93c5fd'
+  }
+}
+
+export function ScaredInfantilResultView({
+  result,
+  onClose,
+}: ScaredInfantilResultViewProps) {
+  const insets = useSafeAreaInsets()
+  const footerBottomPadding = getModalFooterPadding(insets.bottom)
+  const normalized = normalizeScaredEngineResult(result)
+  if (!normalized) return null
+
+  const accent = severityColor(normalized.classificationId)
+
+  return (
+    <View style={styles.root}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        <LinearGradient colors={[`${accent}33`, 'rgba(16, 16, 20, 0.94)']} style={styles.hero}>
+          <Text style={styles.heroLabel}>Classificação do rastreio</Text>
+          <Text style={[styles.heroValue, { color: accent }]}>{normalized.classificationLabel}</Text>
+          <Text style={styles.heroHeadline}>{normalized.headline}</Text>
+          <Text style={styles.heroSummary}>{normalized.familySummary}</Text>
+        </LinearGradient>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Em linguagem simples</Text>
+          <Text style={styles.cardText}>{normalized.safeResultPhrase}</Text>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Subescalas (SCARED 41)</Text>
+          <Text style={styles.meta}>
+            Score total: {normalized.totalScore}/{normalized.totalMaxScore}
+          </Text>
+          {normalized.subscaleScores.map((subscale) => (
+            <View key={subscale.subscale} style={styles.domainRow}>
+              <Text style={styles.domainLabel}>{subscale.label}</Text>
+              <Text style={styles.domainValue}>
+                {subscale.rawScore}/{subscale.maxScore} · {subscale.bandLabel}
+              </Text>
+            </View>
+          ))}
+          <Text style={styles.meta}>
+            Prejuízo funcional: {normalized.functionalImpairmentLabel} · Confiança:{' '}
+            {normalized.confidence}
+          </Text>
+        </View>
+
+        {normalized.elevatedSubscaleLabels.length > 0 ? (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Subescalas com destaque</Text>
+            {normalized.elevatedSubscaleLabels.map((label) => (
+              <Text key={label} style={styles.cardText}>
+                • {label}
+              </Text>
+            ))}
+          </View>
+        ) : null}
+
+        {normalized.differentialNote ? (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Fatores que podem influenciar</Text>
+            <Text style={styles.cardText}>{normalized.differentialNote}</Text>
+          </View>
+        ) : null}
+
+        {normalized.informantNote ? (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Informantes</Text>
+            <Text style={styles.cardText}>{normalized.informantNote}</Text>
+          </View>
+        ) : null}
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Próximos passos</Text>
+          {normalized.nextSteps.map((step) => (
+            <Text key={step} style={styles.cardText}>
+              • {step}
+            </Text>
+          ))}
+        </View>
+
+        {normalized.referrals.length > 0 ? (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Encaminhamentos sugeridos</Text>
+            {normalized.referrals.map((referral) => (
+              <View key={`${referral.destination}-${referral.label}`} style={styles.referralRow}>
+                <Text style={styles.referralLabel}>{referral.label}</Text>
+                <Text style={styles.referralReason}>{referral.reason}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
+        {normalized.followupDays ? (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Reavaliação</Text>
+            <Text style={styles.cardText}>
+              Sugestão: repetir o rastreio em cerca de {normalized.followupDays} dias, ou antes se houver piora.
+            </Text>
+          </View>
+        ) : null}
+
+        <View style={styles.disclaimerBox}>
+          <Text style={styles.disclaimerTitle}>Importante</Text>
+          <Text style={styles.disclaimerText}>{normalized.disclaimer}</Text>
+          <Text style={styles.disclaimerText}>{normalized.reassurance}</Text>
+        </View>
+      </ScrollView>
+
+      <View style={[styles.footer, { paddingBottom: footerBottomPadding }]}>
+        <PrimaryButton label="Fechar relatório" onPress={onClose} />
+      </View>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  scroll: {
+    flex: 1,
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 8,
+    gap: 12,
+  },
+  hero: {
+    borderRadius: 18,
+    padding: 18,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  heroLabel: {
+    color: colors.textSubtle,
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  heroValue: {
+    fontSize: 24,
+    fontWeight: '900',
+    letterSpacing: -0.4,
+  },
+  heroHeadline: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '800',
+    marginTop: 4,
+  },
+  heroSummary: {
+    color: colors.textMuted,
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  card: {
+    borderRadius: 16,
+    padding: 14,
+    gap: 8,
+    backgroundColor: 'rgba(16, 16, 20, 0.88)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  cardTitle: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  cardText: {
+    color: colors.textMuted,
+    fontSize: 13,
+    fontWeight: '500',
+    lineHeight: 19,
+  },
+  domainRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  domainLabel: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '600',
+    flex: 1,
+  },
+  domainValue: {
+    color: '#86efac',
+    fontSize: 12,
+    fontWeight: '800',
+    textAlign: 'right',
+    flexShrink: 1,
+  },
+  meta: {
+    color: colors.textSubtle,
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  referralRow: {
+    gap: 2,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  referralLabel: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  referralReason: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '500',
+    lineHeight: 17,
+  },
+  disclaimerBox: {
+    borderRadius: 14,
+    padding: 14,
+    gap: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  disclaimerTitle: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  disclaimerText: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '500',
+    lineHeight: 18,
+  },
+  footer: {
+    flexShrink: 0,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    backgroundColor: colors.background,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+})

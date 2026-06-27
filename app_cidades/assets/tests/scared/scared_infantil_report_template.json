@@ -1,0 +1,480 @@
+{
+  "metadata": {
+    "module": "scared_infantil",
+    "file": "scared_infantil_report_template.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "instrument_code": "SCARED",
+    "instrument_full_name": "Screen for Child Anxiety Related Disorders",
+    "instrument_authors_reference": "Birmaher et al., 1997",
+    "instrument_item_count": 41,
+    "timeframe": "ultimos_3_meses",
+    "age_range_years": {
+      "min": 8,
+      "max": 17
+    },
+    "parent_proxy_age_range_years": {
+      "min": 4,
+      "max": 7
+    },
+    "diagnostic_disclaimer": "Este rastreio não diagnostica transtorno de ansiedade nem qualquer outra condição. Organiza sinais compatíveis e orienta encaminhamento.",
+    "depends_on": [
+      "scared_infantil_questions.json",
+      "scared_infantil_functional_impairment.json",
+      "scared_infantil_red_flags.json",
+      "scared_infantil_differential_screening.json",
+      "scared_infantil_cutoffs.json",
+      "scared_infantil_age_rules.json",
+      "scared_infantil_informants.json",
+      "scared_infantil_consent_terms.json",
+      "scared_infantil_result_messages.json",
+      "scared_infantil_referral_rules.json",
+      "scared_infantil_followup_rules.json"
+    ]
+  },
+  "purpose": {
+    "objective": "Definir modelos de relatório exportável para tela e PDF, com conteúdo adequado para família, profissional clínico e escola.",
+    "clinical_use": "Controla seções, campos dinâmicos, nível de detalhe e proteção de informações sensíveis por audiência.",
+    "privacy_note": "Relatórios para escola devem conter apenas informações funcionais e pedagógicas necessárias, sem red flags sensíveis ou detalhes clínicos íntimos."
+  },
+  "dynamic_fields": {
+    "identification": [
+      "patient_initials_or_name",
+      "age_years",
+      "date_of_birth",
+      "assessment_date",
+      "age_group_id",
+      "primary_informant_type",
+      "respondent_ids",
+      "report_generated_at"
+    ],
+    "instrument": [
+      "instrument_code",
+      "instrument_full_name",
+      "instrument_item_count",
+      "timeframe",
+      "locale"
+    ],
+    "scores": [
+      "total_score",
+      "score_range",
+      "reference_total_cutoff",
+      "subscale_scores",
+      "subscale_cutoffs",
+      "subscale_above_cutoff"
+    ],
+    "functional_impairment": [
+      "functional_impairment_level",
+      "functional_impairment_label",
+      "functional_impairment_domain_summary",
+      "functional_impairment_answers"
+    ],
+    "safety": [
+      "red_flag_highest_severity",
+      "red_flag_triggered_rules",
+      "red_flag_actions",
+      "red_flag_blocks_reassurance"
+    ],
+    "differentials": [
+      "differential_flags",
+      "positive_differential_domains",
+      "interpretation_confidence_level",
+      "differential_note"
+    ],
+    "classification": [
+      "classification_id",
+      "classification_label",
+      "classification_reason_key",
+      "requires_professional_evaluation",
+      "requires_urgent_flow",
+      "dashboard_bucket"
+    ],
+    "referrals": [
+      "referrals",
+      "highest_referral_priority",
+      "requires_emergency_flow",
+      "requires_safeguarding_flow"
+    ],
+    "followup": [
+      "next_followup_days",
+      "followup_action_id",
+      "followup_message",
+      "monitoring_checklist"
+    ]
+  },
+  "report_types": [
+    {
+      "id": "familia_resumo",
+      "label": "Resumo para família",
+      "audience": "familia",
+      "format_targets": [
+        "screen",
+        "pdf"
+      ],
+      "language_style": "simples, acolhedor, sem termos técnicos desnecessários",
+      "include_raw_scores": false,
+      "include_sensitive_details": false,
+      "include_red_flags": "summary_only_if_action_needed",
+      "include_differential_details": false,
+      "requires_school_sharing_consent": false,
+      "sections": [
+        {
+          "id": "cabecalho",
+          "title": "Resumo do rastreio",
+          "order": 1,
+          "dynamic_fields": [
+            "patient_initials_or_name",
+            "age_years",
+            "assessment_date",
+            "primary_informant_type"
+          ],
+          "content_template": "Resumo do rastreio de sinais de ansiedade infantil realizado em {{assessment_date}}."
+        },
+        {
+          "id": "aviso_nao_diagnostico",
+          "title": "Aviso importante",
+          "order": 2,
+          "dynamic_fields": [
+            "diagnostic_disclaimer"
+          ],
+          "content_template": "Este resultado é um rastreio, não um diagnóstico. Ele ajuda a organizar sinais e próximos passos."
+        },
+        {
+          "id": "resultado_principal",
+          "title": "Resultado principal",
+          "order": 3,
+          "dynamic_fields": [
+            "classification_id",
+            "classification_label",
+            "family_summary",
+            "reassurance"
+          ],
+          "content_template": "{{classification_label}}. {{family_summary}}"
+        },
+        {
+          "id": "areas_de_atencao",
+          "title": "Áreas que merecem atenção",
+          "order": 4,
+          "dynamic_fields": [
+            "elevated_subscale_messages",
+            "functional_impairment_label",
+            "functional_impairment_domain_summary"
+          ],
+          "content_template": "Mostra áreas com sinais elevados ou impacto funcional, em linguagem simples e sem pontuações brutas."
+        },
+        {
+          "id": "proximos_passos",
+          "title": "Próximos passos",
+          "order": 5,
+          "dynamic_fields": [
+            "next_steps",
+            "referrals",
+            "followup_message"
+          ],
+          "content_template": "Lista de orientações práticas, encaminhamentos e prazo de acompanhamento."
+        },
+        {
+          "id": "seguranca_resumo",
+          "title": "Segurança",
+          "order": 6,
+          "dynamic_fields": [
+            "requires_urgent_flow",
+            "red_flag_highest_severity"
+          ],
+          "content_template": "Se houver orientação de segurança, procure ajuda imediata ou rede de proteção conforme indicado."
+        },
+        {
+          "id": "disclaimer_legal",
+          "title": "Limites do relatório",
+          "order": 7,
+          "dynamic_fields": [
+            "diagnostic_disclaimer"
+          ],
+          "content_template": "Este relatório não substitui consulta, diagnóstico, tratamento ou avaliação profissional."
+        }
+      ],
+      "disclaimer": "Relatório em linguagem familiar. Não deve ser usado como diagnóstico ou laudo clínico."
+    },
+    {
+      "id": "profissional_clinico",
+      "label": "Relatório para profissional clínico",
+      "audience": "profissional_saude",
+      "format_targets": [
+        "screen",
+        "pdf"
+      ],
+      "language_style": "técnico claro, objetivo, com scores e contexto clínico",
+      "include_raw_scores": true,
+      "include_sensitive_details": true,
+      "include_red_flags": true,
+      "include_differential_details": true,
+      "requires_school_sharing_consent": false,
+      "sections": [
+        {
+          "id": "identificacao",
+          "title": "Identificação",
+          "order": 1,
+          "dynamic_fields": [
+            "patient_initials_or_name",
+            "age_years",
+            "date_of_birth",
+            "assessment_date",
+            "age_group_id",
+            "primary_informant_type",
+            "respondent_ids",
+            "report_generated_at"
+          ],
+          "content_template": "Idade: {{age_years}}. Data da aplicação: {{assessment_date}}. Informante principal: {{primary_informant_type}}."
+        },
+        {
+          "id": "instrumento",
+          "title": "Instrumento",
+          "order": 2,
+          "dynamic_fields": [
+            "instrument_code",
+            "instrument_full_name",
+            "instrument_item_count",
+            "timeframe",
+            "locale"
+          ],
+          "content_template": "SCARED 41, período de referência de últimos 3 meses, locale pt-BR."
+        },
+        {
+          "id": "score_total_interpretacao",
+          "title": "Score total e interpretação de rastreio",
+          "order": 3,
+          "dynamic_fields": [
+            "total_score",
+            "score_range",
+            "reference_total_cutoff",
+            "classification_id",
+            "classification_label",
+            "classification_reason_key",
+            "interpretation_confidence_level"
+          ],
+          "content_template": "Score total: {{total_score}} de 82. Cutoff de referência: 25. Interpretação: {{classification_label}}. Não diagnóstico."
+        },
+        {
+          "id": "subescalas",
+          "title": "Scores por subescala com cutoff de referência",
+          "order": 4,
+          "dynamic_fields": [
+            "subscale_scores",
+            "subscale_cutoffs",
+            "subscale_above_cutoff"
+          ],
+          "content_template": "Tabela de subescalas com pontuação, máximo, cutoff e indicador acima/abaixo do ponto de referência."
+        },
+        {
+          "id": "prejuizo_funcional",
+          "title": "Prejuízo funcional por domínio",
+          "order": 5,
+          "dynamic_fields": [
+            "functional_impairment_level",
+            "functional_impairment_label",
+            "functional_impairment_domain_summary",
+            "functional_impairment_answers"
+          ],
+          "content_template": "Resumo do prejuízo funcional global e por domínios: escola, social, familiar, sono/somático."
+        },
+        {
+          "id": "red_flags",
+          "title": "Red flags",
+          "order": 6,
+          "dynamic_fields": [
+            "red_flag_highest_severity",
+            "red_flag_triggered_rules",
+            "red_flag_actions",
+            "red_flag_blocks_reassurance"
+          ],
+          "content_template": "Listar red flags acionadas, severidade, ações recomendadas e bloqueio de interpretação tranquilizadora, quando houver."
+        },
+        {
+          "id": "diferenciais",
+          "title": "Diferenciais",
+          "order": 7,
+          "dynamic_fields": [
+            "differential_flags",
+            "positive_differential_domains",
+            "differential_note",
+            "interpretation_confidence_level"
+          ],
+          "content_template": "Listar domínios diferenciais positivos e impacto na confiança interpretativa, sem alterar score SCARED."
+        },
+        {
+          "id": "classificacao_final",
+          "title": "Classificação final",
+          "order": 8,
+          "dynamic_fields": [
+            "classification_id",
+            "classification_label",
+            "requires_professional_evaluation",
+            "requires_urgent_flow",
+            "classification_reason_key"
+          ],
+          "content_template": "Classificação final: {{classification_label}}. Requer avaliação profissional: {{requires_professional_evaluation}}. Fluxo urgente: {{requires_urgent_flow}}."
+        },
+        {
+          "id": "encaminhamentos",
+          "title": "Encaminhamentos recomendados",
+          "order": 9,
+          "dynamic_fields": [
+            "referrals",
+            "highest_referral_priority",
+            "requires_emergency_flow",
+            "requires_safeguarding_flow",
+            "next_followup_days"
+          ],
+          "content_template": "Lista de encaminhamentos com destino, prioridade, motivo, obrigatoriedade e mensagem ao usuário."
+        },
+        {
+          "id": "disclaimer_legal",
+          "title": "Disclaimer legal",
+          "order": 10,
+          "dynamic_fields": [
+            "diagnostic_disclaimer",
+            "legal_context"
+          ],
+          "content_template": "Este relatório é material de rastreio e apoio à decisão clínica. Não substitui avaliação profissional, diagnóstico ou conduta clínica."
+        }
+      ],
+      "disclaimer": "Relatório clínico de rastreio. Deve ser interpretado por profissional habilitado e não constitui diagnóstico isolado."
+    },
+    {
+      "id": "escola_funcional",
+      "label": "Resumo funcional para escola",
+      "audience": "escola",
+      "format_targets": [
+        "screen",
+        "pdf"
+      ],
+      "language_style": "pedagógico, funcional, objetivo, sem detalhes clínicos sensíveis",
+      "include_raw_scores": false,
+      "include_sensitive_details": false,
+      "include_red_flags": false,
+      "include_differential_details": false,
+      "requires_school_sharing_consent": true,
+      "allowed_fields_only": [
+        "patient_initials_or_name",
+        "age_years",
+        "assessment_date",
+        "functional_impairment_domain_summary.escola",
+        "functional_impairment_answers.func_escola_desempenho",
+        "functional_impairment_answers.func_escola_faltas",
+        "functional_impairment_answers.func_concentracao",
+        "school_recommendations",
+        "teacher_school_note"
+      ],
+      "forbidden_fields": [
+        "total_score",
+        "subscale_scores",
+        "red_flag_triggered_rules",
+        "red_flag_actions",
+        "differential_flags",
+        "positive_differential_domains",
+        "classification_reason_key",
+        "sensitive_family_context"
+      ],
+      "sections": [
+        {
+          "id": "cabecalho_escolar",
+          "title": "Resumo funcional escolar",
+          "order": 1,
+          "dynamic_fields": [
+            "patient_initials_or_name",
+            "age_years",
+            "assessment_date"
+          ],
+          "content_template": "Resumo restrito para apoio escolar, compartilhado apenas com consentimento específico."
+        },
+        {
+          "id": "impacto_escolar",
+          "title": "Impacto observado na escola",
+          "order": 2,
+          "dynamic_fields": [
+            "functional_impairment_domain_summary.escola",
+            "functional_impairment_answers.func_escola_desempenho",
+            "functional_impairment_answers.func_escola_faltas",
+            "functional_impairment_answers.func_concentracao"
+          ],
+          "content_template": "Descrever impacto em participação, frequência, atrasos, concentração e desempenho, sem scores clínicos brutos."
+        },
+        {
+          "id": "recomendacoes_pedagogicas",
+          "title": "Recomendações pedagógicas",
+          "order": 3,
+          "dynamic_fields": [
+            "school_recommendations"
+          ],
+          "content_template": "Acolher sem exposição, observar faltas e participação, reduzir constrangimentos, combinar comunicação com a família e encaminhar para rede de apoio quando necessário."
+        },
+        {
+          "id": "limites_do_compartilhamento",
+          "title": "Limites do compartilhamento",
+          "order": 4,
+          "dynamic_fields": [
+            "school_sharing_consent_status"
+          ],
+          "content_template": "Este resumo não contém diagnóstico, red flags sensíveis, respostas completas do questionário ou informações familiares íntimas."
+        },
+        {
+          "id": "disclaimer_legal",
+          "title": "Aviso",
+          "order": 5,
+          "dynamic_fields": [
+            "diagnostic_disclaimer"
+          ],
+          "content_template": "Este documento serve apenas para apoio funcional e pedagógico. Não é laudo, diagnóstico ou autorização para exposição da criança/adolescente."
+        }
+      ],
+      "disclaimer": "Resumo escolar restrito. Deve ser compartilhado somente com consentimento específico e conter apenas informações necessárias ao apoio pedagógico."
+    }
+  ],
+  "school_recommendations_library": [
+    {
+      "id": "acolhimento_sem_exposicao",
+      "text": "Acolher a criança/adolescente sem expor o motivo diante da turma."
+    },
+    {
+      "id": "observacao_frequencia",
+      "text": "Observar faltas, atrasos, saídas frequentes e pedidos para evitar atividades."
+    },
+    {
+      "id": "participacao_gradual",
+      "text": "Permitir participação gradual em apresentações, grupos ou atividades que geram muito nervosismo."
+    },
+    {
+      "id": "comunicacao_familia",
+      "text": "Manter comunicação objetiva com a família sobre frequência, participação e concentração."
+    },
+    {
+      "id": "investigar_bullying_aprendizagem",
+      "text": "Observar sinais de bullying, exclusão, conflito com colegas ou dificuldade de aprendizagem."
+    }
+  ],
+  "rendering_rules": [
+    {
+      "id": "hide_empty_sensitive_sections",
+      "description": "No relatório clínico, ocultar seções de red flags ou diferenciais quando não houver dados positivos, mantendo nota de ausência se apropriado."
+    },
+    {
+      "id": "never_show_sensitive_to_school",
+      "description": "No relatório escolar, nunca exibir red flags, diferenciais, score total, subescalas, respostas completas ou detalhes familiares sensíveis."
+    },
+    {
+      "id": "family_no_raw_scores",
+      "description": "No relatório familiar, priorizar classificação, resumo e próximos passos, sem tabela detalhada de scores brutos."
+    },
+    {
+      "id": "professional_include_method",
+      "description": "No relatório clínico, sempre exibir instrumento, período, informante, data, scores e disclaimers."
+    }
+  ],
+  "clinical_guardrails": [
+    "Relatório familiar não deve ser apresentado como laudo.",
+    "Relatório escolar exige consentimento específico e deve ser funcional, não clínico.",
+    "Relatório clínico deve preservar red flags quando existirem, com acesso restrito.",
+    "Não compartilhar dados sensíveis desnecessários com escola.",
+    "Todo relatório deve conter aviso de não diagnóstico."
+  ]
+}

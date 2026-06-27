@@ -1,0 +1,294 @@
+{
+  "metadata": {
+    "module": "scared_infantil",
+    "file": "scared_infantil_result_messages.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "instrument_code": "SCARED",
+    "instrument_full_name": "Screen for Child Anxiety Related Disorders",
+    "instrument_authors_reference": "Birmaher et al., 1997",
+    "instrument_item_count": 41,
+    "timeframe": "ultimos_3_meses",
+    "age_range_years": {
+      "min": 8,
+      "max": 17
+    },
+    "parent_proxy_age_range_years": {
+      "min": 4,
+      "max": 7
+    },
+    "diagnostic_disclaimer": "Este rastreio não diagnostica transtorno de ansiedade nem qualquer outra condição. Organiza sinais compatíveis e orienta encaminhamento.",
+    "depends_on": [
+      "scared_infantil_questions.json",
+      "scared_infantil_functional_impairment.json",
+      "scared_infantil_red_flags.json",
+      "scared_infantil_differential_screening.json",
+      "scared_infantil_cutoffs.json",
+      "scared_infantil_age_rules.json",
+      "scared_infantil_informants.json",
+      "scared_infantil_consent_terms.json"
+    ]
+  },
+  "tone": "acolhedor, claro, sem alarmismo, sem rótulos diagnósticos",
+  "global_disclaimers": {
+    "short": "Este resultado é um rastreio, não um diagnóstico.",
+    "full": "Este resultado organiza respostas sobre sinais de ansiedade, prejuízo funcional, segurança e fatores que podem influenciar a interpretação. Ele não confirma nem exclui transtorno de ansiedade ou qualquer outra condição. A decisão de cuidado deve considerar avaliação profissional, história clínica, contexto familiar, escola, desenvolvimento e evolução dos sintomas.",
+    "scared_note": "O SCARED é usado aqui como referência de rastreio para sinais relacionados à ansiedade infantil. A pontuação ajuda a organizar a intensidade dos sinais, mas não substitui entrevista clínica.",
+    "functional_note": "O prejuízo funcional mostra o quanto os sinais atrapalham escola, sono, amizades, rotina familiar, atividades e autonomia. Quando há prejuízo moderado ou importante, a prioridade de avaliação aumenta.",
+    "multi_informant_note": "Quando criança/adolescente e responsável respondem, os relatos devem ser comparados. Diferenças entre informantes não significam mentira; podem mostrar que o sofrimento aparece de formas diferentes em casa, na escola ou internamente."
+  },
+  "classification_messages": [
+    {
+      "classification_id": "baixo_indicativo",
+      "headline": "Baixo indicativo de sinais ansiosos no rastreio",
+      "family_summary": "As respostas não mostram, neste momento, um padrão forte de sinais ansiosos pelo rastreio aplicado. Ainda assim, vale observar a evolução, principalmente se houver sofrimento, mudança de comportamento ou impacto na escola, sono ou rotina.",
+      "reassurance": "Este resultado pode ser tranquilizador, mas não deve ser usado para ignorar queixas persistentes ou piora recente.",
+      "next_steps": [
+        "Manter observação da rotina, sono, escola e convivência familiar nos próximos dias.",
+        "Conversar com a criança/adolescente de forma calma, sem cobrança ou julgamento.",
+        "Repetir o rastreio ou buscar orientação se os sinais aumentarem ou começarem a atrapalhar a rotina.",
+        "Procurar avaliação profissional se houver sofrimento importante, red flag ou preocupação da família."
+      ]
+    },
+    {
+      "classification_id": "sinais_leves",
+      "headline": "Sinais leves que merecem acompanhamento",
+      "family_summary": "As respostas mostram alguns sinais de medo, preocupação ou nervosismo, mas sem indicação forte de gravidade pelo conjunto do rastreio. O foco agora é acompanhar, acolher e reduzir fatores que possam estar aumentando o sofrimento.",
+      "reassurance": "Sinais leves podem melhorar com rotina, escuta, apoio familiar e acompanhamento atento, mas devem ser observados se persistirem.",
+      "next_steps": [
+        "Observar em quais situações os sinais aparecem com mais frequência.",
+        "Criar uma rotina previsível de sono, escola, alimentação e atividades.",
+        "Evitar frases que minimizem o sofrimento, como dizer que é frescura ou falta de vontade.",
+        "Conversar com a escola se houver queda de participação, faltas ou medo de ir.",
+        "Buscar orientação profissional se os sinais durarem, piorarem ou gerarem prejuízo."
+      ]
+    },
+    {
+      "classification_id": "sinais_moderados",
+      "headline": "Sinais moderados: recomenda-se avaliação profissional",
+      "family_summary": "O conjunto das respostas sugere sinais ansiosos mais consistentes ou associados a algum prejuízo funcional. Não é um diagnóstico, mas indica que uma avaliação profissional pode ajudar a entender o quadro e orientar o cuidado.",
+      "reassurance": "Há caminhos de cuidado e acompanhamento. O mais importante é não deixar a criança/adolescente lidar com isso sozinho(a).",
+      "next_steps": [
+        "Agendar avaliação com profissional de saúde mental, pediatra, hebiatra ou equipe de referência.",
+        "Levar o resumo do rastreio para apoiar a conversa com o profissional.",
+        "Mapear gatilhos, horários, situações escolares, sintomas físicos e mudanças recentes.",
+        "Combinar com a família uma rotina de apoio sem exposição forçada ou punição.",
+        "Acionar a escola se houver impacto em frequência, concentração, participação ou amizades."
+      ]
+    },
+    {
+      "classification_id": "sinais_importantes",
+      "headline": "Sinais importantes com impacto na rotina",
+      "family_summary": "As respostas indicam sinais ansiosos relevantes, especialmente quando combinados com prejuízo funcional. Este resultado pede atenção clínica, acolhimento e organização de próximos passos com um profissional.",
+      "reassurance": "O resultado não define diagnóstico, mas mostra que o sofrimento não deve ser tratado como fase sem acompanhamento.",
+      "next_steps": [
+        "Priorizar agendamento de avaliação profissional nos próximos dias.",
+        "Verificar se há faltas escolares, isolamento, alterações de sono, sintomas físicos ou crises.",
+        "Evitar broncas, ameaças ou exposição brusca a situações que geram medo intenso.",
+        "Construir um plano simples de apoio em casa e na escola enquanto aguarda avaliação.",
+        "Revisar red flags e procurar ajuda imediata se surgir risco de autoagressão, violência ou piora intensa."
+      ]
+    },
+    {
+      "classification_id": "prioridade_clinica",
+      "headline": "Recomendamos cuidado com atenção reforçada",
+      "family_summary": "As respostas indicam que vale buscar apoio profissional com mais rapidez — seja por intensidade dos sinais, impacto na rotina ou alguma informação de segurança. Isso não é diagnóstico, mas um convite para não deixar o sofrimento passar batido.",
+      "reassurance": "Pedir ajuda cedo é um cuidado, não um exagero. Existem caminhos de acolhimento e acompanhamento para a criança/adolescente e para a família.",
+      "next_steps": [
+        "Conversar com um profissional de saúde (pediatra, psicólogo ou serviço de referência) nos próximos dias.",
+        "Se houver sinal de risco atual — como medo intenso, autoagressão ou violência — buscar ajuda imediata, sem esperar.",
+        "Manter a criança/adolescente acompanhada por um adulto de confiança enquanto organiza o atendimento.",
+        "Levar o resumo deste rastreio para a consulta, como apoio à conversa (não como diagnóstico fechado).",
+        "Combinar com a escola ou rede de apoio, se fizer sentido para a situação."
+      ]
+    }
+  ],
+  "status_messages": {
+    "pendente": {
+      "headline": "Resultado pendente",
+      "family_summary": "Ainda não há dados suficientes para gerar uma classificação confiável.",
+      "next_steps": [
+        "Conferir se todos os blocos obrigatórios foram respondidos.",
+        "Verificar idade, consentimento e informante correto.",
+        "Completar perguntas de segurança antes de interpretar o resultado."
+      ]
+    },
+    "bloqueado": {
+      "headline": "Rastreio bloqueado",
+      "family_summary": "O rastreio não pode ser concluído por regra de idade, consentimento, informante ou elegibilidade.",
+      "next_steps": [
+        "Conferir idade e data de nascimento.",
+        "Confirmar consentimento do responsável quando aplicável.",
+        "Usar outro instrumento ou avaliação profissional se a faixa etária não for compatível."
+      ]
+    }
+  },
+  "subscale_messages": [
+    {
+      "subscale_id": "panico_somatico",
+      "elevated_headline": "Sinais físicos de medo ou pânico apareceram com destaque",
+      "elevated_explanation": "A criança/adolescente relatou sintomas como falta de ar, coração acelerado, tremor, tontura, suor, sensação de engasgo, náusea ou medo intenso. Esses sinais podem ocorrer em ansiedade, mas sintomas físicos importantes também merecem avaliação de saúde.",
+      "care_tips": [
+        "Observar quando os sintomas aparecem, quanto duram e o que ajuda a melhorar.",
+        "Evitar dizer que é invenção ou exagero.",
+        "Procurar avaliação médica se houver dor forte, desmaio, falta de ar intensa ou sintomas novos.",
+        "Ensinar estratégias simples de respiração e aterramento apenas como apoio, sem substituir avaliação."
+      ]
+    },
+    {
+      "subscale_id": "ansiedade_generalizada",
+      "elevated_headline": "Preocupações frequentes apareceram com destaque",
+      "elevated_explanation": "As respostas indicam preocupação recorrente com desempenho, futuro, qualidade do que faz ou coisas que já aconteceram. Esse padrão pode cansar, atrapalhar concentração e aumentar irritabilidade.",
+      "care_tips": [
+        "Ajudar a separar problemas reais de preocupações repetitivas.",
+        "Criar horários previsíveis para estudo, descanso e lazer.",
+        "Evitar excesso de cobrança por desempenho perfeito.",
+        "Buscar avaliação se a preocupação estiver ocupando muito tempo ou atrapalhando sono e escola."
+      ]
+    },
+    {
+      "subscale_id": "ansiedade_separacao",
+      "elevated_headline": "Sinais ligados à separação ou distância da família apareceram com destaque",
+      "elevated_explanation": "As respostas apontam medo ou preocupação ao ficar longe dos pais ou responsáveis, dormir sozinho(a), ficar em casa sem companhia ou imaginar que algo ruim possa acontecer. Isso merece atenção quando limita autonomia ou causa sofrimento intenso.",
+      "care_tips": [
+        "Validar o medo sem reforçar dependência excessiva.",
+        "Criar passos pequenos e combinados para aumentar autonomia com segurança.",
+        "Evitar separações bruscas como forma de testar coragem.",
+        "Procurar orientação se houver recusa escolar, pesadelos frequentes ou grande tensão familiar."
+      ]
+    },
+    {
+      "subscale_id": "ansiedade_social",
+      "elevated_headline": "Sinais de ansiedade em situações sociais apareceram com destaque",
+      "elevated_explanation": "As respostas sugerem nervosismo, timidez intensa ou dificuldade com pessoas pouco conhecidas, conversas ou situações em que a criança/adolescente precisa fazer algo enquanto é observada.",
+      "care_tips": [
+        "Evitar expor a criança/adolescente de surpresa ou forçar apresentações sem preparo.",
+        "Combinar pequenos desafios sociais graduais e possíveis.",
+        "Valorizar tentativas, não apenas desempenho.",
+        "Conversar com a escola se houver isolamento, medo de participar ou sofrimento com colegas."
+      ]
+    },
+    {
+      "subscale_id": "evitacao_escolar",
+      "elevated_headline": "Sinais de evitação ou sofrimento ligado à escola apareceram com destaque",
+      "elevated_explanation": "As respostas indicam dor de cabeça, dor de barriga, preocupação, medo ou nervosismo relacionados à escola e a contextos sociais. Isso pode estar ligado à ansiedade, mas também a bullying, dificuldade de aprendizagem, conflitos ou problemas de saúde.",
+      "care_tips": [
+        "Investigar com calma se há bullying, dificuldade de aprendizagem ou conflito na escola.",
+        "Observar faltas, atrasos, pedidos para sair da escola e sintomas antes das aulas.",
+        "Conversar com a escola sem expor a criança/adolescente de forma constrangedora.",
+        "Buscar avaliação se houver recusa persistente, queda de desempenho ou sofrimento intenso."
+      ]
+    }
+  ],
+  "red_flag_messages": {
+    "urgencia_seguranca": {
+      "headline": "Atenção imediata à segurança",
+      "summary": "Houve resposta compatível com risco de autoagressão, pensamento de morte, crise incapacitante, recusa escolar persistente ou alteração importante do comportamento.",
+      "message": "Não use o resultado como tranquilização. Procure ajuda profissional ou serviço de urgência conforme a situação, especialmente se houver risco atual."
+    },
+    "salvaguarda": {
+      "headline": "Possível necessidade de proteção",
+      "summary": "Houve sinal de possível violência, ameaça, maus-tratos, abuso ou situação que pode exigir rede de proteção.",
+      "message": "Priorize segurança. Acione adulto protetivo, equipe responsável, serviço de saúde, assistência social, conselho tutelar ou rede local conforme protocolo."
+    },
+    "cautela": {
+      "headline": "Sinal de cautela clínica ou contextual",
+      "summary": "Houve resposta que pede atenção adicional, mesmo que não indique urgência imediata.",
+      "message": "Acompanhe de perto e considere avaliação profissional, principalmente se houver piora, prejuízo funcional, sintomas físicos importantes ou contexto de risco."
+    }
+  },
+  "differential_messages": {
+    "generic_caution": "Foram identificados fatores que podem imitar, intensificar ou coexistir com ansiedade. O score SCARED foi preservado, mas a confiança interpretativa deve ser reduzida e a avaliação profissional deve considerar esses fatores.",
+    "per_domain": {
+      "humor_depressao": {
+        "headline": "Humor e desânimo também merecem atenção",
+        "message": "Tristeza persistente, perda de interesse ou fadiga podem coexistir com ansiedade ou explicar parte do sofrimento. Recomenda-se avaliação clínica cuidadosa."
+      },
+      "tdah_desatencao": {
+        "headline": "Desatenção ou hiperatividade podem interferir na leitura do resultado",
+        "message": "Quando a desatenção ou hiperatividade aparecem mesmo sem medo, pode ser necessário investigar TDAH ou outras causas de dificuldade de concentração."
+      },
+      "trauma_estresse": {
+        "headline": "Eventos difíceis ou traumáticos podem aumentar sinais ansiosos",
+        "message": "Experiências assustadoras, hipervigilância ou pesadelos ligados a eventos devem ser avaliados com cuidado e segurança."
+      },
+      "toc": {
+        "headline": "Pensamentos repetitivos e rituais pedem avaliação específica",
+        "message": "Pensamentos indesejados e compulsões podem exigir investigação própria, sem serem reduzidos apenas a preocupação comum."
+      },
+      "tea_neurodesenvolvimento": {
+        "headline": "Sinais desde cedo podem indicar necessidade de avaliação do desenvolvimento",
+        "message": "Dificuldades sociais antigas, rigidez e interesses restritos podem mudar a interpretação dos sinais de ansiedade."
+      },
+      "aprendizagem": {
+        "headline": "Dificuldades de aprendizagem podem gerar ansiedade escolar",
+        "message": "Problemas persistentes de leitura, escrita ou matemática podem aumentar medo de escola, evitação e preocupação com desempenho."
+      },
+      "sono": {
+        "headline": "Sono ruim pode piorar ansiedade e comportamento",
+        "message": "Insônia, sono irregular, ronco ou suspeita de apneia podem afetar humor, concentração e sintomas físicos."
+      },
+      "bullying_contexto": {
+        "headline": "Contexto social e familiar pode explicar parte do sofrimento",
+        "message": "Bullying, luto, mudanças familiares ou conflitos recentes precisam ser considerados antes de interpretar o resultado como ansiedade isolada."
+      },
+      "medico_medicacao": {
+        "headline": "Condições médicas, remédios e estimulantes podem imitar ansiedade",
+        "message": "Palpitação, tontura, falta de ar, insônia ou nervosismo podem ter relação com saúde física, medicação, cafeína ou energéticos."
+      },
+      "substancias": {
+        "headline": "Uso de substâncias para acalmar exige atenção",
+        "message": "Álcool, drogas, calmantes ou remédios sem orientação para aliviar ansiedade exigem conversa com responsável e avaliação profissional."
+      }
+    }
+  },
+  "functional_impairment_messages": {
+    "sem_prejuizo": "Não foi identificado prejuízo funcional relevante nas áreas perguntadas.",
+    "leve": "Há algum impacto na rotina, mas ainda sem padrão forte de prejuízo funcional.",
+    "moderado": "Há impacto funcional consistente, o que aumenta a importância de avaliação e acompanhamento.",
+    "importante": "Há prejuízo funcional importante, indicando necessidade de atenção clínica prioritária."
+  },
+  "informant_messages": {
+    "single_responsavel": "Resultado baseado apenas no responsável. Alguns sintomas internos podem não ser observáveis.",
+    "single_crianca": "Resultado baseado apenas na criança/adolescente. O contexto do responsável pode ajudar a interpretar melhor.",
+    "dual_informant": "Resultado com mais de um informante. Relatos consistentes aumentam a confiança; divergências devem ser analisadas com cuidado.",
+    "teacher_school_only": "Informação da escola deve ser usada apenas como complemento de impacto escolar."
+  },
+  "do_not_say": [
+    "Seu filho tem ansiedade",
+    "Diagnóstico de transtorno de ansiedade",
+    "Resultado normal",
+    "Não precisa de ajuda",
+    "É frescura",
+    "É falta de limite"
+  ],
+  "safe_language_replacements": [
+    {
+      "avoid": "Seu filho tem ansiedade",
+      "use": "As respostas sugerem sinais compatíveis com ansiedade que merecem atenção."
+    },
+    {
+      "avoid": "Resultado normal",
+      "use": "Baixo indicativo neste rastreio."
+    },
+    {
+      "avoid": "Não precisa de ajuda",
+      "use": "Acompanhe a evolução e procure ajuda se houver sofrimento, piora ou prejuízo."
+    },
+    {
+      "avoid": "É frescura",
+      "use": "O sofrimento relatado deve ser escutado e compreendido."
+    },
+    {
+      "avoid": "É falta de limite",
+      "use": "Comportamentos e sintomas precisam ser entendidos no contexto da criança/adolescente."
+    }
+  ],
+  "clinical_guardrails": [
+    "Nunca apresentar resultado como diagnóstico.",
+    "Nunca usar a palavra normal como conclusão clínica.",
+    "Nunca tranquilizar quando houver red flag urgente ou de salvaguarda.",
+    "Sempre preservar recomendação de avaliação profissional quando a classificação exigir.",
+    "Mensagens devem ser claras, acolhedoras, sem culpa e sem rótulos."
+  ]
+}

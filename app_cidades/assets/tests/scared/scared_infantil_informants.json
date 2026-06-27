@@ -1,0 +1,482 @@
+{
+  "metadata": {
+    "module": "scared_infantil",
+    "file": "scared_infantil_informants.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "instrument_code": "SCARED",
+    "instrument_full_name": "Screen for Child Anxiety Related Disorders",
+    "instrument_authors_reference": "Birmaher et al., 1997",
+    "instrument_item_count": 41,
+    "timeframe": "ultimos_3_meses",
+    "age_range_years": {
+      "min": 8,
+      "max": 17
+    },
+    "parent_proxy_age_range_years": {
+      "min": 4,
+      "max": 7
+    },
+    "diagnostic_disclaimer": "Este rastreio não diagnostica transtorno de ansiedade nem qualquer outra condição. Organiza sinais compatíveis e orienta encaminhamento.",
+    "depends_on": [
+      "scared_infantil_questions.json",
+      "scared_infantil_functional_impairment.json",
+      "scared_infantil_red_flags.json",
+      "scared_infantil_differential_screening.json",
+      "scared_infantil_cutoffs.json",
+      "scared_infantil_age_rules.json"
+    ]
+  },
+  "purpose": {
+    "objective": "Definir quem pode responder, iniciar a triagem, aceitar consentimento, complementar informações escolares e influenciar a confiança interpretativa.",
+    "clinical_use": "Organiza informantes sem misturar automaticamente respostas de criança/adolescente, responsável e professor.",
+    "priority_note": "Consentimento válido e regras de idade devem ser verificados antes de aceitar respostas."
+  },
+  "respondent_ids": [
+    "crianca_adolescente",
+    "responsavel",
+    "professor"
+  ],
+  "informant_types": [
+    {
+      "id": "mae",
+      "label": "Mãe",
+      "respondent_id": "responsavel",
+      "can_accept_consent": true,
+      "can_start": true,
+      "can_answer_scared_items": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": true,
+      "can_answer_differential": true,
+      "can_answer_school_form": true,
+      "requires_guardian_confirmation": false
+    },
+    {
+      "id": "pai",
+      "label": "Pai",
+      "respondent_id": "responsavel",
+      "can_accept_consent": true,
+      "can_start": true,
+      "can_answer_scared_items": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": true,
+      "can_answer_differential": true,
+      "can_answer_school_form": true,
+      "requires_guardian_confirmation": false
+    },
+    {
+      "id": "responsavel_legal",
+      "label": "Responsável legal",
+      "respondent_id": "responsavel",
+      "can_accept_consent": true,
+      "can_start": true,
+      "can_answer_scared_items": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": true,
+      "can_answer_differential": true,
+      "can_answer_school_form": true,
+      "requires_guardian_confirmation": false
+    },
+    {
+      "id": "cuidador_principal",
+      "label": "Cuidador principal",
+      "respondent_id": "responsavel",
+      "can_accept_consent": false,
+      "can_start": true,
+      "can_answer_scared_items": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": true,
+      "can_answer_differential": true,
+      "can_answer_school_form": true,
+      "requires_guardian_confirmation": true
+    },
+    {
+      "id": "crianca",
+      "label": "Criança",
+      "respondent_id": "crianca_adolescente",
+      "min_age": 8,
+      "max_age": 11,
+      "can_accept_consent": false,
+      "can_start": false,
+      "can_answer_scared_items": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": true,
+      "can_answer_differential": true,
+      "can_answer_school_form": false,
+      "requires_guardian_confirmation": true,
+      "requires_age_appropriate_support": true
+    },
+    {
+      "id": "adolescente",
+      "label": "Adolescente",
+      "respondent_id": "crianca_adolescente",
+      "min_age": 12,
+      "max_age": 17,
+      "can_accept_consent": false,
+      "can_start": false,
+      "can_answer_scared_items": true,
+      "can_answer_functional_impairment": true,
+      "can_answer_red_flags": true,
+      "can_answer_differential": true,
+      "can_answer_school_form": false,
+      "requires_guardian_confirmation": true,
+      "requires_age_appropriate_support": false
+    },
+    {
+      "id": "professor",
+      "label": "Professor",
+      "respondent_id": "professor",
+      "can_accept_consent": false,
+      "can_start": false,
+      "can_answer_scared_items": false,
+      "can_answer_functional_impairment": false,
+      "can_answer_red_flags": false,
+      "can_answer_differential": false,
+      "can_answer_school_form": true,
+      "scope": "functional_school_only",
+      "requires_guardian_confirmation": true
+    }
+  ],
+  "informant_order": [
+    {
+      "age_group_id": "4_7_proxy_only",
+      "preferred_order": [
+        "mae",
+        "pai",
+        "responsavel_legal",
+        "cuidador_principal"
+      ],
+      "optional_order": [
+        "professor"
+      ],
+      "note": "Somente responsável responde ao rastreio principal; professor pode complementar impacto escolar."
+    },
+    {
+      "age_group_id": "8_11_misto",
+      "preferred_order": [
+        "crianca",
+        "mae",
+        "pai",
+        "responsavel_legal",
+        "cuidador_principal"
+      ],
+      "optional_order": [
+        "professor"
+      ],
+      "note": "Autorrelato com apoio e resposta do responsável são recomendados."
+    },
+    {
+      "age_group_id": "12_14_adolescencia_inicial",
+      "preferred_order": [
+        "adolescente",
+        "mae",
+        "pai",
+        "responsavel_legal"
+      ],
+      "optional_order": [
+        "cuidador_principal",
+        "professor"
+      ],
+      "note": "Autorrelato preferencial; responsável complementa contexto e segurança."
+    },
+    {
+      "age_group_id": "15_17_adolescencia",
+      "preferred_order": [
+        "adolescente",
+        "mae",
+        "pai",
+        "responsavel_legal"
+      ],
+      "optional_order": [
+        "cuidador_principal",
+        "professor"
+      ],
+      "note": "Autorrelato preferencial; responsável é complementar."
+    }
+  ],
+  "permission_rules": [
+    {
+      "id": "consent_only_guardian",
+      "condition": "informant_type.can_accept_consent == true",
+      "allowed_action": "accept_responsible_consent",
+      "blocked_for": [
+        "cuidador_principal",
+        "crianca",
+        "adolescente",
+        "professor"
+      ]
+    },
+    {
+      "id": "caregiver_requires_guardian_confirmation",
+      "condition": "informant_type == cuidador_principal",
+      "required_action": "guardian_confirmation_before_final_classification"
+    },
+    {
+      "id": "child_or_adolescent_requires_guardian_consent",
+      "condition": "respondent_id == crianca_adolescente",
+      "required_action": "responsible_consent_before_start"
+    },
+    {
+      "id": "teacher_school_only",
+      "condition": "informant_type == professor",
+      "allowed_blocks": [
+        "functional_school_only"
+      ],
+      "blocked_blocks": [
+        "scared_items",
+        "functional_impairment_full",
+        "red_flags",
+        "differential",
+        "cutoffs"
+      ]
+    },
+    {
+      "id": "teacher_cannot_start",
+      "condition": "informant_type == professor",
+      "blocked_action": "start_screening"
+    }
+  ],
+  "confidence_rules": [
+    {
+      "id": "dual_informant",
+      "condition": "crianca_adolescente completed AND responsavel completed",
+      "confidence": "maior",
+      "actions": [
+        "compare_informants",
+        "append_informant_note"
+      ],
+      "informant_note_key": "ambos_informantes"
+    },
+    {
+      "id": "single_responsavel",
+      "condition": "only responsavel",
+      "confidence": "moderada",
+      "actions": [
+        "append_informant_note"
+      ],
+      "informant_note_key": "somente_responsavel"
+    },
+    {
+      "id": "single_crianca",
+      "condition": "only crianca_adolescente",
+      "confidence": "moderada",
+      "actions": [
+        "append_informant_note",
+        "recommend_responsavel_context"
+      ],
+      "informant_note_key": "somente_crianca"
+    },
+    {
+      "id": "proxy_only_4_7",
+      "condition": "age >= 4 AND age <= 7",
+      "confidence": "moderada",
+      "actions": [
+        "block_self_report",
+        "append_informant_note"
+      ],
+      "informant_note_key": "proxy_4_7"
+    },
+    {
+      "id": "adolescent_parent_only",
+      "condition": "age >= 12 AND age <= 17 AND only responsavel",
+      "confidence": "moderada",
+      "actions": [
+        "append_informant_note",
+        "recommend_adolescent_self_report"
+      ],
+      "informant_note_key": "adolescente_somente_responsavel"
+    },
+    {
+      "id": "teacher_only_not_valid",
+      "condition": "only professor",
+      "confidence": "baixa",
+      "actions": [
+        "block_final_classification",
+        "request_primary_informant"
+      ],
+      "informant_note_key": "somente_professor_invalido"
+    }
+  ],
+  "discordance_rules": [
+    {
+      "id": "score_discordance_moderate",
+      "condition": "abs(total_score_crianca_adolescente - total_score_responsavel) >= 10 AND abs(total_score_crianca_adolescente - total_score_responsavel) < 20",
+      "actions": [
+        "append_discordance_note",
+        "recommend_professional_review"
+      ],
+      "confidence_adjustment": "keep_or_reduce_one_level_if_context_unclear",
+      "informant_note_key": "discordancia_moderada"
+    },
+    {
+      "id": "score_discordance_high",
+      "condition": "abs(total_score_crianca_adolescente - total_score_responsavel) >= 20",
+      "actions": [
+        "append_discordance_note",
+        "reduce_confidence_one_level",
+        "recommend_professional_review"
+      ],
+      "confidence_adjustment": "reduce_one_level",
+      "informant_note_key": "discordancia_importante"
+    },
+    {
+      "id": "red_flag_discordance",
+      "condition": "red_flag_positive_by_any_informant == true",
+      "actions": [
+        "preserve_highest_risk",
+        "block_reassuring_classification",
+        "append_discordance_note"
+      ],
+      "confidence_adjustment": "do_not_lower_safety_priority",
+      "informant_note_key": "discordancia_red_flag"
+    }
+  ],
+  "school_informant_rules": [
+    {
+      "id": "teacher_scope_school_only",
+      "informant_type": "professor",
+      "allowed_question_ids": [
+        "func_escola_desempenho",
+        "func_escola_faltas",
+        "func_concentracao"
+      ],
+      "allowed_outputs": [
+        "school_functional_observation",
+        "teacher_school_note"
+      ],
+      "excluded_from_outputs": [
+        "total_score",
+        "subscale_scores",
+        "classification_id",
+        "red_flag_highest_severity"
+      ],
+      "message": "Professor complementa apenas impacto escolar e não participa do score SCARED nem da classificação final."
+    },
+    {
+      "id": "teacher_requires_guardian_authorization",
+      "informant_type": "professor",
+      "condition": "teacher_form_requested == true",
+      "required_action": "guardian_authorization_for_school_contact"
+    }
+  ],
+  "score_selection_rules": [
+    {
+      "id": "primary_score_4_7",
+      "condition": "age >= 4 AND age <= 7",
+      "primary_score_source": "responsavel",
+      "secondary_score_source": null,
+      "note": "Para 4 a 7 anos, usar somente responsável."
+    },
+    {
+      "id": "primary_score_8_17_self_report_available",
+      "condition": "age >= 8 AND age <= 17 AND crianca_adolescente completed",
+      "primary_score_source": "crianca_adolescente",
+      "secondary_score_source": "responsavel",
+      "note": "Para 8 a 17 anos, autorrelato é fonte principal quando completo; responsável complementa contexto."
+    },
+    {
+      "id": "primary_score_8_17_parent_only",
+      "condition": "age >= 8 AND age <= 17 AND missing(crianca_adolescente_response) AND responsavel completed",
+      "primary_score_source": "responsavel",
+      "secondary_score_source": null,
+      "note": "Quando não há autorrelato, usar responsável com confiança moderada."
+    }
+  ],
+  "informant_notes": {
+    "somente_responsavel": {
+      "title": "Resposta apenas do responsável",
+      "message": "A triagem foi respondida apenas pelo responsável. A interpretação deve considerar que alguns sintomas internos podem não ser totalmente observáveis.",
+      "confidence": "moderada"
+    },
+    "somente_crianca": {
+      "title": "Resposta apenas da criança/adolescente",
+      "message": "A triagem foi respondida apenas pela criança/adolescente. Recomenda-se complemento do responsável para contexto familiar, escola, sono, prejuízo funcional e segurança.",
+      "confidence": "moderada"
+    },
+    "ambos_informantes": {
+      "title": "Resposta da criança/adolescente e do responsável",
+      "message": "Há respostas de dois informantes. Isso aumenta a confiança interpretativa quando os relatos são consistentes.",
+      "confidence": "maior"
+    },
+    "proxy_4_7": {
+      "title": "Resposta proxy para 4 a 7 anos",
+      "message": "Para 4 a 7 anos, a resposta deve ser feita pelo responsável. A confiança interpretativa máxima é moderada.",
+      "confidence": "moderada"
+    },
+    "adolescente_somente_responsavel": {
+      "title": "Adolescente sem autorrelato",
+      "message": "Em adolescentes, o autorrelato é preferencial. Resposta apenas do responsável deve ser interpretada com confiança moderada.",
+      "confidence": "moderada"
+    },
+    "somente_professor_invalido": {
+      "title": "Professor não classifica o rastreio",
+      "message": "A resposta do professor complementa apenas o impacto escolar. É necessário um informante principal para concluir a triagem.",
+      "confidence": "baixa"
+    },
+    "discordancia_moderada": {
+      "title": "Diferença entre informantes",
+      "message": "Há diferença relevante entre os relatos. A classificação deve considerar os dois contextos e pode exigir revisão profissional.",
+      "confidence": "moderada"
+    },
+    "discordancia_importante": {
+      "title": "Discordância importante entre informantes",
+      "message": "Há grande diferença entre os relatos da criança/adolescente e do responsável. A confiança interpretativa deve ser reduzida e recomenda-se avaliação profissional.",
+      "confidence": "baixa"
+    },
+    "discordancia_red_flag": {
+      "title": "Divergência em item de segurança",
+      "message": "Quando qualquer informante relata red flag, preservar o maior nível de risco e bloquear interpretação tranquilizadora.",
+      "confidence": "nao_rebaixar_prioridade_de_seguranca"
+    }
+  },
+  "outputs": [
+    {
+      "id": "primary_informant_type",
+      "type": "string",
+      "description": "Tipo de informante usado como fonte principal."
+    },
+    {
+      "id": "primary_respondent_id",
+      "type": "enum",
+      "allowed_values": [
+        "crianca_adolescente",
+        "responsavel",
+        "professor"
+      ],
+      "description": "Respondent ID da fonte principal."
+    },
+    {
+      "id": "informant_confidence_level",
+      "type": "enum",
+      "allowed_values": [
+        "baixa",
+        "moderada",
+        "maior"
+      ],
+      "description": "Confiança interpretativa baseada nos informantes."
+    },
+    {
+      "id": "informant_note",
+      "type": "object",
+      "description": "Mensagem de orientação sobre informantes para exibição."
+    },
+    {
+      "id": "discordance_flags",
+      "type": "array",
+      "description": "Flags de divergência entre informantes."
+    },
+    {
+      "id": "teacher_school_note",
+      "type": "object",
+      "description": "Observação escolar complementar quando houver professor."
+    }
+  ],
+  "clinical_guardrails": [
+    "Professor não responde SCARED, red flags ou diferenciais; apenas complementa impacto escolar.",
+    "Resposta de professor não pode gerar classificação final sem informante principal.",
+    "Para 4 a 7 anos, bloquear autorrelato e usar apenas responsável.",
+    "Para 8 a 17 anos, autorrelato é preferencial quando disponível, com responsável como complemento.",
+    "Discordância entre informantes não deve ser resolvida automaticamente por média simples.",
+    "Red flag positiva por qualquer informante deve preservar o maior nível de risco."
+  ]
+}

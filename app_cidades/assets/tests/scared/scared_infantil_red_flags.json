@@ -1,0 +1,491 @@
+{
+  "metadata": {
+    "module": "scared_infantil",
+    "file": "scared_infantil_red_flags.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "instrument_code": "SCARED",
+    "instrument_full_name": "Screen for Child Anxiety Related Disorders",
+    "instrument_authors_reference": "Birmaher et al., 1997",
+    "instrument_item_count": 41,
+    "timeframe": "ultimos_3_meses",
+    "age_range_years": {
+      "min": 8,
+      "max": 17
+    },
+    "parent_proxy_age_range_years": {
+      "min": 4,
+      "max": 7
+    },
+    "diagnostic_disclaimer": "Este rastreio não diagnostica transtorno de ansiedade nem qualquer outra condição. Organiza sinais compatíveis e orienta encaminhamento.",
+    "depends_on": [
+      "scared_infantil_questions.json",
+      "scared_infantil_functional_impairment.json"
+    ]
+  },
+  "purpose": {
+    "objective": "Identificar sinais de segurança que podem exigir interrupção da interpretação tranquilizadora e acionamento de fluxo de cautela, urgência ou salvaguarda.",
+    "clinical_use": "Red flags têm prioridade sobre score total, subescalas e prejuízo funcional.",
+    "safety_note": "Qualquer resposta positiva deve ser tratada como informação sensível e encaminhada conforme protocolo clínico, rede de proteção e legislação local aplicável."
+  },
+  "respondent_types": [
+    {
+      "id": "crianca_adolescente",
+      "label": "Criança ou adolescente",
+      "context": "Autorrelato recomendado para crianças e adolescentes de 8 a 17 anos."
+    },
+    {
+      "id": "responsavel",
+      "label": "Responsável",
+      "context": "Resposta por responsável para crianças de 4 a 7 anos ou como informação complementar em crianças e adolescentes."
+    }
+  ],
+  "answer_scales": [
+    {
+      "id": "red_flag_yes_no_unknown",
+      "type": "single_choice",
+      "label": "Escala de red flag sim/não/não sei",
+      "instructions": {
+        "crianca_adolescente": "Responda com sinceridade. Estas perguntas existem para identificar situações em que você pode precisar de ajuda mais rápida ou proteção.",
+        "responsavel": "Responda com sinceridade. Estas perguntas existem para identificar situações em que a criança/adolescente pode precisar de ajuda mais rápida ou proteção."
+      },
+      "answers": [
+        {
+          "label": "Sim",
+          "value": "yes"
+        },
+        {
+          "label": "Não",
+          "value": "no"
+        },
+        {
+          "label": "Não sei",
+          "value": "unknown"
+        }
+      ],
+      "trigger_values": [
+        "yes"
+      ],
+      "unknown_values": [
+        "unknown"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "rf_suicidio_ideacao",
+      "severity_minimum": "urgente",
+      "answer_scale": "red_flag_yes_no_unknown",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Já pensou em se machucar ou em que seria melhor não estar vivo?",
+        "responsavel": "A criança/adolescente já falou, demonstrou ou deu sinais de que pensou em se machucar ou de que seria melhor não estar vivo?"
+      },
+      "clinical_construct": "ideacao_suicida_ou_autoagressiva"
+    },
+    {
+      "id": "rf_automutilacao",
+      "severity_minimum": "urgente",
+      "answer_scale": "red_flag_yes_no_unknown",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Já se machucou de propósito ou pensou em fazer isso?",
+        "responsavel": "A criança/adolescente já se machucou de propósito ou pensou em fazer isso?"
+      },
+      "clinical_construct": "automutilacao_ou_risco_de_automutilacao"
+    },
+    {
+      "id": "rf_panico_incapacitante",
+      "severity_minimum": "urgente",
+      "answer_scale": "red_flag_yes_no_unknown",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Teve episódios de medo intenso com falta de ar, tontura ou sensação de morte que impediram atividades?",
+        "responsavel": "A criança/adolescente teve episódios de medo intenso com falta de ar, tontura ou sensação de morte que impediram atividades?"
+      },
+      "clinical_construct": "panico_incapacitante"
+    },
+    {
+      "id": "rf_recusa_escola_total",
+      "severity_minimum": "urgente",
+      "answer_scale": "red_flag_yes_no_unknown",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Você tem recusado ir à escola de forma persistente, por dias seguidos ou semanas?",
+        "responsavel": "A criança/adolescente recusa ir à escola de forma persistente, por dias seguidos ou semanas?"
+      },
+      "clinical_construct": "recusa_escolar_persistente"
+    },
+    {
+      "id": "rf_abuso_violencia",
+      "severity_minimum": "salvaguarda",
+      "answer_scale": "red_flag_yes_no_unknown",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Está sendo maltratado, ameaçado ou abusado por alguém?",
+        "responsavel": "Há suspeita ou relato de que a criança/adolescente esteja sendo maltratado(a), ameaçado(a) ou abusado(a) por alguém?"
+      },
+      "clinical_construct": "risco_de_abuso_violencia_ou_ameaca"
+    },
+    {
+      "id": "rf_bullying_grave",
+      "severity_minimum": "cautela",
+      "potential_escalation": "salvaguarda",
+      "answer_scale": "red_flag_yes_no_unknown",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Sofre bullying ou humilhação frequente que causa muito medo ou sofrimento?",
+        "responsavel": "A criança/adolescente sofre bullying ou humilhação frequente que causa muito medo ou sofrimento?"
+      },
+      "clinical_construct": "bullying_grave_ou_humilhacao_frequente"
+    },
+    {
+      "id": "rf_regressao_abrupta",
+      "severity_minimum": "cautela",
+      "answer_scale": "red_flag_yes_no_unknown",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Houve regressão súbita, como voltar a fazer xixi nas calças ou não conseguir se separar dos pais, nos últimos meses?",
+        "responsavel": "Houve regressão súbita, como voltar a fazer xixi nas calças ou não conseguir se separar dos pais, nos últimos meses?"
+      },
+      "clinical_construct": "regressao_abrupta_do_desenvolvimento_ou_autonomia"
+    },
+    {
+      "id": "rf_sintomas_fisicos_graves",
+      "severity_minimum": "cautela",
+      "answer_scale": "red_flag_yes_no_unknown",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Tem dores ou mal-estar físico intenso e frequente sem causa médica identificada?",
+        "responsavel": "A criança/adolescente tem dores ou mal-estar físico intenso e frequente sem causa médica identificada?"
+      },
+      "clinical_construct": "sintomas_fisicos_intensos_ou_frequentes_sem_causa_identificada"
+    },
+    {
+      "id": "rf_substance_use",
+      "severity_minimum": "cautela",
+      "answer_scale": "red_flag_yes_no_unknown",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Usa álcool, drogas ou medicação sem orientação para lidar com ansiedade?",
+        "responsavel": "A criança/adolescente usa álcool, drogas ou medicação sem orientação para lidar com ansiedade?"
+      },
+      "clinical_construct": "uso_de_substancias_ou_medicacao_sem_orientacao"
+    },
+    {
+      "id": "rf_psicose_mania",
+      "severity_minimum": "urgente",
+      "answer_scale": "red_flag_yes_no_unknown",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Ouviu vozes que outros não ouvem, ou teve períodos de energia extrema e comportamento muito diferente do habitual?",
+        "responsavel": "A criança/adolescente ouviu vozes que outros não ouvem, ou teve períodos de energia extrema e comportamento muito diferente do habitual?"
+      },
+      "clinical_construct": "sinais_psicoticos_maniacos_ou_comportamento_muito_alterado"
+    }
+  ],
+  "red_flag_rules": [
+    {
+      "id": "rule_urgente_suicidio",
+      "trigger_question_ids": [
+        "rf_suicidio_ideacao",
+        "rf_automutilacao"
+      ],
+      "trigger_values": [
+        "yes"
+      ],
+      "severity": "urgente",
+      "actions": [
+        "block_reassuring_classification",
+        "force_classification_prioridade_clinica",
+        "show_crisis_resources",
+        "recommend_immediate_professional_contact"
+      ],
+      "message_key": "urgencia_seguranca"
+    },
+    {
+      "id": "rule_urgente_panico_incapacitante",
+      "trigger_question_ids": [
+        "rf_panico_incapacitante"
+      ],
+      "trigger_values": [
+        "yes"
+      ],
+      "severity": "urgente",
+      "actions": [
+        "block_reassuring_classification",
+        "force_classification_prioridade_clinica",
+        "show_crisis_resources",
+        "recommend_immediate_professional_contact"
+      ],
+      "message_key": "urgencia_panico_incapacitante"
+    },
+    {
+      "id": "rule_urgente_recusa_escolar_total",
+      "trigger_question_ids": [
+        "rf_recusa_escola_total"
+      ],
+      "trigger_values": [
+        "yes"
+      ],
+      "severity": "urgente",
+      "actions": [
+        "block_reassuring_classification",
+        "force_classification_prioridade_clinica",
+        "recommend_immediate_professional_contact",
+        "recommend_school_contact"
+      ],
+      "message_key": "urgencia_recusa_escolar"
+    },
+    {
+      "id": "rule_salvaguarda_abuso_violencia",
+      "trigger_question_ids": [
+        "rf_abuso_violencia"
+      ],
+      "trigger_values": [
+        "yes"
+      ],
+      "severity": "salvaguarda",
+      "actions": [
+        "block_reassuring_classification",
+        "force_classification_prioridade_clinica",
+        "show_crisis_resources",
+        "trigger_safeguarding_flow",
+        "recommend_immediate_professional_contact"
+      ],
+      "message_key": "salvaguarda_abuso_violencia"
+    },
+    {
+      "id": "rule_cautela_bullying_grave",
+      "trigger_question_ids": [
+        "rf_bullying_grave"
+      ],
+      "trigger_values": [
+        "yes"
+      ],
+      "severity": "cautela",
+      "actions": [
+        "block_reassuring_classification",
+        "recommend_responsible_adult_contact",
+        "recommend_school_contact",
+        "consider_safeguarding_if_threat_or_violence"
+      ],
+      "message_key": "cautela_bullying_grave"
+    },
+    {
+      "id": "rule_cautela_regressao_abrupta",
+      "trigger_question_ids": [
+        "rf_regressao_abrupta"
+      ],
+      "trigger_values": [
+        "yes"
+      ],
+      "severity": "cautela",
+      "actions": [
+        "block_reassuring_classification",
+        "recommend_professional_evaluation"
+      ],
+      "message_key": "cautela_regressao_abrupta"
+    },
+    {
+      "id": "rule_cautela_sintomas_fisicos_graves",
+      "trigger_question_ids": [
+        "rf_sintomas_fisicos_graves"
+      ],
+      "trigger_values": [
+        "yes"
+      ],
+      "severity": "cautela",
+      "actions": [
+        "block_reassuring_classification",
+        "recommend_medical_evaluation",
+        "recommend_professional_evaluation"
+      ],
+      "message_key": "cautela_sintomas_fisicos_graves"
+    },
+    {
+      "id": "rule_cautela_substance_use",
+      "trigger_question_ids": [
+        "rf_substance_use"
+      ],
+      "trigger_values": [
+        "yes"
+      ],
+      "severity": "cautela",
+      "actions": [
+        "block_reassuring_classification",
+        "recommend_professional_evaluation",
+        "recommend_responsible_adult_contact"
+      ],
+      "message_key": "cautela_uso_substancias"
+    },
+    {
+      "id": "rule_urgente_psicose_mania",
+      "trigger_question_ids": [
+        "rf_psicose_mania"
+      ],
+      "trigger_values": [
+        "yes"
+      ],
+      "severity": "urgente",
+      "actions": [
+        "block_reassuring_classification",
+        "force_classification_prioridade_clinica",
+        "show_crisis_resources",
+        "recommend_immediate_professional_contact"
+      ],
+      "message_key": "urgencia_psicose_mania"
+    },
+    {
+      "id": "rule_cautela_unknown_safety",
+      "trigger_question_ids": [
+        "rf_suicidio_ideacao",
+        "rf_automutilacao",
+        "rf_abuso_violencia",
+        "rf_psicose_mania"
+      ],
+      "trigger_values": [
+        "unknown"
+      ],
+      "severity": "cautela",
+      "actions": [
+        "block_reassuring_classification",
+        "recommend_responsible_adult_contact",
+        "recommend_professional_evaluation"
+      ],
+      "message_key": "cautela_resposta_desconhecida_seguranca"
+    }
+  ],
+  "priority_order": [
+    "salvaguarda",
+    "urgente",
+    "cautela"
+  ],
+  "message_keys": {
+    "urgencia_seguranca": {
+      "title": "Atenção imediata à segurança",
+      "message": "Há sinal de risco de autoagressão ou pensamento de morte. O resultado não deve ser interpretado como tranquilizador. Procure contato imediato com um profissional de saúde, serviço de urgência ou rede de apoio responsável.",
+      "display_level": "urgente"
+    },
+    "urgencia_panico_incapacitante": {
+      "title": "Episódios intensos e incapacitantes",
+      "message": "Foram relatados episódios intensos que impediram atividades. É recomendada avaliação profissional rápida, especialmente se houver falta de ar, tontura intensa, sensação de morte ou piora progressiva.",
+      "display_level": "urgente"
+    },
+    "urgencia_recusa_escolar": {
+      "title": "Recusa escolar persistente",
+      "message": "A recusa persistente de ir à escola exige avaliação clínica e articulação com responsáveis e escola para reduzir risco de agravamento e prejuízo funcional.",
+      "display_level": "urgente"
+    },
+    "salvaguarda_abuso_violencia": {
+      "title": "Possível situação de violência ou abuso",
+      "message": "Há sinal de possível ameaça, violência, maus-tratos ou abuso. O fluxo de salvaguarda deve ser priorizado, com acionamento de adulto protetivo, equipe responsável e rede de proteção conforme protocolo local.",
+      "display_level": "salvaguarda"
+    },
+    "cautela_bullying_grave": {
+      "title": "Bullying ou humilhação frequente",
+      "message": "Bullying frequente com medo ou sofrimento importante exige atenção de responsáveis e escola. Se houver ameaça, violência, coerção ou abuso, tratar como situação de salvaguarda.",
+      "display_level": "cautela"
+    },
+    "cautela_regressao_abrupta": {
+      "title": "Regressão súbita",
+      "message": "Regressão súbita nos últimos meses pode indicar sofrimento importante ou outros fatores clínicos e contextuais. Recomenda-se avaliação profissional.",
+      "display_level": "cautela"
+    },
+    "cautela_sintomas_fisicos_graves": {
+      "title": "Sintomas físicos intensos ou frequentes",
+      "message": "Dores ou mal-estar físico intenso e frequente não devem ser atribuídos automaticamente à ansiedade. Recomenda-se avaliação médica e clínica.",
+      "display_level": "cautela"
+    },
+    "cautela_uso_substancias": {
+      "title": "Uso de substâncias ou medicação sem orientação",
+      "message": "Uso de álcool, drogas ou medicação sem orientação para lidar com ansiedade requer conversa com responsável e avaliação profissional.",
+      "display_level": "cautela"
+    },
+    "urgencia_psicose_mania": {
+      "title": "Comportamento muito diferente do habitual",
+      "message": "Relatos de vozes que outros não ouvem, energia extrema ou comportamento muito diferente do habitual exigem avaliação profissional urgente.",
+      "display_level": "urgente"
+    },
+    "cautela_resposta_desconhecida_seguranca": {
+      "title": "Informação de segurança não confirmada",
+      "message": "Quando uma pergunta crítica de segurança recebe resposta 'não sei', o resultado não deve ser usado para tranquilizar. Recomenda-se checagem por responsável ou profissional.",
+      "display_level": "cautela"
+    }
+  },
+  "outputs": [
+    {
+      "id": "red_flag_highest_severity",
+      "type": "enum",
+      "allowed_values": [
+        "none",
+        "cautela",
+        "urgente",
+        "salvaguarda"
+      ],
+      "description": "Maior severidade acionada pelas regras de red flag, considerando priority_order."
+    },
+    {
+      "id": "red_flag_triggered_rules",
+      "type": "array",
+      "description": "Lista de regras acionadas com id, severity, actions e message_key."
+    },
+    {
+      "id": "red_flag_actions",
+      "type": "array",
+      "description": "Lista consolidada de ações de segurança a executar no fluxo do app."
+    },
+    {
+      "id": "red_flag_blocks_reassurance",
+      "type": "boolean",
+      "description": "Indica se o app deve bloquear mensagem tranquilizadora ou classificação de baixo risco."
+    }
+  ],
+  "clinical_guardrails": [
+    "Red flags de segurança têm prioridade sobre qualquer score, subescala ou nível de prejuízo funcional.",
+    "Não exibir mensagem tranquilizadora quando houver red flag positiva ou resposta desconhecida em item crítico de segurança.",
+    "Não usar este arquivo para diagnosticar ideação suicida, abuso, psicose, mania ou uso de substâncias.",
+    "Em risco de autoagressão, violência, abuso ou alteração importante do comportamento, orientar contato imediato com adulto responsável, profissional de saúde, serviço de urgência ou rede de proteção.",
+    "Fluxos de salvaguarda devem seguir protocolo institucional, legislação local e rede municipal de proteção."
+  ]
+}

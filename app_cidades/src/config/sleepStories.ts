@@ -102,7 +102,7 @@ export const SLEEP_STORIES: SleepStory[] = [
   story(
     6,
     'A Última Estrela da Noite',
-    'Uma pequena estrela é sempre a última a apagar antes do amanhecer. Antes de dormir, ela percorre o céu desejando boa noite às crianças, aos animais e às flores que começam a despertar.',
+    'Toda noite, Miguel encontra no céu uma estrelinha que demora a apagar. Antes de dormir, os dois conversam sobre sonhos bonitos e descobrem que despedidas calmas também fazem parte de uma boa noite.',
     'sleep-rest-routine',
   ),
   story(
@@ -122,13 +122,13 @@ export const SLEEP_STORIES: SleepStory[] = [
   story(
     9,
     'O Ursinho e o Barulho da Chuva',
-    'Um ursinho fica assustado ao ouvir a chuva batendo no telhado. Sua mãe o ajuda a perceber que cada pingo, trovão distante e sopro de vento faz parte de uma música tranquila criada pela natureza.',
+    'Tomás fica assustado com a chuva batendo no telhado e abraça seu ursinho Tutu. Sua mãe o ajuda a perceber que cada pingo, trovão distante e sopro de vento faz parte de uma música tranquila criada pela natureza.',
     'fears-courage',
   ),
   story(
     10,
     'A Coruja que Tinha Medo do Escuro',
-    'Mesmo sendo uma coruja, Lola sente medo quando a noite chega. Seus amigos mostram que o escuro também guarda estrelas brilhantes, sons suaves e muitos cantinhos seguros para descansar.',
+    'Mesmo sendo uma coruja, Olívia sente medo quando a noite chega. Com paciência e pequenos passos, ela descobre que o escuro também guarda estrelas, cantos suaves e caminhos seguros para descansar.',
     'fears-courage',
   ),
   story(
@@ -153,7 +153,7 @@ export const SLEEP_STORIES: SleepStory[] = [
   story(
     14,
     'O Peixinho e o Silêncio do Fundo do Mar',
-    'Um peixinho evita nadar até o fundo do mar porque acredita que o silêncio esconde perigos. Ao conhecer uma tartaruga tranquila, descobre que o silêncio pode ser um lugar de paz, descanso e belas descobertas.',
+    'Tito evita nadar até o fundo do mar porque acha o silêncio estranho e assustador. Sua avó o leva até lá com calma e mostra que o silêncio profundo pode ser um lugar de paz, descanso e belas descobertas.',
     'fears-courage',
     true,
   ),
@@ -167,7 +167,7 @@ export const SLEEP_STORIES: SleepStory[] = [
   story(
     16,
     'A Nuvem que Queria um Abraço',
-    'Uma nuvem solitária viaja pelo céu procurando alguém que possa abraçá-la. Durante a jornada, descobre que sua chuva suave é uma forma carinhosa de abraçar florestas, montanhas, campos e jardins.',
+    'Fofinha é uma nuvem que guarda nos céus os abraços dados com carinho na terra. Quando Pedro sente saudade do amigo distante, ela o ajuda a lembrar que o afeto nunca desaparece de verdade.',
     'friendship-affection',
   ),
   story(
@@ -211,13 +211,13 @@ export const SLEEP_STORIES: SleepStory[] = [
   story(
     23,
     'A Casa Pequena no Alto da Árvore',
-    'Uma pequena casa construída no alto de uma árvore recebe visitantes todas as noites. Pássaros, esquilos e vagalumes dividem alimentos, contam histórias e aprendem a respeitar o espaço e a vez de cada amigo.',
+    'No alto de uma mangueira, Tom e Elisa compartilham uma casinha de madeira cheia de planos. Quando uma briga ameaça transformar o refúgio em disputa, os irmãos aprendem que imaginação cresce melhor quando cabem ideias de todos.',
     'kindness-cooperation',
   ),
   story(
     24,
     'A Vila dos Pequenos Gestos',
-    'Em uma vila muito apressada, ninguém percebe as pessoas ao redor. Uma criança começa a praticar pequenos gestos de gentileza, e logo toda a vila descobre que ajudar, agradecer e escutar pode transformar um dia inteiro.',
+    'Na Vila dos Pequenos Gestos, gentilezas miúdas já fazem o dia ficar melhor. Caio acha que só grandes feitos importam, mas descobre que ajudar, agradecer e escutar também plantam sementes que mudam tudo.',
     'kindness-cooperation',
     true,
   ),

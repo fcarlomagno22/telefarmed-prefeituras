@@ -3,12 +3,13 @@ import { useEffect, useState } from 'react'
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { loadEmotionalScreeningRecord } from '../../data/emotionalScreeningStorage'
 import { loadTdahTodSessions } from '../../data/tdahTodInfantilStorage'
+import { loadScaredSessions } from '../../data/scaredInfantilStorage'
 import { EMOTIONAL_SCREENING_DISCLAIMER } from '../../types/emotionalScreening'
 import { getSeverityColor } from '../../utils/emotionalScreeningScoring'
 import { colors } from '../../theme/colors'
 import {
   type EmotionalScreeningHistoryItem,
-  getTdahTodClassificationColor,
+  getScreeningClassificationColor,
 } from './emotionalScreeningHistoryTypes'
 
 type EmotionalScreeningHistoryTabProps = {
@@ -31,6 +32,7 @@ function formatDate(iso: string) {
 function mergeHistoryItems(
   emotionalSessions: Awaited<ReturnType<typeof loadEmotionalScreeningRecord>>['sessions'],
   tdahSessions: Awaited<ReturnType<typeof loadTdahTodSessions>>,
+  scaredSessions: Awaited<ReturnType<typeof loadScaredSessions>>,
 ): EmotionalScreeningHistoryItem[] {
   const items: EmotionalScreeningHistoryItem[] = [
     ...emotionalSessions.map((session) => ({
@@ -40,6 +42,11 @@ function mergeHistoryItems(
     })),
     ...tdahSessions.map((session) => ({
       kind: 'tdah-tod' as const,
+      completedAt: session.completedAt,
+      session,
+    })),
+    ...scaredSessions.map((session) => ({
+      kind: 'scared' as const,
       completedAt: session.completedAt,
       session,
     })),
@@ -61,11 +68,12 @@ export function EmotionalScreeningHistoryTab({
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   async function load() {
-    const [record, tdahSessions] = await Promise.all([
+    const [record, tdahSessions, scaredSessions] = await Promise.all([
       loadEmotionalScreeningRecord(patientCpf),
       loadTdahTodSessions(patientCpf),
+      loadScaredSessions(patientCpf),
     ])
-    setItems(mergeHistoryItems(record.sessions, tdahSessions))
+    setItems(mergeHistoryItems(record.sessions, tdahSessions, scaredSessions))
     setIsLoading(false)
   }
 
@@ -124,11 +132,40 @@ export function EmotionalScreeningHistoryTab({
               )
             }
 
+            if (item.kind === 'tdah-tod') {
+              const { session } = item
+              const toneColor = getScreeningClassificationColor(session.result.classificationId)
+              const title = session.childName
+                ? `Atenção e comportamento — ${session.childName}`
+                : 'Atenção e comportamento'
+
+              return (
+                <Pressable
+                  key={session.id}
+                  accessibilityRole="button"
+                  onPress={() => onOpenSession(item)}
+                  style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+                >
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle}>{title}</Text>
+                    <Text style={[styles.band, { color: toneColor }]}>
+                      {session.result.classificationLabel}
+                    </Text>
+                  </View>
+                  <Text style={styles.cardDate}>{formatDate(session.completedAt)}</Text>
+                  <Text style={styles.cardDescription} numberOfLines={2}>
+                    {session.result.headline}
+                  </Text>
+                  <Text style={styles.cardAction}>Ver relatório</Text>
+                </Pressable>
+              )
+            }
+
             const { session } = item
-            const toneColor = getTdahTodClassificationColor(session.result.classificationId)
+            const toneColor = getScreeningClassificationColor(session.result.classificationId)
             const title = session.childName
-              ? `Atenção e comportamento — ${session.childName}`
-              : 'Atenção e comportamento'
+              ? `Ansiedade infantil — ${session.childName}`
+              : 'Ansiedade infantil'
 
             return (
               <Pressable

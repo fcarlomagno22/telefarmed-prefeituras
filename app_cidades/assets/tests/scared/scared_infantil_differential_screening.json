@@ -1,0 +1,907 @@
+{
+  "metadata": {
+    "module": "scared_infantil",
+    "file": "scared_infantil_differential_screening.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "instrument_code": "SCARED",
+    "instrument_full_name": "Screen for Child Anxiety Related Disorders",
+    "instrument_authors_reference": "Birmaher et al., 1997",
+    "instrument_item_count": 41,
+    "timeframe": "ultimos_3_meses",
+    "age_range_years": {
+      "min": 8,
+      "max": 17
+    },
+    "parent_proxy_age_range_years": {
+      "min": 4,
+      "max": 7
+    },
+    "diagnostic_disclaimer": "Este rastreio não diagnostica transtorno de ansiedade nem qualquer outra condição. Organiza sinais compatíveis e orienta encaminhamento.",
+    "depends_on": [
+      "scared_infantil_questions.json",
+      "scared_infantil_functional_impairment.json",
+      "scared_infantil_red_flags.json"
+    ]
+  },
+  "purpose": {
+    "objective": "Detectar condições, contextos e fatores clínicos que podem imitar, intensificar ou coexistir com ansiedade infantil.",
+    "clinical_use": "Quando um domínio diferencial é positivo, o score SCARED deve ser mantido, mas a confiança interpretativa deve ser reduzida e uma nota diferencial deve ser adicionada.",
+    "interpretation_note": "Este módulo não substitui avaliação clínica, pedagógica, psicológica, médica ou neuropsicológica."
+  },
+  "respondent_types": [
+    {
+      "id": "crianca_adolescente",
+      "label": "Criança ou adolescente",
+      "context": "Autorrelato recomendado para crianças e adolescentes de 8 a 17 anos."
+    },
+    {
+      "id": "responsavel",
+      "label": "Responsável",
+      "context": "Resposta por responsável para crianças de 4 a 7 anos ou como informação complementar em crianças e adolescentes."
+    }
+  ],
+  "answer_scales": [
+    {
+      "id": "differential_frequency_0_3",
+      "type": "single_choice",
+      "label": "Ocorreu nos últimos 3 meses?",
+      "instructions": {
+        "crianca_adolescente": "Responda se isso aconteceu com você nos últimos 3 meses e com que frequência.",
+        "responsavel": "Responda se isso aconteceu com a criança/adolescente nos últimos 3 meses e com que frequência."
+      },
+      "answers": [
+        {
+          "label": "Não, isso não acontece",
+          "value": 0,
+          "severity": "ausente"
+        },
+        {
+          "label": "Sim, raramente",
+          "value": 1,
+          "severity": "leve"
+        },
+        {
+          "label": "Sim, às vezes",
+          "value": 2,
+          "severity": "moderado"
+        },
+        {
+          "label": "Sim, frequentemente",
+          "value": 3,
+          "severity": "importante"
+        }
+      ],
+      "positive_values": [
+        2,
+        3
+      ],
+      "high_positive_values": [
+        3
+      ]
+    },
+    {
+      "id": "differential_event_impact_0_3",
+      "type": "single_choice",
+      "label": "Aconteceu e ainda afeta?",
+      "instructions": {
+        "crianca_adolescente": "Responda se isso aconteceu e se ainda tem impacto em você.",
+        "responsavel": "Responda se isso aconteceu e se ainda tem impacto na criança/adolescente."
+      },
+      "answers": [
+        {
+          "label": "Não, isso não aconteceu",
+          "value": 0,
+          "severity": "ausente"
+        },
+        {
+          "label": "Sim, mas sem impacto claro agora",
+          "value": 1,
+          "severity": "leve"
+        },
+        {
+          "label": "Sim, com algum impacto ainda",
+          "value": 2,
+          "severity": "moderado"
+        },
+        {
+          "label": "Sim, com impacto importante ainda",
+          "value": 3,
+          "severity": "importante"
+        }
+      ],
+      "positive_values": [
+        2,
+        3
+      ],
+      "high_positive_values": [
+        3
+      ]
+    },
+    {
+      "id": "differential_since_childhood_0_3",
+      "type": "single_choice",
+      "label": "Desde cedo",
+      "instructions": {
+        "crianca_adolescente": "Pense em como isso tem sido desde que você era pequeno(a), não só nos últimos dias.",
+        "responsavel": "Pense em como isso tem sido desde cedo na vida da criança/adolescente, não só nos últimos dias."
+      },
+      "answers": [
+        {
+          "label": "Não, isso não acontece",
+          "value": 0,
+          "severity": "ausente"
+        },
+        {
+          "label": "Sim, de forma leve desde cedo",
+          "value": 1,
+          "severity": "leve"
+        },
+        {
+          "label": "Sim, de forma moderada desde cedo",
+          "value": 2,
+          "severity": "moderado"
+        },
+        {
+          "label": "Sim, de forma marcante desde cedo",
+          "value": 3,
+          "severity": "importante"
+        }
+      ],
+      "positive_values": [2, 3],
+      "high_positive_values": [3]
+    },
+    {
+      "id": "differential_severity_0_3",
+      "type": "single_choice",
+      "label": "Quanto isso acontece",
+      "instructions": {
+        "crianca_adolescente": "Marque o quanto isso é verdade ou acontece com você.",
+        "responsavel": "Marque o quanto isso é verdade ou acontece com a criança/adolescente."
+      },
+      "answers": [
+        {
+          "label": "Não, isso não acontece",
+          "value": 0,
+          "severity": "ausente"
+        },
+        {
+          "label": "Sim, de forma leve",
+          "value": 1,
+          "severity": "leve"
+        },
+        {
+          "label": "Sim, de forma moderada",
+          "value": 2,
+          "severity": "moderado"
+        },
+        {
+          "label": "Sim, de forma importante",
+          "value": 3,
+          "severity": "importante"
+        }
+      ],
+      "positive_values": [2, 3],
+      "high_positive_values": [3]
+    },
+    {
+      "id": "differential_current_0_3",
+      "type": "single_choice",
+      "label": "Situação atual",
+      "instructions": {
+        "crianca_adolescente": "Responda sobre a situação atual, nos últimos meses.",
+        "responsavel": "Responda sobre a situação atual da criança/adolescente, nos últimos meses."
+      },
+      "answers": [
+        {
+          "label": "Não, isso não acontece",
+          "value": 0,
+          "severity": "ausente"
+        },
+        {
+          "label": "Sim, raramente ou de forma leve",
+          "value": 1,
+          "severity": "leve"
+        },
+        {
+          "label": "Sim, com alguma frequência",
+          "value": 2,
+          "severity": "moderado"
+        },
+        {
+          "label": "Sim, frequentemente ou de forma grave",
+          "value": 3,
+          "severity": "importante"
+        }
+      ],
+      "positive_values": [2, 3],
+      "high_positive_values": [3]
+    },
+    {
+      "id": "differential_presence_0_3",
+      "type": "single_choice",
+      "label": "Se aplica e impacto",
+      "instructions": {
+        "crianca_adolescente": "Responda se isso se aplica a você e se pode afetar nervosismo, ansiedade ou sono.",
+        "responsavel": "Responda se isso se aplica à criança/adolescente e se pode afetar nervosismo, ansiedade ou sono."
+      },
+      "answers": [
+        {
+          "label": "Não se aplica",
+          "value": 0,
+          "severity": "ausente"
+        },
+        {
+          "label": "Sim, sem impacto claro na ansiedade",
+          "value": 1,
+          "severity": "leve"
+        },
+        {
+          "label": "Sim, com algum impacto na ansiedade",
+          "value": 2,
+          "severity": "moderado"
+        },
+        {
+          "label": "Sim, com impacto importante na ansiedade",
+          "value": 3,
+          "severity": "importante"
+        }
+      ],
+      "positive_values": [2, 3],
+      "high_positive_values": [3]
+    },
+    {
+      "id": "differential_medication_link_0_3",
+      "type": "single_choice",
+      "label": "Medicação e piora",
+      "instructions": {
+        "crianca_adolescente": "Pense em remédios novos, mudanças de dose ou uso irregular nos últimos meses.",
+        "responsavel": "Pense em remédios novos, mudanças de dose ou uso irregular nos últimos meses."
+      },
+      "answers": [
+        {
+          "label": "Não, nada disso aconteceu",
+          "value": 0,
+          "severity": "ausente"
+        },
+        {
+          "label": "Sim, mas sem piora clara",
+          "value": 1,
+          "severity": "leve"
+        },
+        {
+          "label": "Sim, com alguma piora",
+          "value": 2,
+          "severity": "moderado"
+        },
+        {
+          "label": "Sim, com piora importante",
+          "value": 3,
+          "severity": "importante"
+        }
+      ],
+      "positive_values": [2, 3],
+      "high_positive_values": [3]
+    }
+  ],
+  "domains": [
+    {
+      "id": "humor_depressao",
+      "label": "Humor e depressão",
+      "question_ids": [
+        "diff_humor_tristeza_persistente",
+        "diff_humor_perda_interesse",
+        "diff_humor_fadiga_desanimo"
+      ],
+      "positive_threshold": "count(domain_answers >= 2) >= 1",
+      "differential_flag_id": "flag_humor_depressao",
+      "recommended_action": "Investigar sintomas depressivos, duração, intensidade, prejuízo funcional e risco de autoagressão com profissional qualificado."
+    },
+    {
+      "id": "tdah_desatencao",
+      "label": "TDAH, desatenção e hiperatividade",
+      "question_ids": [
+        "diff_tdah_desatencao_independente_medo",
+        "diff_tdah_hiperatividade_impulsividade"
+      ],
+      "positive_threshold": "count(domain_answers >= 2) >= 1",
+      "differential_flag_id": "flag_tdah_desatencao",
+      "recommended_action": "Avaliar se desatenção, hiperatividade ou impulsividade ocorrem em diferentes ambientes e não apenas durante medo ou preocupação."
+    },
+    {
+      "id": "trauma_estresse",
+      "label": "Trauma e estresse",
+      "question_ids": [
+        "diff_trauma_evento_recente",
+        "diff_trauma_hipervigilancia",
+        "diff_trauma_pesadelos"
+      ],
+      "positive_threshold": "count(domain_answers >= 2) >= 1",
+      "differential_flag_id": "flag_trauma_estresse",
+      "recommended_action": "Investigar exposição a evento traumático, segurança atual e necessidade de cuidado psicológico especializado."
+    },
+    {
+      "id": "toc",
+      "label": "Pensamentos repetitivos e compulsões",
+      "question_ids": [
+        "diff_toc_pensamentos_repetitivos",
+        "diff_toc_rituais_compulsoes"
+      ],
+      "positive_threshold": "count(domain_answers >= 2) >= 1",
+      "differential_flag_id": "flag_toc",
+      "recommended_action": "Avaliar presença de obsessões, compulsões, tempo gasto nos rituais e sofrimento associado."
+    },
+    {
+      "id": "tea_neurodesenvolvimento",
+      "label": "TEA e neurodesenvolvimento",
+      "question_ids": [
+        "diff_tea_dificuldades_sociais_desde_cedo",
+        "diff_tea_interesses_restritos",
+        "diff_tea_rigidez_rotina"
+      ],
+      "positive_threshold": "count(domain_answers >= 2) >= 1",
+      "differential_flag_id": "flag_tea_neurodesenvolvimento",
+      "recommended_action": "Considerar avaliação do neurodesenvolvimento quando os sinais sociais, interesses restritos ou rigidez existem desde cedo."
+    },
+    {
+      "id": "aprendizagem",
+      "label": "Aprendizagem",
+      "question_ids": [
+        "diff_aprendizagem_leitura_escrita",
+        "diff_aprendizagem_matematica"
+      ],
+      "positive_threshold": "count(domain_answers >= 2) >= 1",
+      "differential_flag_id": "flag_aprendizagem",
+      "recommended_action": "Investigar dificuldade de aprendizagem, histórico escolar, alfabetização, matemática e necessidade de avaliação pedagógica ou neuropsicológica."
+    },
+    {
+      "id": "sono",
+      "label": "Sono",
+      "question_ids": [
+        "diff_sono_insonia_cronica",
+        "diff_sono_apneia_suspeita",
+        "diff_sono_irregular"
+      ],
+      "positive_threshold": "count(domain_answers >= 2) >= 1",
+      "differential_flag_id": "flag_sono",
+      "recommended_action": "Avaliar rotina de sono, insônia, roncos, pausas respiratórias, sonolência diurna e necessidade de avaliação médica."
+    },
+    {
+      "id": "bullying_contexto",
+      "label": "Bullying e contexto psicossocial",
+      "question_ids": [
+        "diff_contexto_bullying_ativo",
+        "diff_contexto_mudanca_familiar",
+        "diff_contexto_luto"
+      ],
+      "positive_threshold": "count(domain_answers >= 2) >= 1",
+      "differential_flag_id": "flag_bullying_contexto",
+      "recommended_action": "Investigar fatores contextuais recentes, bullying ativo, luto, separações, mudança de casa ou escola e necessidade de apoio familiar/escolar."
+    },
+    {
+      "id": "medico_medicacao",
+      "label": "Condições médicas, medicação e estimulantes",
+      "question_ids": [
+        "diff_medico_condicao_medica",
+        "diff_medico_efeito_colateral_medicacao",
+        "diff_medico_cafeina_energeticos"
+      ],
+      "positive_threshold": "count(domain_answers >= 2) >= 1",
+      "differential_flag_id": "flag_medico_medicacao",
+      "recommended_action": "Revisar condições médicas, medicações, estimulantes, cafeína e energéticos com profissional de saúde."
+    },
+    {
+      "id": "substancias",
+      "label": "Uso de substâncias para acalmar",
+      "question_ids": [
+        "diff_substancias_uso_para_acalmar"
+      ],
+      "positive_threshold": "count(domain_answers >= 1) >= 1",
+      "differential_flag_id": "flag_substancias",
+      "recommended_action": "Conversar com responsável e profissional de saúde sobre uso de substâncias, medicações sem orientação ou estratégias inseguras para aliviar ansiedade."
+    }
+  ],
+  "questions": [
+    {
+      "id": "diff_humor_tristeza_persistente",
+      "domain_id": "humor_depressao",
+      "answer_scale": "differential_frequency_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Nos últimos 3 meses, houve períodos em que você ficou triste, vazio(a) ou para baixo por vários dias seguidos?",
+        "responsavel": "Nos últimos 3 meses, houve períodos em que ele(a) ficou triste, vazio(a) ou para baixo por vários dias seguidos?"
+      },
+      "differential_flag_id": "flag_tristeza_persistente"
+    },
+    {
+      "id": "diff_humor_perda_interesse",
+      "domain_id": "humor_depressao",
+      "answer_scale": "differential_frequency_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Nos últimos 3 meses, você perdeu interesse ou prazer em brincar, conversar, estudar ou fazer coisas de que gostava?",
+        "responsavel": "Nos últimos 3 meses, ele(a) perdeu interesse ou prazer em brincar, conversar, estudar ou fazer coisas de que gostava?"
+      },
+      "differential_flag_id": "flag_perda_interesse"
+    },
+    {
+      "id": "diff_humor_fadiga_desanimo",
+      "domain_id": "humor_depressao",
+      "answer_scale": "differential_frequency_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Nos últimos 3 meses, você sentiu fadiga, desânimo ou falta de energia mesmo sem ter feito muito esforço?",
+        "responsavel": "Nos últimos 3 meses, ele(a) sentiu fadiga, desânimo ou falta de energia mesmo sem ter feito muito esforço?"
+      },
+      "differential_flag_id": "flag_fadiga_desanimo"
+    },
+    {
+      "id": "diff_tdah_desatencao_independente_medo",
+      "domain_id": "tdah_desatencao",
+      "answer_scale": "differential_frequency_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Nos últimos 3 meses, você se distraiu, esqueceu tarefas ou teve dificuldade de manter atenção mesmo quando não estava com medo ou preocupado(a)?",
+        "responsavel": "Nos últimos 3 meses, ele(a) se distraiu, esqueceu tarefas ou teve dificuldade de manter atenção mesmo quando não estava com medo ou preocupado(a)?"
+      },
+      "differential_flag_id": "flag_desatencao_independente_medo"
+    },
+    {
+      "id": "diff_tdah_hiperatividade_impulsividade",
+      "domain_id": "tdah_desatencao",
+      "answer_scale": "differential_frequency_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Nos últimos 3 meses, você teve muita dificuldade de ficar parado(a), esperar sua vez ou controlar impulsos, mesmo em momentos tranquilos?",
+        "responsavel": "Nos últimos 3 meses, ele(a) teve muita dificuldade de ficar parado(a), esperar a vez ou controlar impulsos, mesmo em momentos tranquilos?"
+      },
+      "differential_flag_id": "flag_hiperatividade_impulsividade"
+    },
+    {
+      "id": "diff_trauma_evento_recente",
+      "domain_id": "trauma_estresse",
+      "answer_scale": "differential_event_impact_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Nos últimos meses, aconteceu algo muito assustador, violento ou marcante que ainda volta à sua cabeça ou afeta você?",
+        "responsavel": "Nos últimos meses, aconteceu algo muito assustador, violento ou marcante que ainda parece afetar ele(a)?"
+      },
+      "differential_flag_id": "flag_evento_traumatico_recente"
+    },
+    {
+      "id": "diff_trauma_hipervigilancia",
+      "domain_id": "trauma_estresse",
+      "answer_scale": "differential_frequency_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Nos últimos 3 meses, você ficou muito alerta, assustado(a) com facilidade ou com sensação de que algo ruim vai acontecer?",
+        "responsavel": "Nos últimos 3 meses, ele(a) ficou muito alerta, assustado(a) com facilidade ou com sensação de que algo ruim vai acontecer?"
+      },
+      "differential_flag_id": "flag_hipervigilancia"
+    },
+    {
+      "id": "diff_trauma_pesadelos",
+      "domain_id": "trauma_estresse",
+      "answer_scale": "differential_frequency_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Nos últimos 3 meses, você teve pesadelos ou lembranças ruins ligadas a algo que aconteceu?",
+        "responsavel": "Nos últimos 3 meses, ele(a) teve pesadelos ou lembranças ruins ligadas a algo que aconteceu?"
+      },
+      "differential_flag_id": "flag_pesadelos_trauma"
+    },
+    {
+      "id": "diff_toc_pensamentos_repetitivos",
+      "domain_id": "toc",
+      "answer_scale": "differential_frequency_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Nos últimos 3 meses, você teve pensamentos repetitivos, indesejados ou difíceis de tirar da cabeça?",
+        "responsavel": "Nos últimos 3 meses, ele(a) teve pensamentos repetitivos, indesejados ou difíceis de tirar da cabeça?"
+      },
+      "differential_flag_id": "flag_pensamentos_repetitivos"
+    },
+    {
+      "id": "diff_toc_rituais_compulsoes",
+      "domain_id": "toc",
+      "answer_scale": "differential_frequency_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Nos últimos 3 meses, você sentiu que precisava repetir ações, conferir coisas, lavar, contar ou organizar para aliviar ansiedade?",
+        "responsavel": "Nos últimos 3 meses, ele(a) sentiu que precisava repetir ações, conferir coisas, lavar, contar ou organizar para aliviar ansiedade?"
+      },
+      "differential_flag_id": "flag_rituais_compulsoes"
+    },
+    {
+      "id": "diff_tea_dificuldades_sociais_desde_cedo",
+      "domain_id": "tea_neurodesenvolvimento",
+      "answer_scale": "differential_since_childhood_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Desde pequeno(a), você tem dificuldade para entender sinais sociais, conversar ou se aproximar de outras pessoas?",
+        "responsavel": "Desde cedo, ele(a) tem dificuldade para entender sinais sociais, conversar ou se aproximar de outras pessoas?"
+      },
+      "differential_flag_id": "flag_dificuldades_sociais_desde_cedo"
+    },
+    {
+      "id": "diff_tea_interesses_restritos",
+      "domain_id": "tea_neurodesenvolvimento",
+      "answer_scale": "differential_severity_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Você tem interesses muito intensos ou restritos que ocupam grande parte do seu tempo?",
+        "responsavel": "Ele(a) tem interesses muito intensos ou restritos que ocupam grande parte do tempo?"
+      },
+      "differential_flag_id": "flag_interesses_restritos"
+    },
+    {
+      "id": "diff_tea_rigidez_rotina",
+      "domain_id": "tea_neurodesenvolvimento",
+      "answer_scale": "differential_severity_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Mudanças na rotina, planos ou ambiente causam sofrimento muito forte ou difícil de controlar?",
+        "responsavel": "Mudanças na rotina, planos ou ambiente causam sofrimento muito forte ou difícil de controlar nele(a)?"
+      },
+      "differential_flag_id": "flag_rigidez_rotina"
+    },
+    {
+      "id": "diff_aprendizagem_leitura_escrita",
+      "domain_id": "aprendizagem",
+      "answer_scale": "differential_severity_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Você tem dificuldade persistente com leitura, escrita, interpretação ou cópia, mesmo com ajuda?",
+        "responsavel": "Ele(a) tem dificuldade persistente com leitura, escrita, interpretação ou cópia, mesmo com ajuda?"
+      },
+      "differential_flag_id": "flag_dificuldade_leitura_escrita"
+    },
+    {
+      "id": "diff_aprendizagem_matematica",
+      "domain_id": "aprendizagem",
+      "answer_scale": "differential_severity_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Você tem dificuldade persistente com contas, números, problemas de matemática ou raciocínio matemático?",
+        "responsavel": "Ele(a) tem dificuldade persistente com contas, números, problemas de matemática ou raciocínio matemático?"
+      },
+      "differential_flag_id": "flag_dificuldade_matematica"
+    },
+    {
+      "id": "diff_sono_insonia_cronica",
+      "domain_id": "sono",
+      "answer_scale": "differential_frequency_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Nos últimos 3 meses, você teve dificuldade para dormir ou acordou durante a noite com frequência?",
+        "responsavel": "Nos últimos 3 meses, ele(a) teve dificuldade para dormir ou acordou durante a noite com frequência?"
+      },
+      "differential_flag_id": "flag_insonia_cronica"
+    },
+    {
+      "id": "diff_sono_apneia_suspeita",
+      "domain_id": "sono",
+      "answer_scale": "differential_severity_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Você ronca muito, acorda engasgado(a), parece parar de respirar dormindo ou sente muito sono durante o dia?",
+        "responsavel": "Ele(a) ronca muito, acorda engasgado(a), parece parar de respirar dormindo ou sente muito sono durante o dia?"
+      },
+      "differential_flag_id": "flag_apneia_suspeita"
+    },
+    {
+      "id": "diff_sono_irregular",
+      "domain_id": "sono",
+      "answer_scale": "differential_severity_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Seu horário de dormir e acordar é muito irregular, com pouco sono ou uso de telas até muito tarde?",
+        "responsavel": "O horário de dormir e acordar dele(a) é muito irregular, com pouco sono ou uso de telas até muito tarde?"
+      },
+      "differential_flag_id": "flag_sono_irregular"
+    },
+    {
+      "id": "diff_contexto_bullying_ativo",
+      "domain_id": "bullying_contexto",
+      "answer_scale": "differential_current_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Atualmente, você está sofrendo provocações, exclusão, ameaças, humilhações ou bullying?",
+        "responsavel": "Atualmente, ele(a) está sofrendo provocações, exclusão, ameaças, humilhações ou bullying?"
+      },
+      "differential_flag_id": "flag_bullying_ativo"
+    },
+    {
+      "id": "diff_contexto_mudanca_familiar",
+      "domain_id": "bullying_contexto",
+      "answer_scale": "differential_event_impact_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Nos últimos meses, houve mudança familiar importante, como separação, brigas intensas, mudança de casa ou escola?",
+        "responsavel": "Nos últimos meses, houve mudança familiar importante, como separação, brigas intensas, mudança de casa ou escola?"
+      },
+      "differential_flag_id": "flag_mudanca_familiar_recente"
+    },
+    {
+      "id": "diff_contexto_luto",
+      "domain_id": "bullying_contexto",
+      "answer_scale": "differential_event_impact_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Nos últimos meses, você passou por perda, luto ou afastamento de alguém importante?",
+        "responsavel": "Nos últimos meses, ele(a) passou por perda, luto ou afastamento de alguém importante?"
+      },
+      "differential_flag_id": "flag_luto_recente"
+    },
+    {
+      "id": "diff_medico_condicao_medica",
+      "domain_id": "medico_medicacao",
+      "answer_scale": "differential_presence_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Você tem alguma condição médica que pode causar palpitação, falta de ar, tontura, dor, cansaço ou mal-estar?",
+        "responsavel": "Ele(a) tem alguma condição médica que pode causar palpitação, falta de ar, tontura, dor, cansaço ou mal-estar?"
+      },
+      "differential_flag_id": "flag_condicao_medica"
+    },
+    {
+      "id": "diff_medico_efeito_colateral_medicacao",
+      "domain_id": "medico_medicacao",
+      "answer_scale": "differential_medication_link_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Nos últimos meses, algum remédio novo, mudança de dose ou uso irregular de medicação pareceu piorar ansiedade, sono ou comportamento?",
+        "responsavel": "Nos últimos meses, algum remédio novo, mudança de dose ou uso irregular de medicação pareceu piorar ansiedade, sono ou comportamento?"
+      },
+      "differential_flag_id": "flag_efeito_colateral_medicacao"
+    },
+    {
+      "id": "diff_medico_cafeina_energeticos",
+      "domain_id": "medico_medicacao",
+      "answer_scale": "differential_presence_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Você usa cafeína, energéticos, pré-treino ou estimulantes que podem aumentar nervosismo, palpitação ou insônia?",
+        "responsavel": "Ele(a) usa cafeína, energéticos, pré-treino ou estimulantes que podem aumentar nervosismo, palpitação ou insônia?"
+      },
+      "differential_flag_id": "flag_cafeina_energeticos"
+    },
+    {
+      "id": "diff_substancias_uso_para_acalmar",
+      "domain_id": "substancias",
+      "answer_scale": "differential_presence_0_3",
+      "respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "required": true,
+      "question": {
+        "crianca_adolescente": "Você usa álcool, drogas, calmantes ou remédios sem orientação para tentar se acalmar?",
+        "responsavel": "Ele(a) usa álcool, drogas, calmantes ou remédios sem orientação para tentar se acalmar?"
+      },
+      "differential_flag_id": "flag_uso_substancias_para_acalmar"
+    }
+  ],
+  "differential_flags": [
+    {
+      "id": "flag_humor_depressao",
+      "domain_id": "humor_depressao",
+      "label": "Sinais de humor/depressão podem coexistir ou explicar parte dos sintomas."
+    },
+    {
+      "id": "flag_tdah_desatencao",
+      "domain_id": "tdah_desatencao",
+      "label": "Desatenção ou hiperatividade independente de medo pode sugerir investigação de TDAH."
+    },
+    {
+      "id": "flag_trauma_estresse",
+      "domain_id": "trauma_estresse",
+      "label": "Sinais de trauma ou estresse podem intensificar ansiedade e exigem avaliação contextual."
+    },
+    {
+      "id": "flag_toc",
+      "domain_id": "toc",
+      "label": "Pensamentos repetitivos e rituais podem indicar necessidade de rastreio para TOC."
+    },
+    {
+      "id": "flag_tea_neurodesenvolvimento",
+      "domain_id": "tea_neurodesenvolvimento",
+      "label": "Sinais persistentes desde cedo podem sugerir avaliação de neurodesenvolvimento."
+    },
+    {
+      "id": "flag_aprendizagem",
+      "domain_id": "aprendizagem",
+      "label": "Dificuldades de aprendizagem podem gerar ou intensificar ansiedade escolar."
+    },
+    {
+      "id": "flag_sono",
+      "domain_id": "sono",
+      "label": "Problemas de sono podem imitar ou agravar sintomas de ansiedade."
+    },
+    {
+      "id": "flag_bullying_contexto",
+      "domain_id": "bullying_contexto",
+      "label": "Bullying, luto ou mudanças familiares podem explicar sofrimento e ansiedade."
+    },
+    {
+      "id": "flag_medico_medicacao",
+      "domain_id": "medico_medicacao",
+      "label": "Condições médicas, medicação ou estimulantes podem imitar ou agravar ansiedade."
+    },
+    {
+      "id": "flag_substancias",
+      "domain_id": "substancias",
+      "label": "Uso de substâncias para acalmar exige atenção clínica e familiar."
+    }
+  ],
+  "differential_rules": [
+    {
+      "id": "reduce_confidence_any_relevant",
+      "condition": "any_differential_domain_positive",
+      "actions": [
+        "reduce_confidence_one_level",
+        "append_differential_note",
+        "recommend_professional_evaluation"
+      ],
+      "keep_scared_score": true
+    },
+    {
+      "id": "append_domain_flags",
+      "condition": "for_each_domain_positive",
+      "actions": [
+        "append_differential_flags",
+        "append_domain_recommended_action"
+      ],
+      "keep_scared_score": true
+    }
+  ],
+  "confidence_levels": [
+    "baixa",
+    "moderada",
+    "maior"
+  ],
+  "confidence_adjustment": {
+    "default_confidence_level": "maior",
+    "one_positive_domain": {
+      "action": "reduce_confidence_one_level",
+      "from_maior_to": "moderada",
+      "from_moderada_to": "baixa",
+      "from_baixa_to": "baixa"
+    },
+    "multiple_positive_domains": {
+      "condition": "count(positive_domains) >= 2",
+      "action": "reduce_confidence_to_baixa",
+      "keep_scared_score": true
+    }
+  },
+  "outputs": [
+    {
+      "id": "interpretation_confidence_level",
+      "type": "enum",
+      "allowed_values": [
+        "baixa",
+        "moderada",
+        "maior"
+      ],
+      "description": "Nível de confiança interpretativa após análise de domínios diferenciais."
+    },
+    {
+      "id": "differential_flags",
+      "type": "array",
+      "description": "Lista de flags diferenciais acionadas, com domain_id, flag_id, label e recommended_action."
+    },
+    {
+      "id": "positive_differential_domains",
+      "type": "array",
+      "description": "Domínios diferenciais considerados positivos pela regra de threshold do domínio."
+    },
+    {
+      "id": "differential_note",
+      "type": "string",
+      "description": "Nota em pt-BR explicando que o score SCARED foi preservado, mas a confiança interpretativa foi reduzida."
+    }
+  ],
+  "clinical_guardrails": [
+    "Não alterar o score total ou as subescalas do SCARED com base neste módulo.",
+    "Domínios diferenciais positivos reduzem a confiança interpretativa e orientam avaliação complementar.",
+    "Não usar este rastreio para diagnosticar depressão, TDAH, trauma, TOC, TEA, transtorno de aprendizagem, transtorno do sono, condição médica ou uso de substâncias.",
+    "Sinais de risco à segurança devem ser tratados pelo arquivo de red flags e têm prioridade sobre este módulo.",
+    "Condições médicas, efeitos de medicação, apneia suspeita e uso de substâncias devem orientar avaliação profissional."
+  ]
+}

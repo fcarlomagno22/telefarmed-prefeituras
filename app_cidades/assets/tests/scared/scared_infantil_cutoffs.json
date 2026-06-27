@@ -1,0 +1,478 @@
+{
+  "metadata": {
+    "module": "scared_infantil",
+    "file": "scared_infantil_cutoffs.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "instrument_code": "SCARED",
+    "instrument_full_name": "Screen for Child Anxiety Related Disorders",
+    "instrument_authors_reference": "Birmaher et al., 1997",
+    "instrument_item_count": 41,
+    "timeframe": "ultimos_3_meses",
+    "age_range_years": {
+      "min": 8,
+      "max": 17
+    },
+    "parent_proxy_age_range_years": {
+      "min": 4,
+      "max": 7
+    },
+    "diagnostic_disclaimer": "Este rastreio não diagnostica transtorno de ansiedade nem qualquer outra condição. Organiza sinais compatíveis e orienta encaminhamento.",
+    "depends_on": [
+      "scared_infantil_questions.json",
+      "scared_infantil_functional_impairment.json",
+      "scared_infantil_red_flags.json",
+      "scared_infantil_differential_screening.json"
+    ]
+  },
+  "purpose": {
+    "objective": "Classificar o resultado final combinando score SCARED, subescalas, prejuízo funcional, red flags e diferenciais.",
+    "clinical_use": "Produz classification_id e classification_label para exibição no app e no painel, sem valor diagnóstico isolado.",
+    "priority_note": "Red flags urgentes ou de salvaguarda têm prioridade sobre qualquer score e forçam prioridade clínica."
+  },
+  "inputs": [
+    {
+      "id": "score_status",
+      "type": "enum",
+      "required": true,
+      "allowed_values": [
+        "complete",
+        "incomplete",
+        "blocked"
+      ],
+      "description": "Estado geral do preenchimento e elegibilidade."
+    },
+    {
+      "id": "total_score",
+      "type": "integer",
+      "required": true,
+      "min": 0,
+      "max": 82,
+      "source": "scared_infantil_questions.json",
+      "description": "Soma dos 41 itens do SCARED."
+    },
+    {
+      "id": "subscale_scores",
+      "type": "object",
+      "required": true,
+      "source": "scared_infantil_questions.json",
+      "expected_keys": [
+        "panico_somatico",
+        "ansiedade_generalizada",
+        "ansiedade_separacao",
+        "ansiedade_social",
+        "evitacao_escolar"
+      ],
+      "description": "Pontuação por subescala."
+    },
+    {
+      "id": "functional_impairment_level",
+      "type": "enum",
+      "required": true,
+      "source": "scared_infantil_functional_impairment.json",
+      "allowed_values": [
+        "sem_prejuizo",
+        "leve",
+        "moderado",
+        "importante"
+      ],
+      "description": "Nível de prejuízo funcional agregado."
+    },
+    {
+      "id": "red_flags",
+      "type": "object",
+      "required": true,
+      "source": "scared_infantil_red_flags.json",
+      "expected_keys": [
+        "red_flag_highest_severity",
+        "red_flag_triggered_rules",
+        "red_flag_actions",
+        "red_flag_blocks_reassurance"
+      ],
+      "description": "Resultado das regras de red flag."
+    },
+    {
+      "id": "differential_flags",
+      "type": "array",
+      "required": false,
+      "source": "scared_infantil_differential_screening.json",
+      "description": "Flags diferenciais relevantes acionadas."
+    },
+    {
+      "id": "interpretation_confidence_level",
+      "type": "enum",
+      "required": false,
+      "source": "scared_infantil_differential_screening.json",
+      "allowed_values": [
+        "baixa",
+        "moderada",
+        "maior"
+      ],
+      "description": "Confiança interpretativa antes do ajuste final."
+    }
+  ],
+  "reference_cutoffs": {
+    "total": {
+      "reference_cutoff": 25,
+      "moderate_band_min": 15,
+      "moderate_band_max_exclusive": 25
+    },
+    "subscales": [
+      {
+        "id": "panico_somatico",
+        "label": "Pânico e sintomas somáticos",
+        "reference_cutoff": 7,
+        "max_score": 26
+      },
+      {
+        "id": "ansiedade_generalizada",
+        "label": "Ansiedade generalizada",
+        "reference_cutoff": 9,
+        "max_score": 18
+      },
+      {
+        "id": "ansiedade_separacao",
+        "label": "Ansiedade de separação",
+        "reference_cutoff": 5,
+        "max_score": 18
+      },
+      {
+        "id": "ansiedade_social",
+        "label": "Ansiedade social",
+        "reference_cutoff": 8,
+        "max_score": 10
+      },
+      {
+        "id": "evitacao_escolar",
+        "label": "Evitação escolar",
+        "reference_cutoff": 3,
+        "max_score": 12
+      }
+    ]
+  },
+  "classification_scale": [
+    {
+      "id": "bloqueado",
+      "rank": -2,
+      "label": "Bloqueado",
+      "requires_professional_evaluation": false,
+      "requires_urgent_flow": false,
+      "dashboard_bucket": "bloqueado",
+      "description": "Triagem não aplicada por idade fora da faixa, consentimento negado ou regra de bloqueio."
+    },
+    {
+      "id": "pendente",
+      "rank": -1,
+      "label": "Pendente",
+      "requires_professional_evaluation": false,
+      "requires_urgent_flow": false,
+      "dashboard_bucket": "pendente",
+      "description": "Dados insuficientes para classificar."
+    },
+    {
+      "id": "baixo_indicativo",
+      "rank": 0,
+      "label": "Baixo indicativo",
+      "requires_professional_evaluation": false,
+      "requires_urgent_flow": false,
+      "dashboard_bucket": "baixo"
+    },
+    {
+      "id": "sinais_leves",
+      "rank": 1,
+      "label": "Sinais leves",
+      "requires_professional_evaluation": false,
+      "requires_urgent_flow": false,
+      "dashboard_bucket": "leve"
+    },
+    {
+      "id": "sinais_moderados",
+      "rank": 2,
+      "label": "Sinais moderados",
+      "requires_professional_evaluation": true,
+      "requires_urgent_flow": false,
+      "dashboard_bucket": "moderado"
+    },
+    {
+      "id": "sinais_importantes",
+      "rank": 3,
+      "label": "Sinais importantes",
+      "requires_professional_evaluation": true,
+      "requires_urgent_flow": false,
+      "dashboard_bucket": "importante"
+    },
+    {
+      "id": "prioridade_clinica",
+      "rank": 4,
+      "label": "Atenção reforçada",
+      "requires_professional_evaluation": true,
+      "requires_urgent_flow": true,
+      "dashboard_bucket": "prioridade"
+    }
+  ],
+  "decision_rules": [
+    {
+      "id": "rule_bloqueado",
+      "priority": 0,
+      "condition": "score_status == blocked",
+      "sets": {
+        "classification_id": "bloqueado",
+        "classification_label": "Bloqueado",
+        "requires_professional_evaluation": false,
+        "requires_urgent_flow": false
+      },
+      "reason_key": "bloqueado_por_elegibilidade_ou_consentimento"
+    },
+    {
+      "id": "rule_pendente",
+      "priority": 1,
+      "condition": "score_status == incomplete OR missing(total_score) OR missing(subscale_scores) OR missing(functional_impairment_level) OR missing(red_flags)",
+      "sets": {
+        "classification_id": "pendente",
+        "classification_label": "Pendente",
+        "requires_professional_evaluation": false,
+        "requires_urgent_flow": false
+      },
+      "reason_key": "dados_insuficientes"
+    },
+    {
+      "id": "rule_prioridade_red_flag_urgente_salvaguarda",
+      "priority": 2,
+      "condition": "red_flags.red_flag_highest_severity IN (urgente, salvaguarda) OR any(red_flags.red_flag_triggered_rules.severity IN (urgente, salvaguarda))",
+      "sets": {
+        "classification_id": "prioridade_clinica",
+        "classification_label": "Atenção reforçada",
+        "requires_professional_evaluation": true,
+        "requires_urgent_flow": true,
+        "block_reassuring_classification": true
+      },
+      "reason_key": "red_flag_urgente_ou_salvaguarda"
+    },
+    {
+      "id": "rule_total_25_prejuizo_moderado_importante",
+      "priority": 3,
+      "condition": "total_score >= 25 AND functional_impairment_level IN (moderado, importante)",
+      "sets": {
+        "classification_id": "sinais_importantes",
+        "classification_label": "Sinais importantes",
+        "requires_professional_evaluation": true,
+        "requires_urgent_flow": false
+      },
+      "reason_key": "score_total_clinico_com_prejuizo_funcional"
+    },
+    {
+      "id": "rule_total_25_prejuizo_leve_sem",
+      "priority": 4,
+      "condition": "total_score >= 25 AND functional_impairment_level IN (leve, sem_prejuizo)",
+      "sets": {
+        "classification_id": "sinais_moderados",
+        "classification_label": "Sinais moderados",
+        "requires_professional_evaluation": true,
+        "requires_urgent_flow": false
+      },
+      "reason_key": "score_total_clinico_com_baixo_prejuizo_funcional"
+    },
+    {
+      "id": "rule_total_15_24_prejuizo_moderado_importante",
+      "priority": 5,
+      "condition": "total_score >= 15 AND total_score < 25 AND functional_impairment_level IN (moderado, importante)",
+      "sets": {
+        "classification_id": "sinais_moderados",
+        "classification_label": "Sinais moderados",
+        "requires_professional_evaluation": true,
+        "requires_urgent_flow": false
+      },
+      "reason_key": "score_intermediario_com_prejuizo_funcional"
+    },
+    {
+      "id": "rule_total_15_24_prejuizo_leve_sem",
+      "priority": 6,
+      "condition": "total_score >= 15 AND total_score < 25 AND functional_impairment_level IN (leve, sem_prejuizo)",
+      "sets": {
+        "classification_id": "sinais_leves",
+        "classification_label": "Sinais leves",
+        "requires_professional_evaluation": false,
+        "requires_urgent_flow": false
+      },
+      "reason_key": "score_intermediario_com_baixo_prejuizo_funcional"
+    },
+    {
+      "id": "rule_subescala_cutoff_prejuizo_moderado_importante",
+      "priority": 7,
+      "condition": "any_subscale_score_gte_reference_cutoff == true AND functional_impairment_level IN (moderado, importante)",
+      "sets": {
+        "classification_id": "sinais_moderados",
+        "classification_label": "Sinais moderados",
+        "requires_professional_evaluation": true,
+        "requires_urgent_flow": false
+      },
+      "reason_key": "subescala_elevada_com_prejuizo_funcional"
+    },
+    {
+      "id": "rule_subescala_cutoff_prejuizo_leve",
+      "priority": 8,
+      "condition": "any_subscale_score_gte_reference_cutoff == true AND functional_impairment_level == leve",
+      "sets": {
+        "classification_id": "sinais_leves",
+        "classification_label": "Sinais leves",
+        "requires_professional_evaluation": false,
+        "requires_urgent_flow": false
+      },
+      "reason_key": "subescala_elevada_com_prejuizo_leve"
+    },
+    {
+      "id": "rule_baixo_total_baixo_subescalas_baixas",
+      "priority": 9,
+      "condition": "total_score < 15 AND all_subscale_scores_lt_reference_cutoff == true",
+      "sets": {
+        "classification_id": "baixo_indicativo",
+        "classification_label": "Baixo indicativo",
+        "requires_professional_evaluation": false,
+        "requires_urgent_flow": false
+      },
+      "reason_key": "score_total_baixo_e_subescalas_abaixo_do_corte"
+    },
+    {
+      "id": "rule_fallback_cauteloso",
+      "priority": 10,
+      "condition": "default",
+      "sets": {
+        "classification_id": "sinais_leves",
+        "classification_label": "Sinais leves",
+        "requires_professional_evaluation": false,
+        "requires_urgent_flow": false
+      },
+      "reason_key": "fallback_cauteloso"
+    }
+  ],
+  "derived_variables": [
+    {
+      "id": "any_subscale_score_gte_reference_cutoff",
+      "type": "boolean",
+      "expression": "subscale_scores.panico_somatico >= 7 OR subscale_scores.ansiedade_generalizada >= 9 OR subscale_scores.ansiedade_separacao >= 5 OR subscale_scores.ansiedade_social >= 8 OR subscale_scores.evitacao_escolar >= 3"
+    },
+    {
+      "id": "all_subscale_scores_lt_reference_cutoff",
+      "type": "boolean",
+      "expression": "subscale_scores.panico_somatico < 7 AND subscale_scores.ansiedade_generalizada < 9 AND subscale_scores.ansiedade_separacao < 5 AND subscale_scores.ansiedade_social < 8 AND subscale_scores.evitacao_escolar < 3"
+    },
+    {
+      "id": "has_relevant_differential_flags",
+      "type": "boolean",
+      "expression": "count(differential_flags) >= 1"
+    }
+  ],
+  "post_classification_adjustments": [
+    {
+      "id": "reduce_confidence_for_differentials",
+      "condition": "has_relevant_differential_flags == true AND classification_id != prioridade_clinica",
+      "actions": [
+        "reduce_confidence_one_level",
+        "append_differential_note"
+      ],
+      "classification_change_allowed": false,
+      "keep_scared_score": true,
+      "message_key": "diferenciais_reduzem_confianca"
+    },
+    {
+      "id": "do_not_reduce_urgent_red_flag_confidence",
+      "condition": "classification_id == prioridade_clinica AND red_flags.red_flag_highest_severity IN (urgente, salvaguarda)",
+      "actions": [
+        "preserve_priority_classification",
+        "preserve_urgent_flow",
+        "append_safety_note"
+      ],
+      "classification_change_allowed": false,
+      "keep_scared_score": true,
+      "message_key": "red_flag_nao_rebaixar"
+    }
+  ],
+  "confidence_adjustment": {
+    "levels": [
+      "baixa",
+      "moderada",
+      "maior"
+    ],
+    "default_if_missing": "maior",
+    "reduce_one_level_map": {
+      "maior": "moderada",
+      "moderada": "baixa",
+      "baixa": "baixa"
+    },
+    "rule": "SE differential_flags relevantes, reduzir confidence um nível, sem alterar classification_id e sem rebaixar prioridade_clinica quando houver red_flag urgente ou salvaguarda."
+  },
+  "outputs": [
+    {
+      "id": "classification_id",
+      "type": "enum",
+      "allowed_values": [
+        "baixo_indicativo",
+        "sinais_leves",
+        "sinais_moderados",
+        "sinais_importantes",
+        "prioridade_clinica",
+        "bloqueado",
+        "pendente"
+      ],
+      "description": "Classificação final do rastreio."
+    },
+    {
+      "id": "classification_label",
+      "type": "string",
+      "description": "Rótulo em pt-BR da classificação final."
+    },
+    {
+      "id": "requires_professional_evaluation",
+      "type": "boolean",
+      "description": "Indica se a classificação recomenda avaliação profissional."
+    },
+    {
+      "id": "requires_urgent_flow",
+      "type": "boolean",
+      "description": "Indica se a classificação aciona fluxo urgente."
+    },
+    {
+      "id": "classification_reason_key",
+      "type": "string",
+      "description": "Chave explicativa da regra que definiu a classificação."
+    },
+    {
+      "id": "interpretation_confidence_level",
+      "type": "enum",
+      "allowed_values": [
+        "baixa",
+        "moderada",
+        "maior"
+      ],
+      "description": "Confiança interpretativa final após diferenciais."
+    },
+    {
+      "id": "dashboard_bucket",
+      "type": "string",
+      "description": "Agrupamento simplificado para dashboard."
+    }
+  ],
+  "message_keys": {
+    "bloqueado_por_elegibilidade_ou_consentimento": "Triagem bloqueada por idade fora da faixa, consentimento negado ou outra regra de elegibilidade.",
+    "dados_insuficientes": "Dados insuficientes para classificar o rastreio.",
+    "red_flag_urgente_ou_salvaguarda": "Há red flag urgente ou de salvaguarda. A prioridade clínica deve prevalecer sobre o score.",
+    "score_total_clinico_com_prejuizo_funcional": "Score total na faixa de referência clínica com prejuízo funcional moderado ou importante.",
+    "score_total_clinico_com_baixo_prejuizo_funcional": "Score total na faixa de referência clínica, mas com prejuízo funcional leve ou ausente.",
+    "score_intermediario_com_prejuizo_funcional": "Score intermediário com prejuízo funcional moderado ou importante.",
+    "score_intermediario_com_baixo_prejuizo_funcional": "Score intermediário com prejuízo funcional leve ou ausente.",
+    "subescala_elevada_com_prejuizo_funcional": "Uma ou mais subescalas atingiram ponto de corte com prejuízo funcional moderado ou importante.",
+    "subescala_elevada_com_prejuizo_leve": "Uma ou mais subescalas atingiram ponto de corte com prejuízo funcional leve.",
+    "score_total_baixo_e_subescalas_abaixo_do_corte": "Score total baixo e subescalas abaixo dos pontos de corte.",
+    "fallback_cauteloso": "Classificação cautelosa por regra de fallback.",
+    "diferenciais_reduzem_confianca": "Fatores diferenciais foram identificados. O score SCARED foi preservado, mas a confiança interpretativa foi reduzida.",
+    "red_flag_nao_rebaixar": "Red flag urgente ou de salvaguarda impede rebaixamento da prioridade clínica."
+  },
+  "clinical_guardrails": [
+    "Não apresentar classification_id como diagnóstico.",
+    "Red flags urgentes ou de salvaguarda sempre forçam prioridade clínica.",
+    "Diferenciais reduzem confiança interpretativa, mas não alteram o score SCARED.",
+    "Não rebaixar classificação quando houver red flag urgente ou de salvaguarda.",
+    "Classificação baixa não exclui transtorno de ansiedade quando houver sofrimento, prejuízo funcional, contexto relevante ou piora progressiva.",
+    "A decisão clínica final deve considerar entrevista, histórico, exame clínico, contexto familiar/escolar e avaliação profissional."
+  ]
+}

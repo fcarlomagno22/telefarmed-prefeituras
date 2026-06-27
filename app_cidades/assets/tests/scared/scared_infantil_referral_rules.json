@@ -1,0 +1,437 @@
+{
+  "metadata": {
+    "module": "scared_infantil",
+    "file": "scared_infantil_referral_rules.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "instrument_code": "SCARED",
+    "instrument_full_name": "Screen for Child Anxiety Related Disorders",
+    "instrument_authors_reference": "Birmaher et al., 1997",
+    "instrument_item_count": 41,
+    "timeframe": "ultimos_3_meses",
+    "age_range_years": {
+      "min": 8,
+      "max": 17
+    },
+    "parent_proxy_age_range_years": {
+      "min": 4,
+      "max": 7
+    },
+    "diagnostic_disclaimer": "Este rastreio não diagnostica transtorno de ansiedade nem qualquer outra condição. Organiza sinais compatíveis e orienta encaminhamento.",
+    "depends_on": [
+      "scared_infantil_questions.json",
+      "scared_infantil_functional_impairment.json",
+      "scared_infantil_red_flags.json",
+      "scared_infantil_differential_screening.json",
+      "scared_infantil_cutoffs.json",
+      "scared_infantil_age_rules.json",
+      "scared_infantil_informants.json",
+      "scared_infantil_consent_terms.json",
+      "scared_infantil_result_messages.json"
+    ]
+  },
+  "purpose": {
+    "objective": "Definir encaminhamentos automáticos pós-resultado conforme classificação, red flags, prejuízo funcional e subescalas.",
+    "clinical_use": "Gera referrals ordenados por prioridade para orientar próximos passos no app e no painel.",
+    "priority_note": "Regras de red flag e segurança devem ser avaliadas antes das regras por classificação."
+  },
+  "priority_level_semantics": {
+    "1": "Mais urgente, ação imediata ou no mesmo dia quando houver risco.",
+    "2": "Alta prioridade, organizar avaliação rapidamente.",
+    "3": "Prioridade clínica programada.",
+    "4": "Acompanhamento, orientação ou reavaliação.",
+    "5": "Apoio complementar ou educação em saúde."
+  },
+  "destinations": [
+    {
+      "id": "orientacao_familiar",
+      "label": "Orientação familiar no app",
+      "type": "educational",
+      "description": "Conteúdos simples para acolhimento, rotina, comunicação familiar e observação de sinais."
+    },
+    {
+      "id": "reavaliacao_30_60_dias",
+      "label": "Reavaliação em 30–60 dias",
+      "type": "followup",
+      "description": "Repetir rastreio ou checagem breve após período de acompanhamento."
+    },
+    {
+      "id": "pediatra",
+      "label": "Avaliação com pediatra",
+      "type": "clinical",
+      "description": "Avaliação clínica geral, sintomas físicos, sono, medicações e condições médicas associadas."
+    },
+    {
+      "id": "psicologo_infantil",
+      "label": "Avaliação com psicólogo infantil",
+      "type": "clinical",
+      "description": "Avaliação psicológica, orientação familiar e plano de cuidado para sintomas emocionais e funcionais."
+    },
+    {
+      "id": "psiquiatra_infantil",
+      "label": "Avaliação com psiquiatra infantil",
+      "type": "clinical",
+      "description": "Avaliação especializada quando há gravidade, risco, crise intensa, suspeita de alteração importante do comportamento ou necessidade de manejo médico especializado."
+    },
+    {
+      "id": "apoio_escolar",
+      "label": "Comunicação/apoio escolar",
+      "type": "school",
+      "description": "Contato ou resumo restrito para apoiar frequência, acolhimento, participação, concentração e adaptação escolar."
+    },
+    {
+      "id": "emergencia",
+      "label": "Buscar ajuda imediata / emergência",
+      "type": "urgent",
+      "description": "Acionar serviço de urgência, emergência, profissional de referência ou ajuda presencial quando houver risco atual."
+    },
+    {
+      "id": "servico_protecao",
+      "label": "Serviço de proteção / Conselho Tutelar",
+      "type": "safeguarding",
+      "description": "Acionar rede de proteção quando houver suspeita de violência, abuso, ameaça, maus-tratos ou negligência."
+    }
+  ],
+  "inputs": [
+    {
+      "id": "classification_id",
+      "type": "enum",
+      "required": true,
+      "allowed_values": [
+        "baixo_indicativo",
+        "sinais_leves",
+        "sinais_moderados",
+        "sinais_importantes",
+        "prioridade_clinica",
+        "pendente",
+        "bloqueado"
+      ]
+    },
+    {
+      "id": "red_flag_highest_severity",
+      "type": "enum",
+      "required": true,
+      "allowed_values": [
+        "none",
+        "cautela",
+        "urgente",
+        "salvaguarda"
+      ]
+    },
+    {
+      "id": "red_flag_triggered_question_ids",
+      "type": "array",
+      "required": false
+    },
+    {
+      "id": "subscale_scores",
+      "type": "object",
+      "required": true
+    },
+    {
+      "id": "subscale_above_cutoff",
+      "type": "object",
+      "required": true,
+      "expected_keys": [
+        "panico_somatico",
+        "ansiedade_generalizada",
+        "ansiedade_separacao",
+        "ansiedade_social",
+        "evitacao_escolar"
+      ]
+    },
+    {
+      "id": "functional_impairment_answers",
+      "type": "object",
+      "required": false
+    }
+  ],
+  "referral_rules": [
+    {
+      "id": "rule_red_flag_abuso_salvaguarda",
+      "priority": 1,
+      "condition": "red_flag_highest_severity == salvaguarda OR red_flag_triggered_question_ids contains rf_abuso_violencia",
+      "outputs": {
+        "referrals": [
+          {
+            "destination": "emergencia",
+            "label": "Buscar ajuda imediata / emergência",
+            "priority_level": 1,
+            "reason": "Red flag de salvaguarda ou suspeita de violência, ameaça, maus-tratos ou abuso.",
+            "required": true,
+            "user_message": "Há sinal de possível risco à segurança ou proteção. Busque ajuda imediata e não deixe a criança/adolescente sem apoio."
+          },
+          {
+            "destination": "psiquiatra_infantil",
+            "label": "Avaliação com psiquiatra infantil",
+            "priority_level": 1,
+            "reason": "Red flag de alta prioridade exige avaliação especializada quando disponível.",
+            "required": true,
+            "user_message": "Organize avaliação especializada com urgência, especialmente se houver alteração importante do comportamento, risco ou sofrimento intenso."
+          },
+          {
+            "destination": "servico_protecao",
+            "label": "Serviço de proteção / Conselho Tutelar",
+            "priority_level": 1,
+            "reason": "Suspeita de abuso, violência, ameaça ou maus-tratos requer rede de proteção.",
+            "required": true,
+            "user_message": "Acione adulto protetivo, equipe responsável ou serviço de proteção conforme protocolo local."
+          }
+        ]
+      }
+    },
+    {
+      "id": "rule_red_flag_urgente",
+      "priority": 2,
+      "condition": "red_flag_highest_severity == urgente",
+      "outputs": {
+        "referrals": [
+          {
+            "destination": "emergencia",
+            "label": "Buscar ajuda imediata / emergência",
+            "priority_level": 1,
+            "reason": "Red flag urgente acionada.",
+            "required": true,
+            "user_message": "Procure ajuda imediata se houver risco atual, crise intensa, autoagressão, pensamento de morte ou comportamento muito diferente do habitual."
+          },
+          {
+            "destination": "psiquiatra_infantil",
+            "label": "Avaliação com psiquiatra infantil",
+            "priority_level": 1,
+            "reason": "Red flag urgente pode exigir avaliação especializada rápida.",
+            "required": true,
+            "user_message": "Busque avaliação especializada com rapidez para definir segurança, gravidade e próximos cuidados."
+          }
+        ]
+      }
+    },
+    {
+      "id": "rule_prioridade_clinica_urgente",
+      "priority": 3,
+      "condition": "classification_id == prioridade_clinica AND red_flag_highest_severity == urgente",
+      "outputs": {
+        "referrals": [
+          {
+            "destination": "emergencia",
+            "label": "Buscar ajuda imediata / emergência",
+            "priority_level": 1,
+            "reason": "Prioridade clínica com red flag urgente.",
+            "required": true,
+            "user_message": "Como há sinal urgente, procure ajuda imediata conforme a situação — e organize avaliação profissional em seguida."
+          },
+          {
+            "destination": "psicologo_infantil",
+            "label": "Avaliação com psicólogo infantil",
+            "priority_level": 2,
+            "reason": "Prioridade clínica requer avaliação psicológica.",
+            "required": true,
+            "user_message": "Após garantir segurança, organize avaliação psicológica para entender sintomas, gatilhos e prejuízo funcional."
+          },
+          {
+            "destination": "pediatra",
+            "label": "Avaliação com pediatra",
+            "priority_level": 2,
+            "reason": "Prioridade clínica também pode envolver sintomas físicos, sono, medicações ou condições médicas.",
+            "required": true,
+            "user_message": "Avaliação pediátrica ajuda a revisar sintomas físicos, sono, medicações e outras condições que podem piorar ansiedade."
+          }
+        ]
+      }
+    },
+    {
+      "id": "rule_prioridade_clinica_sem_red_flag_urgente",
+      "priority": 4,
+      "condition": "classification_id == prioridade_clinica AND red_flag_highest_severity NOT IN (urgente, salvaguarda)",
+      "outputs": {
+        "referrals": [
+          {
+            "destination": "psicologo_infantil",
+            "label": "Avaliação com psicólogo infantil",
+            "priority_level": 2,
+            "reason": "Classificação de prioridade clínica.",
+            "required": true,
+            "user_message": "Organize avaliação psicológica em breve para entender o sofrimento e orientar o cuidado da família."
+          },
+          {
+            "destination": "pediatra",
+            "label": "Avaliação com pediatra",
+            "priority_level": 2,
+            "reason": "Classificação de prioridade clínica pode exigir avaliação clínica geral.",
+            "required": true,
+            "user_message": "Procure avaliação pediátrica para revisar sintomas físicos, sono, medicações e condições associadas."
+          }
+        ]
+      }
+    },
+    {
+      "id": "rule_sinais_importantes",
+      "priority": 5,
+      "condition": "classification_id == sinais_importantes",
+      "outputs": {
+        "referrals": [
+          {
+            "destination": "psicologo_infantil",
+            "label": "Avaliação com psicólogo infantil",
+            "priority_level": 2,
+            "reason": "Sinais importantes com possível impacto funcional.",
+            "required": true,
+            "user_message": "Recomenda-se avaliação com psicólogo infantil para planejar cuidado, orientação familiar e acompanhamento."
+          },
+          {
+            "destination": "pediatra",
+            "label": "Avaliação com pediatra",
+            "priority_level": 3,
+            "reason": "Sinais importantes podem coexistir com sintomas físicos, sono ou condições médicas.",
+            "required": true,
+            "user_message": "Uma avaliação pediátrica pode ajudar a excluir ou tratar fatores físicos que aumentam o sofrimento."
+          }
+        ]
+      }
+    },
+    {
+      "id": "rule_sinais_moderados",
+      "priority": 6,
+      "condition": "classification_id == sinais_moderados",
+      "outputs": {
+        "referrals": [
+          {
+            "destination": "psicologo_infantil",
+            "label": "Avaliação com psicólogo infantil",
+            "priority_level": 3,
+            "reason": "Sinais moderados sugerem necessidade de avaliação profissional.",
+            "required": false,
+            "user_message": "Considere avaliação com psicólogo infantil para entender os sinais e orientar estratégias de cuidado."
+          },
+          {
+            "destination": "pediatra",
+            "label": "Avaliação com pediatra",
+            "priority_level": 3,
+            "reason": "Pediatra pode ser porta de entrada quando há sintomas físicos, sono ruim, medicação ou dúvidas clínicas.",
+            "required": false,
+            "user_message": "Se houver sintomas físicos, sono ruim, uso de medicação ou dúvida clínica, o pediatra pode ser uma boa porta de entrada."
+          }
+        ],
+        "selection_note": "Psicólogo infantil ou pediatra podem ser usados como primeira porta de entrada conforme disponibilidade, sintomas físicos e rede local."
+      }
+    },
+    {
+      "id": "rule_sinais_leves",
+      "priority": 7,
+      "condition": "classification_id == sinais_leves",
+      "outputs": {
+        "referrals": [
+          {
+            "destination": "orientacao_familiar",
+            "label": "Orientação familiar no app",
+            "priority_level": 4,
+            "reason": "Sinais leves geralmente pedem acolhimento, rotina e acompanhamento.",
+            "required": true,
+            "user_message": "Leia as orientações familiares e observe em quais situações os sinais aparecem."
+          },
+          {
+            "destination": "reavaliacao_30_60_dias",
+            "label": "Reavaliação em 30–60 dias",
+            "priority_level": 4,
+            "reason": "Reavaliar ajuda a identificar melhora, persistência ou piora dos sinais.",
+            "required": true,
+            "user_message": "Reavalie em 30 a 60 dias, ou antes se houver piora, sofrimento intenso ou prejuízo funcional."
+          }
+        ]
+      }
+    },
+    {
+      "id": "rule_baixo_indicativo",
+      "priority": 8,
+      "condition": "classification_id == baixo_indicativo",
+      "outputs": {
+        "referrals": [
+          {
+            "destination": "orientacao_familiar",
+            "label": "Orientação familiar no app",
+            "priority_level": 5,
+            "reason": "Baixo indicativo ainda pode se beneficiar de orientação familiar preventiva.",
+            "required": false,
+            "user_message": "Veja orientações simples para manter rotina, escuta e observação dos sinais."
+          }
+        ]
+      }
+    },
+    {
+      "id": "rule_evitacao_escolar_com_faltas",
+      "priority": 9,
+      "condition": "subscale_above_cutoff.evitacao_escolar == true AND functional_impairment_answers.func_escola_faltas >= 4",
+      "outputs": {
+        "referrals": [
+          {
+            "destination": "apoio_escolar",
+            "label": "Comunicação/apoio escolar",
+            "priority_level": 3,
+            "reason": "Evitação escolar acima do ponto de corte com faltas, atrasos ou recusa frequente.",
+            "required": true,
+            "user_message": "Considere contato com a escola para entender faltas, atrasos, medo, bullying, aprendizagem e possíveis apoios."
+          }
+        ]
+      }
+    },
+    {
+      "id": "rule_evitacao_escolar_com_faltas_moderadas",
+      "priority": 10,
+      "condition": "subscale_above_cutoff.evitacao_escolar == true AND functional_impairment_answers.func_escola_faltas >= 3",
+      "outputs": {
+        "referrals": [
+          {
+            "destination": "apoio_escolar",
+            "label": "Comunicação/apoio escolar",
+            "priority_level": 4,
+            "reason": "Evitação escolar acima do ponto de corte com impacto escolar moderado.",
+            "required": false,
+            "user_message": "Pode ser útil conversar com a escola para observar participação, frequência, concentração e relações com colegas."
+          }
+        ]
+      }
+    }
+  ],
+  "merge_rules": [
+    {
+      "id": "deduplicate_destinations",
+      "description": "Se mais de uma regra indicar o mesmo destino, manter apenas o referral com menor priority_level e required true se qualquer regra marcar required true."
+    },
+    {
+      "id": "sort_by_priority",
+      "description": "Ordenar referrals por priority_level crescente, depois por required true antes de false."
+    },
+    {
+      "id": "preserve_safeguarding",
+      "description": "Nunca remover emergencia ou servico_protecao quando red_flag_highest_severity for salvaguarda."
+    }
+  ],
+  "outputs": [
+    {
+      "id": "referrals",
+      "type": "array",
+      "description": "Lista consolidada de encaminhamentos com destination, label, priority_level, reason, required e user_message."
+    },
+    {
+      "id": "highest_referral_priority",
+      "type": "integer",
+      "description": "Menor priority_level entre os referrals gerados."
+    },
+    {
+      "id": "requires_emergency_flow",
+      "type": "boolean",
+      "description": "True quando emergencia estiver entre os referrals obrigatórios."
+    },
+    {
+      "id": "requires_safeguarding_flow",
+      "type": "boolean",
+      "description": "True quando servico_protecao estiver entre os referrals obrigatórios."
+    }
+  ],
+  "clinical_guardrails": [
+    "Encaminhamentos automáticos não substituem julgamento clínico.",
+    "Red flags urgentes ou de salvaguarda devem aparecer antes de qualquer recomendação educativa.",
+    "Se houver risco atual, orientar ajuda imediata e não apenas agendamento futuro.",
+    "Apoio escolar só deve compartilhar resumo restrito quando houver consentimento específico.",
+    "Não prometer disponibilidade de especialidade; adaptar encaminhamento à rede local."
+  ]
+}

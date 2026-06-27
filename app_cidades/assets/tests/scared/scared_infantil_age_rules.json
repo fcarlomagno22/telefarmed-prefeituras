@@ -1,0 +1,396 @@
+{
+  "metadata": {
+    "module": "scared_infantil",
+    "file": "scared_infantil_age_rules.json",
+    "version": "1.0.0",
+    "locale": "pt-BR",
+    "instrument_code": "SCARED",
+    "instrument_full_name": "Screen for Child Anxiety Related Disorders",
+    "instrument_authors_reference": "Birmaher et al., 1997",
+    "instrument_item_count": 41,
+    "timeframe": "ultimos_3_meses",
+    "age_range_years": {
+      "min": 8,
+      "max": 17
+    },
+    "parent_proxy_age_range_years": {
+      "min": 4,
+      "max": 7
+    },
+    "diagnostic_disclaimer": "Este rastreio não diagnostica transtorno de ansiedade nem qualquer outra condição. Organiza sinais compatíveis e orienta encaminhamento.",
+    "depends_on": [
+      "scared_infantil_questions.json",
+      "scared_infantil_functional_impairment.json",
+      "scared_infantil_red_flags.json",
+      "scared_infantil_differential_screening.json",
+      "scared_infantil_cutoffs.json"
+    ]
+  },
+  "purpose": {
+    "objective": "Definir elegibilidade, informante permitido e ajustes interpretativos por idade.",
+    "clinical_use": "Controla quem pode responder, bloqueia aplicação fora da faixa e limita confiança interpretativa conforme idade e tipo de informante.",
+    "priority_note": "Regras de idade e consentimento devem ser aplicadas antes do cálculo de score e da classificação final."
+  },
+  "respondent_ids": [
+    "crianca_adolescente",
+    "responsavel",
+    "professor"
+  ],
+  "required_blocks": [
+    "scared_items",
+    "functional_impairment",
+    "red_flags",
+    "differential"
+  ],
+  "age_groups": [
+    {
+      "id": "4_7_proxy_only",
+      "label": "4 a 7 anos, somente responsável",
+      "age_min_years": 4,
+      "age_max_years": 7,
+      "age_min_inclusive": true,
+      "age_max_inclusive": true,
+      "eligibility": "eligible_parent_proxy_only",
+      "allowed_respondents": [
+        "responsavel"
+      ],
+      "blocked_respondents": [
+        "crianca_adolescente"
+      ],
+      "optional_respondents": [
+        "professor"
+      ],
+      "preferred_respondent": "responsavel",
+      "max_confidence": "moderada",
+      "required_blocks": [
+        "scared_items",
+        "functional_impairment",
+        "red_flags",
+        "differential"
+      ],
+      "referral_modifier": {
+        "id": "maior_cautela_por_idade_precoce",
+        "effect": "aumentar_cautela_interpretativa",
+        "description": "Em crianças de 4 a 7 anos, usar somente informante responsável e interpretar com confiança máxima moderada."
+      },
+      "validation_rules": [
+        "block_self_report",
+        "require_responsavel_response",
+        "cap_confidence_at_moderada"
+      ],
+      "messages": {
+        "respondent_guidance": "Para 4 a 7 anos, este rastreio deve ser respondido apenas pelo responsável.",
+        "confidence_note": "A confiança interpretativa fica limitada a moderada por ser versão proxy."
+      }
+    },
+    {
+      "id": "8_11_misto",
+      "label": "8 a 11 anos, aplicação mista",
+      "age_min_years": 8,
+      "age_max_years": 11,
+      "age_min_inclusive": true,
+      "age_max_inclusive": true,
+      "eligibility": "eligible_mixed",
+      "allowed_respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "blocked_respondents": [],
+      "optional_respondents": [
+        "professor"
+      ],
+      "preferred_respondent": "crianca_adolescente_com_apoio",
+      "recommended_respondents": [
+        "responsavel"
+      ],
+      "max_confidence": "moderada",
+      "required_blocks": [
+        "scared_items",
+        "functional_impairment",
+        "red_flags",
+        "differential"
+      ],
+      "referral_modifier": {
+        "id": "recomendar_confirmacao_responsavel",
+        "effect": "reduzir_confianca_se_sem_responsavel",
+        "description": "Autorrelato pode ser usado com apoio, mas recomenda-se resposta do responsável para contextualizar sintomas e prejuízo."
+      },
+      "validation_rules": [
+        "allow_self_report_with_support",
+        "recommend_responsavel_response",
+        "cap_confidence_at_moderada"
+      ],
+      "messages": {
+        "respondent_guidance": "Para 8 a 11 anos, o autorrelato pode ser feito com apoio. A resposta do responsável é recomendada.",
+        "confidence_note": "A confiança interpretativa fica limitada a moderada."
+      }
+    },
+    {
+      "id": "12_14_adolescencia_inicial",
+      "label": "12 a 14 anos, adolescência inicial",
+      "age_min_years": 12,
+      "age_max_years": 14,
+      "age_min_inclusive": true,
+      "age_max_inclusive": true,
+      "eligibility": "eligible_self_report_preferred",
+      "allowed_respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "blocked_respondents": [],
+      "optional_respondents": [
+        "responsavel",
+        "professor"
+      ],
+      "preferred_respondent": "crianca_adolescente",
+      "max_confidence": "maior",
+      "confidence_by_respondent": {
+        "crianca_adolescente": "maior",
+        "responsavel": "moderada",
+        "crianca_adolescente_e_responsavel": "maior"
+      },
+      "required_blocks": [
+        "scared_items",
+        "functional_impairment",
+        "red_flags",
+        "differential"
+      ],
+      "referral_modifier": {
+        "id": "responsavel_opcional_para_contexto",
+        "effect": "manter_confianca_maior_se_autorrelato_completo",
+        "description": "Autorrelato é preferencial. Responsável pode complementar prejuízo funcional, contexto familiar e red flags."
+      },
+      "validation_rules": [
+        "prefer_self_report",
+        "allow_responsavel_as_complementary",
+        "allow_confidence_maior_when_self_report_complete"
+      ],
+      "messages": {
+        "respondent_guidance": "Para 12 a 14 anos, o autorrelato é preferencial e o responsável pode complementar.",
+        "confidence_note": "A confiança pode ser maior quando o autorrelato está completo e não há inconsistências relevantes."
+      }
+    },
+    {
+      "id": "15_17_adolescencia",
+      "label": "15 a 17 anos, adolescência",
+      "age_min_years": 15,
+      "age_max_years": 17,
+      "age_min_inclusive": true,
+      "age_max_inclusive": true,
+      "eligibility": "eligible_self_report_preferred",
+      "allowed_respondents": [
+        "crianca_adolescente",
+        "responsavel"
+      ],
+      "blocked_respondents": [],
+      "optional_respondents": [
+        "responsavel",
+        "professor"
+      ],
+      "preferred_respondent": "crianca_adolescente",
+      "max_confidence": "maior",
+      "confidence_by_respondent": {
+        "crianca_adolescente": "maior",
+        "responsavel": "moderada",
+        "crianca_adolescente_e_responsavel": "maior"
+      },
+      "required_blocks": [
+        "scared_items",
+        "functional_impairment",
+        "red_flags",
+        "differential"
+      ],
+      "referral_modifier": {
+        "id": "autorrelato_preferencial_adolescencia",
+        "effect": "manter_confianca_maior_se_autorrelato_completo",
+        "description": "Autorrelato é preferencial. Responsável é opcional e pode apoiar contexto, adesão e segurança."
+      },
+      "validation_rules": [
+        "prefer_self_report",
+        "allow_responsavel_as_complementary",
+        "allow_confidence_maior_when_self_report_complete"
+      ],
+      "messages": {
+        "respondent_guidance": "Para 15 a 17 anos, o autorrelato é preferencial.",
+        "confidence_note": "A confiança interpretativa pode ser maior quando o autorrelato está completo."
+      }
+    },
+    {
+      "id": "fora_faixa",
+      "label": "Fora da faixa etária",
+      "age_condition": "age_years < 4 OR age_years > 17",
+      "eligibility": "blocked",
+      "allowed_respondents": [],
+      "blocked_respondents": [
+        "crianca_adolescente",
+        "responsavel",
+        "professor"
+      ],
+      "optional_respondents": [],
+      "preferred_respondent": null,
+      "max_confidence": null,
+      "required_blocks": [],
+      "referral_modifier": {
+        "id": "bloquear_fora_faixa",
+        "effect": "force_classification_bloqueado",
+        "description": "Não aplicar este pacote SCARED infantil fora da faixa de 4 a 17 anos."
+      },
+      "validation_rules": [
+        "block_all_respondents",
+        "force_score_status_blocked",
+        "force_classification_bloqueado"
+      ],
+      "messages": {
+        "respondent_guidance": "Este rastreio está configurado para crianças e adolescentes de 4 a 17 anos.",
+        "confidence_note": "Sem confiança interpretativa, pois a idade está fora da faixa."
+      }
+    }
+  ],
+  "global_validation_rules": [
+    {
+      "id": "idade_obrigatoria",
+      "condition": "missing(date_of_birth) AND missing(age_years)",
+      "severity": "blocking",
+      "action": "force_score_status_blocked",
+      "message": "Informe a idade ou data de nascimento antes de iniciar o rastreio."
+    },
+    {
+      "id": "data_nascimento_futura_bloqueia",
+      "condition": "date_of_birth > current_date",
+      "severity": "blocking",
+      "action": "force_score_status_blocked",
+      "message": "Data de nascimento futura não é válida."
+    },
+    {
+      "id": "idade_negativa_bloqueia",
+      "condition": "age_years < 0",
+      "severity": "blocking",
+      "action": "force_score_status_blocked",
+      "message": "Idade inválida."
+    },
+    {
+      "id": "consentimento_responsavel_obrigatorio_menor",
+      "condition": "age_years < 18 AND responsible_consent != true",
+      "severity": "blocking",
+      "action": "force_score_status_blocked",
+      "message": "Consentimento do responsável é obrigatório para aplicação em menor de idade."
+    },
+    {
+      "id": "fora_faixa_bloqueia",
+      "condition": "age_years < 4 OR age_years > 17",
+      "severity": "blocking",
+      "action": "force_score_status_blocked",
+      "message": "Idade fora da faixa configurada para este rastreio."
+    },
+    {
+      "id": "bloquear_autorrelato_4_7",
+      "condition": "age_years >= 4 AND age_years <= 7 AND respondent_type == crianca_adolescente",
+      "severity": "blocking",
+      "action": "block_respondent_type",
+      "message": "Para 4 a 7 anos, apenas o responsável deve responder."
+    }
+  ],
+  "confidence_rules": [
+    {
+      "id": "cap_confidence_by_age_group",
+      "condition": "final_confidence > age_group.max_confidence",
+      "action": "cap_confidence_to_age_group_max",
+      "applies_to": [
+        "4_7_proxy_only",
+        "8_11_misto",
+        "12_14_adolescencia_inicial",
+        "15_17_adolescencia"
+      ]
+    },
+    {
+      "id": "reduce_confidence_if_recommended_responsavel_missing",
+      "condition": "age_group_id == 8_11_misto AND respondent_type == crianca_adolescente AND missing(responsavel_response)",
+      "action": "set_confidence_moderada",
+      "message": "Responsável recomendado para contextualizar a resposta de 8 a 11 anos."
+    },
+    {
+      "id": "set_confidence_moderada_for_parent_only_adolescent",
+      "condition": "age_years >= 12 AND age_years <= 17 AND respondent_type == responsavel AND missing(crianca_adolescente_response)",
+      "action": "set_confidence_moderada",
+      "message": "Em adolescentes, resposta apenas do responsável reduz confiança interpretativa."
+    }
+  ],
+  "routing_rules": [
+    {
+      "id": "route_4_7_to_parent_proxy",
+      "condition": "age_years >= 4 AND age_years <= 7",
+      "allowed_flow": "responsavel_proxy",
+      "blocked_flow": "crianca_adolescente_self_report"
+    },
+    {
+      "id": "route_8_17_to_self_report_or_parent",
+      "condition": "age_years >= 8 AND age_years <= 17",
+      "allowed_flow": "self_report_or_parent_with_age_guidance",
+      "blocked_flow": null
+    },
+    {
+      "id": "route_out_of_range_to_blocked",
+      "condition": "age_years < 4 OR age_years > 17",
+      "allowed_flow": "blocked",
+      "blocked_flow": "all_test_flows"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "age_group_id",
+      "type": "enum",
+      "allowed_values": [
+        "4_7_proxy_only",
+        "8_11_misto",
+        "12_14_adolescencia_inicial",
+        "15_17_adolescencia",
+        "fora_faixa"
+      ],
+      "description": "Faixa etária operacional."
+    },
+    {
+      "id": "allowed_respondents",
+      "type": "array",
+      "description": "Informantes permitidos para a idade."
+    },
+    {
+      "id": "blocked_respondents",
+      "type": "array",
+      "description": "Informantes bloqueados para a idade."
+    },
+    {
+      "id": "max_confidence",
+      "type": "enum",
+      "allowed_values": [
+        "baixa",
+        "moderada",
+        "maior",
+        null
+      ],
+      "description": "Teto de confiança interpretativa por idade."
+    },
+    {
+      "id": "score_status",
+      "type": "enum",
+      "allowed_values": [
+        "complete",
+        "incomplete",
+        "blocked"
+      ],
+      "description": "Estado de elegibilidade para consumo pelo arquivo de cutoffs."
+    },
+    {
+      "id": "referral_modifier",
+      "type": "object",
+      "description": "Modificador interpretativo ou de encaminhamento baseado na idade."
+    }
+  ],
+  "clinical_guardrails": [
+    "Não aplicar o pacote SCARED infantil fora de 4 a 17 anos.",
+    "Para 4 a 7 anos, usar somente resposta do responsável como proxy adaptado dos construtos.",
+    "Para 8 a 11 anos, autorrelato deve ter linguagem apoiada e a resposta do responsável é recomendada.",
+    "Para adolescentes, autorrelato é preferencial; resposta apenas do responsável deve reduzir confiança interpretativa.",
+    "Consentimento do responsável é obrigatório para menores de idade.",
+    "Regras de red flag continuam prioritárias em qualquer faixa elegível."
+  ]
+}

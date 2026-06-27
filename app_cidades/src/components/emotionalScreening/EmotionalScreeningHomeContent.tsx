@@ -28,9 +28,13 @@ import { EmotionalScreeningSessionDrawer } from './EmotionalScreeningSessionDraw
 import { EmotionalScreeningTestsTab } from './EmotionalScreeningTestsTab'
 import { TdahTodInfantilFlow } from '../tdahTodInfantil/TdahTodInfantilFlow'
 import { TdahTodInfantilResultDrawer } from '../tdahTodInfantil/TdahTodInfantilResultDrawer'
+import { ScaredInfantilFlow } from '../scaredInfantil/ScaredInfantilFlow'
+import { ScaredInfantilResultDrawer } from '../scaredInfantil/ScaredInfantilResultDrawer'
 import type { EmotionalScreeningHistoryItem } from './emotionalScreeningHistoryTypes'
 import type { TdahTodEngineResult } from '../../tdahTodInfantil/types'
+import type { ScaredEngineResult } from '../../scaredInfantil/types'
 import { normalizeTdahTodEngineResult } from '../../tdahTodInfantil/normalizeResult'
+import { normalizeScaredEngineResult } from '../../scaredInfantil/normalizeResult'
 
 const SEGMENT_PAGES: EmotionalScreeningTab[] = ['tests', 'history']
 
@@ -72,6 +76,9 @@ export function EmotionalScreeningHomeContent({
   const [tdahTodFlowVisible, setTdahTodFlowVisible] = useState(false)
   const [tdahTodResultVisible, setTdahTodResultVisible] = useState(false)
   const [activeTdahTodResult, setActiveTdahTodResult] = useState<TdahTodEngineResult | null>(null)
+  const [scaredFlowVisible, setScaredFlowVisible] = useState(false)
+  const [scaredResultVisible, setScaredResultVisible] = useState(false)
+  const [activeScaredResult, setActiveScaredResult] = useState<ScaredEngineResult | null>(null)
 
   const segmentPagerRef = useRef<FlatList<EmotionalScreeningTab>>(null)
   const segmentPagerIndexRef = useRef(0)
@@ -100,6 +107,10 @@ export function EmotionalScreeningHomeContent({
     const start = () => {
       if (instrumentId === 'snap-iv') {
         setTdahTodFlowVisible(true)
+        return
+      }
+      if (instrumentId === 'scared') {
+        setScaredFlowVisible(true)
         return
       }
       setSelectedInstrument(instrument)
@@ -142,6 +153,12 @@ export function EmotionalScreeningHomeContent({
     if (item.kind === 'tdah-tod') {
       setActiveTdahTodResult(normalizeTdahTodEngineResult(item.session.result))
       setTdahTodResultVisible(true)
+      return
+    }
+
+    if (item.kind === 'scared') {
+      setActiveScaredResult(normalizeScaredEngineResult(item.session.result))
+      setScaredResultVisible(true)
       return
     }
 
@@ -253,6 +270,24 @@ export function EmotionalScreeningHomeContent({
         onClose={() => {
           setTdahTodResultVisible(false)
           setActiveTdahTodResult(null)
+        }}
+      />
+
+      <ScaredInfantilResultDrawer
+        visible={scaredResultVisible}
+        result={activeScaredResult}
+        onClose={() => {
+          setScaredResultVisible(false)
+          setActiveScaredResult(null)
+        }}
+      />
+
+      <ScaredInfantilFlow
+        visible={scaredFlowVisible}
+        patientCpf={patientCpf}
+        onClose={() => setScaredFlowVisible(false)}
+        onCompleted={() => {
+          onRefresh()
         }}
       />
     </View>

@@ -383,12 +383,13 @@ export const EMOTIONAL_SCREENING_INSTRUMENTS: EmotionalScreeningInstrument[] = [
     audience: 'child_adolescent',
     audienceLabel: 'Crianças e adolescentes',
     instrumentCode: 'SCARED',
-    estimatedMinutes: 4,
+    estimatedMinutes: 15,
     icon: 'emoticon-sad-outline',
     accent: ['#86efac', '#16a34a'],
-    intro: 'Triagem de ansiedade em crianças e adolescentes. Pode ser respondida com apoio de um adulto.',
+    intro:
+      'Triagem completa com SCARED 41, prejuízo funcional, alertas de segurança e fatores associados. Pode ser respondida com apoio de um adulto.',
     questions: SCARED_QUESTIONS,
-    available: false,
+    available: true,
   },
   {
     id: 'psc-17',
