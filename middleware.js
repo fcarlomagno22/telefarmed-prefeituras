@@ -1,12 +1,12 @@
 import { rewrite } from '@vercel/functions'
 
-const ROOT_DOMAIN = process.env.PUBLIC_ROOT_DOMAIN?.trim() || 'telefarmed.com.br'
+const ROOT_DOMAIN = 'telefarmed.com.br'
 
-function normalizeHostname(hostname: string): string {
-  return hostname.toLowerCase().split(':')[0] ?? hostname
+function normalizeHostname(hostname) {
+  return (hostname || '').toLowerCase().split(':')[0]
 }
 
-function isAppCidadesHost(hostname: string): boolean {
+function isAppCidadesHost(hostname) {
   const host = normalizeHostname(hostname)
 
   if (host.endsWith('.localhost')) {
@@ -23,7 +23,7 @@ function isAppCidadesHost(hostname: string): boolean {
   return slug === 'vd' || slug.startsWith('vd-')
 }
 
-function isAppCidadesStaticAsset(pathname: string): boolean {
+function isAppCidadesStaticAsset(pathname) {
   return (
     pathname.startsWith('/_expo/') ||
     pathname.startsWith('/assets/') ||
@@ -35,7 +35,7 @@ function isAppCidadesStaticAsset(pathname: string): boolean {
   )
 }
 
-export default function middleware(request: Request) {
+export default function middleware(request) {
   const hostname = request.headers.get('host') ?? ''
   if (!isAppCidadesHost(hostname)) return
 
