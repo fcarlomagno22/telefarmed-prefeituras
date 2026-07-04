@@ -20,6 +20,42 @@ export function isPwaStandalone(): boolean {
   )
 }
 
+export function shouldUseAndroidPwaImmersive(): boolean {
+  return isAndroidWeb() && isPwaStandalone()
+}
+
+function isAlreadyFullscreen(): boolean {
+  if (typeof document === 'undefined') return false
+
+  const doc = document as Document & { webkitFullscreenElement?: Element | null }
+  return Boolean(doc.fullscreenElement ?? doc.webkitFullscreenElement)
+}
+
+/** Esconde a barra de 3 botões no Android PWA (meta tags não funcionam nesse modo). */
+export function requestAndroidPwaFullscreen(): Promise<void> {
+  if (typeof document === 'undefined') {
+    return Promise.reject(new Error('no document'))
+  }
+  if (isAlreadyFullscreen()) {
+    return Promise.resolve()
+  }
+
+  const el = document.documentElement
+  const webkitEl = el as HTMLElement & { webkitRequestFullscreen?: () => Promise<void> }
+  const reqFullscreen =
+    el.requestFullscreen?.bind(el) ?? webkitEl.webkitRequestFullscreen?.bind(el)
+
+  if (!reqFullscreen) {
+    return Promise.reject(new Error('fullscreen unavailable'))
+  }
+
+  try {
+    return reqFullscreen({ navigationUI: 'hide' } as FullscreenOptions)
+  } catch {
+    return reqFullscreen()
+  }
+}
+
 export function upsertWebMeta(name: string, content: string) {
   if (typeof document === 'undefined') return
 
@@ -100,13 +136,19 @@ function ensureWebChromeStyles(appBackground: string) {
       min-height: 100%;
       min-height: 100dvh;
     }
+    @media (display-mode: fullscreen) {
+      html {
+        padding-top: env(safe-area-inset-top, 0px);
+      }
+    }
   `
 }
 
 /**
  * Android PWA standalone:
  * - theme-color → barra de status (topo)
- * - meta color-scheme=dark → barra de navegação (base) — NÃO usar media queries no theme-color
+ * - meta color-scheme=dark → barra de navegação com gestos
+ * - navegação 3-botões ignora meta/CSS — use requestAndroidPwaFullscreen()
  */
 export function applyWebChromeColor(
   chromeColor: string = WEB_CHROME_COLOR,

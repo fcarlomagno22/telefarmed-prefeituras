@@ -9,6 +9,7 @@ import { ThemeProvider } from './src/contexts/ThemeContext'
 import { OverlayPortalProvider } from './src/contexts/OverlayPortalContext'
 import { useAndroidBackHandler } from './src/hooks/useAndroidBackHandler'
 import { useAndroidNavigationBar } from './src/hooks/useAndroidNavigationBar'
+import { useAndroidPwaImmersive } from './src/hooks/useAndroidPwaImmersive'
 import { colors } from './src/theme/colors'
 import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen'
 import { HomeScreen } from './src/screens/HomeScreen'
@@ -115,6 +116,7 @@ function AppRouter() {
 
 export default function App() {
   useAndroidNavigationBar()
+  useAndroidPwaImmersive()
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
