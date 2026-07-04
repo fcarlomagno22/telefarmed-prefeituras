@@ -7,7 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { StatusBar } from 'expo-status-bar'
 import { VideoView, useVideoPlayer } from 'expo-video'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
   configureRegistrationVideoPlayer,
@@ -132,7 +132,7 @@ export function RegisterPresentationVideoOverlay({
       <StatusBar hidden />
       <View style={styles.container}>
         <VideoView
-          style={styles.video}
+          style={Platform.OS === 'web' ? styles.videoWeb : styles.video}
           player={player}
           {...videoViewProps}
           onFirstFrameRender={() => setIsLoading(false)}
@@ -183,6 +183,12 @@ const styles = StyleSheet.create({
   },
   video: {
     ...StyleSheet.absoluteFillObject,
+  },
+  videoWeb: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    alignSelf: 'center',
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,

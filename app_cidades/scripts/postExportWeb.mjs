@@ -75,5 +75,30 @@ if (!html.includes('background-color: #0a0a0c')) {
   html = html.replace(/color-scheme:\s*dark;/g, 'color-scheme: dark only;')
 }
 
+if (!html.includes('#root input,')) {
+  html = html.replace(
+    '</style>',
+    `      #root input,
+      #root textarea {
+        outline: none !important;
+        outline-width: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        background-color: transparent !important;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      #root input:focus,
+      #root input:focus-visible,
+      #root textarea:focus,
+      #root textarea:focus-visible {
+        outline: none !important;
+        box-shadow: none !important;
+        border: none !important;
+      }
+    </style>`,
+  )
+}
+
 writeFileSync(indexPath, html)
 console.log('postExportWeb: PWA assets copiados e index.html atualizado.')

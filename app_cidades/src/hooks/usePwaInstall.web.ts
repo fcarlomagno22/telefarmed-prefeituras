@@ -3,6 +3,7 @@ import type { PwaInstallMode } from '../utils/pwaInstall.types'
 import type { BeforeInstallPromptEvent } from '../utils/pwaInstall.web'
 import {
   isIosWeb,
+  isPwaStandalone,
   markPwaInstallDismissed,
   registerPwaServiceWorker,
   resolvePwaInstallMode,
@@ -30,6 +31,11 @@ export function usePwaInstall(): UsePwaInstallResult {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+
+    if (isPwaStandalone()) {
+      setVisible(false)
+      return
+    }
 
     registerPwaServiceWorker()
 

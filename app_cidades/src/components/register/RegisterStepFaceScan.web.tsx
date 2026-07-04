@@ -23,7 +23,6 @@ import { CameraPermissionSheet } from '../CameraPermissionSheet'
 import { formStyles } from '../AppShell'
 import { PrimaryButton } from '../PrimaryButton'
 import { RegisterTimeline } from './RegisterTimeline'
-import { RegisterFaceVerificationLimitations } from './RegisterFaceVerificationLimitations'
 import { colors } from '../../theme/colors'
 import {
   ringColor,
@@ -296,12 +295,6 @@ export function RegisterStepFaceScan({
       <>
         <RegisterTimeline currentStep={3} />
         <Text style={formStyles.stepTitle}>{faceVerification.stepTitle}</Text>
-        <Text style={formStyles.stepSubtitle}>{faceVerification.stepSubtitle}</Text>
-
-        <RegisterFaceVerificationLimitations
-          notice={faceVerification.platformNotice}
-          limitations={faceVerification.limitations}
-        />
 
         {environmentError ? (
           <View style={formStyles.errorBox}>
@@ -364,14 +357,6 @@ export function RegisterStepFaceScan({
     <>
       <RegisterTimeline currentStep={3} />
       <Text style={formStyles.stepTitle}>{faceVerification.stepTitle}</Text>
-      <Text style={formStyles.stepSubtitle}>{faceVerification.stepSubtitle}</Text>
-
-      {phase === 'camera' ? (
-        <RegisterFaceVerificationLimitations
-          notice={faceVerification.platformNotice}
-          limitations={faceVerification.limitations}
-        />
-      ) : null}
 
       {error ? (
         <View style={formStyles.errorBox}>

@@ -116,14 +116,6 @@ function ActiveTabContent({ tab }: { tab: TabConfig }) {
             <TabIcon tab={tab} active size={21} color="#fff" />
           </LinearGradient>
         </View>
-
-        <LinearGradient
-          colors={['transparent', colors.primaryLight, colors.primary, 'transparent']}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={styles.activeIndicator}
-          pointerEvents="none"
-        />
       </LinearGradient>
     </View>
   )
@@ -302,17 +294,16 @@ const styles = StyleSheet.create({
   },
   activeCapsuleBg: {
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 6,
     paddingHorizontal: 8,
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 133, 51, 0.35)',
-    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: colors.primaryLight,
   },
   activeIconOuter: {
     padding: 2,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   activeIconGradient: {
     width: 38,
@@ -335,14 +326,6 @@ const styles = StyleSheet.create({
     height: '52%',
     borderTopLeftRadius: 19,
     borderTopRightRadius: 19,
-  },
-  activeIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    left: '18%',
-    right: '18%',
-    height: 2,
-    borderRadius: 1,
   },
   iconSlot: {
     width: 42,

@@ -142,6 +142,25 @@ function ensureWebChromeStyles(appBackground: string) {
         padding-top: env(safe-area-inset-top, 0px);
       }
     }
+    #root input,
+    #root textarea {
+      outline: none !important;
+      outline-width: 0 !important;
+      outline-style: none !important;
+      box-shadow: none !important;
+      border: none !important;
+      background-color: transparent !important;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    #root input:focus,
+    #root input:focus-visible,
+    #root textarea:focus,
+    #root textarea:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
   `
 }
 

@@ -15,12 +15,7 @@
  */
 import type { RegisterFaceVerificationCapabilities } from './registerFaceVerification.types'
 
-export const REGISTER_FACE_VERIFICATION_WEB_LIMITATIONS: readonly string[] = [
-  'Sem detecção facial automática no navegador (ML nativo não está disponível na web).',
-  'Sem validação de enquadramento, múltiplos rostos ou qualidade da imagem.',
-  'Câmera ao vivo exige HTTPS ou localhost e permissão explícita do navegador.',
-  'Alternativa: enviar uma foto existente do dispositivo quando a câmera falhar.',
-]
+export const REGISTER_FACE_VERIFICATION_WEB_LIMITATIONS: readonly string[] = []
 
 export const registerFaceVerification: RegisterFaceVerificationCapabilities = {
   mode: 'manual_selfie_with_gallery_fallback',
@@ -28,12 +23,10 @@ export const registerFaceVerification: RegisterFaceVerificationCapabilities = {
   supportsLiveCamera: true,
   supportsGalleryUpload: true,
   limitations: REGISTER_FACE_VERIFICATION_WEB_LIMITATIONS,
-  stepTitle: 'Verificação facial (web)',
-  stepSubtitle:
-    'Tire uma selfie frontal ou envie uma foto do dispositivo. No navegador a captura é manual e não usamos scanner biométrico automático.',
-  platformNotice:
-    'Versão web: selfie manual ou upload de foto. Detecção facial automática do app mobile não se aplica aqui.',
-  previewBadgeText: 'Foto registrada (verificação manual na web)',
+  stepTitle: 'Faça sua Identificação Facial',
+  stepSubtitle: '',
+  platformNotice: null,
+  previewBadgeText: 'Identificação registrada',
 }
 
 export function getRegisterFaceScanWebEnvironmentError(): string | null {

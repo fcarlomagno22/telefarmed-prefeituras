@@ -95,6 +95,14 @@ export const formStyles = StyleSheet.create({
     color: colors.text,
     fontSize: 16,
     paddingVertical: 13,
+    ...(Platform.OS === 'web'
+      ? ({
+          outlineStyle: 'none',
+          outlineWidth: 0,
+          borderWidth: 0,
+          boxShadow: 'none',
+        } as object)
+      : null),
   },
   inputReadOnly: {
     color: colors.textMuted,

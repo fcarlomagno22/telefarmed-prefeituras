@@ -35,7 +35,7 @@ export function getRegistrationVideoViewProps() {
     nativeControls: false,
     allowsFullscreen: false,
     allowsPictureInPicture: false,
-    contentFit: 'cover' as const,
+    contentFit: 'contain' as const,
     playsInline: true,
   }
 }
