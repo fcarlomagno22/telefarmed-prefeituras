@@ -1,9 +1,11 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useBottomTabInset } from '../hooks/useBottomTabInset'
 import { colors } from '../theme/colors'
+
+const IS_WEB = Platform.OS === 'web'
 
 export type BottomTabId =
   | 'menu'
@@ -84,7 +86,7 @@ function TabIcon({
 
 function ActiveTabContent({ tab }: { tab: TabConfig }) {
   return (
-    <View style={styles.activeCapsule}>
+    <View style={[styles.activeCapsule, IS_WEB && styles.activeCapsuleWeb]}>
       <View style={styles.activeGlow} pointerEvents="none" />
 
       <LinearGradient
@@ -130,7 +132,7 @@ function ActiveTabContent({ tab }: { tab: TabConfig }) {
 function TabLabel({ tab }: { tab: TabConfig }) {
   if (tab.labelLines) {
     return (
-      <View style={styles.labelStackRaised}>
+      <View style={[styles.labelStackRaised, IS_WEB && styles.labelStackWeb]}>
         <Text style={styles.labelLine} numberOfLines={1}>
           {tab.labelLines[0]}
         </Text>
@@ -160,7 +162,11 @@ function TabItem({
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.tab, pressed && styles.tabPressed]}
+      style={({ pressed }) => [
+        styles.tab,
+        IS_WEB && styles.tabWeb,
+        pressed && styles.tabPressed,
+      ]}
       accessibilityRole="tab"
       accessibilityState={{ selected: isActive }}
       accessibilityLabel={tab.label}
@@ -168,7 +174,7 @@ function TabItem({
       {isActive ? (
         <ActiveTabContent tab={tab} />
       ) : (
-        <View style={styles.inactiveWrap}>
+        <View style={[styles.inactiveWrap, IS_WEB && styles.inactiveWrapWeb]}>
           <View style={styles.iconSlot}>
             <TabIcon tab={tab} active={false} size={22} color={colors.textMuted} />
           </View>
@@ -202,7 +208,7 @@ export function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
         end={{ x: 0.5, y: 1 }}
         style={styles.dock}
       >
-        <View style={[styles.tabRow, { paddingBottom: bottomInset }]}>
+        <View style={[styles.tabRow, IS_WEB && styles.tabRowWeb, { paddingBottom: bottomInset }]}>
           {TABS.map((tab) => (
             <TabItem
               key={tab.id}
@@ -244,11 +250,20 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     minHeight: 64,
   },
+  tabRowWeb: {
+    alignItems: 'center',
+    paddingTop: 8,
+    minHeight: 70,
+  },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingHorizontal: 1,
+  },
+  tabWeb: {
+    justifyContent: 'center',
+    minHeight: 64,
   },
   tabPressed: {
     opacity: 0.9,
@@ -260,10 +275,20 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     minHeight: 58,
   },
+  inactiveWrapWeb: {
+    justifyContent: 'center',
+    paddingTop: 0,
+    minHeight: 64,
+  },
   activeCapsule: {
     alignItems: 'center',
     paddingTop: 4,
     minHeight: 58,
+  },
+  activeCapsuleWeb: {
+    justifyContent: 'center',
+    paddingTop: 0,
+    minHeight: 64,
   },
   activeGlow: {
     position: 'absolute',
@@ -337,6 +362,9 @@ const styles = StyleSheet.create({
   labelStackRaised: {
     alignItems: 'center',
     marginTop: -12,
+  },
+  labelStackWeb: {
+    marginTop: 0,
   },
   labelLine: {
     color: colors.textSubtle,
