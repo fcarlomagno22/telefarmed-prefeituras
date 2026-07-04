@@ -1,4 +1,8 @@
-import * as Location from 'expo-location'
+import { reverseGeocodeAsync } from '../adapters/appLocation'
+import {
+  extractActivityPlaceFromGeocoded,
+  isValidReverseGeocodeCoordinates,
+} from '../adapters/reverseGeocodeShared'
 
 export type ActivityPlace = {
   city: string | null
@@ -9,15 +13,16 @@ export async function resolveActivityPlace(
   latitude: number,
   longitude: number,
 ): Promise<ActivityPlace> {
+  if (!isValidReverseGeocodeCoordinates(latitude, longitude)) {
+    return { city: null, state: null }
+  }
+
   try {
-    const results = await Location.reverseGeocodeAsync({ latitude, longitude })
+    const results = await reverseGeocodeAsync({ latitude, longitude })
     const place = results[0]
     if (!place) return { city: null, state: null }
 
-    return {
-      city: place.city ?? place.subregion ?? place.district ?? null,
-      state: place.region ?? null,
-    }
+    return extractActivityPlaceFromGeocoded(place)
   } catch {
     return { city: null, state: null }
   }

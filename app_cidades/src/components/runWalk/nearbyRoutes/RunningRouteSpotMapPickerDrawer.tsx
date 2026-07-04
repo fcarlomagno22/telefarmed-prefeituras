@@ -1,4 +1,8 @@
-import * as Location from 'expo-location'
+import {
+  Accuracy,
+  getCurrentPositionAsync,
+  requestForegroundPermissionsAsync,
+} from '../../../adapters/appLocation'
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../../theme/colors'
@@ -69,7 +73,7 @@ export function RunningRouteSpotMapPickerDrawer({
       setLocationError(null)
 
       try {
-        const permission = await Location.requestForegroundPermissionsAsync()
+        const permission = await requestForegroundPermissionsAsync()
         if (cancelled) return
 
         if (!permission.granted) {
@@ -77,8 +81,8 @@ export function RunningRouteSpotMapPickerDrawer({
           return
         }
 
-        const position = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
+        const position = await getCurrentPositionAsync({
+          accuracy: Accuracy.Balanced,
         })
         if (cancelled) return
 

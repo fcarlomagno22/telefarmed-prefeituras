@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import * as Haptics from 'expo-haptics'
-import * as ImagePicker from 'expo-image-picker'
+import { pickAppImage } from '../../adapters/appImagePicker'
 import { useEffect, useState } from 'react'
 import { Alert, Pressable, StyleSheet, View } from 'react-native'
 import { useAuth } from '../../contexts/AuthContext'
@@ -53,38 +53,29 @@ export function ProfileAvatar({ selfieUri }: ProfileAvatarProps) {
   }
 
   async function pickImage(source: ProfilePhotoReplaceSource) {
-    const permission =
-      source === 'camera'
-        ? await ImagePicker.requestCameraPermissionsAsync()
-        : await ImagePicker.requestMediaLibraryPermissionsAsync()
+    const result = await pickAppImage({
+      source: source === 'camera' ? 'camera' : 'library',
+      quality: 0.85,
+      cameraFacing: 'front',
+    })
 
-    if (!permission.granted) {
-      Alert.alert(
-        'Permissão necessária',
-        source === 'camera'
-          ? 'Precisamos da câmera para tirar uma nova foto.'
-          : 'Precisamos acessar sua galeria para escolher uma foto.',
-      )
+    if (!result.ok) {
+      if (result.reason === 'permission_denied') {
+        Alert.alert(
+          'Permissão necessária',
+          source === 'camera'
+            ? 'Precisamos da câmera para tirar uma nova foto.'
+            : 'Precisamos acessar sua galeria para escolher uma foto.',
+        )
+        return
+      }
+
+      if (result.reason === 'unavailable' && result.message) {
+        Alert.alert('Indisponível', result.message)
+      }
       return
     }
 
-    const result =
-      source === 'camera'
-        ? await ImagePicker.launchCameraAsync({
-            mediaTypes: ['images'],
-            allowsEditing: false,
-            quality: 0.85,
-            cameraType: ImagePicker.CameraType.front,
-          })
-        : await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images'],
-            allowsEditing: false,
-            quality: 0.85,
-          })
-
-    if (result.canceled || !result.assets[0]?.uri) return
-
-    const asset = result.assets[0]
     setReplaceVisible(false)
     setCropVisible(true)
     setIsPreparingCrop(true)
@@ -93,9 +84,9 @@ export function ProfileAvatar({ selfieUri }: ProfileAvatarProps) {
 
     try {
       const prepared = await prepareProfilePhotoSource(
-        asset.uri,
-        asset.width,
-        asset.height,
+        result.uri,
+        result.width,
+        result.height,
       )
       setPendingCropUri(prepared.uri)
       setPendingCropSize({ width: prepared.width, height: prepared.height })

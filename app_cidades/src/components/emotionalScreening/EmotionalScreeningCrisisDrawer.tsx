@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { openAppPhoneCall } from '../../adapters/appLinking'
 import { useAndroidBackHandler } from '../../hooks/useAndroidBackHandler'
 import { colors } from '../../theme/colors'
 import { EMOTIONAL_SCREENING_DISCLAIMER } from '../../types/emotionalScreening'
@@ -15,9 +16,7 @@ type EmotionalScreeningCrisisDrawerProps = {
 }
 
 function dialPhone(phone: string) {
-  const digits = phone.replace(/\D/g, '')
-  if (!digits) return
-  void Linking.openURL(`tel:${digits}`)
+  void openAppPhoneCall(phone)
 }
 
 export function EmotionalScreeningCrisisDrawer({

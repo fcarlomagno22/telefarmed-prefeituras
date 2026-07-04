@@ -6,15 +6,26 @@ import { formatScheduleDayLabel } from '../../utils/scheduleDate'
 import { colors } from '../../theme/colors'
 import { AuthUser } from '../../types/auth'
 import { scheduleDoctors } from '../../data/mockScheduleCatalog'
+import { PrimaryButton } from '../PrimaryButton'
 import { ScheduleStepTitle } from './ScheduleStepTitle'
 
 type ScheduleConfirmStepProps = {
   user: AuthUser
   draft: ScheduleAppointmentDraft
   onBack?: () => void
+  onConfirm: () => void
+  isSubmitting?: boolean
+  submitError?: string | null
 }
 
-export function ScheduleConfirmStep({ user, draft, onBack }: ScheduleConfirmStepProps) {
+export function ScheduleConfirmStep({
+  user,
+  draft,
+  onBack,
+  onConfirm,
+  isSubmitting = false,
+  submitError = null,
+}: ScheduleConfirmStepProps) {
   const doctor = scheduleDoctors.find((d) => d.id === draft.selectedDoctorId)
 
   return (
@@ -103,12 +114,25 @@ export function ScheduleConfirmStep({ user, draft, onBack }: ScheduleConfirmStep
           Chegue com 15 minutos de antecedência e leve documento com foto.
         </Text>
       </View>
+
+      {submitError ? <Text style={styles.errorText}>{submitError}</Text> : null}
+
+      <View style={styles.actions}>
+        <PrimaryButton
+          label={isSubmitting ? 'Agendando…' : 'Confirmar consulta'}
+          onPress={onConfirm}
+          loading={isSubmitting}
+          disabled={isSubmitting}
+        />
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   wrap: {
+    flex: 1,
+    width: '100%',
     gap: 14,
   },
   description: {
@@ -226,5 +250,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     lineHeight: 17,
+  },
+  actions: {
+    width: '100%',
+    marginTop: 4,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 })

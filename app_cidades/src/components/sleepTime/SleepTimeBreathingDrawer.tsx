@@ -1,6 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
-import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
+import {
+  activateAppKeepAwakeAsync,
+  deactivateAppKeepAwake,
+} from '../../adapters/appKeepAwake'
 import LottieView from 'lottie-react-native'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
@@ -201,12 +204,12 @@ export function SleepTimeBreathingDrawer({ visible, onClose }: SleepTimeBreathin
       return
     }
 
-    void activateKeepAwakeAsync('sleep-breathing-session')
+    void activateAppKeepAwakeAsync('sleep-breathing-session')
     startSession()
 
     return () => {
       stopSession()
-      deactivateKeepAwake('sleep-breathing-session')
+      void deactivateAppKeepAwake('sleep-breathing-session')
     }
   }, [visible, startSession, stopSession])
 

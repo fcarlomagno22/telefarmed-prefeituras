@@ -1,7 +1,8 @@
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, Linking, StyleSheet, View } from 'react-native'
+import { ActivityIndicator, StyleSheet, View } from 'react-native'
+import { openAppPhoneCall } from '../adapters/appLinking'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AppointmentDirectionsDrawer } from '../components/appointments/AppointmentDirectionsDrawer'
 import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
@@ -133,7 +134,7 @@ export function NearbyUnitsScreen() {
       void (async () => {
         if (!ubt.phone) return
         const phone = ubt.phone.replace(/\D/g, '')
-        await Linking.openURL(`tel:${phone}`)
+        await openAppPhoneCall(phone)
       })()
     })
   }

@@ -11,6 +11,7 @@ import {
   IntegrationConnectionState,
   IntegrationId,
 } from '../../types/healthIntegrations'
+import { HealthIntegrationBrandIcon } from './HealthIntegrationBrandIcon'
 import { HealthIntegrationConnectDrawer } from './HealthIntegrationConnectDrawer'
 import { SkeletonBone } from '../SkeletonBone'
 
@@ -26,24 +27,6 @@ function formatLastSync(timestamp: number): string {
   if (diffMin < 1) return 'Agora mesmo'
   if (diffMin === 1) return 'há 1 min'
   return `há ${diffMin} min`
-}
-
-function IntegrationIcon({
-  integration,
-  size = 22,
-}: {
-  integration: HealthIntegrationConfig
-  size?: number
-}) {
-  return integration.iconFamily === 'ionicons' ? (
-    <Ionicons name={integration.icon as keyof typeof Ionicons.glyphMap} size={size} color="#fff" />
-  ) : (
-    <MaterialCommunityIcons
-      name={integration.icon as keyof typeof MaterialCommunityIcons.glyphMap}
-      size={size - 2}
-      color="#fff"
-    />
-  )
 }
 
 function IntegrationRow({
@@ -75,7 +58,7 @@ function IntegrationRow({
         end={{ x: 0.85, y: 1 }}
         style={styles.integrationIconOrb}
       >
-        <IntegrationIcon integration={integration} />
+        <HealthIntegrationBrandIcon integration={integration} />
       </LinearGradient>
 
       <View style={styles.integrationTextCol}>

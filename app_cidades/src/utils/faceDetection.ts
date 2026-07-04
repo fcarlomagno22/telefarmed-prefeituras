@@ -1,11 +1,7 @@
-import { requireOptionalNativeModule } from 'expo-modules-core'
+import { checkFaceAsync, isFaceCheckSupported } from '../adapters/faceCheck'
+import type { FaceBounds } from '../adapters/faceCheck.types'
 
-export type FaceBounds = {
-  x: number
-  y: number
-  width: number
-  height: number
-}
+export type { FaceBounds } from '../adapters/faceCheck.types'
 
 export type FrameFaceReason =
   | 'no_face'
@@ -18,32 +14,8 @@ export type FrameFaceResult =
   | { ok: true; bounds: FaceBounds }
   | { ok: false; reason: FrameFaceReason }
 
-type FaceCheckResult = {
-  status: 'READY' | 'NO_FACE' | 'MULTIPLE_FACES' | 'LOW_QUALITY'
-  faceCount: number
-  dominantFaceBounds?: FaceBounds
-}
-
-type CheckFaceOptions = {
-  minPixelSize?: number
-  areaThreshold?: number
-}
-
-type ExpoFaceCheckNativeModule = {
-  checkFace: (imageUri: string, options: CheckFaceOptions) => Promise<FaceCheckResult>
-}
-
-let faceCheckModule: ExpoFaceCheckNativeModule | null | undefined
-
-function getFaceCheckModule(): ExpoFaceCheckNativeModule | null {
-  if (faceCheckModule !== undefined) return faceCheckModule
-
-  faceCheckModule = requireOptionalNativeModule<ExpoFaceCheckNativeModule>('ExpoFaceCheck')
-  return faceCheckModule
-}
-
 export function isFaceDetectionAvailable(): boolean {
-  return getFaceCheckModule() != null
+  return isFaceCheckSupported()
 }
 
 function isFaceWellPositioned(
@@ -70,13 +42,12 @@ export async function analyzeCameraFrame(
   width: number,
   height: number,
 ): Promise<FrameFaceResult> {
-  const module = getFaceCheckModule()
-  if (!module) {
+  if (!isFaceCheckSupported()) {
     return { ok: false, reason: 'unavailable' }
   }
 
   try {
-    const result = await module.checkFace(uri, {
+    const result = await checkFaceAsync(uri, {
       minPixelSize: 36_000,
       areaThreshold: 0.2,
     })

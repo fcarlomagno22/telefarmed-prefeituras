@@ -1,7 +1,10 @@
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
-import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
+import {
+  activateAppKeepAwakeAsync,
+  deactivateAppKeepAwake,
+} from '../../adapters/appKeepAwake'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Pressable,
@@ -111,11 +114,11 @@ export function MentalHealthActivitySession({
   useEffect(() => {
     if (!visible) {
       resetSession()
-      void deactivateKeepAwake()
+      void deactivateAppKeepAwake()
       return
     }
 
-    void activateKeepAwakeAsync()
+    void activateAppKeepAwakeAsync()
     resetSession()
   }, [activityId, planDate, resetSession, visible])
 
@@ -200,7 +203,7 @@ export function MentalHealthActivitySession({
   function handleExitDrawerConfirm() {
     const variant = exitDrawer
     setExitDrawer(null)
-    void deactivateKeepAwake()
+    void deactivateAppKeepAwake()
     onClose()
     if (variant === 'support') {
       onNotFeelingWell()
@@ -236,7 +239,7 @@ export function MentalHealthActivitySession({
   }
 
   function handleDoneClose() {
-    void deactivateKeepAwake()
+    void deactivateAppKeepAwake()
     onClose()
   }
 

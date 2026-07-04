@@ -79,6 +79,21 @@ export function HomeScreen() {
   function handlePromoBannerPress(banner: PromoBanner) {
     if (banner.kind === 'child-behavior-screening') {
       requireAuth('home:child-behavior-screening', () => navigateTo('my-emotional'))
+      return
+    }
+
+    if (banner.kind === 'themed-image') {
+      if (banner.targetRoute === 'run-walk') {
+        navigateTo('run-walk')
+        return
+      }
+
+      if (banner.targetRoute === 'eat-well') {
+        navigateTo('eat-well')
+        return
+      }
+
+      navigateTo('mental-health')
     }
   }
 

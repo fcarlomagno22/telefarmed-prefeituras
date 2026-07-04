@@ -1,9 +1,11 @@
 import {
-  createAudioPlayer,
-  setAudioModeAsync,
-  setIsAudioActiveAsync,
+  createAppAudioPlayer,
+  markAppAudioUserGesture,
+  playAppAudioPlayer,
+  setAppAudioActiveAsync,
+  setAppAudioModeAsync,
   type AudioPlayer,
-} from 'expo-audio'
+} from '../adapters/appAudio'
 
 const introSound = require('../../assets/sono/inicio_respirar.mp3')
 const inhaleSound = require('../../assets/sono/inspira.mp3')
@@ -21,8 +23,8 @@ let activePlayer: AudioPlayer | null = null
 let activeSubscription: { remove: () => void } | null = null
 
 async function ensureAudioMode() {
-  await setIsAudioActiveAsync(true)
-  await setAudioModeAsync({
+  await setAppAudioActiveAsync(true)
+  await setAppAudioModeAsync({
     playsInSilentMode: true,
     shouldPlayInBackground: false,
     interruptionMode: 'duckOthers',
@@ -73,11 +75,12 @@ export async function playSleepBreathingSound(
   soundId: SleepBreathingSoundId,
   onFinish?: () => void,
 ) {
+  markAppAudioUserGesture()
   try {
     await ensureAudioMode()
     clearActivePlayer()
 
-    const player = createAudioPlayer(SOUND_SOURCES[soundId], {
+    const player = createAppAudioPlayer(SOUND_SOURCES[soundId], {
       keepAudioSessionActive: true,
     })
     activePlayer = player
@@ -105,7 +108,7 @@ export async function playSleepBreathingSound(
 
     activeSubscription = subscription
     await waitUntilPlayerLoaded(player)
-    player.play()
+    playAppAudioPlayer(player)
   } catch {
     onFinish?.()
   }

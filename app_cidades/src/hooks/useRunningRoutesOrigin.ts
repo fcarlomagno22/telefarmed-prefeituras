@@ -1,4 +1,8 @@
-import * as Location from 'expo-location'
+import {
+  Accuracy,
+  getCurrentPositionAsync,
+  requestForegroundPermissionsAsync,
+} from '../adapters/appLocation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { RegistrationAddress } from '../types/auth'
 import type { RunningRoutesOrigin } from '../types/nearbyRunningRoutes'
@@ -26,7 +30,7 @@ export function useRunningRoutesOrigin({ address }: UseRunningRoutesOriginOption
     setLocationError(null)
 
     try {
-      const permission = await Location.requestForegroundPermissionsAsync()
+      const permission = await requestForegroundPermissionsAsync()
       if (!permission.granted) {
         setLocationError('Permita o acesso à localização para ver locais perto de você.')
         setCoordinates(homeCoordinates)
@@ -34,8 +38,8 @@ export function useRunningRoutesOrigin({ address }: UseRunningRoutesOriginOption
         return
       }
 
-      const position = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
+      const position = await getCurrentPositionAsync({
+        accuracy: Accuracy.Balanced,
       })
 
       const nextCoordinates = {

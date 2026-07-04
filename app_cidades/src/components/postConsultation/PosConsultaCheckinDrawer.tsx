@@ -45,6 +45,7 @@ export function PosConsultaCheckinDrawer({
   const [wizardStep, setWizardStep] = useState<
     'sintomas' | 'medicacao' | 'medicoes' | 'alertas' | 'success'
   >('sintomas')
+  const wasVisibleRef = useRef(false)
   const sheetTranslateY = useRef(new Animated.Value(SHEET_OFFSET)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
   const palette = ACTION_ICON_PALETTES.postConsultation
@@ -64,10 +65,16 @@ export function PosConsultaCheckinDrawer({
           : 'unavailable'
 
   useEffect(() => {
+    if (visible && !wasVisibleRef.current) {
+      setWizardStep('sintomas')
+      setSubmitError(null)
+    }
+    wasVisibleRef.current = visible
+  }, [visible])
+
+  useEffect(() => {
     if (visible && appointment && checkin && plan) {
       setIsMounted(true)
-      setSubmitError(null)
-      setWizardStep('sintomas')
       Animated.parallel([
         Animated.timing(backdropOpacity, {
           toValue: 1,
@@ -127,7 +134,6 @@ export function PosConsultaCheckinDrawer({
         checkin!,
         respostas,
       )
-      onSubmitted()
       return result.nextCheckinLabel
     } catch (error) {
       const message =
@@ -142,12 +148,58 @@ export function PosConsultaCheckinDrawer({
     onClose()
   }
 
+  function handleHeaderClose() {
+    if (isSuccessStep) {
+      handleSuccessClose()
+      return
+    }
+
+    onClose()
+  }
+
+  const drawerBody = (
+    <>
+      {mode === 'respond' ? (
+        <PosConsultaCheckinWizard
+          context={context}
+          submitError={submitError}
+          onSubmit={handleSubmit}
+          onSuccessClose={handleSuccessClose}
+          onStepChange={setWizardStep}
+        />
+      ) : null}
+
+      {mode === 'view' ? <PosConsultaCheckinAlreadyAnswered context={context} /> : null}
+
+      {mode === 'expired' ? (
+        <View style={styles.messageBlock}>
+          <Text style={styles.messageTitle}>Check-in expirado</Text>
+          <Text style={styles.messageText}>
+            O prazo para responder este check-in encerrou. Aguarde o próximo contato da equipe ou
+            verifique seu e-mail.
+          </Text>
+        </View>
+      ) : null}
+
+      {mode === 'unavailable' ? (
+        <View style={styles.messageBlock}>
+          <Text style={styles.messageTitle}>Ainda não disponível</Text>
+          <Text style={styles.messageText}>
+            {checkin.scheduledDateLabel
+              ? `Este check-in estará disponível em ${checkin.scheduledDateLabel}.`
+              : 'Este check-in ainda não está disponível para resposta.'}
+          </Text>
+        </View>
+      ) : null}
+    </>
+  )
+
   return (
-    <AppModal visible transparent animationType="none" onRequestClose={onClose}>
+    <AppModal visible transparent animationType="none" onRequestClose={handleHeaderClose}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
           <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
-          <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+          <Pressable style={StyleSheet.absoluteFillObject} onPress={handleHeaderClose} />
         </Animated.View>
 
         <KeyboardAvoidingView
@@ -184,7 +236,7 @@ export function PosConsultaCheckinDrawer({
                   : `Check-in ${checkin.checkinNumber} de ${plan.totalCheckins}`}
               </Text>
               <Pressable
-                onPress={onClose}
+                onPress={handleHeaderClose}
                 style={({ pressed }) => [styles.closeButton, pressed && styles.closeButtonPressed]}
                 accessibilityRole="button"
                 accessibilityLabel="Fechar"
@@ -193,51 +245,19 @@ export function PosConsultaCheckinDrawer({
               </Pressable>
             </View>
 
-            <ScrollView
-              style={styles.scroll}
-              contentContainerStyle={[
-                styles.scrollContent,
-                isSuccessStep && styles.scrollContentSuccess,
-              ]}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              bounces={false}
-              scrollEnabled={!isSuccessStep}
-              removeClippedSubviews={!isSuccessStep}
-            >
-              {mode === 'respond' ? (
-                <PosConsultaCheckinWizard
-                  context={context}
-                  submitError={submitError}
-                  onSubmit={handleSubmit}
-                  onSuccessClose={handleSuccessClose}
-                  onStepChange={setWizardStep}
-                />
-              ) : null}
-
-              {mode === 'view' ? <PosConsultaCheckinAlreadyAnswered context={context} /> : null}
-
-              {mode === 'expired' ? (
-                <View style={styles.messageBlock}>
-                  <Text style={styles.messageTitle}>Check-in expirado</Text>
-                  <Text style={styles.messageText}>
-                    O prazo para responder este check-in encerrou. Aguarde o próximo contato da
-                    equipe ou verifique seu e-mail.
-                  </Text>
-                </View>
-              ) : null}
-
-              {mode === 'unavailable' ? (
-                <View style={styles.messageBlock}>
-                  <Text style={styles.messageTitle}>Ainda não disponível</Text>
-                  <Text style={styles.messageText}>
-                    {checkin.scheduledDateLabel
-                      ? `Este check-in estará disponível em ${checkin.scheduledDateLabel}.`
-                      : 'Este check-in ainda não está disponível para resposta.'}
-                  </Text>
-                </View>
-              ) : null}
-            </ScrollView>
+            {isSuccessStep ? (
+              <View style={styles.successBody}>{drawerBody}</View>
+            ) : (
+              <ScrollView
+                style={styles.scroll}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                bounces={false}
+              >
+                {drawerBody}
+              </ScrollView>
+            )}
           </Animated.View>
         </KeyboardAvoidingView>
       </View>
@@ -315,11 +335,12 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     paddingTop: 4,
   },
-  scrollContentSuccess: {
-    flexGrow: 0,
-    paddingTop: 6,
-    paddingBottom: 4,
+  successBody: {
+    flexShrink: 0,
+    minHeight: 300,
     overflow: 'visible',
+    paddingTop: 6,
+    paddingBottom: 8,
   },
   messageBlock: {
     alignItems: 'center',

@@ -4,7 +4,6 @@ import * as Haptics from 'expo-haptics'
 import { useEffect, useState } from 'react'
 import {
   Alert,
-  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -12,6 +11,7 @@ import {
   View,
 } from 'react-native'
 import successAnimation from '../../../assets/success.json'
+import { openAppPhoneCall } from '../../adapters/appLinking'
 import { menuSupportConfig } from '../../config/menuSupport'
 import { useAuth } from '../../contexts/AuthContext'
 import { colors } from '../../theme/colors'
@@ -124,7 +124,7 @@ export function MenuSupportDrawer({
 
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     const digits = menuSupportConfig.phone.replace(/\D/g, '')
-    await Linking.openURL(`tel:${digits}`)
+    await openAppPhoneCall(digits)
   }
 
   async function handleSubmit() {

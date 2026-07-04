@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Telefarmed Cidades",
-    "slug": "app_cidades",
+    "slug": "telefarmedcidades",
     "scheme": "telefarmedcidades",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -109,7 +109,12 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon.png",
+      "backgroundColor": "#0a0a0c",
+      "themeColor": "#0a0a0c",
+      "display": "standalone",
+      "shortName": "Telefarmed",
+      "name": "Telefarmed Cidades"
     },
     "plugins": [
       "expo-font",
@@ -166,8 +171,14 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "b47a10f7-f23a-45d1-864b-ed29453921d8"
+        "projectId": "5c2bd78a-b60f-4720-8892-1de21919555c"
+      },
+      "expo-navigation-bar": {
+        "enforceContrast": false,
+        "barStyle": "light",
+        "visibility": "visible"
       }
-    }
+    },
+    "owner": "telefarmeds-team"
   }
 }

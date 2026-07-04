@@ -53,6 +53,7 @@ type MenuItemConfig = {
   title: string
   subtitle: string
   icon: keyof typeof Ionicons.glyphMap
+  requiresAuth?: boolean
 }
 
 const MENU_ITEMS: MenuItemConfig[] = [
@@ -67,24 +68,28 @@ const MENU_ITEMS: MenuItemConfig[] = [
     title: 'Falar com suporte',
     subtitle: 'Abra um pedido de ajuda',
     icon: 'headset-outline',
+    requiresAuth: true,
   },
   {
     id: 'bug-report',
     title: 'Bug ou sugestão',
     subtitle: 'Nos ajude a melhorar o app',
     icon: 'chatbox-ellipses-outline',
+    requiresAuth: true,
   },
   {
     id: 'privacy',
     title: 'Privacidade e dados',
     subtitle: 'Como tratamos suas informações',
     icon: 'shield-checkmark-outline',
+    requiresAuth: true,
   },
   {
     id: 'terms',
     title: 'Termos de uso',
     subtitle: 'Regras de utilização do app',
     icon: 'document-text-outline',
+    requiresAuth: true,
   },
 ]
 
@@ -101,10 +106,14 @@ export function MenuDrawer({
 }: MenuDrawerProps) {
   const insets = useSafeAreaInsets()
   const { height: screenHeight } = useWindowDimensions()
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   const { requireAuth } = useGuestAuth()
   const [isMounted, setIsMounted] = useState(false)
   const [activeSubDrawer, setActiveSubDrawer] = useState<MenuSubDrawerId | null>(null)
+
+  const visibleMenuItems = MENU_ITEMS.filter(
+    (item) => !item.requiresAuth || isAuthenticated,
+  )
 
   const sheetTranslateY = useRef(new Animated.Value(screenHeight)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
@@ -309,7 +318,7 @@ export function MenuDrawer({
 
                     <View style={styles.menuDivider} />
 
-                    {MENU_ITEMS.map((item, index) => (
+                    {visibleMenuItems.map((item, index) => (
                       <View key={item.id}>
                         <Pressable
                           onPress={() => openSubDrawer(item.id)}
@@ -331,7 +340,9 @@ export function MenuDrawer({
                           <Ionicons name="chevron-forward" size={18} color={colors.textSubtle} />
                         </Pressable>
 
-                        {index < MENU_ITEMS.length - 1 ? <View style={styles.menuDivider} /> : null}
+                        {index < visibleMenuItems.length - 1 ? (
+                          <View style={styles.menuDivider} />
+                        ) : null}
                       </View>
                     ))}
                   </View>

@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { openAppPhoneCall } from '../../adapters/appLinking'
 import { useAndroidBackHandler } from '../../hooks/useAndroidBackHandler'
 import { colors } from '../../theme/colors'
 import type { CrisisPresentation, CrisisRouteAction } from '../../utils/mentalHealthCrisis'
@@ -17,9 +18,7 @@ type MentalHealthCrisisDrawerProps = {
 }
 
 function dialPhone(phone: string) {
-  const digits = phone.replace(/\D/g, '')
-  if (!digits) return
-  void Linking.openURL(`tel:${digits}`)
+  void openAppPhoneCall(phone)
 }
 
 function CrisisRouteOption({

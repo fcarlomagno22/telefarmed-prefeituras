@@ -7,6 +7,7 @@ import {
   ImageBackground,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -695,6 +696,7 @@ export function MyAppointmentsScreen() {
         <View style={styles.body}>
           {showSkeleton ? (
             <ScrollView
+              style={styles.pageScroll}
               contentContainerStyle={[
                 styles.skeletonBlock,
                 { paddingBottom: bottomContentPadding },
@@ -714,6 +716,11 @@ export function MyAppointmentsScreen() {
                 onChange={handleSegmentTabChange}
               />
 
+              {Platform.OS === 'web' ? (
+                <View style={styles.segmentPagerWeb}>
+                  {renderAppointmentSegmentPage(segmentTab)}
+                </View>
+              ) : (
               <FlatList
                 ref={segmentPagerRef}
                 data={APPOINTMENT_SEGMENT_PAGES}
@@ -735,11 +742,12 @@ export function MyAppointmentsScreen() {
                 })}
                 style={styles.segmentPager}
                 renderItem={({ item }) => (
-                  <View style={[styles.segmentPage, { width: screenWidth }]}>
+                  <View style={[styles.segmentPage, { width: screenWidth, height: '100%' }]}>
                     {renderAppointmentSegmentPage(item)}
                   </View>
                 )}
               />
+              )}
             </>
           )}
         </View>
@@ -759,23 +767,21 @@ export function MyAppointmentsScreen() {
           accessibilityRole="button"
           accessibilityLabel="Agendar nova consulta"
         >
-          <View style={styles.fabShadow}>
+          <LinearGradient
+            colors={['#ffb366', '#ff6b00', '#e55f00']}
+            start={{ x: 0.2, y: 0 }}
+            end={{ x: 0.85, y: 1 }}
+            style={styles.fabGradient}
+          >
             <LinearGradient
-              colors={['#ffb366', '#ff6b00', '#e55f00']}
-              start={{ x: 0.2, y: 0 }}
-              end={{ x: 0.85, y: 1 }}
-              style={styles.fabGradient}
-            >
-              <LinearGradient
-                colors={['rgba(255, 255, 255, 0.28)', 'rgba(255, 255, 255, 0.06)', 'transparent']}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 0.55 }}
-                style={styles.fabGloss}
-                pointerEvents="none"
-              />
-              <Ionicons name="add" size={30} color="#fff" />
-            </LinearGradient>
-          </View>
+              colors={['rgba(255, 255, 255, 0.28)', 'rgba(255, 255, 255, 0.06)', 'transparent']}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 0.55 }}
+              style={styles.fabGloss}
+              pointerEvents="none"
+            />
+            <Ionicons name="add" size={30} color="#fff" />
+          </LinearGradient>
         </Pressable>
 
         <BottomTabBar
@@ -920,15 +926,31 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
+    minHeight: 0,
   },
   segmentPager: {
     flex: 1,
+    minHeight: 0,
+  },
+  segmentPagerWeb: {
+    flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
   },
   segmentPage: {
     flex: 1,
+    minHeight: 0,
   },
   pageScroll: {
     flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      },
+      default: {},
+    }),
   },
   pageContent: {
     gap: 14,
@@ -987,17 +1009,20 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 18,
     zIndex: 20,
+    ...Platform.select({
+      web: {},
+      default: {
+        shadowColor: 'rgba(255, 107, 0, 0.5)',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 1,
+        shadowRadius: 14,
+        elevation: 10,
+      },
+    }),
   },
   fabPressed: {
     opacity: 0.92,
     transform: [{ scale: 0.96 }],
-  },
-  fabShadow: {
-    shadowColor: 'rgba(255, 107, 0, 0.5)',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 1,
-    shadowRadius: 14,
-    elevation: 10,
   },
   fabGradient: {
     width: 58,
@@ -1008,6 +1033,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.18)',
+    ...Platform.select({
+      web: {
+        boxShadow: '0 8px 14px rgba(255, 107, 0, 0.5)',
+      },
+      default: {},
+    }),
   },
   fabGloss: {
     ...StyleSheet.absoluteFillObject,

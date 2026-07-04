@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import * as LocalAuthentication from 'expo-local-authentication'
 import {
   createContext,
   ReactNode,
@@ -10,13 +9,32 @@ import {
   useRef,
   useState,
 } from 'react'
-import { Linking } from 'react-native'
+import { Linking, Platform } from 'react-native'
+import { getInitialAppLinkUrl } from '../adapters/appLinking'
+import {
+  authenticateWithBiometricsAsync,
+  hasBiometricHardwareAsync,
+  isBiometricEnrolledAsync,
+} from '../adapters/localAuthentication'
+import {
+  configureWebNavigationHistory,
+  ensureWebNavigationHistoryListener,
+  navigateBackInBrowserHistory,
+  pushNavigationHistoryState,
+  resetNavigationHistoryState,
+  shouldSyncBrowserHistoryOnBack,
+  syncInitialNavigationHistoryState,
+} from '../adapters/webNavigationHistory'
+import type { WebNavigationHistoryEntry } from '../adapters/webNavigationUrl'
 import { AppRouteParams, AppScreen, AuthUser, RegistrationData } from '../types/auth'
 import { createMockAuthUser, isValidMockCredentials } from '../config/mockAuth'
 import { playLoginSound } from '../utils/appSounds'
 import { cpfDigits } from '../utils/cpf'
 import { loadActiveLiveShareSession } from '../data/runWalkLiveShareService'
-import { parseLiveShareViewerLink } from '../utils/runWalkLiveShareLink'
+import {
+  resolveIncomingAppLink,
+  type ResolvedIncomingAppLink,
+} from '../utils/resolveIncomingAppLink'
 import { normalizeLiveShareToken } from '../utils/runWalkLiveShareToken'
 
 const SESSION_KEY = '@telefarmed/session'
@@ -58,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [routeParams, setRouteParams] = useState<AppRouteParams | null>(null)
   const routeParamsRef = useRef<AppRouteParams | null>(null)
   const screenHistoryRef = useRef<HistoryEntry[]>([])
+  const screenRef = useRef<AppScreen>('home')
   const [user, setUser] = useState<AuthUser | null>(null)
   const [isBootstrapping, setIsBootstrapping] = useState(true)
   const [biometricEnabled, setBiometricEnabled] = useState(false)
@@ -92,8 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           AsyncStorage.getItem(BIOMETRIC_ENABLED_KEY),
           AsyncStorage.getItem(BIOMETRIC_ASKED_KEY),
           AsyncStorage.getItem(BIOMETRIC_SESSION_KEY),
-          LocalAuthentication.hasHardwareAsync(),
-          LocalAuthentication.isEnrolledAsync(),
+          hasBiometricHardwareAsync(),
+          isBiometricEnrolledAsync(),
         ])
 
         if (!active) return
@@ -103,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           screenHistoryRef.current = []
           setRouteParams(null)
           setScreen('home')
+          resetNavigationHistoryState('home', null)
         }
 
         setBiometricEnabled(storedBiometric === 'true')
@@ -124,12 +144,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     routeParamsRef.current = routeParams
   }, [routeParams])
 
+  useEffect(() => {
+    screenRef.current = screen
+  }, [screen])
+
+  const syncNavigationFromBrowserRef = useRef<(entry: WebNavigationHistoryEntry) => void>(() => {})
+
+  const syncNavigationFromBrowser = useCallback((entry: WebNavigationHistoryEntry) => {
+    const history = screenHistoryRef.current
+    const currentScreen = screenRef.current
+    const previous = history[history.length - 1]
+
+    if (previous?.screen === entry.screen) {
+      screenHistoryRef.current = history.slice(0, -1)
+    } else if (currentScreen !== entry.screen) {
+      screenHistoryRef.current = [
+        ...history,
+        { screen: currentScreen, params: routeParamsRef.current },
+      ]
+    }
+
+    setRouteParams(entry.params)
+    routeParamsRef.current = entry.params
+    setScreen(entry.screen)
+  }, [])
+
+  useEffect(() => {
+    syncNavigationFromBrowserRef.current = syncNavigationFromBrowser
+  }, [syncNavigationFromBrowser])
+
+  useEffect(() => {
+    configureWebNavigationHistory({
+      getScreen: () => screenRef.current,
+      getRouteParams: () => routeParamsRef.current,
+      getCanGoBack: () => screenHistoryRef.current.length > 0,
+      onBrowserHistoryNavigate: (entry) => {
+        syncNavigationFromBrowserRef.current(entry)
+      },
+    })
+    ensureWebNavigationHistoryListener()
+  }, [])
+
   const navigateTo = useCallback((nextScreen: AppScreen, params?: AppRouteParams) => {
     setScreen((current) => {
       if (current === nextScreen) {
         const nextParams = params ?? null
         setRouteParams(nextParams)
         routeParamsRef.current = nextParams
+        resetNavigationHistoryState(nextScreen, nextParams)
         return current
       }
 
@@ -148,6 +210,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const nextParams = params ?? null
       setRouteParams(nextParams)
       routeParamsRef.current = nextParams
+      pushNavigationHistoryState(nextScreen, nextParams)
       return nextScreen
     })
   }, [])
@@ -156,35 +219,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     screenHistoryRef.current = []
     setRouteParams({ token: shareToken })
     setScreen('run-walk-live-viewer')
+    resetNavigationHistoryState('run-walk-live-viewer', { token: shareToken })
   }, [])
 
   const openRunnerLiveFromPublisherLink = useCallback((activityName?: string) => {
     screenHistoryRef.current = []
-    setRouteParams(activityName ? { activityName } : null)
+    const params = activityName ? { activityName } : null
+    setRouteParams(params)
     setScreen('run-walk-live')
+    resetNavigationHistoryState('run-walk-live', params)
   }, [])
+
+  const initialIncomingUrlHandledRef = useRef(false)
 
   useEffect(() => {
     if (isBootstrapping) return
 
-    async function handleIncomingUrl(url: string) {
-      const shareToken = parseLiveShareViewerLink(url)
-      if (!shareToken) return
+    async function applyResolvedIncomingLink(resolved: ResolvedIncomingAppLink) {
+      if (resolved.kind === 'live-share') {
+        const activeSession = await loadActiveLiveShareSession()
+        if (
+          activeSession?.isActive &&
+          normalizeLiveShareToken(activeSession.shareToken) === resolved.token
+        ) {
+          openRunnerLiveFromPublisherLink(activeSession.activityName)
+          return
+        }
 
-      const activeSession = await loadActiveLiveShareSession()
-      if (
-        activeSession?.isActive &&
-        normalizeLiveShareToken(activeSession.shareToken) === shareToken
-      ) {
-        openRunnerLiveFromPublisherLink(activeSession.activityName)
+        openLiveShareViewerFromLink(resolved.token)
         return
       }
 
-      openLiveShareViewerFromLink(shareToken)
+      screenHistoryRef.current = []
+      setRouteParams(resolved.params)
+      routeParamsRef.current = resolved.params
+      setScreen(resolved.screen)
+      syncInitialNavigationHistoryState(resolved.screen, resolved.params)
     }
 
-    void Linking.getInitialURL().then((url) => {
-      if (url) void handleIncomingUrl(url)
+    async function handleIncomingUrl(url: string, options?: { initial?: boolean }) {
+      const resolved = resolveIncomingAppLink(url)
+
+      if (!resolved) {
+        if (Platform.OS === 'web') {
+          syncInitialNavigationHistoryState(screenRef.current, routeParamsRef.current)
+        }
+        return
+      }
+
+      if (options?.initial && initialIncomingUrlHandledRef.current) return
+      if (options?.initial) initialIncomingUrlHandledRef.current = true
+
+      await applyResolvedIncomingLink(resolved)
+    }
+
+    void getInitialAppLinkUrl().then((url) => {
+      if (!url) {
+        if (Platform.OS === 'web') {
+          syncInitialNavigationHistoryState(screenRef.current, routeParamsRef.current)
+        }
+        return
+      }
+
+      void handleIncomingUrl(url, { initial: true })
     })
 
     const subscription = Linking.addEventListener('url', (event) => {
@@ -203,6 +300,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRouteParams(previous.params)
     routeParamsRef.current = previous.params
     setScreen(previous.screen)
+    if (shouldSyncBrowserHistoryOnBack()) {
+      navigateBackInBrowserHistory()
+    }
     return true
   }, [])
 
@@ -214,6 +314,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     screenHistoryRef.current = []
     setRouteParams(null)
     setScreen('home')
+    resetNavigationHistoryState('home', null)
     void playLoginSound()
   }, [])
 
@@ -280,7 +381,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const enableBiometric = useCallback(async () => {
-    const result = await LocalAuthentication.authenticateAsync({
+    const result = await authenticateWithBiometricsAsync({
       promptMessage: 'Confirmar ativação da biometria',
       cancelLabel: 'Cancelar',
     })
@@ -304,7 +405,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedBiometricSession = await AsyncStorage.getItem(BIOMETRIC_SESSION_KEY)
     if (!storedBiometricSession) return 'failed'
 
-    const result = await LocalAuthentication.authenticateAsync({
+    const result = await authenticateWithBiometricsAsync({
       promptMessage: 'Entrar com biometria',
       cancelLabel: 'Cancelar',
     })
@@ -329,6 +430,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     screenHistoryRef.current = []
     setRouteParams(null)
     setScreen('home')
+    resetNavigationHistoryState('home', null)
   }, [])
 
   const updateSelfie = useCallback(

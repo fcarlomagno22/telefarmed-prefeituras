@@ -1,13 +1,26 @@
 import { useEventListener } from 'expo'
-import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
+import {
+  activateAppKeepAwakeAsync,
+  deactivateAppKeepAwake,
+} from '../../adapters/appKeepAwake'
 import { LinearGradient } from 'expo-linear-gradient'
 import { StatusBar } from 'expo-status-bar'
 import { VideoView, useVideoPlayer } from 'expo-video'
-import { useEffect, useRef, useState } from 'react'
-import { Modal, StyleSheet, View } from 'react-native'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import {
+  configureRegistrationVideoPlayer,
+  getAppVideoPlayFailureMessage,
+  getRegistrationVideoViewProps,
+  markAppVideoUserGesture,
+  playAppVideoPlayer,
+} from '../../adapters/appVideo'
 import { useAndroidBackHandler } from '../../hooks/useAndroidBackHandler'
 import { colors } from '../../theme/colors'
+import { getModalFooterPadding } from '../../utils/modalSafeArea'
+import { AppModal } from '../AppModal'
+import { PrimaryButton } from '../PrimaryButton'
 
 const VIDEO_SOURCE = require('../../../assets/video_presentation.mp4')
 const KEEP_AWAKE_TAG = 'registration-presentation-video'
@@ -22,17 +35,51 @@ export function RegisterPresentationVideoOverlay({
   const insets = useSafeAreaInsets()
   const completedRef = useRef(false)
   const [progress, setProgress] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [awaitingUserGesture, setAwaitingUserGesture] = useState(false)
+  const [playFailureMessage, setPlayFailureMessage] = useState<string | null>(null)
 
   useAndroidBackHandler(() => true)
 
-  const player = useVideoPlayer(VIDEO_SOURCE, (instance) => {
-    instance.loop = false
-    instance.timeUpdateEventInterval = 0.2
-    instance.muted = false
-  })
+  const player = useVideoPlayer(VIDEO_SOURCE, configureRegistrationVideoPlayer)
+  const videoViewProps = getRegistrationVideoViewProps()
+
+  const attemptPlay = useCallback(async () => {
+    player.currentTime = 0
+    const result = await playAppVideoPlayer(player)
+
+    if (!result.ok) {
+      setAwaitingUserGesture(true)
+      setPlayFailureMessage(getAppVideoPlayFailureMessage(result.reason))
+      return
+    }
+
+    setAwaitingUserGesture(false)
+    setPlayFailureMessage(null)
+  }, [player])
 
   useEventListener(player, 'sourceLoad', () => {
     setProgress(0)
+    setIsLoading(true)
+  })
+
+  useEventListener(player, 'statusChange', ({ status }) => {
+    if (status === 'loading') {
+      setIsLoading(true)
+      return
+    }
+
+    if (status === 'readyToPlay') {
+      setIsLoading(false)
+    }
+  })
+
+  useEventListener(player, 'playingChange', ({ isPlaying }) => {
+    if (isPlaying) {
+      setAwaitingUserGesture(false)
+      setPlayFailureMessage(null)
+      setIsLoading(false)
+    }
   })
 
   useEventListener(player, 'timeUpdate', (payload) => {
@@ -53,22 +100,31 @@ export function RegisterPresentationVideoOverlay({
   useEffect(() => {
     completedRef.current = false
     setProgress(0)
-    player.currentTime = 0
-    player.play()
-    void activateKeepAwakeAsync(KEEP_AWAKE_TAG)
+    setIsLoading(true)
+    setAwaitingUserGesture(false)
+    setPlayFailureMessage(null)
+    void attemptPlay()
+    void activateAppKeepAwakeAsync(KEEP_AWAKE_TAG)
 
     return () => {
       // useVideoPlayer já libera o player no unmount — não chamar pause() aqui.
-      deactivateKeepAwake(KEEP_AWAKE_TAG)
+      deactivateAppKeepAwake(KEEP_AWAKE_TAG)
     }
-  }, [player])
+  }, [attemptPlay, player])
+
+  const handleStartPlayback = () => {
+    markAppVideoUserGesture()
+    void attemptPlay()
+  }
 
   return (
-    <Modal
+    <AppModal
       visible
+      transparent
       animationType="fade"
-      presentationStyle="fullScreen"
+      statusBarTranslucent
       supportedOrientations={['portrait']}
+      navBarUnderlayColor="#000000"
       onRequestClose={() => {
         // Bloqueia fechamento por botão voltar no Android.
       }}
@@ -78,15 +134,34 @@ export function RegisterPresentationVideoOverlay({
         <VideoView
           style={styles.video}
           player={player}
-          nativeControls={false}
-          allowsFullscreen={false}
-          allowsPictureInPicture={false}
-          contentFit="cover"
+          {...videoViewProps}
+          onFirstFrameRender={() => setIsLoading(false)}
         />
 
-        <View style={styles.interactionBlocker} pointerEvents="auto" />
+        {isLoading && !awaitingUserGesture ? (
+          <View style={styles.loadingOverlay} pointerEvents="none">
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : null}
 
-        <View style={[styles.progressWrap, { paddingBottom: Math.max(insets.bottom, 18) }]}>
+        {awaitingUserGesture ? (
+          <View style={styles.gestureOverlay}>
+            <Text style={styles.gestureTitle}>Apresentação do app</Text>
+            {playFailureMessage ? (
+              <Text style={styles.gestureMessage}>{playFailureMessage}</Text>
+            ) : null}
+            <PrimaryButton label="Iniciar apresentação" onPress={handleStartPlayback} />
+          </View>
+        ) : (
+          <View style={styles.interactionBlocker} pointerEvents="auto" />
+        )}
+
+        <View
+          style={[
+            styles.progressWrap,
+            { paddingBottom: getModalFooterPadding(insets.bottom, 6) },
+          ]}
+        >
           <View style={styles.progressTrack}>
             <LinearGradient
               colors={[colors.primaryLight, colors.primary, colors.primaryDark]}
@@ -97,7 +172,7 @@ export function RegisterPresentationVideoOverlay({
           </View>
         </View>
       </View>
-    </Modal>
+    </AppModal>
   )
 }
 
@@ -108,6 +183,32 @@ const styles = StyleSheet.create({
   },
   video: {
     ...StyleSheet.absoluteFillObject,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+  },
+  gestureOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 28,
+    backgroundColor: 'rgba(0, 0, 0, 0.72)',
+    gap: 16,
+  },
+  gestureTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  gestureMessage: {
+    color: 'rgba(255, 255, 255, 0.82)',
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
   },
   interactionBlocker: {
     ...StyleSheet.absoluteFillObject,

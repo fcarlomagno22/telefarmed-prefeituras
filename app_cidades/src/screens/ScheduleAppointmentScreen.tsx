@@ -11,7 +11,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
 import { MenuDrawer } from '../components/MenuDrawer'
-import { PrimaryButton } from '../components/PrimaryButton'
 import { ScheduleCareModeStep } from '../components/schedule/ScheduleCareModeStep'
 import { ScheduleConfirmStep } from '../components/schedule/ScheduleConfirmStep'
 import { ScheduleDateStep } from '../components/schedule/ScheduleDateStep'
@@ -56,7 +55,6 @@ import { consumeScheduleUbtPrefill } from '../utils/schedulePrefill'
 
 const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_DOCK_HEIGHT = 74
-const SCHEDULE_FOOTER_HEIGHT = 80
 
 export function ScheduleAppointmentScreen() {
   const insets = useSafeAreaInsets()
@@ -97,13 +95,11 @@ export function ScheduleAppointmentScreen() {
 
   const tabBarOffset = TAB_BAR_DOCK_HEIGHT + Math.max(insets.bottom, 8)
 
-  const showFooter = step === 'confirm' || step === 'success'
+  const isFullscreenStep = step === 'success' || step === 'confirm'
 
-  const hideTimeline = step === 'success' || step === 'remote_success'
+  const hideTimeline = step === 'success' || step === 'remote_success' || step === 'confirm'
 
-  const bottomContentPadding = showFooter
-    ? SCHEDULE_FOOTER_HEIGHT + tabBarOffset + 16
-    : tabBarOffset + 16
+  const bottomContentPadding = tabBarOffset + 16
 
   const draft: ScheduleAppointmentDraft = {
     specialtyId,
@@ -412,11 +408,6 @@ export function ScheduleAppointmentScreen() {
 
     if (step === 'confirm') {
       void confirmSchedule()
-      return
-    }
-
-    if (step === 'success') {
-      navigateTo('home')
     }
   }
 
@@ -500,13 +491,10 @@ export function ScheduleAppointmentScreen() {
     void logout()
   }
 
-  function getPrimaryLabel(): string {
-    if (step === 'confirm') return isSubmitting ? 'Agendando…' : 'Confirmar consulta'
-    if (step === 'success') return 'Ir ao início'
-    return 'Continuar'
+  const fullscreenPadding = {
+    paddingTop: Math.max(insets.top, 16),
+    paddingBottom: Math.max(insets.bottom, 20),
   }
-
-  const primaryDisabled = step === 'confirm' ? isSubmitting : false
 
   return (
     <>
@@ -525,18 +513,48 @@ export function ScheduleAppointmentScreen() {
           pointerEvents="none"
         />
 
-        <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
-          <View style={styles.headerTextCol}>
-            <Text style={styles.headerTitle}>Agendar consulta</Text>
-            <Text style={styles.headerSubtitle}>
-              {careMode === 'remote'
-                ? 'Modalidade · Especialidade · Urgência · Solicitação'
-                : 'Modalidade · Especialidade · Unidade · Agendamento · Confirmação'}
-            </Text>
-          </View>
-        </View>
+        {isFullscreenStep && user ? (
+          <ScrollView
+            style={styles.body}
+            contentContainerStyle={[
+              styles.stepFullscreenContent,
+              step === 'success' && styles.stepFullscreenContentCentered,
+              fullscreenPadding,
+            ]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {step === 'success' ? (
+              <ScheduleSuccessStep
+                draft={draft}
+                patientName={user.name}
+                onGoHome={() => navigateTo('home')}
+              />
+            ) : (
+              <ScheduleConfirmStep
+                user={user}
+                draft={draft}
+                onBack={handleBack}
+                onConfirm={() => void handlePrimaryAction()}
+                isSubmitting={isSubmitting}
+                submitError={submitError}
+              />
+            )}
+          </ScrollView>
+        ) : (
+          <>
+            <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
+              <View style={styles.headerTextCol}>
+                <Text style={styles.headerTitle}>Agendar consulta</Text>
+                <Text style={styles.headerSubtitle}>
+                  {careMode === 'remote'
+                    ? 'Modalidade · Especialidade · Urgência · Solicitação'
+                    : 'Modalidade · Especialidade · Unidade · Agendamento · Confirmação'}
+                </Text>
+              </View>
+            </View>
 
-        {hideTimeline ? null : <ScheduleTimeline step={step} />}
+            {hideTimeline ? null : <ScheduleTimeline step={step} />}
 
         <ScrollView
           style={styles.body}
@@ -656,42 +674,14 @@ export function ScheduleAppointmentScreen() {
               onBack={handleBack}
             />
           ) : null}
-
-          {step === 'confirm' && user ? (
-            <>
-              <ScheduleConfirmStep user={user} draft={draft} onBack={handleBack} />
-              {submitError ? <Text style={styles.errorText}>{submitError}</Text> : null}
-            </>
-          ) : null}
-
-          {step === 'success' && user ? (
-            <ScheduleSuccessStep draft={draft} patientName={user.name} />
-          ) : null}
         </ScrollView>
 
-        {showFooter ? (
-          <View style={[styles.footer, { bottom: tabBarOffset }]}>
-            <LinearGradient
-              colors={['#1a1a22', '#111116', colors.background]}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.footerBackdrop}
-            >
-              <PrimaryButton
-                label={getPrimaryLabel()}
-                onPress={() => void handlePrimaryAction()}
-                loading={isSubmitting}
-                disabled={primaryDisabled}
-                style={styles.footerPrimaryButton}
-              />
-            </LinearGradient>
-          </View>
-        ) : null}
-
-        <BottomTabBar
-          activeTab={menuVisible ? 'menu' : bottomTab}
-          onTabPress={handleTabPress}
-        />
+            <BottomTabBar
+              activeTab={menuVisible ? 'menu' : bottomTab}
+              onTabPress={handleTabPress}
+            />
+          </>
+        )}
       </View>
 
       <MenuDrawer
@@ -746,20 +736,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 14,
   },
-  footer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  footerBackdrop: {
+  stepFullscreenContent: {
+    flexGrow: 1,
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-    overflow: 'hidden',
   },
-  footerPrimaryButton: {
-    marginTop: 0,
+  stepFullscreenContentCentered: {
+    justifyContent: 'center',
   },
   errorText: {
     color: colors.error,

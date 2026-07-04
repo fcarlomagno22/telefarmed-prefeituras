@@ -1,9 +1,11 @@
 import {
-  createAudioPlayer,
-  setAudioModeAsync,
-  setIsAudioActiveAsync,
+  createAppAudioPlayer,
+  markAppAudioUserGesture,
+  playAppAudioPlayer,
+  setAppAudioActiveAsync,
+  setAppAudioModeAsync,
   type AudioPlayer,
-} from 'expo-audio'
+} from '../adapters/appAudio'
 
 const failSound = require('../../assets/fail.mp3')
 const loginSound = require('../../assets/login.mp3')
@@ -23,7 +25,7 @@ let functionalGymPlayer: AudioPlayer | null = null
 async function ensureAudioMode() {
   if (audioModeReady) return
 
-  await setAudioModeAsync({
+  await setAppAudioModeAsync({
     playsInSilentMode: true,
     shouldPlayInBackground: false,
     interruptionMode: 'mixWithOthers',
@@ -32,10 +34,11 @@ async function ensureAudioMode() {
 }
 
 async function playSound(source: number) {
+  markAppAudioUserGesture()
   try {
     await ensureAudioMode()
 
-    const player = createAudioPlayer(source)
+    const player = createAppAudioPlayer(source)
     const subscription = player.addListener('playbackStatusUpdate', (status) => {
       if (status.didJustFinish) {
         subscription.remove()
@@ -43,7 +46,7 @@ async function playSound(source: number) {
       }
     })
 
-    player.play()
+    playAppAudioPlayer(player)
   } catch {
     // Falha silenciosa: áudio é feedback opcional.
   }
@@ -86,9 +89,9 @@ export async function startFunctionalAlarm() {
     stopFunctionalAlarm()
     await ensureAudioMode()
 
-    const player = createAudioPlayer(functionalAlarmSound)
+    const player = createAppAudioPlayer(functionalAlarmSound)
     player.loop = true
-    player.play()
+    playAppAudioPlayer(player)
     functionalAlarmPlayer = player
   } catch {
     // Falha silenciosa: áudio é feedback opcional.
@@ -129,14 +132,14 @@ export async function startFunctionalGymMusic(volume = gymVolume) {
 
     if (functionalGymPlayer) {
       applyGymVolume()
-      functionalGymPlayer.play()
+      playAppAudioPlayer(functionalGymPlayer)
       return
     }
 
-    const player = createAudioPlayer(functionalGymMusic)
+    const player = createAppAudioPlayer(functionalGymMusic)
     player.loop = true
     player.volume = gymVolume
-    player.play()
+    playAppAudioPlayer(player)
     functionalGymPlayer = player
   } catch {
     // Falha silenciosa: áudio é feedback opcional.
@@ -153,7 +156,7 @@ export function pauseFunctionalGymMusic() {
 
 export function resumeFunctionalGymMusic() {
   try {
-    functionalGymPlayer?.play()
+    if (functionalGymPlayer) playAppAudioPlayer(functionalGymPlayer)
   } catch {
     // noop
   }
@@ -217,11 +220,12 @@ async function waitForAudioPlayerReady(player: AudioPlayer, timeoutMs = 2000): P
 }
 
 async function playOneShotEffect(source: number) {
+  markAppAudioUserGesture()
   try {
     await ensureAudioMode()
-    await setIsAudioActiveAsync(true)
+    await setAppAudioActiveAsync(true)
 
-    const player = createAudioPlayer(source, { keepAudioSessionActive: true })
+    const player = createAppAudioPlayer(source, { keepAudioSessionActive: true })
     player.volume = 1
 
     if (!player.isLoaded) {
@@ -239,7 +243,7 @@ async function playOneShotEffect(source: number) {
       }
     })
 
-    player.play()
+    playAppAudioPlayer(player)
   } catch {
     // Falha silenciosa: áudio é feedback opcional.
   }
@@ -255,7 +259,7 @@ const sudokuRevealSound = require('../../assets/sounds/reveal.mp3')
 const sudokuCelebrationSound = require('../../assets/sounds/celebration.mp3')
 
 export function preloadSudokuSounds() {
-  void ensureAudioMode().then(() => setIsAudioActiveAsync(true))
+  void ensureAudioMode().then(() => setAppAudioActiveAsync(true))
 }
 
 export function releaseSudokuSounds() {
@@ -284,7 +288,7 @@ const somaCorrectSound = require('../../assets/sounds/soma_correct.mp3')
 const somaWrongSound = require('../../assets/sounds/soma_wrong.mp3')
 
 export function preloadPalavrasSounds() {
-  void ensureAudioMode().then(() => setIsAudioActiveAsync(true))
+  void ensureAudioMode().then(() => setAppAudioActiveAsync(true))
 }
 
 export function releasePalavrasSounds() {

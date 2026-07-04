@@ -1,4 +1,9 @@
-import * as Location from 'expo-location'
+import { geocodeAsync, reverseGeocodeAsync } from '../adapters/appLocation'
+import {
+  buildAddressLabelFromGeocoded,
+  formatCoordinateFallbackLabel,
+  isValidReverseGeocodeCoordinates,
+} from '../adapters/reverseGeocodeShared'
 import type { RegistrationAddress } from '../types/auth'
 import { GeoCoordinates } from './geo'
 
@@ -6,22 +11,20 @@ export async function resolveAddressLabelFromCoordinates(
   latitude: number,
   longitude: number,
 ): Promise<string> {
+  const fallback = formatCoordinateFallbackLabel(latitude, longitude)
+
+  if (!isValidReverseGeocodeCoordinates(latitude, longitude)) {
+    return fallback
+  }
+
   try {
-    const results = await Location.reverseGeocodeAsync({ latitude, longitude })
+    const results = await reverseGeocodeAsync({ latitude, longitude })
     const place = results[0]
-    if (!place) return `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+    if (!place) return fallback
 
-    const parts = [
-      place.street,
-      place.streetNumber,
-      place.district ?? place.subregion,
-      place.city,
-      place.region,
-    ].filter(Boolean)
-
-    return parts.join(', ') || `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+    return buildAddressLabelFromGeocoded(place) ?? fallback
   } catch {
-    return `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+    return fallback
   }
 }
 
@@ -40,7 +43,7 @@ export async function geocodeAddressLabel(address: RegistrationAddress): Promise
   if (!query.trim()) return null
 
   try {
-    const results = await Location.geocodeAsync(query)
+    const results = await geocodeAsync(query)
     const place = results[0]
     if (!place) return null
 

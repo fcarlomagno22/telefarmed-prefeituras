@@ -21,8 +21,13 @@ import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { loadActiveLiveShareSession } from '../data/runWalkLiveShareService'
+import { markAppAudioUserGesture } from '../adapters/appAudio'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
-import { formatBatteryLevel, useDeviceBattery } from '../hooks/useDeviceBattery'
+import {
+  formatBatteryLevel,
+  isBatteryReadyForActivity,
+  useDeviceBattery,
+} from '../hooks/useDeviceBattery'
 import {
   useRunWalkPreparationChecklist,
   type PreparationChecklistItem,
@@ -183,15 +188,19 @@ export function RunWalkPreparationChecklistScreen() {
   const location = useRunWalkLocation({ address, enabled: true })
   const battery = useDeviceBattery()
 
-  const batteryOk =
-    battery.isCharging || (battery.levelPercent != null && battery.levelPercent >= 15)
-  const batteryDetail = formatBatteryLevel(battery.levelPercent, battery.isCharging)
+  const batteryOk = isBatteryReadyForActivity(battery)
+  const batteryDetail = formatBatteryLevel(
+    battery.levelPercent,
+    battery.isCharging,
+    battery.isAvailable,
+  )
 
   const { items, canStart } = useRunWalkPreparationChecklist({
     gpsQuality: location.gpsQuality,
     gpsLocated: Boolean(location.coordinates),
     batteryOk,
     batteryDetail,
+    batteryAvailable: battery.isAvailable,
     liveShareConfigured,
   })
 
@@ -258,6 +267,7 @@ export function RunWalkPreparationChecklistScreen() {
   function handleProceed() {
     requireAuth('vida:run-walk', () => {
       if (!canStart) return
+      markAppAudioUserGesture()
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       navigateTo('run-walk-countdown', {
         modality: params.modality,

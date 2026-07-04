@@ -1,4 +1,19 @@
-import * as Location from 'expo-location'
+import {
+  Accuracy,
+  enableNetworkProviderAsync,
+  getAppLocationHeadingSupport,
+  getCurrentPositionAsync,
+  requestForegroundPermissionsAsync,
+  reverseGeocodeAsync,
+  type AppLocationSubscription,
+  type AppLocationWatchOptions,
+  watchHeadingAsync,
+  watchPositionAsync,
+} from '../adapters/appLocation'
+import {
+  extractCityLabelFromGeocoded,
+  isValidReverseGeocodeCoordinates,
+} from '../adapters/reverseGeocodeShared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { RegistrationAddress } from '../types/auth'
 import { GeoCoordinates } from '../utils/geo'
@@ -45,12 +60,16 @@ export function gpsQualityLabel(quality: GpsQuality): string {
 }
 
 async function resolveCityLabel(latitude: number, longitude: number): Promise<string | null> {
+  if (!isValidReverseGeocodeCoordinates(latitude, longitude)) {
+    return null
+  }
+
   try {
-    const results = await Location.reverseGeocodeAsync({ latitude, longitude })
+    const results = await reverseGeocodeAsync({ latitude, longitude })
     const place = results[0]
     if (!place) return null
 
-    return place.city ?? place.subregion ?? place.region ?? place.district ?? null
+    return extractCityLabelFromGeocoded(place)
   } catch {
     return null
   }
@@ -67,7 +86,7 @@ type UseRunWalkLocationOptions = {
 
 const TRACKING_WATCH_OPTIONS: Record<
   RunWalkLocationTrackingMode,
-  Pick<Location.LocationOptions, 'distanceInterval' | 'timeInterval'>
+  Pick<AppLocationWatchOptions, 'distanceInterval' | 'timeInterval'>
 > = {
   default: { distanceInterval: 5, timeInterval: 4000 },
   activity: { distanceInterval: 5, timeInterval: 2000 },
@@ -93,8 +112,8 @@ export function useRunWalkLocation({
     error: null,
   })
 
-  const watchRef = useRef<Location.LocationSubscription | null>(null)
-  const headingWatchRef = useRef<Location.LocationSubscription | null>(null)
+  const watchRef = useRef<AppLocationSubscription | null>(null)
+  const headingWatchRef = useRef<AppLocationSubscription | null>(null)
 
   const stopWatch = useCallback(() => {
     watchRef.current?.remove()
@@ -148,9 +167,9 @@ export function useRunWalkLocation({
     setState((prev) => ({ ...prev, isLocating: true, error: null }))
 
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync()
+      const { status, granted } = await requestForegroundPermissionsAsync()
 
-      if (status !== 'granted') {
+      if (status !== 'granted' && !granted) {
         setState((prev) => ({
           ...prev,
           isLocating: false,
@@ -163,10 +182,10 @@ export function useRunWalkLocation({
 
       setState((prev) => ({ ...prev, permissionGranted: true, permissionDenied: false }))
 
-      await Location.enableNetworkProviderAsync().catch(() => undefined)
+      await enableNetworkProviderAsync().catch(() => undefined)
 
-      const position = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
+      const position = await getCurrentPositionAsync({
+        accuracy: Accuracy.High,
       })
 
       applyPosition(
@@ -179,9 +198,9 @@ export function useRunWalkLocation({
 
       stopWatch()
       const watchOptions = TRACKING_WATCH_OPTIONS[trackingMode]
-      watchRef.current = await Location.watchPositionAsync(
+      watchRef.current = await watchPositionAsync(
         {
-          accuracy: Location.Accuracy.BestForNavigation,
+          accuracy: Accuracy.BestForNavigation,
           distanceInterval: watchOptions.distanceInterval,
           timeInterval: watchOptions.timeInterval,
         },
@@ -229,11 +248,16 @@ export function useRunWalkLocation({
       return
     }
 
+    const headingSupport = getAppLocationHeadingSupport()
+    if (!headingSupport.compass) {
+      return
+    }
+
     let active = true
     let lastAppliedAt = 0
     const headingThrottleMs = trackingMode === 'activity' ? 500 : 0
 
-    void Location.watchHeadingAsync((update) => {
+    void watchHeadingAsync((update) => {
       if (!active) return
 
       const now = Date.now()

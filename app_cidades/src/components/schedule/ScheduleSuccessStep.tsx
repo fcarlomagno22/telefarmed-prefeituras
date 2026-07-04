@@ -8,14 +8,16 @@ import { ScheduleAppointmentDraft } from '../../types/scheduleAppointment'
 import { formatScheduleDayLabel } from '../../utils/scheduleDate'
 import { colors } from '../../theme/colors'
 import { LottiePlayer } from '../LottiePlayer'
+import { PrimaryButton } from '../PrimaryButton'
 import { scheduleDoctors } from '../../data/mockScheduleCatalog'
 
 type ScheduleSuccessStepProps = {
   draft: ScheduleAppointmentDraft
   patientName: string
+  onGoHome: () => void
 }
 
-export function ScheduleSuccessStep({ draft, patientName }: ScheduleSuccessStepProps) {
+export function ScheduleSuccessStep({ draft, patientName, onGoHome }: ScheduleSuccessStepProps) {
   const doctor = scheduleDoctors.find((d) => d.id === draft.selectedDoctorId)
   const [isAddingToCalendar, setIsAddingToCalendar] = useState(false)
 
@@ -41,7 +43,14 @@ export function ScheduleSuccessStep({ draft, patientName }: ScheduleSuccessStepP
 
   return (
     <View style={styles.wrap}>
-      <LottiePlayer source={successAnimation} loop={false} style={styles.lottie} />
+      <View style={styles.lottieWrap}>
+        <LottiePlayer
+          source={successAnimation}
+          loop={false}
+          style={styles.lottie}
+          animationStyle={styles.lottieAnimation}
+        />
+      </View>
 
       <Text style={styles.title}>Consulta agendada!</Text>
       <Text style={styles.message}>
@@ -81,32 +90,49 @@ export function ScheduleSuccessStep({ draft, patientName }: ScheduleSuccessStepP
         </LinearGradient>
       </View>
 
-      <Pressable
-        onPress={handleAddToCalendar}
-        disabled={isAddingToCalendar}
-        style={({ pressed }) => [
-          styles.calendarButton,
-          pressed && !isAddingToCalendar && styles.calendarButtonPressed,
-          isAddingToCalendar && styles.calendarButtonDisabled,
-        ]}
-      >
-        <Ionicons name="calendar-outline" size={20} color={colors.primaryLight} />
-        <Text style={styles.calendarButtonText}>
-          {isAddingToCalendar ? 'Abrindo calendário…' : 'Adicionar ao calendário'}
-        </Text>
-      </Pressable>
+      <View style={styles.actions}>
+        <Pressable
+          onPress={handleAddToCalendar}
+          disabled={isAddingToCalendar}
+          style={({ pressed }) => [
+            styles.calendarButton,
+            pressed && !isAddingToCalendar && styles.calendarButtonPressed,
+            isAddingToCalendar && styles.calendarButtonDisabled,
+          ]}
+        >
+          <Ionicons name="calendar-outline" size={20} color={colors.primaryLight} />
+          <Text style={styles.calendarButtonText}>
+            {isAddingToCalendar ? 'Abrindo calendário…' : 'Adicionar ao calendário'}
+          </Text>
+        </Pressable>
+
+        <PrimaryButton label="Ir ao início" onPress={onGoHome} />
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   wrap: {
+    flex: 1,
+    width: '100%',
     alignItems: 'center',
-    paddingVertical: 12,
+    justifyContent: 'center',
     gap: 8,
   },
+  lottieWrap: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
   lottie: {
-    marginBottom: 4,
+    marginBottom: 0,
+  },
+  lottieAnimation: {
+    width: 160,
+    height: 140,
   },
   title: {
     color: colors.text,
@@ -204,9 +230,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
   },
+  actions: {
+    width: '100%',
+    gap: 12,
+    marginTop: 16,
+  },
   calendarButton: {
     width: '100%',
-    marginTop: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

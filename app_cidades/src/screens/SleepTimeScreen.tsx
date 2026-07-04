@@ -27,6 +27,7 @@ import { SleepTimeSoundPlayerDrawer } from '../components/sleepTime/SleepTimeSou
 import { SleepTimeSoundsExplainDrawer } from '../components/sleepTime/SleepTimeSoundsExplainDrawer'
 import type { SleepTimerMinutes } from '../components/sleepTime/sleepTimeSoundTypes'
 import { getSleepSoundById } from '../config/sleepSounds'
+import { markAppAudioUserGesture } from '../adapters/appAudio'
 import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
@@ -44,7 +45,9 @@ import {
   getSleepSoundPlaybackEngine,
   stopSleepSoundPlayback,
 } from '../utils/sleepSoundPlayer'
+import { isAppAudioLockScreenSupported } from '../adapters/appAudioBackground'
 import {
+  ensureSleepSoundPlaybackPermissions,
   getSleepSoundLockScreenArtworkUrl,
   SLEEP_SOUND_LOCK_SCREEN_ALBUM,
   SLEEP_SOUND_LOCK_SCREEN_ARTIST,
@@ -173,16 +176,24 @@ export function SleepTimeScreen() {
 
     let cancelled = false
 
-    void playbackEngine.start(sound.source, volume, {
-      title: sound.title,
-      artist: SLEEP_SOUND_LOCK_SCREEN_ARTIST,
-      albumTitle: SLEEP_SOUND_LOCK_SCREEN_ALBUM,
-    })
+    void (async () => {
+      if (isAppAudioLockScreenSupported()) {
+        await ensureSleepSoundPlaybackPermissions()
+      }
 
-    void getSleepSoundLockScreenArtworkUrl().then((artworkUrl) => {
+      const artworkUrl = isAppAudioLockScreenSupported()
+        ? await getSleepSoundLockScreenArtworkUrl()
+        : undefined
+
       if (cancelled) return
-      playbackEngine.updateLockScreenArtwork(artworkUrl)
-    })
+
+      await playbackEngine.start(sound.source, volume, {
+        title: sound.title,
+        artist: SLEEP_SOUND_LOCK_SCREEN_ARTIST,
+        albumTitle: SLEEP_SOUND_LOCK_SCREEN_ALBUM,
+        artworkUrl,
+      })
+    })()
 
     return () => {
       cancelled = true
@@ -301,6 +312,7 @@ export function SleepTimeScreen() {
 
   function handleSoundPress(soundId: SleepSoundId) {
     withSleepAuth(() => {
+      markAppAudioUserGesture()
       if (sessionSoundId !== soundId) {
         setVolume(DEFAULT_SLEEP_SOUND_VOLUME)
         setTimerMinutes(null)
@@ -331,6 +343,7 @@ export function SleepTimeScreen() {
   }
 
   function handleTogglePause() {
+    markAppAudioUserGesture()
     const engine = getSleepSoundPlaybackEngine()
     if (engine.isPausedState()) {
       engine.resume()

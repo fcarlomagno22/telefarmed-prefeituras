@@ -1,4 +1,7 @@
-import * as Battery from 'expo-battery'
+import {
+  getDeviceBatterySnapshot,
+  subscribeDeviceBattery,
+} from '../adapters/appBattery'
 import { useCallback, useEffect, useState } from 'react'
 
 export type DeviceBatteryState = {
@@ -6,9 +9,26 @@ export type DeviceBatteryState = {
   isCharging: boolean
   isLow: boolean
   isLoading: boolean
+  isAvailable: boolean
 }
 
 const LOW_BATTERY_THRESHOLD = 20
+
+function snapshotToState(snapshot: {
+  available: boolean
+  levelPercent: number | null
+  isCharging: boolean
+}, isLoading: boolean): DeviceBatteryState {
+  const { available, levelPercent, isCharging } = snapshot
+
+  return {
+    isAvailable: available,
+    levelPercent: available ? levelPercent : null,
+    isCharging: available ? isCharging : false,
+    isLow: available && !isCharging && levelPercent != null && levelPercent < LOW_BATTERY_THRESHOLD,
+    isLoading,
+  }
+}
 
 export function useDeviceBattery() {
   const [state, setState] = useState<DeviceBatteryState>({
@@ -16,71 +36,46 @@ export function useDeviceBattery() {
     isCharging: false,
     isLow: false,
     isLoading: true,
+    isAvailable: false,
   })
+
+  const applySnapshot = useCallback(
+    (snapshot: Parameters<typeof snapshotToState>[0]) => {
+      setState(snapshotToState(snapshot, false))
+    },
+    [],
+  )
 
   const refresh = useCallback(async () => {
     try {
-      const [level, batteryState] = await Promise.all([
-        Battery.getBatteryLevelAsync(),
-        Battery.getBatteryStateAsync(),
-      ])
-
-      const levelPercent = Math.round(level * 100)
-      const isCharging =
-        batteryState === Battery.BatteryState.CHARGING ||
-        batteryState === Battery.BatteryState.FULL
-      setState({
-        levelPercent,
-        isCharging,
-        isLow: !isCharging && levelPercent < LOW_BATTERY_THRESHOLD,
-        isLoading: false,
-      })
+      const snapshot = await getDeviceBatterySnapshot()
+      applySnapshot(snapshot)
     } catch {
-      setState({
-        levelPercent: null,
-        isCharging: false,
-        isLow: false,
-        isLoading: false,
-      })
+      applySnapshot({ available: false, levelPercent: null, isCharging: false })
     }
-  }, [])
+  }, [applySnapshot])
 
   useEffect(() => {
     void refresh()
 
-    const levelSub = Battery.addBatteryLevelListener(({ batteryLevel }) => {
-      setState((prev) => {
-        const levelPercent = Math.round(batteryLevel * 100)
-        return {
-          ...prev,
-          levelPercent,
-          isLow: !prev.isCharging && levelPercent < LOW_BATTERY_THRESHOLD,
-        }
-      })
-    })
-
-    const stateSub = Battery.addBatteryStateListener(({ batteryState }) => {
-      const isCharging =
-        batteryState === Battery.BatteryState.CHARGING ||
-        batteryState === Battery.BatteryState.FULL
-      setState((prev) => ({
-        ...prev,
-        isCharging,
-        isLow: !isCharging && (prev.levelPercent ?? 100) < LOW_BATTERY_THRESHOLD,
-      }))
-    })
-
-    return () => {
-      levelSub.remove()
-      stateSub.remove()
-    }
-  }, [refresh])
+    const subscription = subscribeDeviceBattery(applySnapshot)
+    return () => subscription.remove()
+  }, [applySnapshot, refresh])
 
   return { ...state, refresh }
 }
 
-export function formatBatteryLevel(levelPercent: number | null, isCharging: boolean): string {
-  if (levelPercent == null) return 'Indisponível'
+export function formatBatteryLevel(
+  levelPercent: number | null,
+  isCharging: boolean,
+  isAvailable = true,
+): string {
+  if (!isAvailable || levelPercent == null) return 'Indisponível'
   if (isCharging) return `${levelPercent}% (carregando)`
   return `${levelPercent}%`
+}
+
+export function isBatteryReadyForActivity(state: DeviceBatteryState): boolean {
+  if (!state.isAvailable) return true
+  return state.isCharging || (state.levelPercent != null && state.levelPercent >= 15)
 }

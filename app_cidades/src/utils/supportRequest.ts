@@ -1,8 +1,8 @@
 import Constants from 'expo-constants'
 import * as MailComposer from 'expo-mail-composer'
-import { Linking, Platform } from 'react-native'
+import { Platform } from 'react-native'
+import { openAppMailtoUrl, openAppPhoneCall, openAppWhatsAppMessage } from '../adapters/appLinking'
 import { buildSupportMailto, menuSupportConfig } from '../config/menuSupport'
-import { openWhatsAppMessage } from './runWalkLocationShare'
 
 export type SupportTopicId =
   | 'appointments'
@@ -125,7 +125,7 @@ async function sendSupportViaEmail(
     return 'opened'
   }
 
-  await Linking.openURL(buildSupportMailto(subject, body))
+  await openAppMailtoUrl(buildSupportMailto(subject, body))
   return 'opened'
 }
 
@@ -139,7 +139,7 @@ export async function sendSupportRequest(
       return sendSupportViaEmail(payload)
     }
 
-    await openWhatsAppMessage(menuSupportConfig.whatsApp, body)
+    await openAppWhatsAppMessage(menuSupportConfig.whatsApp, body)
     return 'channel'
   }
 
@@ -148,8 +148,7 @@ export async function sendSupportRequest(
       return sendSupportViaEmail(payload)
     }
 
-    const digits = menuSupportConfig.phone.replace(/\D/g, '')
-    await Linking.openURL(`tel:${digits}`)
+    await openAppPhoneCall(menuSupportConfig.phone)
     return 'channel'
   }
 

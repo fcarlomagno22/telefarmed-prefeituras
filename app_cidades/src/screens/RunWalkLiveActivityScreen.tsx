@@ -1,4 +1,7 @@
-import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
+import {
+  activateAppKeepAwakeAsync,
+  deactivateAppKeepAwake,
+} from '../adapters/appKeepAwake'
 import { useCallback, useEffect, useState } from 'react'
 import { saveRunWalkActivitySummary } from '../data/runWalkActivitySummaryStorage'
 import { ACTIVITY_MODALITY_LABELS, MODALITY_DEFAULTS } from '../data/runWalkModalityConfig'
@@ -91,9 +94,9 @@ export function RunWalkLiveActivityScreen() {
   )
 
   useEffect(() => {
-    void activateKeepAwakeAsync('run-walk-live-activity')
+    void activateAppKeepAwakeAsync('run-walk-live-activity')
     return () => {
-      deactivateKeepAwake('run-walk-live-activity')
+      void deactivateAppKeepAwake('run-walk-live-activity')
     }
   }, [])
 

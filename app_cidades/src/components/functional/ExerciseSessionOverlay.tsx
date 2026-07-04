@@ -1,7 +1,10 @@
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
-import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
+import {
+  activateAppKeepAwakeAsync,
+  deactivateAppKeepAwake,
+} from '../../adapters/appKeepAwake'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
 import { AppModal } from '../AppModal'
@@ -135,9 +138,9 @@ export function ExerciseSessionOverlay({
     if (!visible) return
 
     if (timer.phase === 'work' || timer.phase === 'countdown' || timer.phase === 'rest') {
-      void activateKeepAwakeAsync('functional-training-session')
+      void activateAppKeepAwakeAsync('functional-training-session')
       return () => {
-        deactivateKeepAwake('functional-training-session')
+        void deactivateAppKeepAwake('functional-training-session')
       }
     }
   }, [visible, timer.phase])
@@ -319,7 +322,7 @@ export function ExerciseSessionOverlay({
                   source={currentExercise.lottie}
                   exerciseId={currentExercise.id}
                   style={styles.heroLottie}
-                  variant="immersive"
+                  variant="session"
                   autoPlay={!timer.isPaused}
                 />
               ) : null}

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import * as Haptics from 'expo-haptics'
-import * as ImagePicker from 'expo-image-picker'
+import { pickAppImage } from '../../adapters/appImagePicker'
 import { useEffect, useState } from 'react'
 import {
   Alert,
@@ -84,38 +84,33 @@ export function MenuBugReportDrawer({
   }
 
   async function pickEvidence(source: 'camera' | 'gallery') {
-    const permission =
-      source === 'camera'
-        ? await ImagePicker.requestCameraPermissionsAsync()
-        : await ImagePicker.requestMediaLibraryPermissionsAsync()
+    const result = await pickAppImage({
+      source: source === 'camera' ? 'camera' : 'library',
+      quality: 0.85,
+      cameraFacing: 'back',
+    })
 
-    if (!permission.granted) {
-      Alert.alert(
-        'Permissão necessária',
-        source === 'camera'
-          ? 'Precisamos da câmera para registrar um print ou foto do problema.'
-          : 'Precisamos acessar sua galeria para anexar uma evidência.',
-      )
+    if (!result.ok) {
+      if (result.reason === 'permission_denied') {
+        Alert.alert(
+          'Permissão necessária',
+          source === 'camera'
+            ? 'Precisamos da câmera para registrar um print ou foto do problema.'
+            : 'Precisamos acessar sua galeria para anexar uma evidência.',
+        )
+        return
+      }
+
+      if (result.reason === 'unavailable' && result.message) {
+        Alert.alert('Indisponível', result.message)
+        return
+      }
+
       return
     }
 
-    const result =
-      source === 'camera'
-        ? await ImagePicker.launchCameraAsync({
-            mediaTypes: ['images'],
-            allowsEditing: false,
-            quality: 0.85,
-          })
-        : await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images'],
-            allowsEditing: false,
-            quality: 0.85,
-          })
-
-    if (result.canceled || !result.assets[0]?.uri) return
-
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    setEvidenceUri(result.assets[0].uri)
+    setEvidenceUri(result.uri)
   }
 
   async function handleSubmit() {

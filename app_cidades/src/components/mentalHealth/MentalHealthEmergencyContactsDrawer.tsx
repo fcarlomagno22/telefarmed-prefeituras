@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useCallback, useEffect, useState } from 'react'
-import { Alert, Keyboard, Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Alert, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { openAppPhoneCall } from '../../adapters/appLinking'
 import {
   deleteTrustedContact,
   loadTrustedContacts,
@@ -22,9 +23,7 @@ type MentalHealthEmergencyContactsDrawerProps = {
 }
 
 function dialPhone(phone: string) {
-  const digits = phone.replace(/\D/g, '')
-  if (!digits) return
-  void Linking.openURL(`tel:${digits}`)
+  void openAppPhoneCall(phone)
 }
 
 function createEmptyForm() {

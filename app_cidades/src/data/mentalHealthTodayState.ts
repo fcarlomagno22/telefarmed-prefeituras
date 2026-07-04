@@ -10,7 +10,13 @@ import type { DailyMicroPlan, UserClinicalState } from '../types/mentalHealthEng
 import { resolveMentalHealthWelcomeState } from '../utils/mentalHealthGreeting'
 import { toLocalDateIso } from '../utils/runWalkWeeklyChart'
 
-const WEEK_DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'] as const
+const WEEK_DAY_LABELS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'] as const
+
+function startOfDay(date: Date) {
+  const next = new Date(date)
+  next.setHours(0, 0, 0, 0)
+  return next
+}
 
 function moodToWeekLevel(mood: MentalHealthMoodLevelId): MentalHealthWeekDayLevel {
   if (mood === 'very-bad' || mood === 'bad') return 'low'
@@ -19,20 +25,32 @@ function moodToWeekLevel(mood: MentalHealthMoodLevelId): MentalHealthWeekDayLeve
 }
 
 function buildWeekOverview(entries: MentalHealthCheckInEntry[]) {
-  const today = new Date()
+  const today = startOfDay(new Date())
+  const weekday = today.getDay()
+  const mondayOffset = weekday === 0 ? -6 : 1 - weekday
   const days: MentalHealthWeekDay[] = []
 
-  for (let offset = 6; offset >= 0; offset -= 1) {
+  for (let index = 0; index < 7; index += 1) {
     const date = new Date(today)
-    date.setDate(date.getDate() - offset)
+    date.setDate(today.getDate() + mondayOffset + index)
     const iso = toLocalDateIso(date)
+    const isFuture = date.getTime() > today.getTime()
+
+    if (isFuture) {
+      days.push({
+        label: WEEK_DAY_LABELS[index],
+        level: 'empty',
+      })
+      continue
+    }
+
     const dayEntries = entries.filter(
       (entry) => toLocalDateIso(new Date(entry.recordedAt)) === iso,
     )
     const latest = dayEntries[0] ?? null
 
     days.push({
-      label: WEEK_DAY_LABELS[date.getDay()],
+      label: WEEK_DAY_LABELS[index],
       level: latest ? moodToWeekLevel(latest.mood) : 'empty',
     })
   }

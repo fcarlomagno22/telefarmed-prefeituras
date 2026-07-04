@@ -1,11 +1,21 @@
 import { AppState, type AppStateStatus } from 'react-native'
 import {
-  createAudioPlayer,
-  setAudioModeAsync,
-  setIsAudioActiveAsync,
+  activateAppAudioLockScreen,
+  clearAppAudioLockScreen,
+  getSleepPlaybackAudioMode,
+  getSleepPlaybackPlayerOptions,
+  isAppAudioBackgroundPlaybackSupported,
+  isAppAudioLockScreenSupported,
+  updateAppAudioLockScreenMetadata,
+} from '../adapters/appAudioBackground'
+import {
+  createAppAudioPlayer,
+  playAppAudioPlayer,
+  setAppAudioActiveAsync,
+  setAppAudioModeAsync,
   type AudioPlayer,
   type AudioStatus,
-} from 'expo-audio'
+} from '../adapters/appAudio'
 import {
   SLEEP_SOUND_LOCK_SCREEN_ALBUM,
   SLEEP_SOUND_LOCK_SCREEN_ARTIST,
@@ -18,18 +28,9 @@ const STATUS_UPDATE_MS = 200
 const DEFAULT_VOLUME = 0.65
 const VOLUME_STEP = 0.08
 
-const LOCK_SCREEN_OPTIONS = {
-  showSeekForward: false,
-  showSeekBackward: false,
-} as const
-
 async function ensureSleepAudioMode() {
-  await setIsAudioActiveAsync(true)
-  await setAudioModeAsync({
-    playsInSilentMode: true,
-    shouldPlayInBackground: true,
-    interruptionMode: 'duckOthers',
-  })
+  await setAppAudioActiveAsync(true)
+  await setAppAudioModeAsync(getSleepPlaybackAudioMode())
 }
 
 async function waitUntilPlayerLoaded(player: AudioPlayer, timeoutMs = 4000) {
@@ -52,6 +53,11 @@ async function waitUntilPlayerLoaded(player: AudioPlayer, timeoutMs = 4000) {
 
 function clampVolume(value: number) {
   return Math.min(1, Math.max(0, value))
+}
+
+function tryPlay(player: AudioPlayer | null | undefined): boolean {
+  if (!player) return false
+  return playAppAudioPlayer(player).ok
 }
 
 function isBackgroundAppState(state: AppStateStatus) {
@@ -104,7 +110,7 @@ export class SleepSoundPlaybackEngine {
   async start(source: number, volume = DEFAULT_VOLUME, metadata?: SleepSoundLockScreenMetadata) {
     await ensureSleepAudioMode()
 
-    if (metadata) {
+    if (metadata && isAppAudioLockScreenSupported()) {
       this.lockScreenMetadata = metadata
     }
 
@@ -114,12 +120,13 @@ export class SleepSoundPlaybackEngine {
         const active = this.getPlayer(this.activeSlot)
         if (active) active.volume = this.masterVolume
       }
-      if (metadata) {
+      if (metadata && isAppAudioLockScreenSupported()) {
+        this.lockScreenMetadata = metadata
         this.syncLockScreenMetadata()
         this.ensureLockScreenControls(this.getPlayer(this.activeSlot))
       }
       if (!this.userPaused && !this.isPlaying()) {
-        this.getPlayer(this.activeSlot)?.play()
+        tryPlay(this.getPlayer(this.activeSlot))
       }
       return
     }
@@ -131,14 +138,13 @@ export class SleepSoundPlaybackEngine {
     this.activeSlot = 'A'
     this.crossfadeStarted = false
 
-    const playerOptions = {
+    const playerOptions = getSleepPlaybackPlayerOptions({
       updateInterval: STATUS_UPDATE_MS,
       downloadFirst: true,
-      keepAudioSessionActive: true,
-    }
+    })
 
-    this.playerA = createAudioPlayer(source, playerOptions)
-    this.playerB = createAudioPlayer(source, playerOptions)
+    this.playerA = createAppAudioPlayer(source, playerOptions)
+    this.playerB = createAppAudioPlayer(source, playerOptions)
     this.playerA.volume = this.masterVolume
     this.playerB.volume = 0
 
@@ -149,16 +155,16 @@ export class SleepSoundPlaybackEngine {
       this.handleStatusUpdate('B', status)
     })
 
-    this.ensureLockScreenControls(this.playerA)
     await waitUntilPlayerLoaded(this.playerA)
-    this.playerA.play()
-    this.isPaused = false
-    this.userPaused = false
+    const started = tryPlay(this.playerA)
+    this.isPaused = !started
+    this.userPaused = !started
+    this.ensureLockScreenControls(this.playerA)
     this.startKeepAlive()
   }
 
   updateLockScreenArtwork(artworkUrl?: string) {
-    if (!artworkUrl || !this.lockScreenMetadata) return
+    if (!isAppAudioLockScreenSupported() || !artworkUrl || !this.lockScreenMetadata) return
 
     this.lockScreenMetadata = {
       ...this.lockScreenMetadata,
@@ -190,7 +196,7 @@ export class SleepSoundPlaybackEngine {
     this.isPaused = false
     this.userPaused = false
     void ensureSleepAudioMode()
-    this.getPlayer(this.activeSlot)?.play()
+    tryPlay(this.getPlayer(this.activeSlot))
     this.ensureLockScreenControls(this.getPlayer(this.activeSlot))
     this.refreshLockScreenNowPlaying()
     this.onPlaybackStateChange?.(true)
@@ -280,7 +286,7 @@ export class SleepSoundPlaybackEngine {
     this.ensureLockScreenControls(active)
 
     if (!active.playing) {
-      active.play()
+      tryPlay(active)
     }
 
     this.isPaused = false
@@ -288,7 +294,15 @@ export class SleepSoundPlaybackEngine {
   }
 
   private onAppBackground() {
-    if (!this.source || this.userPaused || !this.lockScreenMetadata) return
+    if (
+      !isAppAudioBackgroundPlaybackSupported() ||
+      !isAppAudioLockScreenSupported() ||
+      !this.source ||
+      this.userPaused ||
+      !this.lockScreenMetadata
+    ) {
+      return
+    }
 
     this.ensureLockScreenControls(this.getPlayer(this.activeSlot))
   }
@@ -344,7 +358,7 @@ export class SleepSoundPlaybackEngine {
 
     try {
       if (this.lockScreenActivePlayer === player) {
-        player.clearLockScreenControls()
+        clearAppAudioLockScreen(player)
         this.lockScreenActivePlayer = null
       }
       player.pause()
@@ -374,7 +388,7 @@ export class SleepSoundPlaybackEngine {
 
     this.syncRemotePlaybackState(status)
 
-    if (status.isLoaded && this.lockScreenMetadata) {
+    if (status.isLoaded && this.lockScreenMetadata && isAppAudioLockScreenSupported()) {
       this.ensureLockScreenControls(this.getPlayer(this.activeSlot))
     }
   }
@@ -412,10 +426,10 @@ export class SleepSoundPlaybackEngine {
       return
     }
 
-    if (isBackgroundAppState(this.appState)) {
+    if (isBackgroundAppState(this.appState) && isAppAudioBackgroundPlaybackSupported()) {
       const active = this.getPlayer(this.activeSlot)
       if (active) {
-        active.play()
+        tryPlay(active)
       }
       return
     }
@@ -423,7 +437,7 @@ export class SleepSoundPlaybackEngine {
     if (!this.crossfadeStarted) {
       const active = this.getPlayer(this.activeSlot)
       if (active && !active.playing) {
-        active.play()
+        tryPlay(active)
       }
     }
   }
@@ -446,72 +460,57 @@ export class SleepSoundPlaybackEngine {
   }
 
   private ensureLockScreenControls(player: AudioPlayer | null | undefined) {
-    if (!player || !this.lockScreenMetadata) return
-    if (this.lockScreenActivePlayer === player) return
+    if (!isAppAudioLockScreenSupported() || !player || !this.lockScreenMetadata) return
 
-    this.activateLockScreenControls(player)
+    this.lockScreenActivePlayer = activateAppAudioLockScreen(
+      player,
+      this.toLockScreenMetadata(),
+      this.lockScreenActivePlayer,
+    )
   }
 
-  private activateLockScreenControls(player: AudioPlayer) {
-    if (!this.lockScreenMetadata) return
-
-    if (this.lockScreenActivePlayer && this.lockScreenActivePlayer !== player) {
-      try {
-        this.lockScreenActivePlayer.clearLockScreenControls()
-      } catch {
-        // noop
-      }
+  private toLockScreenMetadata() {
+    if (!this.lockScreenMetadata) {
+      throw new Error('Lock screen metadata unavailable')
     }
 
-    player.setActiveForLockScreen(
-      true,
-      {
-        title: this.lockScreenMetadata.title,
-        artist: this.lockScreenMetadata.artist ?? SLEEP_SOUND_LOCK_SCREEN_ARTIST,
-        albumTitle: this.lockScreenMetadata.albumTitle ?? SLEEP_SOUND_LOCK_SCREEN_ALBUM,
-        artworkUrl: this.lockScreenMetadata.artworkUrl,
-      },
-      LOCK_SCREEN_OPTIONS,
-    )
-
-    this.lockScreenActivePlayer = player
-  }
-
-  private syncLockScreenMetadata() {
-    if (!this.lockScreenMetadata || !this.lockScreenActivePlayer) return
-
-    this.lockScreenActivePlayer.updateLockScreenMetadata({
+    return {
       title: this.lockScreenMetadata.title,
       artist: this.lockScreenMetadata.artist ?? SLEEP_SOUND_LOCK_SCREEN_ARTIST,
       albumTitle: this.lockScreenMetadata.albumTitle ?? SLEEP_SOUND_LOCK_SCREEN_ALBUM,
       artworkUrl: this.lockScreenMetadata.artworkUrl,
-    })
+    }
+  }
+
+  private syncLockScreenMetadata() {
+    if (
+      !isAppAudioLockScreenSupported() ||
+      !this.lockScreenMetadata ||
+      !this.lockScreenActivePlayer
+    ) {
+      return
+    }
+
+    updateAppAudioLockScreenMetadata(this.lockScreenActivePlayer, this.toLockScreenMetadata())
   }
 
   private refreshLockScreenNowPlaying() {
-    if (!this.lockScreenActivePlayer) return
+    if (!isAppAudioLockScreenSupported() || !this.lockScreenActivePlayer) return
 
     try {
-      this.lockScreenActivePlayer.updateLockScreenMetadata({
-        title: this.lockScreenMetadata?.title,
-        artist: this.lockScreenMetadata?.artist ?? SLEEP_SOUND_LOCK_SCREEN_ARTIST,
-        albumTitle: this.lockScreenMetadata?.albumTitle ?? SLEEP_SOUND_LOCK_SCREEN_ALBUM,
-        artworkUrl: this.lockScreenMetadata?.artworkUrl,
-      })
+      updateAppAudioLockScreenMetadata(this.lockScreenActivePlayer, this.toLockScreenMetadata())
     } catch {
       // noop
     }
   }
 
   private clearLockScreenControls() {
-    if (!this.lockScreenActivePlayer) return
-
-    try {
-      this.lockScreenActivePlayer.clearLockScreenControls()
-    } catch {
-      // noop
+    if (!isAppAudioLockScreenSupported()) {
+      this.lockScreenActivePlayer = null
+      return
     }
 
+    clearAppAudioLockScreen(this.lockScreenActivePlayer)
     this.lockScreenActivePlayer = null
   }
 
@@ -535,7 +534,7 @@ export class SleepSoundPlaybackEngine {
 
     incoming.volume = 0
     this.ensureLockScreenControls(incoming)
-    incoming.play()
+    tryPlay(incoming)
 
     let step = 0
     const intervalMs = Math.max(80, Math.round((CROSSFADE_SECONDS * 1000) / CROSSFADE_STEPS))

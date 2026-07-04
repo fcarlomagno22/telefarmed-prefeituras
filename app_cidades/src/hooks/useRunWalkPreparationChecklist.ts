@@ -20,6 +20,7 @@ type UseRunWalkPreparationChecklistOptions = {
   gpsLocated: boolean
   batteryOk: boolean
   batteryDetail: string
+  batteryAvailable?: boolean
   liveShareConfigured: boolean
 }
 
@@ -28,6 +29,7 @@ export function useRunWalkPreparationChecklist({
   gpsLocated,
   batteryOk,
   batteryDetail,
+  batteryAvailable = true,
   liveShareConfigured,
 }: UseRunWalkPreparationChecklistOptions) {
   const items = useMemo<PreparationChecklistItem[]>(() => {
@@ -43,6 +45,7 @@ export function useRunWalkPreparationChecklist({
         label: 'Bateria suficiente',
         ok: batteryOk,
         detail: batteryDetail,
+        optional: !batteryAvailable,
       },
       {
         id: 'device',
@@ -62,6 +65,7 @@ export function useRunWalkPreparationChecklist({
       },
     ]
   }, [
+    batteryAvailable,
     batteryDetail,
     batteryOk,
     gpsLocated,

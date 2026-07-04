@@ -65,6 +65,7 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: 8,
     paddingBottom: 4,
+    minHeight: 280,
   },
   lottieWrap: {
     width: '100%',

@@ -10,6 +10,7 @@ import {
 import { RegisterStepPassword } from '../components/register/RegisterStepPassword'
 import { RegisterPresentationVideoOverlay } from '../components/register/RegisterPresentationVideoOverlay'
 import { RegisterStepProfile } from '../components/register/RegisterStepProfile'
+import { markAppVideoUserGesture } from '../adapters/appVideo'
 import { useAuth } from '../contexts/AuthContext'
 import { RegistrationAddress, RegistrationData, RegistrationProfile } from '../types/auth'
 import { colors } from '../theme/colors'
@@ -46,6 +47,7 @@ export function RegisterScreen() {
   const [showPresentationVideo, setShowPresentationVideo] = useState(false)
 
   function handleStartPresentationVideo() {
+    markAppVideoUserGesture()
     setShowPresentationVideo(true)
   }
 
@@ -83,9 +85,6 @@ export function RegisterScreen() {
 
   return (
     <AppShell>
-      {showPresentationVideo ? (
-        <RegisterPresentationVideoOverlay onComplete={handlePresentationVideoComplete} />
-      ) : null}
       {showPresentationVideo ? (
         <RegisterPresentationVideoOverlay onComplete={handlePresentationVideoComplete} />
       ) : null}

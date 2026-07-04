@@ -26,6 +26,7 @@ import {
   HealthPermissionId,
   IntegrationConnectionState,
 } from '../../types/healthIntegrations'
+import { HealthIntegrationBrandIcon } from './HealthIntegrationBrandIcon'
 import { PrimaryButton } from '../PrimaryButton'
 import { AppModal } from '../AppModal'
 
@@ -62,24 +63,6 @@ function formatLastSync(timestamp: number): string {
 function getHeaderTitle(step: DrawerStep, integration: HealthIntegrationConfig): string {
   if (integration.id === 'devices') return 'Dispositivos'
   return integration.title
-}
-
-function IntegrationIcon({
-  integration,
-  size = 22,
-}: {
-  integration: HealthIntegrationConfig
-  size?: number
-}) {
-  return integration.iconFamily === 'ionicons' ? (
-    <Ionicons name={integration.icon as keyof typeof Ionicons.glyphMap} size={size} color="#fff" />
-  ) : (
-    <MaterialCommunityIcons
-      name={integration.icon as keyof typeof MaterialCommunityIcons.glyphMap}
-      size={size - 2}
-      color="#fff"
-    />
-  )
 }
 
 function InfoRow({
@@ -219,7 +202,7 @@ export function HealthIntegrationConnectDrawer({
     if (isMounted) {
       closeSheet(onClose)
     }
-  }, [visible, integration?.id, connection?.status])
+  }, [visible, integration?.id])
 
   const selectedDevice = MOCK_BLUETOOTH_DEVICES.find((device) => device.id === selectedDeviceId)
 
@@ -406,7 +389,7 @@ export function HealthIntegrationConnectDrawer({
               : `${integration.title} está pronto para sincronizar suas métricas`}
           </Text>
           <View style={styles.successButtonWrap}>
-            <PrimaryButton label="Concluir" onPress={handleDismiss} />
+            <PrimaryButton label="Entendi" onPress={handleDismiss} />
           </View>
         </View>
       )
@@ -479,8 +462,16 @@ export function HealthIntegrationConnectDrawer({
             </>
           ) : null}
 
-          <View style={styles.actionsBlock}>
-            <PrimaryButton label="Desconectar" onPress={handleDisconnect} />
+          <View style={styles.manageActions}>
+            <PrimaryButton label="Fechar" onPress={handleDismiss} />
+            <Pressable
+              onPress={handleDisconnect}
+              style={({ pressed }) => [styles.disconnectLink, pressed && styles.disconnectLinkPressed]}
+              accessibilityRole="button"
+              accessibilityLabel="Desconectar integração"
+            >
+              <Text style={styles.disconnectLinkText}>Desconectar integração</Text>
+            </Pressable>
           </View>
         </View>
       )
@@ -644,7 +635,7 @@ export function HealthIntegrationConnectDrawer({
                 end={{ x: 0.85, y: 1 }}
                 style={styles.headerIconOrb}
               >
-                <IntegrationIcon integration={integration} size={20} />
+                <HealthIntegrationBrandIcon integration={integration} size={20} />
               </LinearGradient>
 
               <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
@@ -953,5 +944,21 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 14,
     fontWeight: '500',
+  },
+  manageActions: {
+    marginTop: 20,
+    gap: 2,
+  },
+  disconnectLink: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  disconnectLinkPressed: {
+    opacity: 0.72,
+  },
+  disconnectLinkText: {
+    color: colors.textSubtle,
+    fontSize: 12,
+    fontWeight: '600',
   },
 })

@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useState } from 'react'
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { openAppPhoneCall } from '../../../adapters/appLinking'
 import {
   loadActiveTrustedContact,
   type TrustedContact,
@@ -26,9 +27,7 @@ type SosOptionProps = {
 }
 
 function dialPhone(phone: string) {
-  const digits = phone.replace(/\D/g, '')
-  if (!digits) return
-  void Linking.openURL(`tel:${digits}`)
+  void openAppPhoneCall(phone)
 }
 
 function SosOption({

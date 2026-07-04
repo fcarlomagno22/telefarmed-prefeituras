@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
-import * as NavigationBar from 'expo-navigation-bar'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useState } from 'react'
 import {
@@ -12,7 +11,11 @@ import {
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { SystemBars } from 'react-native-edge-to-edge'
+import {
+  setNavigationBarBackgroundColorAsync,
+  setNavigationBarButtonStyleAsync,
+} from '../adapters/navigationBar'
+import { AppSystemBars } from '../components/platform/AppSystemBars'
 import { LiveLocationTrackingMap } from '../components/runWalk/liveShare/LiveLocationTrackingMap'
 import { useAuth } from '../contexts/AuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
@@ -72,17 +75,15 @@ export function RunWalkLiveLocationViewerScreen() {
   const [bottomInsetPx, setBottomInsetPx] = useState(220)
 
   useEffect(() => {
-    if (Platform.OS !== 'android') return
-
-    void NavigationBar.setBackgroundColorAsync('#000000')
-    void NavigationBar.setButtonStyleAsync('light')
+    void setNavigationBarBackgroundColorAsync('#000000')
+    void setNavigationBarButtonStyleAsync('light')
   }, [])
 
   const topInsetPx = Math.max(insets.top, 12) + 52
 
   return (
     <View style={styles.root}>
-      <SystemBars style="light" />
+      <AppSystemBars style="light" />
 
       {insets.top > 0 ? (
         <View pointerEvents="none" style={[styles.safeAreaBand, { height: insets.top }]} />

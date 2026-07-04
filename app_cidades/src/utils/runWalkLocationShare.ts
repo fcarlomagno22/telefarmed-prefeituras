@@ -1,6 +1,7 @@
-import { Alert, Linking, Platform, Share } from 'react-native'
+import { Alert, Platform, Share } from 'react-native'
+import { openAppWhatsAppMessage } from '../adapters/appLinking'
 import { buildLiveShareViewerLink } from './runWalkLiveShareLink'
-import { phoneDigits, isValidPhone } from './phone'
+import { isValidPhone } from './phone'
 
 type ShareLiveLocationOptions = {
   shareToken: string
@@ -22,34 +23,9 @@ export function buildLiveShareShareMessage(
   )
 }
 
-function toWhatsAppPhone(phone: string): string {
-  const digits = phoneDigits(phone)
-  if (digits.startsWith('55') && digits.length >= 12) return digits
-  return `55${digits}`
-}
-
-async function openWhatsAppShare(phone: string, message: string): Promise<boolean> {
-  const normalizedPhone = toWhatsAppPhone(phone)
-  const whatsAppWebUrl = `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(message)}`
-  const whatsAppAppUrl = `whatsapp://send?phone=${normalizedPhone}&text=${encodeURIComponent(message)}`
-
-  try {
-    const canOpenWeb = await Linking.canOpenURL(whatsAppWebUrl)
-    if (canOpenWeb) {
-      await Linking.openURL(whatsAppWebUrl)
-      return true
-    }
-
-    const canOpenApp = await Linking.canOpenURL(whatsAppAppUrl)
-    if (canOpenApp) {
-      await Linking.openURL(whatsAppAppUrl)
-      return true
-    }
-  } catch {
-    // Fallback para o share sheet abaixo.
-  }
-
-  return false
+export async function openWhatsAppMessage(phone: string, message: string): Promise<boolean> {
+  const result = await openAppWhatsAppMessage(phone, message)
+  return result.ok
 }
 
 export function waitForShareSheet(ms = 320): Promise<void> {
@@ -67,7 +43,7 @@ export async function shareLiveLocationLink({
   const message = buildLiveShareShareMessage(trackingLink, recipientName)
 
   if (recipientPhone && isValidPhone(recipientPhone)) {
-    const openedWhatsApp = await openWhatsAppShare(recipientPhone, message)
+    const openedWhatsApp = await openWhatsAppMessage(recipientPhone, message)
     if (openedWhatsApp) return true
   }
 

@@ -1,4 +1,5 @@
-import { Linking, Platform } from 'react-native'
+import { Platform } from 'react-native'
+import { openFirstAvailableAppUrl } from '../adapters/appLinking'
 import { scheduleUbts } from '../data/mockScheduleUbts'
 
 export type NavigationTarget = {
@@ -35,25 +36,6 @@ export function getAppointmentNavigationTarget(ubtId: string): NavigationTarget 
   }
 }
 
-async function openFirstAvailableUrl(urls: string[]): Promise<void> {
-  for (const url of urls) {
-    try {
-      const canOpen = await Linking.canOpenURL(url)
-      if (canOpen) {
-        await Linking.openURL(url)
-        return
-      }
-    } catch {
-      // Try next fallback.
-    }
-  }
-
-  const fallback = urls[urls.length - 1]
-  if (fallback) {
-    await Linking.openURL(fallback)
-  }
-}
-
 export async function openGoogleMapsDirections(target: NavigationTarget): Promise<void> {
   const label = encodeURIComponent(target.name)
   const addressQuery = encodeURIComponent(target.fullAddress)
@@ -73,7 +55,7 @@ export async function openGoogleMapsDirections(target: NavigationTarget): Promis
     default: [`https://www.google.com/maps/dir/?api=1&destination=${coords}`],
   }) ?? [`https://www.google.com/maps/search/?api=1&query=${addressQuery}`]
 
-  await openFirstAvailableUrl(urls)
+  await openFirstAvailableAppUrl(urls)
 }
 
 export async function openWazeDirections(target: NavigationTarget): Promise<void> {
@@ -87,7 +69,7 @@ export async function openWazeDirections(target: NavigationTarget): Promise<void
     `https://waze.com/ul?q=${addressQuery}&navigate=yes`,
   ]
 
-  await openFirstAvailableUrl(urls)
+  await openFirstAvailableAppUrl(urls)
 }
 
 export async function openAppointmentDirections(

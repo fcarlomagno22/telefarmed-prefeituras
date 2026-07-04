@@ -1,12 +1,14 @@
 import { useCallback } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
-import { SystemBars } from 'react-native-edge-to-edge'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { AppSystemBars } from './src/components/platform/AppSystemBars'
+import { PwaInstallPrompt } from './src/components/platform/PwaInstallPrompt'
 import { AuthProvider, useAuth } from './src/contexts/AuthContext'
 import { GuestAuthProvider } from './src/contexts/GuestAuthContext'
 import { ThemeProvider } from './src/contexts/ThemeContext'
 import { OverlayPortalProvider } from './src/contexts/OverlayPortalContext'
 import { useAndroidBackHandler } from './src/hooks/useAndroidBackHandler'
+import { useAndroidNavigationBar } from './src/hooks/useAndroidNavigationBar'
 import { colors } from './src/theme/colors'
 import { ForgotPasswordScreen } from './src/screens/ForgotPasswordScreen'
 import { HomeScreen } from './src/screens/HomeScreen'
@@ -112,6 +114,8 @@ function AppRouter() {
 }
 
 export default function App() {
+  useAndroidNavigationBar()
+
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
       <SafeAreaProvider>
@@ -119,8 +123,9 @@ export default function App() {
           <AuthProvider>
             <GuestAuthProvider>
               <ThemeProvider>
-                <SystemBars style="light" />
+                <AppSystemBars style="light" />
                 <AppRouter />
+                <PwaInstallPrompt />
               </ThemeProvider>
             </GuestAuthProvider>
           </AuthProvider>

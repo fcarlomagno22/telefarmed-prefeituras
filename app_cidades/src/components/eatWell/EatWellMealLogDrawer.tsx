@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import * as Haptics from 'expo-haptics'
-import * as ImagePicker from 'expo-image-picker'
+import { pickAppImage } from '../../adapters/appImagePicker'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -249,26 +249,28 @@ export function EatWellMealLogDrawer({
   }
 
   async function handlePickGallery() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
-    if (!permission.granted) {
-      Alert.alert(
-        'Permissão necessária',
-        'Precisamos acessar sua galeria para escolher uma foto da refeição.',
-      )
-      return
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: false,
+    const result = await pickAppImage({
+      source: 'library',
       quality: 0.85,
     })
 
-    if (result.canceled || !result.assets[0]?.uri) return
+    if (!result.ok) {
+      if (result.reason === 'permission_denied') {
+        Alert.alert(
+          'Permissão necessária',
+          'Precisamos acessar sua galeria para escolher uma foto da refeição.',
+        )
+        return
+      }
 
-    const asset = result.assets[0]
+      if (result.reason === 'unavailable' && result.message) {
+        Alert.alert('Indisponível', result.message)
+      }
+      return
+    }
+
     setInputMethod('gallery')
-    await openPhotoCrop(asset.uri, asset.width, asset.height)
+    await openPhotoCrop(result.uri, result.width, result.height)
   }
 
   function handlePhotoCropClose() {

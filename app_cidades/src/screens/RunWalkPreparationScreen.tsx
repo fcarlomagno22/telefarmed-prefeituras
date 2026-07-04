@@ -69,7 +69,11 @@ export function RunWalkPreparationScreen() {
     location.coordinates?.longitude ?? null,
   )
 
-  const batteryDetail = formatBatteryLevel(battery.levelPercent, battery.isCharging)
+  const batteryDetail = formatBatteryLevel(
+    battery.levelPercent,
+    battery.isCharging,
+    battery.isAvailable,
+  )
 
   useEffect(() => {
     let active = true

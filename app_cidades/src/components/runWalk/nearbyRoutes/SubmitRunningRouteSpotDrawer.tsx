@@ -1,8 +1,12 @@
 import { Ionicons } from '@expo/vector-icons'
 import { Image } from 'expo-image'
 import * as Haptics from 'expo-haptics'
-import * as ImagePicker from 'expo-image-picker'
-import * as Location from 'expo-location'
+import { pickAppImage } from '../../../adapters/appImagePicker'
+import {
+  Accuracy,
+  getCurrentPositionAsync,
+  requestForegroundPermissionsAsync,
+} from '../../../adapters/appLocation'
 import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
@@ -90,23 +94,27 @@ export function SubmitRunningRouteSpotDrawer({
   }, [visible, defaultAddress])
 
   async function pickCoverPhoto() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
-    if (!permission.granted) {
-      Alert.alert('Permissão necessária', 'Precisamos acessar sua galeria para escolher a foto do lugar.')
+    const result = await pickAppImage({
+      source: 'library',
+      quality: 0.9,
+      allowsEditing: true,
+      aspect: [16, 9],
+    })
+
+    if (!result.ok) {
+      if (result.reason === 'permission_denied') {
+        Alert.alert('Permissão necessária', 'Precisamos acessar sua galeria para escolher a foto do lugar.')
+        return
+      }
+
+      if (result.reason === 'unavailable' && result.message) {
+        Alert.alert('Indisponível', result.message)
+      }
       return
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.9,
-    })
-
-    if (result.canceled || !result.assets[0]?.uri) return
-
     try {
-      const persisted = await persistRunningRouteCoverPhoto(result.assets[0].uri)
+      const persisted = await persistRunningRouteCoverPhoto(result.uri)
       setCoverPhotoUri(persisted)
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     } catch {
@@ -119,14 +127,14 @@ export function SubmitRunningRouteSpotDrawer({
     setLocationError(null)
 
     try {
-      const permission = await Location.requestForegroundPermissionsAsync()
+      const permission = await requestForegroundPermissionsAsync()
       if (!permission.granted) {
         setLocationError('Permita o acesso à localização para marcar onde você está.')
         return
       }
 
-      const position = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
+      const position = await getCurrentPositionAsync({
+        accuracy: Accuracy.High,
       })
 
       const nextCoordinates = {

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   FlatList,
-  Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
@@ -9,15 +8,14 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 import { PromoBanner } from '../config/promoBanners'
 import { colors } from '../theme/colors'
 import { ChildBehaviorScreeningPromoBanner } from './home/ChildBehaviorScreeningPromoBanner'
+import { ThemedPromoImageBanner } from './home/ThemedPromoImageBanner'
 import { SkeletonBone } from './SkeletonBone'
 
 const HORIZONTAL_PADDING = 20
 const CARD_HEIGHT = Math.round(208 * 0.78)
-const BOTTOM_FADE_HEIGHT = Math.round(48 * 0.78)
 const AUTO_PLAY_MS = 4500
 
 type PromoCarouselProps = {
@@ -79,7 +77,7 @@ export function PromoCarousel({
         <View style={[styles.card, { width: cardWidth, height: CARD_HEIGHT }]}>
           <SkeletonBone width="100%" height={CARD_HEIGHT} borderRadius={20} />
           <View style={styles.dots}>
-            {[0, 1, 2].map((index) => (
+            {[0, 1, 2, 3].map((index) => (
               <SkeletonBone key={index} width={index === 0 ? 18 : 6} height={6} borderRadius={3} />
             ))}
           </View>
@@ -89,9 +87,6 @@ export function PromoCarousel({
   }
 
   if (banners.length === 0) return null
-
-  const activeBanner = banners[activeIndex]
-  const showBottomFade = activeBanner?.kind === 'image'
 
   return (
     <View style={[styles.wrapper, { paddingHorizontal: HORIZONTAL_PADDING }]}>
@@ -133,24 +128,18 @@ export function PromoCarousel({
               {item.kind === 'child-behavior-screening' ? (
                 <ChildBehaviorScreeningPromoBanner width={cardWidth} height={CARD_HEIGHT} />
               ) : (
-                <Image
+                <ThemedPromoImageBanner
+                  width={cardWidth}
+                  height={CARD_HEIGHT}
                   source={item.source}
-                  style={styles.image}
-                  resizeMode="cover"
-                  accessibilityLabel={item.accessibilityLabel}
+                  eyebrow={item.eyebrow}
+                  title={item.title}
+                  accentColor={item.accentColor}
                 />
               )}
             </Pressable>
           )}
         />
-
-        {showBottomFade ? (
-          <LinearGradient
-            colors={['transparent', 'rgba(0, 0, 0, 0.55)']}
-            style={[styles.bottomFade, { height: BOTTOM_FADE_HEIGHT }]}
-            pointerEvents="none"
-          />
-        ) : null}
 
         {banners.length > 1 ? (
           <View style={styles.dots}>
@@ -190,16 +179,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
     backgroundColor: colors.backgroundElevated,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  bottomFade: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
   dots: {
     position: 'absolute',
