@@ -20,8 +20,9 @@ export function isPwaStandalone(): boolean {
   )
 }
 
-export function shouldUseAndroidPwaImmersive(): boolean {
-  return isAndroidWeb() && isPwaStandalone()
+/** Android Chrome — PWA instalado ou site aberto no navegador. */
+export function shouldUseAndroidWebImmersive(): boolean {
+  return isAndroidWeb()
 }
 
 function isAlreadyFullscreen(): boolean {

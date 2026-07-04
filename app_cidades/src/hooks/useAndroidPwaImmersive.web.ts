@@ -3,7 +3,7 @@ import {
   WEB_CHROME_COLOR,
   applyWebChromeColor,
   requestAndroidPwaFullscreen,
-  shouldUseAndroidPwaImmersive,
+  shouldUseAndroidWebImmersive,
 } from '../adapters/webChromeTheme.web'
 
 function isAlreadyFullscreen(): boolean {
@@ -13,7 +13,7 @@ function isAlreadyFullscreen(): boolean {
 
 export function useAndroidPwaImmersive() {
   useEffect(() => {
-    if (!shouldUseAndroidPwaImmersive()) return
+    if (!shouldUseAndroidWebImmersive()) return
 
     const enter = () => {
       if (isAlreadyFullscreen()) return

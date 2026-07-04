@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useBottomTabInset } from '../hooks/useBottomTabInset'
 import { colors } from '../theme/colors'
 
 export type BottomTabId =
@@ -180,8 +180,7 @@ function TabItem({
 }
 
 export function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
-  const insets = useSafeAreaInsets()
-  const bottomInset = Math.max(insets.bottom, 8)
+  const bottomInset = useBottomTabInset()
 
   function handlePress(tab: BottomTabId) {
     if (activeTab !== null && tab !== activeTab) {

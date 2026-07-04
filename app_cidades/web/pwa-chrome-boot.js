@@ -34,15 +34,6 @@
     document.body.style.backgroundColor = CHROME
   }
 
-  function isPwaStandalone() {
-    return (
-      window.matchMedia('(display-mode: standalone)').matches ||
-      window.matchMedia('(display-mode: minimal-ui)').matches ||
-      window.matchMedia('(display-mode: fullscreen)').matches ||
-      window.navigator.standalone === true
-    )
-  }
-
   function isAlreadyFullscreen() {
     return Boolean(document.fullscreenElement || document.webkitFullscreenElement)
   }
@@ -68,7 +59,7 @@
   }
 
   function bindImmersiveOnGesture() {
-    if (!isAndroid || !isPwaStandalone()) return
+    if (!isAndroid) return
 
     var enter = function () {
       void requestImmersiveFullscreen().catch(function () {})
