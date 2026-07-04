@@ -93,7 +93,7 @@ Um único espaço de nomes para **entidade** e **UBT**:
 
 ```
 admin, api, app, www, mail, smtp, ftp, cdn, static, assets,
-gestao, prefeitura, ubt, profissional, medico, seguranca,
+gestao, prefeitura, ubt, profissional, medico, seguranca, vd,
 login, auth, oauth, webhook, hooks, internal, cron, status,
 health, docs, blog, suporte, help, telefarmed, platform,
 staging, dev, test, demo, sandbox, null, undefined

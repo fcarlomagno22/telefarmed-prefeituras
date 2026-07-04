@@ -1,5 +1,7 @@
 /** Espelha validação do backend (`backend/src/lib/tenant/slug.ts`). */
 
+import { isAppCidadesHostReservedSlug } from '../config/appCidadesHost'
+
 export const RESERVED_TENANT_SLUGS = new Set([
   'admin',
   'api',
@@ -37,6 +39,7 @@ export const RESERVED_TENANT_SLUGS = new Set([
   'test',
   'demo',
   'sandbox',
+  'vd',
 ])
 
 const SLUG_PATTERN = /^[a-z0-9]([a-z0-9-]{1,48}[a-z0-9])?$/
@@ -51,6 +54,9 @@ export function validateTenantSlug(value: string): string | null {
   if (slug.length > 50) return 'O endereço deve ter no máximo 50 caracteres.'
   if (!SLUG_PATTERN.test(slug)) {
     return 'Use apenas letras minúsculas, números e hífens (sem hífen no início ou fim).'
+  }
+  if (isAppCidadesHostReservedSlug(slug)) {
+    return 'Este endereço está reservado para o app cidadão (vd.telefarmed.com.br).'
   }
   if (RESERVED_TENANT_SLUGS.has(slug)) return 'Este endereço está reservado pela plataforma.'
   return null

@@ -1,9 +1,12 @@
+import { isAppCidadesDedicatedHost } from './appCidadesHost'
+
 const PLATFORM_SUBDOMAINS = new Set([
   'admin',
   'prefeitura',
   'profissional',
   'ubt',
   'seguranca',
+  'vd',
   'www',
 ])
 
@@ -18,6 +21,8 @@ export function extractTenantSlugFromHostname(hostname: string): string | null {
   const host = normalizeHostname(hostname)
 
   if (host === 'localhost' || host === '127.0.0.1') return null
+
+  if (isAppCidadesDedicatedHost(host)) return null
 
   if (host.endsWith('.localhost')) {
     const slug = host.slice(0, -'.localhost'.length)

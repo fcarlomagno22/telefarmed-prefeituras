@@ -1,4 +1,5 @@
 import { env } from '../../config/env.js'
+import { isAppCidadesDedicatedHost } from './appCidadesHost.js'
 
 /** Hosts fixos da plataforma → kind: platform (não consultam slug de cliente). */
 export const PLATFORM_TENANT_HOST_SLUGS = new Set(['admin', 'profissional'])
@@ -9,6 +10,7 @@ export const NON_TENANT_HOST_SLUGS = new Set([
   'prefeitura',
   'ubt',
   'seguranca',
+  'vd',
   'www',
 ])
 
@@ -35,8 +37,10 @@ export function extractSubdomainFromHostname(hostname: string): string | null {
   return null
 }
 
-/** Slug de tenant (exclui hosts fixos da plataforma e legados). */
+/** Slug de tenant (exclui hosts fixos da plataforma, legados e app cidadão vd*). */
 export function extractTenantSlugFromHostname(hostname: string): string | null {
+  if (isAppCidadesDedicatedHost(hostname)) return null
+
   const subdomain = extractSubdomainFromHostname(hostname)
   if (!subdomain || NON_TENANT_HOST_SLUGS.has(subdomain)) return null
   return subdomain
