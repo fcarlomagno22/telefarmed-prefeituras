@@ -96,6 +96,8 @@ import { getDedicatedPortal, isLiveShareDedicatedHost, isTenantGestaoHost } from
 import { TenantHostProvider, useTenantHost } from './contexts/TenantHostContext'
 import { TenantHostLoadingPage } from './components/tenant/TenantHostLoadingPage'
 import { TenantHostNotFoundPage } from './components/tenant/TenantHostNotFoundPage'
+import { AppCidadesHostFallbackPage } from './components/tenant/AppCidadesHostFallbackPage'
+import { isAppCidadesDedicatedHost } from './config/appCidadesHost'
 
 const AdminNotificacoesPage = lazy(() =>
   import('./pages/AdminNotificacoesPage').then((module) => ({
@@ -137,6 +139,12 @@ function AppRoutes() {
   const liveShareHost =
     typeof window !== 'undefined' && isLiveShareDedicatedHost(window.location.hostname)
   const tenantHost = useTenantHost()
+  const appCidadesHost =
+    typeof window !== 'undefined' && isAppCidadesDedicatedHost(window.location.hostname)
+
+  if (appCidadesHost) {
+    return <AppCidadesHostFallbackPage />
+  }
 
   if (tenantHost.slug) {
     if (tenantHost.status === 'loading') {

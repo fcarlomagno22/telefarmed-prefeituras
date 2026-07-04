@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react'
 import { extractTenantSlugFromHostname } from '../config/tenantHost'
+import { isAppCidadesDedicatedHost } from '../config/appCidadesHost'
 import { brand } from '../config/brand'
 import { getDedicatedPortal } from '../config/portalHost'
 import { applyBrandCssVariables } from '../utils/brandColor'
@@ -57,7 +58,9 @@ function TenantHostDocumentHead({ faviconUrl }: { faviconUrl: string | null | un
 export function TenantHostProvider({ children }: { children: ReactNode }) {
   const slug = useMemo(() => {
     if (typeof window === 'undefined') return null
-    return extractTenantSlugFromHostname(window.location.hostname)
+    const hostname = window.location.hostname
+    if (isAppCidadesDedicatedHost(hostname)) return null
+    return extractTenantSlugFromHostname(hostname)
   }, [])
 
   const [status, setStatus] = useState<TenantHostStatus>(slug ? 'loading' : 'idle')

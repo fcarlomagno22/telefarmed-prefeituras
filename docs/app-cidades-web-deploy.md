@@ -1,47 +1,43 @@
 # Deploy web — app_cidades (VD)
 
-App cidadão (Expo web). **Não** usa o portal de gestão/UBT (`{slug}.telefarmed.com.br`).
+App cidadão (Expo web). **Não** é portal gestão/UBT (`{slug}.telefarmed.com.br`).
 
 ## URLs
 
-| Ambiente | Host | Uso |
-|----------|------|-----|
-| **VD interno (Telefarmed)** | `https://vd.telefarmed.com.br` | App de testes / operação interna |
-| **VD por cliente (futuro)** | `https://vd-{slug}.telefarmed.com.br` | White label por prefeitura |
-| **Gestão do cliente** | `https://{slug}.telefarmed.com.br` | Portal gestor — **outro app** |
+| Ambiente | Host |
+|----------|------|
+| **VD interno (Telefarmed)** | `https://vd.telefarmed.com.br` |
+| **VD por cliente (futuro)** | `https://vd-{slug}.telefarmed.com.br` |
+| **Gestão prefeitura** | `https://{slug}.telefarmed.com.br` ← **outro app** |
 
-Exemplos:
+---
 
-- Gestão Santa Casa: `https://santa-casa-sjc.telefarmed.com.br`
-- App cidadão Santa Casa (futuro): `https://vd-santa-casa-sjc.telefarmed.com.br`
-- VD interno: `https://vd.telefarmed.com.br`
+## Deploy recomendado — projeto Vercel separado
 
-## Deploy na Vercel (monorepo)
+O domínio **`vd.telefarmed.com.br` deve apontar para um projeto Vercel só do `app_cidades`**, não para o projeto do portal admin/gestão (raiz do monorepo).
 
-O projeto **principal** na Vercel já publica o portal admin/gestão. O build `npm run build:vercel`:
+### Passo a passo
 
-1. Compila API + portal Vite → `dist/`
-2. Compila `app_cidades` (Expo web) → `app_cidades/dist/`
-3. Copia o app cidadão para `dist/vd-app/`
-4. O **middleware** (`middleware.ts`) roteia hosts `vd` e `vd-*` para `dist/vd-app/`
+1. **Vercel → Add New Project** → mesmo repositório GitHub.
+2. **Root Directory:** `app_cidades`
+3. **Framework:** Other
+4. **Build Command:** `npm run build`
+5. **Output Directory:** `dist`
+6. **Domínios:** adicione `vd.telefarmed.com.br` **neste projeto**.
+7. **Remova** `vd.telefarmed.com.br` do projeto do portal (raiz), se estiver lá.
+8. **Environment Variables** (Production): copie os `EXPO_PUBLIC_*` do `.env` local.
 
-### DNS
+DNS: CNAME `vd` → target indicado pela Vercel.
 
-- `vd.telefarmed.com.br` → mesmo projeto Vercel do monorepo (CNAME Vercel)
-- Não cadastre `vd` como slug de entidade/UBT no admin
+Após o deploy, `https://vd.telefarmed.com.br` deve servir o login escuro do app cidadão (Expo), **não** a tela branca “instituição/UBT”.
 
-### Variáveis de ambiente (Production)
+---
 
-Defina no projeto Vercel (build do `app_cidades` lê `EXPO_PUBLIC_*` no build):
+## Alternativa — monorepo na raiz (branch `main`)
 
-- `EXPO_PUBLIC_LOGO_URL`
-- `EXPO_PUBLIC_BACKGROUND_IMAGE_URL`
-- `EXPO_PUBLIC_MUNICIPALITY_NAME`
-- `EXPO_PUBLIC_RPM_SUBDOMAIN`
-- `EXPO_PUBLIC_SUPABASE_URL`
-- `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+O build na raiz (`npm run build:vercel`) também gera `dist/vd-app/` e rewrites para hosts `vd*`. Isso **só funciona em produção depois de merge na `main`**, pois hoje a produção Vercel usa a `main` sem esse build.
 
-Opcional: `PUBLIC_ROOT_DOMAIN=telefarmed.com.br` (middleware)
+---
 
 ## Build local
 
@@ -52,22 +48,11 @@ npm run build
 npx serve dist
 ```
 
-Ou build completo igual à Vercel:
-
-```bash
-npm run build:vercel
-npx serve dist/vd-app
-```
-
-## Dev local (app cidadão)
+## Dev
 
 ```bash
 cd app_cidades
 npx expo start --web
 ```
 
-Simular host VD: `http://vd.localhost:8081` (com `server.host: true`).
-
-## PWA
-
-Com HTTPS em `vd.telefarmed.com.br`, o drawer de instalação funciona no Chrome Android.
+Simular host VD: `http://vd.localhost:8081`

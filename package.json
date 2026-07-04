@@ -13,7 +13,7 @@
     "dev:web": "vite",
     "build:api": "npm run build --prefix backend",
     "build:app-cidades": "npm install --prefix app_cidades && npm run build --prefix app_cidades",
-    "build:vercel": "npm run build:api && npm run build && npm run build:app-cidades && node scripts/copyAppCidadesToDist.mjs",
+    "build:vercel": "npm run build:api && npm run build && npm run build:app-cidades && node scripts/copyAppCidadesToDist.mjs && node scripts/verifyVdAppDist.mjs",
     "build": "vite build",
     "typecheck": "tsc -b",
     "lint": "eslint .",
