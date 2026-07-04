@@ -1,6 +1,6 @@
 import { colors } from '../theme/colors'
 
-/** Mesma cor do app — Chrome Android pinta a barra de navegação do sistema com theme-color. */
+/** Cor das barras do sistema (status + navegação Android em PWA). */
 export const WEB_CHROME_COLOR = colors.background
 export const WEB_APP_BACKGROUND = colors.background
 const WEB_CHROME_STYLE_ID = 'telefarmed-web-chrome-styles'
@@ -9,22 +9,39 @@ export function isAndroidWeb(): boolean {
   return typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)
 }
 
-export function upsertWebMeta(name: string, content: string, media?: string) {
+export function isPwaStandalone(): boolean {
+  if (typeof window === 'undefined') return false
+
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: minimal-ui)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    (window.navigator as Navigator & { standalone?: boolean }).standalone === true
+  )
+}
+
+export function upsertWebMeta(name: string, content: string) {
   if (typeof document === 'undefined') return
 
-  const selector = media
-    ? `meta[name="${name}"][media="${media}"]`
-    : `meta[name="${name}"]:not([media])`
-
-  let meta = document.querySelector(selector) as HTMLMetaElement | null
+  let meta = document.querySelector(`meta[name="${name}"]:not([media])`) as HTMLMetaElement | null
   if (!meta) {
     meta = document.createElement('meta')
     meta.name = name
-    if (media) meta.media = media
     document.head.appendChild(meta)
   }
 
   meta.content = content
+}
+
+function removeMediaScopedChromeMetas() {
+  if (typeof document === 'undefined') return
+
+  document.querySelectorAll('meta[name="theme-color"][media]').forEach((node) => {
+    node.remove()
+  })
+  document.querySelectorAll('meta[name="color-scheme"][media]').forEach((node) => {
+    node.remove()
+  })
 }
 
 function ensureViewportCoversSafeArea() {
@@ -70,7 +87,7 @@ function ensureWebChromeStyles(appBackground: string) {
   style.textContent = `
     html {
       background-color: ${appBackground};
-      color-scheme: dark;
+      color-scheme: dark only;
     }
     body {
       background-color: ${appBackground} !important;
@@ -86,15 +103,10 @@ function ensureWebChromeStyles(appBackground: string) {
   `
 }
 
-function applyThemeColorMeta(color: string) {
-  upsertWebMeta('theme-color', color)
-  upsertWebMeta('theme-color', color, '(prefers-color-scheme: light)')
-  upsertWebMeta('theme-color', color, '(prefers-color-scheme: dark)')
-}
-
 /**
- * Chrome Android usa theme-color para a barra de endereço e, em HTTPS/PWA, a barra de navegação.
- * Não desenhamos faixa extra no app — isso criava preto + branco empilhados.
+ * Android PWA standalone:
+ * - theme-color → barra de status (topo)
+ * - meta color-scheme=dark → barra de navegação (base) — NÃO usar media queries no theme-color
  */
 export function applyWebChromeColor(
   chromeColor: string = WEB_CHROME_COLOR,
@@ -102,7 +114,8 @@ export function applyWebChromeColor(
 ) {
   if (typeof document === 'undefined') return
 
-  applyThemeColorMeta(chromeColor)
+  removeMediaScopedChromeMetas()
+  upsertWebMeta('theme-color', chromeColor)
   upsertWebMeta('color-scheme', 'dark')
   upsertWebMeta('mobile-web-app-capable', 'yes')
   upsertWebMeta('apple-mobile-web-app-capable', 'yes')
@@ -112,6 +125,9 @@ export function applyWebChromeColor(
   ensureWebManifestLink()
   ensureWebChromeStyles(appBackground)
 
+  document.documentElement.style.colorScheme = 'dark only'
   document.documentElement.style.backgroundColor = appBackground
-  document.body.style.backgroundColor = appBackground
+  if (document.body) {
+    document.body.style.backgroundColor = appBackground
+  }
 }

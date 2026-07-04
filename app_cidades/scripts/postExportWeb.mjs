@@ -11,12 +11,20 @@ if (!existsSync(distDir)) {
   process.exit(1)
 }
 
-for (const file of ['sw.js', 'manifest.webmanifest', 'icon-512.png']) {
+for (const file of ['sw.js', 'manifest.webmanifest', 'icon-512.png', 'pwa-chrome-boot.js']) {
   copyFileSync(join(webDir, file), join(distDir, file))
 }
 
+const bootScript = readFileSync(join(webDir, 'pwa-chrome-boot.js'), 'utf8')
 const indexPath = join(distDir, 'index.html')
 let html = readFileSync(indexPath, 'utf8')
+
+html = html.replace('<html lang="en">', '<html lang="pt-BR">')
+
+if (!html.includes('pwa-chrome-boot.js')) {
+  const inlineBoot = `<script>${bootScript}</script>`
+  html = html.replace('<head>', `<head>\n    ${inlineBoot}`)
+}
 
 if (!html.includes('manifest.webmanifest')) {
   html = html.replace(
@@ -30,7 +38,17 @@ if (!html.includes('manifest.webmanifest')) {
   )
 }
 
-html = html.replace('<html lang="en">', '<html lang="pt-BR">')
+html = html.replace(
+  /<meta name="theme-color"[^>]*media="[^"]*"[^>]*>\s*/g,
+  '',
+)
+
+if (!html.includes('name="theme-color"')) {
+  html = html.replace(
+    '<meta charset="utf-8" />',
+    '<meta charset="utf-8" />\n    <meta name="theme-color" content="#0a0a0c" />',
+  )
+}
 
 if (!html.includes('background-color: #0a0a0c')) {
   html = html.replace(
@@ -40,7 +58,7 @@ if (!html.includes('background-color: #0a0a0c')) {
         height: 100%;
         min-height: 100dvh;
         background-color: #0a0a0c;
-        color-scheme: dark;
+        color-scheme: dark only;
       }`,
   )
   html = html.replace(
@@ -53,6 +71,8 @@ if (!html.includes('background-color: #0a0a0c')) {
         background-color: #0a0a0c;
       }`,
   )
+} else {
+  html = html.replace(/color-scheme:\s*dark;/g, 'color-scheme: dark only;')
 }
 
 writeFileSync(indexPath, html)

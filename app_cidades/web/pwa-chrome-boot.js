@@ -1,0 +1,34 @@
+(function () {
+  'use strict'
+
+  var CHROME = '#0a0a0c'
+  var root = document.documentElement
+
+  root.style.colorScheme = 'dark only'
+  root.style.backgroundColor = CHROME
+
+  function upsertMeta(name, content) {
+    var meta = document.querySelector('meta[name="' + name + '"]:not([media])')
+    if (!meta) {
+      meta = document.createElement('meta')
+      meta.name = name
+      document.head.appendChild(meta)
+    }
+    meta.content = content
+  }
+
+  document.querySelectorAll('meta[name="theme-color"][media]').forEach(function (node) {
+    node.remove()
+  })
+
+  document.querySelectorAll('meta[name="color-scheme"][media]').forEach(function (node) {
+    node.remove()
+  })
+
+  upsertMeta('theme-color', CHROME)
+  upsertMeta('color-scheme', 'dark')
+
+  if (document.body) {
+    document.body.style.backgroundColor = CHROME
+  }
+})()
