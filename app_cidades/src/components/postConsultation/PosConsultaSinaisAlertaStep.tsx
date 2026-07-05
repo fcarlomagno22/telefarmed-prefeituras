@@ -30,7 +30,8 @@ export function PosConsultaSinaisAlertaStep({
   }
 
   return (
-    <View>
+    <View style={styles.root}>
+      <View style={styles.fields}>
       <Text style={styles.title}>Algum sinal de alerta?</Text>
       <Text style={styles.subtitle}>
         Toque em Sim apenas para sintomas que você está sentindo agora.
@@ -101,6 +102,7 @@ export function PosConsultaSinaisAlertaStep({
           Se não tiver nenhum destes sinais, mantenha &quot;Não&quot; em todas as perguntas.
         </Text>
       )}
+      </View>
 
       <PosConsultaStepActions
         onBack={onBack}
@@ -113,6 +115,14 @@ export function PosConsultaSinaisAlertaStep({
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    minHeight: 0,
+    justifyContent: 'space-between',
+  },
+  fields: {
+    flexShrink: 1,
+  },
   title: {
     color: colors.text,
     fontSize: 20,

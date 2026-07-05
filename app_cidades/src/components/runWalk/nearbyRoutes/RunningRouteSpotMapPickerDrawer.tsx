@@ -1,6 +1,7 @@
 import {
   Accuracy,
   getCurrentPositionAsync,
+  isAppLocationPermissionDenied,
   requestForegroundPermissionsAsync,
 } from '../../../adapters/appLocation'
 import { useEffect, useState } from 'react'
@@ -76,7 +77,7 @@ export function RunningRouteSpotMapPickerDrawer({
         const permission = await requestForegroundPermissionsAsync()
         if (cancelled) return
 
-        if (!permission.granted) {
+        if (isAppLocationPermissionDenied(permission)) {
           setLocationError('Permita o acesso à localização para ver onde você está no mapa.')
           return
         }

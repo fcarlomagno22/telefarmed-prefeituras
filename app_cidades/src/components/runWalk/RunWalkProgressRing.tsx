@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native'
+import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native'
 import Svg, { Circle, Defs, Stop, LinearGradient as SvgLinearGradient } from 'react-native-svg'
 import { colors } from '../../theme/colors'
 
@@ -113,6 +113,35 @@ export function RunWalkProgressRing({
     inputRange: [0, 1],
     outputRange: [circumference, circumference * (1 - clampedProgress)],
   })
+  const [webStrokeDashoffset, setWebStrokeDashoffset] = useState(() =>
+    animate ? circumference : circumference * (1 - clampedProgress),
+  )
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return
+
+    const listenerId = animatedValue.addListener(({ value: progressRatio }) => {
+      setWebStrokeDashoffset(circumference * (1 - clampedProgress * progressRatio))
+    })
+
+    return () => {
+      animatedValue.removeListener(listenerId)
+    }
+  }, [animatedValue, circumference, clampedProgress])
+
+  const progressCircleProps =
+    Platform.OS === 'web'
+      ? {
+          strokeDashoffset: webStrokeDashoffset,
+          transform: `rotate(-90, ${size / 2}, ${size / 2})`,
+        }
+      : {
+          strokeDashoffset,
+          rotation: -90,
+          origin: `${size / 2}, ${size / 2}`,
+        }
+
+  const ProgressCircle = Platform.OS === 'web' ? Circle : AnimatedCircle
 
   return (
     <View style={[styles.wrap, { width: size, height: size }]}>
@@ -134,7 +163,7 @@ export function RunWalkProgressRing({
           fill="none"
         />
 
-        <AnimatedCircle
+        <ProgressCircle
           cx={size / 2}
           cy={size / 2}
           r={radius}
@@ -143,9 +172,7 @@ export function RunWalkProgressRing({
           fill="none"
           strokeLinecap="round"
           strokeDasharray={`${circumference} ${circumference}`}
-          strokeDashoffset={strokeDashoffset}
-          rotation={-90}
-          origin={`${size / 2}, ${size / 2}`}
+          {...progressCircleProps}
         />
       </Svg>
 

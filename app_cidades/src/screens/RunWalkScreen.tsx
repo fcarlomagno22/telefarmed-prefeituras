@@ -6,6 +6,7 @@ import {
   ImageBackground,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -125,6 +126,7 @@ export function RunWalkScreen() {
 
   const scrollRef = useRef<ScrollView>(null)
   const segmentPagerRef = useRef<FlatList<RunWalkTab>>(null)
+  const segmentPagerWebRef = useRef<ScrollView>(null)
   const segmentPagerIndexRef = useRef(0)
   const segmentPagerProgrammaticScrollRef = useRef(false)
   const weeklyGoalSectionY = useRef(0)
@@ -140,10 +142,18 @@ export function RunWalkScreen() {
 
       segmentPagerProgrammaticScrollRef.current = animated
       segmentPagerIndexRef.current = index
-      segmentPagerRef.current?.scrollToOffset({
-        offset: index * screenWidth,
-        animated,
-      })
+
+      if (Platform.OS === 'web') {
+        segmentPagerWebRef.current?.scrollTo({
+          x: index * screenWidth,
+          animated,
+        })
+      } else {
+        segmentPagerRef.current?.scrollToOffset({
+          offset: index * screenWidth,
+          animated,
+        })
+      }
 
       if (!animated) {
         segmentPagerProgrammaticScrollRef.current = false
@@ -198,6 +208,15 @@ export function RunWalkScreen() {
     },
     [handleSegmentPagerIndexChange, screenWidth],
   )
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return
+
+    segmentPagerWebRef.current?.scrollTo({
+      x: segmentPagerIndexRef.current * screenWidth,
+      animated: false,
+    })
+  }, [screenWidth])
 
   const disposition = useMemo(
     () => ({
@@ -601,6 +620,120 @@ export function RunWalkScreen() {
     requireAuth('vida:run-walk', () => navigateTo(screen))
   }
 
+  const renderRunWalkSegmentPage = useCallback(
+    (tab: RunWalkTab) => {
+      if (tab === 'today') {
+        return (
+          <ScrollView
+            ref={scrollRef}
+            style={styles.body}
+            contentContainerStyle={[
+              styles.bodyContent,
+              { paddingBottom: bottomContentPadding },
+              Platform.OS !== 'web' && { flexGrow: 1 },
+            ]}
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={() => void handleRefresh()}
+                tintColor={colors.primaryLight}
+              />
+            }
+          >
+            {planNotice ? (
+              <View style={styles.notice}>
+                <Text style={styles.noticeText}>{planNotice}</Text>
+              </View>
+            ) : null}
+
+            <View style={styles.shortcutsSection}>
+              <View style={styles.shortcutsInner}>
+                <RunWalkQuickShortcuts
+                  onShortcutPress={handleShortcutPress}
+                  onChallengesPress={() => openRunWalkFeature('run-walk-challenges')}
+                  onAchievementsPress={() => openRunWalkFeature('run-walk-achievements')}
+                />
+              </View>
+              <NeonSectionDivider embedded />
+            </View>
+
+            <View
+              onLayout={(event) => {
+                weeklyGoalSectionY.current = event.nativeEvent.layout.y
+              }}
+            >
+              <RunWalkWeeklyGoalCard
+                stats={weeklyGoalStats}
+                days={todayState.weeklyCalendar}
+                onViewWeekPress={() => setWeekCalendarVisible(true)}
+                onGoalActionPress={() =>
+                  requireAuth('vida:run-walk', () => setGoalDrawerVisible(true))
+                }
+                celebrateDay={celebrateDay}
+                animateRings={weeklyGoalAnimateRings}
+                animateChart={weeklyGoalAnimateChart}
+              />
+            </View>
+
+            <RunWalkDispositionCard
+              disposition={disposition}
+              onExplainPress={() => setExplainVisible(true)}
+              onCheckinPress={handleOpenManualCheckin}
+            />
+
+            {hasTodayActivity && activity ? (
+              <RunWalkTodayActivityCard
+                activity={activity}
+                onStartPress={handleStartActivity}
+                onDetailsPress={() => setDetailVisible(true)}
+                onMenuPress={() =>
+                  requireAuth('vida:run-walk', () => setActivityMenuVisible(true))
+                }
+              />
+            ) : null}
+          </ScrollView>
+        )
+      }
+
+      return (
+        <RunWalkHistoryTab
+          patientCpf={patientCpf}
+          patientName={user?.name}
+          profilePhotoUri={user?.selfieUri}
+          weeklyGoalStats={weeklyGoalStats}
+          bottomPadding={bottomContentPadding}
+          isActive={segmentTab === 'progress'}
+          onStartActivity={handleStartActivity}
+          onSegmentPagerLockChange={(active) => setSegmentPagerScrollEnabled(!active)}
+        />
+      )
+    },
+    [
+      activity,
+      bottomContentPadding,
+      celebrateDay,
+      disposition,
+      handleOpenManualCheckin,
+      handleRefresh,
+      handleShortcutPress,
+      handleStartActivity,
+      hasTodayActivity,
+      isRefreshing,
+      patientCpf,
+      planNotice,
+      requireAuth,
+      segmentTab,
+      todayState.weeklyCalendar,
+      user?.name,
+      user?.selfieUri,
+      weeklyGoalAnimateChart,
+      weeklyGoalAnimateRings,
+      weeklyGoalStats,
+    ],
+  )
+
   return (
     <>
       <View style={styles.root}>
@@ -627,113 +760,56 @@ export function RunWalkScreen() {
 
         <RunWalkSegmentTabs activeTab={segmentTab} onChange={handleSegmentTabChange} />
 
-        <FlatList
-          ref={segmentPagerRef}
-          data={SEGMENT_PAGES}
-          keyExtractor={(item) => item}
-          horizontal
-          pagingEnabled
-          scrollEnabled={segmentPagerScrollEnabled}
-          nestedScrollEnabled
-          bounces={false}
-          showsHorizontalScrollIndicator={false}
-          decelerationRate="fast"
-          scrollEventThrottle={16}
-          onScroll={handleSegmentPagerScroll}
-          onMomentumScrollEnd={handleSegmentPagerScrollEnd}
-          getItemLayout={(_, index) => ({
-            length: screenWidth,
-            offset: screenWidth * index,
-            index,
-          })}
-          style={styles.segmentPager}
-          renderItem={({ item }) => (
-            <View style={[styles.segmentPage, { width: screenWidth, height: '100%' }]}>
-              {item === 'today' ? (
-                <ScrollView
-                  ref={scrollRef}
-                  style={styles.body}
-                  contentContainerStyle={[
-                    styles.bodyContent,
-                    { paddingBottom: bottomContentPadding, flexGrow: 1 },
-                  ]}
-                  showsVerticalScrollIndicator={false}
-                  nestedScrollEnabled
-                  refreshControl={
-                    <RefreshControl
-                      refreshing={isRefreshing}
-                      onRefresh={() => void handleRefresh()}
-                      tintColor={colors.primaryLight}
-                    />
-                  }
-                >
-                  {planNotice ? (
-                    <View style={styles.notice}>
-                      <Text style={styles.noticeText}>{planNotice}</Text>
-                    </View>
-                  ) : null}
-
-                  <View style={styles.shortcutsSection}>
-                    <View style={styles.shortcutsInner}>
-                      <RunWalkQuickShortcuts
-                        onShortcutPress={handleShortcutPress}
-                        onChallengesPress={() => openRunWalkFeature('run-walk-challenges')}
-                        onAchievementsPress={() => openRunWalkFeature('run-walk-achievements')}
-                      />
-                    </View>
-                    <NeonSectionDivider embedded />
-                  </View>
-
-                  <View
-                    onLayout={(event) => {
-                      weeklyGoalSectionY.current = event.nativeEvent.layout.y
-                    }}
-                  >
-                    <RunWalkWeeklyGoalCard
-                      stats={weeklyGoalStats}
-                      days={todayState.weeklyCalendar}
-                      onViewWeekPress={() => setWeekCalendarVisible(true)}
-                      onGoalActionPress={() =>
-                        requireAuth('vida:run-walk', () => setGoalDrawerVisible(true))
-                      }
-                      celebrateDay={celebrateDay}
-                      animateRings={weeklyGoalAnimateRings}
-                      animateChart={weeklyGoalAnimateChart}
-                    />
-                  </View>
-
-                  <RunWalkDispositionCard
-                    disposition={disposition}
-                    onExplainPress={() => setExplainVisible(true)}
-                    onCheckinPress={handleOpenManualCheckin}
-                  />
-
-                  {hasTodayActivity && activity ? (
-                    <RunWalkTodayActivityCard
-                      activity={activity}
-                      onStartPress={handleStartActivity}
-                      onDetailsPress={() => setDetailVisible(true)}
-                      onMenuPress={() =>
-                        requireAuth('vida:run-walk', () => setActivityMenuVisible(true))
-                      }
-                    />
-                  ) : null}
-                </ScrollView>
-              ) : (
-                <RunWalkHistoryTab
-                  patientCpf={patientCpf}
-                  patientName={user?.name}
-                  profilePhotoUri={user?.selfieUri}
-                  weeklyGoalStats={weeklyGoalStats}
-                  bottomPadding={bottomContentPadding}
-                  isActive={segmentTab === 'progress'}
-                  onStartActivity={handleStartActivity}
-                  onSegmentPagerLockChange={(active) => setSegmentPagerScrollEnabled(!active)}
-                />
-              )}
-            </View>
-          )}
-        />
+        {Platform.OS === 'web' ? (
+          <ScrollView
+            ref={segmentPagerWebRef}
+            horizontal
+            pagingEnabled
+            scrollEnabled={segmentPagerScrollEnabled}
+            nestedScrollEnabled
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            scrollEventThrottle={16}
+            onScroll={handleSegmentPagerScroll}
+            onMomentumScrollEnd={handleSegmentPagerScrollEnd}
+            onScrollEndDrag={handleSegmentPagerScrollEnd}
+            style={styles.segmentPagerWeb}
+          >
+            {SEGMENT_PAGES.map((tab) => (
+              <View key={tab} style={[styles.segmentPage, { width: screenWidth }]}>
+                {renderRunWalkSegmentPage(tab)}
+              </View>
+            ))}
+          </ScrollView>
+        ) : (
+          <FlatList
+            ref={segmentPagerRef}
+            data={SEGMENT_PAGES}
+            keyExtractor={(item) => item}
+            horizontal
+            pagingEnabled
+            scrollEnabled={segmentPagerScrollEnabled}
+            nestedScrollEnabled
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            scrollEventThrottle={16}
+            onScroll={handleSegmentPagerScroll}
+            onMomentumScrollEnd={handleSegmentPagerScrollEnd}
+            getItemLayout={(_, index) => ({
+              length: screenWidth,
+              offset: screenWidth * index,
+              index,
+            })}
+            style={styles.segmentPager}
+            renderItem={({ item }) => (
+              <View style={[styles.segmentPage, { width: screenWidth, height: '100%' }]}>
+                {renderRunWalkSegmentPage(item)}
+              </View>
+            )}
+          />
+        )}
 
         <BottomTabBar activeTab={null} onTabPress={handleTabPress} />
       </View>
@@ -830,12 +906,34 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      },
+      default: {},
+    }),
   },
   segmentPager: {
     flex: 1,
+    minHeight: 0,
+  },
+  segmentPagerWeb: {
+    flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
+    ...Platform.select({
+      web: {
+        overflowX: 'auto',
+        overflowY: 'hidden',
+      },
+      default: {},
+    }),
   },
   segmentPage: {
     flex: 1,
+    minHeight: 0,
   },
   bodyContent: {
     flexGrow: 1,

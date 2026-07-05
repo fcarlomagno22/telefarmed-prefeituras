@@ -1,4 +1,4 @@
-import { RefreshControl, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
+import { Platform, RefreshControl, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
 import type { EatWellWeekSummary, NutritionGoals } from '../../../types/eatWell'
 import { colors } from '../../../theme/colors'
 import { EatWellWeekBalanceRing } from './EatWellWeekBalanceRing'
@@ -80,6 +80,14 @@ export function EatWellWeekTab({
 const styles = StyleSheet.create({
   body: {
     flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      },
+      default: {},
+    }),
   },
   content: {
     gap: 14,

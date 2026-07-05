@@ -1,6 +1,7 @@
 import {
   Accuracy,
   getCurrentPositionAsync,
+  isAppLocationPermissionDenied,
   requestForegroundPermissionsAsync,
 } from '../adapters/appLocation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -31,7 +32,7 @@ export function useRunningRoutesOrigin({ address }: UseRunningRoutesOriginOption
 
     try {
       const permission = await requestForegroundPermissionsAsync()
-      if (!permission.granted) {
+      if (isAppLocationPermissionDenied(permission)) {
         setLocationError('Permita o acesso à localização para ver locais perto de você.')
         setCoordinates(homeCoordinates)
         setOriginLabel('Endereço cadastrado')

@@ -1,8 +1,11 @@
 import {
   Accuracy,
   enableNetworkProviderAsync,
+  getAppLocationFailureMessage,
+  getAppLocationFailureReason,
   getAppLocationHeadingSupport,
   getCurrentPositionAsync,
+  isAppLocationPermissionDenied,
   requestForegroundPermissionsAsync,
   reverseGeocodeAsync,
   type AppLocationSubscription,
@@ -140,6 +143,8 @@ export function useRunWalkLocation({
         gpsQuality: accuracyToQuality(accuracy),
         isLocating: false,
         isResolvingCity: true,
+        permissionGranted: true,
+        permissionDenied: false,
         error: null,
       }))
 
@@ -167,9 +172,9 @@ export function useRunWalkLocation({
     setState((prev) => ({ ...prev, isLocating: true, error: null }))
 
     try {
-      const { status, granted } = await requestForegroundPermissionsAsync()
+      const permission = await requestForegroundPermissionsAsync()
 
-      if (status !== 'granted' && !granted) {
+      if (isAppLocationPermissionDenied(permission)) {
         setState((prev) => ({
           ...prev,
           isLocating: false,
@@ -180,7 +185,11 @@ export function useRunWalkLocation({
         return
       }
 
-      setState((prev) => ({ ...prev, permissionGranted: true, permissionDenied: false }))
+      setState((prev) => ({
+        ...prev,
+        permissionGranted: permission.granted,
+        permissionDenied: false,
+      }))
 
       await enableNetworkProviderAsync().catch(() => undefined)
 
@@ -214,7 +223,19 @@ export function useRunWalkLocation({
           )
         },
       )
-    } catch {
+    } catch (error) {
+      const failureReason = getAppLocationFailureReason(error)
+      if (failureReason === 'permission_denied') {
+        setState((prev) => ({
+          ...prev,
+          isLocating: false,
+          permissionGranted: false,
+          permissionDenied: true,
+          error: getAppLocationFailureMessage('permission_denied'),
+        }))
+        return
+      }
+
       const fallback = address ? getHomeCoordinatesFromAddress(address) : null
       if (fallback) {
         const mock = getMockGpsCoordinates(fallback)

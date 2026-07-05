@@ -32,6 +32,8 @@ export {
   APP_LOCATION_WEB_LIMITATIONS,
   AppLocationAccuracy,
   getAppLocationFailureMessage,
+  getAppLocationFailureReason,
+  isAppLocationPermissionDenied,
 } from './appLocation.types'
 export type {
   AppLocationCoords,

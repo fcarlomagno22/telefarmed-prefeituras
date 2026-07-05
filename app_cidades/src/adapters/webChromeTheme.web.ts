@@ -99,6 +99,7 @@ function ensureViewportCoversSafeArea() {
 }
 
 function ensureWebManifestLink() {
+  if (__DEV__) return
   if (typeof document === 'undefined') return
 
   let link = document.querySelector('link[rel="manifest"]') as HTMLLinkElement | null

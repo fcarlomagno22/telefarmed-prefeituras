@@ -17,6 +17,7 @@ import {
 import { ScrollView } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
+import { LongPressable } from '../components/LongPressable'
 import { MenuDrawer } from '../components/MenuDrawer'
 import { MetricsAreaChart } from '../components/metrics/MetricsAreaChart'
 import { MetricsHoldToEditHint } from '../components/metrics/MetricsHoldToEditHint'
@@ -132,6 +133,15 @@ const METRIC_COLUMNS = 3
 const METRIC_GRID_GAP = 8
 const METRIC_GRID_PADDING = 16
 const PROFILE_LONG_PRESS_MS = 400
+
+function runAfterUiReady(task: () => void) {
+  if (Platform.OS === 'web') {
+    task()
+    return
+  }
+
+  runAfterUiReady(task)
+}
 
 type ProfileFieldMeta = {
   id: ProfileFieldId
@@ -340,7 +350,7 @@ function ProfileKpiStrip({
                 {skeleton || !field.editable ? (
                   <View style={styles.profileStripPressable}>{content}</View>
                 ) : field.id === 'weight' ? (
-                  <Pressable
+                  <LongPressable
                     onPress={handleWeightPress}
                     onLongPress={() => handleLongPress('weight')}
                     delayLongPress={PROFILE_LONG_PRESS_MS}
@@ -353,9 +363,9 @@ function ProfileKpiStrip({
                     accessibilityLabel={`${field.label}: ${profile[field.id]}. Toque para ver evolução. Segure para editar.`}
                   >
                     {content}
-                  </Pressable>
+                  </LongPressable>
                 ) : (
-                  <Pressable
+                  <LongPressable
                     onLongPress={() => handleLongPress(field.id as EditableProfileFieldId)}
                     delayLongPress={PROFILE_LONG_PRESS_MS}
                     style={({ pressed }) => [
@@ -366,7 +376,7 @@ function ProfileKpiStrip({
                     accessibilityLabel={`${field.label}: ${profile[field.id]}. Segure para editar.`}
                   >
                     {content}
-                  </Pressable>
+                  </LongPressable>
                 )}
 
                 {index < PROFILE_FIELDS.length - 1 ? <View style={styles.profileDivider} /> : null}
@@ -493,7 +503,7 @@ function SelectableMetricCard({
   }
 
   return (
-    <Pressable
+    <LongPressable
       onPress={onPress}
       onLongPress={onLongPress}
       delayLongPress={onLongPress ? PROFILE_LONG_PRESS_MS : undefined}
@@ -578,7 +588,7 @@ function SelectableMetricCard({
           </View>
         </LinearGradient>
       </View>
-    </Pressable>
+    </LongPressable>
   )
 }
 
@@ -958,7 +968,7 @@ export function MyMetricsScreen() {
       if (field === 'weight') {
         setSelectedMetricId('peso')
       }
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setEditingProfileField(field)
       })
     })
@@ -1126,7 +1136,7 @@ export function MyMetricsScreen() {
     withMetricsAuth(() => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('hidratacao')
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setHydrationReportDrawerVisible(true)
       })
     })
@@ -1136,7 +1146,7 @@ export function MyMetricsScreen() {
     withMetricsAuth(() => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('hidratacao')
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setHydrationDrawerVisible(true)
       })
     })
@@ -1158,7 +1168,7 @@ export function MyMetricsScreen() {
     withMetricsAuth(() => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('glicemia')
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setGlucoseReportDrawerVisible(true)
       })
     })
@@ -1168,7 +1178,7 @@ export function MyMetricsScreen() {
     withMetricsAuth(() => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('glicemia')
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setGlucoseDrawerVisible(true)
       })
     })
@@ -1178,7 +1188,7 @@ export function MyMetricsScreen() {
     withMetricsAuth(() => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('pressao')
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setBloodPressureDrawerVisible(true)
       })
     })
@@ -1188,7 +1198,7 @@ export function MyMetricsScreen() {
     withMetricsAuth(() => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('pressao')
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setBloodPressureReportDrawerVisible(true)
       })
     })
@@ -1218,7 +1228,7 @@ export function MyMetricsScreen() {
     withMetricsAuth(() => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('frequencia')
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setHeartRateDrawerVisible(true)
       })
     })
@@ -1228,7 +1238,7 @@ export function MyMetricsScreen() {
     withMetricsAuth(() => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('frequencia')
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setHeartRateReportDrawerVisible(true)
       })
     })
@@ -1246,7 +1256,7 @@ export function MyMetricsScreen() {
     withMetricsAuth(() => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('passos')
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setStepsDrawerVisible(true)
       })
     })
@@ -1267,14 +1277,14 @@ export function MyMetricsScreen() {
     withMetricsAuth(() => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('distancia')
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setDistanceDrawerVisible(true)
       })
     })
   }
 
   function handleViewStepsFromDistance() {
-    InteractionManager.runAfterInteractions(() => {
+    runAfterUiReady(() => {
       handleOpenStepsDrawer()
     })
   }
@@ -1283,7 +1293,7 @@ export function MyMetricsScreen() {
     withMetricsAuth(() => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('circunferencia')
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setCircumferenceDrawerVisible(true)
       })
     })
@@ -1293,7 +1303,7 @@ export function MyMetricsScreen() {
     withMetricsAuth(() => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('imc')
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setImcDrawerVisible(true)
       })
     })
@@ -1303,7 +1313,7 @@ export function MyMetricsScreen() {
     withMetricsAuth(() => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('imc')
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setBodyCompositionReportDrawerVisible(true)
       })
     })
@@ -1313,20 +1323,20 @@ export function MyMetricsScreen() {
     withMetricsAuth(() => {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('corporais')
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setBodyMeasurementsReportDrawerVisible(true)
       })
     })
   }
 
   function handleImcEditWeight() {
-    InteractionManager.runAfterInteractions(() => {
+    runAfterUiReady(() => {
       handleEditProfileField('weight')
     })
   }
 
   function handleImcEditHeight() {
-    InteractionManager.runAfterInteractions(() => {
+    runAfterUiReady(() => {
       handleEditProfileField('height')
     })
   }
@@ -1347,7 +1357,7 @@ export function MyMetricsScreen() {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
       setSelectedMetricId('corporais')
       setPeriod(buildPeriodSelection(BODY_MEASUREMENT_CHART_PERIOD))
-      InteractionManager.runAfterInteractions(() => {
+      runAfterUiReady(() => {
         setBodyMeasurementsDrawerVisible(true)
       })
     })

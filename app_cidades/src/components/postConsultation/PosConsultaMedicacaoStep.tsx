@@ -65,7 +65,8 @@ export function PosConsultaMedicacaoStep({
     (!needsMotivo || respostas.medicacaoAdesaoMotivo.trim().length >= 3)
 
   return (
-    <View>
+    <View style={styles.root}>
+      <View style={styles.fields}>
       <Text style={styles.title}>Você tomou os medicamentos prescritos?</Text>
       <Text style={styles.subtitle}>
         Inclua remédios receitados na consulta, incluindo uso contínuo orientado pelo médico.
@@ -129,6 +130,7 @@ export function PosConsultaMedicacaoStep({
           />
         </View>
       ) : null}
+      </View>
 
       <PosConsultaStepActions
         onBack={onBack}
@@ -140,6 +142,14 @@ export function PosConsultaMedicacaoStep({
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    minHeight: 0,
+    justifyContent: 'space-between',
+  },
+  fields: {
+    flexShrink: 1,
+  },
   title: {
     color: colors.text,
     fontSize: 20,

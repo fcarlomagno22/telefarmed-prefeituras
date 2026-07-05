@@ -2,7 +2,16 @@ import { Ionicons } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Animated, Easing, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import {
+  Animated,
+  Easing,
+  KeyboardAvoidingView,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 import { AppModal } from '../AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
@@ -17,8 +26,6 @@ import { PosConsultaCheckinAlreadyAnswered } from '../postConsultation/PosConsul
 import { PosConsultaCheckinWizard } from '../postConsultation/PosConsultaCheckinWizard'
 import { getModalFooterPadding } from '../../utils/modalSafeArea'
 import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
-
-const SHEET_OFFSET = 720
 
 type PosConsultaCheckinDrawerProps = {
   visible: boolean
@@ -46,7 +53,7 @@ export function PosConsultaCheckinDrawer({
     'sintomas' | 'medicacao' | 'medicoes' | 'alertas' | 'success'
   >('sintomas')
   const wasVisibleRef = useRef(false)
-  const sheetTranslateY = useRef(new Animated.Value(SHEET_OFFSET)).current
+  const sheetOpacity = useRef(new Animated.Value(0)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
   const palette = ACTION_ICON_PALETTES.postConsultation
 
@@ -82,11 +89,10 @@ export function PosConsultaCheckinDrawer({
           easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
-        Animated.spring(sheetTranslateY, {
-          toValue: 0,
-          damping: 22,
-          stiffness: 220,
-          mass: 0.9,
+        Animated.timing(sheetOpacity, {
+          toValue: 1,
+          duration: 240,
+          easing: Easing.out(Easing.cubic),
           useNativeDriver: true,
         }),
       ]).start()
@@ -102,9 +108,9 @@ export function PosConsultaCheckinDrawer({
         easing: Easing.in(Easing.cubic),
         useNativeDriver: true,
       }),
-      Animated.timing(sheetTranslateY, {
-        toValue: SHEET_OFFSET,
-        duration: 200,
+      Animated.timing(sheetOpacity, {
+        toValue: 0,
+        duration: 180,
         easing: Easing.in(Easing.cubic),
         useNativeDriver: true,
       }),
@@ -114,11 +120,12 @@ export function PosConsultaCheckinDrawer({
         setSubmitError(null)
       }
     })
-  }, [appointment, backdropOpacity, checkin, isMounted, plan, sheetTranslateY, visible])
+  }, [appointment, backdropOpacity, checkin, isMounted, plan, sheetOpacity, visible])
 
   if (!isMounted || !appointment || !checkin || !plan || !context) return null
 
   const isSuccessStep = mode === 'respond' && wizardStep === 'success'
+  const usesFlexBody = mode === 'respond'
 
   async function handleSubmit(respostas: Parameters<typeof submitAppointmentPostConsultationCheckin>[3]) {
     if (!patientCpf) {
@@ -202,16 +209,14 @@ export function PosConsultaCheckinDrawer({
           <Pressable style={StyleSheet.absoluteFillObject} onPress={handleHeaderClose} />
         </Animated.View>
 
-        <KeyboardAvoidingView
-          behavior={keyboardAvoidingBehavior}
-          style={styles.keyboardWrap}
-        >
+        <KeyboardAvoidingView behavior={keyboardAvoidingBehavior} style={styles.keyboardWrap}>
           <Animated.View
             style={[
               styles.sheet,
               {
+                opacity: sheetOpacity,
+                paddingTop: Math.max(insets.top, 12) + 4,
                 paddingBottom: getModalFooterPadding(insets.bottom),
-                transform: [{ translateY: sheetTranslateY }],
               },
             ]}
           >
@@ -227,26 +232,35 @@ export function PosConsultaCheckinDrawer({
               style={styles.topAccent}
             />
 
-            <View style={styles.handle} />
+            {!isSuccessStep ? (
+              <View style={styles.headerRow}>
+                <Text style={styles.title}>
+                  {`Check-in ${checkin.checkinNumber} de ${plan.totalCheckins}`}
+                </Text>
+                <Pressable
+                  onPress={handleHeaderClose}
+                  style={({ pressed }) => [styles.closeButton, pressed && styles.closeButtonPressed]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Fechar"
+                >
+                  <Ionicons name="close" size={18} color={colors.textMuted} />
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.successHeader}>
+                <Pressable
+                  onPress={handleHeaderClose}
+                  style={({ pressed }) => [styles.closeButton, pressed && styles.closeButtonPressed]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Fechar"
+                >
+                  <Ionicons name="close" size={18} color={colors.textMuted} />
+                </Pressable>
+              </View>
+            )}
 
-            <View style={styles.headerRow}>
-              <Text style={styles.title}>
-                {isSuccessStep
-                  ? 'Resposta registrada'
-                  : `Check-in ${checkin.checkinNumber} de ${plan.totalCheckins}`}
-              </Text>
-              <Pressable
-                onPress={handleHeaderClose}
-                style={({ pressed }) => [styles.closeButton, pressed && styles.closeButtonPressed]}
-                accessibilityRole="button"
-                accessibilityLabel="Fechar"
-              >
-                <Ionicons name="close" size={18} color={colors.textMuted} />
-              </Pressable>
-            </View>
-
-            {isSuccessStep ? (
-              <View style={styles.successBody}>{drawerBody}</View>
+            {usesFlexBody ? (
+              <View style={styles.flexBody}>{drawerBody}</View>
             ) : (
               <ScrollView
                 style={styles.scroll}
@@ -268,19 +282,16 @@ export function PosConsultaCheckinDrawer({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    justifyContent: 'flex-end',
   },
   keyboardWrap: {
-    justifyContent: 'flex-end',
+    flex: 1,
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   sheet: {
-    maxHeight: '92%',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    flex: 1,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)',
     overflow: 'hidden',
@@ -294,20 +305,15 @@ const styles = StyleSheet.create({
     right: 0,
     height: 2,
   },
-  handle: {
-    alignSelf: 'center',
-    width: 42,
-    height: 4,
-    borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
-    marginTop: 10,
-  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    paddingTop: 2,
+  },
+  successHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   title: {
     flex: 1,
@@ -327,20 +333,17 @@ const styles = StyleSheet.create({
   closeButtonPressed: {
     opacity: 0.82,
   },
+  flexBody: {
+    flex: 1,
+    minHeight: 0,
+  },
   scroll: {
-    flexGrow: 0,
-    overflow: 'visible',
+    flex: 1,
+    minHeight: 0,
   },
   scrollContent: {
     paddingBottom: 8,
     paddingTop: 4,
-  },
-  successBody: {
-    flexShrink: 0,
-    minHeight: 300,
-    overflow: 'visible',
-    paddingTop: 6,
-    paddingBottom: 8,
   },
   messageBlock: {
     alignItems: 'center',

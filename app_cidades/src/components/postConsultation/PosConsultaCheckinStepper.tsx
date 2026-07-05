@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   root: {
     flexDirection: 'row',
     gap: 4,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   stepCol: {
     flex: 1,

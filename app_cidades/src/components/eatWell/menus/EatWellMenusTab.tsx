@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useState } from 'react'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
 import type { EatWellSavedMenu } from '../../../types/eatWell'
 import { colors } from '../../../theme/colors'
 import { DeleteConfirmSheet } from '../../DeleteConfirmSheet'
@@ -95,6 +95,14 @@ export function EatWellMenusTab({
 const styles = StyleSheet.create({
   body: {
     flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      },
+      default: {},
+    }),
   },
   content: {
     gap: 12,

@@ -1,14 +1,12 @@
 import { Ionicons } from '@expo/vector-icons'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Animated,
   Easing,
   Image,
   Pressable,
-  StyleSheet,
   Text,
   View,
 } from 'react-native'
@@ -25,6 +23,8 @@ import { PrimaryButton } from '../PrimaryButton'
 import { RegisterTimeline } from './RegisterTimeline'
 import { colors } from '../../theme/colors'
 import {
+  OVAL_HEIGHT,
+  OVAL_WIDTH,
   ringColor,
   statusCopy,
   statusDotStyle,
@@ -36,6 +36,10 @@ import {
 } from './registerStepFaceScanShared'
 
 const faceVerification = registerFaceVerification
+
+const webOvalClipStyle = {
+  clipPath: `ellipse(${OVAL_WIDTH / 2}px ${OVAL_HEIGHT / 2}px at 50% 50%)`,
+} as object
 
 export function RegisterStepFaceScan({
   value,
@@ -303,15 +307,17 @@ export function RegisterStepFaceScan({
           </View>
         ) : null}
 
-        <View style={[styles.scannerFrame, { marginBottom: 16 }]}>
-          <View style={styles.cameraPlaceholder}>
-            <View style={styles.cameraPlaceholderIcon}>
-              <Ionicons name="images-outline" size={36} color={colors.primaryLight} />
+        <View style={styles.webFaceScanStage}>
+          <View style={[styles.webOvalStack, webOvalClipStyle]}>
+            <View style={[styles.webOvalCameraShell, styles.webOvalPlaceholder]}>
+              <View style={styles.cameraPlaceholderIcon}>
+                <Ionicons name="images-outline" size={36} color={colors.primaryLight} />
+              </View>
+              <Text style={styles.cameraPlaceholderText}>
+                Câmera ao vivo indisponível neste ambiente. Use o fallback abaixo para enviar uma selfie
+                manualmente.
+              </Text>
             </View>
-            <Text style={styles.cameraPlaceholderText}>
-              Câmera ao vivo indisponível neste ambiente. Use o fallback abaixo para enviar uma selfie
-              manualmente.
-            </Text>
           </View>
         </View>
 
@@ -366,19 +372,10 @@ export function RegisterStepFaceScan({
       ) : null}
 
       {phase === 'camera' ? (
-        <LinearGradient
-          colors={['rgba(255, 133, 51, 0.55)', 'rgba(255, 107, 0, 0.15)', 'rgba(255, 133, 51, 0.45)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.glowShell}
-        >
-          <View style={styles.scannerFrame}>
-            {!canUseLiveCamera ? (
-              <View style={styles.cameraPlaceholder}>
-                <LinearGradient
-                  colors={['rgba(255, 133, 51, 0.2)', 'rgba(255, 107, 0, 0.08)']}
-                  style={StyleSheet.absoluteFillObject}
-                />
+        <View style={styles.webFaceScanStage}>
+          {!canUseLiveCamera ? (
+            <View style={[styles.webOvalStack, webOvalClipStyle]}>
+              <View style={[styles.webOvalCameraShell, styles.webOvalPlaceholder]}>
                 <View style={styles.cameraPlaceholderIcon}>
                   <Ionicons name="camera-outline" size={36} color={colors.primaryLight} />
                 </View>
@@ -394,97 +391,92 @@ export function RegisterStepFaceScan({
                   </Pressable>
                 ) : null}
               </View>
-            ) : (
-              <>
-                <CameraView
-                  key={`face-scan-camera-web-${cameraSession}`}
-                  ref={cameraRef}
-                  style={styles.camera}
-                  facing="front"
-                  mode="picture"
-                  animateShutter={false}
-                  onCameraReady={() => {
-                    setCameraReady(true)
-                    setScanPhase('seeking')
-                  }}
-                />
-
-                <View style={styles.overlay} pointerEvents="none">
-                  <LinearGradient
-                    colors={['rgba(3, 3, 8, 0.78)', 'rgba(3, 3, 8, 0.42)', 'rgba(3, 3, 8, 0.78)']}
-                    style={StyleSheet.absoluteFillObject}
+            </View>
+          ) : (
+            <>
+              <View style={styles.webOvalStack}>
+                <View style={[styles.webOvalCameraShell, webOvalClipStyle]}>
+                  <CameraView
+                    key={`face-scan-camera-web-${cameraSession}`}
+                    ref={cameraRef}
+                    style={styles.webOvalCamera}
+                    facing="front"
+                    mode="picture"
+                    animateShutter={false}
+                    onCameraReady={() => {
+                      setCameraReady(true)
+                      setScanPhase('seeking')
+                    }}
                   />
+                </View>
 
-                  <View style={styles.maskMiddle}>
-                    <View style={styles.maskSide} />
-                    <View style={styles.ovalWindow}>
-                      {showRotatingRing ? (
-                        <Animated.View
-                          style={[
-                            styles.rotatingRing,
-                            { transform: [{ rotate: spin }, { scale: breatheScale }] },
-                          ]}
-                        />
-                      ) : null}
-
+                <View style={styles.webOvalGuideOverlay} pointerEvents="none">
+                  <View style={styles.ovalWindow}>
+                    {showRotatingRing ? (
                       <Animated.View
                         style={[
-                          styles.ovalRing,
-                          {
-                            transform: [{ scale: ovalScale }],
-                            borderColor: ringColor(scanPhase),
-                            shadowColor: ringColor(scanPhase),
-                          },
+                          styles.rotatingRing,
+                          { transform: [{ rotate: spin }, { scale: breatheScale }] },
                         ]}
                       />
+                    ) : null}
 
-                      <Animated.View
-                        style={[styles.hudCorner, styles.hudTopLeft, { opacity: bracketGlowAnim }]}
-                      />
-                      <Animated.View
-                        style={[styles.hudCorner, styles.hudTopRight, { opacity: bracketGlowAnim }]}
-                      />
-                      <Animated.View
-                        style={[styles.hudCorner, styles.hudBottomLeft, { opacity: bracketGlowAnim }]}
-                      />
-                      <Animated.View
-                        style={[styles.hudCorner, styles.hudBottomRight, { opacity: bracketGlowAnim }]}
-                      />
-                    </View>
-                    <View style={styles.maskSide} />
+                    <Animated.View
+                      style={[
+                        styles.ovalRing,
+                        {
+                          transform: [{ scale: ovalScale }],
+                          borderColor: ringColor(scanPhase),
+                          shadowColor: ringColor(scanPhase),
+                        },
+                      ]}
+                    />
+
+                    <Animated.View
+                      style={[styles.hudCorner, styles.hudTopLeft, { opacity: bracketGlowAnim }]}
+                    />
+                    <Animated.View
+                      style={[styles.hudCorner, styles.hudTopRight, { opacity: bracketGlowAnim }]}
+                    />
+                    <Animated.View
+                      style={[styles.hudCorner, styles.hudBottomLeft, { opacity: bracketGlowAnim }]}
+                    />
+                    <Animated.View
+                      style={[styles.hudCorner, styles.hudBottomRight, { opacity: bracketGlowAnim }]}
+                    />
                   </View>
                 </View>
+              </View>
 
-                <View style={[styles.statusChip, statusToneStyle(status.tone)]}>
-                  <View style={[styles.statusDot, statusDotStyle(status.tone)]} />
-                  <Ionicons name={status.icon} size={15} color={statusIconColor(status.tone)} />
-                  <Text style={styles.statusText}>Centralize seu rosto e capture manualmente</Text>
-                </View>
-              </>
+              <View style={[styles.webStatusChip, statusToneStyle(status.tone)]}>
+                <View style={[styles.statusDot, statusDotStyle(status.tone)]} />
+                <Ionicons name={status.icon} size={15} color={statusIconColor(status.tone)} />
+                <Text style={styles.statusText}>Centralize seu rosto e capture manualmente</Text>
+              </View>
+            </>
+          )}
+        </View>
+      ) : (
+        <View style={styles.webFaceScanStage}>
+          <View style={[styles.webOvalStack, webOvalClipStyle]}>
+            {previewUri ? (
+              <Image
+                source={{ uri: previewUri }}
+                style={[styles.webPreviewImage, styles.previewMirror]}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[styles.webOvalCameraShell, styles.webOvalPlaceholder]}>
+                <Ionicons name="image-outline" size={42} color={colors.textSubtle} />
+              </View>
             )}
           </View>
-        </LinearGradient>
-      ) : (
-        <View style={styles.previewShell}>
           {previewUri ? (
-            <Image
-              source={{ uri: previewUri }}
-              style={[styles.previewImage, styles.previewMirror]}
-              resizeMode="cover"
-            />
-          ) : (
-            <View style={styles.previewPlaceholder}>
-              <Ionicons name="image-outline" size={42} color={colors.textSubtle} />
+            <View style={[styles.webStatusChip, styles.statusChipSuccess]}>
+              <Ionicons name="checkmark-circle" size={18} color="#4ade80" />
+              <Text style={styles.previewBadgeText}>{faceVerification.previewBadgeText}</Text>
             </View>
-          )}
-          <LinearGradient
-            colors={['transparent', 'rgba(4, 4, 8, 0.88)']}
-            style={styles.previewFade}
-          />
-          <View style={styles.previewBadge}>
-            <Ionicons name="checkmark-circle" size={18} color="#4ade80" />
-            <Text style={styles.previewBadgeText}>{faceVerification.previewBadgeText}</Text>
-          </View>
+          ) : null}
         </View>
       )}
 

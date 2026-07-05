@@ -10,6 +10,8 @@ type EatWellFabProps = {
   onLongPress: () => void
 }
 
+const FAB_SIZE = 58
+
 export function EatWellFab({ bottom, onPress, onLongPress }: EatWellFabProps) {
   function handlePress() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
@@ -67,9 +69,9 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.96 }],
   },
   gradient: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    borderRadius: FAB_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',

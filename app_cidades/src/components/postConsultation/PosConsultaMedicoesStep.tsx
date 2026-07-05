@@ -111,19 +111,22 @@ export function PosConsultaMedicoesStep({
 
   if (!showBloodPressure && !showGlucose) {
     return (
-      <View>
+      <View style={styles.root}>
+        <View style={styles.fields}>
         <Text style={styles.title}>Medições</Text>
         <Text style={styles.subtitle}>
           Nenhuma medição foi solicitada neste check-in. Continue para as perguntas de
           segurança.
         </Text>
+        </View>
         <PosConsultaStepActions onBack={onBack} onContinue={onContinue} />
       </View>
     )
   }
 
   return (
-    <View>
+    <View style={styles.root}>
+      <View style={styles.fields}>
       <Text style={styles.title}>Suas medições</Text>
       <Text style={styles.subtitle}>
         Informe os valores mais recentes, se tiver. Se não mediu, use &quot;Não medi&quot;.
@@ -169,6 +172,7 @@ export function PosConsultaMedicoesStep({
         Estas informações complementam o acompanhamento pós-consulta de{' '}
         {POS_CONSULTA_PLAN_TOTAL_DAYS} dias.
       </Text>
+      </View>
 
       <PosConsultaStepActions
         onBack={onBack}
@@ -180,6 +184,15 @@ export function PosConsultaMedicoesStep({
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    minHeight: 0,
+    justifyContent: 'space-between',
+  },
+  fields: {
+    flexShrink: 1,
+    gap: 0,
+  },
   title: {
     color: colors.text,
     fontSize: 20,

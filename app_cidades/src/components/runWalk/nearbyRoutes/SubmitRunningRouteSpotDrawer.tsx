@@ -5,6 +5,7 @@ import { pickAppImage } from '../../../adapters/appImagePicker'
 import {
   Accuracy,
   getCurrentPositionAsync,
+  isAppLocationPermissionDenied,
   requestForegroundPermissionsAsync,
 } from '../../../adapters/appLocation'
 import { useEffect, useState } from 'react'
@@ -128,7 +129,7 @@ export function SubmitRunningRouteSpotDrawer({
 
     try {
       const permission = await requestForegroundPermissionsAsync()
-      if (!permission.granted) {
+      if (isAppLocationPermissionDenied(permission)) {
         setLocationError('Permita o acesso à localização para marcar onde você está.')
         return
       }

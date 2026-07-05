@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef } from 'react'
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Path, Stop } from 'react-native-svg'
 import type { MealSlot, MealSlotContribution } from '../../types/eatWell'
 import { colors } from '../../theme/colors'
@@ -24,6 +24,23 @@ const CY = SIZE / 2
 const R = (SIZE - STROKE) / 2
 const INNER_R = R - STROKE
 const EMPTY_SLICE_DEGREES = 360 / MEAL_SLOT_ORDER.length
+const SEGMENT_HIT_SIZE = 40
+
+function getSegmentHitStyle(startAngle: number, endAngle: number) {
+  const midAngle = (startAngle + endAngle) / 2
+  const hitRadius = (R + INNER_R) / 2
+  const { x, y } = polarToCartesian(CX, CY, hitRadius, midAngle)
+  const offset = SEGMENT_HIT_SIZE / 2
+
+  return {
+    position: 'absolute' as const,
+    left: x - offset,
+    top: y - offset,
+    width: SEGMENT_HIT_SIZE,
+    height: SEGMENT_HIT_SIZE,
+    borderRadius: SEGMENT_HIT_SIZE / 2,
+  }
+}
 
 function polarToCartesian(cx: number, cy: number, radius: number, angleDeg: number) {
   const angleRad = ((angleDeg - 90) * Math.PI) / 180
@@ -247,11 +264,27 @@ export function EatWellMealContributionDonut({
                     d={segment.path}
                     fill={`url(#eat-well-donut-${segment.slot})`}
                     opacity={active ? 1 : 0.22}
-                    onPress={() => handleSegmentPress(segment.slot)}
+                    {...(Platform.OS !== 'web' && {
+                      onPress: () => handleSegmentPress(segment.slot),
+                    })}
                   />
                 )
               })}
             </Svg>
+            {Platform.OS === 'web'
+              ? segments.map((segment) => (
+                  <Pressable
+                    key={`hit-${segment.slot}`}
+                    onPress={() => handleSegmentPress(segment.slot)}
+                    style={[
+                      styles.segmentHit,
+                      getSegmentHitStyle(segment.startAngle, segment.endAngle),
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Filtrar ${MEAL_SLOT_CONFIG[segment.slot].label}`}
+                  />
+                ))
+              : null}
             <View style={styles.donutCenter} pointerEvents="none">
               <Text style={styles.centerPct}>{centerPct}</Text>
               <Text style={styles.centerValue}>{centerValue}</Text>
@@ -363,6 +396,10 @@ const styles = StyleSheet.create({
     height: SIZE,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+  },
+  segmentHit: {
+    backgroundColor: 'transparent',
   },
   donutCenter: {
     ...StyleSheet.absoluteFillObject,

@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, memo } from 'rea
 import {
   Animated,
   Easing,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -85,6 +86,17 @@ const DEFAULT_CHART_HEIGHT = 210
 const DEFAULT_PLOT_HEIGHT = DEFAULT_CHART_HEIGHT - PADDING_TOP - PADDING_BOTTOM
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle)
+
+function mapAnimatedRange(
+  value: number,
+  inMin: number,
+  inMax: number,
+  outMin: number,
+  outMax: number,
+) {
+  const t = (value - inMin) / (inMax - inMin)
+  return outMin + t * (outMax - outMin)
+}
 
 function getPointKey(point: ChartPoint) {
   return point.hour !== undefined ? `${point.date}T${String(point.hour).padStart(2, '0')}` : point.date
@@ -578,6 +590,7 @@ function MetricsAreaChartComponent({
   const didInitialReveal = useRef(false)
 
   const [frameProgress, setFrameProgress] = useState(1)
+  const [webPulseScale, setWebPulseScale] = useState(1)
   const [animFromData, setAnimFromData] = useState<ChartPoint[] | null>(null)
   const [lockedYRange, setLockedYRange] = useState<YRange | null>(null)
   const [selectedPointKey, setSelectedPointKey] = useState<string | null>(null)
@@ -687,6 +700,16 @@ function MetricsAreaChartComponent({
     loop.start()
     return () => loop.stop()
   }, [interactionPaused, pulseScale])
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return
+
+    const listenerId = pulseScale.addListener(({ value }) => {
+      setWebPulseScale(value)
+    })
+
+    return () => pulseScale.removeListener(listenerId)
+  }, [pulseScale])
 
   useEffect(() => {
     if (skeleton) return
@@ -1149,49 +1172,80 @@ function MetricsAreaChartComponent({
               ) : null}
 
               {liveHead ? (
-                <>
-                  <AnimatedCircle
-                    cx={liveHead.x}
-                    cy={liveHead.y}
-                    fill="none"
-                    stroke={accentColor}
-                    strokeWidth={2}
-                    r={pulseScale.interpolate({
-                      inputRange: [1, 1.55],
-                      outputRange: [7, 15],
-                    })}
-                    opacity={pulseScale.interpolate({
-                      inputRange: [1, 1.55],
-                      outputRange: [0.75, 0],
-                    })}
-                  />
-                  <AnimatedCircle
-                    cx={liveHead.x}
-                    cy={liveHead.y}
-                    fill="none"
-                    stroke="rgba(255, 255, 255, 0.95)"
-                    strokeWidth={1.8}
-                    r={pulseScale.interpolate({
-                      inputRange: [1, 1.55],
-                      outputRange: [5.5, 10],
-                    })}
-                    opacity={pulseScale.interpolate({
-                      inputRange: [1, 1.55],
-                      outputRange: [0.9, 0.12],
-                    })}
-                  />
-                  <AnimatedCircle
-                    cx={liveHead.x}
-                    cy={liveHead.y}
-                    r={selectedPointKey === getPointKey(liveHead) ? 6 : 5}
-                    fill={accentColor}
-                    stroke="rgba(255, 255, 255, 0.95)"
-                    strokeWidth={pulseScale.interpolate({
-                      inputRange: [1, 1.55],
-                      outputRange: [2, 3.8],
-                    })}
-                  />
-                </>
+                Platform.OS === 'web' ? (
+                  <>
+                    <Circle
+                      cx={liveHead.x}
+                      cy={liveHead.y}
+                      fill="none"
+                      stroke={accentColor}
+                      strokeWidth={2}
+                      r={mapAnimatedRange(webPulseScale, 1, 1.55, 7, 15)}
+                      opacity={mapAnimatedRange(webPulseScale, 1, 1.55, 0.75, 0)}
+                    />
+                    <Circle
+                      cx={liveHead.x}
+                      cy={liveHead.y}
+                      fill="none"
+                      stroke="rgba(255, 255, 255, 0.95)"
+                      strokeWidth={1.8}
+                      r={mapAnimatedRange(webPulseScale, 1, 1.55, 5.5, 10)}
+                      opacity={mapAnimatedRange(webPulseScale, 1, 1.55, 0.9, 0.12)}
+                    />
+                    <Circle
+                      cx={liveHead.x}
+                      cy={liveHead.y}
+                      r={selectedPointKey === getPointKey(liveHead) ? 6 : 5}
+                      fill={accentColor}
+                      stroke="rgba(255, 255, 255, 0.95)"
+                      strokeWidth={mapAnimatedRange(webPulseScale, 1, 1.55, 2, 3.8)}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <AnimatedCircle
+                      cx={liveHead.x}
+                      cy={liveHead.y}
+                      fill="none"
+                      stroke={accentColor}
+                      strokeWidth={2}
+                      r={pulseScale.interpolate({
+                        inputRange: [1, 1.55],
+                        outputRange: [7, 15],
+                      })}
+                      opacity={pulseScale.interpolate({
+                        inputRange: [1, 1.55],
+                        outputRange: [0.75, 0],
+                      })}
+                    />
+                    <AnimatedCircle
+                      cx={liveHead.x}
+                      cy={liveHead.y}
+                      fill="none"
+                      stroke="rgba(255, 255, 255, 0.95)"
+                      strokeWidth={1.8}
+                      r={pulseScale.interpolate({
+                        inputRange: [1, 1.55],
+                        outputRange: [5.5, 10],
+                      })}
+                      opacity={pulseScale.interpolate({
+                        inputRange: [1, 1.55],
+                        outputRange: [0.9, 0.12],
+                      })}
+                    />
+                    <AnimatedCircle
+                      cx={liveHead.x}
+                      cy={liveHead.y}
+                      r={selectedPointKey === getPointKey(liveHead) ? 6 : 5}
+                      fill={accentColor}
+                      stroke="rgba(255, 255, 255, 0.95)"
+                      strokeWidth={pulseScale.interpolate({
+                        inputRange: [1, 1.55],
+                        outputRange: [2, 3.8],
+                      })}
+                    />
+                  </>
+                )
               ) : null}
             </Svg>
           </View>

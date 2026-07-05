@@ -5,6 +5,7 @@ import { colors } from '../../theme/colors'
 export const OVAL_WIDTH = 224
 export const OVAL_HEIGHT = 286
 export const SCANNER_HEIGHT = 392
+export const SCANNER_MASK_COLOR = '#050508'
 export const SCAN_DURATION_MS = 2600
 export const DETECTION_INTERVAL_MS = 650
 export const FACE_LOCK_STREAK = 2
@@ -91,6 +92,58 @@ export function wait(ms: number) {
 }
 
 export const styles = StyleSheet.create({
+  webFaceScanStage: {
+    alignItems: 'center',
+    marginBottom: 16,
+    width: '100%',
+  },
+  webOvalStack: {
+    position: 'relative',
+    width: OVAL_WIDTH,
+    height: OVAL_HEIGHT,
+  },
+  webOvalCameraShell: {
+    width: OVAL_WIDTH,
+    height: OVAL_HEIGHT,
+    borderRadius: OVAL_WIDTH / 2,
+    overflow: 'hidden',
+    backgroundColor: SCANNER_MASK_COLOR,
+  },
+  webOvalCamera: {
+    position: 'absolute',
+    width: OVAL_WIDTH * 1.2,
+    height: OVAL_HEIGHT * 1.2,
+    left: -(OVAL_WIDTH * 0.2) / 2,
+    top: -(OVAL_HEIGHT * 0.2) / 2,
+  },
+  webOvalGuideOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  webStatusChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 999,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    marginTop: 14,
+    alignSelf: 'stretch',
+  },
+  webPreviewImage: {
+    width: OVAL_WIDTH,
+    height: OVAL_HEIGHT,
+  },
+  webOvalPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    gap: 12,
+  },
   glowShell: {
     borderRadius: 28,
     padding: 1.5,

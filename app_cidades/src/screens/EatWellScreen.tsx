@@ -6,6 +6,7 @@ import {
   ImageBackground,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -176,6 +177,7 @@ export function EatWellScreen() {
   const [diaryAnimationEpoch, setDiaryAnimationEpoch] = useState(0)
 
   const segmentPagerRef = useRef<FlatList<EatWellTab>>(null)
+  const segmentPagerWebRef = useRef<ScrollView>(null)
   const segmentPagerIndexRef = useRef(0)
   const segmentPagerProgrammaticScrollRef = useRef(false)
   const skipDiaryResetRef = useRef(false)
@@ -199,10 +201,18 @@ export function EatWellScreen() {
 
       segmentPagerProgrammaticScrollRef.current = animated
       segmentPagerIndexRef.current = index
-      segmentPagerRef.current?.scrollToOffset({
-        offset: index * screenWidth,
-        animated,
-      })
+
+      if (Platform.OS === 'web') {
+        segmentPagerWebRef.current?.scrollTo({
+          x: index * screenWidth,
+          animated,
+        })
+      } else {
+        segmentPagerRef.current?.scrollToOffset({
+          offset: index * screenWidth,
+          animated,
+        })
+      }
 
       if (!animated) {
         segmentPagerProgrammaticScrollRef.current = false
@@ -263,6 +273,15 @@ export function EatWellScreen() {
     },
     [handleSegmentPagerIndexChange, screenWidth],
   )
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return
+
+    segmentPagerWebRef.current?.scrollTo({
+      x: segmentPagerIndexRef.current * screenWidth,
+      animated: false,
+    })
+  }, [screenWidth])
 
   const loadWeekData = useCallback(async () => {
     const summary = await loadEatWellWeekSummary(patientCpf)
@@ -597,6 +616,116 @@ export function EatWellScreen() {
   const diaryAnimate = isReady && animateHero && segmentTab === 'diary'
   const diaryIdleProgress = animateHero && !diaryAnimate
 
+  function renderEatWellSegmentPage(item: EatWellTab) {
+    if (item === 'diary') {
+      return (
+        <ScrollView
+          style={styles.body}
+          contentContainerStyle={[
+            styles.bodyContent,
+            { paddingBottom: bottomContentPadding },
+          ]}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => void handleRefresh()}
+              tintColor={colors.primaryLight}
+            />
+          }
+        >
+          <EatWellDayStrip
+            days={calendarDays}
+            monthKey={calendarMonthKey}
+            selectedDateIso={selectedDateIso}
+            onSelectDate={setSelectedDateIso}
+            onOpenMonthPicker={() => setMonthPickerVisible(true)}
+            onHorizontalScrollActive={(active) => setSegmentPagerScrollEnabled(!active)}
+          />
+
+          <EatWellBalanceHero
+            key={`balance-${diaryVisualKey}`}
+            totals={totals}
+            goals={resolvedGoals}
+            adjustedCalorieTarget={adjustedCalorieTarget}
+            balance={balance}
+            animate={diaryAnimate}
+            idleProgress={diaryIdleProgress}
+            onBalancePress={() => setBalanceDrawerVisible(true)}
+            onMacroChipPress={setMacroDrawerId}
+          />
+
+          <EatWellRunWalkEnergyBadge
+            energy={runWalkEnergy}
+            adjustedCalorieTarget={adjustedCalorieTarget}
+            onPress={() => withEatWellAuth(() => setEnergyDrawerVisible(true))}
+          />
+
+          <EatWellMealContributionDonut
+            key={`donut-${diaryVisualKey}`}
+            contributions={contributions}
+            totalCalories={totals.calories}
+            selectedSlot={filterSlot}
+            onSelectSlot={setFilterSlot}
+            animate={diaryAnimate}
+            idleProgress={diaryIdleProgress}
+          />
+
+          <EatWellWaterStrip
+            key={`water-${diaryVisualKey}`}
+            consumedMl={totals.waterMl}
+            goalMl={resolvedGoals.waterMl}
+            animate={diaryAnimate}
+            idleProgress={diaryIdleProgress}
+            onRegisterPress={() => setHydrationDrawerVisible(true)}
+            onUndoLast={() => void handleUndoWater()}
+            canUndo={dailyRecord.waterLogs.length > 0}
+          />
+
+          <EatWellMealTimeline
+            record={dailyRecord}
+            filterSlot={filterSlot}
+            onAddMeal={(slot) => openMealLog(slot)}
+            onEditMeal={(meal) => openMealLog(meal.slot, meal)}
+            onDeleteMeal={(mealId) => void handleDeleteMeal(mealId)}
+          />
+
+          <EatWellMealPhotoGallery
+            record={dailyRecord}
+            filterSlot={filterSlot}
+            onSelectMeal={openMealDetail}
+          />
+        </ScrollView>
+      )
+    }
+
+    if (item === 'week') {
+      return (
+        <EatWellWeekTab
+          summary={weekSummary}
+          goals={resolvedGoals}
+          bottomPadding={weekBottomPadding}
+          isActive={weekTabAnimate}
+          isRefreshing={isWeekRefreshing}
+          onRefresh={() => void handleWeekRefresh()}
+          onSelectDay={handleSelectDayFromWeek}
+          onNavigateRunWalk={() => navigateTo('run-walk')}
+          onHorizontalScrollActive={(active) => setSegmentPagerScrollEnabled(!active)}
+        />
+      )
+    }
+
+    return (
+      <EatWellMenusTab
+        menus={savedMenus}
+        bottomPadding={bottomContentPadding}
+        onOpenMenu={handleOpenMenu}
+        onDeleteMenu={(menuId) => void handleDeleteMenu(menuId)}
+      />
+    )
+  }
+
   return (
     <>
       <View style={styles.root}>
@@ -623,152 +752,57 @@ export function EatWellScreen() {
 
         <RunWalkSegmentTabs activeTab={segmentTab} onChange={handleSegmentTabChange} tabs={EAT_WELL_TABS} />
 
-        <FlatList
-          ref={segmentPagerRef}
-          data={SEGMENT_PAGES}
-          keyExtractor={(item) => item}
-          horizontal
-          pagingEnabled
-          scrollEnabled={segmentPagerScrollEnabled}
-          nestedScrollEnabled
-          bounces={false}
-          showsHorizontalScrollIndicator={false}
-          decelerationRate="fast"
-          scrollEventThrottle={16}
-          onScroll={handleSegmentPagerScroll}
-          onMomentumScrollEnd={handleSegmentPagerScrollEnd}
-          onScrollEndDrag={handleSegmentPagerScrollEnd}
-          getItemLayout={(_, index) => ({
-            length: screenWidth,
-            offset: screenWidth * index,
-            index,
-          })}
-          style={styles.segmentPager}
-          renderItem={({ item }) => (
-            <View style={[styles.segmentPage, { width: screenWidth, height: '100%' }]}>
-              {item === 'diary' ? (
-                <ScrollView
-                  style={styles.body}
-                  contentContainerStyle={[
-                    styles.bodyContent,
-                    { paddingBottom: bottomContentPadding },
-                  ]}
-                  showsVerticalScrollIndicator={false}
-                  nestedScrollEnabled
-                  refreshControl={
-                    <RefreshControl
-                      refreshing={isRefreshing}
-                      onRefresh={() => void handleRefresh()}
-                      tintColor={colors.primaryLight}
-                    />
-                  }
-                >
-                  <EatWellDayStrip
-                    days={calendarDays}
-                    monthKey={calendarMonthKey}
-                    selectedDateIso={selectedDateIso}
-                    onSelectDate={setSelectedDateIso}
-                    onOpenMonthPicker={() => setMonthPickerVisible(true)}
-                    onHorizontalScrollActive={(active) => setSegmentPagerScrollEnabled(!active)}
-                  />
-
-                  <EatWellBalanceHero
-                    key={`balance-${diaryVisualKey}`}
-                    totals={totals}
-                    goals={resolvedGoals}
-                    adjustedCalorieTarget={adjustedCalorieTarget}
-                    balance={balance}
-                    animate={diaryAnimate}
-                    idleProgress={diaryIdleProgress}
-                    onBalancePress={() => setBalanceDrawerVisible(true)}
-                    onMacroChipPress={setMacroDrawerId}
-                  />
-
-                  <EatWellRunWalkEnergyBadge
-                    energy={runWalkEnergy}
-                    adjustedCalorieTarget={adjustedCalorieTarget}
-                    onPress={() => withEatWellAuth(() => setEnergyDrawerVisible(true))}
-                  />
-
-                  <EatWellMealContributionDonut
-                    key={`donut-${diaryVisualKey}`}
-                    contributions={contributions}
-                    totalCalories={totals.calories}
-                    selectedSlot={filterSlot}
-                    onSelectSlot={setFilterSlot}
-                    animate={diaryAnimate}
-                    idleProgress={diaryIdleProgress}
-                  />
-
-                  <EatWellWaterStrip
-                    key={`water-${diaryVisualKey}`}
-                    consumedMl={totals.waterMl}
-                    goalMl={resolvedGoals.waterMl}
-                    animate={diaryAnimate}
-                    idleProgress={diaryIdleProgress}
-                    onRegisterPress={() => setHydrationDrawerVisible(true)}
-                    onUndoLast={() => void handleUndoWater()}
-                    canUndo={dailyRecord.waterLogs.length > 0}
-                  />
-
-                  <EatWellMealTimeline
-                    record={dailyRecord}
-                    filterSlot={filterSlot}
-                    onAddMeal={(slot) => openMealLog(slot)}
-                    onEditMeal={(meal) => openMealLog(meal.slot, meal)}
-                    onDeleteMeal={(mealId) => void handleDeleteMeal(mealId)}
-                  />
-
-                  <EatWellMealPhotoGallery
-                    record={dailyRecord}
-                    filterSlot={filterSlot}
-                    onSelectMeal={openMealDetail}
-                  />
-
-                </ScrollView>
-              ) : item === 'week' ? (
-                <EatWellWeekTab
-                  summary={weekSummary}
-                  goals={resolvedGoals}
-                  bottomPadding={weekBottomPadding}
-                  isActive={weekTabAnimate}
-                  isRefreshing={isWeekRefreshing}
-                  onRefresh={() => void handleWeekRefresh()}
-                  onSelectDay={handleSelectDayFromWeek}
-                  onNavigateRunWalk={() => navigateTo('run-walk')}
-                  onHorizontalScrollActive={(active) => setSegmentPagerScrollEnabled(!active)}
-                />
-              ) : (
-                <EatWellMenusTab
-                  menus={savedMenus}
-                  bottomPadding={bottomContentPadding}
-                  onOpenMenu={handleOpenMenu}
-                  onDeleteMenu={(menuId) => void handleDeleteMenu(menuId)}
-                />
-              )}
-            </View>
-          )}
-        />
-
-        {segmentTab === 'diary' || segmentTab === 'menus' ? (
-          <EatWellFab
-            bottom={fabBottomOffset}
-            onPress={() => {
-              withEatWellAuth(() => {
-                if (segmentTab === 'menus') {
-                  setMenuWizardVisible(true)
-                  return
-                }
-                setFabMenuVisible(true)
-              })
-            }}
-            onLongPress={() => {
-              if (segmentTab === 'diary') {
-                withEatWellAuth(() => setQuickMealVisible(true))
-              }
-            }}
+        {Platform.OS === 'web' ? (
+          <ScrollView
+            ref={segmentPagerWebRef}
+            horizontal
+            pagingEnabled
+            scrollEnabled={segmentPagerScrollEnabled}
+            nestedScrollEnabled
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            scrollEventThrottle={16}
+            onScroll={handleSegmentPagerScroll}
+            onMomentumScrollEnd={handleSegmentPagerScrollEnd}
+            onScrollEndDrag={handleSegmentPagerScrollEnd}
+            style={styles.segmentPagerWeb}
+          >
+            {SEGMENT_PAGES.map((tab) => (
+              <View key={tab} style={[styles.segmentPage, { width: screenWidth }]}>
+                {renderEatWellSegmentPage(tab)}
+              </View>
+            ))}
+          </ScrollView>
+        ) : (
+          <FlatList
+            ref={segmentPagerRef}
+            data={SEGMENT_PAGES}
+            keyExtractor={(item) => item}
+            horizontal
+            pagingEnabled
+            scrollEnabled={segmentPagerScrollEnabled}
+            nestedScrollEnabled
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            scrollEventThrottle={16}
+            onScroll={handleSegmentPagerScroll}
+            onMomentumScrollEnd={handleSegmentPagerScrollEnd}
+            onScrollEndDrag={handleSegmentPagerScrollEnd}
+            getItemLayout={(_, index) => ({
+              length: screenWidth,
+              offset: screenWidth * index,
+              index,
+            })}
+            style={styles.segmentPager}
+            renderItem={({ item }) => (
+              <View style={[styles.segmentPage, { width: screenWidth, height: '100%' }]}>
+                {renderEatWellSegmentPage(item)}
+              </View>
+            )}
           />
-        ) : null}
+        )}
 
         <BottomTabBar activeTab={null} onTabPress={handleTabPress} />
 
@@ -778,6 +812,26 @@ export function EatWellScreen() {
           bottomOffset={TAB_BAR_ESTIMATED_HEIGHT + Math.max(insets.bottom, 8) + 12}
         />
       </View>
+
+      {segmentTab === 'diary' || segmentTab === 'menus' ? (
+        <EatWellFab
+          bottom={fabBottomOffset}
+          onPress={() => {
+            withEatWellAuth(() => {
+              if (segmentTab === 'menus') {
+                setMenuWizardVisible(true)
+                return
+              }
+              setFabMenuVisible(true)
+            })
+          }}
+          onLongPress={() => {
+            if (segmentTab === 'diary') {
+              withEatWellAuth(() => setQuickMealVisible(true))
+            }
+          }}
+        />
+      ) : null}
 
       <EatWellFabPopover
         visible={fabMenuVisible}
@@ -891,12 +945,34 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      },
+      default: {},
+    }),
   },
   segmentPager: {
     flex: 1,
+    minHeight: 0,
+  },
+  segmentPagerWeb: {
+    flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
+    ...Platform.select({
+      web: {
+        overflowX: 'auto',
+        overflowY: 'hidden',
+      },
+      default: {},
+    }),
   },
   segmentPage: {
     flex: 1,
+    minHeight: 0,
   },
   bodyContent: {
     flexGrow: 1,

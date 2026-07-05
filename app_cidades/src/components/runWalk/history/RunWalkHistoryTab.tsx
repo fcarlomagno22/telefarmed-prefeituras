@@ -2,6 +2,7 @@ import * as Haptics from 'expo-haptics'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Alert,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -463,9 +464,18 @@ export function RunWalkHistoryTab({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    minHeight: 0,
   },
   scroll: {
     flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      },
+      default: {},
+    }),
   },
   content: {
     gap: 14,

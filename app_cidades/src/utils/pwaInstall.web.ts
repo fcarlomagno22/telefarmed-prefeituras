@@ -54,10 +54,11 @@ export function markPwaInstallDismissed(): void {
 }
 
 export function registerPwaServiceWorker(): void {
+  if (__DEV__) return
   if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return
 
   void navigator.serviceWorker.register('/sw.js').catch(() => {
-    // Dev/local sem SW — install nativo pode não estar disponível.
+    // Sem SW — install nativo pode não estar disponível.
   })
 }
 

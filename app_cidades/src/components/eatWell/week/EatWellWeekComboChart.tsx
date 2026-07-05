@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import Svg, {
   Circle,
   Defs,
@@ -299,7 +299,8 @@ export function EatWellWeekComboChart({
         </View>
 
         <View style={styles.chartArea}>
-          <Svg width={chartWidth} height={CHART_HEIGHT}>
+          <View style={[styles.chartCanvas, { width: chartWidth, height: CHART_HEIGHT }]}>
+            <Svg width={chartWidth} height={CHART_HEIGHT}>
             <Defs>
               <SvgLinearGradient id="eatWellCalorieBar" x1="0" y1="0" x2="0" y2="1">
                 <Stop offset="0%" stopColor="#fde68a" stopOpacity={1} />
@@ -336,7 +337,9 @@ export function EatWellWeekComboChart({
                   rx={BAR_RADIUS}
                   fill={fill}
                   opacity={item.day.isFuture ? 0.55 : 1}
-                  onPress={() => handleSelectDay(item.index)}
+                  {...(Platform.OS !== 'web'
+                    ? { onPress: () => handleSelectDay(item.index) }
+                    : {})}
                 />
               )
             })}
@@ -367,7 +370,9 @@ export function EatWellWeekComboChart({
                     r={baseRadius * (0.35 + reveal * 0.65)}
                     fill="#67e8f9"
                     opacity={reveal}
-                    onPress={() => handleSelectDay(item.index)}
+                    {...(Platform.OS !== 'web'
+                      ? { onPress: () => handleSelectDay(item.index) }
+                      : {})}
                   />
                 )
               })}
@@ -394,18 +399,37 @@ export function EatWellWeekComboChart({
               stroke="rgba(255,255,255,0.08)"
             />
 
-            {barGeometries.map((item) => (
-              <Rect
-                key={`hit-${item.day.dateIso}`}
-                x={PADDING.left + item.index * slotWidth}
-                y={PADDING.top}
-                width={slotWidth}
-                height={plotHeight}
-                fill="transparent"
-                onPress={() => handleSelectDay(item.index)}
-              />
-            ))}
-          </Svg>
+            {Platform.OS !== 'web' &&
+              barGeometries.map((item) => (
+                <Rect
+                  key={`hit-${item.day.dateIso}`}
+                  x={PADDING.left + item.index * slotWidth}
+                  y={PADDING.top}
+                  width={slotWidth}
+                  height={plotHeight}
+                  fill="transparent"
+                  onPress={() => handleSelectDay(item.index)}
+                />
+              ))}
+            </Svg>
+            {Platform.OS === 'web' &&
+              barGeometries.map((item) => (
+                <Pressable
+                  key={`web-hit-${item.day.dateIso}`}
+                  disabled={item.day.isFuture}
+                  onPress={() => handleSelectDay(item.index)}
+                  style={[
+                    styles.webDayHit,
+                    {
+                      left: PADDING.left + item.index * slotWidth,
+                      top: PADDING.top,
+                      width: slotWidth,
+                      height: plotHeight,
+                    },
+                  ]}
+                />
+              ))}
+          </View>
         </View>
 
         <View style={styles.legendRow}>
@@ -487,6 +511,12 @@ const styles = StyleSheet.create({
   chartArea: {
     width: '100%',
     alignItems: 'center',
+  },
+  chartCanvas: {
+    position: 'relative',
+  },
+  webDayHit: {
+    position: 'absolute',
   },
   legendRow: {
     flexDirection: 'row',

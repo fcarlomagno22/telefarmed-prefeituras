@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const distDir = join(root, 'dist')
-const webDir = join(root, 'web')
+const publicDir = join(root, 'public')
 
 if (!existsSync(distDir)) {
   console.error('postExportWeb: dist/ não encontrado — rode expo export primeiro.')
@@ -12,10 +12,10 @@ if (!existsSync(distDir)) {
 }
 
 for (const file of ['sw.js', 'manifest.webmanifest', 'icon-512.png', 'pwa-chrome-boot.js']) {
-  copyFileSync(join(webDir, file), join(distDir, file))
+  copyFileSync(join(publicDir, file), join(distDir, file))
 }
 
-const bootScript = readFileSync(join(webDir, 'pwa-chrome-boot.js'), 'utf8')
+const bootScript = readFileSync(join(publicDir, 'pwa-chrome-boot.js'), 'utf8')
 const indexPath = join(distDir, 'index.html')
 let html = readFileSync(indexPath, 'utf8')
 

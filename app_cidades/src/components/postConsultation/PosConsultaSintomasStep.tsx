@@ -94,7 +94,8 @@ export function PosConsultaSintomasStep({
     respostas.evolucaoComparacao !== null && respostas.intensidadeSintoma !== null
 
   return (
-    <View>
+    <View style={styles.root}>
+      <View style={styles.fields}>
       <Text style={styles.title}>Como você está comparado à consulta?</Text>
       <Text style={styles.subtitle}>
         Suas respostas ajudam a equipe de saúde a acompanhar sua evolução nos próximos{' '}
@@ -174,6 +175,7 @@ export function PosConsultaSintomasStep({
       <Text style={styles.hintCenter}>
         Use a escala considerando o principal sintoma que motivou sua consulta.
       </Text>
+      </View>
 
       <PosConsultaStepActions
         onContinue={onContinue}
@@ -185,6 +187,15 @@ export function PosConsultaSintomasStep({
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    minHeight: 0,
+    justifyContent: 'space-between',
+  },
+  fields: {
+    flexShrink: 1,
+    gap: 0,
+  },
   title: {
     color: colors.text,
     fontSize: 20,
@@ -198,7 +209,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     textAlign: 'center',
     marginTop: 8,
-    marginBottom: 18,
+    marginBottom: 14,
   },
   sectionLabel: {
     color: colors.textMuted,
@@ -212,7 +223,7 @@ const styles = StyleSheet.create({
   comparacaoRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 18,
+    marginBottom: 14,
   },
   comparacaoCard: {
     flex: 1,

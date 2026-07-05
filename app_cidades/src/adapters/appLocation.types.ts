@@ -54,6 +54,26 @@ export type AppLocationPermissionResponse = {
   canAskAgain: boolean
 }
 
+/** Na web, o prompt do navegador só aparece ao chamar getCurrentPosition (status undetermined). */
+export function isAppLocationPermissionDenied(
+  response: AppLocationPermissionResponse,
+): boolean {
+  return response.status === 'denied'
+}
+
+export function getAppLocationFailureReason(error: unknown): AppLocationFailureReason | null {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'reason' in error &&
+    typeof (error as { reason: unknown }).reason === 'string'
+  ) {
+    return (error as { reason: AppLocationFailureReason }).reason
+  }
+
+  return null
+}
+
 export type AppLocationSubscription = {
   remove: () => void
 }

@@ -31,55 +31,56 @@ export function FunctionalExerciseListRow({
   }
 
   return (
-    <Pressable
-      onPress={handlePress}
-      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-      accessibilityRole="button"
-      accessibilityLabel={`Abrir exercício ${exercise.name}`}
-    >
-      <View style={styles.previewWrap}>
-        <FunctionalLottie
-          source={exercise.lottie}
-          exerciseId={exercise.id}
-          style={styles.preview}
-          variant="thumb"
-        />
-      </View>
-
-      <View style={styles.content}>
-        <Text style={styles.name} numberOfLines={2}>
-          {exercise.name}
-        </Text>
-
-        <View style={styles.metaRow}>
-          <FunctionalDifficultyBadge difficulty={exercise.difficulty} compact />
-          <Text style={styles.metaText}>
-            {exercise.categories.slice(0, 2).map(getCategoryLabel).join(' · ')}
-          </Text>
+    <View style={styles.row}>
+      <Pressable
+        onPress={handlePress}
+        style={({ pressed }) => [styles.rowMain, pressed && styles.rowPressed]}
+        accessibilityRole="button"
+        accessibilityLabel={`Abrir exercício ${exercise.name}`}
+      >
+        <View style={styles.previewWrap}>
+          <FunctionalLottie
+            source={exercise.lottie}
+            exerciseId={exercise.id}
+            style={styles.preview}
+            variant="thumb"
+          />
         </View>
 
-        <Text style={styles.equipment}>{getEquipmentLabel(exercise.equipment)}</Text>
-      </View>
+        <View style={styles.content}>
+          <Text style={styles.name} numberOfLines={2}>
+            {exercise.name}
+          </Text>
 
-      <View style={styles.actions}>
-        <Pressable
-          onPress={handleFavoritePress}
-          hitSlop={8}
-          style={({ pressed }) => [styles.favBtn, pressed && styles.favBtnPressed]}
-          accessibilityRole="button"
-          accessibilityLabel={
-            isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
-          }
-        >
-          <Ionicons
-            name={isFavorite ? 'heart' : 'heart-outline'}
-            size={18}
-            color={isFavorite ? '#fb7185' : colors.textMuted}
-          />
-        </Pressable>
+          <View style={styles.metaRow}>
+            <FunctionalDifficultyBadge difficulty={exercise.difficulty} compact />
+            <Text style={styles.metaText}>
+              {exercise.categories.slice(0, 2).map(getCategoryLabel).join(' · ')}
+            </Text>
+          </View>
+
+          <Text style={styles.equipment}>{getEquipmentLabel(exercise.equipment)}</Text>
+        </View>
+
         <Ionicons name="chevron-forward" size={18} color={colors.textSubtle} />
-      </View>
-    </Pressable>
+      </Pressable>
+
+      <Pressable
+        onPress={handleFavoritePress}
+        hitSlop={8}
+        style={({ pressed }) => [styles.favBtn, pressed && styles.favBtnPressed]}
+        accessibilityRole="button"
+        accessibilityLabel={
+          isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
+        }
+      >
+        <Ionicons
+          name={isFavorite ? 'heart' : 'heart-outline'}
+          size={18}
+          color={isFavorite ? '#fb7185' : colors.textMuted}
+        />
+      </Pressable>
+    </View>
   )
 }
 
@@ -87,13 +88,20 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     marginHorizontal: 16,
     padding: 12,
     borderRadius: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.04)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.07)',
+  },
+  rowMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minWidth: 0,
   },
   rowPressed: {
     opacity: 0.9,
@@ -134,10 +142,6 @@ const styles = StyleSheet.create({
     color: colors.textSubtle,
     fontSize: 10,
     fontWeight: '500',
-  },
-  actions: {
-    alignItems: 'center',
-    gap: 10,
   },
   favBtn: {
     width: 32,

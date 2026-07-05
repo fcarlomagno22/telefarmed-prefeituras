@@ -5,8 +5,10 @@ export {
   enableNetworkProviderAsync,
   geocodeAsync,
   getAppLocationFailureMessage,
+  getAppLocationFailureReason,
   getAppLocationHeadingSupport,
   getCurrentPositionAsync,
+  isAppLocationPermissionDenied,
   isAppLocationSupported,
   isReverseGeocodeAvailable,
   requestForegroundPermissionsAsync,
@@ -26,4 +28,8 @@ export type {
   AppLocationPermissionResponse,
   AppLocationSubscription,
   AppLocationWatchOptions,
+} from './appLocation.types'
+export {
+  getAppLocationFailureReason,
+  isAppLocationPermissionDenied,
 } from './appLocation.types'

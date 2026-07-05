@@ -98,10 +98,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginTop: 20,
+    marginTop: 12,
   },
   rootFullWidth: {
-    marginTop: 20,
+    marginTop: 12,
     width: '100%',
   },
   backButton: {

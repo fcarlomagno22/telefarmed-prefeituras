@@ -67,19 +67,21 @@ export function PosConsultaCheckinWizard({
   }
 
   return (
-    <View>
-      <Text style={styles.badge}>
-        Acompanhamento pós-consulta · Dia {context.planDayNumber} de {context.planTotalDays}
-      </Text>
-      <Text style={styles.greeting}>Olá, {context.patientFirstName}</Text>
-      <Text style={styles.meta}>
-        {context.specialtyName} · {context.doctorName}
-      </Text>
-      <Text style={styles.metaSub}>
-        Check-in {context.checkinNumber} de {context.totalCheckins}
-      </Text>
+    <View style={styles.wizard}>
+      <View style={styles.wizardHeader}>
+        <Text style={styles.badge}>
+          Acompanhamento pós-consulta · Dia {context.planDayNumber} de {context.planTotalDays}
+        </Text>
+        <Text style={styles.greeting}>Olá, {context.patientFirstName}</Text>
+        <Text style={styles.meta}>
+          {context.specialtyName} · {context.doctorName}
+        </Text>
+        <Text style={styles.metaSub}>
+          Check-in {context.checkinNumber} de {context.totalCheckins}
+        </Text>
 
-      <PosConsultaCheckinStepper stepIndex={stepIndex} />
+        <PosConsultaCheckinStepper stepIndex={stepIndex} />
+      </View>
 
       {submitError ? (
         <View style={styles.errorBox}>
@@ -87,47 +89,61 @@ export function PosConsultaCheckinWizard({
         </View>
       ) : null}
 
-      {step === 'sintomas' ? (
-        <PosConsultaSintomasStep
-          respostas={respostas}
-          onChange={setRespostas}
-          onContinue={() => setStep('medicacao')}
-        />
-      ) : null}
+      <View style={styles.stepArea}>
+        {step === 'sintomas' ? (
+          <PosConsultaSintomasStep
+            respostas={respostas}
+            onChange={setRespostas}
+            onContinue={() => setStep('medicacao')}
+          />
+        ) : null}
 
-      {step === 'medicacao' ? (
-        <PosConsultaMedicacaoStep
-          respostas={respostas}
-          onChange={setRespostas}
-          onBack={() => setStep('sintomas')}
-          onContinue={() => setStep('medicoes')}
-        />
-      ) : null}
+        {step === 'medicacao' ? (
+          <PosConsultaMedicacaoStep
+            respostas={respostas}
+            onChange={setRespostas}
+            onBack={() => setStep('sintomas')}
+            onContinue={() => setStep('medicoes')}
+          />
+        ) : null}
 
-      {step === 'medicoes' ? (
-        <PosConsultaMedicoesStep
-          respostas={respostas}
-          requestedMeasurements={context.requestedMeasurements}
-          onChange={setRespostas}
-          onBack={() => setStep('medicacao')}
-          onContinue={() => setStep('alertas')}
-        />
-      ) : null}
+        {step === 'medicoes' ? (
+          <PosConsultaMedicoesStep
+            respostas={respostas}
+            requestedMeasurements={context.requestedMeasurements}
+            onChange={setRespostas}
+            onBack={() => setStep('medicacao')}
+            onContinue={() => setStep('alertas')}
+          />
+        ) : null}
 
-      {step === 'alertas' ? (
-        <PosConsultaSinaisAlertaStep
-          respostas={respostas}
-          onChange={setRespostas}
-          onBack={() => setStep('medicoes')}
-          onSubmit={() => void handleSubmit()}
-          isSubmitting={isSubmitting}
-        />
-      ) : null}
+        {step === 'alertas' ? (
+          <PosConsultaSinaisAlertaStep
+            respostas={respostas}
+            onChange={setRespostas}
+            onBack={() => setStep('medicoes')}
+            onSubmit={() => void handleSubmit()}
+            isSubmitting={isSubmitting}
+          />
+        ) : null}
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
+  wizard: {
+    flex: 1,
+    minHeight: 0,
+    gap: 8,
+  },
+  wizardHeader: {
+    flexShrink: 0,
+  },
+  stepArea: {
+    flex: 1,
+    minHeight: 0,
+  },
   badge: {
     color: '#7dd3fc',
     fontSize: 11,
@@ -157,7 +173,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     marginTop: 2,
-    marginBottom: 14,
+    marginBottom: 10,
   },
   errorBox: {
     borderRadius: 12,
