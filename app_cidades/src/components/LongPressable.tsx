@@ -16,6 +16,7 @@ export function LongPressable({
       onPress={onPress}
       onLongPress={onLongPress}
       delayLongPress={onLongPress ? delayLongPress : undefined}
+      cancelable={onLongPress ? false : undefined}
     />
   )
 }

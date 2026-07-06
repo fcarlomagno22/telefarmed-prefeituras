@@ -1,5 +1,6 @@
-import { useCallback, useRef } from 'react'
-import { Pressable, type PressableProps } from 'react-native'
+import { useCallback } from 'react'
+import { type PressableProps, type ViewStyle } from 'react-native'
+import { Pressable } from 'react-native-gesture-handler'
 
 type LongPressableProps = PressableProps & {
   delayLongPress?: number
@@ -9,51 +10,48 @@ export function LongPressable({
   onPress,
   onLongPress,
   delayLongPress = 400,
+  style,
   ...rest
 }: LongPressableProps) {
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const longPressFiredRef = useRef(false)
+  const resolvedStyle = useCallback(
+    (state: { pressed: boolean }) => {
+      const baseStyle = typeof style === 'function' ? style(state) : style
 
-  const clearTimer = useCallback(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current)
-      timerRef.current = null
-    }
-  }, [])
-
-  const handlePressIn = useCallback(() => {
-    if (!onLongPress) return
-
-    longPressFiredRef.current = false
-    clearTimer()
-    timerRef.current = setTimeout(() => {
-      longPressFiredRef.current = true
-      onLongPress?.()
-    }, delayLongPress)
-  }, [clearTimer, delayLongPress, onLongPress])
-
-  const handlePressOut = useCallback(() => {
-    clearTimer()
-  }, [clearTimer])
-
-  const handlePress = useCallback(
-    (event: Parameters<NonNullable<PressableProps['onPress']>>[0]) => {
-      if (longPressFiredRef.current) {
-        longPressFiredRef.current = false
-        return
+      if (!onLongPress) {
+        return baseStyle
       }
 
-      onPress?.(event)
+      return [
+        baseStyle,
+        {
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          WebkitTouchCallout: 'none',
+        } as ViewStyle,
+      ]
     },
-    [onPress],
+    [onLongPress, style],
+  )
+
+  const handleContextMenu = useCallback(
+    (event: { preventDefault: () => void }) => {
+      if (onLongPress) {
+        event.preventDefault()
+      }
+    },
+    [onLongPress],
   )
 
   return (
     <Pressable
       {...rest}
-      onPress={handlePress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
+      style={resolvedStyle}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={onLongPress ? delayLongPress : undefined}
+      cancelable={onLongPress ? false : undefined}
+      // @ts-expect-error RN web context menu
+      onContextMenu={handleContextMenu}
     />
   )
 }
