@@ -137,7 +137,7 @@ export function isAppLocationSupported(): boolean {
   )
 }
 
-export async function requestForegroundPermissionsAsync(): Promise<AppLocationPermissionResponse> {
+export async function getForegroundPermissionsAsync(): Promise<AppLocationPermissionResponse> {
   if (!isAppLocationSupported()) {
     return { granted: false, status: 'denied', canAskAgain: false }
   }
@@ -158,6 +158,10 @@ export async function requestForegroundPermissionsAsync(): Promise<AppLocationPe
   }
 
   return { granted: false, status: 'undetermined', canAskAgain: true }
+}
+
+export async function requestForegroundPermissionsAsync(): Promise<AppLocationPermissionResponse> {
+  return getForegroundPermissionsAsync()
 }
 
 export async function enableNetworkProviderAsync(): Promise<void> {

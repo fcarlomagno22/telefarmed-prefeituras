@@ -1,13 +1,14 @@
 import {
   Accuracy,
   enableNetworkProviderAsync,
-  getAppLocationFailureMessage,
   getAppLocationFailureReason,
   getAppLocationHeadingSupport,
   getCurrentPositionAsync,
+  getForegroundPermissionsAsync,
   isAppLocationPermissionDenied,
   requestForegroundPermissionsAsync,
   reverseGeocodeAsync,
+  type AppLocationPermissionResponse,
   type AppLocationSubscription,
   type AppLocationWatchOptions,
   watchHeadingAsync,
@@ -36,6 +37,7 @@ export type RunWalkLocationState = {
   isResolvingCity: boolean
   permissionGranted: boolean
   permissionDenied: boolean
+  canAskAgain: boolean
   error: string | null
 }
 
@@ -99,6 +101,16 @@ type UseRunWalkLocationOptions = {
   trackingMode?: RunWalkLocationTrackingMode
   /** Uma leitura inicial: sem watch contínuo e sem re-resolver a cidade. */
   snapshot?: boolean
+  /** Se falso, só consulta permissão no mount e espera refreshLocation (gesto do usuário). */
+  autoRequest?: boolean
+}
+
+function permissionDeniedMessage(permission: AppLocationPermissionResponse): string {
+  if (permission.status === 'denied' && !permission.canAskAgain) {
+    return 'Localização bloqueada. Abra as configurações do aparelho para permitir o acesso.'
+  }
+
+  return 'Permita o acesso à localização para iniciar a atividade.'
 }
 
 const TRACKING_WATCH_OPTIONS: Record<
@@ -115,6 +127,7 @@ export function useRunWalkLocation({
   trackHeading = false,
   trackingMode = 'default',
   snapshot = false,
+  autoRequest = true,
 }: UseRunWalkLocationOptions) {
   const [state, setState] = useState<RunWalkLocationState>({
     coordinates: null,
@@ -127,6 +140,7 @@ export function useRunWalkLocation({
     isResolvingCity: false,
     permissionGranted: false,
     permissionDenied: false,
+    canAskAgain: true,
     error: null,
   })
 
@@ -191,8 +205,23 @@ export function useRunWalkLocation({
     }))
   }, [])
 
-  const requestLocation = useCallback(async () => {
-    if (!enabled) return
+  const applyPermissionState = useCallback((permission: AppLocationPermissionResponse) => {
+    setState((prev) => ({
+      ...prev,
+      permissionGranted: permission.granted,
+      permissionDenied: permission.status === 'denied',
+      canAskAgain: permission.canAskAgain,
+    }))
+  }, [])
+
+  const syncPermissionStatus = useCallback(async () => {
+    const permission = await getForegroundPermissionsAsync()
+    applyPermissionState(permission)
+    return permission
+  }, [applyPermissionState])
+
+  const requestLocation = useCallback(async (): Promise<boolean> => {
+    if (!enabled) return false
 
     setState((prev) => ({ ...prev, isLocating: true, error: null }))
 
@@ -205,15 +234,17 @@ export function useRunWalkLocation({
           isLocating: false,
           permissionGranted: false,
           permissionDenied: true,
-          error: 'Permita o acesso à localização para iniciar a atividade.',
+          canAskAgain: permission.canAskAgain,
+          error: permissionDeniedMessage(permission),
         }))
-        return
+        return false
       }
 
       setState((prev) => ({
         ...prev,
         permissionGranted: permission.granted,
         permissionDenied: false,
+        canAskAgain: permission.canAskAgain,
       }))
 
       await enableNetworkProviderAsync().catch(() => undefined)
@@ -237,7 +268,7 @@ export function useRunWalkLocation({
 
       if (snapshot) {
         stopWatch()
-        return
+        return true
       }
 
       stopWatch()
@@ -258,6 +289,7 @@ export function useRunWalkLocation({
           )
         },
       )
+      return true
     } catch (error) {
       const failureReason = getAppLocationFailureReason(error)
       if (failureReason === 'permission_denied') {
@@ -266,9 +298,14 @@ export function useRunWalkLocation({
           isLocating: false,
           permissionGranted: false,
           permissionDenied: true,
-          error: getAppLocationFailureMessage('permission_denied'),
+          canAskAgain: false,
+          error: permissionDeniedMessage({
+            granted: false,
+            status: 'denied',
+            canAskAgain: false,
+          }),
         }))
-        return
+        return false
       }
 
       const fallback = address ? getHomeCoordinatesFromAddress(address) : null
@@ -280,7 +317,7 @@ export function useRunWalkLocation({
           permissionGranted: true,
           error: 'Usando localização aproximada. Ative o GPS para maior precisão.',
         }))
-        return
+        return true
       }
 
       setState((prev) => ({
@@ -288,15 +325,30 @@ export function useRunWalkLocation({
         isLocating: false,
         error: 'Não foi possível obter sua localização.',
       }))
+      return false
     }
   }, [address, applyPosition, enabled, snapshot, stopWatch, trackingMode])
 
   useEffect(() => {
-    if (enabled) {
+    if (!enabled) return
+
+    if (autoRequest) {
       void requestLocation()
+      return () => stopWatch()
     }
-    return () => stopWatch()
-  }, [enabled, requestLocation, stopWatch])
+
+    let active = true
+
+    void syncPermissionStatus().then((permission) => {
+      if (!active || !permission.granted) return
+      void requestLocation()
+    })
+
+    return () => {
+      active = false
+      stopWatch()
+    }
+  }, [autoRequest, enabled, requestLocation, stopWatch, syncPermissionStatus])
 
   useEffect(() => {
     if (!enabled || !trackHeading) {
@@ -344,5 +396,6 @@ export function useRunWalkLocation({
   return {
     ...state,
     refreshLocation: requestLocation,
+    syncPermissionStatus,
   }
 }

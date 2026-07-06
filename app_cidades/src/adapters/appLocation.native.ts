@@ -95,6 +95,10 @@ export function isAppLocationSupported(): boolean {
   return true
 }
 
+export async function getForegroundPermissionsAsync(): Promise<AppLocationPermissionResponse> {
+  return mapPermission(await Location.getForegroundPermissionsAsync())
+}
+
 export async function requestForegroundPermissionsAsync(): Promise<AppLocationPermissionResponse> {
   return mapPermission(await Location.requestForegroundPermissionsAsync())
 }

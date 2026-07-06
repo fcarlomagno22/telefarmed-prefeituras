@@ -8,6 +8,7 @@ export {
   getAppLocationFailureReason,
   getAppLocationHeadingSupport,
   getCurrentPositionAsync,
+  getForegroundPermissionsAsync,
   isAppLocationPermissionDenied,
   isAppLocationSupported,
   isReverseGeocodeAvailable,

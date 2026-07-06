@@ -4,6 +4,7 @@ import LottieView from 'lottie-react-native'
 import { useEffect, useMemo, useState } from 'react'
 import {
   ImageBackground,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -19,7 +20,6 @@ import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import {
-  ACTIVITY_MODALITY_LABELS,
   MODALITY_DEFAULTS,
 } from '../data/runWalkModalityConfig'
 import {
@@ -62,7 +62,7 @@ export function RunWalkPreparationScreen() {
 
   const address = user?.address
 
-  const location = useRunWalkLocation({ address, enabled: true, snapshot: true })
+  const location = useRunWalkLocation({ address, enabled: true, snapshot: true, autoRequest: false })
   const battery = useDeviceBattery()
   const weather = useRunWalkWeather(
     location.coordinates?.latitude ?? null,
@@ -130,41 +130,45 @@ export function RunWalkPreparationScreen() {
         icon: 'location-outline' as const,
         loading: location.isLocating || location.isResolvingCity,
       },
-      {
-        id: 'weather',
-        label: 'Clima',
-        value: weather.weather
-          ? formatWeatherLine(weather.weather)
-          : weather.error ?? '—',
-        icon: 'partly-sunny-outline' as const,
-        loading: weather.isLoading,
-        singleLine: true,
-      },
-      {
-        id: 'thermal',
-        label: 'Sensação térmica',
-        value: weather.weather
-          ? formatTemperature(weather.weather.apparentTemperatureC)
-          : weather.error ?? '—',
-        icon: 'thermometer-outline' as const,
-        loading: weather.isLoading,
-      },
-      {
-        id: 'gps',
-        label: 'Qualidade do GPS',
-        value: location.isLocating
-          ? 'Localizando...'
-          : gpsQualityLabel(location.gpsQuality),
-        icon: 'navigate-outline' as const,
-        loading: location.isLocating,
-      },
-      {
-        id: 'battery',
-        label: 'Bateria',
-        value: batteryDetail,
-        icon: 'battery-half-outline' as const,
-        loading: battery.isLoading,
-      },
+      [
+        {
+          id: 'weather',
+          label: 'Clima',
+          value: weather.weather
+            ? formatWeatherLine(weather.weather)
+            : weather.error ?? '—',
+          icon: 'partly-sunny-outline' as const,
+          loading: weather.isLoading,
+          singleLine: true,
+        },
+        {
+          id: 'thermal',
+          label: 'Sensação térmica',
+          value: weather.weather
+            ? formatTemperature(weather.weather.apparentTemperatureC)
+            : weather.error ?? '—',
+          icon: 'thermometer-outline' as const,
+          loading: weather.isLoading,
+        },
+      ],
+      [
+        {
+          id: 'gps',
+          label: 'Qualidade do GPS',
+          value: location.isLocating
+            ? 'Localizando...'
+            : gpsQualityLabel(location.gpsQuality),
+          icon: 'navigate-outline' as const,
+          loading: location.isLocating,
+        },
+        {
+          id: 'battery',
+          label: 'Bateria',
+          value: batteryDetail,
+          icon: 'battery-half-outline' as const,
+          loading: battery.isLoading,
+        },
+      ],
     ],
     [
       battery.isLoading,
@@ -216,11 +220,30 @@ export function RunWalkPreparationScreen() {
     }
   }
 
-  function handleStartPress() {
+  function handleLocationAlertPress() {
+    if (!location.canAskAgain) {
+      void Linking.openSettings()
+      return
+    }
+
+    void location.refreshLocation()
+  }
+
+  async function handleStartPress() {
     requireAuth('vida:run-walk', () => {
-      setStartFlowActive(true)
-      openShareLocationDrawer()
+      void handleStartPressAsync()
     })
+  }
+
+  async function handleStartPressAsync() {
+    const granted = await location.refreshLocation()
+    if (!granted) {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
+      return
+    }
+
+    setStartFlowActive(true)
+    openShareLocationDrawer()
   }
 
   function handleShareLocationComplete() {
@@ -247,7 +270,6 @@ export function RunWalkPreparationScreen() {
 
         <ScreenStackHeader
           title="Preparação"
-          subtitle={`${durationMinutes} min · ${ACTIVITY_MODALITY_LABELS[modality]}`}
           paddingTop={Math.max(insets.top, 12) + 8}
           onBack={handleBack}
         />
@@ -267,9 +289,13 @@ export function RunWalkPreparationScreen() {
           ) : null}
 
           {location.error ? (
-            <Pressable style={styles.alert} onPress={() => void location.refreshLocation()}>
+            <Pressable style={styles.alert} onPress={handleLocationAlertPress}>
               <Text style={styles.alertText}>{location.error}</Text>
-              <Text style={styles.alertAction}>Toque para tentar novamente</Text>
+              <Text style={styles.alertAction}>
+                {location.canAskAgain
+                  ? 'Toque para permitir a localização'
+                  : 'Toque para abrir as configurações'}
+              </Text>
             </Pressable>
           ) : null}
 
