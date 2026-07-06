@@ -55,7 +55,7 @@ export function HomeHeader({
   ) : (
     <>
       {isAuthenticated ? (
-        <ProfileAvatar selfieUri={selfieUri} />
+        <ProfileAvatar selfieUri={selfieUri} embedded />
       ) : (
         <View style={[styles.avatarRing, styles.avatarRingEmpty]}>
           <View style={styles.avatarFallback}>
@@ -105,28 +105,26 @@ export function HomeHeader({
   )
 
   return (
-    <View style={styles.wrapper}>
-      <LinearGradient
-        colors={[...HEADER_FADE_COLORS]}
-        locations={[...HEADER_FADE_LOCATIONS]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={[
-          styles.shell,
-          {
-            paddingTop: Math.max(insets.top, 12) + 8,
-          },
-        ]}
-      >
-        <View style={styles.row}>
-          {profileBlock}
+    <LinearGradient
+      colors={[...HEADER_FADE_COLORS]}
+      locations={[...HEADER_FADE_LOCATIONS]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={[
+        styles.header,
+        {
+          paddingTop: Math.max(insets.top, 12) + 8,
+        },
+      ]}
+    >
+      <View style={styles.row}>
+        {profileBlock}
 
-          <View style={styles.logoWrap}>
-            <Image source={logoSource} style={styles.logo} resizeMode="contain" />
-          </View>
+        <View style={styles.logoWrap}>
+          <Image source={logoSource} style={styles.logo} resizeMode="contain" />
         </View>
-      </LinearGradient>
-    </View>
+      </View>
+    </LinearGradient>
   )
 }
 
@@ -135,28 +133,26 @@ const HEADER_BOTTOM_RADIUS = 24
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    wrapper: {
-      overflow: 'hidden',
-      borderBottomLeftRadius: HEADER_BOTTOM_RADIUS,
-      borderBottomRightRadius: HEADER_BOTTOM_RADIUS,
-      ...Platform.select({
-        web: {
-          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.06)',
-        },
-        default: {
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.06,
-          shadowRadius: 12,
-          elevation: 6,
-        },
-      }),
-    },
-    shell: {
+    header: {
       paddingHorizontal: 20,
       paddingBottom: 20,
       borderBottomLeftRadius: HEADER_BOTTOM_RADIUS,
       borderBottomRightRadius: HEADER_BOTTOM_RADIUS,
+      overflow: 'hidden',
+      ...Platform.select({
+        web: {
+          boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.06)',
+        },
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.06,
+          shadowRadius: 12,
+        },
+        default: {
+          elevation: 3,
+        },
+      }),
     },
     row: {
       flexDirection: 'row',
@@ -225,7 +221,7 @@ function createStyles(colors: ThemeColors) {
     avatarRingEmpty: {
       borderWidth: 1.5,
       borderColor: 'rgba(255, 133, 51, 0.35)',
-      backgroundColor: 'rgba(255, 107, 0, 0.08)',
+      backgroundColor: 'rgba(255, 107, 0, 0.06)',
     },
     avatarFallback: {
       flex: 1,

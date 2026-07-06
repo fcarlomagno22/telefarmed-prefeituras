@@ -21,11 +21,13 @@ import { ProfilePhotoViewerModal } from './ProfilePhotoViewerModal'
 
 type ProfileAvatarProps = {
   selfieUri?: string | null
+  /** Integrado em superfícies claras (ex.: header da home) — sem fundo de card. */
+  embedded?: boolean
 }
 
 const AVATAR_SIZE = 52
 
-export function ProfileAvatar({ selfieUri }: ProfileAvatarProps) {
+export function ProfileAvatar({ selfieUri, embedded = false }: ProfileAvatarProps) {
   const { updateSelfie } = useAuth()
   const [menuVisible, setMenuVisible] = useState(false)
   const [viewerVisible, setViewerVisible] = useState(false)
@@ -140,7 +142,13 @@ export function ProfileAvatar({ selfieUri }: ProfileAvatarProps) {
         onPress={openMenu}
         style={({ pressed }) => [
           styles.avatarRing,
-          showPhoto ? styles.avatarRingPhoto : styles.avatarRingEmpty,
+          embedded
+            ? showPhoto
+              ? styles.avatarRingEmbeddedPhoto
+              : styles.avatarRingEmbeddedEmpty
+            : showPhoto
+              ? styles.avatarRingPhoto
+              : styles.avatarRingEmpty,
           pressed && styles.avatarPressed,
         ]}
         accessibilityRole="button"
@@ -222,10 +230,20 @@ const styles = StyleSheet.create({
     borderColor: colors.surfaceBorder,
     backgroundColor: colors.backgroundElevated,
   },
+  avatarRingEmbeddedEmpty: {
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 133, 51, 0.35)',
+    backgroundColor: 'rgba(255, 107, 0, 0.06)',
+  },
   avatarRingPhoto: {
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
     backgroundColor: colors.backgroundElevated,
+  },
+  avatarRingEmbeddedPhoto: {
+    borderWidth: 2,
+    borderColor: 'rgba(255, 133, 51, 0.45)',
+    backgroundColor: 'transparent',
   },
   avatarPressed: {
     opacity: 0.9,
