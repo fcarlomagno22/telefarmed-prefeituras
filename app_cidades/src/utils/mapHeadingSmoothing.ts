@@ -1,6 +1,8 @@
 import { computeTrailHeadingDegrees, type GeoCoordinates } from './geo'
 
 const MIN_SPEED_KMH_FOR_COURSE = 2.5
+const MAX_SPEED_KMH_FOR_COURSE = 22
+const MAX_HEADING_FLIP_DEG = 95
 const MIN_BEARING_DELTA_DEG = 4
 const MAX_BEARING_STEP_DEG = 10
 
@@ -19,8 +21,17 @@ export function resolveLiveMapHeading(
   speedKmh: number,
 ): number | null {
   const courseHeading = computeTrailHeadingDegrees(trail)
+  const speedIsReasonable =
+    speedKmh >= MIN_SPEED_KMH_FOR_COURSE && speedKmh <= MAX_SPEED_KMH_FOR_COURSE
 
-  if (courseHeading != null && speedKmh >= MIN_SPEED_KMH_FOR_COURSE) {
+  if (courseHeading != null && speedIsReasonable) {
+    if (lastHeadingDegrees != null) {
+      const flipDelta = Math.abs(shortestHeadingDelta(lastHeadingDegrees, courseHeading))
+      if (flipDelta > MAX_HEADING_FLIP_DEG) {
+        return lastHeadingDegrees
+      }
+    }
+
     return courseHeading
   }
 

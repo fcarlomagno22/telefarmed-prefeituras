@@ -115,6 +115,7 @@ export function RunWalkActivityTrailMap({
   profilePhotoUri,
   deviceHeadingDegrees = null,
   currentSpeedKmh = 0,
+  rotateWithHeading = false,
 }: RunWalkActivityTrailMapProps) {
   const mapHostRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<{ remove: () => void } | null>(null)
@@ -123,6 +124,8 @@ export function RunWalkActivityTrailMap({
     null,
   )
   const followUserRef = useRef(followUser)
+  const currentPositionRef = useRef(currentPosition)
+  const rotateWithHeadingRef = useRef(rotateWithHeading)
   const smoothedHeadingRef = useRef<number | null>(null)
   const lastInjectAtRef = useRef(0)
   const onUserPannedRef = useRef(onUserPanned)
@@ -147,6 +150,14 @@ export function RunWalkActivityTrailMap({
   useEffect(() => {
     followUserRef.current = followUser
   }, [followUser])
+
+  useEffect(() => {
+    currentPositionRef.current = currentPosition
+  }, [currentPosition])
+
+  useEffect(() => {
+    rotateWithHeadingRef.current = rotateWithHeading
+  }, [rotateWithHeading])
 
   useEffect(() => {
     onUserPannedRef.current = onUserPanned
@@ -260,26 +271,32 @@ export function RunWalkActivityTrailMap({
       if (!controller) return
 
       const now = Date.now()
-      if (!force && now - lastInjectAtRef.current < 180) return
+      if (!force && now - lastInjectAtRef.current < 100) return
       lastInjectAtRef.current = now
 
-      const targetHeading = resolveLiveMapHeading(
-        trail,
-        deviceHeadingDegrees,
-        smoothedHeadingRef.current,
-        currentSpeedKmh,
-      )
-      const heading = smoothMapHeading(smoothedHeadingRef.current, targetHeading)
+      const targetHeading = rotateWithHeadingRef.current
+        ? resolveLiveMapHeading(
+            trail,
+            deviceHeadingDegrees,
+            smoothedHeadingRef.current,
+            currentSpeedKmh,
+          )
+        : null
+      const heading =
+        rotateWithHeadingRef.current && followUserRef.current
+          ? smoothMapHeading(smoothedHeadingRef.current, targetHeading)
+          : null
       if (heading != null) {
         smoothedHeadingRef.current = heading
+      } else if (!rotateWithHeadingRef.current) {
+        smoothedHeadingRef.current = null
       }
 
       controller.updateLiveTrailMap(
         trailToLatLngPairs(trail),
-        followUserRef.current ? heading : null,
+        heading,
         currentPosition?.latitude ?? null,
         currentPosition?.longitude ?? null,
-        followUserRef.current,
       )
     },
     [currentPosition, currentSpeedKmh, deviceHeadingDegrees, trail],
@@ -288,19 +305,20 @@ export function RunWalkActivityTrailMap({
   useEffect(() => {
     if (!liveTracking || !isMapReady) return
     injectLiveUpdate(true)
-  }, [injectLiveUpdate, isMapReady, liveTracking, trail, currentPosition, followUser])
+  }, [injectLiveUpdate, isMapReady, liveTracking, trail, currentPosition])
 
   useEffect(() => {
     const controller = liveControllerRef.current
     if (!isMapReady || !controller || !liveTracking) return
 
     if (followUser) {
-      controller.recenterOnUser(currentPosition?.latitude ?? null, currentPosition?.longitude ?? null)
+      const position = currentPositionRef.current
+      controller.recenterOnUser(position?.latitude ?? null, position?.longitude ?? null)
       return
     }
 
     controller.setFollowUser(false)
-  }, [currentPosition, followUser, isMapReady, liveTracking])
+  }, [followUser, isMapReady, liveTracking])
 
   useEffect(() => {
     const controller = liveControllerRef.current

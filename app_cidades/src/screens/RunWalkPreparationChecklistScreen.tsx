@@ -196,6 +196,8 @@ export function RunWalkPreparationChecklistScreen() {
   const { items, canStart } = useRunWalkPreparationChecklist({
     gpsQuality: location.gpsQuality,
     gpsLocated: Boolean(location.coordinates),
+    gpsPermissionGranted: location.permissionGranted,
+    gpsPermissionDenied: location.permissionDenied,
     batteryOk,
     batteryDetail,
     batteryAvailable: battery.isAvailable,
@@ -338,7 +340,7 @@ export function RunWalkPreparationChecklistScreen() {
         <View style={styles.footerPanel}>
           {!canStart ? (
             <Text style={styles.blockerText}>
-              Aguarde o GPS e verifique a bateria para continuar.
+              Permita o GPS e verifique a bateria para continuar.
             </Text>
           ) : null}
 

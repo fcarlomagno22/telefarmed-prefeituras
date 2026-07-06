@@ -16,6 +16,7 @@ import {
   TRAIL_MAP_LEAFLET_CSS_URL,
   TRAIL_MAP_LEAFLET_JS_URL,
   TRAIL_MAP_LIVE_ZOOM,
+  TRAIL_MAP_LIVE_FOLLOW_JS,
   TRAIL_MAP_TILE_URL,
   type RunWalkActivityTrailMapProps,
 } from './runWalkActivityTrailMapShared'
@@ -73,6 +74,8 @@ function buildLiveMapHtml(options: {
     L.tileLayer('${TRAIL_MAP_TILE_URL}', {
       maxZoom: 19,
       subdomains: 'abcd',
+      updateWhenIdle: true,
+      keepBuffer: 4,
     }).addTo(map);
 
     let polyline = null;
@@ -146,13 +149,15 @@ function buildLiveMapHtml(options: {
       applyMapRotation();
     }
 
+    ${TRAIL_MAP_LIVE_FOLLOW_JS}
+
     function followMapTo(latlng, forceZoom) {
       if (!followUser || !latlng) return;
-      const zoom = forceZoom != null ? forceZoom : map.getZoom();
-      programmaticMove = true;
-      map.setView(latlng, zoom, { animate: false });
-      programmaticMove = false;
-      applyMapRotation();
+      followTargetLatLng = latlng;
+      ensureMarker(latlng);
+      if (followAnimFrame == null) {
+        followAnimFrame = requestAnimationFrame(tickFollowAnimation);
+      }
     }
 
     function ensureMarker(latlng) {
@@ -184,6 +189,7 @@ function buildLiveMapHtml(options: {
     function handleUserMapInteraction() {
       if (programmaticMove || !followUser) return;
       followUser = false;
+      cancelFollowAnimation();
       clearMapRotation();
       postMessage({ type: 'userPanned' });
     }
@@ -304,9 +310,11 @@ function buildLiveMapHtml(options: {
         }
       }
 
-      if (followUser && heading != null && Number.isFinite(Number(heading))) {
-        setMapBearing(Number(heading));
-      }
+    if (followUser && heading != null && Number.isFinite(Number(heading))) {
+      setMapBearing(Number(heading));
+    } else if (followUser && heading == null) {
+      clearMapRotation();
+    }
 
       updateLiveSegment(target);
     }
@@ -314,6 +322,7 @@ function buildLiveMapHtml(options: {
     function setFollowUser(value, lat, lng) {
       if (!value) {
         followUser = false;
+        cancelFollowAnimation();
         clearMapRotation();
         return;
       }
@@ -339,16 +348,16 @@ function buildLiveMapHtml(options: {
 
       if (!target) return;
 
+      cancelFollowAnimation();
       followUser = true;
       ensureMarker(target);
-      clearMapRotation();
+      followTargetLatLng = target;
       programmaticMove = true;
       map.setView(target, ${TRAIL_MAP_LIVE_ZOOM}, { animate: false });
       programmaticMove = false;
-      map.invalidateSize(true);
+      applyMapRotation();
 
       window.requestAnimationFrame(function() {
-        map.invalidateSize(true);
         if (window.__lastMapHeading != null) {
           setMapBearing(window.__lastMapHeading);
         }
@@ -509,7 +518,6 @@ function buildStaticMapHtml(
 function buildLiveUpdateScript(
   trail: GeoCoordinates[],
   currentPosition: GeoCoordinates | null | undefined,
-  followUser: boolean,
   heading: number | null,
 ) {
   const trailJson = JSON.stringify(trail.map((point) => [point.latitude, point.longitude]))
@@ -526,8 +534,7 @@ function buildLiveUpdateScript(
         ${trailJson},
         ${headingValue},
         ${currentLatValue},
-        ${currentLngValue},
-        ${followUser ? 'true' : 'false'}
+        ${currentLngValue}
       );
       return true;
     })();
@@ -582,9 +589,12 @@ export function RunWalkActivityTrailMap({
   profilePhotoUri,
   deviceHeadingDegrees = null,
   currentSpeedKmh = 0,
+  rotateWithHeading = false,
 }: RunWalkActivityTrailMapProps) {
   const webViewRef = useRef<AppWebViewRef>(null)
   const followUserRef = useRef(followUser)
+  const currentPositionRef = useRef(currentPosition)
+  const rotateWithHeadingRef = useRef(rotateWithHeading)
   const smoothedHeadingRef = useRef<number | null>(null)
   const lastInjectAtRef = useRef(0)
   const [profilePhotoDataUri, setProfilePhotoDataUri] = useState<string | null>(null)
@@ -593,6 +603,14 @@ export function RunWalkActivityTrailMap({
   useEffect(() => {
     followUserRef.current = followUser
   }, [followUser])
+
+  useEffect(() => {
+    currentPositionRef.current = currentPosition
+  }, [currentPosition])
+
+  useEffect(() => {
+    rotateWithHeadingRef.current = rotateWithHeading
+  }, [rotateWithHeading])
 
   useEffect(() => {
     const trimmed = profilePhotoUri?.trim()
@@ -616,6 +634,15 @@ export function RunWalkActivityTrailMap({
   )
   const initialCenter = mapOriginRef.current
 
+  const staticTrailSignature = useMemo(
+    () => trail.map((point) => `${point.latitude},${point.longitude}`).join('|'),
+    [trail],
+  )
+
+  const mapMountSignature = liveTracking
+    ? `live:${interactive}:${initialCenter.latitude}:${initialCenter.longitude}`
+    : `static:${interactive}:${profilePhotoDataUri ?? ''}:${staticTrailSignature}`
+
   const html = useMemo(() => {
     if (liveTracking) {
       return buildLiveMapHtml({
@@ -630,33 +657,41 @@ export function RunWalkActivityTrailMap({
     }
 
     return buildStaticMapHtml(trail, profilePhotoDataUri, interactive)
-  }, [interactive, liveTracking, profilePhotoDataUri, trail])
+  }, [interactive, initialCenter.latitude, initialCenter.longitude, liveTracking, profilePhotoDataUri, staticTrailSignature, trail])
+
+  const webViewSource = useMemo(() => ({ html }), [html])
 
   const injectLiveUpdate = useCallback(
     (force = false) => {
       if (!webViewRef.current) return
 
       const now = Date.now()
-      if (!force && now - lastInjectAtRef.current < 180) return
+      if (!force && now - lastInjectAtRef.current < 100) return
       lastInjectAtRef.current = now
 
-      const targetHeading = resolveLiveMapHeading(
-        trail,
-        deviceHeadingDegrees,
-        smoothedHeadingRef.current,
-        currentSpeedKmh,
-      )
-      const heading = smoothMapHeading(smoothedHeadingRef.current, targetHeading)
+      const targetHeading = rotateWithHeadingRef.current
+        ? resolveLiveMapHeading(
+            trail,
+            deviceHeadingDegrees,
+            smoothedHeadingRef.current,
+            currentSpeedKmh,
+          )
+        : null
+      const heading =
+        rotateWithHeadingRef.current && followUserRef.current
+          ? smoothMapHeading(smoothedHeadingRef.current, targetHeading)
+          : null
       if (heading != null) {
         smoothedHeadingRef.current = heading
+      } else if (!rotateWithHeadingRef.current) {
+        smoothedHeadingRef.current = null
       }
 
       webViewRef.current.injectJavaScript(
         buildLiveUpdateScript(
           trail,
           currentPosition,
-          followUserRef.current,
-          followUserRef.current ? heading : null,
+          heading,
         ),
       )
     },
@@ -665,17 +700,26 @@ export function RunWalkActivityTrailMap({
 
   useEffect(() => {
     setIsMapReady(false)
-  }, [html])
+  }, [mapMountSignature])
 
   useEffect(() => {
     if (!liveTracking || !isMapReady) return
     injectLiveUpdate(true)
-  }, [injectLiveUpdate, isMapReady, liveTracking, trail, currentPosition, followUser])
+  }, [injectLiveUpdate, isMapReady, liveTracking, trail, currentPosition])
 
   useEffect(() => {
     if (!isMapReady || !webViewRef.current || !liveTracking) return
-    webViewRef.current.injectJavaScript(buildFollowUserScript(followUser, currentPosition))
-  }, [currentPosition, followUser, isMapReady, liveTracking])
+
+    if (followUser) {
+      const position = currentPositionRef.current
+      webViewRef.current.injectJavaScript(
+        buildFollowUserScript(true, position),
+      )
+      return
+    }
+
+    webViewRef.current.injectJavaScript(buildFollowUserScript(false, null))
+  }, [followUser, isMapReady, liveTracking])
 
   useEffect(() => {
     if (!isMapReady || !webViewRef.current || !liveTracking) return
@@ -709,7 +753,7 @@ export function RunWalkActivityTrailMap({
       <AppWebView
         ref={webViewRef}
         originWhitelist={['*']}
-        source={{ html }}
+        source={webViewSource}
         style={styles.webview}
         scrollEnabled={false}
         bounces={false}

@@ -21,6 +21,7 @@ type UseRunWalkActivitySessionOptions = {
   accuracyMeters?: number | null
   structure?: RunWalkActivityStep[]
   enabled?: boolean
+  gpsRecordingEnabled?: boolean
 }
 
 type ActivitySessionSnapshot = {
@@ -39,6 +40,7 @@ export function useRunWalkActivitySession({
   accuracyMeters = null,
   structure,
   enabled = true,
+  gpsRecordingEnabled = true,
 }: UseRunWalkActivitySessionOptions) {
   const startedAtRef = useRef(Date.now())
   const motionEngineRef = useRef(new GpsMotionEngine())
@@ -50,8 +52,18 @@ export function useRunWalkActivitySession({
   const elapsedSecondsRef = useRef(0)
   const pausedElapsedRef = useRef(0)
   const lastIngestedAtRef = useRef<number | null>(null)
+  const wasRecordingGpsRef = useRef(gpsRecordingEnabled)
 
   const isTracking = enabled && !isFinished && !isPaused
+
+  useEffect(() => {
+    if (gpsRecordingEnabled && !wasRecordingGpsRef.current) {
+      motionEngineRef.current.reset()
+      lastIngestedAtRef.current = null
+      setMotionSnapshot(motionEngineRef.current.getSnapshot())
+    }
+    wasRecordingGpsRef.current = gpsRecordingEnabled
+  }, [gpsRecordingEnabled])
 
   const activitySteps = useMemo(
     () => structure ?? getDefaultActivitySteps(modality, durationMinutes),
@@ -86,7 +98,7 @@ export function useRunWalkActivitySession({
   }, [isTracking])
 
   useEffect(() => {
-    if (!isTracking || !coordinates) return
+    if (!isTracking || !coordinates || !gpsRecordingEnabled) return
 
     const now = Date.now()
     if (lastIngestedAtRef.current != null && now - lastIngestedAtRef.current < 400) {
@@ -102,7 +114,7 @@ export function useRunWalkActivitySession({
       recordedAt: now,
     })
     setMotionSnapshot(snapshot)
-  }, [accuracyMeters, coordinates, gpsSpeedMps, isTracking])
+  }, [accuracyMeters, coordinates, gpsRecordingEnabled, gpsSpeedMps, isTracking])
 
   const liveDistanceKm = motionSnapshot.distanceKm
   const liveAverageSpeedKmh = motionSnapshot.averageSpeedKmh
@@ -177,6 +189,7 @@ export function useRunWalkActivitySession({
     activitySteps,
     isFinished,
     isPaused,
+    isGpsRecording: gpsRecordingEnabled,
     finishActivity,
     pauseActivity,
     resumeActivity,

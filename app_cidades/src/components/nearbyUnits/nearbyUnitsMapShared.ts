@@ -24,6 +24,8 @@ export const NEARBY_UNITS_TILE_URL =
 export const NEARBY_UNITS_TILE_LAYER_OPTIONS = {
   maxZoom: 19,
   subdomains: 'abcd',
+  updateWhenIdle: true,
+  keepBuffer: 4,
 } as const
 
 export const NEARBY_UNITS_MAP_CUSTOM_CSS = `

@@ -48,8 +48,15 @@ function accuracyToQuality(accuracy: number | null): GpsQuality {
   return 'poor'
 }
 
-export function isGpsReadyForActivity(gpsLocated: boolean): boolean {
-  return gpsLocated
+export function isGpsReadyForActivity(gpsLocated: boolean, permissionGranted = false): boolean {
+  return permissionGranted || gpsLocated
+}
+
+export function isGpsPermissionReadyForActivity(
+  permissionGranted: boolean,
+  permissionDenied: boolean,
+): boolean {
+  return permissionGranted && !permissionDenied
 }
 
 export function gpsQualityLabel(quality: GpsQuality): string {
@@ -99,7 +106,7 @@ const TRACKING_WATCH_OPTIONS: Record<
   Pick<AppLocationWatchOptions, 'distanceInterval' | 'timeInterval'>
 > = {
   default: { distanceInterval: 5, timeInterval: 4000 },
-  activity: { distanceInterval: 5, timeInterval: 2000 },
+  activity: { distanceInterval: 2, timeInterval: 1000 },
 }
 
 export function useRunWalkLocation({

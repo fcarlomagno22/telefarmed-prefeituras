@@ -12,26 +12,30 @@ import {
   speedKmhToPaceMinPerKm,
 } from '../utils/runWalkActivityStats'
 import { resolveActivityPlace } from '../utils/runWalkActivityLocation'
+import { prefetchRunWalkMapTiles } from '../utils/runWalkMapTilePrefetch'
 import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { RunWalkActivityFinishDrawer } from '../components/runWalk/liveActivity/RunWalkActivityFinishDrawer'
+import { RunWalkActivityGpsNotice } from '../components/runWalk/liveActivity/RunWalkActivityGpsNotice'
 import { RunWalkActivityLockButton } from '../components/runWalk/liveActivity/RunWalkActivityLockButton'
 import { RunWalkActivityLockOverlay } from '../components/runWalk/liveActivity/RunWalkActivityLockOverlay'
 import { RunWalkActivityMetricsCard } from '../components/runWalk/liveActivity/RunWalkActivityMetricsCard'
 import { RunWalkActivityMusicButton } from '../components/runWalk/liveActivity/RunWalkActivityMusicButton'
-import { RunWalkActivityOnlineBadge } from '../components/runWalk/liveActivity/RunWalkActivityOnlineBadge'
 import { RunWalkActivityPauseButton } from '../components/runWalk/liveActivity/RunWalkActivityPauseButton'
 import { RunWalkActivityRecenterButton } from '../components/runWalk/liveActivity/RunWalkActivityRecenterButton'
 import { RunWalkActivityShareLocationButton } from '../components/runWalk/liveActivity/RunWalkActivityShareLocationButton'
 import { RunWalkActivitySosButton } from '../components/runWalk/liveActivity/RunWalkActivitySosButton'
 import { RunWalkActivitySosDrawer } from '../components/runWalk/liveActivity/RunWalkActivitySosDrawer'
+import { RunWalkActivityStatusBadge } from '../components/runWalk/liveActivity/RunWalkActivityStatusBadge'
 import { RunWalkActivityTrailMap } from '../components/runWalk/liveActivity/RunWalkActivityTrailMap'
 import { RunWalkShareLocationDrawer } from '../components/runWalk/preparation/RunWalkShareLocationDrawer'
 import { RunWalkMusicAppsDrawer } from '../components/runWalk/preparation/RunWalkMusicAppsDrawer'
 import { useAuth } from '../contexts/AuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
+import { useGpsCalibration } from '../hooks/useGpsCalibration'
 import { useRunWalkActivitySession } from '../hooks/useRunWalkActivitySession'
 import { useRunWalkLiveSharePublisher } from '../hooks/useRunWalkLiveSharePublisher'
+import { useStableHeadingRotation } from '../hooks/useStableHeadingRotation'
 import { colors } from '../theme/colors'
 import { getRunWalkRouteParams } from '../types/auth'
 
@@ -53,13 +57,33 @@ export function RunWalkLiveActivityScreen() {
   const [musicDrawerVisible, setMusicDrawerVisible] = useState(false)
   const [finishDrawerVisible, setFinishDrawerVisible] = useState(false)
   const [followUserOnMap, setFollowUserOnMap] = useState(true)
+  const [calibrationPaused, setCalibrationPaused] = useState(false)
+  const [gpsRecordingEnabled, setGpsRecordingEnabled] = useState(false)
 
-  const { location, activateSharing, endActiveLiveShareSession } = useRunWalkLiveSharePublisher({
+  const {
+    location,
+    activateSharing,
+    endActiveLiveShareSession,
+    isOffline,
+    isSyncing,
+    pendingSyncCount,
+  } = useRunWalkLiveSharePublisher({
     enabled: true,
     address: user?.address,
     participantName: user?.name ?? 'Participante',
     activityName: params.activityName ?? modalityLabel,
   })
+
+  const gpsCalibration = useGpsCalibration({
+    accuracyMeters: location.accuracyMeters,
+    coordinates: location.coordinates,
+    enabled: true,
+    isPaused: calibrationPaused,
+  })
+
+  useEffect(() => {
+    setGpsRecordingEnabled(gpsCalibration.isRecording)
+  }, [gpsCalibration.isRecording])
 
   const session = useRunWalkActivitySession({
     modality,
@@ -68,7 +92,22 @@ export function RunWalkLiveActivityScreen() {
     gpsSpeedMps: location.speedMps,
     accuracyMeters: location.accuracyMeters,
     enabled: true,
+    gpsRecordingEnabled,
   })
+
+  useEffect(() => {
+    setCalibrationPaused(session.isPaused)
+  }, [session.isPaused])
+
+  const rotateWithHeading = useStableHeadingRotation(
+    session.currentSpeedKmh,
+    gpsCalibration.isRecording,
+  )
+
+  useEffect(() => {
+    if (!location.coordinates || isOffline) return
+    prefetchRunWalkMapTiles(location.coordinates.latitude, location.coordinates.longitude)
+  }, [isOffline, location.coordinates])
 
   useAndroidBackHandler(
     useCallback(() => {
@@ -167,18 +206,23 @@ export function RunWalkLiveActivityScreen() {
 
   return (
     <View style={styles.root}>
-      <RunWalkActivityTrailMap
-        trail={session.trail}
-        currentPosition={location.coordinates}
-        fullscreen
-        interactive
-        liveTracking
-        followUser={followUserOnMap}
-        onUserPanned={() => setFollowUserOnMap(false)}
-        profilePhotoUri={user?.selfieUri}
-        deviceHeadingDegrees={location.headingDegrees}
-        currentSpeedKmh={session.currentSpeedKmh}
-      />
+      {location.coordinates ? (
+        <RunWalkActivityTrailMap
+          trail={session.trail}
+          currentPosition={location.coordinates}
+          fullscreen
+          interactive
+          liveTracking
+          followUser={followUserOnMap}
+          onUserPanned={() => setFollowUserOnMap(false)}
+          profilePhotoUri={user?.selfieUri}
+          deviceHeadingDegrees={location.headingDegrees}
+          currentSpeedKmh={session.currentSpeedKmh}
+          rotateWithHeading={rotateWithHeading}
+        />
+      ) : (
+        <View style={styles.mapPlaceholder} />
+      )}
 
       {!followUserOnMap ? (
         <View
@@ -191,11 +235,21 @@ export function RunWalkLiveActivityScreen() {
 
       <View
         pointerEvents="none"
-        style={[styles.onlineBadgeOverlay, { top: Math.max(insets.top, 10) + 8 }]}
+        style={[styles.topLeftOverlay, { top: Math.max(insets.top, 10) + 8 }]}
       >
-        <RunWalkActivityOnlineBadge
+        <RunWalkActivityStatusBadge
+          gpsPhase={gpsCalibration.phase}
           gpsQuality={location.gpsQuality}
           isLocating={location.isLocating}
+          isOffline={isOffline}
+          isSyncing={isSyncing}
+          pendingSyncCount={pendingSyncCount}
+        />
+        <RunWalkActivityGpsNotice
+          gpsPhase={gpsCalibration.phase}
+          gpsQuality={location.gpsQuality}
+          isLocating={location.isLocating}
+          isOffline={isOffline}
         />
       </View>
 
@@ -280,10 +334,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  onlineBadgeOverlay: {
+  mapPlaceholder: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.background,
+  },
+  topLeftOverlay: {
     position: 'absolute',
     left: 16,
     zIndex: 10,
+    gap: 8,
+    alignItems: 'flex-start',
   },
   recenterOverlay: {
     position: 'absolute',

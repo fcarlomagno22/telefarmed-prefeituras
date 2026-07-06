@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { isGpsReadyForActivity, type GpsQuality } from './useRunWalkLocation'
+import { isGpsPermissionReadyForActivity, type GpsQuality } from './useRunWalkLocation'
 
 export type PreparationChecklistItemId =
   | 'gps'
@@ -18,6 +18,8 @@ export type PreparationChecklistItem = {
 type UseRunWalkPreparationChecklistOptions = {
   gpsQuality: GpsQuality
   gpsLocated: boolean
+  gpsPermissionGranted: boolean
+  gpsPermissionDenied: boolean
   batteryOk: boolean
   batteryDetail: string
   batteryAvailable?: boolean
@@ -27,25 +29,32 @@ type UseRunWalkPreparationChecklistOptions = {
 export function useRunWalkPreparationChecklist({
   gpsQuality,
   gpsLocated,
+  gpsPermissionGranted,
+  gpsPermissionDenied,
   batteryOk,
   batteryDetail,
   batteryAvailable = true,
   liveShareConfigured,
 }: UseRunWalkPreparationChecklistOptions) {
-  const gpsReady = isGpsReadyForActivity(gpsLocated)
+  const gpsPermissionReady = isGpsPermissionReadyForActivity(
+    gpsPermissionGranted,
+    gpsPermissionDenied,
+  )
 
   const items = useMemo<PreparationChecklistItem[]>(() => {
-    const gpsDetail = !gpsLocated
-      ? 'Aguardando localização'
-      : gpsQuality === 'poor'
-        ? 'Sinal ativo — precisão baixa'
-        : 'Sinal de localização ativo'
+    const gpsDetail = gpsPermissionDenied
+      ? 'Permita o acesso à localização'
+      : !gpsLocated
+        ? 'Aguardando localização — você já pode começar'
+        : gpsQuality === 'poor' || gpsQuality === 'fair'
+          ? 'Sinal fraco — distância calibra durante o treino'
+          : 'Sinal de localização ativo'
 
     return [
       {
         id: 'gps',
-        label: 'GPS localizado',
-        ok: gpsReady,
+        label: 'GPS habilitado',
+        ok: gpsPermissionReady,
         detail: gpsDetail,
       },
       {
@@ -77,8 +86,10 @@ export function useRunWalkPreparationChecklist({
     batteryDetail,
     batteryOk,
     gpsLocated,
+    gpsPermissionDenied,
+    gpsPermissionGranted,
     gpsQuality,
-    gpsReady,
+    gpsPermissionReady,
     liveShareConfigured,
   ])
 

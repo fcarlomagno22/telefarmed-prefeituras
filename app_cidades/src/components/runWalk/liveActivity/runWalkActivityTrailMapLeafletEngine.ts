@@ -49,6 +49,38 @@ export function createLiveTrailMapController(
   let pinPhotoSrc: string | null = null
   let lastMapHeading: number | null = null
   let lastKnownLatLng = L.latLng(initialLatitude, initialLongitude)
+  let followAnimFrame: number | null = null
+  let followTargetLatLng: any = null
+
+  function cancelFollowAnimation() {
+    if (followAnimFrame != null) {
+      cancelAnimationFrame(followAnimFrame)
+      followAnimFrame = null
+    }
+  }
+
+  function tickFollowAnimation() {
+    followAnimFrame = null
+    if (!followUser || !followTargetLatLng) return
+
+    const zoom = map.getZoom()
+    const center = map.getCenter()
+    const tLat = followTargetLatLng.lat
+    const tLng = followTargetLatLng.lng
+    const factor = 0.24
+    const nextLat = center.lat + (tLat - center.lat) * factor
+    const nextLng = center.lng + (tLng - center.lng) * factor
+
+    programmaticMove = true
+    map.setView(L.latLng(nextLat, nextLng), zoom, { animate: false })
+    programmaticMove = false
+    applyMapRotation()
+
+    const remaining = Math.abs(nextLat - tLat) + Math.abs(nextLng - tLng)
+    if (remaining > 0.000002) {
+      followAnimFrame = requestAnimationFrame(tickFollowAnimation)
+    }
+  }
 
   function toLatLng(point: unknown) {
     if (!point) return null
@@ -105,13 +137,13 @@ export function createLiveTrailMapController(
     applyMapRotation()
   }
 
-  function followMapTo(latlng: any, forceZoom?: number) {
+  function followMapTo(latlng: any, _forceZoom?: number) {
     if (!followUser || !latlng) return
-    const zoom = forceZoom != null ? forceZoom : map.getZoom()
-    programmaticMove = true
-    map.setView(latlng, zoom, { animate: false })
-    programmaticMove = false
-    applyMapRotation()
+    followTargetLatLng = latlng
+    ensureMarker(latlng)
+    if (followAnimFrame == null) {
+      followAnimFrame = requestAnimationFrame(tickFollowAnimation)
+    }
   }
 
   function ensureMarker(latlng: any) {
@@ -143,6 +175,7 @@ export function createLiveTrailMapController(
   function handleUserMapInteraction() {
     if (programmaticMove || !followUser) return
     followUser = false
+    cancelFollowAnimation()
     clearMapRotation()
     callbacks?.onUserPanned?.()
   }
@@ -271,6 +304,8 @@ export function createLiveTrailMapController(
 
     if (followUser && heading != null && Number.isFinite(Number(heading))) {
       setMapBearing(Number(heading))
+    } else if (followUser && heading == null) {
+      clearMapRotation()
     }
 
     updateLiveSegment(target)
@@ -279,6 +314,7 @@ export function createLiveTrailMapController(
   function setFollowUser(value: boolean, lat?: number | null, lng?: number | null) {
     if (!value) {
       followUser = false
+      cancelFollowAnimation()
       clearMapRotation()
       return
     }
@@ -299,16 +335,16 @@ export function createLiveTrailMapController(
 
     if (!target) return
 
+    cancelFollowAnimation()
     followUser = true
     ensureMarker(target)
-    clearMapRotation()
+    followTargetLatLng = target
     programmaticMove = true
     map.setView(target, liveZoom, { animate: false })
     programmaticMove = false
-    map.invalidateSize(true)
+    applyMapRotation()
 
     window.requestAnimationFrame(() => {
-      map.invalidateSize(true)
       if (lastMapHeading != null) {
         setMapBearing(lastMapHeading)
       }

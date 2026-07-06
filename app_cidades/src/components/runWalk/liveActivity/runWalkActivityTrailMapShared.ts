@@ -13,6 +13,8 @@ export type RunWalkActivityTrailMapProps = {
   profilePhotoUri?: string | null
   deviceHeadingDegrees?: number | null
   currentSpeedKmh?: number
+  /** Quando falso, o mapa fica com o norte para cima. */
+  rotateWithHeading?: boolean
 }
 
 export const TRAIL_MAP_DEFAULT_CENTER = { latitude: -23.5505, longitude: -46.6333 }
@@ -116,3 +118,39 @@ export function parseTrailMapWebViewMessage(data: string): TrailMapWebViewMessag
 export function trailToLatLngPairs(trail: GeoCoordinates[]): [number, number][] {
   return trail.map((point) => [point.latitude, point.longitude])
 }
+
+/** Leaflet live-follow: interpola o centro do mapa entre leituras de GPS. */
+export const TRAIL_MAP_LIVE_FOLLOW_JS = `
+    let followAnimFrame = null;
+    let followTargetLatLng = null;
+
+    function cancelFollowAnimation() {
+      if (followAnimFrame != null) {
+        cancelAnimationFrame(followAnimFrame);
+        followAnimFrame = null;
+      }
+    }
+
+    function tickFollowAnimation() {
+      followAnimFrame = null;
+      if (!followUser || !followTargetLatLng) return;
+
+      const zoom = map.getZoom();
+      const center = map.getCenter();
+      const tLat = followTargetLatLng.lat;
+      const tLng = followTargetLatLng.lng;
+      const factor = 0.24;
+      const nextLat = center.lat + (tLat - center.lat) * factor;
+      const nextLng = center.lng + (tLng - center.lng) * factor;
+
+      programmaticMove = true;
+      map.setView(L.latLng(nextLat, nextLng), zoom, { animate: false });
+      programmaticMove = false;
+      applyMapRotation();
+
+      const remaining = Math.abs(nextLat - tLat) + Math.abs(nextLng - tLng);
+      if (remaining > 0.000002) {
+        followAnimFrame = requestAnimationFrame(tickFollowAnimation);
+      }
+    }
+`
