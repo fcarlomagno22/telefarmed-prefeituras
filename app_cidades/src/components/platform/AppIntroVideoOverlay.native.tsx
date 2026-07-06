@@ -6,13 +6,12 @@ import {
 import { StatusBar } from 'expo-status-bar'
 import { VideoView, useVideoPlayer, type VideoPlayer } from 'expo-video'
 import { useCallback, useEffect, useRef } from 'react'
-import { Platform, StyleSheet, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { getRegistrationVideoViewProps, safeInvokeVideoPlay } from '../../adapters/appVideo'
 import { useAndroidBackHandler } from '../../hooks/useAndroidBackHandler'
 
 const VIDEO_SOURCE = require('../../../assets/logo_intro.mp4')
 const KEEP_AWAKE_TAG = 'app-intro-video'
-const WEB_PLAYBACK_CONFIRM_MS = 900
 
 type AppIntroVideoOverlayProps = {
   onComplete: () => void
@@ -21,41 +20,7 @@ type AppIntroVideoOverlayProps = {
 function configureIntroVideoPlayer(player: VideoPlayer): void {
   player.loop = false
   player.timeUpdateEventInterval = 0.2
-  // Web só permite autoplay sem gesto do usuário quando o vídeo está mudo.
-  player.muted = Platform.OS === 'web'
-}
-
-async function waitForPlayback(player: VideoPlayer, timeoutMs: number): Promise<boolean> {
-  if (player.playing) return true
-
-  return new Promise((resolve) => {
-    const subscription = player.addListener('playingChange', ({ isPlaying }) => {
-      if (isPlaying) {
-        subscription.remove()
-        resolve(true)
-      }
-    })
-
-    setTimeout(() => {
-      subscription.remove()
-      resolve(player.playing)
-    }, timeoutMs)
-  })
-}
-
-async function attemptIntroPlayback(player: VideoPlayer): Promise<boolean> {
-  player.muted = Platform.OS === 'web'
-
-  const started = await safeInvokeVideoPlay(player)
-  if (started) {
-    return true
-  }
-
-  if (Platform.OS === 'web') {
-    return waitForPlayback(player, WEB_PLAYBACK_CONFIRM_MS)
-  }
-
-  return false
+  player.muted = false
 }
 
 export function AppIntroVideoOverlay({ onComplete }: AppIntroVideoOverlayProps) {
@@ -78,14 +43,19 @@ export function AppIntroVideoOverlay({ onComplete }: AppIntroVideoOverlayProps) 
       return
     }
 
-    if (player.status === 'loading' || player.status === 'error') {
+    if (player.status === 'error') {
+      finishIntro()
+      return
+    }
+
+    if (player.status === 'loading') {
       return
     }
 
     playbackStartedRef.current = true
 
     void (async () => {
-      const started = await attemptIntroPlayback(player)
+      const started = await safeInvokeVideoPlay(player)
       if (!mountedRef.current) return
 
       if (!started) {
@@ -131,7 +101,7 @@ export function AppIntroVideoOverlay({ onComplete }: AppIntroVideoOverlayProps) 
     <View style={styles.root} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <StatusBar hidden />
       <VideoView
-        style={Platform.OS === 'web' ? styles.videoWeb : styles.video}
+        style={styles.video}
         player={player}
         {...videoViewProps}
         nativeControls={false}
@@ -147,28 +117,14 @@ export function AppIntroVideoOverlay({ onComplete }: AppIntroVideoOverlayProps) 
 
 const styles = StyleSheet.create({
   root: {
-    ...StyleSheet.absoluteFillObject,
+    flex: 1,
     backgroundColor: '#000',
-    zIndex: 999999,
-    elevation: 999999,
   },
   video: {
     ...StyleSheet.absoluteFillObject,
   },
-  videoWeb: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    alignSelf: 'center',
-  },
   interactionBlocker: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'transparent',
-    ...Platform.select({
-      web: {
-        cursor: 'default',
-        userSelect: 'none',
-      },
-    }),
   },
 })

@@ -31,23 +31,21 @@ export function AppIntroGate({ children }: AppIntroGateProps) {
     setState('done')
   }
 
-  if (state === 'loading') {
-    return <View style={styles.boot} />
+  if (state === 'loading' || state === 'intro') {
+    return (
+      <View style={styles.shell}>
+        {state === 'intro' ? (
+          <AppIntroVideoOverlay onComplete={handleIntroComplete} />
+        ) : null}
+      </View>
+    )
   }
 
-  return (
-    <View style={styles.root}>
-      {children}
-      {state === 'intro' ? <AppIntroVideoOverlay onComplete={handleIntroComplete} /> : null}
-    </View>
-  )
+  return <View style={styles.shell}>{children}</View>
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  boot: {
+  shell: {
     flex: 1,
     backgroundColor: '#000',
   },

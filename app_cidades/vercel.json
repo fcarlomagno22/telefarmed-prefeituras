@@ -6,7 +6,7 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/((?!_expo/|assets/|favicon.ico|sw.js|manifest.webmanifest|icon-512.png).*)",
+      "source": "/((?!_expo/|assets/|favicon.ico|sw.js|manifest.webmanifest|icon-512.png|logo_intro.mp4).*)",
       "destination": "/index.html"
     }
   ],

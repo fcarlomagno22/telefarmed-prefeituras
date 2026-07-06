@@ -5,13 +5,29 @@ import { fileURLToPath } from 'node:url'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const distDir = join(root, 'dist')
 const publicDir = join(root, 'public')
+const assetsDir = join(root, 'assets')
 
 if (!existsSync(distDir)) {
   console.error('postExportWeb: dist/ não encontrado — rode expo export primeiro.')
   process.exit(1)
 }
 
-for (const file of ['sw.js', 'manifest.webmanifest', 'icon-512.png', 'pwa-chrome-boot.js']) {
+for (const [from, to] of [
+  [join(assetsDir, 'icon.png'), join(publicDir, 'icon-512.png')],
+  [join(assetsDir, 'logo_intro.mp4'), join(publicDir, 'logo_intro.mp4')],
+]) {
+  if (existsSync(from)) {
+    copyFileSync(from, to)
+  }
+}
+
+for (const file of [
+  'sw.js',
+  'manifest.webmanifest',
+  'icon-512.png',
+  'logo_intro.mp4',
+  'pwa-chrome-boot.js',
+]) {
   copyFileSync(join(publicDir, file), join(distDir, file))
 }
 
@@ -30,6 +46,8 @@ if (!html.includes('manifest.webmanifest')) {
   html = html.replace(
     '</head>',
     `    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icon-512.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/icon-512.png" />
     <meta name="color-scheme" content="light" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
