@@ -25,11 +25,20 @@ export function canAppVideoAutoplay(): boolean {
   return true
 }
 
-export async function playAppVideoPlayer(_player: VideoPlayer): Promise<AppVideoPlayResult> {
+export async function safeInvokeVideoPlay(player: VideoPlayer): Promise<boolean> {
   try {
-    _player.play()
-    return { ok: true }
+    player.play()
+    return true
   } catch {
+    return false
+  }
+}
+
+export async function playAppVideoPlayer(player: VideoPlayer): Promise<AppVideoPlayResult> {
+  const started = await safeInvokeVideoPlay(player)
+  if (!started) {
     return { ok: false, reason: 'unavailable' }
   }
+
+  return { ok: true }
 }

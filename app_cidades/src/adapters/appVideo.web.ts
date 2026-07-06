@@ -58,25 +58,41 @@ async function waitForPlayback(player: VideoPlayer, timeoutMs: number): Promise<
   })
 }
 
+function isBenignVideoPlayError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  return error.name === 'AbortError' || error.name === 'NotAllowedError'
+}
+
+async function invokeVideoPlay(player: VideoPlayer): Promise<void> {
+  const result = player.play() as void | Promise<void>
+  if (result && typeof result.then === 'function') {
+    await result
+  }
+}
+
+export async function safeInvokeVideoPlay(player: VideoPlayer): Promise<boolean> {
+  try {
+    await invokeVideoPlay(player)
+    const started = await waitForPlayback(player, PLAYBACK_CONFIRM_MS)
+    return started
+  } catch (error) {
+    if (isBenignVideoPlayError(error)) {
+      return false
+    }
+
+    return false
+  }
+}
+
 export async function playAppVideoPlayer(player: VideoPlayer): Promise<AppVideoPlayResult> {
   if (!canAppVideoAutoplay()) {
     return { ok: false, reason: 'requires_user_gesture' }
   }
 
-  try {
-    player.play()
-    const started = await waitForPlayback(player, PLAYBACK_CONFIRM_MS)
-    if (!started) {
-      return { ok: false, reason: 'autoplay_blocked' }
-    }
-
-    return { ok: true }
-  } catch (error) {
-    const errorName = error instanceof Error ? error.name : ''
-    if (errorName === 'NotAllowedError') {
-      return { ok: false, reason: 'autoplay_blocked' }
-    }
-
-    return { ok: false, reason: 'unavailable' }
+  const started = await safeInvokeVideoPlay(player)
+  if (!started) {
+    return { ok: false, reason: 'autoplay_blocked' }
   }
+
+  return { ok: true }
 }

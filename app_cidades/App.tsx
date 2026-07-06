@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { AppSystemBars } from './src/components/platform/AppSystemBars'
+import { AppIntroGate } from './src/components/platform/AppIntroGate'
 import { PwaInstallPrompt } from './src/components/platform/PwaInstallPrompt'
 import { AuthProvider, useAuth } from './src/contexts/AuthContext'
 import { GuestAuthProvider } from './src/contexts/GuestAuthContext'
@@ -121,17 +122,19 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
       <SafeAreaProvider>
-        <AuthProvider>
-          <GuestAuthProvider>
-            <ThemeProvider>
-              <OverlayPortalProvider>
-                <AppSystemBars style="dark" />
-                <AppRouter />
-                <PwaInstallPrompt />
-              </OverlayPortalProvider>
-            </ThemeProvider>
-          </GuestAuthProvider>
-        </AuthProvider>
+        <AppIntroGate>
+          <AuthProvider>
+            <GuestAuthProvider>
+              <ThemeProvider>
+                <OverlayPortalProvider>
+                  <AppSystemBars style="dark" />
+                  <AppRouter />
+                  <PwaInstallPrompt />
+                </OverlayPortalProvider>
+              </ThemeProvider>
+            </GuestAuthProvider>
+          </AuthProvider>
+        </AppIntroGate>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   )
