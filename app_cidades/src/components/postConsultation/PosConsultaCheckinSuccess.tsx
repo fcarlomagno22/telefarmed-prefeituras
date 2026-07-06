@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
     overflow: 'hidden',
     marginTop: 8,
   },

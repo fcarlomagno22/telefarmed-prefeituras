@@ -1,4 +1,6 @@
 import { useThemedStyles } from '../hooks/useThemedStyles'
+import { activeMindGameChrome } from '../theme/activeMindGameChrome'
+import { colors } from '../theme/colors'
 import type { ThemeColors } from '../theme/palettes'
 import { useTheme } from '../contexts/ThemeContext'
 import { Ionicons } from '@expo/vector-icons'
@@ -405,7 +407,7 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: activeMindGameChrome.controlBackground,
   },
   newGameButtonPressed: {
     opacity: 0.85,

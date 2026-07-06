@@ -44,6 +44,12 @@ export function AppointmentCard({
 
   const doctor = scheduleDoctors.find((item) => item.id === appointment.selectedDoctorId)
   const statusColors = getAppointmentStatusColors(appointment.status)
+  const cardGradient = highlighted
+    ? ([colors.cardBg, colors.cardBg, 'rgba(16, 185, 129, 0.08)'] as const)
+    : statusColors.cardGradient
+  const cardBorder = highlighted
+    ? 'rgba(16, 185, 129, 0.22)'
+    : statusColors.cardBorder
   const isUpcoming =
     appointment.status === 'confirmed' || appointment.status === 'pending'
   const isCompleted = appointment.status === 'completed'
@@ -59,14 +65,10 @@ export function AppointmentCard({
   return (
     <View style={styles.wrap}>
       <LinearGradient
-        colors={
-          highlighted
-            ? ['rgba(16, 185, 129, 0.22)', 'rgba(16, 185, 129, 0.08)', 'rgba(14, 14, 20, 0.95)']
-            : ['rgba(255, 133, 51, 0.14)', 'rgba(255, 107, 0, 0.06)', 'rgba(14, 14, 20, 0.95)']
-        }
+        colors={[...cardGradient]}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.card, highlighted && styles.cardHighlighted]}
+        end={{ x: 0, y: 1 }}
+        style={[styles.card, { borderColor: cardBorder }, highlighted && styles.cardHighlighted]}
       >
         <Pressable
           onPress={toggleExpanded}
@@ -80,7 +82,7 @@ export function AppointmentCard({
           {highlighted ? (
             <View style={styles.summaryHeader}>
               <View style={styles.heroBadge}>
-                <Ionicons name="star" size={12} color="#6ee7b7" />
+                <Ionicons name="star" size={12} color="#047857" />
                 <Text style={styles.heroBadgeText}>Próxima consulta</Text>
               </View>
 
@@ -271,12 +273,10 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 0,
     borderWidth: 1,
-    borderColor: 'rgba(255, 133, 51, 0.22)',
     borderRadius: 18,
+    backgroundColor: colors.cardBg,
   },
-  cardHighlighted: {
-    borderColor: 'rgba(16, 185, 129, 0.35)',
-  },
+  cardHighlighted: {},
   summaryPressable: {
     gap: 10,
   },
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(16, 185, 129, 0.28)',
   },
   heroBadgeText: {
-    color: '#6ee7b7',
+    color: '#047857',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.2,
@@ -390,9 +390,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   chevronWrapExpanded: {
     backgroundColor: 'rgba(255, 107, 0, 0.1)',
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     marginTop: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: colors.surfaceBorder,
   },
   doctorRow: {
     flexDirection: 'row',
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 18,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
   },
   doctorTextCol: {
     flex: 1,

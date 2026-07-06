@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   emergencyStrong: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontWeight: '800',
   },
   quickRow: {
@@ -447,8 +447,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   quickBtnText: {
     color: colors.text,
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
   },
   contactCopy: {
     flex: 1,
@@ -561,9 +561,9 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: 14,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
     marginBottom: 8,
   },
   identityLabel: {

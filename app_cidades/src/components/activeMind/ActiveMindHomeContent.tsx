@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { colors } from '../../theme/colors'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useMemo, useState } from 'react'
 import {
@@ -160,9 +161,9 @@ function createStyles(colors: ThemeColors) {
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   searchInput: {
     flex: 1,
@@ -187,9 +188,9 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 18,
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   emptyTitle: {
     color: colors.text,

@@ -54,7 +54,7 @@ export function getHeartRateZone(bpm: number): {
   if (bpm < HEART_RATE_BRADYCARDIA_BPM) {
     return {
       label: 'Repouso',
-      color: '#93c5fd',
+      color: '#2563eb',
       bg: 'rgba(147, 197, 253, 0.14)',
       border: 'rgba(147, 197, 253, 0.35)',
     }

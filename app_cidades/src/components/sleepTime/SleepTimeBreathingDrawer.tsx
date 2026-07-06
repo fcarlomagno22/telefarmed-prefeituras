@@ -15,13 +15,13 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native'
-import { colors } from '../../theme/colors'
 import {
   playSleepBreathingSound,
   stopSleepBreathingSound,
 } from '../../utils/sleepBreathingSounds'
 import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import { SleepTimeStarfield } from './SleepTimeStarfield'
+import { sleepTimeDrawerTheme } from './sleepTimeDrawerTheme'
 
 type SleepTimeBreathingDrawerProps = {
   visible: boolean
@@ -254,11 +254,11 @@ export function SleepTimeBreathingDrawer({ visible, onClose }: SleepTimeBreathin
       scrollable={false}
       keyboardAware={false}
       extraBottomInset={12}
+      tone="sleep"
       sheetBackground={
         <>
           <LinearGradient
-            colors={['#070812', '#0a1220', '#050508']}
-            locations={[0, 0.55, 1]}
+            colors={[...sleepTimeDrawerTheme.gradient]}
             style={StyleSheet.absoluteFillObject}
           />
           <SleepTimeStarfield active={visible} />
@@ -388,14 +388,14 @@ const styles = StyleSheet.create({
     minHeight: 96,
   },
   phaseLabel: {
-    color: colors.text,
+    color: sleepTimeDrawerTheme.text,
     fontSize: 28,
     fontWeight: '800',
     letterSpacing: -0.5,
     textAlign: 'center',
   },
   phaseDetail: {
-    color: colors.textMuted,
+    color: sleepTimeDrawerTheme.textMuted,
     fontSize: 16,
     fontWeight: '500',
     lineHeight: 22,
@@ -408,13 +408,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: sleepTimeDrawerTheme.buttonBorder,
+    backgroundColor: sleepTimeDrawerTheme.buttonBackground,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stopButtonText: {
-    color: colors.textMuted,
+    color: sleepTimeDrawerTheme.textMuted,
     fontSize: 13,
     fontWeight: '700',
   },

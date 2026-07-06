@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     padding: 12,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.07)',
   },
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
   },
   favBtnPressed: {
     opacity: 0.82,

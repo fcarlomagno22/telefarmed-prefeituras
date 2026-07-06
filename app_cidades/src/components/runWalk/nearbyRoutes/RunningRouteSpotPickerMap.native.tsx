@@ -1,3 +1,4 @@
+import { drawerChrome } from '../../../theme/drawerChrome'
 import { useMemo, useRef } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { AppWebView, type AppWebViewRef } from '../../../adapters/AppWebView'
@@ -174,6 +175,6 @@ const styles = StyleSheet.create({
   },
   webView: {
     flex: 1,
-    backgroundColor: '#0e0e14',
+    backgroundColor: drawerChrome.surfaceBottom,
   },
 })

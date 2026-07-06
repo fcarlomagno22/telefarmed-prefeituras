@@ -1,8 +1,9 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import { colors } from '../../theme/colors'
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,6 +11,7 @@ import {
   View,
 } from 'react-native'
 import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
+import { myRoutineAccent } from '../../theme/myRoutineAccent'
 import type { AppScreen } from '../../types/auth'
 import type { MyRoutineDayPlan, MyRoutineTask } from '../../types/myRoutine'
 import {
@@ -90,14 +92,13 @@ export function MyRoutineTodayTab({
 
   return (
     <ScrollView
+      style={styles.body}
       contentContainerStyle={[styles.content, { paddingBottom: bottomPadding + 72 }]}
       showsVerticalScrollIndicator={false}
+      nestedScrollEnabled
     >
       {/* A — Hero */}
-      <LinearGradient
-        colors={['rgba(240, 171, 252, 0.2)', 'rgba(14, 14, 20, 0.98)']}
-        style={styles.heroCard}
-      >
+      <View style={styles.heroCard}>
         <Text style={styles.heroEyebrow}>Seu dia em uma frase</Text>
         <Text style={styles.heroPhrase}>{heroPhrase}</Text>
         <MyRoutineDayTimeline phase={dayPhase} />
@@ -108,10 +109,10 @@ export function MyRoutineTodayTab({
           }}
           style={({ pressed }) => [styles.mapBtn, pressed && styles.mapBtnPressed]}
         >
-          <Ionicons name="map-outline" size={16} color={ACCENT_LIGHT} />
+          <Ionicons name="map-outline" size={16} color={myRoutineAccent.chipTextSelected} />
           <Text style={styles.mapBtnText}>Ver mapa do dia</Text>
         </Pressable>
-      </LinearGradient>
+      </View>
 
       {/* B — Consistency bar */}
       <Pressable
@@ -138,10 +139,7 @@ export function MyRoutineTodayTab({
       {/* C — Next task card */}
       {nextTask ? (
         <View style={styles.sectionWrap}>
-          <LinearGradient
-            colors={['rgba(217, 70, 239, 0.22)', 'rgba(14, 14, 20, 0.98)']}
-            style={styles.nextTaskCard}
-          >
+          <View style={styles.nextTaskCard}>
             <View style={styles.nextTaskBadgeRow}>
               <View style={styles.nextTaskBadge}>
                 <MaterialCommunityIcons name="lightning-bolt" size={12} color={ACCENT_LIGHT} />
@@ -177,7 +175,7 @@ export function MyRoutineTodayTab({
                 onPress={() => onSkipTask(nextTask)}
               />
             </View>
-          </LinearGradient>
+          </View>
         </View>
       ) : null}
 
@@ -292,9 +290,21 @@ function createStyles(colors: ThemeColors) {
   return {
   loadingWrap: {
     flex: 1,
+    minHeight: 0,
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: 48,
+  },
+  body: {
+    flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      },
+      default: {},
+    }),
   },
   content: {
     paddingTop: 8,
@@ -305,11 +315,12 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 18,
     padding: 16,
     gap: 10,
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(240, 171, 252, 0.22)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   heroEyebrow: {
-    color: ACCENT_LIGHT,
+    color: myRoutineAccent.chipTextSelected,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1,
@@ -329,14 +340,14 @@ function createStyles(colors: ThemeColors) {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(217, 70, 239, 0.12)',
+    backgroundColor: myRoutineAccent.nestedSurface,
     borderWidth: 1,
-    borderColor: 'rgba(240, 171, 252, 0.25)',
+    borderColor: myRoutineAccent.cardBorder,
     marginTop: 4,
   },
   mapBtnPressed: { opacity: 0.88 },
   mapBtnText: {
-    color: ACCENT_LIGHT,
+    color: myRoutineAccent.chipTextSelected,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -344,9 +355,9 @@ function createStyles(colors: ThemeColors) {
     marginHorizontal: 16,
     padding: 14,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: myRoutineAccent.cardBorder,
     gap: 8,
   },
   consistencyHeader: {
@@ -360,14 +371,14 @@ function createStyles(colors: ThemeColors) {
     fontWeight: '800',
   },
   consistencyMeta: {
-    color: ACCENT_LIGHT,
+    color: myRoutineAccent.chipTextSelected,
     fontSize: 12,
     fontWeight: '800',
   },
   progressTrack: {
     height: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: myRoutineAccent.nestedSurface,
     overflow: 'hidden',
   },
   progressFill: {
@@ -395,8 +406,9 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 18,
     padding: 14,
     gap: 10,
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(240, 171, 252, 0.28)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   nextTaskBadgeRow: {
     flexDirection: 'row',
@@ -410,12 +422,12 @@ function createStyles(colors: ThemeColors) {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(217, 70, 239, 0.12)',
+    backgroundColor: myRoutineAccent.nestedSurface,
     borderWidth: 1,
-    borderColor: 'rgba(240, 171, 252, 0.25)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   nextTaskBadgeText: {
-    color: ACCENT_LIGHT,
+    color: myRoutineAccent.chipTextSelected,
     fontSize: 10,
     fontWeight: '700',
     textTransform: 'uppercase',
@@ -458,9 +470,9 @@ function createStyles(colors: ThemeColors) {
     paddingVertical: 12,
     paddingHorizontal: 12,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.07)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   timelineCopy: { flex: 1, gap: 2 },
   timelineTitle: {
@@ -487,9 +499,9 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 14,
     padding: 10,
     gap: 4,
-    backgroundColor: 'rgba(217, 70, 239, 0.06)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(240, 171, 252, 0.16)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   minimalRow: {
     flexDirection: 'row',
@@ -516,9 +528,9 @@ function createStyles(colors: ThemeColors) {
     padding: 12,
     borderRadius: 14,
     gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   shortcutLabel: {
     color: colors.text,
@@ -538,9 +550,9 @@ function createStyles(colors: ThemeColors) {
     gap: 12,
     padding: 14,
     borderRadius: 16,
-    backgroundColor: 'rgba(217, 70, 239, 0.1)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(240, 171, 252, 0.22)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   closureCopy: { flex: 1, gap: 2 },
   closureTitle: {
@@ -560,7 +572,9 @@ function createStyles(colors: ThemeColors) {
     gap: 8,
     padding: 12,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
+    borderWidth: 1,
+    borderColor: myRoutineAccent.cardBorder,
   },
   closureDoneText: {
     color: colors.textMuted,

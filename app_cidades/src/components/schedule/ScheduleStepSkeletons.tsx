@@ -1,4 +1,5 @@
 import { StyleSheet, View } from 'react-native'
+import { colors } from '../../theme/colors'
 import { SkeletonBone } from '../SkeletonBone'
 
 export function ScheduleUbtListSkeleton() {
@@ -105,8 +106,8 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    backgroundColor: 'rgba(14, 14, 20, 0.5)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surface,
   },
   specialtyBody: {
     flex: 1,
@@ -119,8 +120,8 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    backgroundColor: 'rgba(14, 14, 20, 0.5)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surface,
   },
   ubtBody: {
     flex: 1,
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.07)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
   },
   calendarHeader: {
     flexDirection: 'row',
@@ -167,8 +168,8 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    backgroundColor: 'rgba(14, 14, 20, 0.5)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surface,
   },
   doctorBody: {
     flex: 1,

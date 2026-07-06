@@ -4,11 +4,11 @@ import * as Haptics from 'expo-haptics'
 import { useMemo } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { getSleepSoundById } from '../../config/sleepSounds'
-import { colors } from '../../theme/colors'
 import type { SleepSoundId } from '../../types/sleepTime'
 import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import { SleepTimeSoundVolumeControls } from './SleepTimeSoundVolumeControls'
 import { SleepTimeStarfield } from './SleepTimeStarfield'
+import { sleepTimeDrawerTheme } from './sleepTimeDrawerTheme'
 import type { SleepTimerMinutes } from './sleepTimeSoundTypes'
 
 type SleepTimeSoundPlayerDrawerProps = {
@@ -86,11 +86,11 @@ export function SleepTimeSoundPlayerDrawer({
       scrollable={false}
       keyboardAware={false}
       extraBottomInset={12}
+      tone="sleep"
       sheetBackground={
         <>
           <LinearGradient
-            colors={['#070812', '#0a0a14', '#050508']}
-            locations={[0, 0.55, 1]}
+            colors={[...sleepTimeDrawerTheme.gradient]}
             style={StyleSheet.absoluteFillObject}
           />
           <SleepTimeStarfield active={visible} />
@@ -150,7 +150,7 @@ export function SleepTimeSoundPlayerDrawer({
                       style={StyleSheet.absoluteFillObject}
                     />
                   ) : null}
-                  <Text style={[styles.timerChipLabel, active && { color: colors.text }]}>
+                  <Text style={[styles.timerChipLabel, active && styles.timerChipLabelActive]}>
                     {option.label}
                   </Text>
                 </Pressable>
@@ -175,14 +175,14 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   heroTitle: {
-    color: colors.text,
+    color: sleepTimeDrawerTheme.text,
     fontSize: 22,
     fontWeight: '800',
     letterSpacing: -0.4,
     textAlign: 'center',
   },
   heroSubtitle: {
-    color: colors.textMuted,
+    color: sleepTimeDrawerTheme.textMuted,
     fontSize: 13,
     fontWeight: '500',
     lineHeight: 18,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   sectionLabel: {
-    color: colors.textSubtle,
+    color: sleepTimeDrawerTheme.textSubtle,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.5,
@@ -212,18 +212,21 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: sleepTimeDrawerTheme.chipBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: sleepTimeDrawerTheme.chipBorder,
     overflow: 'hidden',
   },
   timerChipActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    backgroundColor: sleepTimeDrawerTheme.chipBackground,
   },
   timerChipLabel: {
-    color: colors.textMuted,
+    color: sleepTimeDrawerTheme.textMuted,
     fontSize: 13,
     fontWeight: '700',
+  },
+  timerChipLabelActive: {
+    color: sleepTimeDrawerTheme.text,
   },
   stopButton: {
     width: '100%',
@@ -232,13 +235,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: sleepTimeDrawerTheme.buttonBorder,
+    backgroundColor: sleepTimeDrawerTheme.buttonBackground,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stopButtonText: {
-    color: colors.textMuted,
+    color: sleepTimeDrawerTheme.textMuted,
     fontSize: 13,
     fontWeight: '700',
   },

@@ -413,7 +413,7 @@ export function RunWalkWeeklyBarChart({
             <Stop offset="100%" stopColor="#3b82f6" stopOpacity={0.95} />
           </LinearGradient>
           <LinearGradient id="runWalkBarToday" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0%" stopColor="#6ee7b7" stopOpacity={0.95} />
+            <Stop offset="0%" stopColor="#15803d" stopOpacity={0.95} />
             <Stop offset="100%" stopColor="#10b981" stopOpacity={0.9} />
           </LinearGradient>
           <LinearGradient id="runWalkBarTodaySelected" x1="0" y1="0" x2="0" y2="1">
@@ -425,8 +425,8 @@ export function RunWalkWeeklyBarChart({
             <Stop offset="100%" stopColor="#f59e0b" stopOpacity={0.95} />
           </LinearGradient>
           <LinearGradient id="runWalkBarEmpty" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0%" stopColor="rgba(255,255,255,0.14)" stopOpacity={1} />
-            <Stop offset="100%" stopColor="rgba(255,255,255,0.04)" stopOpacity={1} />
+            <Stop offset="0%" stopColor="rgba(148, 163, 184, 0.28)" stopOpacity={1} />
+            <Stop offset="100%" stopColor="rgba(148, 163, 184, 0.12)" stopOpacity={1} />
           </LinearGradient>
           {geometry.bars
             .filter((bar) => bar.hasOverflow)
@@ -466,7 +466,7 @@ export function RunWalkWeeklyBarChart({
             y1={line.y}
             x2={geometry.plotLeft + geometry.plotWidth}
             y2={line.y}
-            stroke="rgba(255, 255, 255, 0.08)"
+            stroke="rgba(148, 163, 184, 0.22)"
             strokeWidth={1}
           />
         ))}
@@ -520,10 +520,10 @@ export function RunWalkWeeklyBarChart({
 
         {geometry.bars.map((bar) => {
           const labelColor = bar.day.isToday
-            ? '#6ee7b7'
+            ? '#059669'
             : bar.day.isFuture
-              ? 'rgba(245, 245, 247, 0.28)'
-              : 'rgba(245, 245, 247, 0.45)'
+              ? colors.textSubtle
+              : colors.textMuted
 
           return (
             <SvgText
@@ -542,10 +542,10 @@ export function RunWalkWeeklyBarChart({
 
         {geometry.bars.map((bar) => {
           const labelColor = bar.day.isToday
-            ? '#a7f3d0'
+            ? '#10b981'
             : bar.day.isFuture
-              ? 'rgba(245, 245, 247, 0.22)'
-              : 'rgba(245, 245, 247, 0.35)'
+              ? colors.textSubtle
+              : colors.textMuted
 
           return (
             <SvgText
@@ -695,7 +695,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 12,
-    backgroundColor: 'rgba(14, 14, 20, 0.96)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     gap: 2,
     shadowColor: '#000',
@@ -711,13 +711,13 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   tooltipValue: {
-    color: '#93c5fd',
+    color: '#2563eb',
     fontSize: 13,
     fontWeight: '800',
     letterSpacing: -0.2,
   },
   tooltipValueToday: {
-    color: '#6ee7b7',
+    color: '#15803d',
   },
   tooltipMeta: {
     color: colors.textSubtle,
@@ -742,7 +742,7 @@ const styles = StyleSheet.create({
   },
   legendSwatchMuted: {
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
   },
   legendLabel: {
     color: colors.textSubtle,

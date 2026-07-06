@@ -16,10 +16,10 @@ import { EatWellMenuSubstituteDrawer } from '../components/eatWell/menuDetail/Ea
 import { EatWellMenuMealSlotCard } from '../components/eatWell/menuDetail/EatWellMenuMealSlotCard'
 import { EatWellMonthPickerDrawer } from '../components/eatWell/EatWellMonthPickerDrawer'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
-import { appEnv } from '../config/env'
 import { loadEatWellMenuDayLog, loadEatWellMenuCalendarDayStatuses, setEatWellMenuEntryOverride, setEatWellMenuEntryStatus } from '../data/eatWellMenuDayStorage'
 import { loadEatWellMenus } from '../data/eatWellMenusStorage'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
 import type { EatWellMenuDayLog, EatWellMenuFoodStatus, EatWellSavedMenu, FoodEntry, MealSlot } from '../types/eatWell'
@@ -42,11 +42,10 @@ import {
 import { getMenuObjectiveLabel } from '../utils/eatWellMenuWizard'
 import { getModalFooterPadding } from '../utils/modalSafeArea'
 import { toLocalDateIso } from '../utils/runWalkWeeklyChart'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 
 export function EatWellMenuDetailScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { user, navigateTo, routeParams } = useAuth()
   const { menuId } = getEatWellRouteParams(routeParams)
@@ -216,7 +215,7 @@ export function EatWellMenuDetailScreen() {
         />
 
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'transparent', 'rgba(10, 10, 12, 0.75)']}
+          colors={[...themeColors.screenOverlay]}
           locations={[0, 0.35, 1]}
           style={styles.screenOverlay}
           pointerEvents="none"

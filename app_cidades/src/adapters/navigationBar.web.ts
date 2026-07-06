@@ -1,15 +1,18 @@
 import type { NavigationBarButtonStyle } from './navigationBar.types'
+import { colors } from '../theme/colors'
 import { WEB_CHROME_COLOR, applyWebChromeColor } from './webChromeTheme.web'
 
 export async function setNavigationBarBackgroundColorAsync(color: string): Promise<void> {
-  applyWebChromeColor(color)
+  applyWebChromeColor(color, color, { colorScheme: 'light' })
 }
 
 export async function setNavigationBarButtonStyleAsync(
   style: NavigationBarButtonStyle,
 ): Promise<void> {
-  // Chrome Android usa theme-color; ícones claros combinam com fundo escuro.
-  if (style === 'light') {
-    applyWebChromeColor(WEB_CHROME_COLOR)
+  if (style === 'dark') {
+    applyWebChromeColor(WEB_CHROME_COLOR, WEB_CHROME_COLOR, { colorScheme: 'light' })
+    return
   }
+
+  applyWebChromeColor(colors.background, colors.background, { colorScheme: 'light' })
 }

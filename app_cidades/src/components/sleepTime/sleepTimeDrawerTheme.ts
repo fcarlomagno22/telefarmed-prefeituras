@@ -1,0 +1,15 @@
+export const sleepTimeDrawerTheme = {
+  gradient: ['#070812', '#0a0a14', '#0f1018'] as const,
+  surface: '#070812',
+  surfaceBottom: '#0a0a14',
+  text: '#fafafa',
+  textMuted: 'rgba(255, 255, 255, 0.62)',
+  textSubtle: 'rgba(255, 255, 255, 0.45)',
+  chipBackground: 'rgba(255, 255, 255, 0.06)',
+  chipBorder: 'rgba(255, 255, 255, 0.1)',
+  buttonBackground: 'rgba(255, 255, 255, 0.08)',
+  buttonBorder: 'rgba(255, 255, 255, 0.12)',
+  closeBackground: 'rgba(255, 255, 255, 0.08)',
+  closeBorder: 'rgba(255, 255, 255, 0.12)',
+  volumeTrack: 'rgba(255, 255, 255, 0.1)',
+} as const

@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 14,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: colors.surfaceBorder,
   },
   metaChip: {
     flexDirection: 'row',
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
   },
   metaChipText: {
     color: colors.textMuted,
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(249, 115, 22, 0.18)',
   },
   stepNumberText: {
-    color: '#fdba74',
+    color: '#ea580c',
     fontSize: 12,
     fontWeight: '800',
   },
@@ -232,12 +232,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    backgroundColor: '#dcfce7',
     borderWidth: 1,
-    borderColor: 'rgba(110, 231, 183, 0.22)',
+    borderColor: 'rgba(22, 163, 74, 0.35)',
   },
   muscleChipText: {
-    color: '#6ee7b7',
+    color: '#15803d',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(251, 146, 60, 0.22)',
   },
   categoryChipText: {
-    color: '#fdba74',
+    color: '#ea580c',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tipsTitle: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 12,
     fontWeight: '800',
   },

@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
   activityCalories: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 12,
     fontWeight: '800',
   },

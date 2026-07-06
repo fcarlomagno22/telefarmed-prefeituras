@@ -234,11 +234,11 @@ export function ProfileFieldEditDrawer({
             ]}
           >
             <LinearGradient
-              colors={['rgba(36, 36, 46, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+              colors={[colors.backgroundElevated, '#f0f0f2']}
               style={StyleSheet.absoluteFillObject}
             />
             {Platform.OS === 'ios' ? (
-              <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+              <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
             ) : null}
 
             <LinearGradient
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   keyboardWrap: {
     flex: 1,
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 0,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     maxHeight: '92%',
   },
   scrollContent: {
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginTop: 10,
     marginBottom: 14,
   },
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   closeButtonPressed: {
     opacity: 0.8,
@@ -439,9 +439,9 @@ const styles = StyleSheet.create({
   inputCard: {
     borderRadius: 18,
     padding: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     marginBottom: 12,
   },
   inputLabel: {
@@ -486,9 +486,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 11,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   genderChipActive: {
     backgroundColor: 'rgba(255, 107, 0, 0.18)',

@@ -49,14 +49,14 @@ export function RunWalkChallengeCard({
   return (
     <View style={styles.wrap}>
       <LinearGradient
-        colors={['rgba(236, 72, 153, 0.16)', 'rgba(14, 14, 20, 0.98)']}
+        colors={['#fce7f3', '#fdf2f8', '#ffffff']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.card}
       >
         {isJoined ? (
           <View style={styles.joinedBadge}>
-            <MaterialCommunityIcons name="check-decagram" size={12} color="#fbcfe8" />
+            <MaterialCommunityIcons name="check-decagram" size={12} color="#be185d" />
             <Text style={styles.joinedBadgeText}>No seu painel</Text>
           </View>
         ) : null}
@@ -84,7 +84,7 @@ export function RunWalkChallengeCard({
         </View>
 
         <View style={styles.participantsRow}>
-          <Ionicons name="people-outline" size={14} color="#f9a8d4" />
+          <Ionicons name="people-outline" size={14} color="#be185d" />
           <Text style={styles.participantsText}>
             {formatParticipants(challenge.participantsCount)} participantes
           </Text>
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(244, 114, 182, 0.28)',
   },
   joinedBadgeText: {
-    color: '#fbcfe8',
+    color: '#be185d',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.2,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
     overflow: 'hidden',
   },
   progressFill: {
@@ -188,9 +188,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 8,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
     gap: 2,
     alignItems: 'center',
   },

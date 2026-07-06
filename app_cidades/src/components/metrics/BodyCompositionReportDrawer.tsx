@@ -23,6 +23,7 @@ import { colors } from '../../theme/colors'
 import { PrimaryButton } from '../PrimaryButton'
 import { GlucoseTrendLineChart } from './GlucoseTrendLineChart'
 import { getModalFooterPadding } from '../../utils/modalSafeArea'
+import { REPORT_SHEET_GRADIENT, reportDrawerChrome } from './metricsReportDrawerShared'
 
 const COMPOSITION_GRADIENT = ['#67e8f9', '#0891b2', '#0e7490'] as const
 
@@ -286,11 +287,11 @@ export function BodyCompositionReportDrawer({
           ]}
         >
           <LinearGradient
-            colors={['rgba(24, 24, 32, 0.99)', 'rgba(10, 10, 14, 1)']}
+            colors={[...REPORT_SHEET_GRADIENT]}
             style={StyleSheet.absoluteFillObject}
           />
           {Platform.OS === 'ios' ? (
-            <BlurView intensity={18} tint="dark" style={StyleSheet.absoluteFillObject} />
+            <BlurView intensity={18} tint="light" style={StyleSheet.absoluteFillObject} />
           ) : null}
 
           <LinearGradient
@@ -343,7 +344,7 @@ export function BodyCompositionReportDrawer({
             ) : (
               <>
                 <LinearGradient
-                  colors={['rgba(8, 145, 178, 0.18)', 'rgba(8, 145, 178, 0.04)']}
+                  colors={['#ecfeff', '#bae6fd', '#67e8f9']}
                   style={styles.heroCard}
                 >
                   <Text style={styles.heroEyebrow}>Índice de massa corporal</Text>
@@ -378,7 +379,7 @@ export function BodyCompositionReportDrawer({
                         ? `${formatWeightKg(report.weight.min)} – ${formatWeightKg(report.weight.max)}`
                         : undefined
                     }
-                    accent="#e2e8f0"
+                    accent="#475569"
                   />
                   <StatCard
                     label="Circunferência"
@@ -509,11 +510,11 @@ export function BodyCompositionReportDrawer({
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.62)' },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.35)' },
   sheet: {
     ...StyleSheet.absoluteFillObject,
     borderLeftWidth: 1,
-    borderLeftColor: 'rgba(255, 255, 255, 0.08)',
+    borderLeftColor: reportDrawerChrome.sheetBorder,
   },
   topAccent: { position: 'absolute', top: 0, left: 0, right: 0, height: 3 },
   header: {
@@ -530,12 +531,12 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: reportDrawerChrome.closeButtonBg,
   },
   closeButtonPressed: { opacity: 0.75 },
   headerTextCol: { flex: 1, gap: 2 },
   headerTitle: { color: colors.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.3 },
-  headerSubtitle: { color: '#67e8f9', fontSize: 12, fontWeight: '600' },
+  headerSubtitle: { color: '#0284c7', fontSize: 12, fontWeight: '600' },
   headerOrb: {
     width: 42,
     height: 42,
@@ -543,7 +544,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: reportDrawerChrome.headerOrbBorder,
   },
   scrollContent: { paddingHorizontal: 16, paddingBottom: 12, gap: 14 },
   heroCard: {
@@ -589,9 +590,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     borderRadius: 16,
     padding: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: reportDrawerChrome.cardBg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     minWidth: '47%',
     alignItems: 'center',
   },
@@ -640,8 +641,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: reportDrawerChrome.cardBg,
     alignItems: 'center',
     gap: 2,
   },
@@ -652,17 +653,17 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 4,
     paddingTop: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: reportDrawerChrome.cardBg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     overflow: 'visible',
     zIndex: 1,
   },
   readingsCard: {
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: reportDrawerChrome.cardBg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     overflow: 'hidden',
   },
   readingsHeaderRow: {
@@ -671,7 +672,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+    borderBottomColor: reportDrawerChrome.divider,
   },
   readingsHeaderCell: {
     flex: 1,
@@ -685,7 +686,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    borderBottomColor: reportDrawerChrome.divider,
     gap: 6,
   },
   readingDate: {
@@ -723,6 +724,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: reportDrawerChrome.divider,
   },
 })

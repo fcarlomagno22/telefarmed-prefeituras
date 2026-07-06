@@ -89,7 +89,7 @@ export function RunWalkAchievementDetailScreen() {
   return (
     <View style={styles.root}>
       <LinearGradient
-        colors={['#0a0a0c', '#101018', '#0a0a0c']}
+        colors={[colors.background, colors.backgroundElevated, colors.background]}
         style={StyleSheet.absoluteFill}
       />
 
@@ -122,7 +122,7 @@ export function RunWalkAchievementDetailScreen() {
           colors={
             locked
               ? ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']
-              : [`${achievement.accentColor}35`, 'rgba(14, 14, 20, 0.98)', '#0a0a0c']
+              : [`${achievement.accentColor}35`, colors.backgroundElevated, colors.background]
           }
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -157,7 +157,7 @@ export function RunWalkAchievementDetailScreen() {
               </View>
             ) : (
               <View style={[styles.unlockedBadge, { backgroundColor: achievement.accentColor }]}>
-                <MaterialCommunityIcons name="check-bold" size={12} color="#0a0a0c" />
+                <MaterialCommunityIcons name="check-bold" size={12} color={colors.text} />
               </View>
             )}
           </View>
@@ -210,7 +210,7 @@ export function RunWalkAchievementDetailScreen() {
 
         {nextAchievement && !locked ? (
           <LinearGradient
-            colors={['rgba(59, 130, 246, 0.14)', 'rgba(14, 14, 20, 0.98)']}
+            colors={['rgba(59, 130, 246, 0.14)', colors.backgroundElevated]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.nextCard}
@@ -267,11 +267,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   heroCardUnlocked: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
   },
   heroCardLocked: {
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   heroGloss: {
     ...StyleSheet.absoluteFillObject,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(100, 116, 139, 0.95)',
     borderWidth: 2,
-    borderColor: '#0a0a0c',
+    borderColor: colors.background,
   },
   unlockedBadge: {
     position: 'absolute',
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#0a0a0c',
+    borderColor: colors.background,
   },
   heroTitle: {
     color: colors.text,
@@ -336,11 +336,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(251, 191, 36, 0.1)',
   },
   statusChipLocked: {
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   heroStatus: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.3,
@@ -353,9 +353,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 5,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   dateChipText: {
     color: colors.textMuted,
@@ -378,8 +378,8 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   detailsTitle: {
     color: colors.text,
@@ -392,10 +392,10 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: colors.surfaceBorder,
   },
   detailLabel: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.3,
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   nextEyebrow: {
-    color: '#93c5fd',
+    color: '#2563eb',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.3,
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
-    backgroundColor: 'rgba(10, 10, 12, 0.96)',
+    borderTopColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
 })

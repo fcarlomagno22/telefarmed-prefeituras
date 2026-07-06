@@ -608,7 +608,7 @@ export function RegisterStepFaceScan({
             style={styles.previewFade}
           />
           <View style={styles.previewBadge}>
-            <Ionicons name="checkmark-circle" size={18} color="#4ade80" />
+            <Ionicons name="checkmark-circle" size={18} color={statusIconColor('success')} />
             <Text style={styles.previewBadgeText}>Foto capturada com sucesso</Text>
           </View>
         </View>

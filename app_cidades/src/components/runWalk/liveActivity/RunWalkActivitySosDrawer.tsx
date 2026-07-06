@@ -152,9 +152,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 14,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   optionDisabled: {
     opacity: 0.55,

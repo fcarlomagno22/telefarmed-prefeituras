@@ -20,6 +20,7 @@ import { colors } from '../../theme/colors'
 import { PrimaryButton } from '../PrimaryButton'
 import { GlucoseTrendLineChart } from './GlucoseTrendLineChart'
 import { getModalFooterPadding } from '../../utils/modalSafeArea'
+import { REPORT_SHEET_GRADIENT, reportDrawerChrome } from './metricsReportDrawerShared'
 
 const MEASURES_GRADIENT = ['#f0abfc', '#d946ef', '#a21caf'] as const
 
@@ -219,11 +220,11 @@ export function BodyMeasurementsReportDrawer({
           ]}
         >
           <LinearGradient
-            colors={['rgba(24, 24, 32, 0.99)', 'rgba(10, 10, 14, 1)']}
+            colors={[...REPORT_SHEET_GRADIENT]}
             style={StyleSheet.absoluteFillObject}
           />
           {Platform.OS === 'ios' ? (
-            <BlurView intensity={18} tint="dark" style={StyleSheet.absoluteFillObject} />
+            <BlurView intensity={18} tint="light" style={StyleSheet.absoluteFillObject} />
           ) : null}
 
           <LinearGradient
@@ -276,7 +277,7 @@ export function BodyMeasurementsReportDrawer({
             ) : (
               <>
                 <LinearGradient
-                  colors={['rgba(217, 70, 239, 0.18)', 'rgba(217, 70, 239, 0.04)']}
+                  colors={['#fdf4ff', '#f0abfc', '#e879f9']}
                   style={styles.heroCard}
                 >
                   <Text style={styles.heroEyebrow}>Evolução corporal</Text>
@@ -403,11 +404,11 @@ export function BodyMeasurementsReportDrawer({
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.62)' },
+  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.35)' },
   sheet: {
     ...StyleSheet.absoluteFillObject,
     borderLeftWidth: 1,
-    borderLeftColor: 'rgba(255, 255, 255, 0.08)',
+    borderLeftColor: reportDrawerChrome.sheetBorder,
   },
   topAccent: { position: 'absolute', top: 0, left: 0, right: 0, height: 3 },
   header: {
@@ -424,7 +425,7 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: reportDrawerChrome.closeButtonBg,
   },
   closeButtonPressed: { opacity: 0.75 },
   headerTextCol: { flex: 1, gap: 2 },
@@ -434,7 +435,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.3,
   },
-  headerSubtitle: { color: '#f0abfc', fontSize: 12, fontWeight: '600' },
+  headerSubtitle: { color: '#a21caf', fontSize: 12, fontWeight: '600' },
   headerOrb: {
     width: 42,
     height: 42,
@@ -442,7 +443,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: reportDrawerChrome.headerOrbBorder,
   },
   scrollContent: { paddingHorizontal: 16, paddingBottom: 12, gap: 14 },
   heroCard: {
@@ -487,7 +488,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: reportDrawerChrome.cardBg,
     padding: 12,
     alignItems: 'center',
   },
@@ -535,7 +536,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: reportDrawerChrome.cardBgMuted,
     paddingVertical: 8,
     overflow: 'visible',
   },
@@ -543,7 +544,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: reportDrawerChrome.cardBgMuted,
     padding: 12,
     gap: 6,
   },
@@ -619,6 +620,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: reportDrawerChrome.divider,
   },
 })

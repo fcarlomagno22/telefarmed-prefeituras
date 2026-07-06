@@ -83,14 +83,14 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(251, 191, 36, 0.24)',
   },
   progressText: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 11,
     fontWeight: '800',
   },
   progressTrack: {
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     overflow: 'hidden',
   },
   progressFill: {

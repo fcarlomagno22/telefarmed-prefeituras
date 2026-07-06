@@ -60,7 +60,7 @@ export function ScheduleSuccessStep({ draft, patientName, onGoHome }: ScheduleSu
 
       <View style={styles.card}>
         <LinearGradient
-          colors={['rgba(255, 133, 51, 0.22)', 'rgba(255, 107, 0, 0.08)', 'rgba(14, 14, 20, 0.95)']}
+          colors={['rgba(255, 133, 51, 0.22)', 'rgba(255, 107, 0, 0.08)', colors.backgroundElevated]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.cardGradient}
@@ -216,14 +216,14 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: colors.surfaceBorder,
   },
   doctorAvatar: {
     width: 32,
     height: 32,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
   },
   doctorName: {
     color: colors.textMuted,

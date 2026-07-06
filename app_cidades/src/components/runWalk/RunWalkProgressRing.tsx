@@ -158,7 +158,7 @@ export function RunWalkProgressRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(255, 255, 255, 0.08)"
+          stroke="rgba(148, 163, 184, 0.25)"
           strokeWidth={stroke}
           fill="none"
         />

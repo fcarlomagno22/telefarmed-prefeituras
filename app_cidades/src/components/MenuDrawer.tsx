@@ -15,7 +15,9 @@ import {
 import { AppModal } from './AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { appEnv } from '../config/env'
-import { colors } from '../theme/colors'
+import { useTheme } from '../contexts/ThemeContext'
+import { useThemedStyles } from '../hooks/useThemedStyles'
+import type { ThemeColors } from '../theme/palettes'
 import { resolveBrandImage } from '../utils/resolveBrandImage'
 import { getModalFooterPadding } from '../utils/modalSafeArea'
 import { useAuth } from '../contexts/AuthContext'
@@ -106,6 +108,8 @@ export function MenuDrawer({
 }: MenuDrawerProps) {
   const insets = useSafeAreaInsets()
   const { height: screenHeight } = useWindowDimensions()
+  const { colors } = useTheme()
+  const styles = useThemedStyles(createStyles)
   const { user, isAuthenticated } = useAuth()
   const { requireAuth } = useGuestAuth()
   const [isMounted, setIsMounted] = useState(false)
@@ -230,7 +234,7 @@ export function MenuDrawer({
           visible
           transparent
           animationType="none"
-          navBarUnderlayColor="#08080a"
+          navBarUnderlayColor="#f0f0f2"
           onRequestClose={handleDismiss}
         >
           <View style={styles.root}>
@@ -247,7 +251,7 @@ export function MenuDrawer({
               ]}
             >
               <LinearGradient
-                colors={['#050508', '#0a0a0e', '#0e0e14', '#08080a']}
+                colors={['#ffffff', '#fafafa', '#f5f5f7', '#f0f0f2']}
                 locations={[0, 0.28, 0.62, 1]}
                 start={{ x: 0.5, y: 0 }}
                 end={{ x: 0.5, y: 1 }}
@@ -255,7 +259,7 @@ export function MenuDrawer({
               />
 
               <LinearGradient
-                colors={['rgba(0, 0, 0, 0.42)', 'rgba(0, 0, 0, 0.16)', 'transparent']}
+                colors={['rgba(255, 255, 255, 0.45)', 'rgba(255, 255, 255, 0.08)', 'transparent']}
                 locations={[0, 0.38, 0.72]}
                 start={{ x: 0.5, y: 0 }}
                 end={{ x: 0.5, y: 1 }}
@@ -416,14 +420,15 @@ export function MenuDrawer({
   )
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   root: {
     flex: 1,
     justifyContent: 'flex-end',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.48)',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
   },
   sheet: {
     ...StyleSheet.absoluteFillObject,
@@ -459,9 +464,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   closeButtonPressed: {
     opacity: 0.82,
@@ -488,7 +493,7 @@ const styles = StyleSheet.create({
   },
   menuDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: colors.surfaceBorder,
   },
   profileAvatarWrap: {
     width: 44,
@@ -496,8 +501,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surface,
   },
   profileAvatarImage: {
     width: '100%',
@@ -514,9 +519,9 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   menuLineTextCol: {
     flex: 1,
@@ -541,7 +546,7 @@ const styles = StyleSheet.create({
   },
   footerDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: colors.surfaceBorder,
     marginHorizontal: -20,
   },
   logoutLine: {
@@ -569,4 +574,5 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-})
+  })
+}

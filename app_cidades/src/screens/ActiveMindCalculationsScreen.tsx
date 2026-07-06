@@ -1,4 +1,6 @@
 import { useThemedStyles } from '../hooks/useThemedStyles'
+import { activeMindGameChrome } from '../theme/activeMindGameChrome'
+import { colors } from '../theme/colors'
 import type { ThemeColors } from '../theme/palettes'
 import { useTheme } from '../contexts/ThemeContext'
 import { Ionicons } from '@expo/vector-icons'
@@ -330,7 +332,7 @@ export function ActiveMindCalculationsScreen() {
                 <Ionicons
                   name="backspace-outline"
                   size={18}
-                  color={padDisabled || session.answer.length === 0 ? colors.textSubtle : '#67e8f9'}
+                  color={padDisabled || session.answer.length === 0 ? colors.textSubtle : activeMindGameChrome.actionLink}
                 />
                 <Text
                   style={[
@@ -438,19 +440,19 @@ function createStyles(colors: ThemeColors) {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: activeMindGameChrome.controlBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: activeMindGameChrome.tileBorder,
   },
   toolbarEraseButtonPressed: {
     opacity: 0.85,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: activeMindGameChrome.controlBackground,
   },
   toolbarEraseButtonDisabled: {
     opacity: 0.4,
   },
   toolbarEraseLabel: {
-    color: '#67e8f9',
+    color: activeMindGameChrome.actionLink,
     fontSize: 13,
     fontWeight: '600',
   },
@@ -463,7 +465,7 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: activeMindGameChrome.controlBackground,
   },
   newGameButtonPressed: {
     opacity: 0.85,

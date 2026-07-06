@@ -13,13 +13,13 @@ export function EatWellDailyInsightBanner({ message }: EatWellDailyInsightBanner
   return (
     <View style={styles.wrap}>
       <LinearGradient
-        colors={['rgba(132, 204, 22, 0.14)', 'rgba(14, 14, 20, 0.98)']}
+        colors={['#ecfccb', '#f7fee7', '#ffffff']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.card}
       >
         <View style={styles.iconWrap}>
-          <Ionicons name="sparkles-outline" size={16} color="#a3e635" />
+          <Ionicons name="sparkles-outline" size={16} color="#4d7c0f" />
         </View>
         <View style={styles.textCol}>
           <Text style={styles.title}>Insight do dia</Text>
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(132, 204, 22, 0.22)',
+    borderColor: 'rgba(101, 163, 13, 0.28)',
   },
   iconWrap: {
     width: 34,
@@ -48,14 +48,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(132, 204, 22, 0.14)',
+    backgroundColor: '#dcfce7',
   },
   textCol: {
     flex: 1,
     gap: 4,
   },
   title: {
-    color: '#a3e635',
+    color: '#4d7c0f',
     fontSize: 11,
     fontWeight: '800',
     textTransform: 'uppercase',

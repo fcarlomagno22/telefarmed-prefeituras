@@ -269,7 +269,7 @@ export function MyRoutineWeekShell({
 
 function createStyles(colors: ThemeColors) {
   return {
-  root: { flex: 1 },
+  root: { flex: 1, minHeight: 0 },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',

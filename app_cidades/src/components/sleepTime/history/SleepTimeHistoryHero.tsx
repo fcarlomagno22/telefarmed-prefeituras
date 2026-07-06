@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient'
 import { StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../../theme/colors'
 import type { SleepWeekSummary } from '../../../types/sleepHistory'
@@ -21,12 +20,7 @@ function DeltaText({ deltaPct }: { deltaPct: number | null }) {
 export function SleepTimeHistoryHero({ summary, animate = true }: SleepTimeHistoryHeroProps) {
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(99, 102, 241, 0.18)', 'rgba(14, 14, 20, 0.98)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <Text style={styles.weekLabel}>{summary.weekLabel}</Text>
 
         <View style={styles.metricsRow}>
@@ -60,7 +54,7 @@ export function SleepTimeHistoryHero({ summary, animate = true }: SleepTimeHisto
           {summary.nightsLogged === 1 ? '' : 's'} · {summary.totalWakeCount} despertar
           {summary.totalWakeCount === 1 ? '' : 'es'} na semana
         </Text>
-      </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -74,7 +68,8 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.22)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   weekLabel: {
     color: colors.textMuted,
@@ -105,13 +100,13 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   bigNumberLeft: {
-    color: '#c7d2fe',
+    color: '#4338ca',
     fontSize: 26,
     fontWeight: '900',
     letterSpacing: -0.5,
   },
   bigNumberRight: {
-    color: '#a5b4fc',
+    color: '#6366f1',
     fontSize: 26,
     fontWeight: '900',
     letterSpacing: -0.5,

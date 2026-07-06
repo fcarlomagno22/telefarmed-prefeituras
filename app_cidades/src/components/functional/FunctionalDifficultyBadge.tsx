@@ -7,19 +7,19 @@ const DIFFICULTY_COLORS: Record<
   { bg: string; border: string; text: string }
 > = {
   iniciante: {
-    bg: 'rgba(16, 185, 129, 0.14)',
-    border: 'rgba(110, 231, 183, 0.35)',
-    text: '#6ee7b7',
+    bg: '#dcfce7',
+    border: 'rgba(22, 163, 74, 0.35)',
+    text: '#15803d',
   },
   intermediario: {
-    bg: 'rgba(245, 158, 11, 0.14)',
-    border: 'rgba(252, 211, 77, 0.35)',
-    text: '#fcd34d',
+    bg: '#fef3c7',
+    border: 'rgba(180, 83, 9, 0.35)',
+    text: '#b45309',
   },
   avancado: {
-    bg: 'rgba(239, 68, 68, 0.14)',
-    border: 'rgba(252, 165, 165, 0.35)',
-    text: '#fca5a5',
+    bg: '#fee2e2',
+    border: 'rgba(220, 38, 38, 0.35)',
+    text: '#dc2626',
   },
 }
 

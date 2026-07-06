@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 16,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.07)',
   },

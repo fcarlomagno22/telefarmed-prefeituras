@@ -6,15 +6,14 @@ import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
 import { BibleHomeContent } from '../components/bible/BibleHomeContent'
 import { MenuDrawer } from '../components/MenuDrawer'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
-import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 
 export function BibleScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { user, navigateTo, goBack, canGoBack, logout } = useAuth()
   const [menuVisible, setMenuVisible] = useState(false)
@@ -49,7 +48,7 @@ export function BibleScreen() {
     <View style={styles.root}>
       <ImageBackground source={backgroundSource} style={styles.background} resizeMode="cover">
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'rgba(10, 10, 12, 0.92)']}
+          colors={[themeColors.screenOverlay[0], 'transparent']}
           style={StyleSheet.absoluteFillObject}
         />
 

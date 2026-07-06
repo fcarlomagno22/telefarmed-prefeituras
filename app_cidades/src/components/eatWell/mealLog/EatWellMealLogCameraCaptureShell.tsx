@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
+import { colors } from '../../../theme/colors'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef, type ReactNode } from 'react'
 import {
@@ -124,7 +125,7 @@ export function EatWellMealLogCameraCaptureShell({
           ]}
         >
           {isCapturing ? (
-            <ActivityIndicator color="#0a0a0c" />
+            <ActivityIndicator color={colors.text} />
           ) : (
             <LinearGradient
               colors={['#d9f99d', '#84cc16', '#65a30d']}
@@ -132,7 +133,7 @@ export function EatWellMealLogCameraCaptureShell({
               end={{ x: 1, y: 1 }}
               style={styles.shutterInner}
             >
-              <Ionicons name="camera" size={28} color="#0a0a0c" />
+              <Ionicons name="camera" size={28} color={colors.text} />
             </LinearGradient>
           )}
         </Pressable>

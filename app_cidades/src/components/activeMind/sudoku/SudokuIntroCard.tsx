@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { SUDOKU_INTRO } from '../../../config/sudokuHowToPlay'
+import { activeMindGameChrome } from '../../../theme/activeMindGameChrome'
 import { colors } from '../../../theme/colors'
 import { ActiveMindGameIcon } from '../ActiveMindGameIcon'
 import type { ActiveMindGame } from '../../../types/activeMind'
@@ -56,9 +57,9 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 16,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: activeMindGameChrome.sudokuCardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.07)',
+    borderColor: colors.surfaceBorder,
   },
   topRow: {
     flexDirection: 'row',
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
     opacity: 0.75,
   },
   link: {
-    color: '#67e8f9',
+    color: activeMindGameChrome.actionLink,
     fontSize: 13,
     fontWeight: '600',
     textDecorationLine: 'underline',

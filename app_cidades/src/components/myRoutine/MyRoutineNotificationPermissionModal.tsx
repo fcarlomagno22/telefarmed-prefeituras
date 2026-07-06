@@ -5,6 +5,7 @@ import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
 import { AppModal } from '../AppModal'
 import { PrimaryButton } from '../PrimaryButton'
 import type { ThemeColors } from '../../theme/palettes'
+import { useTheme } from '../../contexts/ThemeContext'
 import { useThemedStyles } from '../../hooks/useThemedStyles'
 
 const PALETTE = ACTION_ICON_PALETTES.myRoutine
@@ -39,6 +40,7 @@ export function MyRoutineNotificationPermissionModal({
   onAcknowledge,
   onDismiss,
 }: MyRoutineNotificationPermissionModalProps) {
+  const { colors: themeColors } = useTheme()
   const styles = useThemedStyles(createStyles)
   return (
     <AppModal visible={visible} transparent animationType="fade" onRequestClose={onDismiss}>
@@ -47,7 +49,7 @@ export function MyRoutineNotificationPermissionModal({
           colors={[
             'rgba(217, 70, 239, 0.22)',
             'rgba(240, 171, 252, 0.08)',
-            'rgba(10, 10, 12, 0.92)',
+            themeColors.backgroundElevated,
           ]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -114,7 +116,7 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 21,
     padding: 20,
     gap: 12,
-    backgroundColor: 'rgba(22, 16, 28, 0.98)',
+    backgroundColor: colors.backgroundElevated,
   },
   iconWrap: {
     alignSelf: 'center',

@@ -322,11 +322,11 @@ export function DistanceHistoryDrawer({
           ]}
         >
           <LinearGradient
-            colors={['rgba(36, 36, 46, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+            colors={[colors.backgroundElevated, '#f0f0f2']}
             style={StyleSheet.absoluteFillObject}
           />
           {Platform.OS === 'ios' ? (
-            <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+            <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
           ) : null}
 
           <LinearGradient
@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   sheet: {
     borderTopLeftRadius: 28,
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 0,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   topAccent: {
     position: 'absolute',
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginTop: 10,
     marginBottom: 14,
   },
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   closeButtonPressed: {
     opacity: 0.8,
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   valueUnit: {
-    color: '#93c5fd',
+    color: '#2563eb',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -734,9 +734,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 12,
     marginBottom: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     gap: 4,
   },
   sourceCardLabel: {
@@ -764,7 +764,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: colors.surfaceBorder,
   },
   contextItem: {
     flex: 1,
@@ -786,15 +786,15 @@ const styles = StyleSheet.create({
   contextDivider: {
     width: 1,
     height: 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
   },
   emptyCard: {
     borderRadius: 18,
     padding: 16,
     marginBottom: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     gap: 6,
   },
   emptyTitle: {
@@ -821,9 +821,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 9,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   periodTabSelected: {
     backgroundColor: 'rgba(37, 99, 235, 0.14)',
@@ -838,13 +838,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   periodTabTextSelected: {
-    color: '#93c5fd',
+    color: '#2563eb',
   },
   summaryCard: {
     borderRadius: 18,
     padding: 14,
     marginBottom: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.07)',
   },
@@ -879,7 +879,7 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   summaryStatValueHighlight: {
-    color: '#93c5fd',
+    color: '#2563eb',
   },
   summaryTotal: {
     color: colors.text,
@@ -901,7 +901,7 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 6,
     marginBottom: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.07)',
   },
@@ -943,7 +943,7 @@ const styles = StyleSheet.create({
   },
   rowDivider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   emptyListText: {
     color: colors.textSubtle,
@@ -970,7 +970,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   connectBannerAction: {
-    color: '#93c5fd',
+    color: '#2563eb',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -989,7 +989,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(147, 197, 253, 0.22)',
     paddingVertical: 10,
@@ -998,7 +998,7 @@ const styles = StyleSheet.create({
     opacity: 0.82,
   },
   secondaryActionText: {
-    color: '#93c5fd',
+    color: '#2563eb',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -1019,9 +1019,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     marginBottom: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     gap: 8,
   },
   manualFormTitle: {
@@ -1045,9 +1045,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   durationChipSelected: {
     backgroundColor: 'rgba(37, 99, 235, 0.14)',
@@ -1062,7 +1062,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   durationChipTextSelected: {
-    color: '#93c5fd',
+    color: '#2563eb',
   },
   stepsInput: {
     backgroundColor: colors.inputBg,
@@ -1076,7 +1076,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   manualFormEstimate: {
-    color: '#93c5fd',
+    color: '#2563eb',
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',

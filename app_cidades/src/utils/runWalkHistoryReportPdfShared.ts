@@ -152,14 +152,14 @@ export function buildRunWalkHistoryReportHtml(
   <style>
     @page { margin: 16mm 12mm; }
     * { box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #1f2937; margin: 0; font-size: 11px; line-height: 1.45; }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #10b981; padding-bottom: 14px; margin-bottom: 18px; gap: 16px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #ffffff; color: #1a1a1f; margin: 0; font-size: 11px; line-height: 1.45; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #ff6b00; padding-bottom: 14px; margin-bottom: 18px; gap: 16px; }
     .brand-logo { height: 46px; width: auto; max-width: 220px; object-fit: contain; display: block; }
     .brand-title { font-size: 22px; font-weight: 800; color: #111827; }
     .doc-meta { text-align: right; color: #6b7280; font-size: 10px; }
     .doc-meta strong { color: #111827; display: block; font-size: 12px; }
-    .hero { background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%); border: 1px solid #6ee7b7; border-radius: 16px; padding: 18px; margin-bottom: 16px; text-align: center; }
-    .hero-eyebrow { color: #059669; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
+    .hero { background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%); border: 1px solid #fed7aa; border-radius: 16px; padding: 18px; margin-bottom: 16px; text-align: center; }
+    .hero-eyebrow { color: #c2410c; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
     .hero-value { font-size: 34px; font-weight: 900; color: #111827; margin: 6px 0; }
     .hero-meta { color: #6b7280; font-size: 10px; }
     .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
@@ -170,7 +170,7 @@ export function buildRunWalkHistoryReportHtml(
     .kpi-value { font-size: 18px; font-weight: 900; margin-top: 4px; color: #111827; }
     .kpi-note { color: #9ca3af; font-size: 9px; margin-top: 2px; }
     .section { margin-bottom: 16px; page-break-inside: avoid; }
-    .section-title { font-size: 13px; font-weight: 800; color: #111827; margin: 0 0 8px; }
+    .section-title { font-size: 13px; font-weight: 800; color: #111827; margin: 0 0 8px; padding-left: 10px; border-left: 4px solid #ff6b00; }
     .highlights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .highlight-card { border: 1px solid #e5e7eb; border-radius: 14px; padding: 12px; text-align: center; background: #fff; }
     .highlight-title { font-size: 9px; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; }

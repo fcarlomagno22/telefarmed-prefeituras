@@ -20,6 +20,7 @@ import {
 } from 'react-native'
 import { submitRunningRouteSpot } from '../../../data/runningRouteSpotsService'
 import { colors } from '../../../theme/colors'
+import { drawerChrome } from '../../../theme/drawerChrome'
 import type { RegistrationAddress } from '../../../types/auth'
 import type {
   RunningRouteLocationSource,
@@ -444,7 +445,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: '#0e0e14',
+    backgroundColor: drawerChrome.surfaceBottom,
     width: '100%',
   },
   footerButtonWrap: {

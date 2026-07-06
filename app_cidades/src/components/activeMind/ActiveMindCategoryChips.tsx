@@ -58,9 +58,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   chipSelected: {
     backgroundColor: 'rgba(244, 114, 182, 0.18)',
@@ -75,6 +75,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   chipLabelSelected: {
-    color: '#fbcfe8',
+    color: '#be185d',
   },
 })

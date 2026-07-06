@@ -75,9 +75,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 3,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
     overflow: 'hidden',
   },
   tabPressable: {
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   tabPressableActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    backgroundColor: colors.surface,
   },
   tabPressed: {
     opacity: 0.88,

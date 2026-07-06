@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     paddingLeft: 4,
   },
   bulletDot: {
-    color: '#86efac',
+    color: '#15803d',
     fontSize: 14,
     lineHeight: 19,
   },

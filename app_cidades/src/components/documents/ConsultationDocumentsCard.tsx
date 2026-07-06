@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 import { scheduleDoctors } from '../../data/mockScheduleCatalog'
 import { colors } from '../../theme/colors'
+import { getDocumentsConsultationCardColors } from '../../theme/consultationDocumentColors'
 import type { ConsultationDocumentsEntry } from '../../types/myDocuments'
 import { formatDocumentCountsLabel } from '../../utils/myDocuments'
 import { getAppointmentDateTime } from '../../utils/myAppointments'
@@ -23,6 +24,7 @@ export function ConsultationDocumentsCard({
   const { appointment, counts } = entry
   const doctor = scheduleDoctors.find((item) => item.id === appointment.selectedDoctorId)
   const appointmentDate = getAppointmentDateTime(appointment)
+  const cardColors = getDocumentsConsultationCardColors(featured)
 
   function handlePress() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
@@ -32,27 +34,25 @@ export function ConsultationDocumentsCard({
   return (
     <View style={styles.wrap}>
       <LinearGradient
-        colors={
-          featured
-            ? [
-                'rgba(168, 85, 247, 0.28)',
-                'rgba(168, 85, 247, 0.12)',
-                'rgba(14, 14, 20, 0.98)',
-              ]
-            : [
-                'rgba(168, 85, 247, 0.20)',
-                'rgba(147, 51, 234, 0.10)',
-                'rgba(14, 14, 20, 0.98)',
-              ]
-        }
+        colors={[...cardColors.cardGradient]}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.card, featured ? styles.cardFeatured : null]}
+        end={{ x: 0, y: 1 }}
+        style={[styles.card, { borderColor: cardColors.cardBorder }]}
       >
         {featured ? (
-          <View style={styles.featuredBadge}>
-            <Ionicons name="time-outline" size={12} color="#e9d5ff" />
-            <Text style={styles.featuredBadgeText}>Última consulta</Text>
+          <View
+            style={[
+              styles.featuredBadge,
+              {
+                backgroundColor: cardColors.tagBackground,
+                borderColor: cardColors.tagBorder,
+              },
+            ]}
+          >
+            <Ionicons name="time-outline" size={12} color={cardColors.tagText} />
+            <Text style={[styles.featuredBadgeText, { color: cardColors.tagText }]}>
+              Última consulta
+            </Text>
           </View>
         ) : null}
 
@@ -95,9 +95,19 @@ export function ConsultationDocumentsCard({
             <Text style={styles.doctorFallback}>com {appointment.selectedDoctorName}</Text>
           )}
 
-          <View style={styles.documentsChip}>
-            <Ionicons name="documents-outline" size={14} color="#e9d5ff" />
-            <Text style={styles.documentsChipText}>{formatDocumentCountsLabel(counts)}</Text>
+          <View
+            style={[
+              styles.documentsChip,
+              {
+                backgroundColor: cardColors.tagBackground,
+                borderColor: cardColors.tagBorder,
+              },
+            ]}
+          >
+            <Ionicons name="documents-outline" size={14} color={cardColors.tagText} />
+            <Text style={[styles.documentsChipText, { color: cardColors.tagText }]}>
+              {formatDocumentCountsLabel(counts)}
+            </Text>
           </View>
         </Pressable>
       </LinearGradient>
@@ -114,11 +124,8 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 8,
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.28)',
     borderRadius: 18,
-  },
-  cardFeatured: {
-    borderColor: 'rgba(196, 181, 253, 0.38)',
+    backgroundColor: colors.cardBg,
   },
   featuredBadge: {
     flexDirection: 'row',
@@ -128,12 +135,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(168, 85, 247, 0.14)',
     borderWidth: 1,
-    borderColor: 'rgba(196, 181, 253, 0.28)',
   },
   featuredBadgeText: {
-    color: '#e9d5ff',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.2,
@@ -201,14 +205,14 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingTop: 4,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: colors.surfaceBorder,
   },
   avatar: {
     width: 36,
     height: 36,
     borderRadius: 18,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
   },
   doctorTextCol: {
     flex: 1,
@@ -237,12 +241,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(168, 85, 247, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(196, 181, 253, 0.22)',
   },
   documentsChipText: {
-    color: '#e9d5ff',
     fontSize: 11,
     fontWeight: '700',
   },

@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from 'react'
 import {
   Animated,
   Easing,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -16,6 +15,7 @@ import { AppModal } from '../AppModal'
 import type { ThemeColors } from '../../theme/palettes'
 import { useThemedStyles } from '../../hooks/useThemedStyles'
 import { useTheme } from '../../contexts/ThemeContext'
+import { myRoutineAccent } from '../../theme/myRoutineAccent'
 
 const FAB_RIGHT = 18
 const POPOVER_WIDTH = 280
@@ -105,44 +105,63 @@ export function MyRoutineFabPopover({
     <AppModal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.host}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
+          <BlurView intensity={40} tint="light" style={StyleSheet.absoluteFillObject} />
+          <View style={styles.backdropTint} />
           <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-          {Platform.OS === 'ios' ? (
-            <BlurView intensity={22} tint="dark" style={StyleSheet.absoluteFillObject} />
-          ) : null}
         </Animated.View>
 
         <View style={[styles.anchor, { bottom: fabBottom, right: FAB_RIGHT, width: POPOVER_WIDTH }]}>
           <Animated.View style={[styles.cardClip, { maxHeight: cardHeight, opacity: cardOpacity }]}>
             <LinearGradient
-              colors={['rgba(28, 16, 32, 0.98)', 'rgba(12, 10, 14, 0.98)']}
-              style={styles.shell}
+              colors={['#fdf4ff', '#ffffff', '#ffffff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.popoverShell}
             >
-              <View style={styles.header}>
-                <Text style={styles.headerEyebrow}>Ações rápidas</Text>
-              </View>
-              {ACTIONS.map((action, index) => (
-                <View key={action.id}>
-                  <Pressable
-                    onPress={() => {
-                      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                      onAction(action.id)
-                      onClose()
-                    }}
-                    style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-                  >
-                    <Ionicons name={action.icon} size={18} color="#f0abfc" />
-                    <View style={styles.copy}>
-                      <Text style={styles.label}>{action.label}</Text>
-                      <Text style={styles.subtitle}>{action.subtitle}</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={16} color={colors.textSubtle} />
-                  </Pressable>
-                  {index < ACTIONS.length - 1 ? <View style={styles.separator} /> : null}
+              <LinearGradient
+                colors={['rgba(240, 171, 252, 0.35)', 'rgba(217, 70, 239, 0.12)', 'rgba(162, 28, 175, 0.2)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.popoverBorder}
+              />
+
+              <View style={styles.popoverInner}>
+                <View style={styles.header}>
+                  <Text style={styles.headerEyebrow}>Ações rápidas</Text>
                 </View>
-              ))}
+
+                {ACTIONS.map((action, index) => (
+                  <View key={action.id}>
+                    <Pressable
+                      onPress={() => {
+                        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                        onAction(action.id)
+                        onClose()
+                      }}
+                      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+                    >
+                      <Ionicons name={action.icon} size={18} color={myRoutineAccent.chipTextSelected} />
+                      <View style={styles.copy}>
+                        <Text style={styles.label}>{action.label}</Text>
+                        <Text style={styles.subtitle}>{action.subtitle}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={16} color={colors.textSubtle} />
+                    </Pressable>
+                    {index < ACTIONS.length - 1 ? <View style={styles.separator} /> : null}
+                  </View>
+                ))}
+              </View>
             </LinearGradient>
           </Animated.View>
-          <View style={styles.baseLine} />
+
+          <View style={styles.baseLine}>
+            <LinearGradient
+              colors={['rgba(240, 171, 252, 0.25)', myRoutineAccent.accent, 'rgba(162, 28, 175, 0.55)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.baseLineGradient}
+            />
+          </View>
         </View>
       </View>
     </AppModal>
@@ -154,7 +173,11 @@ function createStyles(colors: ThemeColors) {
   host: { flex: 1 },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.38)',
+    overflow: 'hidden',
+  },
+  backdropTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15, 23, 42, 0.18)',
   },
   anchor: {
     position: 'absolute',
@@ -166,20 +189,48 @@ function createStyles(colors: ThemeColors) {
     overflow: 'hidden',
     marginBottom: BASE_LINE_HEIGHT,
   },
-  shell: {
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(240, 171, 252, 0.18)',
+  popoverShell: {
+    width: '100%',
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+    padding: 1,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 14,
+  },
+  popoverBorder: {
+    ...StyleSheet.absoluteFillObject,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+    opacity: 0.7,
+  },
+  popoverInner: {
+    borderTopLeftRadius: 21,
+    borderTopRightRadius: 21,
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3,
     overflow: 'hidden',
+    backgroundColor: myRoutineAccent.cardBackground,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: 'rgba(217, 70, 239, 0.22)',
   },
   header: {
     paddingHorizontal: 14,
     paddingTop: 12,
-    paddingBottom: 8,
-    backgroundColor: 'rgba(217, 70, 239, 0.08)',
+    paddingBottom: 10,
+    backgroundColor: '#fdf4ff',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: myRoutineAccent.cardBorder,
   },
   headerEyebrow: {
-    color: '#f0abfc',
+    color: myRoutineAccent.chipTextSelected,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.2,
@@ -193,7 +244,7 @@ function createStyles(colors: ThemeColors) {
     paddingVertical: 13,
   },
   rowPressed: {
-    backgroundColor: 'rgba(217, 70, 239, 0.08)',
+    backgroundColor: '#fdf4ff',
   },
   copy: { flex: 1, gap: 2 },
   label: {
@@ -207,17 +258,20 @@ function createStyles(colors: ThemeColors) {
     fontWeight: '600',
   },
   separator: {
-    height: 0.5,
+    height: StyleSheet.hairlineWidth,
     marginLeft: 14,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: myRoutineAccent.cardBorder,
   },
   baseLine: {
     width: 56,
     height: BASE_LINE_HEIGHT,
     borderRadius: 999,
-    backgroundColor: '#d946ef',
+    overflow: 'hidden',
     alignSelf: 'flex-end',
+  },
+  baseLineGradient: {
+    flex: 1,
+    borderRadius: 999,
   },
 }
 }
-

@@ -20,7 +20,9 @@ import { PrimaryButton } from '../PrimaryButton'
 import { getModalFooterPadding } from '../../utils/modalSafeArea'
 
 const SHEET_OFFSET = 460
-const IMC_GRADIENT = ['#67e8f9', '#0891b2', '#0e7490'] as const
+const IMC_GRADIENT = ['#38bdf8', '#0284c7', '#0e7490'] as const
+const IMC_VALUE_GRADIENT = ['#e0f2fe', '#7dd3fc', '#38bdf8'] as const
+const IMC_VALUE_ACCENT = '#0369a1'
 
 type ImcDrawerProps = {
   visible: boolean
@@ -130,11 +132,11 @@ export function ImcDrawer({
             ]}
           >
             <LinearGradient
-              colors={['rgba(36, 36, 46, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+              colors={[colors.backgroundElevated, '#f0f0f2']}
               style={StyleSheet.absoluteFillObject}
             />
             {Platform.OS === 'ios' ? (
-              <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+              <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
             ) : null}
 
             <LinearGradient
@@ -181,25 +183,44 @@ export function ImcDrawer({
 
             {canCalculate && imc !== null && zone ? (
               <View style={styles.metricsRow}>
-                <View style={styles.valueCard}>
+                <LinearGradient
+                  colors={[...IMC_VALUE_GRADIENT]}
+                  start={{ x: 0.15, y: 0 }}
+                  end={{ x: 0.85, y: 1 }}
+                  style={styles.valueCard}
+                >
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0)']}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 1 }}
+                    style={styles.cardGloss}
+                    pointerEvents="none"
+                  />
                   <Text style={styles.cardLabel}>Seu índice</Text>
                   <Text style={styles.valueText}>{formatImcValue(imc)}</Text>
                   <Text style={styles.valueUnit}>kg/m²</Text>
-                </View>
+                </LinearGradient>
 
-                <View
-                  style={[
-                    styles.zoneCard,
-                    { backgroundColor: zone.bg, borderColor: zone.border },
-                  ]}
+                <LinearGradient
+                  colors={[...zone.gradient]}
+                  start={{ x: 0.12, y: 0 }}
+                  end={{ x: 0.88, y: 1 }}
+                  style={[styles.zoneCard, { borderColor: zone.border }]}
                 >
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0)']}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 0.65 }}
+                    style={styles.cardGloss}
+                    pointerEvents="none"
+                  />
                   <Text style={styles.cardLabel}>Classificação</Text>
                   <View style={styles.zoneBadgeRow}>
                     <View style={[styles.zoneDot, { backgroundColor: zone.color }]} />
                     <Text style={[styles.zoneLabel, { color: zone.color }]}>{zone.label}</Text>
                   </View>
                   <Text style={[styles.zoneRange, { color: zone.color }]}>OMS · {zone.rangeLabel}</Text>
-                </View>
+                </LinearGradient>
               </View>
             ) : (
               <View style={styles.emptyCard}>
@@ -218,7 +239,14 @@ export function ImcDrawer({
                   accessibilityRole="button"
                   accessibilityLabel="Atualizar peso"
                 >
-                  <MaterialCommunityIcons name="weight-kilogram" size={18} color="#67e8f9" />
+                  <LinearGradient
+                    colors={[...IMC_GRADIENT]}
+                    start={{ x: 0.2, y: 0 }}
+                    end={{ x: 0.85, y: 1 }}
+                    style={styles.sourceIconOrb}
+                  >
+                    <MaterialCommunityIcons name="weight-kilogram" size={16} color="#fff" />
+                  </LinearGradient>
                   <Text style={styles.sourceFieldLabel}>Peso</Text>
                   <Text style={styles.sourceFieldValue}>{profile.weight || '—'}</Text>
                 </Pressable>
@@ -231,11 +259,14 @@ export function ImcDrawer({
                   accessibilityRole="button"
                   accessibilityLabel="Atualizar altura"
                 >
-                  <MaterialCommunityIcons
-                    name="human-male-height-variant"
-                    size={18}
-                    color="#67e8f9"
-                  />
+                  <LinearGradient
+                    colors={[...IMC_GRADIENT]}
+                    start={{ x: 0.2, y: 0 }}
+                    end={{ x: 0.85, y: 1 }}
+                    style={styles.sourceIconOrb}
+                  >
+                    <MaterialCommunityIcons name="human-male-height-variant" size={16} color="#fff" />
+                  </LinearGradient>
                   <Text style={styles.sourceFieldLabel}>Altura</Text>
                   <Text style={styles.sourceFieldValue}>{profile.height || '—'}</Text>
                 </Pressable>
@@ -255,7 +286,14 @@ export function ImcDrawer({
                 accessibilityRole="button"
                 accessibilityLabel="Atualizar altura"
               >
-                <MaterialCommunityIcons name="human-male-height-variant" size={18} color="#67e8f9" />
+                <LinearGradient
+                  colors={[...IMC_GRADIENT]}
+                  start={{ x: 0.2, y: 0 }}
+                  end={{ x: 0.85, y: 1 }}
+                  style={styles.secondaryActionIconOrb}
+                >
+                  <MaterialCommunityIcons name="human-male-height-variant" size={16} color="#fff" />
+                </LinearGradient>
                 <Text style={styles.secondaryActionText}>Altura</Text>
               </Pressable>
             </View>
@@ -278,7 +316,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   keyboardWrap: {
     justifyContent: 'flex-end',
@@ -290,7 +328,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 0,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   topAccent: {
     position: 'absolute',
@@ -304,7 +342,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginTop: 10,
     marginBottom: 14,
   },
@@ -348,7 +386,7 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   closeButtonPressed: {
     opacity: 0.8,
@@ -373,12 +411,12 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingVertical: 14,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(8, 145, 178, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(103, 232, 249, 0.35)',
+    borderColor: 'rgba(2, 132, 199, 0.35)',
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 96,
+    overflow: 'hidden',
   },
   zoneCard: {
     flex: 1,
@@ -389,6 +427,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 96,
     gap: 6,
+    overflow: 'hidden',
+  },
+  cardGloss: {
+    ...StyleSheet.absoluteFillObject,
   },
   cardLabel: {
     color: colors.textMuted,
@@ -408,9 +450,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   valueUnit: {
-    color: '#67e8f9',
+    color: IMC_VALUE_ACCENT,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   zoneBadgeRow: {
     flexDirection: 'row',
@@ -431,9 +473,9 @@ const styles = StyleSheet.create({
   },
   zoneRange: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '700',
     textAlign: 'center',
-    opacity: 0.9,
+    opacity: 0.92,
   },
   emptyCard: {
     flexDirection: 'row',
@@ -443,9 +485,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 14,
     marginBottom: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   emptyText: {
     flex: 1,
@@ -458,9 +500,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 12,
     marginBottom: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   sourceCardLabel: {
     color: colors.textMuted,
@@ -482,7 +524,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   sourceFieldPressed: {
-    backgroundColor: 'rgba(103, 232, 249, 0.08)',
+    backgroundColor: 'rgba(2, 132, 199, 0.08)',
+  },
+  sourceIconOrb: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
   },
   sourceFieldLabel: {
     color: colors.textSubtle,
@@ -499,7 +550,7 @@ const styles = StyleSheet.create({
   },
   sourceDivider: {
     width: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surfaceBorder,
     marginVertical: 4,
   },
   actionsRow: {
@@ -515,20 +566,29 @@ const styles = StyleSheet.create({
     width: 88,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 6,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(103, 232, 249, 0.22)',
+    borderColor: 'rgba(2, 132, 199, 0.28)',
     paddingVertical: 10,
   },
   secondaryActionPressed: {
     opacity: 0.82,
   },
+  secondaryActionIconOrb: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.35)',
+  },
   secondaryActionText: {
-    color: '#67e8f9',
+    color: IMC_VALUE_ACCENT,
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   disclaimer: {
     color: colors.textSubtle,

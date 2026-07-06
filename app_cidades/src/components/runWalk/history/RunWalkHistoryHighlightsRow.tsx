@@ -80,7 +80,7 @@ function HighlightCard({
         style={({ pressed }) => [styles.cardPressable, pressed && styles.pressed]}
       >
         <LinearGradient
-          colors={[`${highlight.accent}22`, 'rgba(14, 14, 20, 0.96)']}
+          colors={[`${highlight.accent}22`, colors.backgroundElevated]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.card}
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     minHeight: 112,
     justifyContent: 'center',
     alignItems: 'center',
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     height: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   fillBar: {
     width: '100%',

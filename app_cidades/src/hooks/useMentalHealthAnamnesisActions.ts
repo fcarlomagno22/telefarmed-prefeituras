@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback } from 'react'
 import {
   loadMentalHealthClinicalState,
   mergeAnamnesisAnswersIntoClinicalState,
@@ -9,32 +9,15 @@ import { recalculateClinicalEngine } from '../mentalHealthEngine'
 import type { AnamnesisAnswerRecord, UserClinicalState } from '../types/mentalHealthEngine'
 
 export function useMentalHealthAnamnesisActions(patientCpf: string) {
-  const recalcTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
-    return () => {
-      if (recalcTimerRef.current) {
-        clearTimeout(recalcTimerRef.current)
-      }
-    }
-  }, [])
-
   const loadInitialAnswers = useCallback(async () => {
     const state = await loadMentalHealthClinicalState(patientCpf)
     return state?.anamnesis.answers_index ?? {}
   }, [patientCpf])
 
+  /** Salva resposta parcial — recálculo clínico só ao fechar módulo ou concluir anamnese. */
   const persistAnswers = useCallback(
     async (answers: Record<string, AnamnesisAnswerRecord>) => {
       await persistPartialAnamnesisAnswers(patientCpf, answers)
-
-      if (recalcTimerRef.current) {
-        clearTimeout(recalcTimerRef.current)
-      }
-
-      recalcTimerRef.current = setTimeout(() => {
-        void recalculateClinicalEngine(patientCpf, 'anamnesis')
-      }, 500)
     },
     [patientCpf],
   )

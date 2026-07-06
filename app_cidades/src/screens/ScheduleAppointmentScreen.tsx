@@ -24,7 +24,6 @@ import { ScheduleSuccessStep } from '../components/schedule/ScheduleSuccessStep'
 import { ScheduleTimeStep } from '../components/schedule/ScheduleTimeStep'
 import { ScheduleTimeline } from '../components/schedule/ScheduleTimeline'
 import { ScheduleUbtStep } from '../components/schedule/ScheduleUbtStep'
-import { appEnv } from '../config/env'
 import { createAppointmentFromDraft } from '../data/mockMyAppointments'
 import {
   fetchDoctorScheduleOverview,
@@ -32,6 +31,7 @@ import {
 } from '../data/mockScheduleCatalog'
 import { scheduleUbts } from '../data/mockScheduleUbts'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
@@ -50,13 +50,12 @@ import {
   SCHEDULE_DAY_COUNT,
   toDateKey,
 } from '../utils/scheduleDate'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 import { consumeScheduleUbtPrefill } from '../utils/schedulePrefill'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_DOCK_HEIGHT = 74
 
 export function ScheduleAppointmentScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { user, navigateTo, logout } = useAuth()
   const { requireAuth } = useGuestAuth()
@@ -507,7 +506,7 @@ export function ScheduleAppointmentScreen() {
         />
 
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'transparent', 'rgba(10, 10, 12, 0.75)']}
+          colors={[...themeColors.screenOverlay]}
           locations={[0, 0.35, 1]}
           style={styles.screenOverlay}
           pointerEvents="none"

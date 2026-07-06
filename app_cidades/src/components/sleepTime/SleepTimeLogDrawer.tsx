@@ -28,9 +28,8 @@ import {
 import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import { MetricLogSuccessContent } from '../metrics/MetricLogSuccessContent'
 import { EatWellLevelSlider } from '../eatWell/menuWizard/EatWellLevelSlider'
-import { SleepTimeStarfield } from './SleepTimeStarfield'
 
-const sleepinessAnimation = require('../../../assets/sleepiness.json')
+const sleepingHeadAnimation = require('../../../assets/Sleepinghead.json')
 
 const ACCENT = '#6366f1'
 const ACCENT_GRADIENT = ['#a5b4fc', '#6366f1', '#4338ca'] as const
@@ -65,7 +64,7 @@ function TimeStepper({ label, valueMinutes, onChange }: TimeStepperProps) {
           accessibilityRole="button"
           accessibilityLabel={`Diminuir ${label}`}
         >
-          <Ionicons name="remove" size={20} color="#fff" />
+          <Ionicons name="remove" size={20} color={ACCENT} />
         </Pressable>
 
         <View style={styles.timeValueCard}>
@@ -78,7 +77,7 @@ function TimeStepper({ label, valueMinutes, onChange }: TimeStepperProps) {
           accessibilityRole="button"
           accessibilityLabel={`Aumentar ${label}`}
         >
-          <Ionicons name="add" size={20} color="#fff" />
+          <Ionicons name="add" size={20} color={ACCENT} />
         </Pressable>
       </View>
     </View>
@@ -111,7 +110,7 @@ function WakeCountStepper({ value, onChange }: WakeCountStepperProps) {
           accessibilityRole="button"
           accessibilityLabel="Diminuir quantidade de despertares"
         >
-          <Ionicons name="remove" size={20} color="#fff" />
+          <Ionicons name="remove" size={20} color={ACCENT} />
         </Pressable>
 
         <View style={styles.timeValueCard}>
@@ -129,7 +128,7 @@ function WakeCountStepper({ value, onChange }: WakeCountStepperProps) {
           accessibilityRole="button"
           accessibilityLabel="Aumentar quantidade de despertares"
         >
-          <Ionicons name="add" size={20} color="#fff" />
+          <Ionicons name="add" size={20} color={ACCENT} />
         </Pressable>
       </View>
     </View>
@@ -224,16 +223,6 @@ export function SleepTimeLogDrawer({
       dense
       scrollable={!showSuccess}
       keyboardAware={!showSuccess}
-      sheetBackground={
-        <>
-          <LinearGradient
-            colors={['#070812', '#0a1220', '#050508']}
-            locations={[0, 0.55, 1]}
-            style={StyleSheet.absoluteFillObject}
-          />
-          <SleepTimeStarfield active={visible} />
-        </>
-      }
       footer={
         showSuccess ? undefined : (
           <Pressable
@@ -268,7 +257,7 @@ export function SleepTimeLogDrawer({
       ) : (
         <View style={styles.content}>
         <View style={styles.hero}>
-          <LottieView source={sleepinessAnimation} autoPlay loop style={styles.lottie} />
+          <LottieView source={sleepingHeadAnimation} autoPlay loop style={styles.lottie} />
         </View>
 
         <View style={styles.fieldBlock}>
@@ -374,8 +363,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   lottie: {
-    width: 220,
-    height: 96,
+    width: 120,
+    height: 120,
   },
   fieldBlock: {
     gap: 10,
@@ -398,9 +387,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   dateValueCard: {
     flex: 1,
@@ -409,9 +398,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.24)',
+    borderColor: colors.surfaceBorder,
   },
   dateValue: {
     color: colors.text,
@@ -431,9 +420,9 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(99, 102, 241, 0.18)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.28)',
+    borderColor: colors.surfaceBorder,
   },
   stepperDisabled: {
     opacity: 0.35,
@@ -447,9 +436,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   timeValue: {
     color: colors.text,
@@ -473,9 +462,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     lineHeight: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   submitButton: {
     width: '100%',

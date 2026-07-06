@@ -63,9 +63,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     padding: 3,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   tabPressable: {
     flex: 1,
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     borderRadius: 9,
   },
   tabActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    backgroundColor: colors.surface,
   },
   tabLabel: {
     color: colors.textSubtle,

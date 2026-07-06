@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
 import { type ReactNode } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../../theme/colors'
@@ -27,7 +26,7 @@ function SummaryColumn({
   deltaPct: number | null
 }) {
   const deltaColor =
-    deltaPct == null ? colors.textSubtle : deltaPct >= 0 ? '#6ee7b7' : '#fca5a5'
+    deltaPct == null ? colors.textSubtle : deltaPct >= 0 ? '#15803d' : '#dc2626'
 
   return (
     <View style={styles.column}>
@@ -55,20 +54,15 @@ export function RunWalkHistorySummaryCard({
     summary.distanceDeltaPct == null
       ? colors.textSubtle
       : summary.distanceDeltaPct >= 0
-        ? '#6ee7b7'
-        : '#fca5a5'
+        ? '#15803d'
+        : '#dc2626'
 
   return (
-    <LinearGradient
-      colors={['rgba(16, 185, 129, 0.18)', 'rgba(14, 14, 20, 0.98)']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.card}
-    >
+    <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.title}>Resumo do período</Text>
         <View style={styles.headerBadge}>
-          <Ionicons name="pulse-outline" size={13} color="#6ee7b7" />
+          <Ionicons name="pulse-outline" size={13} color="#15803d" />
           <RunWalkHistoryAnimatedNumber
             value={summary.totalWorkouts}
             animate={animate}
@@ -179,7 +173,7 @@ export function RunWalkHistorySummaryCard({
           />
         </View>
       </View>
-    </LinearGradient>
+    </View>
   )
 }
 
@@ -189,8 +183,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 18,
     gap: 16,
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.24)',
+    borderColor: 'rgba(15, 23, 42, 0.08)',
   },
   header: {
     flexDirection: 'row',
@@ -211,10 +206,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 999,
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    backgroundColor: '#dcfce7',
   },
   headerBadgeText: {
-    color: '#6ee7b7',
+    color: '#15803d',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -292,13 +287,13 @@ const styles = StyleSheet.create({
     width: 1,
     alignSelf: 'stretch',
     marginVertical: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(15, 23, 42, 0.08)',
   },
   goalsSection: {
     gap: 10,
     paddingTop: 4,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: 'rgba(15, 23, 42, 0.08)',
   },
   goalRow: {
     gap: 6,

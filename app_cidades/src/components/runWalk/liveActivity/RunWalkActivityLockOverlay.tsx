@@ -62,7 +62,7 @@ export function RunWalkActivityLockOverlay({ visible, onUnlock }: RunWalkActivit
   return (
     <View style={styles.overlay} pointerEvents="box-none">
       <View style={styles.panel}>
-        <Ionicons name="lock-closed" size={34} color={colors.text} />
+        <Ionicons name="lock-closed" size={34} color="#dc2626" />
         <Text style={styles.title}>Tela bloqueada</Text>
         <Text style={styles.subtitle}>Segure para desbloquear</Text>
 
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 30,
-    backgroundColor: 'rgba(10, 10, 12, 0.94)',
+    backgroundColor: 'rgba(255, 255, 255, 0.78)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
@@ -105,9 +105,20 @@ const styles = StyleSheet.create({
     maxWidth: 320,
     alignItems: 'center',
     gap: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 22,
+    borderRadius: 22,
+    backgroundColor: colors.backgroundElevated,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 6,
   },
   title: {
-    color: colors.text,
+    color: '#dc2626',
     fontSize: 22,
     fontWeight: '900',
     letterSpacing: -0.4,
@@ -124,8 +135,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -137,7 +148,7 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: 'rgba(34, 197, 94, 0.28)',
+    backgroundColor: 'rgba(34, 197, 94, 0.35)',
   },
   unlockLabel: {
     color: colors.text,

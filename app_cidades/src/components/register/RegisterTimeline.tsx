@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   connector: {
     height: 2,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: colors.surfaceBorder,
   },
   connectorFilled: {
     height: 2,
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dotUpcoming: {
-    borderColor: 'rgba(255, 255, 255, 0.14)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
 })

@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { activeMindGameChrome } from '../../../theme/activeMindGameChrome'
 import { colors } from '../../../theme/colors'
 import type { CrosswordEntry } from '../../../types/crossword'
 import {
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
   frame: {
     padding: 8,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(244, 114, 182, 0.22)',
     overflow: 'hidden',
@@ -213,9 +214,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: activeMindGameChrome.tileBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: activeMindGameChrome.tileBorder,
     overflow: 'hidden',
   },
   cellActiveWord: {
@@ -223,8 +224,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(244, 114, 182, 0.28)',
   },
   cellLockedCrossing: {
-    backgroundColor: 'rgba(103, 232, 249, 0.1)',
-    borderColor: 'rgba(103, 232, 249, 0.42)',
+    backgroundColor: 'rgba(14, 116, 144, 0.1)',
+    borderColor: 'rgba(14, 116, 144, 0.42)',
     borderWidth: 1.5,
   },
   cellSelected: {

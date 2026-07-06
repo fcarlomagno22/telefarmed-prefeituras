@@ -63,7 +63,7 @@ export function EatWellMealLogTimeline({ currentStep }: EatWellMealLogTimelinePr
                         end={{ x: 1, y: 1 }}
                         style={styles.dotCurrentGradient}
                       >
-                        <Ionicons name={step.icon} size={14} color="#0a0a0c" />
+                        <Ionicons name={step.icon} size={14} color={colors.text} />
                       </LinearGradient>
                     ) : (
                       <Ionicons name={step.icon} size={13} color={colors.textSubtle} />
@@ -157,6 +157,6 @@ const styles = StyleSheet.create({
   },
   dotUpcoming: {
     borderColor: 'rgba(255, 255, 255, 0.14)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
   },
 })

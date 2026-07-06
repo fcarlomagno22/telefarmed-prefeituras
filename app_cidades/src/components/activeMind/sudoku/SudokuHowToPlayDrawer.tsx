@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { SUDOKU_HOW_TO_PLAY_SECTIONS, SUDOKU_INTRO } from '../../../config/sudokuHowToPlay'
+import { activeMindGameChrome } from '../../../theme/activeMindGameChrome'
 import { colors } from '../../../theme/colors'
 import { RunWalkSheetDrawer } from '../../runWalk/RunWalkSheetDrawer'
 
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
     paddingLeft: 2,
   },
   bulletDot: {
-    color: '#67e8f9',
+    color: activeMindGameChrome.actionLink,
     fontSize: 14,
     lineHeight: 19,
     fontWeight: '700',

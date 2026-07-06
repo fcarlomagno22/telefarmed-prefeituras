@@ -349,8 +349,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surface,
   },
   rowUnread: {
     borderColor: 'rgba(255, 133, 51, 0.22)',
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
   },
   rowIconWrapUnread: {
     backgroundColor: 'rgba(255, 107, 0, 0.12)',
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(248, 113, 113, 0.08)',
   },
   deleteBtnText: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 15,
     fontWeight: '700',
   },

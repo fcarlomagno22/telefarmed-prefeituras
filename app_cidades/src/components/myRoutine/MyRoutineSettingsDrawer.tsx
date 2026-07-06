@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
+import { colors } from '../../theme/colors'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -272,7 +273,7 @@ function createStyles(colors: ThemeColors) {
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
   },
   panel: {
     flex: 1,
@@ -282,7 +283,7 @@ function createStyles(colors: ThemeColors) {
     borderBottomLeftRadius: 20,
     borderWidth: StyleSheet.hairlineWidth,
     borderRightWidth: 0,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   header: {
     flexDirection: 'row',
@@ -323,9 +324,9 @@ function createStyles(colors: ThemeColors) {
   },
   groupCard: {
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.surfaceBorder,
     overflow: 'hidden',
   },
   metaRow: {
@@ -338,7 +339,7 @@ function createStyles(colors: ThemeColors) {
   },
   metaRowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderBottomColor: colors.surfaceBorder,
   },
   metaLabel: {
     color: colors.textMuted,
@@ -370,7 +371,7 @@ function createStyles(colors: ThemeColors) {
   },
   menuRowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderBottomColor: colors.surfaceBorder,
   },
   menuRowText: {
     color: colors.text,
@@ -389,7 +390,7 @@ function createStyles(colors: ThemeColors) {
     borderColor: 'rgba(248, 113, 113, 0.25)',
   },
   dangerText: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 14,
     fontWeight: '800',
   },

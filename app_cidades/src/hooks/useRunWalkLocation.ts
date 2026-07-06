@@ -193,8 +193,13 @@ export function useRunWalkLocation({
 
       await enableNetworkProviderAsync().catch(() => undefined)
 
+      const initialAccuracy =
+        trackingMode === 'activity' ? Accuracy.High : Accuracy.Balanced
+      const watchAccuracy =
+        trackingMode === 'activity' ? Accuracy.BestForNavigation : Accuracy.Balanced
+
       const position = await getCurrentPositionAsync({
-        accuracy: Accuracy.High,
+        accuracy: initialAccuracy,
       })
 
       applyPosition(
@@ -209,7 +214,7 @@ export function useRunWalkLocation({
       const watchOptions = TRACKING_WATCH_OPTIONS[trackingMode]
       watchRef.current = await watchPositionAsync(
         {
-          accuracy: Accuracy.BestForNavigation,
+          accuracy: watchAccuracy,
           distanceInterval: watchOptions.distanceInterval,
           timeInterval: watchOptions.timeInterval,
         },

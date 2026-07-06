@@ -13,12 +13,12 @@ import {
 } from '../../data/sleepStoryReaderPreferencesStorage'
 import { getSleepStoryCategoryById, getSleepStoryById } from '../../config/sleepStories'
 import { getSleepStoryContent } from '../../config/sleepStoryContents'
-import { colors } from '../../theme/colors'
 import type { SleepStoryId } from '../../types/sleepStories'
 import { estimateSleepStoryReadingMinutes } from '../../utils/sleepStoryReadingTime'
 import { BibleVerseFontControls } from '../bible/BibleVerseFontControls'
 import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import { SleepTimeStarfield } from '../sleepTime/SleepTimeStarfield'
+import { sleepTimeDrawerTheme } from '../sleepTime/sleepTimeDrawerTheme'
 import { SleepStoryReaderParagraph } from './SleepStoryReaderParagraph'
 
 type SleepStoryReaderDrawerProps = {
@@ -92,11 +92,11 @@ export function SleepStoryReaderDrawer({ visible, storyId, onClose }: SleepStory
       fullScreen
       scrollable
       dense
+      tone="sleep"
       sheetBackground={
         <>
           <LinearGradient
-            colors={['#070812', '#0c0a1a', '#050508']}
-            locations={[0, 0.55, 1]}
+            colors={[...sleepTimeDrawerTheme.gradient]}
             style={StyleSheet.absoluteFillObject}
           />
           <SleepTimeStarfield active={visible} />
@@ -150,6 +150,7 @@ export function SleepStoryReaderDrawer({ visible, storyId, onClose }: SleepStory
                   maxSize={SLEEP_STORY_FONT_MAX}
                   onDecrease={handleDecreaseFont}
                   onIncrease={handleIncreaseFont}
+                  tone="dark"
                 />
               </View>
             </View>
@@ -220,7 +221,7 @@ export function SleepStoryReaderDrawer({ visible, storyId, onClose }: SleepStory
           </>
         ) : (
           <View style={styles.placeholderCard}>
-            <MaterialCommunityIcons name="book-clock-outline" size={28} color={colors.textSubtle} />
+            <MaterialCommunityIcons name="book-clock-outline" size={28} color={sleepTimeDrawerTheme.textSubtle} />
             <Text style={styles.placeholderTitle}>Texto completo em breve</Text>
             <Text style={styles.placeholderText}>{story.summary}</Text>
           </View>
@@ -260,14 +261,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   heroEyebrow: {
-    color: colors.textSubtle,
+    color: sleepTimeDrawerTheme.textSubtle,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   heroTitle: {
-    color: colors.text,
+    color: sleepTimeDrawerTheme.text,
     fontSize: 24,
     fontWeight: '800',
     letterSpacing: -0.5,
@@ -284,7 +285,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 16,
     borderWidth: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: sleepTimeDrawerTheme.chipBackground,
+    borderColor: sleepTimeDrawerTheme.chipBorder,
   },
   readerToolbarCopy: {
     flex: 1,
@@ -294,7 +296,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   readerToolbarLabel: {
-    color: colors.textMuted,
+    color: sleepTimeDrawerTheme.textMuted,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: -0.1,
@@ -307,7 +309,7 @@ const styles = StyleSheet.create({
   fontSizeBadge: {
     minWidth: 28,
     textAlign: 'center',
-    color: colors.textSubtle,
+    color: sleepTimeDrawerTheme.textSubtle,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.2,
@@ -360,7 +362,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   lessonText: {
-    color: colors.textMuted,
+    color: sleepTimeDrawerTheme.textMuted,
     fontWeight: '500',
   },
   placeholderCard: {
@@ -369,18 +371,18 @@ const styles = StyleSheet.create({
     paddingVertical: 28,
     paddingHorizontal: 20,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: sleepTimeDrawerTheme.chipBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: sleepTimeDrawerTheme.chipBorder,
   },
   placeholderTitle: {
-    color: colors.text,
+    color: sleepTimeDrawerTheme.text,
     fontSize: 16,
     fontWeight: '800',
     textAlign: 'center',
   },
   placeholderText: {
-    color: colors.textMuted,
+    color: sleepTimeDrawerTheme.textMuted,
     fontSize: 14,
     fontWeight: '500',
     lineHeight: 21,

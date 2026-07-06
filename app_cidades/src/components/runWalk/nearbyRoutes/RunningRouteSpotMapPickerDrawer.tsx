@@ -7,6 +7,7 @@ import {
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../../theme/colors'
+import { drawerChrome } from '../../../theme/drawerChrome'
 import { resolveAddressLabelFromCoordinates } from '../../../utils/runningRouteGeocoding'
 import { PrimaryButton } from '../../PrimaryButton'
 import { RunWalkSheetDrawer } from '../RunWalkSheetDrawer'
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: '#0e0e14',
+    backgroundColor: drawerChrome.surfaceBottom,
     gap: 10,
   },
   previewBox: {

@@ -11,8 +11,10 @@ import {
 import type {
   AppointmentPosConsultaCheckinItem,
   AppointmentPosConsultaPlan,
+  AppointmentPosConsultaPlanStatus,
   PostConsultationPlanEntry,
 } from '../types/appointmentPostConsultation'
+import { colors } from '../theme/colors'
 import type {
   PosConsultaCheckinContext,
   PosConsultaCheckinRespostas,
@@ -182,41 +184,52 @@ export function getPlanStatusLabel(status: AppointmentPosConsultaPlan['status'])
   return 'Sem acompanhamento'
 }
 
-export function getPlanStatusColors(status: AppointmentPosConsultaPlan['status']) {
+export function getPlanStatusColors(
+  status: AppointmentPosConsultaPlanStatus,
+  featured = false,
+) {
+  const white = colors.cardBg
+
   if (status === 'ativo') {
     return {
-      text: '#7dd3fc',
-      background: 'rgba(14, 165, 233, 0.14)',
-      border: 'rgba(14, 165, 233, 0.35)',
+      text: '#0369a1',
+      background: 'rgba(14, 165, 233, 0.12)',
+      border: 'rgba(14, 165, 233, 0.24)',
+      cardGradient: featured
+        ? ([white, white, 'rgba(14, 165, 233, 0.08)'] as const)
+        : ([white, white, 'rgba(14, 165, 233, 0.06)'] as const),
+      cardBorder: 'rgba(14, 165, 233, 0.16)',
     }
   }
+
   if (status === 'encerrado') {
     return {
-      text: colorsMuted(),
-      background: 'rgba(255, 255, 255, 0.05)',
-      border: 'rgba(255, 255, 255, 0.1)',
+      text: '#52525b',
+      background: 'rgba(0, 0, 0, 0.05)',
+      border: 'rgba(0, 0, 0, 0.1)',
+      cardGradient: [white, white, 'rgba(0, 0, 0, 0.03)'] as const,
+      cardBorder: colors.surfaceBorder,
     }
   }
-  return {
-    text: '#fcd34d',
-    background: 'rgba(245, 158, 11, 0.12)',
-    border: 'rgba(245, 158, 11, 0.3)',
-  }
-}
 
-function colorsMuted() {
-  return '#94a3b8'
+  return {
+    text: '#b45309',
+    background: 'rgba(245, 158, 11, 0.12)',
+    border: 'rgba(245, 158, 11, 0.24)',
+    cardGradient: [white, white, 'rgba(245, 158, 11, 0.06)'] as const,
+    cardBorder: 'rgba(245, 158, 11, 0.16)',
+  }
 }
 
 export function getEvolucaoBadge(evolucao: PosConsultaCheckinRespostas['evolucaoComparacao']) {
   if (evolucao === 'melhorou') {
-    return { label: 'Melhorou', text: '#6ee7b7', background: 'rgba(16, 185, 129, 0.14)' }
+    return { label: 'Melhorou', text: '#047857', background: 'rgba(16, 185, 129, 0.12)' }
   }
   if (evolucao === 'piorou') {
-    return { label: 'Piorou', text: '#fda4af', background: 'rgba(244, 63, 94, 0.14)' }
+    return { label: 'Piorou', text: '#b91c1c', background: 'rgba(244, 63, 94, 0.1)' }
   }
   if (evolucao === 'igual') {
-    return { label: 'Estável', text: '#7dd3fc', background: 'rgba(14, 165, 233, 0.14)' }
+    return { label: 'Estável', text: '#0369a1', background: 'rgba(14, 165, 233, 0.12)' }
   }
   return null
 }

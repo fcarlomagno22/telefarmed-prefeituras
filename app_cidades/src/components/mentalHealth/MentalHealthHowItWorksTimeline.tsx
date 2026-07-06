@@ -176,13 +176,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dotCurrentNumber: {
-    color: '#0a0a0c',
+    color: colors.text,
     fontSize: 15,
     fontWeight: '900',
   },
   dotUpcoming: {
     borderColor: 'rgba(255, 255, 255, 0.14)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
   },
   dotUpcomingNumber: {
     color: colors.textSubtle,

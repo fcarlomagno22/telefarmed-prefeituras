@@ -54,10 +54,10 @@ export function SleepTimeSoundMiniPlayer({
   return (
     <View style={[styles.wrap, { paddingTop }]}>
       {Platform.OS === 'ios' ? (
-        <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+        <BlurView intensity={32} tint="light" style={StyleSheet.absoluteFillObject} />
       ) : null}
       <LinearGradient
-        colors={['rgba(7, 8, 18, 0.96)', 'rgba(10, 10, 18, 0.92)']}
+        colors={['rgba(255, 255, 255, 0.96)', 'rgba(248, 248, 250, 0.98)']}
         style={StyleSheet.absoluteFillObject}
       />
 
@@ -80,7 +80,9 @@ export function SleepTimeSoundMiniPlayer({
           <Text style={styles.title} numberOfLines={1}>
             {title}
           </Text>
-          <Text style={styles.subtitle}>{isPaused ? 'Pausado' : 'Tocando agora'}</Text>
+          <Text style={[styles.subtitle, { color: accentColor }]}>
+            {isPaused ? 'Pausado' : 'Tocando agora'}
+          </Text>
         </Pressable>
 
         <Pressable
@@ -89,7 +91,7 @@ export function SleepTimeSoundMiniPlayer({
           accessibilityRole="button"
           accessibilityLabel={isPaused ? 'Retomar' : 'Pausar'}
         >
-          <Ionicons name={isPaused ? 'play' : 'pause'} size={18} color="#fff" />
+          <Ionicons name={isPaused ? 'play' : 'pause'} size={18} color={accentColor} />
         </Pressable>
 
         <Pressable
@@ -107,7 +109,11 @@ export function SleepTimeSoundMiniPlayer({
           accessibilityRole="button"
           accessibilityLabel="Diminuir volume"
         >
-          <Ionicons name="remove" size={16} color={canDecrease ? '#fff' : colors.textSubtle} />
+          <Ionicons
+            name="remove"
+            size={16}
+            color={canDecrease ? accentColor : colors.textSubtle}
+          />
         </Pressable>
 
         <View style={styles.volumeTrack}>
@@ -131,7 +137,7 @@ export function SleepTimeSoundMiniPlayer({
           accessibilityRole="button"
           accessibilityLabel="Aumentar volume"
         >
-          <Ionicons name="add" size={16} color={canIncrease ? '#fff' : colors.textSubtle} />
+          <Ionicons name="add" size={16} color={canIncrease ? accentColor : colors.textSubtle} />
         </Pressable>
 
         <Pressable
@@ -140,7 +146,7 @@ export function SleepTimeSoundMiniPlayer({
           accessibilityRole="button"
           accessibilityLabel="Encerrar som"
         >
-          <Ionicons name="close" size={18} color="#fff" />
+          <Ionicons name="close" size={18} color={colors.textMuted} />
         </Pressable>
       </View>
     </View>
@@ -152,7 +158,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+    borderBottomColor: colors.surfaceBorder,
     overflow: 'hidden',
   },
   row: {
@@ -166,9 +172,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   titlePressable: {
     flex: 1,
@@ -194,7 +200,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
   },
   iconBtnDisabled: {
     opacity: 0.35,
@@ -203,7 +211,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: colors.surfaceBorder,
     overflow: 'hidden',
   },
   volumeFill: {
@@ -216,9 +224,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: colors.surfaceBorder,
   },
   pressed: {
     opacity: 0.82,

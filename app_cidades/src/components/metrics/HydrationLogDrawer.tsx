@@ -36,7 +36,12 @@ const DRAG_THRESHOLD_PX = 20
 const CUP_WIDTH = 108
 const CUP_HEIGHT = 168
 const CUP_GRADIENT = ['#7dd3fc', '#0ea5e9', '#0369a1'] as const
+const HYDRATION_VALUE_GRADIENT = ['#ecfeff', '#bae6fd', '#38bdf8'] as const
+const CUP_WALL_STROKE = 'rgba(0, 0, 0, 0.14)'
 const CUP_SHAPE_PATH = `M18 12 H${CUP_WIDTH - 18} Q${CUP_WIDTH - 8} 12 ${CUP_WIDTH - 10} 24 L${CUP_WIDTH - 14} ${CUP_HEIGHT - 16} Q${CUP_WIDTH - 16} ${CUP_HEIGHT - 4} ${CUP_WIDTH - 28} ${CUP_HEIGHT - 4} H28 Q16 ${CUP_HEIGHT - 4} 14 ${CUP_HEIGHT - 16} L10 24 Q8 12 18 12 Z`
+const CUP_LEFT_WALL_PATH = `M 10 24 L 14 ${CUP_HEIGHT - 16} Q 16 ${CUP_HEIGHT - 4} 28 ${CUP_HEIGHT - 4}`
+const CUP_BOTTOM_WALL_PATH = `M 28 ${CUP_HEIGHT - 4} H ${CUP_WIDTH - 28}`
+const CUP_RIGHT_WALL_PATH = `M ${CUP_WIDTH - 28} ${CUP_HEIGHT - 4} Q ${CUP_WIDTH - 16} ${CUP_HEIGHT - 4} ${CUP_WIDTH - 14} ${CUP_HEIGHT - 16} L ${CUP_WIDTH - 10} 24`
 
 type BubbleSpec = {
   leftRatio: number
@@ -203,12 +208,7 @@ function WaterCupVisual({ amountMl, active }: { amountMl: number; active: boolea
           </SvgLinearGradient>
         </Defs>
 
-        <Path
-          d={CUP_SHAPE_PATH}
-          fill="rgba(255,255,255,0.04)"
-          stroke="rgba(255,255,255,0.18)"
-          strokeWidth={1.5}
-        />
+        <Path d={CUP_SHAPE_PATH} fill="#f8fafc" />
 
         <G clipPath="url(#hydrationCupClip)">
           <Rect
@@ -245,7 +245,31 @@ function WaterCupVisual({ amountMl, active }: { amountMl: number; active: boolea
           />
         </G>
 
-        <Path d={CUP_SHAPE_PATH} fill="url(#glassGradient)" opacity={0.35} />
+        <Path d={CUP_SHAPE_PATH} fill="url(#glassGradient)" opacity={0.22} />
+
+        <Path
+          d={CUP_LEFT_WALL_PATH}
+          fill="none"
+          stroke={CUP_WALL_STROKE}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d={CUP_BOTTOM_WALL_PATH}
+          fill="none"
+          stroke={CUP_WALL_STROKE}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+        />
+        <Path
+          d={CUP_RIGHT_WALL_PATH}
+          fill="none"
+          stroke={CUP_WALL_STROKE}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </Svg>
 
       {showEffects
@@ -490,11 +514,11 @@ export function HydrationLogDrawer({
             ]}
           >
             <LinearGradient
-              colors={['rgba(36, 36, 46, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+              colors={[colors.backgroundElevated, '#f0f0f2']}
               style={StyleSheet.absoluteFillObject}
             />
             {Platform.OS === 'ios' ? (
-              <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+              <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
             ) : null}
 
             {!showSuccess ? (
@@ -601,9 +625,21 @@ export function HydrationLogDrawer({
                   >
                     <Text style={styles.amountLabel}>Vai registrar</Text>
 
-                    <View style={styles.amountDisplayCard}>
+                    <LinearGradient
+                      colors={[...HYDRATION_VALUE_GRADIENT]}
+                      start={{ x: 0.15, y: 0 }}
+                      end={{ x: 0.85, y: 1 }}
+                      style={styles.amountDisplayCard}
+                    >
+                      <LinearGradient
+                        colors={['rgba(255,255,255,0.5)', 'rgba(255,255,255,0)']}
+                        start={{ x: 0.5, y: 0 }}
+                        end={{ x: 0.5, y: 1 }}
+                        style={styles.cardGloss}
+                        pointerEvents="none"
+                      />
                       <Text style={styles.amountValue}>{formatMlLabel(amountMl)}</Text>
-                    </View>
+                    </LinearGradient>
 
                     <View style={styles.inputCard}>
                       <Text style={styles.inputLabel}>Ou digite</Text>
@@ -647,7 +683,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   keyboardWrap: {
     flex: 1,
@@ -660,7 +696,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 0,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     maxHeight: '92%',
   },
   scrollContent: {
@@ -678,7 +714,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginTop: 10,
     marginBottom: 14,
   },
@@ -725,7 +761,7 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   closeButtonPressed: {
     opacity: 0.8,
@@ -836,12 +872,15 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingVertical: 16,
     paddingHorizontal: 14,
-    backgroundColor: 'rgba(14, 165, 233, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.35)',
+    borderColor: 'rgba(2, 132, 199, 0.32)',
     alignItems: 'center',
     height: 78,
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  cardGloss: {
+    ...StyleSheet.absoluteFillObject,
   },
   amountValue: {
     color: colors.text,
@@ -855,9 +894,9 @@ const styles = StyleSheet.create({
   inputCard: {
     borderRadius: 16,
     padding: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   inputLabel: {
     color: colors.textMuted,
@@ -868,27 +907,32 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   inputWrap: {
-    flexDirection: 'row',
+    position: 'relative',
     alignItems: 'center',
-    backgroundColor: colors.inputBg,
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.inputBorder,
+    borderColor: colors.surfaceBorder,
     borderRadius: 12,
     paddingHorizontal: 12,
     minHeight: 46,
   },
   input: {
-    flex: 1,
+    width: '100%',
     color: colors.text,
     fontSize: 20,
     fontWeight: '700',
     letterSpacing: -0.3,
     paddingVertical: 8,
+    paddingHorizontal: 28,
+    textAlign: 'center',
+    fontVariant: ['tabular-nums'],
   },
   inputSuffix: {
-    color: '#38bdf8',
+    position: 'absolute',
+    right: 12,
+    color: colors.textMuted,
     fontSize: 14,
     fontWeight: '700',
-    marginLeft: 6,
   },
 })

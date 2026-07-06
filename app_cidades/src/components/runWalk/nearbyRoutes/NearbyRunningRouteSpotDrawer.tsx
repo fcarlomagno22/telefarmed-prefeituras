@@ -27,6 +27,7 @@ import {
   getRunningRouteSpotTypeLabel,
 } from '../../../utils/nearbyRunningRoutes'
 import { colors } from '../../../theme/colors'
+import { drawerChrome } from '../../../theme/drawerChrome'
 import { RunWalkSheetDrawer } from '../RunWalkSheetDrawer'
 
 type NearbyRunningRouteSpotDrawerProps = {
@@ -206,7 +207,7 @@ export function NearbyRunningRouteSpotDrawer({
         />
       ) : (
         <LinearGradient
-          colors={['rgba(255, 107, 0, 0.22)', 'rgba(14, 14, 20, 0.6)']}
+          colors={['rgba(255, 107, 0, 0.22)', colors.surface]}
           style={styles.heroFallback}
         />
       )}
@@ -457,7 +458,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: '#0e0e14',
+    backgroundColor: drawerChrome.surfaceBottom,
   },
   commentInput: {
     flex: 1,

@@ -71,7 +71,7 @@ export function RunWalkAchievementsHero({
 
   return (
     <LinearGradient
-      colors={['rgba(251, 191, 36, 0.22)', 'rgba(14, 14, 20, 0.98)', 'rgba(168, 85, 247, 0.14)']}
+      colors={['rgba(251, 191, 36, 0.22)', colors.backgroundElevated, 'rgba(168, 85, 247, 0.14)']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.card}
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   eyebrow: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.5,
@@ -191,8 +191,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   statValue: {
     color: colors.text,

@@ -34,8 +34,8 @@ function CardShell({
     <LinearGradient
       colors={
         variant === 'change'
-          ? ['rgba(8, 145, 178, 0.18)', 'rgba(251, 191, 36, 0.06)', 'rgba(14, 14, 20, 0.55)']
-          : ['rgba(8, 145, 178, 0.2)', 'rgba(8, 145, 178, 0.08)', 'rgba(14, 14, 20, 0.55)']
+          ? ['rgba(8, 145, 178, 0.18)', 'rgba(251, 191, 36, 0.06)', colors.surface]
+          : ['rgba(8, 145, 178, 0.2)', 'rgba(8, 145, 178, 0.08)', colors.surface]
       }
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
@@ -295,9 +295,9 @@ const styles = StyleSheet.create({
     minHeight: 42,
     paddingHorizontal: 10,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   actionPressed: {
     opacity: 0.88,

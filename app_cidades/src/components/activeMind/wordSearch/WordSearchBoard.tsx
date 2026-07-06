@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from 'react-native'
+import { activeMindGameChrome } from '../../../theme/activeMindGameChrome'
 import { colors } from '../../../theme/colors'
 import {
   buildWordSearchSelectionLine,
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
   frame: {
     padding: 8,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(244, 114, 182, 0.22)',
     overflow: 'hidden',
@@ -245,16 +246,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   missingCell: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderRadius: 4,
   },
   cell: {
     borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: activeMindGameChrome.tileBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: activeMindGameChrome.tileBorder,
     overflow: 'hidden',
   },
   cellActive: {

@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: colors.surfaceBorder,
   },
   dividerText: {
     color: colors.textSubtle,

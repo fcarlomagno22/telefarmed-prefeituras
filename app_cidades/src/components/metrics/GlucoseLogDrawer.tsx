@@ -549,8 +549,8 @@ function BloodDropVisual({ amountMg, active }: { amountMg: number; active: boole
           </RadialGradient>
 
           <RadialGradient id="bloodEdgeVignette" cx="50%" cy="50%" rx="50%" ry="52%">
-            <Stop offset="68%" stopColor="#450a0a" stopOpacity={0} />
-            <Stop offset="100%" stopColor="#450a0a" stopOpacity={0.45} />
+            <Stop offset="68%" stopColor="#fecaca" stopOpacity={0} />
+            <Stop offset="100%" stopColor="#f87171" stopOpacity={0.28} />
           </RadialGradient>
 
           <SvgLinearGradient id="bloodWaveBack" x1="0" y1="0" x2="0" y2="1">
@@ -564,14 +564,14 @@ function BloodDropVisual({ amountMg, active }: { amountMg: number; active: boole
           </SvgLinearGradient>
 
           <SvgLinearGradient id="dropShellSheen" x1="0.5" y1="0" x2="0.5" y2="1">
-            <Stop offset="0%" stopColor="rgba(255,255,255,0.2)" />
-            <Stop offset="55%" stopColor="rgba(255,255,255,0.04)" />
-            <Stop offset="100%" stopColor="rgba(0,0,0,0.08)" />
+            <Stop offset="0%" stopColor="rgba(255,255,255,0.85)" />
+            <Stop offset="55%" stopColor="rgba(255,241,242,0.45)" />
+            <Stop offset="100%" stopColor="rgba(248,113,113,0.12)" />
           </SvgLinearGradient>
         </Defs>
 
         <G clipPath="url(#glucoseDropClip)">
-          <Path d={DROP_SHAPE_PATH} fill="rgba(28, 6, 6, 0.82)" />
+          <Path d={DROP_SHAPE_PATH} fill="#fff1f2" />
 
           <Rect
             x={0}
@@ -616,11 +616,11 @@ function BloodDropVisual({ amountMg, active }: { amountMg: number; active: boole
           />
         </G>
 
-        <Path d={DROP_SHAPE_PATH} fill="url(#dropShellSheen)" opacity={0.16} />
+        <Path d={DROP_SHAPE_PATH} fill="url(#dropShellSheen)" opacity={0.35} />
         <Path
           d={DROP_SHAPE_PATH}
           fill="none"
-          stroke="rgba(255,255,255,0.28)"
+          stroke="rgba(248, 113, 113, 0.55)"
           strokeWidth={1.3}
           strokeLinejoin="round"
         />
@@ -666,7 +666,7 @@ function GlucoseContextChip({
       <MaterialCommunityIcons
         name={option.icon}
         size={14}
-        color={selected ? '#fecaca' : colors.textMuted}
+        color={selected ? '#dc2626' : colors.textMuted}
       />
       <Text style={[styles.contextChipLabel, selected && styles.contextChipLabelSelected]}>
         {option.label}
@@ -945,11 +945,11 @@ export function GlucoseLogDrawer({ visible, onClose, onRegister }: GlucoseLogDra
             ]}
           >
             <LinearGradient
-              colors={['rgba(36, 36, 46, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+              colors={[colors.backgroundElevated, '#f0f0f2']}
               style={StyleSheet.absoluteFillObject}
             />
             {Platform.OS === 'ios' ? (
-              <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+              <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
             ) : null}
 
             {!showSuccess ? (
@@ -1129,7 +1129,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   keyboardWrap: {
     flex: 1,
@@ -1142,7 +1142,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 0,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     maxHeight: '92%',
   },
   scrollContent: {
@@ -1160,7 +1160,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginTop: 10,
     marginBottom: 14,
   },
@@ -1207,7 +1207,7 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   closeButtonPressed: {
     opacity: 0.8,
@@ -1261,7 +1261,7 @@ const styles = StyleSheet.create({
   tickMark: {
     width: 8,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
   },
   tickMarkActive: {
     backgroundColor: '#ef4444',
@@ -1274,7 +1274,7 @@ const styles = StyleSheet.create({
     width: 26,
   },
   tickLabelActive: {
-    color: '#fca5a5',
+    color: '#dc2626',
   },
   tickLabelSpacer: {
     width: 26,
@@ -1331,9 +1331,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingVertical: 12,
     paddingHorizontal: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     gap: 6,
   },
   amountValue: {
@@ -1370,9 +1370,9 @@ const styles = StyleSheet.create({
   inputCard: {
     borderRadius: 16,
     padding: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
     gap: 8,
   },
   inputLabel: {
@@ -1417,13 +1417,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   contextChipSelected: {
-    backgroundColor: 'rgba(239, 68, 68, 0.14)',
-    borderColor: 'rgba(248, 113, 113, 0.45)',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderColor: 'rgba(220, 38, 38, 0.45)',
   },
   contextChipPressed: {
     opacity: 0.85,
@@ -1434,6 +1434,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   contextChipLabelSelected: {
-    color: '#fecaca',
+    color: '#dc2626',
   },
 })

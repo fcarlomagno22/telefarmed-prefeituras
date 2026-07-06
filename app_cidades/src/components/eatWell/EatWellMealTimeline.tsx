@@ -108,7 +108,7 @@ function TimelineItem({
             />
           ) : (
             <View style={styles.addBadge}>
-              <MaterialCommunityIcons name="plus" size={14} color="#a3e635" />
+              <MaterialCommunityIcons name="plus" size={14} color="#4d7c0f" />
             </View>
           )}
         </View>
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   sectionFilter: {
-    color: '#a3e635',
+    color: '#4d7c0f',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -228,39 +228,40 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 999,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.18)',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   railDotFilled: {
-    borderColor: '#84cc16',
-    backgroundColor: 'rgba(132, 204, 22, 0.55)',
+    borderColor: '#65a30d',
+    backgroundColor: '#84cc16',
   },
   railLine: {
     width: 2,
     flex: 1,
     marginTop: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: colors.surfaceBorder,
     minHeight: 24,
   },
   railLineFilled: {
-    backgroundColor: 'rgba(132, 204, 22, 0.28)',
+    backgroundColor: 'rgba(132, 204, 22, 0.45)',
   },
   card: {
     flex: 1,
     borderRadius: 16,
     padding: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.07)',
+    borderColor: colors.surfaceBorder,
     borderStyle: 'dashed',
   },
   cardFilled: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.backgroundElevated,
     borderStyle: 'solid',
+    borderColor: colors.surfaceBorder,
   },
   cardExpanded: {
-    borderColor: 'rgba(132, 204, 22, 0.28)',
+    borderColor: 'rgba(101, 163, 13, 0.35)',
   },
   cardPressed: {
     opacity: 0.92,
@@ -309,15 +310,15 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(132, 204, 22, 0.14)',
+    backgroundColor: '#ecfccb',
     borderWidth: 1,
-    borderColor: 'rgba(132, 204, 22, 0.28)',
+    borderColor: 'rgba(101, 163, 13, 0.35)',
   },
   entriesBlock: {
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
+    borderTopColor: colors.surfaceBorder,
     gap: 8,
   },
   entryRow: {
@@ -341,7 +342,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   entryCalories: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 11,
     fontWeight: '800',
   },
@@ -354,7 +355,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: '#f1f5f9',
   },
   entryActionText: {
     color: colors.textMuted,
@@ -365,10 +366,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(248, 113, 113, 0.12)',
+    backgroundColor: '#fee2e2',
   },
   entryActionTextDanger: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 11,
     fontWeight: '700',
   },

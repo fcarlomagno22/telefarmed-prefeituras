@@ -4,7 +4,8 @@ import {
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  StyleSheet,
+  Platform,
+  ScrollView,
   useWindowDimensions,
   View,
 } from 'react-native'
@@ -47,6 +48,8 @@ export function MyRoutineHomeContent({
   const { width: screenWidth } = useWindowDimensions()
   const [segmentTab, setSegmentTab] = useState<MyRoutineTab>('today')
   const segmentPagerRef = useRef<FlatList<MyRoutineTab>>(null)
+  const segmentPagerWebRef = useRef<ScrollView>(null)
+  const segmentPagerIndexRef = useRef(0)
   const segmentPagerProgrammaticScrollRef = useRef(false)
 
   useAndroidBackHandler(
@@ -66,10 +69,19 @@ export function MyRoutineHomeContent({
       if (index < 0) return
 
       segmentPagerProgrammaticScrollRef.current = animated
-      segmentPagerRef.current?.scrollToOffset({
-        offset: index * screenWidth,
-        animated,
-      })
+      segmentPagerIndexRef.current = index
+
+      if (Platform.OS === 'web') {
+        segmentPagerWebRef.current?.scrollTo({
+          x: index * screenWidth,
+          animated,
+        })
+      } else {
+        segmentPagerRef.current?.scrollToOffset({
+          offset: index * screenWidth,
+          animated,
+        })
+      }
 
       if (!animated) {
         segmentPagerProgrammaticScrollRef.current = false
@@ -93,6 +105,8 @@ export function MyRoutineHomeContent({
         MY_ROUTINE_SEGMENT_PAGES.length - 1,
       )
       const nextTab = MY_ROUTINE_SEGMENT_PAGES[clampedIndex] ?? 'today'
+
+      segmentPagerIndexRef.current = clampedIndex
 
       setSegmentTab((current) => {
         if (current === nextTab) return current
@@ -127,11 +141,19 @@ export function MyRoutineHomeContent({
   )
 
   useEffect(() => {
+    if (Platform.OS === 'web') {
+      segmentPagerWebRef.current?.scrollTo({
+        x: segmentPagerIndexRef.current * screenWidth,
+        animated: false,
+      })
+      return
+    }
+
     scrollSegmentPagerTo(segmentTab, false)
   }, [screenWidth, scrollSegmentPagerTo, segmentTab])
 
   const renderSegmentPage = useCallback(
-    (tab: MyRoutineTab) => {
+    (tab: MyRoutineTab, isPageActive: boolean) => {
       if (tab === 'today') {
         return (
           <MyRoutineTodayShell
@@ -139,6 +161,7 @@ export function MyRoutineHomeContent({
             patientCpf={patientCpf}
             record={record}
             refreshKey={refreshKey}
+            isPageActive={isPageActive}
           />
         )
       }
@@ -185,47 +208,92 @@ export function MyRoutineHomeContent({
         tabs={MY_ROUTINE_SEGMENT_TABS}
       />
 
-      <FlatList
-        ref={segmentPagerRef}
-        data={MY_ROUTINE_SEGMENT_PAGES}
-        keyExtractor={(item) => item}
-        horizontal
-        pagingEnabled
-        nestedScrollEnabled
-        bounces={false}
-        showsHorizontalScrollIndicator={false}
-        decelerationRate="fast"
-        scrollEventThrottle={16}
-        onScroll={handleSegmentPagerScroll}
-        onMomentumScrollEnd={handleSegmentPagerScrollEnd}
-        onScrollEndDrag={handleSegmentPagerScrollEnd}
-        getItemLayout={(_, index) => ({
-          length: screenWidth,
-          offset: screenWidth * index,
-          index,
-        })}
-        style={styles.segmentPager}
-        renderItem={({ item }) => (
-          <View style={[styles.segmentPage, { width: screenWidth }]}>
-            {renderSegmentPage(item)}
-          </View>
-        )}
-      />
+      {Platform.OS === 'web' ? (
+        <ScrollView
+          ref={segmentPagerWebRef}
+          horizontal
+          pagingEnabled
+          nestedScrollEnabled
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          decelerationRate="fast"
+          scrollEventThrottle={16}
+          onScroll={handleSegmentPagerScroll}
+          onMomentumScrollEnd={handleSegmentPagerScrollEnd}
+          onScrollEndDrag={handleSegmentPagerScrollEnd}
+          style={styles.segmentPagerWeb}
+        >
+          {MY_ROUTINE_SEGMENT_PAGES.map((tab) => (
+            <View key={tab} style={[styles.segmentPage, { width: screenWidth }]}>
+              {renderSegmentPage(tab, tab === segmentTab)}
+            </View>
+          ))}
+        </ScrollView>
+      ) : (
+        <FlatList
+          ref={segmentPagerRef}
+          data={MY_ROUTINE_SEGMENT_PAGES}
+          keyExtractor={(item) => item}
+          horizontal
+          pagingEnabled
+          nestedScrollEnabled
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          decelerationRate="fast"
+          scrollEventThrottle={16}
+          onScroll={handleSegmentPagerScroll}
+          onMomentumScrollEnd={handleSegmentPagerScrollEnd}
+          onScrollEndDrag={handleSegmentPagerScrollEnd}
+          getItemLayout={(_, index) => ({
+            length: screenWidth,
+            offset: screenWidth * index,
+            index,
+          })}
+          style={styles.segmentPager}
+          renderItem={({ item }) => (
+            <View style={[styles.segmentPage, { width: screenWidth }]}>
+              {renderSegmentPage(item, item === segmentTab)}
+            </View>
+          )}
+        />
+      )}
     </View>
   )
 }
 
-function createStyles(colors: ThemeColors) {
+function createStyles(_colors: ThemeColors) {
   return {
-  root: {
-    flex: 1,
-  },
-  segmentPager: {
-    flex: 1,
-  },
-  segmentPage: {
-    flex: 1,
-  },
-}
+    root: {
+      flex: 1,
+      minHeight: 0,
+    },
+    segmentPager: {
+      flex: 1,
+      minHeight: 0,
+    },
+    segmentPagerWeb: {
+      flex: 1,
+      minHeight: 0,
+      overflow: 'hidden',
+      ...Platform.select({
+        web: {
+          overflowX: 'auto',
+          overflowY: 'hidden',
+        },
+        default: {},
+      }),
+    },
+    segmentPage: {
+      flex: 1,
+      minHeight: 0,
+      ...Platform.select({
+        web: {
+          height: '100%',
+          alignSelf: 'stretch',
+        },
+        default: {},
+      }),
+    },
+  }
 }
 

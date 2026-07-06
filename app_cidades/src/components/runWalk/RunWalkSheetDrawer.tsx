@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { drawerChrome } from '../../theme/drawerChrome'
 import { colors } from '../../theme/colors'
+import { sleepTimeDrawerTheme } from '../sleepTime/sleepTimeDrawerTheme'
 import { getSheetBottomPadding } from '../../utils/modalSafeArea'
 import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
 import { AppModal } from '../AppModal'
@@ -42,6 +43,7 @@ type RunWalkSheetDrawerProps = {
   hideCloseButton?: boolean
   scrollViewRef?: RefObject<ScrollView | null>
   sheetBackground?: ReactNode
+  tone?: 'default' | 'sleep'
 }
 
 export function RunWalkSheetDrawer({
@@ -60,6 +62,7 @@ export function RunWalkSheetDrawer({
   hideCloseButton = false,
   scrollViewRef,
   sheetBackground,
+  tone = 'default',
 }: RunWalkSheetDrawerProps) {
   const insets = useSafeAreaInsets()
   const [isMounted, setIsMounted] = useState(false)
@@ -144,6 +147,10 @@ export function RunWalkSheetDrawer({
   }, [keyboardAware, visible])
 
   if (!isMounted) return null
+
+  const isSleepTone = tone === 'sleep'
+  const chromeTop = isSleepTone ? sleepTimeDrawerTheme.surface : drawerChrome.surface
+  const chromeBottom = isSleepTone ? sleepTimeDrawerTheme.surfaceBottom : drawerChrome.surfaceBottom
 
   const footerBottomPadding = getSheetBottomPadding(insets.bottom, extraBottomInset)
   const bottomInset = footerBottomPadding
@@ -233,15 +240,15 @@ export function RunWalkSheetDrawer({
       visible
       transparent
       animationType="none"
-      navBarUnderlayColor={drawerChrome.surfaceBottom}
+      navBarUnderlayColor={isSleepTone ? sleepTimeDrawerTheme.surfaceBottom : drawerChrome.surfaceBottom}
       onRequestClose={onClose}
     >
-      <View style={[styles.host, fullScreen && styles.hostFullScreen]}>
+      <View style={[styles.host, fullScreen && styles.hostFullScreen, isSleepTone && styles.hostFullScreenSleep]}>
         {!fullScreen ? (
           <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
             <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
             {Platform.OS === 'ios' ? (
-              <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+              <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
             ) : null}
           </Animated.View>
         ) : null}
@@ -265,7 +272,7 @@ export function RunWalkSheetDrawer({
             ]}
           >
             <LinearGradient
-              colors={[drawerChrome.surface, drawerChrome.surfaceBottom]}
+              colors={[chromeTop, chromeBottom]}
               style={StyleSheet.absoluteFillObject}
             />
 
@@ -283,17 +290,27 @@ export function RunWalkSheetDrawer({
 
             <View style={[styles.header, dense && styles.headerDense, styles.sheetForeground]}>
               <View style={styles.headerText}>
-                <Text style={styles.title}>{title}</Text>
-                {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+                <Text style={[styles.title, isSleepTone && styles.titleSleep]}>{title}</Text>
+                {subtitle ? (
+                  <Text style={[styles.subtitle, isSleepTone && styles.subtitleSleep]}>{subtitle}</Text>
+                ) : null}
               </View>
               {!hideCloseButton ? (
                 <Pressable
                   onPress={onClose}
-                  style={({ pressed }) => [styles.closeBtn, pressed && styles.closeBtnPressed]}
+                  style={({ pressed }) => [
+                    styles.closeBtn,
+                    isSleepTone && styles.closeBtnSleep,
+                    pressed && styles.closeBtnPressed,
+                  ]}
                   accessibilityRole="button"
                   accessibilityLabel="Fechar"
                 >
-                  <Ionicons name="close" size={20} color={colors.textMuted} />
+                  <Ionicons
+                    name="close"
+                    size={20}
+                    color={isSleepTone ? sleepTimeDrawerTheme.textMuted : colors.textMuted}
+                  />
                 </Pressable>
               ) : null}
             </View>
@@ -321,6 +338,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     backgroundColor: drawerChrome.surfaceBottom,
   },
+  hostFullScreenSleep: {
+    backgroundColor: sleepTimeDrawerTheme.surfaceBottom,
+  },
   keyboardWrap: {
     justifyContent: 'flex-end',
     flex: 1,
@@ -331,7 +351,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
   },
   sheet: {
     maxHeight: '92%',
@@ -339,7 +359,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   sheetFullScreen: {
     flex: 1,
@@ -384,7 +404,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
   },
   header: {
     flexDirection: 'row',
@@ -406,11 +426,17 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.3,
   },
+  titleSleep: {
+    color: sleepTimeDrawerTheme.text,
+  },
   subtitle: {
     color: colors.textMuted,
     fontSize: 12,
     fontWeight: '500',
     lineHeight: 16,
+  },
+  subtitleSleep: {
+    color: sleepTimeDrawerTheme.textMuted,
   },
   closeBtn: {
     width: 34,
@@ -418,7 +444,13 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  closeBtnSleep: {
+    backgroundColor: sleepTimeDrawerTheme.closeBackground,
+    borderColor: sleepTimeDrawerTheme.closeBorder,
   },
   closeBtnPressed: {
     opacity: 0.85,

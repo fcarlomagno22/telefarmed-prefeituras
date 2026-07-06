@@ -1,4 +1,6 @@
 import { useThemedStyles } from '../../../hooks/useThemedStyles'
+import { activeMindGameChrome } from '../../../theme/activeMindGameChrome'
+import { colors } from '../../../theme/colors'
 import type { ThemeColors } from '../../../theme/palettes'
 import * as Haptics from 'expo-haptics'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
@@ -104,9 +106,9 @@ function createStyles(colors: ThemeColors) {
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: activeMindGameChrome.tileBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: activeMindGameChrome.tileBorder,
   },
   optionButtonSelected: {
     backgroundColor: 'rgba(139, 92, 246, 0.14)',

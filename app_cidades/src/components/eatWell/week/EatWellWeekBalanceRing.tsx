@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient'
 import { StyleSheet, Text, View } from 'react-native'
 import type { EatWellWeekSummary } from '../../../types/eatWell'
 import { colors } from '../../../theme/colors'
@@ -17,12 +16,7 @@ export function EatWellWeekBalanceRing({ summary, animate = true }: EatWellWeekB
 
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(77, 124, 15, 0.16)', 'rgba(14, 14, 20, 0.98)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <View style={styles.contentRow}>
           <RunWalkProgressRing
             progress={summary.avgBalanceScore / 100}
@@ -46,7 +40,7 @@ export function EatWellWeekBalanceRing({ summary, animate = true }: EatWellWeekB
             <DistributionRow label="< 40 atenção" count={low} color="#f87171" total={scoredDays} />
           </View>
         </View>
-      </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -86,7 +80,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(132, 204, 22, 0.18)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   contentRow: {
     flexDirection: 'row',
@@ -124,7 +119,7 @@ const styles = StyleSheet.create({
   distTrack: {
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(0, 0, 0, 0.06)',
     overflow: 'hidden',
     flexDirection: 'row',
   },

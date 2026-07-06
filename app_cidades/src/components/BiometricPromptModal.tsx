@@ -23,7 +23,7 @@ export function BiometricPromptModal({
           colors={[
             'rgba(255, 133, 51, 0.38)',
             'rgba(255, 107, 0, 0.16)',
-            'rgba(255, 255, 255, 0.06)',
+            colors.surface,
           ]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -31,11 +31,11 @@ export function BiometricPromptModal({
         >
           <View style={styles.cardInner}>
             {Platform.OS === 'ios' ? (
-              <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+              <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
             ) : null}
 
             <LinearGradient
-              colors={['rgba(28, 28, 36, 0.72)', 'rgba(14, 14, 20, 0.78)']}
+              colors={['rgba(255, 255, 255, 0.92)', colors.backgroundElevated]}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
               style={StyleSheet.absoluteFillObject}
@@ -80,7 +80,7 @@ export function BiometricPromptModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.58)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     borderRadius: 27,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   cardContent: {
     paddingHorizontal: 24,

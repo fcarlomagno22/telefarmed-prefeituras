@@ -9,7 +9,7 @@ import type {
   AppointmentPosConsultaCheckinItem,
   PostConsultationPlanEntry,
 } from '../../types/appointmentPostConsultation'
-import { getPlanStatusLabel } from '../../utils/appointmentPostConsultation'
+import { getPlanStatusColors, getPlanStatusLabel } from '../../utils/appointmentPostConsultation'
 import { getAppointmentDateTime } from '../../utils/myAppointments'
 import { formatScheduleDayLabel } from '../../utils/scheduleDate'
 import { AppointmentActionButton } from '../appointments/AppointmentActionButton'
@@ -24,39 +24,6 @@ type PostConsultationPlanCardProps = {
 
 const PALETTE = ACTION_ICON_PALETTES.postConsultation
 
-function getCardColors(featured: boolean, isActive: boolean) {
-  if (featured && isActive) {
-    return {
-      gradient: [
-        'rgba(14, 165, 233, 0.28)',
-        'rgba(14, 165, 233, 0.12)',
-        'rgba(14, 14, 20, 0.98)',
-      ] as const,
-      border: 'rgba(14, 165, 233, 0.38)',
-    }
-  }
-
-  if (isActive) {
-    return {
-      gradient: [
-        'rgba(255, 133, 51, 0.20)',
-        'rgba(255, 107, 0, 0.10)',
-        'rgba(14, 14, 20, 0.98)',
-      ] as const,
-      border: 'rgba(255, 133, 51, 0.28)',
-    }
-  }
-
-  return {
-    gradient: [
-      'rgba(255, 133, 51, 0.16)',
-      'rgba(255, 107, 0, 0.08)',
-      'rgba(14, 14, 20, 0.97)',
-    ] as const,
-    border: 'rgba(255, 255, 255, 0.14)',
-  }
-}
-
 export function PostConsultationPlanCard({
   entry,
   featured = false,
@@ -68,7 +35,7 @@ export function PostConsultationPlanCard({
   const doctor = scheduleDoctors.find((item) => item.id === appointment.selectedDoctorId)
   const appointmentDate = getAppointmentDateTime(appointment)
   const isActive = plan.status === 'ativo'
-  const cardColors = getCardColors(featured, isActive)
+  const statusColors = getPlanStatusColors(plan.status, featured)
   const progressRatio =
     plan.totalCheckins > 0 ? plan.respondedCount / plan.totalCheckins : 0
   const hasPending = Boolean(pendingCheckin)
@@ -81,10 +48,10 @@ export function PostConsultationPlanCard({
   return (
     <View style={styles.wrap}>
       <LinearGradient
-        colors={[...cardColors.gradient]}
+        colors={[...statusColors.cardGradient]}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.card, { borderColor: cardColors.border }]}
+        end={{ x: 0, y: 1 }}
+        style={[styles.card, { borderColor: statusColors.cardBorder }]}
       >
         {featured ? (
           <View style={styles.featuredBadgeRow}>
@@ -92,7 +59,7 @@ export function PostConsultationPlanCard({
               <Ionicons
                 name={hasPending ? 'pulse' : 'time-outline'}
                 size={12}
-                color="#7dd3fc"
+                color="#0369a1"
               />
               <Text style={styles.featuredBadgeText}>
                 {hasPending ? 'Check-in disponível' : 'Em andamento'}
@@ -102,15 +69,13 @@ export function PostConsultationPlanCard({
             <View
               style={[
                 styles.statusBadge,
-                isActive ? styles.statusBadgeActive : styles.statusBadgeClosed,
+                {
+                  backgroundColor: statusColors.background,
+                  borderColor: statusColors.border,
+                },
               ]}
             >
-              <Text
-                style={[
-                  styles.statusBadgeText,
-                  isActive ? styles.statusBadgeTextActive : styles.statusBadgeTextClosed,
-                ]}
-              >
+              <Text style={[styles.statusBadgeText, { color: statusColors.text }]}>
                 {getPlanStatusLabel(plan.status)}
               </Text>
             </View>
@@ -143,15 +108,13 @@ export function PostConsultationPlanCard({
               <View
                 style={[
                   styles.statusBadge,
-                  isActive ? styles.statusBadgeActive : styles.statusBadgeClosed,
+                  {
+                    backgroundColor: statusColors.background,
+                    borderColor: statusColors.border,
+                  },
                 ]}
               >
-                <Text
-                  style={[
-                    styles.statusBadgeText,
-                    isActive ? styles.statusBadgeTextActive : styles.statusBadgeTextClosed,
-                  ]}
-                >
+                <Text style={[styles.statusBadgeText, { color: statusColors.text }]}>
                   {getPlanStatusLabel(plan.status)}
                 </Text>
               </View>
@@ -241,6 +204,7 @@ const styles = StyleSheet.create({
     gap: 10,
     borderWidth: 1,
     borderRadius: 18,
+    backgroundColor: colors.cardBg,
   },
   featuredBadgeRow: {
     flexDirection: 'row',
@@ -260,7 +224,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(14, 165, 233, 0.28)',
   },
   featuredBadgeText: {
-    color: '#7dd3fc',
+    color: '#0369a1',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.2,
@@ -322,14 +286,14 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingTop: 4,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: colors.surfaceBorder,
   },
   avatar: {
     width: 36,
     height: 36,
     borderRadius: 18,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
   },
   doctorTextCol: {
     flex: 1,
@@ -367,25 +331,11 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
   },
-  statusBadgeActive: {
-    backgroundColor: 'rgba(14, 165, 233, 0.12)',
-    borderColor: 'rgba(14, 165, 233, 0.28)',
-  },
-  statusBadgeClosed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
   statusBadgeText: {
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.2,
     textTransform: 'uppercase',
-  },
-  statusBadgeTextActive: {
-    color: '#7dd3fc',
-  },
-  statusBadgeTextClosed: {
-    color: colors.textSubtle,
   },
   progressBlock: {
     gap: 6,
@@ -410,7 +360,7 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
     overflow: 'hidden',
   },
   progressFill: {

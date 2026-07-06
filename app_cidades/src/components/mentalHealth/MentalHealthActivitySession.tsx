@@ -249,7 +249,7 @@ export function MentalHealthActivitySession({
     <AppModal visible={visible} animationType="fade" presentationStyle="fullScreen">
       <View style={styles.root}>
         <LinearGradient
-          colors={['rgba(8, 145, 178, 0.18)', '#0a0a0c', '#0a0a0c']}
+          colors={['rgba(8, 145, 178, 0.18)', colors.background, colors.background]}
           locations={[0, 0.35, 1]}
           style={StyleSheet.absoluteFill}
         />

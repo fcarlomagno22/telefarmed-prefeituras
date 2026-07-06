@@ -1,5 +1,6 @@
 import * as Haptics from 'expo-haptics'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { activeMindGameChrome } from '../../../theme/activeMindGameChrome'
 import { colors } from '../../../theme/colors'
 import type { SudokuCellValue } from '../../../types/sudoku'
 
@@ -68,9 +69,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: activeMindGameChrome.tileBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: activeMindGameChrome.tileBorder,
   },
   numberButtonPressed: {
     opacity: 0.85,

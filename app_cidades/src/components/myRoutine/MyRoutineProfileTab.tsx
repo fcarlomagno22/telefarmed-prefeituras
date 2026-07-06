@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons'
+import { colors } from '../../theme/colors'
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,6 +16,7 @@ import { summarizeHistoryPoint } from '../../utils/myRoutineHistoryStats'
 import type { ThemeColors } from '../../theme/palettes'
 import { useThemedStyles } from '../../hooks/useThemedStyles'
 import { useTheme } from '../../contexts/ThemeContext'
+import { myRoutineAccent } from '../../theme/myRoutineAccent'
 import {  MyRoutineHistoryBarChart,
   MyRoutineHistoryBarLegend,
 } from './MyRoutineHistoryBarChart'
@@ -103,8 +105,10 @@ export function MyRoutineProfileTab({
 
   return (
     <ScrollView
+      style={styles.body}
       contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
       showsVerticalScrollIndicator={false}
+      nestedScrollEnabled
     >
       <Text style={styles.title}>Perfil</Text>
       <Text style={styles.subtitle}>Rotina atual vs ideal, preferências e histórico.</Text>
@@ -159,17 +163,14 @@ export function MyRoutineProfileTab({
         onPress={onEditEssentials}
         style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       >
-        <LinearGradient
-          colors={['rgba(217, 70, 239, 0.14)', 'rgba(240, 171, 252, 0.06)']}
-          style={styles.cardGradient}
-        >
+        <View style={styles.cardGradient}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Rotina mínima</Text>
-            <Ionicons name="create-outline" size={18} color={ACCENT_LIGHT} />
+            <Ionicons name="create-outline" size={18} color={myRoutineAccent.chipTextSelected} />
           </View>
           <Text style={styles.cardHint}>Até 5 essenciais · toque para editar</Text>
           <ChipList items={essentialLabels} emptyLabel="Nenhum essencial definido" />
-        </LinearGradient>
+        </View>
       </Pressable>
 
       {/* C — Preferências */}
@@ -313,8 +314,20 @@ function createStyles(colors: ThemeColors) {
   },
   loadingWrap: {
     flex: 1,
+    minHeight: 0,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  body: {
+    flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      },
+      default: {},
+    }),
   },
   title: {
     color: colors.text,
@@ -343,13 +356,13 @@ function createStyles(colors: ThemeColors) {
     paddingVertical: 10,
     borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   toggleBtnActive: {
-    backgroundColor: 'rgba(217, 70, 239, 0.14)',
-    borderColor: 'rgba(240, 171, 252, 0.35)',
+    backgroundColor: myRoutineAccent.nestedSurface,
+    borderColor: myRoutineAccent.accentBorder,
   },
   toggleBtnText: {
     color: colors.textMuted,
@@ -357,7 +370,7 @@ function createStyles(colors: ThemeColors) {
     fontWeight: '700',
   },
   toggleBtnTextActive: {
-    color: ACCENT_LIGHT,
+    color: myRoutineAccent.chipTextSelected,
   },
   mapGrid: {
     flexDirection: 'row',
@@ -371,9 +384,9 @@ function createStyles(colors: ThemeColors) {
     gap: 8,
     padding: 12,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   mapColTitle: {
     color: colors.textSubtle,
@@ -391,9 +404,9 @@ function createStyles(colors: ThemeColors) {
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(217, 70, 239, 0.12)',
+    backgroundColor: myRoutineAccent.nestedSurface,
     borderWidth: 1,
-    borderColor: 'rgba(240, 171, 252, 0.2)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   chipText: {
     color: colors.text,
@@ -414,16 +427,17 @@ function createStyles(colors: ThemeColors) {
     padding: 14,
     gap: 8,
     borderRadius: 16,
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(240, 171, 252, 0.22)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   plainCard: {
     padding: 14,
     gap: 10,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -450,7 +464,7 @@ function createStyles(colors: ThemeColors) {
     minWidth: '30%',
     padding: 10,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.nestedSurface,
     gap: 2,
   },
   metaPillLabel: {
@@ -468,9 +482,9 @@ function createStyles(colors: ThemeColors) {
     padding: 14,
     borderRadius: 16,
     gap: 12,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   historyList: { gap: 0 },
   historyRow: {
@@ -479,7 +493,7 @@ function createStyles(colors: ThemeColors) {
     gap: 10,
     paddingVertical: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
+    borderTopColor: myRoutineAccent.cardBorder,
   },
   historyCopy: { flex: 1, gap: 2 },
   historyWeek: {
@@ -495,9 +509,9 @@ function createStyles(colors: ThemeColors) {
   helpCard: {
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   helpRow: {
     flexDirection: 'row',
@@ -507,7 +521,7 @@ function createStyles(colors: ThemeColors) {
   },
   helpRowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderBottomColor: myRoutineAccent.cardBorder,
   },
   helpIcon: {
     width: 36,
@@ -515,10 +529,10 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(217, 70, 239, 0.14)',
+    backgroundColor: myRoutineAccent.nestedSurface,
   },
   helpIconDanger: {
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    backgroundColor: colors.errorBg,
   },
   helpCopy: { flex: 1, gap: 2 },
   helpTitle: {
@@ -526,7 +540,7 @@ function createStyles(colors: ThemeColors) {
     fontSize: 14,
     fontWeight: '800',
   },
-  helpTitleDanger: { color: '#fca5a5' },
+  helpTitleDanger: { color: '#b91c1c' },
   helpDescription: {
     color: colors.textMuted,
     fontSize: 12,

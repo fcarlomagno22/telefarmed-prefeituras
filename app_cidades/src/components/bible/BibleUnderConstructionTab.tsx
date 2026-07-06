@@ -39,9 +39,9 @@ const styles = StyleSheet.create({
     gap: 10,
     padding: 24,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   iconWrap: {
     width: 56,

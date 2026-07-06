@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   errorText: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 14,
     lineHeight: 20,
   },
@@ -666,7 +666,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   statusBadgeTextDone: {
-    color: '#86efac',
+    color: '#15803d',
   },
   statusBadgeTextEvaluate: {
     color: '#e9d5ff',

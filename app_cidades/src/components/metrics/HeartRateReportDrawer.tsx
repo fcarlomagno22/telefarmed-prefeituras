@@ -30,6 +30,7 @@ import { shareHeartRateReportPdf } from '../../utils/heartRateReportPdf'
 import { PrimaryButton } from '../PrimaryButton'
 import { GlucoseTrendLineChart } from './GlucoseTrendLineChart'
 import { getModalFooterPadding } from '../../utils/modalSafeArea'
+import { REPORT_SHEET_GRADIENT, reportDrawerChrome } from './metricsReportDrawerShared'
 
 const HR_GRADIENT = ['#fca5a5', '#ef4444', '#dc2626'] as const
 
@@ -226,11 +227,11 @@ export function HeartRateReportDrawer({
           ]}
         >
           <LinearGradient
-            colors={['rgba(24, 24, 32, 0.99)', 'rgba(10, 10, 14, 1)']}
+            colors={[...REPORT_SHEET_GRADIENT]}
             style={StyleSheet.absoluteFillObject}
           />
           {Platform.OS === 'ios' ? (
-            <BlurView intensity={18} tint="dark" style={StyleSheet.absoluteFillObject} />
+            <BlurView intensity={18} tint="light" style={StyleSheet.absoluteFillObject} />
           ) : null}
 
           <LinearGradient
@@ -272,7 +273,10 @@ export function HeartRateReportDrawer({
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.heroCard}>
+            <LinearGradient
+              colors={['#fee2e2', '#fca5a5', '#f87171']}
+              style={styles.heroCard}
+            >
               <Text style={styles.heroEyebrow}>Média em repouso</Text>
               <Text style={styles.heroValue}>
                 {report.restingAvg > 0 ? `${report.restingAvg} bpm` : '—'}
@@ -283,7 +287,7 @@ export function HeartRateReportDrawer({
                   ? ` (${report.trend.changePct > 0 ? '+' : ''}${report.trend.changePct}%)`
                   : ''}
               </Text>
-            </View>
+            </LinearGradient>
 
             <View style={styles.statGrid}>
               <StatCard
@@ -409,11 +413,11 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   sheet: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.backgroundElevated,
   },
   topAccent: {
     position: 'absolute',
@@ -436,7 +440,7 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: reportDrawerChrome.closeButtonBg,
   },
   closeButtonPressed: {
     opacity: 0.75,
@@ -452,7 +456,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   headerSubtitle: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -463,7 +467,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: reportDrawerChrome.headerOrbBorder,
   },
   scroll: {
     flex: 1,
@@ -477,12 +481,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.25)',
-    backgroundColor: 'rgba(239, 68, 68, 0.08)',
     padding: 16,
     alignItems: 'center',
   },
   heroEyebrow: {
-    color: '#fca5a5',
+    color: colors.textMuted,
     fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
@@ -517,7 +520,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: reportDrawerChrome.cardBg,
     padding: 12,
     alignItems: 'center',
   },
@@ -572,7 +575,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: reportDrawerChrome.cardBgMuted,
     padding: 12,
     gap: 8,
   },
@@ -626,6 +629,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: reportDrawerChrome.divider,
   },
 })

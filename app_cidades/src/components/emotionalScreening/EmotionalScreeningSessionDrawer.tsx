@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
     overflow: 'hidden',
   },
   progressFillClip: {
@@ -213,17 +213,17 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   choiceHalf: {
     flex: 1,
     alignItems: 'center',
   },
   choiceSelected: {
-    backgroundColor: 'rgba(139, 92, 246, 0.22)',
-    borderColor: 'rgba(196, 181, 253, 0.55)',
+    backgroundColor: 'rgba(255, 107, 0, 0.1)',
+    borderColor: 'rgba(255, 107, 0, 0.35)',
   },
   choiceText: {
     color: colors.textMuted,

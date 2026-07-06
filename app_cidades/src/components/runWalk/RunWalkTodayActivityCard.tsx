@@ -39,7 +39,7 @@ export function RunWalkTodayActivityCard({
         colors={[
           'rgba(239, 68, 68, 0.28)',
           'rgba(220, 38, 38, 0.12)',
-          'rgba(14, 14, 20, 0.98)',
+          colors.backgroundElevated,
         ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(239, 68, 68, 0.28)',
   },
   badgeText: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.2,
@@ -161,9 +161,9 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   menuBtnPressed: {
     opacity: 0.85,
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     paddingBottom: 2,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: colors.surfaceBorder,
   },
   structureTitle: {
     color: colors.textSubtle,

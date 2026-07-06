@@ -15,8 +15,8 @@ import { ExerciseSessionOverlay } from '../components/functional/ExerciseSession
 import { FunctionalDurationPicker } from '../components/functional/FunctionalDurationPicker'
 import { FunctionalExerciseDetailContent } from '../components/functional/FunctionalExerciseDetailContent'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
-import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import type { ExerciseTimerConfig } from '../hooks/useExerciseTimer'
 import {
@@ -32,11 +32,10 @@ import { colors } from '../theme/colors'
 import type { FunctionalDurationSec } from '../types/functionalTraining'
 import { getFunctionalRouteParams } from '../types/auth'
 import { getNextExerciseId } from '../utils/functionalTraining'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 
 export function FunctionalExerciseScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { routeParams, goBack, canGoBack, navigateTo, user } = useAuth()
   const functionalParams = getFunctionalRouteParams(routeParams)
@@ -142,7 +141,7 @@ export function FunctionalExerciseScreen() {
     <View style={styles.root}>
       <ImageBackground source={backgroundSource} style={styles.background} resizeMode="cover">
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'rgba(10, 10, 12, 0.92)', colors.background]}
+          colors={[themeColors.screenOverlay[0], 'transparent', colors.background]}
           locations={[0, 0.35, 1]}
           style={StyleSheet.absoluteFillObject}
         />
@@ -246,8 +245,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(10, 10, 12, 0.94)',
+    borderTopColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   favoriteBtn: {
     width: 52,
@@ -255,9 +254,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   startBtn: {
     flex: 1,

@@ -78,9 +78,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
     borderRadius: 12,
     padding: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   disclaimer: {
     color: colors.textMuted,

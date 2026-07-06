@@ -94,7 +94,7 @@ export function SleepTimeDayStrip({
           accessibilityLabel="Escolher mês"
           hitSlop={8}
         >
-          <Ionicons name="calendar-outline" size={22} color="#ffffff" />
+          <Ionicons name="calendar-outline" size={22} color={colors.primary} />
         </Pressable>
       </View>
 
@@ -202,9 +202,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 1,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   dayCardSelected: {
     borderColor: 'rgba(99, 102, 241, 0.6)',
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   weekdaySelected: {
-    color: '#c7d2fe',
+    color: '#6366f1',
   },
   dayNumber: {
     color: colors.textMuted,

@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient'
 import { StyleSheet, Text, View } from 'react-native'
 import Svg, { Path } from 'react-native-svg'
 import type { EatWellWeekSummary } from '../../../types/eatWell'
@@ -85,12 +84,7 @@ export function EatWellWeekMacroDonut({
 
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(96, 165, 250, 0.1)', 'rgba(14, 14, 20, 0.98)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <Text style={styles.title}>Macros da semana</Text>
 
         <View style={styles.contentRow}>
@@ -155,7 +149,7 @@ export function EatWellWeekMacroDonut({
           Total semanal · P {formatGrams(proteinG)} · C {formatGrams(carbsG)} · G {formatGrams(fatG)} · Fib{' '}
           {formatGrams(fiberG)} em {activeDays} dias
         </Text>
-      </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -205,7 +199,8 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
     borderWidth: 1,
-    borderColor: 'rgba(96, 165, 250, 0.16)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   title: {
     color: colors.text,

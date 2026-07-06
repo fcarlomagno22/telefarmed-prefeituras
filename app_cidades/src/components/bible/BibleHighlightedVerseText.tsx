@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
   Platform,
   Pressable,
@@ -31,18 +31,45 @@ type BibleHighlightedVerseTextProps = {
   onHighlightPress: (highlight: BibleVerseHighlight) => void
 }
 
-export function BibleHighlightedVerseText({
+const isWeb = Platform.OS === 'web'
+
+function syncWebTextareaHeight(node: TextInput | null) {
+  if (!isWeb || !node) return
+
+  const textarea = node as unknown as HTMLTextAreaElement
+  textarea.style.setProperty('overflow', 'hidden', 'important')
+  textarea.style.setProperty('overflow-y', 'hidden', 'important')
+  textarea.style.setProperty('overflow-x', 'hidden', 'important')
+  textarea.style.setProperty('resize', 'none')
+  textarea.style.height = '0px'
+  const nextHeight = textarea.scrollHeight
+  textarea.style.height = `${nextHeight}px`
+  textarea.style.maxHeight = `${nextHeight}px`
+}
+
+type SelectableVerseInputProps = {
+  text: string
+  fontSize: number
+  lineHeight: number
+  onSelectionChange: (selection: BibleVerseTextSelection | null) => void
+}
+
+function SelectableVerseInput({
   text,
-  highlights,
   fontSize,
   lineHeight,
-  selectionMode,
-  onEnterSelectionMode,
   onSelectionChange,
-  onHighlightPress,
-}: BibleHighlightedVerseTextProps) {
-  const segments = useMemo(() => buildHighlightSegments(text, highlights), [highlights, text])
+}: SelectableVerseInputProps) {
+  const inputRef = useRef<TextInput>(null)
   const lastSelectionRef = useRef<BibleVerseTextSelection | null>(null)
+
+  const syncHeight = useCallback(() => {
+    syncWebTextareaHeight(inputRef.current)
+  }, [])
+
+  useEffect(() => {
+    syncHeight()
+  }, [text, fontSize, lineHeight, syncHeight])
 
   function emitSelection(start: number, end: number) {
     if (start === end) {
@@ -71,30 +98,78 @@ export function BibleHighlightedVerseText({
     emitSelection(start, end)
   }
 
-  const showSelectableInput = highlights.length === 0 || selectionMode
+  return (
+    <TextInput
+      ref={inputRef}
+      value={text}
+      editable
+      multiline
+      scrollEnabled={false}
+      selectTextOnFocus={false}
+      showSoftInputOnFocus={false}
+      caretHidden={!isWeb}
+      contextMenuHidden={false}
+      onChangeText={() => {}}
+      onSelectionChange={handleSelectionChange}
+      onContentSizeChange={syncHeight}
+      {...(isWeb ? ({ className: 'bible-verse-select' } as const) : null)}
+      style={[
+        styles.selectableInput,
+        isWeb && styles.selectableInputWeb,
+        {
+          fontSize,
+          lineHeight,
+        },
+      ]}
+    />
+  )
+}
 
-  if (showSelectableInput) {
-    return (
-      <TextInput
-        key={selectionMode ? 'selection' : 'reading'}
-        value={text}
-        editable
-        multiline
-        scrollEnabled={false}
-        selectTextOnFocus={false}
-        showSoftInputOnFocus={false}
-        caretHidden
-        contextMenuHidden={false}
-        onChangeText={() => {}}
-        onSelectionChange={handleSelectionChange}
-        style={[
-          styles.selectableInput,
-          {
-            fontSize,
-            lineHeight,
+export function BibleHighlightedVerseText({
+  text,
+  highlights,
+  fontSize,
+  lineHeight,
+  selectionMode,
+  onEnterSelectionMode,
+  onSelectionChange,
+  onHighlightPress,
+}: BibleHighlightedVerseTextProps) {
+  const segments = useMemo(() => buildHighlightSegments(text, highlights), [highlights, text])
+
+  const webDoubleClickProps =
+    isWeb && !selectionMode
+      ? ({
+          onDoubleClick: (event: { preventDefault?: () => void }) => {
+            event.preventDefault?.()
+            onEnterSelectionMode()
           },
-        ]}
+        } as const)
+      : null
+
+  if (selectionMode || (isWeb && highlights.length === 0)) {
+    return (
+      <SelectableVerseInput
+        text={text}
+        fontSize={fontSize}
+        lineHeight={lineHeight}
+        onSelectionChange={onSelectionChange}
       />
+    )
+  }
+
+  if (highlights.length === 0) {
+    return (
+      <Pressable
+        onLongPress={onEnterSelectionMode}
+        delayLongPress={280}
+        style={styles.highlightedWrap}
+      >
+        <Text style={[styles.plainSegment, { fontSize, lineHeight }]}>{text}</Text>
+        {Platform.OS === 'android' ? (
+          <Text style={styles.hint}>Segure para selecionar um trecho</Text>
+        ) : null}
+      </Pressable>
     )
   }
 
@@ -104,7 +179,7 @@ export function BibleHighlightedVerseText({
       delayLongPress={280}
       style={styles.highlightedWrap}
     >
-      <View style={styles.verseFlow}>
+      <View style={styles.verseFlow} {...webDoubleClickProps}>
         {segments.map((segment) => {
           if (segment.type === 'plain') {
             return (
@@ -131,6 +206,8 @@ export function BibleHighlightedVerseText({
       </View>
       {Platform.OS === 'android' ? (
         <Text style={styles.hint}>Segure para selecionar um trecho</Text>
+      ) : isWeb ? (
+        <Text style={styles.hint}>Duplo clique no versículo para selecionar um trecho</Text>
       ) : null}
     </Pressable>
   )
@@ -146,6 +223,12 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     includeFontPadding: false,
     textAlignVertical: 'top',
+  },
+  selectableInputWeb: {
+    overflow: 'hidden' as const,
+    maxHeight: 'none' as const,
+    resize: 'none' as const,
+    outlineStyle: 'none' as const,
   },
   highlightedWrap: {
     flex: 1,

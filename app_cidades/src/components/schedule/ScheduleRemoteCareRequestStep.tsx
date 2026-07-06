@@ -250,8 +250,8 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(14, 14, 20, 0.75)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surface,
   },
   optionSelected: {
     borderColor: 'rgba(255, 133, 51, 0.55)',
@@ -299,9 +299,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
     aspectRatio: 4 / 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
   },
   evidencePreview: {
     width: '100%',
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.55)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
   },
   submitBtn: {
     marginTop: 4,

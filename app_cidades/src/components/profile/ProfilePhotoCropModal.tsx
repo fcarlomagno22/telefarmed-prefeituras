@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   cropViewport: {
     borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: '#050508',
+    backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
   },

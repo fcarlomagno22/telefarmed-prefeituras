@@ -43,9 +43,11 @@ export function FunctionalSegmentTabs({
               {tab.label}
             </Text>
             {tab.id === 'favorites' ? (
-              <Text style={[styles.tabCount, active && styles.tabCountActive]}>
-                {favoritesCount}
-              </Text>
+              <View style={[styles.countPill, active && styles.countPillActive]}>
+                <Text style={[styles.tabCount, active && styles.tabCountActive]}>
+                  {favoritesCount}
+                </Text>
+              </View>
             ) : null}
           </Pressable>
         )
@@ -60,9 +62,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     padding: 4,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: '#f1f5f9',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     gap: 4,
   },
   tab: {
@@ -75,7 +77,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   tabActive: {
-    backgroundColor: 'rgba(249, 115, 22, 0.18)',
+    backgroundColor: colors.backgroundElevated,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   tabPressed: {
     opacity: 0.88,
@@ -86,15 +93,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   tabLabelActive: {
-    color: '#fed7aa',
-    fontWeight: '700',
+    color: colors.text,
+    fontWeight: '800',
+  },
+  countPill: {
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 6,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(148, 163, 184, 0.2)',
+  },
+  countPillActive: {
+    backgroundColor: '#ffedd5',
   },
   tabCount: {
     color: colors.textSubtle,
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   tabCountActive: {
-    color: '#fdba74',
+    color: '#c2410c',
   },
 })

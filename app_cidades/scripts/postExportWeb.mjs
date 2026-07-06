@@ -30,10 +30,10 @@ if (!html.includes('manifest.webmanifest')) {
   html = html.replace(
     '</head>',
     `    <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="light" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   </head>`,
   )
 }
@@ -46,19 +46,19 @@ html = html.replace(
 if (!html.includes('name="theme-color"')) {
   html = html.replace(
     '<meta charset="utf-8" />',
-    '<meta charset="utf-8" />\n    <meta name="theme-color" content="#0a0a0c" />',
+    '<meta charset="utf-8" />\n    <meta name="theme-color" content="#f5f5f7" />',
   )
 }
 
-if (!html.includes('background-color: #0a0a0c')) {
+if (!html.includes('background-color: #f5f5f7')) {
   html = html.replace(
     'html,\n      body {\n        height: 100%;\n      }',
     `html,
       body {
         height: 100%;
         min-height: 100dvh;
-        background-color: #0a0a0c;
-        color-scheme: dark only;
+        background-color: #f5f5f7;
+        color-scheme: light;
       }`,
   )
   html = html.replace(
@@ -68,11 +68,11 @@ if (!html.includes('background-color: #0a0a0c')) {
         height: 100%;
         min-height: 100dvh;
         flex: 1;
-        background-color: #0a0a0c;
+        background-color: #f5f5f7;
       }`,
   )
 } else {
-  html = html.replace(/color-scheme:\s*dark;/g, 'color-scheme: dark only;')
+  html = html.replace(/color-scheme:\s*dark(?:\s+only)?;/g, 'color-scheme: light;')
 }
 
 if (!html.includes('#root input,')) {

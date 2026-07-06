@@ -18,8 +18,8 @@ export const SPOT_PICKER_LEAFLET_JS_URL = NEARBY_UNITS_LEAFLET_JS_URL
 export const SPOT_PICKER_TILE_URL = NEARBY_UNITS_TILE_URL
 
 export const SPOT_PICKER_MAP_CUSTOM_CSS = `
-  html, body, #map { margin: 0; padding: 0; width: 100%; height: 100%; background: #0e0e14; }
-  .leaflet-container { background: #0e0e14; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+  html, body, #map { margin: 0; padding: 0; width: 100%; height: 100%; background: #f0f0f2; }
+  .leaflet-container { background: #f0f0f2; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
   .pick-marker {
     width: 28px;
     height: 28px;

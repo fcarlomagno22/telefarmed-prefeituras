@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 14,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     marginBottom: 16,
   },
@@ -610,7 +610,7 @@ const styles = StyleSheet.create({
     gap: 10,
     padding: 16,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
   },
   referenceRow: {
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   verseIndex: {
     fontSize: 12,

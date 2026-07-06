@@ -24,8 +24,8 @@ import { PostConsultationHowItWorksCard } from '../components/postConsultation/P
 import { PostConsultationPlanCard } from '../components/postConsultation/PostConsultationPlanCard'
 import { PostConsultationSegmentTabs } from '../components/postConsultation/PostConsultationSegmentTabs'
 import { SkeletonBone } from '../components/SkeletonBone'
-import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useSimulatedPageSkeleton } from '../hooks/useSimulatedPageSkeleton'
@@ -42,13 +42,12 @@ import {
   getPostConsultationHero,
   splitPostConsultationPlans,
 } from '../utils/appointmentPostConsultation'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
 const POST_CONSULTATION_SEGMENT_PAGES: PostConsultationTab[] = ['active', 'closed']
 
 export function PostConsultationScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { width: screenWidth } = useWindowDimensions()
   const { user, navigateTo, logout } = useAuth()
@@ -410,7 +409,7 @@ export function PostConsultationScreen() {
         />
 
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'transparent', 'rgba(10, 10, 12, 0.75)']}
+          colors={[...themeColors.screenOverlay]}
           locations={[0, 0.35, 1]}
           style={styles.screenOverlay}
           pointerEvents="none"

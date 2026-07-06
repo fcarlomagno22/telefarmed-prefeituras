@@ -1,15 +1,15 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import { useCallback, useEffect, useState } from 'react'
-import { ImageBackground, StyleSheet, View } from 'react-native'
+import { ImageBackground, Platform, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
 import { MenuDrawer } from '../components/MenuDrawer'
 import { MentalHealthHomeContent } from '../components/mentalHealth/MentalHealthHomeContent'
 import { MentalHealthOnboardingDrawer } from '../components/mentalHealth/MentalHealthOnboardingDrawer'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
-import { appEnv } from '../config/env'
 import { loadMentalHealthOnboardingRecord } from '../data/mentalHealthOnboardingStorage'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
 import {
@@ -17,12 +17,11 @@ import {
   type MentalHealthOnboardingRecord,
 } from '../types/mentalHealth'
 import type { UserClinicalState } from '../types/mentalHealthEngine'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
 
 export function MentalHealthScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { user, isAuthenticated, navigateTo, goBack, canGoBack, logout } = useAuth()
 
@@ -104,53 +103,61 @@ export function MentalHealthScreen() {
 
   return (
     <View style={styles.root}>
-      <ImageBackground source={backgroundSource} style={styles.background} resizeMode="cover">
-        <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'rgba(10, 10, 12, 0.92)']}
-          style={StyleSheet.absoluteFillObject}
-        />
+      <ImageBackground
+        source={backgroundSource}
+        style={styles.background}
+        resizeMode="cover"
+        imageStyle={styles.backgroundImage}
+      />
 
+      <LinearGradient
+        colors={[themeColors.screenOverlay[0], 'transparent']}
+        style={styles.screenOverlay}
+        pointerEvents="none"
+      />
+
+      <View style={styles.pageColumn}>
         <ScreenStackHeader
-          title="Saúde Mental"
-          subtitle="Cuidado emocional no seu ritmo"
-          paddingTop={headerPaddingTop}
-          onBack={() => {
-            if (safetyFlowActive) return
-            goBack()
-          }}
-          onSettingsPress={
-            isRecordReady && onboardingRecord.completed && !safetyFlowActive
-              ? () => setSettingsVisible(true)
-              : undefined
-          }
+            title="Saúde Mental"
+            subtitle="Cuidado emocional no seu ritmo"
+            paddingTop={headerPaddingTop}
+            onBack={() => {
+              if (safetyFlowActive) return
+              goBack()
+            }}
+            onSettingsPress={
+              isRecordReady && onboardingRecord.completed && !safetyFlowActive
+                ? () => setSettingsVisible(true)
+                : undefined
+            }
         />
 
         {isRecordReady && (isAuthenticated ? onboardingRecord.completed : true) ? (
           <MentalHealthHomeContent
-            bottomPadding={bottomContentPadding}
-            patientCpf={patientCpf}
-            record={onboardingRecord}
-            refreshKey={homeRefreshKey}
-            clinicalStateSeed={clinicalStateSeed}
-            onSafetyFlowActiveChange={setSafetyFlowActive}
-            onboardingInProgress={onboardingVisible}
-            settingsVisible={settingsVisible}
-            onSettingsVisibleChange={setSettingsVisible}
+              bottomPadding={bottomContentPadding}
+              patientCpf={patientCpf}
+              record={onboardingRecord}
+              refreshKey={homeRefreshKey}
+              clinicalStateSeed={clinicalStateSeed}
+              onSafetyFlowActiveChange={setSafetyFlowActive}
+              onboardingInProgress={onboardingVisible}
+              settingsVisible={settingsVisible}
+              onSettingsVisibleChange={setSettingsVisible}
           />
         ) : (
           <View style={styles.placeholder} />
         )}
 
         <BottomTabBar activeTab={null} onTabPress={handleTabPress} />
+      </View>
 
-        <MenuDrawer
-          visible={menuVisible}
-          onClose={() => setMenuVisible(false)}
-          userName={user?.name}
-          selfieUri={user?.selfieUri}
-          onLogoutPress={() => void logout()}
-        />
-      </ImageBackground>
+      <MenuDrawer
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        userName={user?.name}
+        selfieUri={user?.selfieUri}
+        onLogoutPress={() => void logout()}
+      />
 
       <MentalHealthOnboardingDrawer
         visible={isAuthenticated && isRecordReady && onboardingVisible}
@@ -169,9 +176,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   background: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  backgroundImage: {
+    width: '100%',
+    height: '100%',
+  },
+  screenOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  pageColumn: {
     flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        height: '100%',
+        overflow: 'hidden',
+      },
+      default: {},
+    }),
   },
   placeholder: {
     flex: 1,
+    minHeight: 0,
   },
 })

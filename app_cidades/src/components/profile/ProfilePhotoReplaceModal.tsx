@@ -134,7 +134,7 @@ export function ProfilePhotoReplaceModal({
     >
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
-          <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={70} tint="light" style={StyleSheet.absoluteFillObject} />
           <View style={styles.backdropTint} />
           <Pressable style={StyleSheet.absoluteFillObject} onPress={handleDismiss} />
         </Animated.View>
@@ -204,12 +204,12 @@ const styles = StyleSheet.create({
   },
   backdropTint: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.58)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   sheet: {
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    backgroundColor: 'rgba(22, 22, 28, 0.98)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
     paddingHorizontal: 24,
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginBottom: 12,
   },
   lottieWrap: {
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
   },

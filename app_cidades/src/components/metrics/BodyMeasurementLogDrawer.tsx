@@ -252,14 +252,14 @@ export function BodyMeasurementLogDrawer({
             ]}
           >
             <LinearGradient
-              colors={['rgba(36, 36, 46, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+              colors={[colors.backgroundElevated, '#f0f0f2']}
               pointerEvents="none"
               style={StyleSheet.absoluteFillObject}
             />
             {Platform.OS === 'ios' ? (
               <BlurView
                 intensity={28}
-                tint="dark"
+                tint="light"
                 pointerEvents="none"
                 style={StyleSheet.absoluteFillObject}
               />
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   keyboardWrap: {
     flex: 1,
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     maxHeight: '92%',
   },
   scrollContent: {
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginBottom: 4,
   },
   headerRow: {
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   closeButtonPressed: {
     opacity: 0.8,
@@ -467,9 +467,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingVertical: 22,
     paddingHorizontal: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     alignItems: 'center',
     gap: 16,
   },
@@ -508,9 +508,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   stepperButtonPressed: {
     opacity: 0.8,

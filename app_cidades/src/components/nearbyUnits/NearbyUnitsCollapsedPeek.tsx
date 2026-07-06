@@ -67,9 +67,9 @@ const styles = StyleSheet.create({
     gap: 10,
     padding: 12,
     borderRadius: 14,
-    backgroundColor: '#1c1c24',
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.28)',
+    borderColor: colors.surfaceBorder,
   },
   pressed: {
     opacity: 0.9,
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(16, 185, 129, 0.2)',
   },
   badgeClosed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
   },
   badgeText: {
     color: colors.textMuted,

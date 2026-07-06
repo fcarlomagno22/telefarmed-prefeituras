@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
   },
   cropViewport: {
     overflow: 'hidden',
-    backgroundColor: '#050508',
+    backgroundColor: colors.background,
   },
   imageLayer: {
     ...StyleSheet.absoluteFillObject,

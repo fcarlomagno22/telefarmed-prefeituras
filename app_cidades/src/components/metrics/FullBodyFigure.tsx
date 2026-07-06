@@ -7,7 +7,7 @@ type FullBodyFigureProps = {
 
 export function FullBodyFigure({
   size = 72,
-  color = 'rgba(255, 255, 255, 0.16)',
+  color = 'rgba(0, 0, 0, 0.16)',
 }: FullBodyFigureProps) {
   return (
     <Svg width={size} height={size} viewBox="0 -0.6 14 15">

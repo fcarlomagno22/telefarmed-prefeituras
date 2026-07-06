@@ -160,7 +160,7 @@ export function SudokuVictoryPieChart({ slices, size = 220 }: SudokuVictoryPieCh
               key={slice.id}
               d={slice.path}
               fill={`url(#sudoku-pie-${slice.id})`}
-              stroke="rgba(10, 10, 12, 0.45)"
+              stroke="rgba(0, 0, 0, 0.12)"
               strokeWidth={0.75}
               strokeLinejoin="round"
             />
@@ -194,9 +194,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   emptyLabel: {
     color: colors.textMuted,
@@ -208,9 +208,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(10, 10, 12, 0.92)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
     gap: 0,
   },
   centerValue: {

@@ -31,9 +31,9 @@ export function RunWalkHistoryFiltersBar({
         ]}
       >
         {exportingReport ? (
-          <ActivityIndicator size="small" color="#6ee7b7" />
+          <ActivityIndicator size="small" color="#15803d" />
         ) : (
-          <Ionicons name="document-text-outline" size={14} color="#6ee7b7" />
+          <Ionicons name="document-text-outline" size={14} color="#15803d" />
         )}
         <Text style={styles.reportText}>
           {exportingReport ? 'Gerando…' : 'Criar relatório'}
@@ -76,17 +76,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    backgroundColor: '#dcfce7',
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.28)',
+    borderColor: 'rgba(22, 163, 74, 0.35)',
   },
   reportButtonDisabled: {
     opacity: 0.75,
   },
   reportText: {
-    color: '#6ee7b7',
+    color: '#15803d',
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   linkButton: {
     flexDirection: 'row',
@@ -106,12 +106,12 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.18)',
+    backgroundColor: '#dcfce7',
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.32)',
+    borderColor: 'rgba(22, 163, 74, 0.35)',
   },
   badgeText: {
-    color: '#6ee7b7',
+    color: '#15803d',
     fontSize: 10,
     fontWeight: '800',
   },

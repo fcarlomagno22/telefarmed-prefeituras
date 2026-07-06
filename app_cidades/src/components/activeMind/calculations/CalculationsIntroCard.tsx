@@ -1,4 +1,6 @@
 import { useThemedStyles } from '../../../hooks/useThemedStyles'
+import { activeMindGameChrome } from '../../../theme/activeMindGameChrome'
+import { colors } from '../../../theme/colors'
 import type { ThemeColors } from '../../../theme/palettes'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
@@ -59,7 +61,7 @@ function createStyles(colors: ThemeColors) {
     gap: 12,
     padding: 16,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.07)',
   },
@@ -109,7 +111,7 @@ function createStyles(colors: ThemeColors) {
     opacity: 0.75,
   },
   link: {
-    color: '#67e8f9',
+    color: activeMindGameChrome.actionLink,
     fontSize: 13,
     fontWeight: '600',
     textDecorationLine: 'underline',

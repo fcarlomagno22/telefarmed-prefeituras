@@ -258,7 +258,7 @@ export function ExerciseSessionOverlay({
     <AppModal visible={visible} animationType="fade" presentationStyle="fullScreen">
       <View style={styles.root}>
         <LinearGradient
-          colors={[`${phaseColor}22`, '#0a0a0c', '#0a0a0c']}
+          colors={[`${phaseColor}22`, colors.background, colors.background]}
           locations={[0, 0.35, 1]}
           style={StyleSheet.absoluteFill}
         />
@@ -328,7 +328,7 @@ export function ExerciseSessionOverlay({
               ) : null}
 
               <LinearGradient
-                colors={['transparent', 'rgba(10, 10, 12, 0.55)', '#0a0a0c']}
+                colors={['transparent', colors.surface, colors.background]}
                 locations={[0.45, 0.82, 1]}
                 style={styles.heroFade}
                 pointerEvents="none"
@@ -499,7 +499,7 @@ function CompletedPanel({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#0a0a0c',
+    backgroundColor: colors.background,
   },
   topBar: {
     flexDirection: 'row',
@@ -514,7 +514,9 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
   },
   closeBtnSpacer: {
     width: 38,
@@ -549,7 +551,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 3,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: colors.surfaceBorder,
   },
   circuitSegmentDone: {
     backgroundColor: 'rgba(34, 197, 94, 0.65)',
@@ -581,7 +583,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 999,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
   },
   phaseDot: {
@@ -642,9 +644,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 17,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   actionSecondaryPlus: {
     color: colors.text,
@@ -733,7 +735,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(251, 146, 60, 0.28)',
   },
   completedSecondaryText: {
-    color: '#fed7aa',
+    color: colors.primaryDark,
     fontSize: 16,
     fontWeight: '700',
   },

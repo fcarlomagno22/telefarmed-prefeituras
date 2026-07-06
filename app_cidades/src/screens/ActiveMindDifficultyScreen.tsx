@@ -22,18 +22,17 @@ import { MenuDrawer } from '../components/MenuDrawer'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { ACTIVE_MIND_DIFFICULTY_OPTIONS } from '../config/activeMindDifficulty'
 import { getActiveMindGameById } from '../config/activeMindGames'
-import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
 import { getActiveMindRouteParams } from '../types/auth'
 import type { ActiveMindPlayDifficulty } from '../types/activeMind'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
 
 export function ActiveMindDifficultyScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { user, routeParams, goBack, canGoBack, navigateTo, logout } = useAuth()
   const activeMindParams = getActiveMindRouteParams(routeParams)
@@ -136,7 +135,7 @@ export function ActiveMindDifficultyScreen() {
       <View style={styles.root}>
         <ImageBackground source={backgroundSource} style={styles.background} resizeMode="cover">
           <LinearGradient
-            colors={['rgba(10, 10, 12, 0.55)', 'rgba(10, 10, 12, 0.92)']}
+            colors={[themeColors.screenOverlay[0], 'transparent']}
             style={StyleSheet.absoluteFillObject}
           />
           <ScreenStackHeader
@@ -167,7 +166,7 @@ export function ActiveMindDifficultyScreen() {
     <View style={styles.root}>
       <ImageBackground source={backgroundSource} style={styles.background} resizeMode="cover">
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'rgba(10, 10, 12, 0.92)']}
+          colors={[themeColors.screenOverlay[0], 'transparent']}
           style={StyleSheet.absoluteFillObject}
         />
 
@@ -286,7 +285,7 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 16,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.07)',
   },

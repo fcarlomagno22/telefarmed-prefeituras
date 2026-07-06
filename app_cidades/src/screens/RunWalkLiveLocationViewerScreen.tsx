@@ -107,7 +107,7 @@ export function RunWalkLiveLocationViewerScreen() {
           />
         ) : (
           <LinearGradient
-            colors={['#111118', '#0a0a0c', '#0a0a0c']}
+            colors={[colors.backgroundElevated, colors.background, colors.background]}
             style={StyleSheet.absoluteFillObject}
           />
         )}
@@ -128,7 +128,7 @@ export function RunWalkLiveLocationViewerScreen() {
           accessibilityLabel="Voltar"
         >
           {Platform.OS === 'ios' ? (
-            <BlurView intensity={28} tint="dark" style={styles.backBtnBlur}>
+            <BlurView intensity={28} tint="light" style={styles.backBtnBlur}>
               <Ionicons name="chevron-back" size={22} color={colors.text} />
             </BlurView>
           ) : (
@@ -175,7 +175,7 @@ export function RunWalkLiveLocationViewerScreen() {
         {hasValidLink && snapshot ? (
           <>
             {Platform.OS === 'ios' ? (
-              <BlurView intensity={36} tint="dark" style={styles.statsCard}>
+              <BlurView intensity={36} tint="light" style={styles.statsCard}>
                 <StatsContent
                   firstName={firstName}
                   activityName={snapshot.activityName}
@@ -313,9 +313,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   liveBadge: {
     flexDirection: 'row',
@@ -324,9 +324,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   liveDot: {
     width: 8,
@@ -360,16 +360,16 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: 'rgba(20, 20, 24, 0.92)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   errorTitle: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 15,
     fontWeight: '800',
     textAlign: 'center',
   },
   errorText: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   statsCardAndroid: {
     backgroundColor: 'rgba(16, 16, 20, 0.94)',
@@ -431,14 +431,14 @@ const styles = StyleSheet.create({
   },
   metricDivider: {
     width: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
   },
   statusHint: {
     fontSize: 11,
     fontWeight: '600',
   },
   statusHintLive: {
-    color: '#86efac',
+    color: '#15803d',
   },
   statusHintOff: {
     color: colors.textSubtle,
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: 'rgba(20, 20, 24, 0.88)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     gap: 4,
   },
   waitingTitle: {
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
     backgroundColor: 'rgba(16, 16, 20, 0.88)',
   },
   refreshBtnPressed: {

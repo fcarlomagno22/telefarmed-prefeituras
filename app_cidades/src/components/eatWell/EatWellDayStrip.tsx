@@ -224,9 +224,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 1,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   dayCardSelected: {
     borderColor: 'rgba(132, 204, 22, 0.6)',

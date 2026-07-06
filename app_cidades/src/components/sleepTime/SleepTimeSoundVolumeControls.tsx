@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { colors } from '../../theme/colors'
+import { sleepTimeDrawerTheme } from './sleepTimeDrawerTheme'
 
 type SleepTimeSoundVolumeControlsProps = {
   volume: number
@@ -34,7 +34,7 @@ export function SleepTimeSoundVolumeControls({
 
   return (
     <View style={styles.wrap}>
-      <Ionicons name="volume-low-outline" size={18} color={colors.textSubtle} />
+      <Ionicons name="volume-low-outline" size={18} color={sleepTimeDrawerTheme.textSubtle} />
 
       <Pressable
         onPress={handleDecrease}
@@ -51,7 +51,7 @@ export function SleepTimeSoundVolumeControls({
         <Ionicons
           name="remove"
           size={18}
-          color={canDecrease ? colors.text : colors.textSubtle}
+          color={canDecrease ? sleepTimeDrawerTheme.text : sleepTimeDrawerTheme.textSubtle}
         />
       </Pressable>
 
@@ -74,7 +74,7 @@ export function SleepTimeSoundVolumeControls({
         <Ionicons
           name="add"
           size={18}
-          color={canIncrease ? colors.text : colors.textSubtle}
+          color={canIncrease ? sleepTimeDrawerTheme.text : sleepTimeDrawerTheme.textSubtle}
         />
       </Pressable>
 
@@ -91,9 +91,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: sleepTimeDrawerTheme.chipBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: sleepTimeDrawerTheme.chipBorder,
   },
   stepBtn: {
     width: 32,
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
   },
   stepBtnDisabled: {
     opacity: 0.35,
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 5,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: sleepTimeDrawerTheme.volumeTrack,
     overflow: 'hidden',
   },
   volumeFill: {
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   },
   volumeText: {
     width: 38,
-    color: colors.textMuted,
+    color: sleepTimeDrawerTheme.textMuted,
     fontSize: 12,
     fontWeight: '700',
     textAlign: 'right',

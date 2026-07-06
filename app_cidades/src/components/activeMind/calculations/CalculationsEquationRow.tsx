@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native'
+import { colors } from '../../../theme/colors'
 import type { ThemeColors } from '../../../theme/palettes'
 import { useThemedStyles } from '../../../hooks/useThemedStyles'
 
@@ -78,7 +79,7 @@ function createStyles(colors: ThemeColors) {
     includeFontPadding: false,
   },
   equals: {
-    color: '#93c5fd',
+    color: '#2563eb',
     fontSize: 26,
     fontWeight: '800',
     includeFontPadding: false,
@@ -90,9 +91,9 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
     borderStyle: 'dashed',
   },
   answerSlotFilled: {

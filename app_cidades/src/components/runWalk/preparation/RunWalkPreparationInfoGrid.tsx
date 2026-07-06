@@ -17,9 +17,9 @@ type RunWalkPreparationInfoGridProps = {
 
 function PreparationInfoCell({ row }: { row: PreparationInfoRow }) {
   return (
-    <View style={styles.cell}>
+    <>
       <View style={styles.iconWrap}>
-        <Ionicons name={row.icon} size={14} color="#fdba74" />
+        <Ionicons name={row.icon} size={14} color="#ff8533" />
       </View>
       <Text style={styles.label}>{row.label}</Text>
       <Text
@@ -29,19 +29,29 @@ function PreparationInfoCell({ row }: { row: PreparationInfoRow }) {
       >
         {row.loading ? 'Carregando...' : row.value}
       </Text>
-    </View>
+    </>
   )
 }
 
 export function RunWalkPreparationInfoGrid({ rowPairs }: RunWalkPreparationInfoGridProps) {
+  const lastRowIndex = rowPairs.length - 1
+
   return (
     <View style={styles.wrap}>
       <Text style={styles.title}>Informações principais</Text>
-      <View style={styles.grid}>
+      <View style={styles.card}>
         {rowPairs.map((pair, rowIndex) => (
-          <View key={`row-${rowIndex}`} style={styles.row}>
-            {pair.map((row) => (
-              <PreparationInfoCell key={row.id} row={row} />
+          <View
+            key={`row-${rowIndex}`}
+            style={[styles.row, rowIndex < lastRowIndex && styles.rowDivider]}
+          >
+            {pair.map((row, colIndex) => (
+              <View
+                key={row.id}
+                style={[styles.cell, colIndex === 0 && styles.cellDivider]}
+              >
+                <PreparationInfoCell row={row} />
+              </View>
             ))}
           </View>
         ))}
@@ -63,25 +73,33 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%',
   },
-  grid: {
-    gap: 8,
+  card: {
     width: '100%',
+    borderRadius: 16,
+    backgroundColor: colors.backgroundElevated,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    overflow: 'hidden',
   },
   row: {
     flexDirection: 'row',
-    gap: 8,
     width: '100%',
+  },
+  rowDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surfaceBorder,
   },
   cell: {
     flex: 1,
-    padding: 10,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
     gap: 4,
     alignItems: 'center',
     minWidth: 0,
+  },
+  cellDivider: {
+    borderRightWidth: 1,
+    borderRightColor: colors.surfaceBorder,
   },
   iconWrap: {
     width: 26,
@@ -89,7 +107,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 133, 51, 0.15)',
+    backgroundColor: 'rgba(255, 107, 0, 0.1)',
   },
   label: {
     color: colors.textSubtle,

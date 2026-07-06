@@ -29,7 +29,7 @@ export function NearbyUnitDetailPanel({
         <Image source={{ uri: ubt.imageUrl }} style={styles.heroImage} resizeMode="cover" />
       ) : (
         <LinearGradient
-          colors={['rgba(245, 158, 11, 0.25)', 'rgba(14, 14, 20, 0.6)']}
+          colors={['rgba(245, 158, 11, 0.25)', colors.surface]}
           style={styles.heroFallback}
         />
       )}
@@ -138,9 +138,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(10, 10, 12, 0.72)',
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   content: {
     padding: 16,
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(16, 185, 129, 0.2)',
   },
   badgeClosed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
   },
   badgeText: {
     color: colors.textMuted,
@@ -214,9 +214,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   stat: {
     flex: 1,
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
   },
   tagsRow: {
     flexDirection: 'row',

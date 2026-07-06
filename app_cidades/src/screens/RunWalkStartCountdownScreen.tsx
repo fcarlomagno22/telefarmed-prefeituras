@@ -108,7 +108,7 @@ export function RunWalkStartCountdownScreen() {
   return (
     <View style={styles.root}>
       <LinearGradient
-        colors={['rgba(251, 191, 36, 0.16)', '#0a0a0c', '#0a0a0c']}
+        colors={['rgba(251, 191, 36, 0.16)', colors.background, colors.background]}
         locations={[0, 0.32, 1]}
         style={StyleSheet.absoluteFillObject}
       />

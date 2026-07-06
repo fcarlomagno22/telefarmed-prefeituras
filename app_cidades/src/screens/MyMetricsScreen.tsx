@@ -6,7 +6,6 @@ import {
   Animated,
   Easing,
   ImageBackground,
-  InteractionManager,
   Platform,
   Pressable,
   StyleSheet,
@@ -43,7 +42,6 @@ import { DistanceHistoryDrawer } from '../components/metrics/DistanceHistoryDraw
 import { BodyMeasurementsDrawer } from '../components/metrics/BodyMeasurementsDrawer'
 import { BodyMeasurementLogDrawer } from '../components/metrics/BodyMeasurementLogDrawer'
 import { NeonSectionDivider } from '../components/NeonSectionDivider'
-import { appEnv } from '../config/env'
 import {
   applyLiveRegistrationSliding,
   createExtendedWeightHistory,
@@ -105,6 +103,7 @@ import {
 } from '../data/mockStepsHistory'
 import { useAuth } from '../contexts/AuthContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useSimulatedPageSkeleton } from '../hooks/useSimulatedPageSkeleton'
 import { colors } from '../theme/colors'
@@ -124,23 +123,17 @@ import { ManualWalkEntry, StepsDayRecord } from '../types/steps'
 import { IntegrationConnectionState, IntegrationId } from '../types/healthIntegrations'
 import { buildPeriodSelection, formatPeriodLabel, isHourlyPeriod } from '../utils/metricsPeriod'
 import { parseWeightKg } from '../utils/bmi'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 import { SkeletonBone } from '../components/SkeletonBone'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
 const METRIC_COLUMNS = 3
 const METRIC_GRID_GAP = 8
 const METRIC_GRID_PADDING = 16
 const PROFILE_LONG_PRESS_MS = 400
 
+/** Abre drawer após long-press sem bloquear a animação do botão. */
 function runAfterUiReady(task: () => void) {
-  if (Platform.OS === 'web') {
-    task()
-    return
-  }
-
-  runAfterUiReady(task)
+  setTimeout(task, 0)
 }
 
 type ProfileFieldMeta = {
@@ -288,8 +281,8 @@ const WEIGHT_CHART_METRIC: ChartMetricConfig = {
   label: 'Peso',
   unit: 'kg',
   icon: 'weight-kilogram',
-  gradient: ['#ffffff', '#e2e8f0', '#cbd5e1'],
-  accentColor: '#f1f5f9',
+  gradient: ['#e2e8f0', '#cbd5e1', '#94a3b8'],
+  accentColor: '#64748b',
 }
 
 const CHARTABLE_METRICS: ChartMetricConfig[] = [...CHART_METRICS, WEIGHT_CHART_METRIC]
@@ -319,17 +312,12 @@ function ProfileKpiStrip({
   return (
     <View style={styles.profileStripWrap}>
       <LinearGradient
-        colors={['rgba(255, 133, 51, 0.28)', 'rgba(255, 255, 255, 0.05)']}
+        colors={['rgba(255, 107, 0, 0.22)', 'rgba(255, 107, 0, 0.06)']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.profileStripBorder}
       >
         <View style={styles.profileStripInner}>
-          <LinearGradient
-            colors={['rgba(28, 28, 36, 0.95)', 'rgba(14, 14, 20, 0.98)']}
-            style={StyleSheet.absoluteFillObject}
-          />
-
           {PROFILE_FIELDS.map((field, index) => {
             const content = skeleton ? (
               <>
@@ -593,6 +581,7 @@ function SelectableMetricCard({
 }
 
 export function MyMetricsScreen() {
+  const { backgroundSource } = useTheme()
   const insets = useSafeAreaInsets()
   const { width: screenWidth } = useWindowDimensions()
   const { user, navigateTo, logout, isBootstrapping } = useAuth()
@@ -1518,13 +1507,6 @@ export function MyMetricsScreen() {
           imageStyle={styles.backgroundImage}
         />
 
-        <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'transparent', 'rgba(10, 10, 12, 0.75)']}
-          locations={[0, 0.35, 1]}
-          style={styles.screenOverlay}
-          pointerEvents="none"
-        />
-
         <View style={[styles.header, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
           <Pressable
             onPress={handleBack}
@@ -1568,22 +1550,16 @@ export function MyMetricsScreen() {
           />
 
           <View style={styles.chartCard}>
-            <LinearGradient
-              colors={[
-                hexToRgba(chartMetricAccent, 0.32),
-                hexToRgba(chartMetricAccent, 0.14),
-                'rgba(255, 255, 255, 0.05)',
+            <View
+              style={[
+                styles.chartCardBorder,
+                {
+                  borderColor: hexToRgba(chartMetricAccent, 0.16),
+                  shadowColor: chartMetricAccent,
+                },
               ]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[styles.chartCardBorder, { shadowColor: chartMetricAccent }]}
             >
               <View style={styles.chartCardInner}>
-                <LinearGradient
-                  colors={['rgba(28, 28, 36, 0.96)', 'rgba(14, 14, 20, 0.98)']}
-                  style={StyleSheet.absoluteFillObject}
-                />
-
                 <View style={styles.chartHeader}>
                   <View style={styles.chartTitleCol}>
                     {showSkeleton ? (
@@ -1776,7 +1752,7 @@ export function MyMetricsScreen() {
                   </Text>
                 )}
               </View>
-            </LinearGradient>
+            </View>
           </View>
 
           <View style={styles.sectionTitleRow}>
@@ -2049,9 +2025,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  screenOverlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2065,9 +2038,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   backButtonPressed: {
     opacity: 0.82,
@@ -2107,13 +2080,14 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   profileStripInner: {
+    backgroundColor: colors.backgroundElevated,
     borderRadius: 17,
     overflow: 'hidden',
     flexDirection: 'row',
     alignItems: 'stretch',
     minHeight: 72,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   profileStripItem: {
     flex: 1,
@@ -2135,10 +2109,10 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.97 }],
   },
   profileStripSelected: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 107, 0, 0.08)',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: 'rgba(255, 107, 0, 0.22)',
   },
   profileDivider: {
     position: 'absolute',
@@ -2146,7 +2120,7 @@ const styles = StyleSheet.create({
     top: 16,
     bottom: 16,
     width: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: colors.surfaceBorder,
   },
   profileLabel: {
     color: colors.textMuted,
@@ -2166,9 +2140,10 @@ const styles = StyleSheet.create({
   },
   chartCardBorder: {
     borderRadius: 22,
-    padding: 1,
+    borderWidth: 1,
+    backgroundColor: colors.backgroundElevated,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.1,
     shadowRadius: 14,
     elevation: 8,
   },
@@ -2178,8 +2153,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingTop: 12,
     paddingBottom: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
   chartHeader: {
     flexDirection: 'row',
@@ -2277,7 +2250,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
   },
   metricCardShellSelected: {
     borderColor: 'rgba(255, 255, 255, 0.42)',
@@ -2300,7 +2273,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   metricCardInnerSkeleton: {
-    backgroundColor: 'rgba(24, 24, 32, 0.94)',
+    backgroundColor: colors.surface,
   },
   metricCardGloss: {
     ...StyleSheet.absoluteFillObject,

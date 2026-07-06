@@ -1,4 +1,5 @@
 import { useThemedStyles } from '../../../hooks/useThemedStyles'
+import { colors } from '../../../theme/colors'
 import type { ThemeColors } from '../../../theme/palettes'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { normalizeLogicSequenceItem } from '../../../data/logicSequencePuzzles'
@@ -139,9 +140,9 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   tokenItem: {
     backgroundColor: 'rgba(139, 92, 246, 0.12)',

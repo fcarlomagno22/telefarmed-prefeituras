@@ -2,16 +2,15 @@ import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
 import { sleepTimeFeatureCardStyles } from './sleepTimeFeatureCardStyles'
 
 type SleepTimeBreathingCardProps = {
   onPress: () => void
 }
 
-export function SleepTimeBreathingCard({ onPress }: SleepTimeBreathingCardProps) {
-  const palette = ACTION_ICON_PALETTES.mentalHealth
+const BREATHING_CARD_GRADIENT = ['#22d3ee', '#0891b2', '#0e7490'] as const
 
+export function SleepTimeBreathingCard({ onPress }: SleepTimeBreathingCardProps) {
   function handlePress() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
     onPress()
@@ -29,13 +28,14 @@ export function SleepTimeBreathingCard({ onPress }: SleepTimeBreathingCardProps)
       accessibilityLabel="Exercício de respiração guiada"
     >
       <LinearGradient
-        colors={[palette.iconGradient[0], palette.iconGradient[1], palette.iconGradient[2]]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        colors={[...BREATHING_CARD_GRADIENT]}
+        locations={[0, 0.48, 1]}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
         style={sleepTimeFeatureCardStyles.card}
       >
         <LinearGradient
-          colors={['rgba(255,255,255,0.22)', 'transparent']}
+          colors={['rgba(255,255,255,0.12)', 'transparent']}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
           style={sleepTimeFeatureCardStyles.gloss}

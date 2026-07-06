@@ -92,7 +92,7 @@ export function EatWellQuickMealOverlay({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.62)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
     justifyContent: 'flex-end',
     padding: 16,
   },
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     padding: 18,
     gap: 14,
-    backgroundColor: '#121218',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(132, 204, 22, 0.24)',
   },
@@ -124,9 +124,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 12,
     gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.surfaceBorder,
     minHeight: 112,
   },
   favoriteCardPressed: {
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   waterBtnText: {
-    color: '#a5f3fc',
+    color: '#0891b2',
     fontSize: 13,
     fontWeight: '800',
   },

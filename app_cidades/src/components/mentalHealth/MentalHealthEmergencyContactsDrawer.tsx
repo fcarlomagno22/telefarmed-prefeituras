@@ -299,9 +299,9 @@ const styles = StyleSheet.create({
     paddingVertical: 28,
     paddingHorizontal: 16,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   emptyTitle: {
     color: colors.text,
@@ -320,9 +320,9 @@ const styles = StyleSheet.create({
   contactCard: {
     position: 'relative',
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     overflow: 'hidden',
   },
   contactMain: {
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(59, 130, 246, 0.28)',
   },
   avatarText: {
-    color: '#93c5fd',
+    color: '#2563eb',
     fontSize: 16,
     fontWeight: '800',
   },
@@ -404,8 +404,8 @@ const styles = StyleSheet.create({
   input: {
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surface,
     paddingHorizontal: 14,
     paddingVertical: 12,
     color: colors.text,
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   error: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 12,
     fontWeight: '600',
   },

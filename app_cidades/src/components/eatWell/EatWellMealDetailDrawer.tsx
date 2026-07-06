@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   entryCalories: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 12,
     fontWeight: '800',
   },
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   footerBtnTextDanger: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 13,
     fontWeight: '800',
   },

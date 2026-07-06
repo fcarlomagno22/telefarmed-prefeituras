@@ -83,7 +83,7 @@ function HeatmapCell({
             ? `rgba(16, 185, 129, ${alpha})`
             : 'rgba(255, 255, 255, 0.04)',
           borderColor: isSelected
-            ? '#6ee7b7'
+            ? '#15803d'
             : showActivity
               ? `rgba(110, 231, 183, ${0.18 + cell.intensity * 0.4})`
               : 'rgba(255, 255, 255, 0.05)',
@@ -261,9 +261,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     padding: 14,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     gap: 10,
   },
   header: {
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 12,
-    backgroundColor: 'rgba(14, 14, 20, 0.96)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(110, 231, 183, 0.28)',
     gap: 2,

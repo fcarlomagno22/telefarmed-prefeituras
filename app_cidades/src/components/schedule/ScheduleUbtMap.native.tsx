@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 133, 51, 0.28)',
-    backgroundColor: 'rgba(14, 14, 20, 0.9)',
+    backgroundColor: colors.backgroundElevated,
   },
   webview: {
     height: 220,
@@ -212,8 +212,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
-    backgroundColor: 'rgba(10, 10, 12, 0.92)',
+    borderTopColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   legendItem: {
     flexDirection: 'row',

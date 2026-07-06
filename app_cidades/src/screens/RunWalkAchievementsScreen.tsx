@@ -98,7 +98,7 @@ export function RunWalkAchievementsScreen() {
     <>
       <View style={styles.root}>
         <LinearGradient
-          colors={['#0a0a0c', '#12101a', '#0a0a0c']}
+          colors={[colors.background, colors.backgroundElevated, colors.background]}
           style={StyleSheet.absoluteFill}
         />
 

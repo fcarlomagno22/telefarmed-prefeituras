@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { SleepLogEntry } from '../types/sleepLog'
+import { createMockSleepHistory } from './mockSleepHistory'
 
 const STORAGE_KEY = '@telefarmed/sleep-logs'
 
@@ -33,5 +34,14 @@ export async function saveSleepLog(patientCpf: string, entry: SleepLogEntry) {
   const store = await readStore()
   const entries = store[patientCpf] ?? []
   store[patientCpf] = [entry, ...entries.filter((item) => item.id !== entry.id)]
+  await writeStore(store)
+}
+
+export async function ensureSleepHistorySeeded(patientCpf: string) {
+  const existing = await loadSleepLogs(patientCpf)
+  if (existing.length > 0) return
+
+  const store = await readStore()
+  store[patientCpf] = createMockSleepHistory()
   await writeStore(store)
 }

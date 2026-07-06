@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { colors } from '../../../theme/colors'
 import { Animated, Easing, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
 
 type RunWalkHistoryAnimatedBarProps = {
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
   track: {
     height: 5,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     overflow: 'hidden',
   },
   fill: {

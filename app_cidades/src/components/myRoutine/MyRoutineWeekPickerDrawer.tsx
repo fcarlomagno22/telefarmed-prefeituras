@@ -6,8 +6,9 @@ import { PrimaryButton } from '../PrimaryButton'
 import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import type { ThemeColors } from '../../theme/palettes'
 import { useThemedStyles } from '../../hooks/useThemedStyles'
+import { myRoutineAccent } from '../../theme/myRoutineAccent'
 
-const ACCENT_LIGHT = '#f0abfc'
+const ACCENT_LIGHT = myRoutineAccent.accentLight
 
 type MyRoutineWeekPickerDrawerProps = {
   visible: boolean
@@ -77,13 +78,13 @@ function createStyles(colors: ThemeColors) {
     paddingHorizontal: 12,
     borderRadius: 14,
     marginBottom: 8,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   rowSelected: {
-    backgroundColor: 'rgba(217, 70, 239, 0.1)',
-    borderColor: 'rgba(240, 171, 252, 0.28)',
+    backgroundColor: myRoutineAccent.cardBackground,
+    borderColor: myRoutineAccent.accentBorder,
   },
   rowPressed: { opacity: 0.88 },
   copy: { flex: 1, gap: 2 },
@@ -92,7 +93,7 @@ function createStyles(colors: ThemeColors) {
     fontSize: 14,
     fontWeight: '800',
   },
-  labelSelected: { color: ACCENT_LIGHT },
+  labelSelected: { color: myRoutineAccent.chipTextSelected },
   meta: {
     color: colors.textSubtle,
     fontSize: 11,

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
+import { colors } from '../../theme/colors'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
@@ -164,8 +165,8 @@ function createStyles(colors: ThemeColors) {
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   dotCompleted: {
     backgroundColor: ACCENT,
@@ -176,7 +177,7 @@ function createStyles(colors: ThemeColors) {
     backgroundColor: 'transparent',
   },
   dotUpcoming: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
   },
   dotCurrentGradient: {
     width: DOT_SIZE,
@@ -186,7 +187,7 @@ function createStyles(colors: ThemeColors) {
     justifyContent: 'center',
   },
   dotCurrentText: {
-    color: '#0a0a0c',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '900',
   },

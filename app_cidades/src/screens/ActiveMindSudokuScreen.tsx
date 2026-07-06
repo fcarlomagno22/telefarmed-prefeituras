@@ -17,7 +17,6 @@ import { SudokuVictoryDrawer } from '../components/activeMind/sudoku/SudokuVicto
 import { NeonSectionDivider } from '../components/NeonSectionDivider'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { getActiveMindDifficultyLabel } from '../config/activeMindDifficulty'
-import { appEnv } from '../config/env'
 import {
   clearSudokuCell,
   createSudokuSession,
@@ -34,7 +33,9 @@ import {
   setSudokuCellValue,
 } from '../data/sudokuPuzzles'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
+import { activeMindGameChrome } from '../theme/activeMindGameChrome'
 import { colors } from '../theme/colors'
 import { getActiveMindRouteParams } from '../types/auth'
 import type { ActiveMindPlayDifficulty } from '../types/activeMind'
@@ -47,7 +48,6 @@ import {
   type SudokuSession,
   type SudokuSessionStats,
 } from '../types/sudoku'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 import {
   playSudokuCorrectSound,
   playSudokuRevealSound,
@@ -58,13 +58,13 @@ import {
 
 const FEEDBACK_DURATION_MS = 1200
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 
 function buildSession(difficulty: ActiveMindPlayDifficulty, excludeId?: string): SudokuSession {
   return createSudokuSession(difficulty, excludeId)
 }
 
 export function ActiveMindSudokuScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { width: screenWidth, height: screenHeight } = useWindowDimensions()
   const { routeParams, goBack, canGoBack, navigateTo } = useAuth()
@@ -299,7 +299,7 @@ export function ActiveMindSudokuScreen() {
     <View style={styles.root}>
       <ImageBackground source={backgroundSource} style={styles.background} resizeMode="cover">
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'rgba(10, 10, 12, 0.92)']}
+          colors={[themeColors.screenOverlay[0], 'transparent']}
           style={StyleSheet.absoluteFillObject}
         />
 
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: activeMindGameChrome.controlBackground,
   },
   newGameButtonPressed: {
     opacity: 0.85,
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   revealLink: {
-    color: '#67e8f9',
+    color: activeMindGameChrome.actionLink,
     fontSize: 13,
     fontWeight: '600',
     textDecorationLine: 'underline',

@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient'
 import { StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../../theme/colors'
 import { formatCalories } from '../../../utils/eatWellNutritionStats'
@@ -20,12 +19,7 @@ export function EatWellMenuCalorieCard({
 
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(132, 204, 22, 0.18)', 'rgba(14, 14, 20, 0.98)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <Text style={styles.eyebrow}>Calorias do dia</Text>
 
         <View style={styles.metricsRow}>
@@ -51,7 +45,7 @@ export function EatWellMenuCalorieCard({
         <View style={styles.progressTrack}>
           <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
         </View>
-      </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -65,7 +59,8 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
     borderWidth: 1,
-    borderColor: 'rgba(132, 204, 22, 0.22)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   eyebrow: {
     color: colors.textMuted,
@@ -96,13 +91,13 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   bigNumber: {
-    color: '#fde68a',
+    color: '#b45309',
     fontSize: 26,
     fontWeight: '900',
     letterSpacing: -0.5,
   },
   targetNumber: {
-    color: '#a3e635',
+    color: '#4d7c0f',
     fontSize: 22,
     fontWeight: '900',
     letterSpacing: -0.4,
@@ -117,12 +112,12 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: colors.surface,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
     borderRadius: 999,
-    backgroundColor: '#84cc16',
+    backgroundColor: '#65a30d',
   },
 })

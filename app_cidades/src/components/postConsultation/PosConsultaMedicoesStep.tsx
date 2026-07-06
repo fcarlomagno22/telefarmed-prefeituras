@@ -213,8 +213,8 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
     marginBottom: 10,
   },
   groupTitle: {
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   notMeasuredButton: {
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },

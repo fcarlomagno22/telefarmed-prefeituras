@@ -78,9 +78,9 @@ const styles = StyleSheet.create({
   emptyCard: {
     borderRadius: 18,
     padding: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   emptyText: {
     color: colors.textMuted,
@@ -92,9 +92,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     gap: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   entryHeader: {
     flexDirection: 'row',

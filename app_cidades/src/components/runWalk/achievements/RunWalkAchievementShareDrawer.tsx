@@ -1,3 +1,4 @@
+import { colors } from '../../../theme/colors'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Share, StyleSheet, Text, View } from 'react-native'
 import { PrimaryButton } from '../../PrimaryButton'
@@ -57,7 +58,7 @@ export function RunWalkAchievementShareDrawer({
     >
       <View style={styles.previewWrap}>
         <LinearGradient
-          colors={[`${achievement.accentColor}40`, '#101018', '#0a0a0c']}
+          colors={[`${achievement.accentColor}40`, colors.backgroundElevated, colors.background]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.previewCard}
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
   previewCard: {
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
     padding: 18,
     alignItems: 'center',
     gap: 10,

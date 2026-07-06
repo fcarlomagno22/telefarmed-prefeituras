@@ -1,5 +1,6 @@
 import * as Haptics from 'expo-haptics'
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
+import { activeMindGameChrome } from '../../../theme/activeMindGameChrome'
 import { colors } from '../../../theme/colors'
 import type { SudokuCellFeedback, SudokuSession } from '../../../types/sudoku'
 
@@ -33,7 +34,6 @@ type SudokuCellProps = {
   value: number
   cellSize: number
   fontSize: number
-  textOffset: number
   isGiven: boolean
   isRevealed: boolean
   isSelected: boolean
@@ -47,7 +47,6 @@ function SudokuCell({
   value,
   cellSize,
   fontSize,
-  textOffset,
   isGiven,
   isRevealed,
   isSelected,
@@ -83,8 +82,7 @@ function SudokuCell({
           styles.cellValue,
           {
             fontSize,
-            lineHeight: fontSize + 1,
-            marginBottom: textOffset,
+            lineHeight: fontSize,
           },
           isGiven && styles.cellValueGiven,
           isRevealed && styles.cellValueRevealed,
@@ -113,7 +111,6 @@ export function SudokuBoard({
   const cellSize = Math.floor(gridSize / 9)
   const gridExactSize = cellSize * 9
   const fontSize = Math.max(11, Math.min(15, Math.floor(cellSize * 0.34)))
-  const textOffset = Math.max(2, Math.floor(cellSize * 0.1))
 
   function handleCellPress(index: number) {
     void Haptics.selectionAsync()
@@ -145,7 +142,6 @@ export function SudokuBoard({
                   value={value}
                   cellSize={cellSize}
                   fontSize={fontSize}
-                  textOffset={textOffset}
                   isGiven={session.givens[index]}
                   isRevealed={session.revealed[index]}
                   isSelected={selectedIndex === index}
@@ -167,26 +163,27 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     padding: BOARD_PADDING,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: activeMindGameChrome.sudokuCardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: activeMindGameChrome.tileBorder,
+    overflow: 'hidden',
   },
   grid: {
     overflow: 'hidden',
-    borderColor: 'rgba(255, 255, 255, 0.35)',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderColor: activeMindGameChrome.tileBorder,
+    backgroundColor: activeMindGameChrome.sudokuCardBackground,
   },
   row: {
     flexDirection: 'row',
   },
   cell: {
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    borderColor: 'rgba(255, 255, 255, 0.14)',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    justifyContent: 'center',
+    borderColor: activeMindGameChrome.tileBorder,
+    backgroundColor: activeMindGameChrome.sudokuCardBackground,
   },
   cellSelected: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(14, 116, 144, 0.12)',
   },
   cellConflict: {
     backgroundColor: 'rgba(255, 107, 107, 0.14)',
@@ -201,8 +198,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(251, 191, 36, 0.16)',
   },
   cellValue: {
+    width: '100%',
     fontWeight: '600',
     textAlign: 'center',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   cellValueGiven: {
     color: colors.text,
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     color: '#fcd34d',
   },
   cellValueEditable: {
-    color: '#93c5fd',
+    color: '#2563eb',
   },
   cellValueConflict: {
     color: colors.error,

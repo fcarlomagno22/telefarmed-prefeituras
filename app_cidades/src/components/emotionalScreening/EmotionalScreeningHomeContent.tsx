@@ -4,6 +4,7 @@ import {
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -89,7 +90,28 @@ export function EmotionalScreeningHomeContent({
     const index = SEGMENT_PAGES.indexOf(tab)
     if (index < 0) return
     segmentPagerIndexRef.current = index
+    if (Platform.OS === 'web') return
     segmentPagerRef.current?.scrollToIndex({ index, animated: true })
+  }
+
+  function renderSegmentPage(tab: EmotionalScreeningTab) {
+    if (tab === 'tests') {
+      return (
+        <EmotionalScreeningTestsTab
+          bottomPadding={bottomPadding}
+          onSelectInstrument={handleSelectInstrument}
+        />
+      )
+    }
+
+    return (
+      <EmotionalScreeningHistoryTab
+        bottomPadding={bottomPadding}
+        patientCpf={patientCpf}
+        refreshKey={refreshKey}
+        onOpenSession={handleOpenHistorySession}
+      />
+    )
   }
 
   function handleSegmentPagerScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
@@ -187,38 +209,32 @@ export function EmotionalScreeningHomeContent({
         onChange={handleSegmentTabChange}
       />
 
-      <FlatList
-        ref={segmentPagerRef}
-        horizontal
-        pagingEnabled
-        bounces={false}
-        showsHorizontalScrollIndicator={false}
-        data={SEGMENT_PAGES}
-        keyExtractor={(item) => item}
-        onMomentumScrollEnd={handleSegmentPagerScroll}
-        getItemLayout={(_, index) => ({
-          length: screenWidth,
-          offset: screenWidth * index,
-          index,
-        })}
-        renderItem={({ item }) => (
-          <View style={{ width: screenWidth }}>
-            {item === 'tests' ? (
-              <EmotionalScreeningTestsTab
-                bottomPadding={bottomPadding}
-                onSelectInstrument={handleSelectInstrument}
-              />
-            ) : (
-              <EmotionalScreeningHistoryTab
-                bottomPadding={bottomPadding}
-                patientCpf={patientCpf}
-                refreshKey={refreshKey}
-                onOpenSession={handleOpenHistorySession}
-              />
-            )}
-          </View>
-        )}
-      />
+      {Platform.OS === 'web' ? (
+        <View style={styles.segmentPagerWeb}>{renderSegmentPage(segmentTab)}</View>
+      ) : (
+        <FlatList
+          ref={segmentPagerRef}
+          horizontal
+          pagingEnabled
+          nestedScrollEnabled
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          data={SEGMENT_PAGES}
+          keyExtractor={(item) => item}
+          onMomentumScrollEnd={handleSegmentPagerScroll}
+          getItemLayout={(_, index) => ({
+            length: screenWidth,
+            offset: screenWidth * index,
+            index,
+          })}
+          style={styles.segmentPager}
+          renderItem={({ item }) => (
+            <View style={[styles.segmentPage, { width: screenWidth }]}>
+              {renderSegmentPage(item)}
+            </View>
+          )}
+        />
+      )}
 
       <EmotionalScreeningIntroDrawer
         visible={introVisible}
@@ -297,5 +313,26 @@ export function EmotionalScreeningHomeContent({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    minHeight: 0,
+  },
+  segmentPager: {
+    flex: 1,
+    minHeight: 0,
+  },
+  segmentPagerWeb: {
+    flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
+  },
+  segmentPage: {
+    flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        height: '100%',
+        alignSelf: 'stretch',
+      },
+      default: {},
+    }),
   },
 })

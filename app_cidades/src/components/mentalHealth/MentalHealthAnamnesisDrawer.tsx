@@ -552,7 +552,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   choiceTextSelected: {
-    color: '#a5f3fc',
+    color: '#0e7490',
+    fontWeight: '700',
   },
   scaleGrid: {
     flexDirection: 'row',
@@ -590,7 +591,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   scaleTextSelected: {
-    color: '#a5f3fc',
+    color: '#0e7490',
+    fontWeight: '700',
   },
   durationInput: {
     minHeight: 52,

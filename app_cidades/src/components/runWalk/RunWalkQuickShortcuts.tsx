@@ -1,8 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
-import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
 import { colors } from '../../theme/colors'
 import type { RunWalkQuickShortcutId } from '../../types/runWalk'
 
@@ -12,27 +10,42 @@ type RunWalkQuickShortcutsProps = {
   onAchievementsPress: () => void
 }
 
-type ShortcutPalette = {
-  iconGradient: readonly [string, string, ...string[]]
-  shadowColor: string
+type ShortcutAccent = {
+  iconColor: string
+  orbBackground: string
+  borderColor: string
 }
 
 type ShortcutButtonConfig = {
   id: string
   label: string
   icon: keyof typeof MaterialCommunityIcons.glyphMap
-  palette: ShortcutPalette
+  accent: ShortcutAccent
   onPress: () => void
 }
 
-const CHALLENGES_PALETTE: ShortcutPalette = {
-  iconGradient: ['#fbcfe8', '#ec4899', '#db2777'],
-  shadowColor: 'rgba(236, 72, 153, 0.45)',
+const START_ACTIVITY_ACCENT: ShortcutAccent = {
+  iconColor: '#2563eb',
+  orbBackground: '#dbeafe',
+  borderColor: 'rgba(37, 99, 235, 0.22)',
 }
 
-const ACHIEVEMENTS_PALETTE: ShortcutPalette = {
-  iconGradient: ['#fde68a', '#f59e0b', '#d97706'],
-  shadowColor: 'rgba(245, 158, 11, 0.45)',
+const NEARBY_ROUTES_ACCENT: ShortcutAccent = {
+  iconColor: '#15803d',
+  orbBackground: '#dcfce7',
+  borderColor: 'rgba(22, 163, 74, 0.22)',
+}
+
+const CHALLENGES_ACCENT: ShortcutAccent = {
+  iconColor: '#be185d',
+  orbBackground: '#fce7f3',
+  borderColor: 'rgba(190, 24, 93, 0.22)',
+}
+
+const ACHIEVEMENTS_ACCENT: ShortcutAccent = {
+  iconColor: '#b45309',
+  orbBackground: '#fef3c7',
+  borderColor: 'rgba(180, 83, 9, 0.22)',
 }
 
 const HORIZONTAL_PADDING = 16
@@ -69,14 +82,14 @@ export function RunWalkQuickShortcuts({
         id: 'start-activity',
         label: 'Iniciar atividade',
         icon: 'play',
-        palette: ACTION_ICON_PALETTES.myAppointments,
+        accent: START_ACTIVITY_ACCENT,
         onPress: () => handlePress('start-activity'),
       },
       {
         id: 'nearby-routes',
         label: 'Onde correr',
         icon: 'map-marker-radius',
-        palette: ACTION_ICON_PALETTES.myGoals,
+        accent: NEARBY_ROUTES_ACCENT,
         onPress: () => handlePress('nearby-routes'),
       },
     ],
@@ -85,14 +98,14 @@ export function RunWalkQuickShortcuts({
         id: 'challenges',
         label: 'Desafios',
         icon: 'bullseye-arrow',
-        palette: CHALLENGES_PALETTE,
+        accent: CHALLENGES_ACCENT,
         onPress: handleChallengesPress,
       },
       {
         id: 'achievements',
         label: 'Conquistas',
         icon: 'medal-outline',
-        palette: ACHIEVEMENTS_PALETTE,
+        accent: ACHIEVEMENTS_ACCENT,
         onPress: handleAchievementsPress,
       },
     ],
@@ -115,29 +128,28 @@ export function RunWalkQuickShortcuts({
               accessibilityLabel={shortcut.label}
             >
               <View
-                style={[styles.cardShadow, { shadowColor: shortcut.palette.shadowColor }]}
+                style={[
+                  styles.card,
+                  {
+                    borderColor: shortcut.accent.borderColor,
+                  },
+                ]}
               >
-                <LinearGradient
-                  colors={[...shortcut.palette.iconGradient]}
-                  start={{ x: 0.15, y: 0 }}
-                  end={{ x: 0.9, y: 1 }}
-                  style={styles.card}
+                <View
+                  style={[
+                    styles.iconOrb,
+                    { backgroundColor: shortcut.accent.orbBackground },
+                  ]}
                 >
-                  <LinearGradient
-                    colors={['rgba(255,255,255,0.28)', 'rgba(255,255,255,0.06)', 'transparent']}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 0.55 }}
-                    style={styles.cardGloss}
-                    pointerEvents="none"
+                  <MaterialCommunityIcons
+                    name={shortcut.icon}
+                    size={22}
+                    color={shortcut.accent.iconColor}
                   />
-
-                  <View style={styles.cardContent}>
-                    <MaterialCommunityIcons name={shortcut.icon} size={22} color="#fff" />
-                    <Text style={styles.label} numberOfLines={2}>
-                      {shortcut.label}
-                    </Text>
-                  </View>
-                </LinearGradient>
+                </View>
+                <Text style={styles.label} numberOfLines={2}>
+                  {shortcut.label}
+                </Text>
               </View>
             </Pressable>
           ))}
@@ -161,38 +173,35 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   itemPressed: {
-    opacity: 0.88,
+    opacity: 0.92,
     transform: [{ scale: 0.98 }],
-  },
-  cardShadow: {
-    width: '100%',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.85,
-    shadowRadius: 8,
-    elevation: 6,
   },
   card: {
     width: '100%',
-    minHeight: 72,
-    borderRadius: 14,
-    overflow: 'hidden',
-    paddingHorizontal: 10,
-    paddingVertical: 12,
+    minHeight: 88,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
-  },
-  cardGloss: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  cardContent: {
-    flex: 1,
-    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 8,
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  iconOrb: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   label: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 12,
     fontWeight: '700',
     textAlign: 'center',

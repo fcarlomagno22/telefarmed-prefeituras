@@ -61,7 +61,7 @@ export const lightPalette: ThemeColors = {
   inputBorderFocus: 'rgba(255, 107, 0, 0.6)',
   error: '#e04545',
   errorBg: 'rgba(224, 69, 69, 0.12)',
-  cardBg: 'rgba(255, 255, 255, 0.85)',
+  cardBg: '#ffffff',
   glassBorder: 'rgba(0, 0, 0, 0.08)',
   screenOverlay: ['rgba(245, 245, 247, 0.55)', 'transparent', 'rgba(245, 245, 247, 0.75)'],
 }

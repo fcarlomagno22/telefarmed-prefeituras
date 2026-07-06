@@ -14,8 +14,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { RunWalkPreparationInfoGrid } from '../components/runWalk/preparation/RunWalkPreparationInfoGrid'
 import { RunWalkShareLocationDrawer } from '../components/runWalk/preparation/RunWalkShareLocationDrawer'
-import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import {
   ACTIVITY_MODALITY_LABELS,
@@ -32,12 +32,11 @@ import { useRunWalkWeather } from '../hooks/useRunWalkWeather'
 import { colors } from '../theme/colors'
 import { getRunWalkRouteParams, type ActivityModality } from '../types/auth'
 import { formatTemperature, formatWeatherLine } from '../utils/runWalkWeather'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const runnerAnimation = require('../../assets/runner.json')
 
 export function RunWalkPreparationScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { routeParams, navigateTo, goBack, user } = useAuth()
   const { requireAuth } = useGuestAuth()
@@ -267,7 +266,7 @@ export function RunWalkPreparationScreen() {
         />
 
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'transparent', 'rgba(10, 10, 12, 0.85)']}
+          colors={[themeColors.screenOverlay[0], 'transparent', 'transparent']}
           locations={[0, 0.35, 1]}
           style={styles.screenOverlay}
           pointerEvents="none"
@@ -308,22 +307,24 @@ export function RunWalkPreparationScreen() {
           <RunWalkPreparationInfoGrid rowPairs={infoRowPairs} />
         </ScrollView>
 
-        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) + 8 }]}>
-          <Pressable
-            onPress={handleStartPress}
-            style={({ pressed }) => [styles.startBtn, pressed && styles.startBtnPressed]}
-            accessibilityRole="button"
-            accessibilityLabel="Começar"
-          >
-            <LinearGradient
-              colors={['#ffb366', '#ff8533', '#ff6b00']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.startGradient}
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+          <View style={styles.footerPanel}>
+            <Pressable
+              onPress={handleStartPress}
+              style={({ pressed }) => [styles.startBtn, pressed && styles.startBtnPressed]}
+              accessibilityRole="button"
+              accessibilityLabel="Começar"
             >
-              <Text style={styles.startLabel}>Começar</Text>
-            </LinearGradient>
-          </Pressable>
+              <LinearGradient
+                colors={['#ffb366', '#ff8533', '#ff6b00']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.startGradient}
+              >
+                <Text style={styles.startLabel}>Começar</Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
         </View>
       </View>
 
@@ -373,7 +374,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 133, 51, 0.28)',
   },
   noticeText: {
-    color: '#fdba74',
+    color: '#ea580c',
     fontSize: 12,
     fontWeight: '600',
     lineHeight: 16,
@@ -387,7 +388,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   alertText: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -412,11 +413,15 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    backgroundColor: 'transparent',
+  },
+  footerPanel: {
     paddingHorizontal: 16,
-    paddingTop: 8,
-    backgroundColor: 'rgba(10, 10, 12, 0.92)',
+    paddingTop: 12,
+    paddingBottom: 8,
+    backgroundColor: colors.backgroundElevated,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: colors.surfaceBorder,
   },
   startBtn: {
     borderRadius: 16,

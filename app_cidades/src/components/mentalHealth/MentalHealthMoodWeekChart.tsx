@@ -6,7 +6,7 @@ const LEVEL_COLORS: Record<MentalHealthWeekDayLevel, string> = {
   good: '#4ade80',
   moderate: '#67e8f9',
   low: '#fb923c',
-  empty: 'rgba(255,255,255,0.08)',
+  empty: 'rgba(15, 23, 42, 0.08)',
 }
 
 const LEVEL_HEIGHTS: Record<MentalHealthWeekDayLevel, number> = {

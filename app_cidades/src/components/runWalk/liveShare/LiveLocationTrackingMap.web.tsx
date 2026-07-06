@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { colors } from '../../../theme/colors'
 import { StyleSheet, View } from 'react-native'
 import {
   addLiveShareTrackingTileLayer,
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(34, 197, 94, 0.18)',
-    backgroundColor: '#0b0f14',
+    backgroundColor: colors.background,
   },
   wrapFullscreen: {
     minHeight: undefined,
@@ -193,6 +194,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
-    backgroundColor: '#0b0f14',
+    backgroundColor: colors.background,
   },
 })

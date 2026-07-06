@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useEffect, useState } from 'react'
 import type { MyRoutineTemplateId } from '../../types/myRoutine'
@@ -8,8 +7,7 @@ import { PrimaryButton } from '../PrimaryButton'
 import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import type { ThemeColors } from '../../theme/palettes'
 import { useThemedStyles } from '../../hooks/useThemedStyles'
-
-const ACCENT_LIGHT = '#f0abfc'
+import { myRoutineAccent } from '../../theme/myRoutineAccent'
 
 type MyRoutineTemplatePickerDrawerProps = {
   visible: boolean
@@ -71,24 +69,17 @@ export function MyRoutineTemplatePickerDrawer({
               onPress={() => setSelected(template.id)}
               style={[styles.card, isSelected && styles.cardSelected]}
             >
-              <LinearGradient
-                colors={
-                  isSelected
-                    ? ['rgba(240, 171, 252, 0.16)', 'rgba(217, 70, 239, 0.06)']
-                    : ['rgba(255,255,255,0.04)', 'rgba(255,255,255,0.02)']
-                }
-                style={styles.cardInner}
-              >
+              <View style={styles.cardInner}>
                 <View style={styles.header}>
                   <Text style={[styles.title, isSelected && styles.titleSelected]}>
                     {template.label}
                   </Text>
                   {isSelected ? (
-                    <Ionicons name="checkmark-circle" size={18} color={ACCENT_LIGHT} />
+                    <Ionicons name="checkmark-circle" size={18} color={myRoutineAccent.chipTextSelected} />
                   ) : null}
                 </View>
                 <Text style={styles.description}>{template.description}</Text>
-              </LinearGradient>
+              </View>
             </Pressable>
           )
         })}
@@ -103,9 +94,9 @@ function createStyles(colors: ThemeColors) {
   previewCard: {
     padding: 12,
     borderRadius: 12,
-    backgroundColor: 'rgba(217, 70, 239, 0.08)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(240, 171, 252, 0.2)',
+    borderColor: myRoutineAccent.cardBorder,
     gap: 4,
   },
   previewTitle: {
@@ -122,10 +113,11 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 14,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: myRoutineAccent.cardBorder,
+    backgroundColor: myRoutineAccent.cardBackground,
   },
   cardSelected: {
-    borderColor: 'rgba(240, 171, 252, 0.28)',
+    borderColor: myRoutineAccent.accentBorder,
   },
   cardInner: { padding: 14, gap: 4 },
   header: {
@@ -138,7 +130,7 @@ function createStyles(colors: ThemeColors) {
     fontSize: 15,
     fontWeight: '800',
   },
-  titleSelected: { color: ACCENT_LIGHT },
+  titleSelected: { color: myRoutineAccent.chipTextSelected },
   description: {
     color: colors.textMuted,
     fontSize: 12,

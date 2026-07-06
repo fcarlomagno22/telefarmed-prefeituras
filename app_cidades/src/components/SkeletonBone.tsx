@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Animated, Easing, StyleSheet, ViewStyle } from 'react-native'
+import { Animated, Easing, Platform, StyleSheet, ViewStyle } from 'react-native'
 
 type SkeletonBoneProps = {
   width?: number | `${number}%`
@@ -7,6 +7,8 @@ type SkeletonBoneProps = {
   borderRadius?: number
   style?: ViewStyle
 }
+
+const USE_NATIVE_DRIVER = Platform.OS !== 'web'
 
 export function SkeletonBone({
   width = '100%',
@@ -23,13 +25,13 @@ export function SkeletonBone({
           toValue: 0.62,
           duration: 880,
           easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
+          useNativeDriver: USE_NATIVE_DRIVER,
         }),
         Animated.timing(opacity, {
           toValue: 0.32,
           duration: 880,
           easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
+          useNativeDriver: USE_NATIVE_DRIVER,
         }),
       ]),
     )

@@ -7,8 +7,9 @@ import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import type { ThemeColors } from '../../theme/palettes'
 import { useThemedStyles } from '../../hooks/useThemedStyles'
 import { useTheme } from '../../contexts/ThemeContext'
+import { myRoutineAccent } from '../../theme/myRoutineAccent'
 
-const ACCENT = '#d946ef'
+const ACCENT = myRoutineAccent.accent
 const PRIORITIES: MyRoutineTask['priority'][] = ['essential', 'desirable', 'bonus']
 
 type MyRoutineRecurringHabitDrawerProps = {
@@ -117,7 +118,7 @@ function createStyles(colors: ThemeColors) {
     borderColor: 'rgba(240, 171, 252, 0.35)',
   },
   chipText: { color: colors.textMuted, fontSize: 12, fontWeight: '600' },
-  chipTextSelected: { color: '#f0abfc', fontWeight: '700' },
+  chipTextSelected: { color: myRoutineAccent.chipTextSelected, fontWeight: '700' },
   footerBtn: { marginTop: 0 },
 }
 }

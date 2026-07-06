@@ -1,45 +1,62 @@
 import LottieView from 'lottie-react-native'
-import { StyleSheet, Text, View } from 'react-native'
-import { getMentalHealthMoodLottie, getMentalHealthMoodLottieScale, getMentalHealthMoodLottieSnapshotFrame } from '../../data/mentalHealthMoodAssets'
+import { Platform, StyleSheet, Text, View } from 'react-native'
+import {
+  getMentalHealthMoodLottie,
+  getMentalHealthMoodLottieRenderPx,
+  MENTAL_HEALTH_MOOD_LOTTIE_SLOT_PX,
+} from '../../data/mentalHealthMoodAssets'
 import type { MentalHealthMoodLevelId } from '../../types/mentalHealth'
 import { getMentalHealthMoodEmoji } from '../../utils/mentalHealthCheckIn'
 
 type MentalHealthMoodIconProps = {
   mood: MentalHealthMoodLevelId
   size?: 'compact' | 'drawer' | 'hero' | 'large' | 'snapshot'
+  /** No picker/lista, anima só o ícone selecionado para evitar OOM no mobile. */
+  active?: boolean
 }
 
 const SIZE_MAP = {
-  compact: 46,
-  drawer: 54,
-  hero: 62,
-  large: 56,
-  snapshot: 36,
+  compact: 92,
+  drawer: 108,
+  hero: 124,
+  large: MENTAL_HEALTH_MOOD_LOTTIE_SLOT_PX,
+  snapshot: 72,
 } as const
 
-export function MentalHealthMoodIcon({ mood, size = 'compact' }: MentalHealthMoodIconProps) {
+export function MentalHealthMoodIcon({
+  mood,
+  size = 'compact',
+  active = true,
+}: MentalHealthMoodIconProps) {
   const lottie = getMentalHealthMoodLottie(mood)
-  const snapshotFrame = size === 'snapshot' ? getMentalHealthMoodLottieSnapshotFrame(mood) : null
-  const dimension = snapshotFrame?.frame ?? SIZE_MAP[size]
-  const scale = snapshotFrame?.scale ?? getMentalHealthMoodLottieScale(mood)
-  const renderSize = dimension * scale
+  const slotSize = SIZE_MAP[size]
+  const renderSize = getMentalHealthMoodLottieRenderPx(slotSize)
+  const shouldAnimate = active
 
   if (lottie) {
     return (
       <View
         style={[
           styles.lottieWrap,
-          { width: dimension, height: dimension },
+          { width: slotSize, height: slotSize },
           size === 'snapshot' && styles.lottieWrapSnapshot,
         ]}
         pointerEvents="none"
       >
         <LottieView
           source={lottie}
-          autoPlay
-          loop
-          renderMode="SOFTWARE"
-          style={[styles.lottie, { width: renderSize, height: renderSize }]}
+          autoPlay={shouldAnimate}
+          loop={shouldAnimate && size !== 'snapshot'}
+          renderMode={Platform.OS === 'web' ? 'SOFTWARE' : 'AUTOMATIC'}
+          style={[
+            styles.lottie,
+            {
+              width: renderSize,
+              height: renderSize,
+              maxWidth: renderSize,
+              maxHeight: renderSize,
+            },
+          ]}
         />
       </View>
     )

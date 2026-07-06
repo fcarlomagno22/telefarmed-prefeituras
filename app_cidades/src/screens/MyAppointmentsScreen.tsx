@@ -31,7 +31,6 @@ import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
 import { MenuDrawer } from '../components/MenuDrawer'
 import { MetricsPeriodDrawer } from '../components/metrics/MetricsPeriodDrawer'
 import { SkeletonBone } from '../components/SkeletonBone'
-import { appEnv } from '../config/env'
 import {
   cancelMyAppointment,
   fetchMyAppointments,
@@ -41,6 +40,7 @@ import {
   getActiveRemoteCareRequests,
 } from '../data/mockRemoteCareRequests'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useSimulatedPageSkeleton } from '../hooks/useSimulatedPageSkeleton'
@@ -63,14 +63,13 @@ import {
   getNextUpcomingAppointment,
 } from '../utils/myAppointments'
 import { buildPeriodSelection, formatPeriodLabel } from '../utils/metricsPeriod'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 import { addScheduleAppointmentToDeviceCalendar } from '../utils/scheduleCalendarEvent'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
 const APPOINTMENT_SEGMENT_PAGES: MyAppointmentsTab[] = ['upcoming', 'history']
 
 export function MyAppointmentsScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { width: screenWidth } = useWindowDimensions()
   const { user, navigateTo, logout } = useAuth()
@@ -667,7 +666,7 @@ export function MyAppointmentsScreen() {
         />
 
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'transparent', 'rgba(10, 10, 12, 0.75)']}
+          colors={[...themeColors.screenOverlay]}
           locations={[0, 0.35, 1]}
           style={styles.screenOverlay}
           pointerEvents="none"
@@ -898,9 +897,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   headerPlaceholder: {
     width: 40,

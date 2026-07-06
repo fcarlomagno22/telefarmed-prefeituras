@@ -4,6 +4,7 @@ import {
   Keyboard,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   StyleSheet,
   unstable_batchedUpdates,
   useWindowDimensions,
@@ -143,6 +144,7 @@ export function MentalHealthHomeContent({
   }
   const [segmentTab, setSegmentTab] = useState<MentalHealthTab>('today')
   const segmentPagerRef = useRef<FlatList<MentalHealthTab>>(null)
+  const segmentPagerIndexRef = useRef(0)
   const segmentPagerProgrammaticScrollRef = useRef(false)
   const [onboardingRecord, setOnboardingRecord] =
     useState<MentalHealthOnboardingRecord>(onboardingRecordProp)
@@ -180,9 +182,10 @@ export function MentalHealthHomeContent({
   } | null>(null)
   const [careDetailActivityId, setCareDetailActivityId] = useState<string | null>(null)
   const [favoriteActivityIds, setFavoriteActivityIds] = useState<string[]>([])
-  const anamnesisRecalcTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasAutoOpenedCheckInRef = useRef(false)
   const hasAutoOpenedAnamnesisRef = useRef(false)
+  const anamnesisDrawerVisibleRef = useRef(false)
+  const checkInDrawerVisibleRef = useRef(false)
 
   const loadTodayState = useCallback(async () => {
     const [daily, hasHistory, checkInCard, entries, loadedState] = await Promise.all([
@@ -267,17 +270,29 @@ export function MentalHealthHomeContent({
 
     setTodayState(nextTodayState)
 
-    if (shouldAutoOpenAnamnesis) {
+    if (shouldAutoOpenAnamnesis && !anamnesisDrawerVisibleRef.current) {
       hasAutoOpenedAnamnesisRef.current = true
       setAnamnesisDrawerMode('initial')
       setAnamnesisDrawerVisible(true)
-    } else if (shouldAutoOpenCheckIn) {
+    } else if (
+      shouldAutoOpenCheckIn &&
+      !checkInDrawerVisibleRef.current &&
+      !anamnesisDrawerVisibleRef.current
+    ) {
       hasAutoOpenedCheckInRef.current = true
       setInitialDrawerMood(null)
       setInitialDrawerStep(1)
       setCheckInDrawerVisible(true)
     }
   }, [onboardingInProgress, onboardingRecord.completed, patientCpf])
+
+  useEffect(() => {
+    anamnesisDrawerVisibleRef.current = anamnesisDrawerVisible
+  }, [anamnesisDrawerVisible])
+
+  useEffect(() => {
+    checkInDrawerVisibleRef.current = checkInDrawerVisible
+  }, [checkInDrawerVisible])
 
   useEffect(() => {
     if (!clinicalStateSeed) return
@@ -617,27 +632,8 @@ export function MentalHealthHomeContent({
     })
   }
 
-  useEffect(() => {
-    return () => {
-      if (anamnesisRecalcTimerRef.current) {
-        clearTimeout(anamnesisRecalcTimerRef.current)
-      }
-    }
-  }, [])
-
   async function handlePersistAnamnesisAnswers(answers: Record<string, AnamnesisAnswerRecord>) {
-    const state = await persistPartialAnamnesisAnswers(patientCpf, answers)
-    setClinicalState(state)
-
-    if (anamnesisRecalcTimerRef.current) {
-      clearTimeout(anamnesisRecalcTimerRef.current)
-    }
-
-    anamnesisRecalcTimerRef.current = setTimeout(() => {
-      void recalculateClinicalEngine(patientCpf, 'anamnesis').then((result) => {
-        setClinicalState(result.state)
-      })
-    }, 500)
+    await persistPartialAnamnesisAnswers(patientCpf, answers)
   }
 
   async function handleAnamnesisModuleComplete(
@@ -873,6 +869,10 @@ export function MentalHealthHomeContent({
       if (index < 0) return
 
       segmentPagerProgrammaticScrollRef.current = animated
+      segmentPagerIndexRef.current = index
+
+      if (Platform.OS === 'web') return
+
       segmentPagerRef.current?.scrollToOffset({
         offset: index * screenWidth,
         animated,
@@ -900,6 +900,8 @@ export function MentalHealthHomeContent({
         MENTAL_HEALTH_SEGMENT_PAGES.length - 1,
       )
       const nextTab = MENTAL_HEALTH_SEGMENT_PAGES[clampedIndex] ?? 'today'
+
+      segmentPagerIndexRef.current = clampedIndex
 
       setSegmentTab((current) => {
         if (current === nextTab) return current
@@ -932,6 +934,15 @@ export function MentalHealthHomeContent({
     },
     [handleSegmentPagerIndexChange, screenWidth],
   )
+
+  useEffect(() => {
+    if (Platform.OS === 'web') return
+
+    segmentPagerRef.current?.scrollToOffset({
+      offset: segmentPagerIndexRef.current * screenWidth,
+      animated: false,
+    })
+  }, [screenWidth])
 
   const renderSegmentPage = useCallback(
     (tab: MentalHealthTab) => {
@@ -1033,31 +1044,37 @@ export function MentalHealthHomeContent({
         />
       ) : null}
 
-      <FlatList
-        ref={segmentPagerRef}
-        data={MENTAL_HEALTH_SEGMENT_PAGES}
-        keyExtractor={(item) => item}
-        horizontal
-        pagingEnabled
-        scrollEnabled={showSegmentChrome}
-        nestedScrollEnabled
-        bounces={false}
-        showsHorizontalScrollIndicator={false}
-        decelerationRate="fast"
-        scrollEventThrottle={16}
-        onScroll={handleSegmentPagerScroll}
-        onMomentumScrollEnd={handleSegmentPagerScrollEnd}
-        onScrollEndDrag={handleSegmentPagerScrollEnd}
-        getItemLayout={(_, index) => ({
-          length: screenWidth,
-          offset: screenWidth * index,
-          index,
-        })}
-        style={styles.segmentPager}
-        renderItem={({ item }) => (
-          <View style={[styles.segmentPage, { width: screenWidth }]}>{renderSegmentPage(item)}</View>
-        )}
-      />
+      {Platform.OS === 'web' ? (
+        <View style={styles.segmentPagerWeb}>
+          {renderSegmentPage(segmentTab)}
+        </View>
+      ) : (
+        <FlatList
+          ref={segmentPagerRef}
+          data={MENTAL_HEALTH_SEGMENT_PAGES}
+          keyExtractor={(item) => item}
+          horizontal
+          pagingEnabled
+          scrollEnabled={showSegmentChrome}
+          nestedScrollEnabled
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          decelerationRate="fast"
+          scrollEventThrottle={16}
+          onScroll={handleSegmentPagerScroll}
+          onMomentumScrollEnd={handleSegmentPagerScrollEnd}
+          onScrollEndDrag={handleSegmentPagerScrollEnd}
+          getItemLayout={(_, index) => ({
+            length: screenWidth,
+            offset: screenWidth * index,
+            index,
+          })}
+          style={styles.segmentPager}
+          renderItem={({ item }) => (
+            <View style={[styles.segmentPage, { width: screenWidth }]}>{renderSegmentPage(item)}</View>
+          )}
+        />
+      )}
 
       <MentalHealthCheckInDrawer
         visible={checkInDrawerVisible}
@@ -1231,12 +1248,27 @@ export function MentalHealthHomeContent({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    minHeight: 0,
   },
   segmentPager: {
     flex: 1,
+    minHeight: 0,
+  },
+  segmentPagerWeb: {
+    flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
   },
   segmentPage: {
     flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        height: '100%',
+        alignSelf: 'stretch',
+      },
+      default: {},
+    }),
   },
   segmentPageFill: {
     flex: 1,

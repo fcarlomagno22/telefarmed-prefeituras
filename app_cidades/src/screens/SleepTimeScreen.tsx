@@ -7,6 +7,8 @@ import {
   ImageBackground,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
+  ScrollView,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -28,8 +30,8 @@ import { SleepTimeSoundsExplainDrawer } from '../components/sleepTime/SleepTimeS
 import type { SleepTimerMinutes } from '../components/sleepTime/sleepTimeSoundTypes'
 import { getSleepSoundById } from '../config/sleepSounds'
 import { markAppAudioUserGesture } from '../adapters/appAudio'
-import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
@@ -52,7 +54,6 @@ import {
   SLEEP_SOUND_LOCK_SCREEN_ALBUM,
   SLEEP_SOUND_LOCK_SCREEN_ARTIST,
 } from '../utils/sleepSoundLockScreen'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 import {
   getCurrentMonthKey,
   getMonthKeyFromDateIso,
@@ -60,7 +61,6 @@ import {
 } from '../utils/eatWellCalendarDays'
 import { toLocalDateIso } from '../utils/runWalkWeeklyChart'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
 const SEGMENT_PAGES: SleepTimeTab[] = ['general', 'history']
 
@@ -70,6 +70,7 @@ const SLEEP_TIME_TABS: RunWalkSegmentTabItem<SleepTimeTab>[] = [
 ]
 
 export function SleepTimeScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { width: screenWidth } = useWindowDimensions()
   const { user, navigateTo, goBack, canGoBack, logout } = useAuth()
@@ -102,6 +103,7 @@ export function SleepTimeScreen() {
   const [segmentPagerScrollEnabled, setSegmentPagerScrollEnabled] = useState(true)
 
   const segmentPagerRef = useRef<FlatList<SleepTimeTab>>(null)
+  const segmentPagerWebRef = useRef<ScrollView>(null)
   const segmentPagerIndexRef = useRef(0)
   const segmentPagerProgrammaticScrollRef = useRef(false)
   const [historyTabMounted, setHistoryTabMounted] = useState(segmentTab === 'history')
@@ -219,10 +221,18 @@ export function SleepTimeScreen() {
 
       segmentPagerProgrammaticScrollRef.current = animated
       segmentPagerIndexRef.current = index
-      segmentPagerRef.current?.scrollToOffset({
-        offset: index * screenWidth,
-        animated,
-      })
+
+      if (Platform.OS === 'web') {
+        segmentPagerWebRef.current?.scrollTo({
+          x: index * screenWidth,
+          animated,
+        })
+      } else {
+        segmentPagerRef.current?.scrollToOffset({
+          offset: index * screenWidth,
+          animated,
+        })
+      }
 
       if (!animated) {
         segmentPagerProgrammaticScrollRef.current = false
@@ -287,6 +297,15 @@ export function SleepTimeScreen() {
     },
     [handleSegmentPagerIndexChange, screenWidth],
   )
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return
+
+    segmentPagerWebRef.current?.scrollTo({
+      x: segmentPagerIndexRef.current * screenWidth,
+      animated: false,
+    })
+  }, [screenWidth])
 
   function handleBack() {
     if (canGoBack()) {
@@ -424,6 +443,39 @@ export function SleepTimeScreen() {
     return true
   })
 
+  function renderSegmentPageContent(tab: SleepTimeTab) {
+    if (tab === 'general') {
+      return (
+        <SleepTimeGeneralTab
+          bottomPadding={bottomContentPadding}
+          activeSoundId={resolvedSessionSoundId}
+          onSoundPress={handleSoundPress}
+          onSoundsInfoPress={() => setSoundsExplainVisible(true)}
+          onBreathingPress={handleBreathingPress}
+          onStoriesPress={handleStoriesPress}
+        />
+      )
+    }
+
+    if (!historyTabMounted) {
+      return <View style={styles.segmentPlaceholder} />
+    }
+
+    return (
+      <SleepTimeHistoryTab
+        bottomPadding={bottomContentPadding}
+        patientCpf={patientCpf}
+        refreshKey={sleepLogRefreshKey}
+        isActive={historyTabFocused}
+        calendarMonthKey={calendarMonthKey}
+        selectedDateIso={selectedDateIso}
+        onSelectDate={handleHistorySelectDate}
+        onOpenMonthPicker={() => setMonthPickerVisible(true)}
+        onHorizontalScrollActive={(active) => setSegmentPagerScrollEnabled(!active)}
+      />
+    )
+  }
+
   return (
     <>
       <View style={styles.root}>
@@ -435,7 +487,7 @@ export function SleepTimeScreen() {
         />
 
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'transparent', 'rgba(10, 10, 12, 0.75)']}
+          colors={[...themeColors.screenOverlay]}
           locations={[0, 0.35, 1]}
           style={styles.screenOverlay}
           pointerEvents="none"
@@ -466,60 +518,62 @@ export function SleepTimeScreen() {
 
         <RunWalkSegmentTabs activeTab={segmentTab} onChange={handleSegmentTabChange} tabs={SLEEP_TIME_TABS} />
 
-        <FlatList
-          ref={segmentPagerRef}
-          data={SEGMENT_PAGES}
-          keyExtractor={(item) => item}
-          horizontal
-          pagingEnabled
-          nestedScrollEnabled
-          bounces={false}
-          showsHorizontalScrollIndicator={false}
-          decelerationRate="fast"
-          scrollEnabled={segmentPagerScrollEnabled}
-          scrollEventThrottle={16}
-          onScroll={handleSegmentPagerScroll}
-          onMomentumScrollEnd={handleSegmentPagerScrollEnd}
-          getItemLayout={(_, index) => ({
-            length: screenWidth,
-            offset: screenWidth * index,
-            index,
-          })}
-          style={styles.segmentPager}
-          renderItem={({ item }) => (
-            <View style={[styles.segmentPage, { width: screenWidth, height: '100%' }]}>
-              {item === 'general' ? (
-                <SleepTimeGeneralTab
-                  bottomPadding={bottomContentPadding}
-                  activeSoundId={resolvedSessionSoundId}
-                  onSoundPress={handleSoundPress}
-                  onSoundsInfoPress={() => setSoundsExplainVisible(true)}
-                  onBreathingPress={handleBreathingPress}
-                  onStoriesPress={handleStoriesPress}
-                />
-              ) : historyTabMounted ? (
-                <SleepTimeHistoryTab
-                  bottomPadding={bottomContentPadding}
-                  patientCpf={patientCpf}
-                  refreshKey={sleepLogRefreshKey}
-                  isActive={historyTabFocused}
-                  calendarMonthKey={calendarMonthKey}
-                  selectedDateIso={selectedDateIso}
-                  onSelectDate={handleHistorySelectDate}
-                  onOpenMonthPicker={() => setMonthPickerVisible(true)}
-                  onHorizontalScrollActive={(active) => setSegmentPagerScrollEnabled(!active)}
-                />
-              ) : (
-                <View style={styles.segmentPlaceholder} />
-              )}
-            </View>
-          )}
-        />
+        {Platform.OS === 'web' ? (
+          <ScrollView
+            ref={segmentPagerWebRef}
+            horizontal
+            pagingEnabled
+            scrollEnabled={segmentPagerScrollEnabled}
+            nestedScrollEnabled
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            scrollEventThrottle={16}
+            onScroll={handleSegmentPagerScroll}
+            onMomentumScrollEnd={handleSegmentPagerScrollEnd}
+            onScrollEndDrag={handleSegmentPagerScrollEnd}
+            style={styles.segmentPagerWeb}
+          >
+            {SEGMENT_PAGES.map((tab) => (
+              <View key={tab} style={[styles.segmentPage, { width: screenWidth }]}>
+                {renderSegmentPageContent(tab)}
+              </View>
+            ))}
+          </ScrollView>
+        ) : (
+          <FlatList
+            ref={segmentPagerRef}
+            data={SEGMENT_PAGES}
+            keyExtractor={(item) => item}
+            horizontal
+            pagingEnabled
+            nestedScrollEnabled
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            scrollEnabled={segmentPagerScrollEnabled}
+            scrollEventThrottle={16}
+            onScroll={handleSegmentPagerScroll}
+            onMomentumScrollEnd={handleSegmentPagerScrollEnd}
+            onScrollEndDrag={handleSegmentPagerScrollEnd}
+            getItemLayout={(_, index) => ({
+              length: screenWidth,
+              offset: screenWidth * index,
+              index,
+            })}
+            style={styles.segmentPager}
+            renderItem={({ item }) => (
+              <View style={[styles.segmentPage, { width: screenWidth }]}>
+                {renderSegmentPageContent(item)}
+              </View>
+            )}
+          />
+        )}
 
         <BottomTabBar activeTab={null} onTabPress={handleTabPress} />
-
-        <SleepTimeFab bottom={fabBottomOffset} onPress={() => withSleepAuth(() => setLogDrawerVisible(true))} />
       </View>
+
+      <SleepTimeFab bottom={fabBottomOffset} onPress={() => withSleepAuth(() => setLogDrawerVisible(true))} />
 
       <SleepTimeLogDrawer
         visible={logDrawerVisible}
@@ -587,9 +641,30 @@ const styles = StyleSheet.create({
   },
   segmentPager: {
     flex: 1,
+    minHeight: 0,
+  },
+  segmentPagerWeb: {
+    flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
+    ...Platform.select({
+      web: {
+        overflowX: 'auto',
+        overflowY: 'hidden',
+      },
+      default: {},
+    }),
   },
   segmentPage: {
     flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        height: '100%',
+        alignSelf: 'stretch',
+      },
+      default: {},
+    }),
   },
   segmentPlaceholder: {
     flex: 1,

@@ -43,9 +43,9 @@ export const SCHEDULE_UBT_LAYER_SWITCH_HTML_CSS = `
     gap: 3px;
     padding: 4px;
     border-radius: 12px;
-    background: rgba(14, 14, 20, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    background: rgba(245, 245, 247, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   }
   .layer-btn {
     border: none;
@@ -53,7 +53,7 @@ export const SCHEDULE_UBT_LAYER_SWITCH_HTML_CSS = `
     padding: 7px 10px;
     font-size: 11px;
     font-weight: 700;
-    color: rgba(245, 245, 247, 0.72);
+    color: rgba(26, 26, 31, 0.72);
     background: transparent;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;

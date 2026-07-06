@@ -56,7 +56,7 @@ export const rpmAvatarCreatorDrawerStyles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+    borderBottomColor: colors.surfaceBorder,
   },
   closeButton: {
     width: 40,
@@ -64,9 +64,9 @@ export const rpmAvatarCreatorDrawerStyles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   closeButtonPressed: {
     opacity: 0.82,

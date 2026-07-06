@@ -160,7 +160,7 @@ export function RunWalkHistoryTrendChart({
             y1={tick.y}
             x2={geometry.plotLeft + geometry.plotWidth}
             y2={tick.y}
-            stroke="rgba(255, 255, 255, 0.08)"
+            stroke="rgba(0, 0, 0, 0.08)"
             strokeWidth={1}
           />
         ))}
@@ -170,7 +170,7 @@ export function RunWalkHistoryTrendChart({
             key={`ylabel-${tick.value}`}
             x={geometry.plotLeft - 8}
             y={tick.y + 3}
-            fill="rgba(245, 245, 247, 0.35)"
+            fill={colors.textSubtle}
             fontSize={9}
             fontWeight="600"
             textAnchor="end"
@@ -186,7 +186,7 @@ export function RunWalkHistoryTrendChart({
         {linePath ? (
           <Path
             d={linePath}
-            stroke="#6ee7b7"
+            stroke="#15803d"
             strokeWidth={2.5}
             fill="none"
             strokeLinecap="round"
@@ -212,8 +212,8 @@ export function RunWalkHistoryTrendChart({
             cx={point.x}
             cy={point.y}
             r={selectedIndex === point.index ? 5 : 3.5}
-            fill={selectedIndex === point.index ? '#6ee7b7' : '#93c5fd'}
-            stroke="#0a0a0c"
+            fill={selectedIndex === point.index ? '#15803d' : '#93c5fd'}
+            stroke={colors.backgroundElevated}
             strokeWidth={2}
           />
         ))}
@@ -267,9 +267,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   emptyText: {
     color: colors.textSubtle,
@@ -290,9 +290,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 12,
-    backgroundColor: 'rgba(14, 14, 20, 0.96)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(110, 231, 183, 0.28)',
+    borderColor: colors.surfaceBorder,
     gap: 2,
     zIndex: 3,
   },

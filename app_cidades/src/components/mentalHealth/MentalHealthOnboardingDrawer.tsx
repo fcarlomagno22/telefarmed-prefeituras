@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useAndroidBackHandler } from '../../hooks/useAndroidBackHandler'
 import {
   completeMentalHealthOnboarding,
@@ -51,6 +52,25 @@ const ONBOARDING_STEPS = [
   { id: 3, title: 'Preferências', subtitle: 'O que você quer cuidar agora' },
   { id: 4, title: 'Espiritualidade', subtitle: 'Conteúdo cristão opcional' },
 ] as const
+
+const DISCLAIMER_CARD_GRADIENT = [
+  'rgba(8, 145, 178, 0.18)',
+  'rgba(34, 211, 238, 0.08)',
+  colors.backgroundElevated,
+] as const
+
+function DisclaimerCard({ children }: { children: ReactNode }) {
+  return (
+    <LinearGradient
+      colors={[...DISCLAIMER_CARD_GRADIENT]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.disclaimerCard}
+    >
+      {children}
+    </LinearGradient>
+  )
+}
 
 type OnboardingFlowPhase = 'setup' | 'anamnesis'
 
@@ -508,13 +528,13 @@ export function MentalHealthOnboardingDrawer({
               e se aproximar de profissionais quando necessário.
             </Text>
 
-            <View style={styles.disclaimerCard}>
-              <Ionicons name="alert-circle-outline" size={18} color="#67e8f9" />
+            <DisclaimerCard>
+              <Ionicons name="alert-circle-outline" size={18} color="#0891b2" />
               <Text style={styles.disclaimerText}>
                 Este recurso complementa o cuidado em saúde mental. Ele não substitui avaliação ou
                 tratamento por um profissional de saúde.
               </Text>
-            </View>
+            </DisclaimerCard>
           </View>
         ) : null}
 
@@ -615,7 +635,7 @@ export function MentalHealthOnboardingDrawer({
                       {option.label}
                     </Text>
                     {selected ? (
-                      <Ionicons name="checkmark-circle" size={18} color="#67e8f9" />
+                      <Ionicons name="checkmark-circle" size={18} color="#0891b2" />
                     ) : null}
                   </Pressable>
                 )
@@ -655,20 +675,20 @@ export function MentalHealthOnboardingDrawer({
                       {option.label}
                     </Text>
                     {selected ? (
-                      <Ionicons name="checkmark-circle" size={18} color="#67e8f9" />
+                      <Ionicons name="checkmark-circle" size={18} color="#0891b2" />
                     ) : null}
                   </Pressable>
                 )
               })}
             </View>
 
-            <View style={styles.disclaimerCard}>
-              <Ionicons name="information-circle-outline" size={18} color="#67e8f9" />
+            <DisclaimerCard>
+              <Ionicons name="information-circle-outline" size={18} color="#0891b2" />
               <Text style={styles.disclaimerText}>
                 Essa escolha não interfere em sua avaliação emocional e pode ser alterada a
                 qualquer momento.
               </Text>
-            </View>
+            </DisclaimerCard>
           </View>
         ) : null}
       </RunWalkSheetDrawer>
@@ -699,7 +719,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   backBtnPressed: {
     opacity: 0.85,
@@ -740,7 +760,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   heroEyebrow: {
-    color: '#67e8f9',
+    color: '#0891b2',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.2,
@@ -759,7 +779,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   heroTitleAccent: {
-    color: '#a5f3fc',
+    color: '#0e7490',
     fontSize: 30,
     fontWeight: '900',
     letterSpacing: -0.8,
@@ -785,9 +805,9 @@ const styles = StyleSheet.create({
     gap: 10,
     padding: 14,
     borderRadius: 14,
-    backgroundColor: 'rgba(8, 145, 178, 0.1)',
     borderWidth: 1,
     borderColor: 'rgba(8, 145, 178, 0.22)',
+    overflow: 'hidden',
   },
   disclaimerText: {
     flex: 1,
@@ -834,9 +854,9 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 14,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   consentRowChecked: {
     backgroundColor: 'rgba(8, 145, 178, 0.1)',
@@ -874,9 +894,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   chipSelected: {
     backgroundColor: 'rgba(8, 145, 178, 0.16)',
@@ -894,7 +914,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   chipTextSelected: {
-    color: '#67e8f9',
+    color: '#0e7490',
     fontWeight: '700',
   },
   optionsCol: {
@@ -907,9 +927,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 14,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   optionRowSelected: {
     backgroundColor: 'rgba(8, 145, 178, 0.12)',
@@ -926,7 +946,8 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   optionLabelSelected: {
-    color: '#a5f3fc',
+    color: '#0e7490',
+    fontWeight: '700',
   },
   errorBox: {
     flexDirection: 'row',

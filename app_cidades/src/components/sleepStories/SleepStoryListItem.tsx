@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+    borderBottomColor: colors.surfaceBorder,
   },
   mainPressable: {
     flex: 1,

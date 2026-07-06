@@ -31,7 +31,7 @@ import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import { MentalHealthMoodIcon } from './MentalHealthMoodIcon'
 
 const CHECKIN_STEPS = [
-  { id: 1, title: 'Humor', subtitle: 'Como você está agora?' },
+  { id: 1, title: 'Sentimento', subtitle: 'Como você está agora?' },
   { id: 2, title: 'Emoções', subtitle: 'Quais emoções estão mais presentes?' },
   { id: 3, title: 'Influência do dia', subtitle: 'O que mais influenciou como você está?' },
   { id: 4, title: 'Reação', subtitle: 'Como você lidou com isso?' },
@@ -490,7 +490,9 @@ export function MentalHealthCheckInDrawer({
                       pressed && styles.moodOptionPressed,
                     ]}
                   >
-                    <MentalHealthMoodIcon mood={option.id} size="large" />
+                    <View style={styles.moodOptionIcon}>
+                      <MentalHealthMoodIcon mood={option.id} size="large" active={selected} />
+                    </View>
                     <Text style={[styles.moodOptionLabel, selected && styles.moodOptionLabelSelected]}>
                       {MENTAL_HEALTH_CHECKIN_MOOD_LABELS[option.id]}
                     </Text>
@@ -509,7 +511,7 @@ export function MentalHealthCheckInDrawer({
             label="Quer contar rapidamente o motivo?"
             value={draft.moodReason}
             onChange={(value) => setDraft((current) => ({ ...current, moodReason: value }))}
-            placeholder="Opcional — o que está por trás desse humor?"
+            placeholder="Opcional — o que está por trás desse sentimento?"
           />
         </View>
       ) : null}
@@ -630,7 +632,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
   },
   backBtnPressed: {
     opacity: 0.85,
@@ -673,6 +675,13 @@ const styles = StyleSheet.create({
   moodList: {
     gap: 8,
   },
+  moodOptionIcon: {
+    width: 96,
+    height: 96,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
   moodOption: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -682,7 +691,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   moodOptionSelected: {
     borderColor: 'rgba(103, 232, 249, 0.42)',
@@ -716,8 +725,8 @@ const styles = StyleSheet.create({
     minHeight: 88,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
     paddingHorizontal: 14,
     paddingVertical: 12,
     color: colors.text,
@@ -743,9 +752,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 11,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   chipSelected: {
     backgroundColor: 'rgba(8, 145, 178, 0.16)',
@@ -757,7 +766,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   chipTextSelected: {
-    color: '#67e8f9',
+    color: '#0e7490',
     fontWeight: '700',
   },
   intensityBlock: {
@@ -774,9 +783,9 @@ const styles = StyleSheet.create({
     minHeight: 52,
     paddingHorizontal: 14,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   intensityOptionSelected: {
     backgroundColor: 'rgba(8, 145, 178, 0.16)',
@@ -809,9 +818,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   footerSecondaryText: {
     color: colors.text,
@@ -851,9 +860,9 @@ const styles = StyleSheet.create({
     gap: 2,
     padding: 14,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   summaryLine: {
     gap: 4,
@@ -928,9 +937,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   secondaryWideButtonText: {
     color: colors.text,

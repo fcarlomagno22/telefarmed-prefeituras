@@ -111,7 +111,7 @@ export function AppointmentDetailDrawer({
     <AppModal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
-          <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
           <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
         </Animated.View>
 
@@ -156,10 +156,10 @@ export function AppointmentDetailDrawer({
             </View>
 
             <LinearGradient
-              colors={['rgba(16, 185, 129, 0.18)', 'rgba(16, 185, 129, 0.06)', 'rgba(14, 14, 20, 0.95)']}
+              colors={[...statusColors.cardGradient]}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.summaryCard}
+              end={{ x: 0, y: 1 }}
+              style={[styles.summaryCard, { borderColor: statusColors.cardBorder }]}
             >
               <View style={styles.summaryTop}>
                 <Text style={styles.specialty}>{appointment.specialtyName}</Text>
@@ -293,16 +293,16 @@ const styles = StyleSheet.create({
     maxHeight: '88%',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    backgroundColor: '#121218',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   handle: {
     alignSelf: 'center',
     width: 42,
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginTop: 10,
     marginBottom: 8,
   },
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   closeButtonPressed: {
     opacity: 0.82,
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 8,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.28)',
+    backgroundColor: colors.cardBg,
   },
   summaryTop: {
     flexDirection: 'row',
@@ -422,14 +422,14 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     marginTop: 4,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: colors.surfaceBorder,
   },
   avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
   },
   doctorTextCol: {
     flex: 1,
@@ -449,9 +449,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   tipsTitle: {
     color: colors.primaryLight,
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(239, 68, 68, 0.22)',
   },
   cancelReasonTitle: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.3,

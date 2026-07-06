@@ -21,6 +21,7 @@ import { shareGlucoseReportPdf } from '../../utils/glucoseReportPdf'
 import { PrimaryButton } from '../PrimaryButton'
 import { GlucoseTrendLineChart } from './GlucoseTrendLineChart'
 import { getModalFooterPadding } from '../../utils/modalSafeArea'
+import { REPORT_SHEET_GRADIENT, reportDrawerChrome } from './metricsReportDrawerShared'
 
 const BLOOD_GRADIENT = ['#fca5a5', '#ef4444', '#991b1b'] as const
 
@@ -243,11 +244,11 @@ export function GlucoseReportDrawer({
           ]}
         >
           <LinearGradient
-            colors={['rgba(24, 24, 32, 0.99)', 'rgba(10, 10, 14, 1)']}
+            colors={[...REPORT_SHEET_GRADIENT]}
             style={StyleSheet.absoluteFillObject}
           />
           {Platform.OS === 'ios' ? (
-            <BlurView intensity={18} tint="dark" style={StyleSheet.absoluteFillObject} />
+            <BlurView intensity={18} tint="light" style={StyleSheet.absoluteFillObject} />
           ) : null}
 
           <LinearGradient
@@ -300,7 +301,7 @@ export function GlucoseReportDrawer({
             ) : (
               <>
                 <LinearGradient
-                  colors={['rgba(239, 68, 68, 0.18)', 'rgba(239, 68, 68, 0.04)']}
+                  colors={['#fee2e2', '#fca5a5', '#f87171']}
                   style={styles.heroCard}
                 >
                   <Text style={styles.heroEyebrow}>Resumo do período</Text>
@@ -432,12 +433,12 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.62)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   sheet: {
     ...StyleSheet.absoluteFillObject,
     borderLeftWidth: 1,
-    borderLeftColor: 'rgba(255, 255, 255, 0.08)',
+    borderLeftColor: reportDrawerChrome.sheetBorder,
   },
   topAccent: {
     position: 'absolute',
@@ -460,7 +461,7 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: reportDrawerChrome.closeButtonBg,
   },
   closeButtonPressed: {
     opacity: 0.75,
@@ -476,7 +477,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   headerSubtitle: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -487,7 +488,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: reportDrawerChrome.headerOrbBorder,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -534,9 +535,9 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     borderRadius: 16,
     padding: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: reportDrawerChrome.cardBg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     minWidth: '47%',
     alignItems: 'center',
   },
@@ -585,9 +586,9 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 18,
     padding: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: reportDrawerChrome.cardBg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     gap: 4,
     alignItems: 'center',
   },
@@ -638,9 +639,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 4,
     paddingTop: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: reportDrawerChrome.cardBg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     overflow: 'visible',
     zIndex: 1,
   },
@@ -676,9 +677,9 @@ const styles = StyleSheet.create({
   },
   readingsCard: {
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: reportDrawerChrome.cardBg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     overflow: 'hidden',
   },
   readingsHeaderRow: {
@@ -687,8 +688,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderBottomColor: reportDrawerChrome.divider,
+    backgroundColor: reportDrawerChrome.cardBg,
   },
   readingsHeaderCell: {
     flex: 1,
@@ -701,7 +702,7 @@ const styles = StyleSheet.create({
   },
   readingBlock: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    borderBottomColor: reportDrawerChrome.divider,
     paddingBottom: 10,
   },
   readingDate: {
@@ -788,6 +789,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: reportDrawerChrome.divider,
   },
 })

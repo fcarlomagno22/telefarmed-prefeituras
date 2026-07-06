@@ -215,7 +215,6 @@ export const MENTAL_HEALTH_MOOD_OPTIONS: {
 }[] = [
   { id: 'very-good', label: 'Ótimo', tint: 'rgba(103, 232, 249, 0.2)' },
   { id: 'good', label: 'Bem', tint: 'rgba(134, 239, 172, 0.18)' },
-  { id: 'neutral', label: 'Neutro', tint: 'rgba(250, 204, 21, 0.16)' },
   { id: 'bad', label: 'Mal', tint: 'rgba(251, 191, 36, 0.16)' },
   { id: 'very-bad', label: 'Muito mal', tint: 'rgba(251, 146, 60, 0.16)' },
 ]

@@ -611,11 +611,11 @@ export function HealthIntegrationConnectDrawer({
           ]}
         >
           <LinearGradient
-            colors={['rgba(36, 36, 46, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+            colors={[colors.backgroundElevated, '#f0f0f2']}
             style={StyleSheet.absoluteFillObject}
           />
           {Platform.OS === 'ios' ? (
-            <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+            <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
           ) : null}
 
           <LinearGradient
@@ -674,7 +674,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.62)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   sheet: {
     maxHeight: '92%',
@@ -682,7 +682,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   topAccent: {
     height: 3,
@@ -728,7 +728,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     flexShrink: 0,
   },
   closeButtonPressed: {
@@ -771,7 +771,7 @@ const styles = StyleSheet.create({
   },
   listDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
   },
   sectionLabel: {
     color: colors.textSubtle,
@@ -793,7 +793,7 @@ const styles = StyleSheet.create({
   },
   permissionRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+    borderBottomColor: colors.surfaceBorder,
   },
   permissionRowPressed: {
     opacity: 0.7,
@@ -881,7 +881,7 @@ const styles = StyleSheet.create({
   },
   deviceRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+    borderBottomColor: colors.surfaceBorder,
   },
   deviceRowPressed: {
     opacity: 0.7,
@@ -938,7 +938,7 @@ const styles = StyleSheet.create({
   },
   manageInlineRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+    borderBottomColor: colors.surfaceBorder,
   },
   manageInlineText: {
     color: colors.text,

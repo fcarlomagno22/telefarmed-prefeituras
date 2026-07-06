@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
   },
   panel: {
     flex: 1,
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderWidth: StyleSheet.hairlineWidth,
     borderRightWidth: 0,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   header: {
     flexDirection: 'row',
@@ -308,7 +308,9 @@ const styles = StyleSheet.create({
   },
   groupCard: {
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
     overflow: 'hidden',
   },
   metaRow: {
@@ -318,7 +320,7 @@ const styles = StyleSheet.create({
   },
   metaRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255, 255, 255, 0.07)',
+    borderBottomColor: colors.surfaceBorder,
   },
   metaLabel: {
     color: colors.textSubtle,
@@ -336,7 +338,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     paddingHorizontal: 14,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.surface,
   },
   menuRowEmbedded: {
     borderRadius: 0,
@@ -344,7 +346,7 @@ const styles = StyleSheet.create({
   },
   menuRowBorder: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255, 255, 255, 0.07)',
+    borderBottomColor: colors.surfaceBorder,
   },
   menuRowText: {
     color: colors.text,

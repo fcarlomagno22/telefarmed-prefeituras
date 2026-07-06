@@ -63,9 +63,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 10,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   iconWrap: {
     width: 24,
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(34, 197, 94, 0.15)',
   },
   iconPending: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   textCol: {
     flex: 1,

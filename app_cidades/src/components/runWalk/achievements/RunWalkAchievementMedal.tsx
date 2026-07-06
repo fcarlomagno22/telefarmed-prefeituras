@@ -23,7 +23,7 @@ export function RunWalkAchievementMedal({ achievement, onPress }: RunWalkAchieve
         colors={
           locked
             ? ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']
-            : [`${achievement.accentColor}33`, 'rgba(14, 14, 20, 0.96)']
+            : [`${achievement.accentColor}33`, colors.backgroundElevated]
         }
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -58,14 +58,14 @@ const styles = StyleSheet.create({
     minHeight: 132,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     paddingHorizontal: 8,
     paddingVertical: 12,
     alignItems: 'center',
     gap: 8,
   },
   cardLocked: {
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: colors.surfaceBorder,
   },
   title: {
     color: colors.text,
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   status: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.3,

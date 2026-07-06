@@ -122,7 +122,7 @@ export function RunWalkHistoryActivityDrawer({
       </View>
 
       <LinearGradient
-        colors={['rgba(16, 185, 129, 0.18)', 'rgba(14, 14, 20, 0.98)']}
+        colors={['rgba(16, 185, 129, 0.18)', colors.backgroundElevated]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.metricsCard}
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   metricsCard: {
     borderRadius: 20,
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   },
   metricsDivider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
   },
   metricsGrid: {
     flexDirection: 'row',
@@ -313,9 +313,9 @@ const styles = StyleSheet.create({
     gap: 10,
     padding: 10,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   metricTileIcon: {
     width: 30,
@@ -372,11 +372,11 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   splitHeaderRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     paddingVertical: 10,
     paddingHorizontal: 12,
   },
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: colors.surfaceBorder,
   },
   splitCell: {
     flex: 1,
@@ -412,9 +412,9 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 12,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   secondaryButtonText: {
     color: colors.text,

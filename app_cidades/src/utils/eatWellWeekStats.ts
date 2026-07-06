@@ -304,12 +304,12 @@ export function formatDeltaLabel(deltaPct: number | null) {
 }
 
 export function getBalanceHeatmapColor(score: number, hasData: boolean, isFuture: boolean) {
-  if (isFuture) return 'rgba(255,255,255,0.04)'
-  if (!hasData) return 'rgba(255,255,255,0.05)'
-  if (score >= 80) return 'rgba(16, 185, 129, 0.72)'
-  if (score >= 60) return 'rgba(132, 204, 22, 0.55)'
-  if (score >= 40) return 'rgba(245, 158, 11, 0.55)'
-  return 'rgba(248, 113, 113, 0.55)'
+  if (isFuture) return '#f1f5f9'
+  if (!hasData) return '#f8fafc'
+  if (score >= 80) return '#86efac'
+  if (score >= 60) return '#bef264'
+  if (score >= 40) return '#fcd34d'
+  return '#fca5a5'
 }
 
 export function formatMacroPercent(value: number, total: number) {

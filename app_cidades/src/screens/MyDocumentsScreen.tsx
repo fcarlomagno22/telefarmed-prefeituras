@@ -29,8 +29,8 @@ import { MenuDrawer } from '../components/MenuDrawer'
 import { MetricsPeriodDrawer } from '../components/metrics/MetricsPeriodDrawer'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { SkeletonBone } from '../components/SkeletonBone'
-import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useSimulatedPageSkeleton } from '../hooks/useSimulatedPageSkeleton'
@@ -57,13 +57,12 @@ import {
 } from '../utils/myDocuments'
 import { buildPeriodSelection, formatPeriodLabel } from '../utils/metricsPeriod'
 import { downloadConsultationDocumentPdf } from '../utils/consultationDocumentPdf'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
 const DOCUMENTS_SEGMENT_PAGES: MyDocumentsTab[] = ['by-consultation', 'by-document']
 
 export function MyDocumentsScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { width: screenWidth } = useWindowDimensions()
   const { user, navigateTo, logout } = useAuth()
@@ -471,7 +470,7 @@ export function MyDocumentsScreen() {
         />
 
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'transparent', 'rgba(10, 10, 12, 0.75)']}
+          colors={[...themeColors.screenOverlay]}
           locations={[0, 0.35, 1]}
           style={styles.screenOverlay}
           pointerEvents="none"

@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useEffect, useMemo, useState } from 'react'
-import { RefreshControl, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
-import { loadSleepLogs } from '../../data/sleepLogStorage'
+import { RefreshControl, ScrollView, StyleSheet, Text, useWindowDimensions, View, Platform } from 'react-native'
+import { ensureSleepHistorySeeded, loadSleepLogs } from '../../data/sleepLogStorage'
 import { colors } from '../../theme/colors'
 import type { SleepCalendarDay } from '../../types/sleepHistory'
 import type { SleepLogEntry } from '../../types/sleepLog'
@@ -59,6 +59,7 @@ export function SleepTimeHistoryTab({
 
     async function load() {
       setIsLoading(true)
+      await ensureSleepHistorySeeded(patientCpf)
       const nextEntries = await loadSleepLogs(patientCpf)
       if (cancelled) return
       setEntries(nextEntries)
@@ -99,6 +100,7 @@ export function SleepTimeHistoryTab({
 
   async function handleRefresh() {
     setIsRefreshing(true)
+    await ensureSleepHistorySeeded(patientCpf)
     const nextEntries = await loadSleepLogs(patientCpf)
     setEntries(nextEntries)
     setIsRefreshing(false)
@@ -110,11 +112,13 @@ export function SleepTimeHistoryTab({
 
   if (isLoading) {
     return (
-      <ScrollView
-        style={styles.body}
-        contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.root}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
+          showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
+        >
         <SleepTimeDayStrip
           days={calendarDays}
           monthKey={calendarMonthKey}
@@ -126,17 +130,21 @@ export function SleepTimeHistoryTab({
         <View style={styles.loadingWrap}>
           <Text style={styles.loadingText}>Carregando histórico...</Text>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     )
   }
 
   return (
-    <ScrollView
-      style={styles.body}
-      contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
-      showsVerticalScrollIndicator={false}
-      nestedScrollEnabled
-      refreshControl={
+    <View style={styles.root}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+        keyboardShouldPersistTaps="handled"
+        scrollEventThrottle={16}
+        refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={() => void handleRefresh()}
@@ -205,13 +213,26 @@ export function SleepTimeHistoryTab({
           />
         </>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  body: {
+  root: {
     flex: 1,
+    minHeight: 0,
+  },
+  scroll: {
+    flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      },
+      default: {},
+    }),
   },
   content: {
     gap: 14,
@@ -232,9 +253,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     gap: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   iconWrap: {
     width: 72,

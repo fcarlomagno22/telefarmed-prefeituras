@@ -18,7 +18,6 @@ import { SudokuVictoryDrawer } from '../components/activeMind/sudoku/SudokuVicto
 import { NeonSectionDivider } from '../components/NeonSectionDivider'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { getActiveMindDifficultyLabel } from '../config/activeMindDifficulty'
-import { appEnv } from '../config/env'
 import {
   clearCrosswordCell,
   clearCrosswordEntryInput,
@@ -38,7 +37,9 @@ import {
   setCrosswordCellValue,
 } from '../data/crosswordPuzzles'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
+import { activeMindGameChrome } from '../theme/activeMindGameChrome'
 import { colors } from '../theme/colors'
 import { getActiveMindRouteParams } from '../types/auth'
 import type { ActiveMindPlayDifficulty } from '../types/activeMind'
@@ -50,7 +51,6 @@ import {
   type CrosswordFeedbackState,
   type CrosswordSessionStats,
 } from '../types/crossword'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 import { normalizeWordAnswer } from '../utils/formTheWordChunks'
 import {
   playFormTheWordCorrectSound,
@@ -67,7 +67,6 @@ const WRONG_FEEDBACK_DURATION_MS = 1200
 
 const brainLottie = require('../../assets/brain1.json')
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 
 function cellKey(row: number, col: number): string {
   return `${row},${col}`
@@ -78,6 +77,7 @@ function buildSession(difficulty: ActiveMindPlayDifficulty, excludeId?: string):
 }
 
 export function ActiveMindCrosswordsScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { width: screenWidth, height: screenHeight } = useWindowDimensions()
   const { routeParams, goBack, canGoBack, navigateTo } = useAuth()
@@ -569,7 +569,7 @@ export function ActiveMindCrosswordsScreen() {
     <View style={styles.root}>
       <ImageBackground source={backgroundSource} style={styles.background} resizeMode="cover">
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'rgba(10, 10, 12, 0.92)']}
+          colors={[themeColors.screenOverlay[0], 'transparent']}
           style={StyleSheet.absoluteFillObject}
         />
 
@@ -637,7 +637,7 @@ export function ActiveMindCrosswordsScreen() {
                 <Ionicons
                   name="backspace-outline"
                   size={18}
-                  color={padDisabled ? colors.textSubtle : '#67e8f9'}
+                  color={padDisabled ? colors.textSubtle : activeMindGameChrome.actionLink}
                 />
                 <Text style={[styles.toolbarEraseLabel, padDisabled && styles.toolbarEraseLabelDisabled]}>
                   Apagar
@@ -760,7 +760,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   toolbarLink: {
-    color: '#67e8f9',
+    color: activeMindGameChrome.actionLink,
     fontSize: 13,
     fontWeight: '600',
     textDecorationLine: 'underline',
@@ -776,19 +776,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: activeMindGameChrome.controlBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: activeMindGameChrome.tileBorder,
   },
   toolbarEraseButtonPressed: {
     opacity: 0.85,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: activeMindGameChrome.controlBackground,
   },
   toolbarEraseButtonDisabled: {
     opacity: 0.4,
   },
   toolbarEraseLabel: {
-    color: '#67e8f9',
+    color: activeMindGameChrome.actionLink,
     fontSize: 13,
     fontWeight: '600',
   },
@@ -801,7 +801,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: activeMindGameChrome.controlBackground,
   },
   newGameButtonPressed: {
     opacity: 0.85,

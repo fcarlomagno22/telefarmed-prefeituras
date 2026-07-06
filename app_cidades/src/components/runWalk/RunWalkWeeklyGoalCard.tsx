@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
 import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
 import { colors } from '../../theme/colors'
@@ -53,15 +52,10 @@ export function RunWalkWeeklyGoalCard({
 
   return (
     <View style={styles.cardWrap}>
-    <LinearGradient
-      colors={['rgba(37, 99, 235, 0.24)', 'rgba(29, 78, 216, 0.1)', 'rgba(14, 14, 20, 0.98)']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.card}
-    >
+      <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.iconWrap}>
-          <Ionicons name="calendar" size={18} color="#93c5fd" />
+          <Ionicons name="calendar" size={18} color="#2563eb" />
         </View>
         <View style={styles.headerText}>
           <Text style={styles.title}>Meta semanal</Text>
@@ -179,7 +173,7 @@ export function RunWalkWeeklyGoalCard({
       </View>
 
       <View style={styles.movementRow}>
-        <Ionicons name="footsteps-outline" size={16} color="#93c5fd" />
+        <Ionicons name="footsteps-outline" size={16} color="#2563eb" />
         <Text style={styles.movementText}>
           Você se movimentou em {stats.movementDays} dias desta semana
         </Text>
@@ -191,7 +185,7 @@ export function RunWalkWeeklyGoalCard({
         palette={ACTION_ICON_PALETTES.myGoals}
         onPress={onViewWeekPress}
       />
-    </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -201,10 +195,16 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.28)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
   card: {
-    borderRadius: 18,
+    borderRadius: 17,
     padding: 14,
     gap: 14,
   },
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(37, 99, 235, 0.16)',
+    backgroundColor: '#eff6ff',
   },
   headerText: {
     flex: 1,
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   goalActionText: {
-    color: '#93c5fd',
+    color: '#2563eb',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -269,14 +269,14 @@ const styles = StyleSheet.create({
   ringDivider: {
     width: 1,
     height: 56,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surfaceBorder,
   },
   chartBlock: {
     gap: 8,
     paddingTop: 2,
     paddingBottom: 2,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: colors.surfaceBorder,
     overflow: 'visible',
   },
   chartHeader: {

@@ -22,12 +22,7 @@ export function NearbyUnitListRow({ ubt, selected, onPress }: NearbyUnitListRowP
         pressed && styles.cardPressed,
       ]}
     >
-      <LinearGradient
-        colors={['#1e1a14', '#18161c', '#14141a']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
+      <View style={styles.cardInner}>
         <View style={styles.iconWrap}>
           <LinearGradient
             colors={[...ACTION_ICON_PALETTES.nearbyUnits.iconGradient]}
@@ -69,7 +64,7 @@ export function NearbyUnitListRow({ ubt, selected, onPress }: NearbyUnitListRowP
           size={18}
           color={selected ? '#fbbf24' : colors.textSubtle}
         />
-      </LinearGradient>
+      </View>
     </Pressable>
   )
 }
@@ -79,7 +74,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.cardBg,
   },
   cardSelected: {
     borderColor: 'rgba(245, 158, 11, 0.45)',
@@ -87,11 +83,12 @@ const styles = StyleSheet.create({
   cardPressed: {
     opacity: 0.9,
   },
-  gradient: {
+  cardInner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     padding: 14,
+    backgroundColor: colors.cardBg,
   },
   iconWrap: {
     shadowColor: ACTION_ICON_PALETTES.nearbyUnits.shadowColor,
@@ -135,7 +132,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(16, 185, 129, 0.18)',
   },
   badgeClosed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
   },
   badgeText: {
     color: colors.textMuted,

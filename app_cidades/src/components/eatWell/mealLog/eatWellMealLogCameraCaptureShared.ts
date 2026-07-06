@@ -68,7 +68,7 @@ export const styles = StyleSheet.create({
     opacity: 0.9,
   },
   permissionBtnText: {
-    color: '#0a0a0c',
+    color: colors.text,
     fontSize: 14,
     fontWeight: '900',
   },
@@ -87,7 +87,7 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
   },
   errorText: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',

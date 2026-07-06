@@ -1,5 +1,4 @@
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import { openAppPhoneCall } from '../adapters/appLinking'
@@ -191,10 +190,7 @@ export function NearbyUnitsScreen() {
       />
 
       <View style={[styles.overlayTop, { paddingTop: insets.top }]}>
-        <LinearGradient
-          colors={['rgba(10, 10, 12, 0.92)', 'rgba(10, 10, 12, 0.75)', 'rgba(10, 10, 12, 0)']}
-          style={styles.headerGradient}
-        >
+        <View style={styles.headerPanel}>
           <ScreenStackHeader
             title="Unidades Próximas"
             subtitle="Encontre a UBT mais perto de você"
@@ -222,7 +218,7 @@ export function NearbyUnitsScreen() {
             onExpandList={handleExpandList}
             onShowMap={handleShowMap}
           />
-        </LinearGradient>
+        </View>
       </View>
 
       {isLoading ? (
@@ -282,14 +278,22 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 10,
   },
-  headerGradient: {
+  headerPanel: {
+    backgroundColor: colors.cardBg,
     paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surfaceBorder,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 4,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(10, 10, 12, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.45)',
     zIndex: 5,
   },
   tabBar: {

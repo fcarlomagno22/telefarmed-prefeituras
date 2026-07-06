@@ -1,5 +1,4 @@
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import type { SleepHighlight } from '../../../types/sleepHistory'
@@ -54,11 +53,11 @@ export function SleepTimeHistoryHighlights({
             }}
             style={({ pressed }) => [styles.cardPressable, pressed && styles.pressed]}
           >
-            <LinearGradient
-              colors={[`${highlight.accentColor}33`, 'rgba(14, 14, 20, 0.98)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.card}
+            <View
+              style={[
+                styles.card,
+                { borderColor: `${highlight.accentColor}55` },
+              ]}
             >
               <Text
                 style={[styles.value, { color: highlight.accentColor }]}
@@ -73,7 +72,7 @@ export function SleepTimeHistoryHighlights({
               <Text style={styles.subtitle} numberOfLines={1}>
                 {highlight.subtitle}
               </Text>
-            </LinearGradient>
+            </View>
           </Pressable>
         )}
       />
@@ -108,7 +107,8 @@ const styles = StyleSheet.create({
     padding: 14,
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   value: {
     fontSize: 24,

@@ -50,6 +50,8 @@ const VISUAL_HEIGHT = LOTTIE_HEIGHT + 36
 const CONTENT_MIN_HEIGHT = VISUAL_HEIGHT + 32
 
 const BP_GRADIENT = ['#fbbf24', '#f59e0b', '#d97706'] as const
+const BP_MEASUREMENT_GRADIENT = ['#fffbeb', '#fde68a', '#fbbf24'] as const
+const BP_CHIP_SELECTED_TEXT = '#92400e'
 
 export type BloodPressureReading = {
   systolic: number
@@ -377,11 +379,11 @@ export function BloodPressureLogDrawer({
             ]}
           >
             <LinearGradient
-              colors={['rgba(36, 36, 46, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+              colors={[colors.backgroundElevated, '#f0f0f2']}
               style={StyleSheet.absoluteFillObject}
             />
             {Platform.OS === 'ios' ? (
-              <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+              <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
             ) : null}
 
             {!showSuccess ? (
@@ -507,7 +509,19 @@ export function BloodPressureLogDrawer({
                   >
                     <Text style={styles.amountLabel}>Medição</Text>
 
-                    <View style={styles.amountDisplayCard}>
+                    <LinearGradient
+                      colors={[...BP_MEASUREMENT_GRADIENT]}
+                      start={{ x: 0.15, y: 0 }}
+                      end={{ x: 0.85, y: 1 }}
+                      style={styles.amountDisplayCard}
+                    >
+                      <LinearGradient
+                        colors={['rgba(255,255,255,0.5)', 'rgba(255,255,255,0)']}
+                        start={{ x: 0.5, y: 0 }}
+                        end={{ x: 0.5, y: 1 }}
+                        style={styles.cardGloss}
+                        pointerEvents="none"
+                      />
                       <Text style={styles.amountValue}>
                         {formatReadingLabel(systolic, diastolic)}
                       </Text>
@@ -521,7 +535,7 @@ export function BloodPressureLogDrawer({
                         <View style={[styles.zoneDot, { backgroundColor: zone.color }]} />
                         <Text style={[styles.zoneLabel, { color: zone.color }]}>{zone.label}</Text>
                       </View>
-                    </View>
+                    </LinearGradient>
 
                     <View style={styles.inputCard}>
                       <Text style={styles.inputLabel}>Ou digite</Text>
@@ -634,7 +648,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   keyboardWrap: {
     flex: 1,
@@ -647,7 +661,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 0,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     maxHeight: '92%',
   },
   scrollContent: {
@@ -665,7 +679,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginTop: 10,
     marginBottom: 14,
   },
@@ -712,7 +726,7 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   closeButtonPressed: {
     opacity: 0.8,
@@ -726,9 +740,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   targetChipSelected: {
     backgroundColor: 'rgba(245, 158, 11, 0.16)',
@@ -743,7 +757,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   targetChipLabelSelected: {
-    color: '#fde68a',
+    color: BP_CHIP_SELECTED_TEXT,
   },
   contentRow: {
     flexDirection: 'row',
@@ -808,7 +822,7 @@ const styles = StyleSheet.create({
     width: 24,
   },
   tickLabelActive: {
-    color: '#fde68a',
+    color: '#d97706',
   },
   tickLabelSpacer: {
     width: 24,
@@ -844,13 +858,16 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingVertical: 14,
     paddingHorizontal: 14,
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(251, 191, 36, 0.35)',
+    borderColor: 'rgba(217, 119, 6, 0.35)',
     alignItems: 'center',
     minHeight: 108,
     justifyContent: 'center',
     gap: 2,
+    overflow: 'hidden',
+  },
+  cardGloss: {
+    ...StyleSheet.absoluteFillObject,
   },
   amountValue: {
     color: colors.text,
@@ -888,9 +905,9 @@ const styles = StyleSheet.create({
   inputCard: {
     borderRadius: 16,
     padding: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.07)',
+    borderColor: colors.surfaceBorder,
     gap: 8,
   },
   inputLabel: {
@@ -921,22 +938,23 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   inputWrap: {
-    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.22)',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     paddingHorizontal: 10,
     minHeight: 44,
   },
   input: {
-    flex: 1,
+    width: '100%',
     color: colors.text,
     fontSize: 18,
     fontWeight: '700',
     paddingVertical: 8,
     fontVariant: ['tabular-nums'],
+    textAlign: 'center',
   },
   validationHint: {
     color: '#f87171',

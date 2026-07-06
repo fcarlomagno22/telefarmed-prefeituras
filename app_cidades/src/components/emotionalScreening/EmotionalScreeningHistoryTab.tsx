@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useEffect, useState } from 'react'
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { loadEmotionalScreeningRecord } from '../../data/emotionalScreeningStorage'
 import { loadTdahTodSessions } from '../../data/tdahTodInfantilStorage'
 import { loadScaredSessions } from '../../data/scaredInfantilStorage'
@@ -82,10 +82,13 @@ export function EmotionalScreeningHistoryTab({
   }, [patientCpf, refreshKey])
 
   return (
-    <ScrollView
-      contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
+    <View style={styles.root}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+        refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
           tintColor={colors.textMuted}
@@ -192,11 +195,32 @@ export function EmotionalScreeningHistoryTab({
       )}
 
       <Text style={styles.disclaimer}>{EMOTIONAL_SCREENING_DISCLAIMER}</Text>
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: { height: '100%' },
+      default: {},
+    }),
+  },
+  scroll: {
+    flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        height: '100%',
+      },
+      default: {},
+    }),
+  },
   content: {
     paddingHorizontal: 16,
     paddingTop: 8,
@@ -208,9 +232,9 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 18,
     padding: 16,
-    backgroundColor: 'rgba(16, 16, 20, 0.88)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     gap: 6,
   },
   cardPressed: {
@@ -244,7 +268,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   cardAction: {
-    color: '#c4b5fd',
+    color: colors.primary,
     fontSize: 12,
     fontWeight: '800',
     marginTop: 2,

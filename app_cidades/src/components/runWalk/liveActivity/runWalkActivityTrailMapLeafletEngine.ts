@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { NEARBY_UNITS_TILE_LAYER_OPTIONS, NEARBY_UNITS_TILE_URL } from '../../nearbyUnits/nearbyUnitsMapShared'
+
 type LiveTrailMapCallbacks = {
   onUserPanned?: () => void
 }
@@ -490,8 +492,7 @@ export function createTrailLeafletMap(
 }
 
 export function addTrailMapTileLayer(L: any, map: any) {
-  return L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19,
-    subdomains: 'abcd',
+  return L.tileLayer(NEARBY_UNITS_TILE_URL, {
+    ...NEARBY_UNITS_TILE_LAYER_OPTIONS,
   }).addTo(map)
 }

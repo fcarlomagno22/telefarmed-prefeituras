@@ -9,6 +9,7 @@ import { NearbyRunningRoutesMap } from '../components/runWalk/nearbyRoutes/Nearb
 import { NearbyRunningRoutesSafetyBanner } from '../components/runWalk/nearbyRoutes/NearbyRunningRoutesSafetyBanner'
 import { SubmitRunningRouteSpotDrawer } from '../components/runWalk/nearbyRoutes/SubmitRunningRouteSpotDrawer'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useRunningRoutesOrigin } from '../hooks/useRunningRoutesOrigin'
@@ -18,6 +19,7 @@ import { fetchNearbyRunningRoutes } from '../utils/nearbyRunningRoutes'
 
 export function NearbyRunningRoutesScreen() {
   const insets = useSafeAreaInsets()
+  const { colors: themeColors } = useTheme()
   const { user, goBack } = useAuth()
   const { requireAuth } = useGuestAuth()
 
@@ -112,7 +114,7 @@ export function NearbyRunningRoutesScreen() {
 
       <View style={[styles.overlayTop, { paddingTop: insets.top }]}>
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.92)', 'rgba(10, 10, 12, 0.75)', 'rgba(10, 10, 12, 0)']}
+          colors={[themeColors.screenOverlay[0], 'transparent', 'transparent']}
           style={styles.headerGradient}
         >
           <ScreenStackHeader
@@ -251,7 +253,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(10, 10, 12, 0.35)',
+    backgroundColor: 'rgba(255, 255, 255, 0.55)',
     zIndex: 5,
     gap: 12,
   },
@@ -263,9 +265,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 10,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },

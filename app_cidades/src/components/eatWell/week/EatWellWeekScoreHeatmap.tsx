@@ -1,5 +1,4 @@
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import type { EatWellWeekSummary } from '../../../types/eatWell'
 import { colors } from '../../../theme/colors'
@@ -20,12 +19,7 @@ export function EatWellWeekScoreHeatmap({
 }: EatWellWeekScoreHeatmapProps) {
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(16, 185, 129, 0.1)', 'rgba(14, 14, 20, 0.98)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <Text style={styles.title}>Mapa de equilíbrio</Text>
         <Text style={styles.subtitle}>Toque em um dia para abrir no Diário</Text>
 
@@ -71,12 +65,12 @@ export function EatWellWeekScoreHeatmap({
         </View>
 
         <View style={styles.legendRow}>
-          <LegendSwatch color="rgba(248, 113, 113, 0.55)" label="< 40" />
-          <LegendSwatch color="rgba(245, 158, 11, 0.55)" label="40–59" />
-          <LegendSwatch color="rgba(132, 204, 22, 0.55)" label="60–79" />
-          <LegendSwatch color="rgba(16, 185, 129, 0.72)" label="≥ 80" />
+          <LegendSwatch color="#86efac" label="≥ 80" />
+          <LegendSwatch color="#bef264" label="60–79" />
+          <LegendSwatch color="#fcd34d" label="40–59" />
+          <LegendSwatch color="#fca5a5" label="< 40" />
         </View>
-      </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -99,7 +93,8 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.16)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   title: {
     color: colors.text,
@@ -122,10 +117,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: colors.surfaceBorder,
   },
   cellOuterSelected: {
-    borderColor: '#a3e635',
+    borderColor: '#4d7c0f',
     borderWidth: 2,
   },
   cellFill: {
@@ -146,7 +141,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cellWeekday: {
-    color: 'rgba(255,255,255,0.82)',
+    color: colors.textSubtle,
     fontSize: 7,
     fontWeight: '800',
     letterSpacing: 0.3,
@@ -162,7 +157,7 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
   cellScore: {
-    color: 'rgba(255,255,255,0.9)',
+    color: colors.textMuted,
     fontSize: 7,
     fontWeight: '800',
     textAlign: 'center',

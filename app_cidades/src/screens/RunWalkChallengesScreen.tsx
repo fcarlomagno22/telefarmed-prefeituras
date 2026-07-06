@@ -231,7 +231,7 @@ export function RunWalkChallengesScreen({ view = 'explore' }: RunWalkChallengesS
     <>
       <View style={styles.root}>
         <LinearGradient
-          colors={['#0a0a0c', '#101018', '#0a0a0c']}
+          colors={[colors.background, colors.backgroundElevated, colors.background]}
           style={StyleSheet.absoluteFill}
         />
 

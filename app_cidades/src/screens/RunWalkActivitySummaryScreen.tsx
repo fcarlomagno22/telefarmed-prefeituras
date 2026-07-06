@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -46,6 +47,8 @@ import { shareRunWalkActivitySummaryImage } from '../utils/runWalkActivitySummar
 import { toLocalDateIso } from '../utils/runWalkWeeklyChart'
 
 const SUMMARY_MESSAGE = 'Cada passo conta. Você concluiu mais um treino.'
+const MAP_HEIGHT = Math.max(300, Math.round(Dimensions.get('window').height * 0.34))
+const FOOTER_ESTIMATED_HEIGHT = 88
 
 type SummaryStatProps = {
   icon: keyof typeof Ionicons.glyphMap
@@ -208,7 +211,7 @@ export function RunWalkActivitySummaryScreen() {
   return (
     <View style={styles.root}>
       <LinearGradient
-        colors={['#0a0a0c', '#101018', '#0a0a0c']}
+        colors={[colors.background, colors.backgroundElevated, colors.background]}
         style={StyleSheet.absoluteFill}
       />
 
@@ -232,9 +235,9 @@ export function RunWalkActivitySummaryScreen() {
           ]}
         >
           {isSharing ? (
-            <ActivityIndicator color="#fff" size="small" />
+            <ActivityIndicator color={colors.primary} size="small" />
           ) : (
-            <Ionicons name="share-outline" size={22} color="#fff" />
+            <Ionicons name="share-outline" size={22} color={colors.primary} />
           )}
         </Pressable>
       </View>
@@ -246,7 +249,7 @@ export function RunWalkActivitySummaryScreen() {
           styles.scrollContent,
           {
             paddingTop: Math.max(insets.top, 8) + 4,
-            paddingBottom: Math.max(insets.bottom, 16) + 24,
+            paddingBottom: Math.max(insets.bottom, 12) + FOOTER_ESTIMATED_HEIGHT,
           },
         ]}
         showsVerticalScrollIndicator={false}
@@ -309,14 +312,14 @@ export function RunWalkActivitySummaryScreen() {
 
           <View style={styles.mapSection}>
             <View style={styles.mapHeader}>
-              <Ionicons name="map-outline" size={16} color="#6ee7b7" />
+              <Ionicons name="map-outline" size={16} color="#059669" />
               <Text style={styles.mapTitle}>Seu percurso</Text>
             </View>
 
             <View style={styles.mapFrame}>
               <RunWalkActivityTrailMap
                 trail={summary.trail}
-                height={220}
+                height={MAP_HEIGHT}
                 interactive
                 profilePhotoUri={user?.selfieUri}
                 onMapInteractionChange={handleMapInteractionChange}
@@ -324,13 +327,23 @@ export function RunWalkActivitySummaryScreen() {
             </View>
           </View>
         </View>
+      </ScrollView>
 
+      <View
+        style={[
+          styles.footer,
+          { paddingBottom: Math.max(insets.bottom, 12) },
+        ]}
+      >
         <PrimaryButton
           label={isSaving ? 'Salvando...' : 'Ver meu progresso semanal'}
           onPress={() => void handleContinue()}
+          loading={isSaving}
+          disabled={isSaving}
           style={styles.continueButton}
+          gradientStyle={styles.continueButtonGradient}
         />
-      </ScrollView>
+      </View>
     </View>
   )
 }
@@ -364,9 +377,14 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   shareButtonPressed: {
     opacity: 0.85,
@@ -435,7 +453,7 @@ const styles = StyleSheet.create({
   highlightDivider: {
     width: 1,
     height: 42,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -450,9 +468,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 12,
     gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   statIconWrap: {
     width: 28,
@@ -496,9 +514,23 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
+  },
+  footer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    backgroundColor: colors.backgroundElevated,
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceBorder,
   },
   continueButton: {
-    marginTop: 2,
+    marginTop: 0,
+  },
+  continueButtonGradient: {
+    minHeight: 58,
   },
 })

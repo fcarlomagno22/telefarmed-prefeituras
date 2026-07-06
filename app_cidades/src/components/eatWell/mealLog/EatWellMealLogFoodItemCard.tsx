@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   calories: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 12,
     fontWeight: '800',
     alignSelf: 'flex-end',

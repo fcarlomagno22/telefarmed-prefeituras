@@ -1,12 +1,12 @@
 (function () {
   'use strict'
 
-  var CHROME = '#0a0a0c'
+  var CHROME = '#f5f5f7'
   var root = document.documentElement
   var ua = typeof navigator !== 'undefined' ? navigator.userAgent : ''
   var isAndroid = /Android/i.test(ua)
 
-  root.style.colorScheme = 'dark only'
+  root.style.colorScheme = 'light'
   root.style.backgroundColor = CHROME
 
   function upsertMeta(name, content) {
@@ -28,7 +28,7 @@
   })
 
   upsertMeta('theme-color', CHROME)
-  upsertMeta('color-scheme', 'dark')
+  upsertMeta('color-scheme', 'light')
 
   if (document.body) {
     document.body.style.backgroundColor = CHROME

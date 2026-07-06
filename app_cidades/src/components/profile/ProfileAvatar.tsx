@@ -219,12 +219,12 @@ const styles = StyleSheet.create({
   },
   avatarRingEmpty: {
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   avatarRingPhoto: {
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     backgroundColor: colors.backgroundElevated,
   },
   avatarPressed: {

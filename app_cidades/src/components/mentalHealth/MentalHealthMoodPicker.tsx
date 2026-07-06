@@ -43,7 +43,11 @@ export function MentalHealthMoodPicker({
             accessibilityLabel={option.label}
             accessibilityState={{ selected }}
           >
-            <MentalHealthMoodIcon mood={option.id} size={isDrawer ? 'drawer' : 'compact'} />
+            <MentalHealthMoodIcon
+              mood={option.id}
+              size={isDrawer ? 'drawer' : 'compact'}
+              active={selected}
+            />
             <Text
               style={[styles.label, isDrawer && styles.labelDrawer, selected && styles.labelSelected]}
               numberOfLines={2}
@@ -76,7 +80,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   optionDrawer: {
     flexGrow: 1,

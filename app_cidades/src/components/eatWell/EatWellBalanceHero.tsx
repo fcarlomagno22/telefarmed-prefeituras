@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import type {
   BalanceScoreBreakdown,
@@ -90,13 +89,13 @@ function MacroBarRow({
 function chipStatusColor(consumed: number, target: number, inverse = false) {
   const ratio = target > 0 ? consumed / target : 0
   if (inverse) {
-    if (ratio <= 0.7) return '#6ee7b7'
-    if (ratio <= 1) return '#fbbf24'
-    return '#f87171'
+    if (ratio <= 0.7) return '#15803d'
+    if (ratio <= 1) return '#b45309'
+    return '#dc2626'
   }
-  if (ratio >= 0.85) return '#6ee7b7'
-  if (ratio >= 0.55) return '#fbbf24'
-  return '#93c5fd'
+  if (ratio >= 0.85) return '#15803d'
+  if (ratio >= 0.55) return '#b45309'
+  return '#2563eb'
 }
 
 export function EatWellBalanceHero({
@@ -139,12 +138,7 @@ export function EatWellBalanceHero({
 
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(132, 204, 22, 0.22)', 'rgba(77, 124, 15, 0.12)', 'rgba(14, 14, 20, 0.98)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <View style={styles.topRow}>
           <Pressable
             onPress={onBalancePress}
@@ -236,7 +230,7 @@ export function EatWellBalanceHero({
             />
           ))}
         </View>
-      </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -250,7 +244,8 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 14,
     borderWidth: 1,
-    borderColor: 'rgba(132, 204, 22, 0.22)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   topRow: {
     flexDirection: 'row',
@@ -280,7 +275,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
   },
   tierBadgeText: {
@@ -301,12 +296,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(103, 232, 249, 0.1)',
+    backgroundColor: '#ecfeff',
     borderWidth: 1,
-    borderColor: 'rgba(103, 232, 249, 0.22)',
+    borderColor: 'rgba(8, 145, 178, 0.25)',
   },
   waterMiniText: {
-    color: '#a5f3fc',
+    color: '#0891b2',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -346,9 +341,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 10,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     minHeight: 64,
   },
   chipPressed: {

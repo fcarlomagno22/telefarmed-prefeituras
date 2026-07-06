@@ -5,7 +5,7 @@ import { colors } from '../../theme/colors'
 export const OVAL_WIDTH = 224
 export const OVAL_HEIGHT = 286
 export const SCANNER_HEIGHT = 392
-export const SCANNER_MASK_COLOR = '#050508'
+export const SCANNER_MASK_COLOR = colors.background
 export const SCAN_DURATION_MS = 2600
 export const DETECTION_INTERVAL_MS = 650
 export const FACE_LOCK_STREAK = 2
@@ -77,11 +77,11 @@ export function statusDotStyle(tone: 'neutral' | 'warn' | 'success' | 'active') 
 export function statusIconColor(tone: 'neutral' | 'warn' | 'success' | 'active') {
   switch (tone) {
     case 'success':
-      return '#86efac'
+      return '#16a34a'
     case 'warn':
-      return '#fde68a'
+      return '#d97706'
     case 'active':
-      return colors.primaryLight
+      return colors.primary
     default:
       return colors.textMuted
   }
@@ -153,7 +153,7 @@ export const styles = StyleSheet.create({
     height: SCANNER_HEIGHT,
     borderRadius: 26,
     overflow: 'hidden',
-    backgroundColor: '#050508',
+    backgroundColor: colors.background,
   },
   camera: {
     ...StyleSheet.absoluteFillObject,
@@ -270,20 +270,20 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
   },
   statusChipNeutral: {
-    backgroundColor: 'rgba(8, 8, 14, 0.78)',
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: colors.backgroundElevated,
+    borderColor: colors.surfaceBorder,
   },
   statusChipActive: {
-    backgroundColor: 'rgba(255, 107, 0, 0.14)',
-    borderColor: 'rgba(255, 107, 0, 0.35)',
+    backgroundColor: 'rgba(255, 107, 0, 0.08)',
+    borderColor: 'rgba(255, 107, 0, 0.28)',
   },
   statusChipWarn: {
-    backgroundColor: 'rgba(251, 191, 36, 0.12)',
-    borderColor: 'rgba(251, 191, 36, 0.35)',
+    backgroundColor: '#fffbeb',
+    borderColor: '#fcd34d',
   },
   statusChipSuccess: {
-    backgroundColor: 'rgba(74, 222, 128, 0.12)',
-    borderColor: 'rgba(74, 222, 128, 0.35)',
+    backgroundColor: '#ecfdf5',
+    borderColor: '#86efac',
   },
   statusDot: {
     width: 7,
@@ -315,7 +315,7 @@ export const styles = StyleSheet.create({
     bottom: 14,
     height: 5,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: colors.surfaceBorder,
     overflow: 'hidden',
   },
   progressFill: {
@@ -327,9 +327,9 @@ export const styles = StyleSheet.create({
     borderRadius: 26,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
     marginBottom: 16,
-    backgroundColor: '#050508',
+    backgroundColor: colors.background,
   },
   previewImage: {
     width: '100%',
@@ -363,12 +363,12 @@ export const styles = StyleSheet.create({
     borderRadius: 999,
     paddingVertical: 9,
     paddingHorizontal: 14,
-    backgroundColor: 'rgba(8, 8, 12, 0.82)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(74, 222, 128, 0.35)',
+    borderColor: '#86efac',
   },
   previewBadgeText: {
-    color: '#bbf7d0',
+    color: '#15803d',
     fontSize: 12,
     fontWeight: '600',
   },

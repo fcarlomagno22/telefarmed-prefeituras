@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   },
   patientCardInner: {
     borderRadius: 15,
-    backgroundColor: 'rgba(14, 14, 20, 0.92)',
+    backgroundColor: colors.backgroundElevated,
     padding: 14,
     gap: 4,
   },
@@ -182,8 +182,8 @@ const styles = StyleSheet.create({
   detailsCard: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(14, 14, 20, 0.85)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surface,
     padding: 14,
     gap: 12,
   },
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
   },
   detailBody: {
     flex: 1,
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   notice: {
     flexDirection: 'row',

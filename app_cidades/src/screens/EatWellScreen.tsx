@@ -40,7 +40,6 @@ import { EatWellMenuWizardDrawer } from '../components/eatWell/menuWizard/EatWel
 import { MenuDrawer } from '../components/MenuDrawer'
 import { RunWalkSegmentTabs, type RunWalkSegmentTabItem } from '../components/runWalk/RunWalkSegmentTabs'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
-import { appEnv } from '../config/env'
 import {
   loadEatWellDailyRecord,
   saveEatWellDailyRecord,
@@ -51,6 +50,7 @@ import { loadNutritionGoals, saveNutritionGoals } from '../data/eatWellGoalsStor
 import { computeNutritionGoalsFromWizard } from '../eatWellEngine/computeNutritionGoals'
 import { useAuth } from '../contexts/AuthContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
 import type {
@@ -87,9 +87,7 @@ import { loadEatWellWeekSummary } from '../utils/eatWellWeekStats'
 import type { EatWellMenuWizardForm } from '../utils/eatWellMenuWizard'
 import { toLocalDateIso } from '../utils/runWalkWeeklyChart'
 import { getEatWellRouteParams } from '../types/auth'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
 const SEGMENT_PAGES: EatWellTab[] = ['diary', 'week', 'menus']
 
@@ -127,6 +125,7 @@ function upsertMeal(record: EatWellDailyRecord, meal: MealLog): EatWellDailyReco
 }
 
 export function EatWellScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { width: screenWidth } = useWindowDimensions()
   const { user, navigateTo, goBack, canGoBack, logout, routeParams } = useAuth()
@@ -737,7 +736,7 @@ export function EatWellScreen() {
         />
 
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'transparent', 'rgba(10, 10, 12, 0.75)']}
+          colors={[...themeColors.screenOverlay]}
           locations={[0, 0.35, 1]}
           style={styles.screenOverlay}
           pointerEvents="none"

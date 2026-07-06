@@ -121,17 +121,17 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
       <SafeAreaProvider>
-        <OverlayPortalProvider>
-          <AuthProvider>
-            <GuestAuthProvider>
-              <ThemeProvider>
-                <AppSystemBars style="light" />
+        <AuthProvider>
+          <GuestAuthProvider>
+            <ThemeProvider>
+              <OverlayPortalProvider>
+                <AppSystemBars style="dark" />
                 <AppRouter />
                 <PwaInstallPrompt />
-              </ThemeProvider>
-            </GuestAuthProvider>
-          </AuthProvider>
-        </OverlayPortalProvider>
+              </OverlayPortalProvider>
+            </ThemeProvider>
+          </GuestAuthProvider>
+        </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   )

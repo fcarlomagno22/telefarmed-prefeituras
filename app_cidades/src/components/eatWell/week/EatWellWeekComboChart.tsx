@@ -1,5 +1,4 @@
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import Svg, {
@@ -263,12 +262,7 @@ export function EatWellWeekComboChart({
 
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(245, 158, 11, 0.1)', 'rgba(14, 14, 20, 0.98)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <View style={styles.header}>
           <Text style={styles.title}>Calorias e água por dia</Text>
           <View style={styles.controlsRow}>
@@ -311,8 +305,8 @@ export function EatWellWeekComboChart({
                 <Stop offset="100%" stopColor="#f59e0b" stopOpacity={1} />
               </SvgLinearGradient>
               <SvgLinearGradient id="eatWellCalorieBarFuture" x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0%" stopColor="rgba(255,255,255,0.08)" stopOpacity={1} />
-                <Stop offset="100%" stopColor="rgba(255,255,255,0.03)" stopOpacity={1} />
+                <Stop offset="0%" stopColor="rgba(0,0,0,0.06)" stopOpacity={1} />
+                <Stop offset="100%" stopColor="rgba(0,0,0,0.03)" stopOpacity={1} />
               </SvgLinearGradient>
             </Defs>
 
@@ -382,7 +376,7 @@ export function EatWellWeekComboChart({
                 key={`label-${item.day.dateIso}`}
                 x={item.x + item.barWidth / 2}
                 y={CHART_HEIGHT - 10}
-                fill={item.day.isFuture ? 'rgba(245,245,247,0.28)' : colors.textSubtle}
+                fill={item.day.isFuture ? 'rgba(26, 26, 31, 0.28)' : colors.textSubtle}
                 fontSize={10}
                 fontWeight="700"
                 textAnchor="middle"
@@ -396,7 +390,7 @@ export function EatWellWeekComboChart({
               y1={PADDING.top + plotHeight}
               x2={PADDING.left + plotWidth}
               y2={PADDING.top + plotHeight}
-              stroke="rgba(255,255,255,0.08)"
+              stroke="rgba(0, 0, 0, 0.08)"
             />
 
             {Platform.OS !== 'web' &&
@@ -446,7 +440,7 @@ export function EatWellWeekComboChart({
             </View>
           )}
         </View>
-      </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -460,7 +454,8 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 8,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.16)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   header: {
     gap: 10,
@@ -485,12 +480,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: colors.surface,
   },
   toggleChipActive: {
-    backgroundColor: 'rgba(132, 204, 22, 0.18)',
+    backgroundColor: '#ecfccb',
     borderWidth: 1,
-    borderColor: 'rgba(132, 204, 22, 0.35)',
+    borderColor: 'rgba(101, 163, 13, 0.35)',
   },
   toggleText: {
     color: colors.textMuted,
@@ -498,7 +493,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   toggleTextActive: {
-    color: '#a3e635',
+    color: '#4d7c0f',
+    fontWeight: '800',
   },
   tooltipInline: {
     flex: 1,

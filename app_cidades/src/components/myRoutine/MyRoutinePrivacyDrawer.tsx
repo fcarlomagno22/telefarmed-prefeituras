@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native'
+import { colors } from '../../theme/colors'
 import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import type { ThemeColors } from '../../theme/palettes'
 import { useThemedStyles } from '../../hooks/useThemedStyles'
@@ -74,7 +75,7 @@ function createStyles(colors: ThemeColors) {
     gap: 6,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: colors.surfaceBorder,
   },
   sectionTitle: {
     color: colors.text,

@@ -1,5 +1,4 @@
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../../theme/colors'
 import type { SleepWeekSummary } from '../../../types/sleepHistory'
@@ -18,12 +17,7 @@ export function SleepTimeHistoryQualityHeatmap({
 }: SleepTimeHistoryQualityHeatmapProps) {
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(99, 102, 241, 0.1)', 'rgba(14, 14, 20, 0.98)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <Text style={styles.title}>Qualidade da semana</Text>
         <Text style={styles.subtitle}>Toque em um dia para ver horas e qualidade do sono</Text>
 
@@ -61,12 +55,12 @@ export function SleepTimeHistoryQualityHeatmap({
         </View>
 
         <View style={styles.legendRow}>
-          <LegendSwatch color="rgba(248, 113, 113, 0.62)" label="1–2" />
-          <LegendSwatch color="rgba(165, 180, 252, 0.58)" label="3" />
-          <LegendSwatch color="rgba(129, 140, 248, 0.72)" label="4" />
-          <LegendSwatch color="rgba(99, 102, 241, 0.82)" label="5" />
+          <LegendSwatch color="#fecaca" label="1–2" />
+          <LegendSwatch color="#fef3c7" label="3" />
+          <LegendSwatch color="#ddd6fe" label="4" />
+          <LegendSwatch color="#c7d2fe" label="5" />
         </View>
-      </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -89,7 +83,8 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.16)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   title: {
     color: colors.text,
@@ -112,10 +107,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: colors.surfaceBorder,
   },
   cellOuterSelected: {
-    borderColor: '#a5b4fc',
+    borderColor: '#6366f1',
     borderWidth: 2,
   },
   cellFill: {
@@ -131,7 +126,7 @@ const styles = StyleSheet.create({
     opacity: 0.88,
   },
   cellWeekday: {
-    color: 'rgba(255,255,255,0.82)',
+    color: colors.textSubtle,
     fontSize: 7,
     fontWeight: '800',
     letterSpacing: 0.3,
@@ -143,7 +138,7 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
   cellScore: {
-    color: 'rgba(255,255,255,0.9)',
+    color: colors.textMuted,
     fontSize: 7,
     fontWeight: '800',
     marginTop: 2,

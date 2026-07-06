@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 0,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(134, 239, 172, 0.18)',
     paddingHorizontal: 12,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     paddingRight: 2,
   },
   title: {
-    color: '#86efac',
+    color: '#15803d',
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.4,
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(74, 222, 128, 0.08)',
   },
   hintNumber: {
-    color: '#86efac',
+    color: '#15803d',
     fontSize: 13,
     fontWeight: '700',
     minWidth: 20,

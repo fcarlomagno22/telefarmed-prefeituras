@@ -2,10 +2,21 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { useTheme } from '../contexts/ThemeContext'
 import { useBottomTabInset } from '../hooks/useBottomTabInset'
-import { colors } from '../theme/colors'
+import { useThemedStyles } from '../hooks/useThemedStyles'
+import type { ThemeColors } from '../theme/palettes'
 
 const IS_WEB = Platform.OS === 'web'
+
+/** Base opaca → topo levemente transparente (espelho do header). */
+const TAB_BAR_FADE_COLORS = [
+  'rgba(255, 255, 255, 0.72)',
+  'rgba(255, 255, 255, 0.94)',
+  '#ffffff',
+] as const
+
+const TAB_BAR_FADE_LOCATIONS = [0, 0.45, 1] as const
 
 export type BottomTabId =
   | 'menu'
@@ -55,6 +66,7 @@ const TABS: TabConfig[] = [
   {
     id: 'pos-consulta',
     label: 'Pós-consulta',
+    labelLines: ['Pós-', 'consulta'],
     icon: 'clipboard-outline',
     iconActive: 'clipboard',
     materialIcon: 'clipboard-pulse-outline',
@@ -65,6 +77,8 @@ type BottomTabBarProps = {
   activeTab: BottomTabId | null
   onTabPress: (tab: BottomTabId) => void
 }
+
+type TabStyles = ReturnType<typeof createStyles>
 
 function TabIcon({
   tab,
@@ -84,10 +98,18 @@ function TabIcon({
   return <Ionicons name={active ? tab.iconActive : tab.icon} size={size} color={color} />
 }
 
-function ActiveTabContent({ tab }: { tab: TabConfig }) {
+function ActiveTabContent({
+  tab,
+  styles,
+  colors,
+}: {
+  tab: TabConfig
+  styles: TabStyles
+  colors: ThemeColors
+}) {
   return (
     <View style={[styles.activeCapsule, IS_WEB && styles.activeCapsuleWeb]}>
-      <View style={styles.activeGlow} pointerEvents="none" />
+      <View style={styles.activeGlow} />
 
       <LinearGradient
         colors={[
@@ -111,7 +133,6 @@ function ActiveTabContent({ tab }: { tab: TabConfig }) {
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
               style={styles.activeIconShine}
-              pointerEvents="none"
             />
             <TabIcon tab={tab} active size={21} color="#fff" />
           </LinearGradient>
@@ -121,7 +142,7 @@ function ActiveTabContent({ tab }: { tab: TabConfig }) {
   )
 }
 
-function TabLabel({ tab }: { tab: TabConfig }) {
+function TabLabel({ tab, styles }: { tab: TabConfig; styles: TabStyles }) {
   if (tab.labelLines) {
     return (
       <View style={[styles.labelStackRaised, IS_WEB && styles.labelStackWeb]}>
@@ -146,10 +167,14 @@ function TabItem({
   tab,
   isActive,
   onPress,
+  styles,
+  colors,
 }: {
   tab: TabConfig
   isActive: boolean
   onPress: () => void
+  styles: TabStyles
+  colors: ThemeColors
 }) {
   return (
     <Pressable
@@ -164,13 +189,13 @@ function TabItem({
       accessibilityLabel={tab.label}
     >
       {isActive ? (
-        <ActiveTabContent tab={tab} />
+        <ActiveTabContent tab={tab} styles={styles} colors={colors} />
       ) : (
         <View style={[styles.inactiveWrap, IS_WEB && styles.inactiveWrapWeb]}>
           <View style={styles.iconSlot}>
             <TabIcon tab={tab} active={false} size={22} color={colors.textMuted} />
           </View>
-          <TabLabel tab={tab} />
+          <TabLabel tab={tab} styles={styles} />
         </View>
       )}
     </Pressable>
@@ -179,6 +204,8 @@ function TabItem({
 
 export function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
   const bottomInset = useBottomTabInset()
+  const { colors } = useTheme()
+  const styles = useThemedStyles(createStyles)
 
   function handlePress(tab: BottomTabId) {
     if (activeTab !== null && tab !== activeTab) {
@@ -191,15 +218,16 @@ export function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
 
   return (
     <View style={styles.wrapper}>
-      <LinearGradient
-        colors={[
-          'rgba(36, 36, 46, 0.92)',
-          'rgba(16, 16, 22, 0.99)',
-        ]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={styles.dock}
-      >
+      <View style={styles.dock}>
+        <LinearGradient
+          colors={[...TAB_BAR_FADE_COLORS]}
+          locations={[...TAB_BAR_FADE_LOCATIONS]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+        />
+
         <View style={[styles.tabRow, IS_WEB && styles.tabRowWeb, { paddingBottom: bottomInset }]}>
           {TABS.map((tab) => (
             <TabItem
@@ -207,155 +235,170 @@ export function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
               tab={tab}
               isActive={tab.id === activeTab}
               onPress={() => handlePress(tab.id)}
+              styles={styles}
+              colors={colors}
             />
           ))}
         </View>
-      </LinearGradient>
+      </View>
     </View>
   )
 }
 
 const TOP_RADIUS = 28
 
-const styles = StyleSheet.create({
-  wrapper: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 14,
-  },
-  dock: {
-    borderTopLeftRadius: TOP_RADIUS,
-    borderTopRightRadius: TOP_RADIUS,
-    overflow: 'hidden',
-  },
-  tabRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    paddingHorizontal: 8,
-    paddingTop: 10,
-    minHeight: 64,
-  },
-  tabRowWeb: {
-    alignItems: 'center',
-    paddingTop: 8,
-    minHeight: 70,
-  },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingHorizontal: 1,
-  },
-  tabWeb: {
-    justifyContent: 'center',
-    minHeight: 64,
-  },
-  tabPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.97 }],
-  },
-  inactiveWrap: {
-    alignItems: 'center',
-    gap: 5,
-    paddingTop: 4,
-    minHeight: 58,
-  },
-  inactiveWrapWeb: {
-    justifyContent: 'center',
-    paddingTop: 0,
-    minHeight: 64,
-  },
-  activeCapsule: {
-    alignItems: 'center',
-    paddingTop: 4,
-    minHeight: 58,
-  },
-  activeCapsuleWeb: {
-    justifyContent: 'center',
-    paddingTop: 0,
-    minHeight: 64,
-  },
-  activeGlow: {
-    position: 'absolute',
-    top: 6,
-    left: '12%',
-    right: '12%',
-    bottom: 14,
-    borderRadius: 20,
-    backgroundColor: colors.primaryGlow,
-    opacity: 0.55,
-  },
-  activeCapsuleBg: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: 18,
-    borderWidth: 1.5,
-    borderColor: colors.primaryLight,
-  },
-  activeIconOuter: {
-    padding: 2,
-    borderRadius: 18,
-  },
-  activeIconGradient: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.55,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  activeIconShine: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '52%',
-    borderTopLeftRadius: 19,
-    borderTopRightRadius: 19,
-  },
-  iconSlot: {
-    width: 42,
-    height: 38,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  label: {
-    color: colors.textSubtle,
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.1,
-    textAlign: 'center',
-    maxWidth: '100%',
-    lineHeight: 12,
-  },
-  labelStackRaised: {
-    alignItems: 'center',
-    marginTop: -12,
-  },
-  labelStackWeb: {
-    marginTop: 0,
-  },
-  labelLine: {
-    color: colors.textSubtle,
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.1,
-    textAlign: 'center',
-    lineHeight: 12,
-    maxWidth: '100%',
-  },
-})
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    wrapper: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 40,
+      ...Platform.select({
+        web: {
+          boxShadow: '0px -4px 12px rgba(0, 0, 0, 0.06)',
+        },
+        default: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.06,
+          shadowRadius: 12,
+          elevation: 12,
+        },
+      }),
+    },
+    dock: {
+      width: '100%',
+      borderTopLeftRadius: TOP_RADIUS,
+      borderTopRightRadius: TOP_RADIUS,
+      overflow: 'hidden',
+    },
+    tabRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      paddingHorizontal: 8,
+      paddingTop: 10,
+      minHeight: 64,
+    },
+    tabRowWeb: {
+      alignItems: 'center',
+      paddingTop: 8,
+      minHeight: 70,
+    },
+    tab: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      paddingHorizontal: 1,
+    },
+    tabWeb: {
+      justifyContent: 'center',
+      minHeight: 64,
+    },
+    tabPressed: {
+      opacity: 0.9,
+      transform: [{ scale: 0.97 }],
+    },
+    inactiveWrap: {
+      alignItems: 'center',
+      gap: 5,
+      paddingTop: 4,
+      minHeight: 58,
+    },
+    inactiveWrapWeb: {
+      justifyContent: 'center',
+      paddingTop: 0,
+      minHeight: 64,
+    },
+    activeCapsule: {
+      alignItems: 'center',
+      paddingTop: 4,
+      minHeight: 58,
+    },
+    activeCapsuleWeb: {
+      justifyContent: 'center',
+      paddingTop: 0,
+      minHeight: 64,
+    },
+    activeGlow: {
+      position: 'absolute',
+      top: 6,
+      left: '12%',
+      right: '12%',
+      bottom: 14,
+      borderRadius: 20,
+      backgroundColor: colors.primaryGlow,
+      opacity: 0.55,
+      pointerEvents: 'none',
+    },
+    activeCapsuleBg: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 6,
+      paddingHorizontal: 8,
+      borderRadius: 18,
+      borderWidth: 1.5,
+      borderColor: colors.primaryLight,
+    },
+    activeIconOuter: {
+      padding: 2,
+      borderRadius: 18,
+    },
+    activeIconGradient: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.55,
+      shadowRadius: 10,
+      elevation: 8,
+    },
+    activeIconShine: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: '52%',
+      borderTopLeftRadius: 19,
+      borderTopRightRadius: 19,
+      pointerEvents: 'none',
+    },
+    iconSlot: {
+      width: 42,
+      height: 38,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    label: {
+      color: colors.textMuted,
+      fontSize: 10,
+      fontWeight: '600',
+      letterSpacing: 0.1,
+      textAlign: 'center',
+      maxWidth: '100%',
+      lineHeight: 12,
+    },
+    labelStackRaised: {
+      alignItems: 'center',
+      marginTop: -12,
+    },
+    labelStackWeb: {
+      marginTop: 0,
+    },
+    labelLine: {
+      color: colors.textMuted,
+      fontSize: 10,
+      fontWeight: '600',
+      letterSpacing: 0.1,
+      textAlign: 'center',
+      lineHeight: 12,
+      maxWidth: '100%',
+    },
+  })
+}

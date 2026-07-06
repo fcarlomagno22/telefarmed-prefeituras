@@ -5,11 +5,11 @@ import LottieView from 'lottie-react-native'
 import { useEffect, useMemo, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SLEEP_STORY_CATEGORIES, SLEEP_STORIES } from '../../config/sleepStories'
-import { colors } from '../../theme/colors'
 import type { SleepStoryCategoryId } from '../../types/sleepStories'
 import { filterSleepStories } from '../../utils/sleepStoriesFilter'
 import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import { SleepTimeStarfield } from '../sleepTime/SleepTimeStarfield'
+import { sleepTimeDrawerTheme } from '../sleepTime/sleepTimeDrawerTheme'
 
 const sleeptimeAnimation = require('../../../assets/Sleeptime.json')
 
@@ -67,11 +67,11 @@ export function SleepStoriesFilterDrawer({
       fullScreen
       scrollable={false}
       dense
+      tone="sleep"
       sheetBackground={
         <>
           <LinearGradient
-            colors={['#070812', '#0a0a14', '#050508']}
-            locations={[0, 0.55, 1]}
+            colors={[...sleepTimeDrawerTheme.gradient]}
             style={StyleSheet.absoluteFillObject}
           />
           <SleepTimeStarfield active={visible} />
@@ -90,12 +90,12 @@ export function SleepStoriesFilterDrawer({
         </View>
 
         <View style={styles.searchWrap}>
-          <Ionicons name="search" size={16} color={colors.textSubtle} />
+          <Ionicons name="search" size={16} color={sleepTimeDrawerTheme.textSubtle} />
           <TextInput
             value={draftQuery}
             onChangeText={handleQueryChange}
             placeholder="Buscar história..."
-            placeholderTextColor={colors.textSubtle}
+            placeholderTextColor={sleepTimeDrawerTheme.textSubtle}
             style={styles.searchInput}
             autoCorrect={false}
             autoCapitalize="none"
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: colors.text,
+    color: sleepTimeDrawerTheme.text,
     fontSize: 15,
     fontWeight: '500',
     padding: 0,
@@ -204,10 +204,10 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: sleepTimeDrawerTheme.chipBorder,
   },
   categoryRowActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: sleepTimeDrawerTheme.chipBackground,
   },
   categoryDot: {
     width: 6,
@@ -216,13 +216,13 @@ const styles = StyleSheet.create({
   },
   categoryLabel: {
     flex: 1,
-    color: colors.textMuted,
+    color: sleepTimeDrawerTheme.textMuted,
     fontSize: 14,
     fontWeight: '500',
     lineHeight: 19,
   },
   categoryLabelActive: {
-    color: colors.text,
+    color: sleepTimeDrawerTheme.text,
     fontWeight: '700',
   },
   pressed: {

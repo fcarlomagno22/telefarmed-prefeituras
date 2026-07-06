@@ -11,14 +11,14 @@ type FunctionalWeeklyStatsCardProps = {
 export function FunctionalWeeklyStatsCard({ stats }: FunctionalWeeklyStatsCardProps) {
   return (
     <LinearGradient
-      colors={['rgba(249, 115, 22, 0.22)', 'rgba(234, 88, 12, 0.08)']}
+      colors={['#c7d2fe', '#e0e7ff', '#ffffff']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.wrap}
     >
       <View style={styles.headerRow}>
         <View style={styles.iconWrap}>
-          <Ionicons name="flame" size={18} color="#fdba74" />
+          <Ionicons name="flame" size={18} color="#4338ca" />
         </View>
         <View style={styles.headerText}>
           <Text style={styles.title}>Sua semana</Text>
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(251, 146, 60, 0.25)',
+    borderColor: 'rgba(99, 102, 241, 0.28)',
     gap: 14,
   },
   headerRow: {
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(249, 115, 22, 0.18)',
+    backgroundColor: 'rgba(99, 102, 241, 0.16)',
   },
   headerText: {
     flex: 1,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   metricValue: {
-    color: '#ffedd5',
+    color: '#3730a3',
     fontSize: 22,
     fontWeight: '800',
     letterSpacing: -0.5,
@@ -108,6 +108,6 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     height: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(99, 102, 241, 0.18)',
   },
 })

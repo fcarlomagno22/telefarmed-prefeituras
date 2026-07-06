@@ -28,6 +28,7 @@ import { AppModal } from '../AppModal'
 
 const SHEET_OFFSET = 560
 const HR_GRADIENT = ['#fca5a5', '#ef4444', '#dc2626'] as const
+const HR_CURRENT_GRADIENT = ['#fee2e2', '#fca5a5', '#f87171'] as const
 const MEASURE_MS = 1400
 
 type HeartRateHistoryDrawerProps = {
@@ -195,11 +196,11 @@ export function HeartRateHistoryDrawer({
           ]}
         >
           <LinearGradient
-            colors={['rgba(36, 36, 46, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+            colors={[colors.backgroundElevated, '#f0f0f2']}
             style={StyleSheet.absoluteFillObject}
           />
           {Platform.OS === 'ios' ? (
-            <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+            <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
           ) : null}
 
           <LinearGradient
@@ -285,10 +286,26 @@ export function HeartRateHistoryDrawer({
               </View>
             ) : (
               <>
-                <View style={styles.currentCard}>
-                  <Text style={styles.sectionLabel}>Leitura atual</Text>
-                  <View style={styles.currentRow}>
-                    <View>
+                <LinearGradient
+                  colors={[...HR_CURRENT_GRADIENT]}
+                  start={{ x: 0.12, y: 0 }}
+                  end={{ x: 0.88, y: 1 }}
+                  style={styles.currentCard}
+                >
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0)']}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 0.65 }}
+                    style={styles.currentCardGloss}
+                    pointerEvents="none"
+                  />
+
+                  <Text style={[styles.sectionLabel, styles.currentSectionLabel]}>
+                    Leitura atual
+                  </Text>
+
+                  <View style={styles.currentMainBlock}>
+                    <View style={styles.currentValueCenter}>
                       <Text style={styles.currentBpm}>{latestReading?.bpm ?? '—'}</Text>
                       <Text style={styles.currentUnit}>bpm</Text>
                     </View>
@@ -297,6 +314,7 @@ export function HeartRateHistoryDrawer({
                       <View
                         style={[
                           styles.zoneBadge,
+                          styles.zoneBadgeAnchor,
                           { backgroundColor: latestZone.bg, borderColor: latestZone.border },
                         ]}
                       >
@@ -316,7 +334,7 @@ export function HeartRateHistoryDrawer({
                         : ''}
                     </Text>
                   ) : null}
-                </View>
+                </LinearGradient>
 
                 <View style={styles.summaryCard}>
                   <Text style={styles.sectionLabel}>Resumo · Hoje</Text>
@@ -409,7 +427,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   sheet: {
     borderTopLeftRadius: 28,
@@ -418,7 +436,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 0,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   topAccent: {
     position: 'absolute',
@@ -432,7 +450,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginTop: 10,
     marginBottom: 14,
   },
@@ -476,7 +494,7 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   closeButtonPressed: {
     opacity: 0.8,
@@ -496,15 +514,32 @@ const styles = StyleSheet.create({
   currentCard: {
     borderRadius: 18,
     padding: 14,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(248, 113, 113, 0.28)',
+    borderColor: 'rgba(220, 38, 38, 0.28)',
+    overflow: 'hidden',
   },
-  currentRow: {
-    flexDirection: 'row',
+  currentCardGloss: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  currentSectionLabel: {
+    textAlign: 'center',
+    width: '100%',
+    marginBottom: 8,
+  },
+  currentMainBlock: {
+    position: 'relative',
+    minHeight: 54,
+    justifyContent: 'center',
+  },
+  currentValueCenter: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
+    paddingHorizontal: 88,
+  },
+  zoneBadgeAnchor: {
+    position: 'absolute',
+    right: 0,
+    top: '50%',
+    transform: [{ translateY: -14 }],
   },
   currentBpm: {
     color: colors.text,
@@ -525,6 +560,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     marginTop: 8,
+    textAlign: 'center',
+    width: '100%',
   },
   zoneBadge: {
     flexDirection: 'row',
@@ -547,7 +584,7 @@ const styles = StyleSheet.create({
   summaryCard: {
     borderRadius: 18,
     padding: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.07)',
   },
@@ -574,7 +611,7 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   summaryStatValueHighlight: {
-    color: '#fca5a5',
+    color: '#b91c1c',
   },
   summaryStatUnit: {
     color: colors.textSubtle,
@@ -593,7 +630,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 14,
     paddingBottom: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.07)',
   },
@@ -644,8 +681,8 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surface,
   },
   contextChipText: {
     fontSize: 10,
@@ -654,7 +691,7 @@ const styles = StyleSheet.create({
   },
   rowDivider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   connectBanner: {
     flexDirection: 'row',
@@ -674,7 +711,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   connectBannerAction: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 12,
     fontWeight: '700',
   },
@@ -719,9 +756,9 @@ const styles = StyleSheet.create({
   secondaryButtonInline: {
     marginTop: 0,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   secondaryButtonPressed: {
     opacity: 0.86,
@@ -740,7 +777,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   measuringText: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 14,
     fontWeight: '600',
   },

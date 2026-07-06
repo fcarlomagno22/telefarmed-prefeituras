@@ -7,9 +7,9 @@ import { PrimaryButton } from '../PrimaryButton'
 import type { ThemeColors } from '../../theme/palettes'
 import { useThemedStyles } from '../../hooks/useThemedStyles'
 import { useTheme } from '../../contexts/ThemeContext'
+import { myRoutineAccent } from '../../theme/myRoutineAccent'
 
-const ACCENT = '#d946ef'
-const ACCENT_LIGHT = '#f0abfc'
+const ACCENT = myRoutineAccent.accent
 const PRIORITIES: MyRoutineTaskPriority[] = ['essential', 'desirable', 'bonus']
 
 type MyRoutineEditTaskDrawerProps = {
@@ -160,7 +160,7 @@ function createStyles(colors: ThemeColors) {
     borderColor: 'rgba(240, 171, 252, 0.35)',
   },
   chipText: { color: colors.textMuted, fontSize: 12, fontWeight: '600' },
-  chipTextSelected: { color: ACCENT_LIGHT, fontWeight: '700' },
+  chipTextSelected: { color: myRoutineAccent.chipTextSelected, fontWeight: '700' },
   footerBtn: { marginTop: 0 },
 }
 }

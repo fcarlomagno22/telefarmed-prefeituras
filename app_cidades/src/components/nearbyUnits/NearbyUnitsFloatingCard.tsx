@@ -23,10 +23,7 @@ export function NearbyUnitsFloatingCard({
 }: NearbyUnitsFloatingCardProps) {
   return (
     <Pressable onPress={onPress} style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(20, 20, 26, 0.95)', 'rgba(14, 14, 20, 0.92)']}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <View style={styles.headerRow}>
           <LinearGradient
             colors={[...ACTION_ICON_PALETTES.nearbyUnits.iconGradient]}
@@ -73,7 +70,7 @@ export function NearbyUnitsFloatingCard({
             <Text style={styles.actionTextPrimary}>Agendar</Text>
           </Pressable>
         </View>
-      </LinearGradient>
+      </View>
     </Pressable>
   )
 }
@@ -84,16 +81,18 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.28)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.cardBg,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
   card: {
     padding: 14,
     gap: 12,
+    backgroundColor: colors.cardBg,
   },
   headerRow: {
     flexDirection: 'row',
@@ -142,7 +141,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(16, 185, 129, 0.2)',
   },
   badgeClosed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
   },
   badgeText: {
     color: colors.textMuted,

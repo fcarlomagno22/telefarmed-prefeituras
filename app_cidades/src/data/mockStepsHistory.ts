@@ -76,7 +76,7 @@ export function getDistanceGoalStatus(
     return {
       label: 'Na meta',
       progress,
-      color: '#93c5fd',
+      color: '#2563eb',
       bg: 'rgba(147, 197, 253, 0.14)',
       border: 'rgba(147, 197, 253, 0.35)',
     }

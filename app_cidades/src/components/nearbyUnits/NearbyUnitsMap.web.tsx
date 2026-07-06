@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { colors } from '../../theme/colors'
 import { StyleSheet, View } from 'react-native'
 import {
   buildNearbyUnitsMapMarkers,
@@ -235,13 +236,13 @@ export function NearbyUnitsMap({ origin, ubts, selectedId, onSelectUbt }: Nearby
 const styles = StyleSheet.create({
   wrap: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#0b0f14',
+    backgroundColor: colors.background,
   },
   mapHost: {
     flex: 1,
     width: '100%',
     height: '100%',
-    backgroundColor: '#0b0f14',
+    backgroundColor: colors.background,
   },
   vignetteTop: {
     position: 'absolute',
@@ -249,7 +250,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 120,
-    backgroundColor: 'rgba(10, 10, 12, 0.35)',
+    backgroundColor: 'rgba(255, 255, 255, 0.55)',
   },
   vignetteBottom: {
     position: 'absolute',
@@ -257,6 +258,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 180,
-    backgroundColor: 'rgba(10, 10, 12, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
   },
 })

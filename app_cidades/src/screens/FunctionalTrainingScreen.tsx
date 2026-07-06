@@ -21,8 +21,8 @@ import { FunctionalSegmentTabs } from '../components/functional/FunctionalSegmen
 import { FunctionalWeeklyStatsCard } from '../components/functional/FunctionalWeeklyStatsCard'
 import { MenuDrawer } from '../components/MenuDrawer'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
-import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import type { ExerciseTimerConfig } from '../hooks/useExerciseTimer'
@@ -47,12 +47,11 @@ import {
   filterExercises,
   getCategoryCounts,
 } from '../utils/functionalTraining'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
 
 export function FunctionalTrainingScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { user, navigateTo, goBack, canGoBack, logout, routeParams } = useAuth()
   const { requireAuth } = useGuestAuth()
@@ -215,7 +214,7 @@ export function FunctionalTrainingScreen() {
     <View style={styles.root}>
       <ImageBackground source={backgroundSource} style={styles.background} resizeMode="cover">
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'rgba(10, 10, 12, 0.92)', colors.background]}
+          colors={[themeColors.screenOverlay[0], 'transparent', colors.background]}
           locations={[0, 0.35, 1]}
           style={StyleSheet.absoluteFillObject}
         />

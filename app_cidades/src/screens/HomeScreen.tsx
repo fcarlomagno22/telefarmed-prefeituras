@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { LinearGradient } from 'expo-linear-gradient'
 import { ImageBackground, StyleSheet, Text, View } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -12,24 +11,19 @@ import { HomeQuickActions, HomeQuickActionId } from '../components/HomeQuickActi
 import { MenuDrawer } from '../components/MenuDrawer'
 import { PromoCarousel } from '../components/PromoCarousel'
 import { VidaSaudavelActions, VidaSaudavelActionId } from '../components/VidaSaudavelActions'
-import { appEnv } from '../config/env'
-import { getPromoBanners, type PromoBanner } from '../config/promoBanners'
 import { useAuth } from '../contexts/AuthContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useSimulatedPageSkeleton } from '../hooks/useSimulatedPageSkeleton'
+import { getPromoBanners } from '../config/promoBanners'
 import { colors } from '../theme/colors'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
-
-const backgroundSource = resolveBrandImage(
-  appEnv.backgroundImageUrl,
-  'fundo_login.png',
-)
 
 const promoBanners = getPromoBanners()
 const TAB_BAR_ESTIMATED_HEIGHT = 78
 
 export function HomeScreen() {
+  const { backgroundSource } = useTheme()
   const insets = useSafeAreaInsets()
   const [activeTab, setActiveTab] = useState<BottomTabId>('home')
   const [menuVisible, setMenuVisible] = useState(false)
@@ -210,13 +204,6 @@ export function HomeScreen() {
           imageStyle={styles.backgroundImage}
         />
 
-        <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'transparent', 'rgba(10, 10, 12, 0.75)']}
-          locations={[0, 0.35, 1]}
-          style={styles.screenOverlay}
-          pointerEvents="none"
-        />
-
         <HomeHeader
           isAuthenticated={isAuthenticated}
           userName={user?.name}
@@ -287,9 +274,6 @@ const styles = StyleSheet.create({
   backgroundImage: {
     width: '100%',
     height: '100%',
-  },
-  screenOverlay: {
-    ...StyleSheet.absoluteFillObject,
   },
   body: {
     flex: 1,

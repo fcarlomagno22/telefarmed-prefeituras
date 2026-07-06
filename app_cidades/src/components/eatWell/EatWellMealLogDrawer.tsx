@@ -529,7 +529,7 @@ export function EatWellMealLogDrawer({
               pressed && manualName.trim() && styles.addFoodBtnPressed,
             ]}
           >
-            <Ionicons name="add-circle-outline" size={18} color="#0a0a0c" />
+            <Ionicons name="add-circle-outline" size={18} color={colors.text} />
             <Text style={styles.addFoodBtnText}>Adicionar alimento</Text>
           </Pressable>
         </View>
@@ -1128,7 +1128,7 @@ const styles = StyleSheet.create({
     opacity: 0.92,
   },
   addFoodBtnText: {
-    color: '#0a0a0c',
+    color: colors.text,
     fontSize: 14,
     fontWeight: '900',
   },
@@ -1429,7 +1429,7 @@ const styles = StyleSheet.create({
     opacity: 0.92,
   },
   saveBtnText: {
-    color: '#0a0a0c',
+    color: colors.text,
     fontSize: 14,
     fontWeight: '900',
   },

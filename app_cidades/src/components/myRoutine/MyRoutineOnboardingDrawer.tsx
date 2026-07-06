@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
+import { colors } from '../../theme/colors'
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import {
@@ -44,14 +44,15 @@ import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import { MyRoutineHowItWorksDrawer } from './MyRoutineHowItWorksDrawer'
 import { useThemedStyles } from '../../hooks/useThemedStyles'
 import type { ThemeColors } from '../../theme/palettes'
+import { myRoutineAccent } from '../../theme/myRoutineAccent'
 import { useTheme } from '../../contexts/ThemeContext'
 
 const welcomeAnimation = require('../../../assets/avatar.json')
 
-const ACCENT = '#d946ef'
-const ACCENT_LIGHT = '#f0abfc'
-const ACCENT_BG = 'rgba(217, 70, 239, 0.12)'
-const ACCENT_BORDER = 'rgba(240, 171, 252, 0.35)'
+const ACCENT = myRoutineAccent.accent
+const ACCENT_LIGHT = myRoutineAccent.accentLight
+const ACCENT_BG = myRoutineAccent.accentBg
+const ACCENT_BORDER = myRoutineAccent.accentBorder
 
 type IdealTierTarget = 'weekday' | 'weekend'
 
@@ -745,14 +746,7 @@ export function MyRoutineOnboardingDrawer({
                       pressed && styles.optionRowPressed,
                     ]}
                   >
-                    <LinearGradient
-                      colors={
-                        selected
-                          ? ['rgba(240, 171, 252, 0.18)', 'rgba(217, 70, 239, 0.08)']
-                          : ['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.02)']
-                      }
-                      style={styles.templateCardInner}
-                    >
+                    <View style={styles.templateCardInner}>
                       <View style={styles.templateHeader}>
                         <Text
                           style={[styles.templateTitle, selected && styles.templateTitleSelected]}
@@ -760,7 +754,7 @@ export function MyRoutineOnboardingDrawer({
                           {template.label}
                         </Text>
                         {selected ? (
-                          <Ionicons name="checkmark-circle" size={20} color={ACCENT_LIGHT} />
+                          <Ionicons name="checkmark-circle" size={20} color={myRoutineAccent.chipTextSelected} />
                         ) : null}
                       </View>
                       <Text style={styles.templateDescription}>{template.description}</Text>
@@ -769,7 +763,7 @@ export function MyRoutineOnboardingDrawer({
                         {template.baseTasks.filter((task) => task.priority === 'essential').length}{' '}
                         essenciais
                       </Text>
-                    </LinearGradient>
+                    </View>
                   </Pressable>
                 )
               })}
@@ -863,7 +857,7 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   backBtnPressed: {
     opacity: 0.85,
@@ -979,9 +973,9 @@ function createStyles(colors: ThemeColors) {
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   chipSelected: {
     backgroundColor: ACCENT_BG,
@@ -996,7 +990,7 @@ function createStyles(colors: ThemeColors) {
     fontWeight: '600',
   },
   chipTextSelected: {
-    color: ACCENT_LIGHT,
+    color: myRoutineAccent.chipTextSelected,
     fontWeight: '700',
   },
   fieldBlock: {
@@ -1019,9 +1013,9 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   stepperPressed: {
     opacity: 0.88,
@@ -1032,9 +1026,9 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   timeValue: {
     color: colors.text,
@@ -1057,9 +1051,9 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     color: colors.text,
     fontSize: 14,
     lineHeight: 20,
@@ -1073,9 +1067,9 @@ function createStyles(colors: ThemeColors) {
     paddingVertical: 12,
     borderRadius: 14,
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   segmentToggleSelected: {
     backgroundColor: ACCENT_BG,
@@ -1087,7 +1081,7 @@ function createStyles(colors: ThemeColors) {
     fontWeight: '700',
   },
   segmentToggleTextSelected: {
-    color: ACCENT_LIGHT,
+    color: myRoutineAccent.chipTextSelected,
   },
   idealTierBlock: {
     gap: 8,
@@ -1107,9 +1101,9 @@ function createStyles(colors: ThemeColors) {
     paddingVertical: 14,
     paddingHorizontal: 14,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   optionRowSelected: {
     backgroundColor: ACCENT_BG,
@@ -1129,7 +1123,7 @@ function createStyles(colors: ThemeColors) {
     lineHeight: 20,
   },
   optionLabelSelected: {
-    color: ACCENT_LIGHT,
+    color: myRoutineAccent.chipTextSelected,
   },
   optionDescription: {
     color: colors.textMuted,
@@ -1144,7 +1138,7 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   templateCardSelected: {
     borderColor: ACCENT_BORDER,
@@ -1152,6 +1146,7 @@ function createStyles(colors: ThemeColors) {
   templateCardInner: {
     padding: 16,
     gap: 6,
+    backgroundColor: myRoutineAccent.cardBackground,
   },
   templateHeader: {
     flexDirection: 'row',
@@ -1165,7 +1160,7 @@ function createStyles(colors: ThemeColors) {
     fontWeight: '800',
   },
   templateTitleSelected: {
-    color: ACCENT_LIGHT,
+    color: myRoutineAccent.chipTextSelected,
   },
   templateDescription: {
     color: colors.textMuted,
@@ -1183,9 +1178,9 @@ function createStyles(colors: ThemeColors) {
     gap: 8,
     padding: 14,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   previewEyebrow: {
     color: ACCENT_LIGHT,

@@ -473,7 +473,7 @@ export function RegisterStepFaceScan({
           </View>
           {previewUri ? (
             <View style={[styles.webStatusChip, styles.statusChipSuccess]}>
-              <Ionicons name="checkmark-circle" size={18} color="#4ade80" />
+              <Ionicons name="checkmark-circle" size={18} color={statusIconColor('success')} />
               <Text style={styles.previewBadgeText}>{faceVerification.previewBadgeText}</Text>
             </View>
           ) : null}

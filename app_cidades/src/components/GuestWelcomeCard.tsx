@@ -68,7 +68,7 @@ export function GuestWelcomeCard({ skeleton = false }: { skeleton?: boolean }) {
         colors={[
           'rgba(255, 133, 51, 0.42)',
           'rgba(255, 107, 0, 0.18)',
-          'rgba(255, 255, 255, 0.06)',
+          colors.surface,
         ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -76,11 +76,11 @@ export function GuestWelcomeCard({ skeleton = false }: { skeleton?: boolean }) {
       >
         <View style={styles.cardInner}>
           {Platform.OS === 'ios' ? (
-            <BlurView intensity={24} tint="dark" style={StyleSheet.absoluteFillObject} />
+            <BlurView intensity={24} tint="light" style={StyleSheet.absoluteFillObject} />
           ) : null}
 
           <LinearGradient
-            colors={['rgba(28, 28, 36, 0.96)', 'rgba(14, 14, 20, 0.98)']}
+            colors={['rgba(255, 255, 255, 0.96)', colors.cardBg]}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
             style={StyleSheet.absoluteFillObject}
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
     minHeight: 148,
   },
   topRow: {
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   body: {
-    color: 'rgba(245, 245, 247, 0.78)',
+    color: colors.textMuted,
     fontSize: 13,
     fontWeight: '500',
     lineHeight: 18,
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    backgroundColor: colors.surfaceBorder,
   },
   dotActive: {
     width: 18,

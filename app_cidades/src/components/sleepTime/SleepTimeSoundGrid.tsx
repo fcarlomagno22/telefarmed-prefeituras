@@ -23,36 +23,49 @@ function SoundAppIcon({
   sound,
   pressed,
   active,
+  dimmed,
 }: {
   sound: SleepSoundConfig
   pressed: boolean
   active: boolean
+  dimmed: boolean
 }) {
+  const gradientColors = dimmed
+    ? (['#e5e7eb', '#d1d5db', '#9ca3af'] as const)
+    : sound.palette.iconGradient
+
   return (
     <View
       style={[
         styles.iconOuter,
         active && styles.iconOuterActive,
-        { shadowColor: sound.palette.shadowColor },
-        pressed && styles.iconShadowPressed,
+        dimmed && styles.iconOuterDimmed,
+        !dimmed && { shadowColor: sound.palette.shadowColor },
+        pressed && !dimmed && styles.iconShadowPressed,
         active && styles.iconShadowActive,
       ]}
     >
       <LinearGradient
-        colors={[...sound.palette.iconGradient]}
+        colors={[...gradientColors]}
         start={{ x: 0.2, y: 0 }}
         end={{ x: 0.85, y: 1 }}
         style={styles.iconSquircle}
       >
-        <LinearGradient
-          colors={['rgba(255, 255, 255, 0.28)', 'rgba(255, 255, 255, 0.06)', 'transparent']}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 0.55 }}
-          style={styles.iconGloss}
-          pointerEvents="none"
-        />
+        {!dimmed ? (
+          <LinearGradient
+            colors={['rgba(255, 255, 255, 0.28)', 'rgba(255, 255, 255, 0.06)', 'transparent']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 0.55 }}
+            style={styles.iconGloss}
+            pointerEvents="none"
+          />
+        ) : null}
 
-        <MaterialCommunityIcons name={sound.icon} size={ICON_GLYPH_SIZE} color="#fff" />
+        <MaterialCommunityIcons
+          name={sound.icon}
+          size={ICON_GLYPH_SIZE}
+          color={dimmed ? '#f9fafb' : '#fff'}
+        />
       </LinearGradient>
     </View>
   )
@@ -62,29 +75,40 @@ function SoundButton({
   sound,
   width,
   active,
+  dimmed,
   onPress,
 }: {
   sound: SleepSoundConfig
   width: number
   active: boolean
+  dimmed: boolean
   onPress: () => void
 }) {
   return (
     <Pressable
       onPress={onPress}
+      disabled={dimmed}
       style={({ pressed }) => [
         styles.appButton,
         { width },
-        pressed && styles.appButtonPressed,
+        dimmed && styles.appButtonDimmed,
+        pressed && !dimmed && styles.appButtonPressed,
       ]}
       accessibilityRole="button"
       accessibilityLabel={sound.title}
-      accessibilityState={{ selected: active }}
+      accessibilityState={{ selected: active, disabled: dimmed }}
     >
       {({ pressed }) => (
         <>
-          <SoundAppIcon sound={sound} pressed={pressed} active={active} />
-          <Text style={[styles.appLabel, active && styles.appLabelActive]} numberOfLines={2}>
+          <SoundAppIcon sound={sound} pressed={pressed} active={active} dimmed={dimmed} />
+          <Text
+            style={[
+              styles.appLabel,
+              active && styles.appLabelActive,
+              dimmed && styles.appLabelDimmed,
+            ]}
+            numberOfLines={2}
+          >
             {sound.title}
           </Text>
         </>
@@ -114,15 +138,21 @@ export function SleepTimeSoundGrid({ activeSoundId, onSoundPress }: SleepTimeSou
           key={`row-${rowIndex}`}
           style={[styles.row, rowIndex > 0 && { marginTop: ROW_GAP }]}
         >
-          {row.map((sound) => (
-            <SoundButton
-              key={sound.id}
-              sound={sound}
-              width={itemWidth}
-              active={activeSoundId === sound.id}
-              onPress={() => handlePress(sound.id)}
-            />
-          ))}
+          {row.map((sound) => {
+            const active = activeSoundId === sound.id
+            const dimmed = activeSoundId != null && !active
+
+            return (
+              <SoundButton
+                key={sound.id}
+                sound={sound}
+                width={itemWidth}
+                active={active}
+                dimmed={dimmed}
+                onPress={() => handlePress(sound.id)}
+              />
+            )
+          })}
         </View>
       ))}
     </View>
@@ -146,6 +176,9 @@ const styles = StyleSheet.create({
   appButtonPressed: {
     opacity: 0.82,
   },
+  appButtonDimmed: {
+    opacity: 0.72,
+  },
   iconOuter: {
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 1,
@@ -156,6 +189,10 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.55)',
     borderRadius: ICON_RADIUS,
+  },
+  iconOuterDimmed: {
+    shadowOpacity: 0,
+    elevation: 0,
   },
   iconShadowPressed: {
     transform: [{ scale: 0.94 }],
@@ -186,7 +223,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   appLabelActive: {
-    color: '#c7d2fe',
+    color: '#6366f1',
     fontWeight: '700',
+  },
+  appLabelDimmed: {
+    color: colors.textSubtle,
+    fontWeight: '500',
   },
 })

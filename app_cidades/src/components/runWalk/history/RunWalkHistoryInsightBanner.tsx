@@ -12,7 +12,7 @@ export function RunWalkHistoryInsightBanner({ message }: RunWalkHistoryInsightBa
   return (
     <View style={styles.wrap}>
       <View style={styles.iconWrap}>
-        <Ionicons name="sparkles-outline" size={16} color="#6ee7b7" />
+        <Ionicons name="sparkles-outline" size={16} color="#15803d" />
       </View>
       <Text style={styles.text}>{message}</Text>
     </View>

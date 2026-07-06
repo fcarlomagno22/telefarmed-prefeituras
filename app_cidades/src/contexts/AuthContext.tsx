@@ -66,6 +66,7 @@ type AuthContextValue = {
   dismissBiometricPrompt: () => Promise<void>
   loginWithBiometric: () => Promise<'success' | 'cancelled' | 'failed'>
   updateSelfie: (selfieUri: string | null) => Promise<void>
+  updateContact: (patch: { email?: string; phone?: string }) => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -455,6 +456,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user],
   )
 
+  const updateContact = useCallback(
+    async (patch: { email?: string; phone?: string }) => {
+      if (!user) return
+
+      const nextUser: AuthUser = {
+        ...user,
+        ...(patch.email !== undefined ? { email: patch.email } : {}),
+        ...(patch.phone !== undefined ? { phone: patch.phone } : {}),
+      }
+      setUser(nextUser)
+
+      void (async () => {
+        await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(nextUser))
+
+        const storedBiometricSession = await AsyncStorage.getItem(BIOMETRIC_SESSION_KEY)
+        if (storedBiometricSession) {
+          const biometricUser = JSON.parse(storedBiometricSession) as AuthUser
+          if (cpfDigits(biometricUser.cpf) === cpfDigits(user.cpf)) {
+            await AsyncStorage.setItem(BIOMETRIC_SESSION_KEY, JSON.stringify(nextUser))
+          }
+        }
+      })()
+    },
+    [user],
+  )
+
   const canUseBiometricLogin =
     biometricEnabled && biometricAvailable && hasBiometricSession
 
@@ -483,6 +510,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       dismissBiometricPrompt,
       loginWithBiometric,
       updateSelfie,
+      updateContact,
       logout,
     }),
     [
@@ -504,6 +532,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       dismissBiometricPrompt,
       loginWithBiometric,
       updateSelfie,
+      updateContact,
       logout,
     ],
   )

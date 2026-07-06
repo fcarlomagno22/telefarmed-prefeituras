@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { Animated, Easing, StyleSheet, View } from 'react-native'
+import { Animated, Easing, Platform, StyleSheet, View } from 'react-native'
 import { colors } from '../theme/colors'
 
 type WaveTitleProps = {
@@ -12,6 +12,7 @@ const LIFT = -7
 const LIFT_DURATION = 160
 const SETTLE_DURATION = 200
 const LOOP_PAUSE_MS = 1400
+const USE_NATIVE_DRIVER = Platform.OS !== 'web'
 
 export function WaveTitle({ text, active = true }: WaveTitleProps) {
   const chars = useMemo(() => text.split(''), [text])
@@ -40,13 +41,13 @@ export function WaveTitle({ text, active = true }: WaveTitleProps) {
             toValue: LIFT,
             duration: LIFT_DURATION,
             easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
+            useNativeDriver: USE_NATIVE_DRIVER,
           }),
           Animated.timing(value, {
             toValue: 0,
             duration: SETTLE_DURATION,
             easing: Easing.out(Easing.back(1.4)),
-            useNativeDriver: true,
+            useNativeDriver: USE_NATIVE_DRIVER,
           }),
         ]),
       )
@@ -99,8 +100,15 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.3,
     lineHeight: 26,
-    textShadowColor: 'rgba(255, 107, 0, 0.35)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
+    ...Platform.select({
+      web: {
+        textShadow: '0px 2px 8px rgba(255, 107, 0, 0.35)',
+      },
+      default: {
+        textShadowColor: 'rgba(255, 107, 0, 0.35)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 8,
+      },
+    }),
   },
 })

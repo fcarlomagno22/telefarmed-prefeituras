@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
+import { colors } from '../../theme/colors'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -54,7 +55,7 @@ function StepSlide({ step, width }: { step: MyRoutineHowItWorksStep; width: numb
               end={{ x: 1, y: 1 }}
               style={styles.iconCircle}
             >
-              <Ionicons name={step.icon} size={34} color="#0a0a0c" />
+              <Ionicons name={step.icon} size={34} color={colors.text} />
             </LinearGradient>
           </LinearGradient>
         </View>
@@ -193,7 +194,7 @@ export function MyRoutineHowItWorksDrawer({ visible, onClose }: MyRoutineHowItWo
           <Ionicons
             name={step >= TOTAL_STEPS ? 'checkmark' : 'chevron-forward'}
             size={18}
-            color="#0a0a0c"
+            color={colors.text}
           />
         </LinearGradient>
       </Pressable>
@@ -377,9 +378,9 @@ function createStyles(colors: ThemeColors) {
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   navBtnDisabled: {
     opacity: 0.45,
@@ -423,7 +424,7 @@ function createStyles(colors: ThemeColors) {
     paddingHorizontal: 16,
   },
   nextBtnText: {
-    color: '#0a0a0c',
+    color: colors.text,
     fontSize: 14,
     fontWeight: '800',
   },

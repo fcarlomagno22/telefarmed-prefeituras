@@ -1,5 +1,4 @@
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import Svg, {
@@ -388,12 +387,7 @@ export function SleepTimeMonthlyBarChart({
 
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(99, 102, 241, 0.1)', 'rgba(14, 14, 20, 0.98)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <View style={styles.header}>
           <Text style={styles.title}>Horas dormidas em {monthLabel}</Text>
           <Text style={styles.subtitle}>Toque em uma barra para ver horas e qualidade do dia</Text>
@@ -418,7 +412,7 @@ export function SleepTimeMonthlyBarChart({
           <LegendItem color="#8b5cf6" label="Hoje" />
           <LegendItem color="#6366f1" label="Horas dormidas" />
           <LegendItem color="#f59e0b" label="Acima de 8h" />
-          <LegendItem color="rgba(255,255,255,0.12)" label="Sem registro" isMuted />
+          <LegendItem color="#d1d5db" label="Sem registro" isMuted />
         </View>
 
         {geometry.showTargetLine ? (
@@ -427,7 +421,7 @@ export function SleepTimeMonthlyBarChart({
             <Text style={styles.legendMetaText}>Linha tracejada = meta de 8 horas de sono</Text>
           </View>
         ) : null}
-      </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -458,7 +452,8 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 10,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.16)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
     overflow: 'visible',
   },
   header: {
@@ -488,7 +483,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 12,
-    backgroundColor: 'rgba(14, 14, 20, 0.96)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     gap: 2,
     shadowColor: '#000',

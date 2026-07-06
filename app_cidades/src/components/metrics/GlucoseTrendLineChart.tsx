@@ -85,7 +85,7 @@ export function GlucoseTrendLineChart({
             y1={tick.y}
             x2={geometry.plotLeft + geometry.plotWidth}
             y2={tick.y}
-            stroke="rgba(255, 255, 255, 0.08)"
+            stroke="rgba(0, 0, 0, 0.08)"
             strokeWidth={1}
           />
         ))}
@@ -95,7 +95,7 @@ export function GlucoseTrendLineChart({
             key={`ylabel-${tick.value}`}
             x={geometry.plotLeft - 8}
             y={tick.y + 3}
-            fill="rgba(245, 245, 247, 0.35)"
+            fill={colors.textSubtle}
             fontSize={9}
             fontWeight="600"
             textAnchor="end"
@@ -138,8 +138,8 @@ export function GlucoseTrendLineChart({
               cx={point.x}
               cy={point.y}
               r={isSelected ? 6 : 4}
-              fill={isSelected ? accentColor : '#14141a'}
-              stroke={isSelected ? 'rgba(255, 255, 255, 0.95)' : accentColor}
+              fill={isSelected ? accentColor : colors.backgroundElevated}
+              stroke={isSelected ? colors.backgroundElevated : accentColor}
               strokeWidth={2}
             />
           )
@@ -150,7 +150,7 @@ export function GlucoseTrendLineChart({
             key={`xlabel-${label.label}-${label.x}`}
             x={label.x}
             y={geometry.height - 8}
-            fill="rgba(245, 245, 247, 0.35)"
+            fill={colors.textSubtle}
             fontSize={8}
             fontWeight="600"
             textAnchor="middle"
@@ -233,8 +233,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    backgroundColor: 'rgba(18, 18, 24, 0.96)',
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
+    borderColor: colors.surfaceBorder,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.28,

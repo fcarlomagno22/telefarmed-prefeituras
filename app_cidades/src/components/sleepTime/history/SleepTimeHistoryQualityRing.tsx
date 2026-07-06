@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient'
 import { StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../../theme/colors'
 import type { SleepWeekSummary } from '../../../types/sleepHistory'
@@ -17,12 +16,7 @@ export function SleepTimeHistoryQualityRing({ summary, animate = true }: SleepTi
 
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(67, 56, 202, 0.16)', 'rgba(14, 14, 20, 0.98)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <View style={styles.contentRow}>
           <RunWalkProgressRing
             progress={summary.avgQuality / 5}
@@ -46,7 +40,7 @@ export function SleepTimeHistoryQualityRing({ summary, animate = true }: SleepTi
             <DistributionRow label="Mal (1–2)" count={poor} color="#f87171" total={scoredDays} />
           </View>
         </View>
-      </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -86,7 +80,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.18)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   contentRow: {
     flexDirection: 'row',
@@ -126,7 +121,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     overflow: 'hidden',
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: colors.surfaceBorder,
   },
   distFill: {
     borderRadius: 999,

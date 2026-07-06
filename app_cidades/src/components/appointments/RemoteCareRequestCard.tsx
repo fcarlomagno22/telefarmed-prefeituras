@@ -23,32 +23,26 @@ function formatRequestDate(iso: string) {
 }
 
 function getStatusMeta(status: RemoteCareRequest['status']) {
+  const white = colors.cardBg
+
   if (status === 'approved') {
     return {
       label: 'Aprovado',
-      background: 'rgba(16, 185, 129, 0.14)',
-      border: 'rgba(16, 185, 129, 0.35)',
-      text: '#6ee7b7',
-      gradient: [
-        'rgba(16, 185, 129, 0.18)',
-        'rgba(16, 185, 129, 0.06)',
-        'rgba(14, 14, 20, 0.95)',
-      ] as const,
-      cardBorder: 'rgba(16, 185, 129, 0.32)',
+      background: 'rgba(16, 185, 129, 0.12)',
+      border: 'rgba(16, 185, 129, 0.24)',
+      text: '#047857',
+      gradient: [white, white, 'rgba(16, 185, 129, 0.06)'] as const,
+      cardBorder: 'rgba(16, 185, 129, 0.16)',
     }
   }
 
   return {
     label: 'Em análise',
-    background: 'rgba(245, 158, 11, 0.14)',
-    border: 'rgba(245, 158, 11, 0.35)',
-    text: '#fde68a',
-    gradient: [
-      'rgba(245, 158, 11, 0.16)',
-      'rgba(245, 158, 11, 0.05)',
-      'rgba(14, 14, 20, 0.95)',
-    ] as const,
-    cardBorder: 'rgba(245, 158, 11, 0.28)',
+    background: 'rgba(245, 158, 11, 0.12)',
+    border: 'rgba(245, 158, 11, 0.24)',
+    text: '#b45309',
+    gradient: [white, white, 'rgba(245, 158, 11, 0.06)'] as const,
+    cardBorder: 'rgba(245, 158, 11, 0.16)',
   }
 }
 
@@ -71,7 +65,7 @@ export function RemoteCareRequestCard({ request }: RemoteCareRequestCardProps) {
       <LinearGradient
         colors={[...statusMeta.gradient]}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        end={{ x: 0, y: 1 }}
         style={[styles.card, { borderColor: statusMeta.cardBorder }]}
       >
         <View style={styles.headerRow}>
@@ -119,7 +113,7 @@ export function RemoteCareRequestCard({ request }: RemoteCareRequestCardProps) {
 
         {isApproved ? (
           <View style={styles.approvedBox}>
-            <Ionicons name="checkmark-circle" size={18} color="#6ee7b7" />
+            <Ionicons name="checkmark-circle" size={18} color="#047857" />
             <Text style={styles.approvedText}>
               Seu pedido foi aprovado. Use o link abaixo para entrar na teleconsulta quando estiver
               no horário combinado.
@@ -127,7 +121,7 @@ export function RemoteCareRequestCard({ request }: RemoteCareRequestCardProps) {
           </View>
         ) : (
           <View style={styles.reviewBox}>
-            <Ionicons name="hourglass-outline" size={18} color="#fde68a" />
+            <Ionicons name="hourglass-outline" size={18} color="#b45309" />
             <Text style={styles.reviewText}>
               Nossa equipe está analisando seu pedido. Você recebe a resposta por aqui em breve.
             </Text>
@@ -156,6 +150,7 @@ const styles = StyleSheet.create({
     gap: 10,
     borderWidth: 1,
     borderRadius: 18,
+    backgroundColor: colors.cardBg,
   },
   headerRow: {
     flexDirection: 'row',

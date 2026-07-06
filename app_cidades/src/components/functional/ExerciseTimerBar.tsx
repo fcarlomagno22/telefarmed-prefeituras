@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 12,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    backgroundColor: colors.surface,
     overflow: 'hidden',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.85,

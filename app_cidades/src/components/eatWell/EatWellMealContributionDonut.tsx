@@ -1,5 +1,4 @@
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef } from 'react'
 import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Path, Stop } from 'react-native-svg'
@@ -190,12 +189,7 @@ export function EatWellMealContributionDonut({
 
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(16, 185, 129, 0.12)', 'rgba(14, 14, 20, 0.98)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <View style={styles.header}>
           <Text style={styles.title}>Contribuição por refeição</Text>
           {selectedSlot ? (
@@ -232,8 +226,8 @@ export function EatWellMealContributionDonut({
                         y2={CY + R}
                         gradientUnits="userSpaceOnUse"
                       >
-                        <Stop offset="0%" stopColor="rgba(255,255,255,0.12)" />
-                        <Stop offset="100%" stopColor="rgba(255,255,255,0.04)" />
+                        <Stop offset="0%" stopColor="rgba(0, 0, 0, 0.08)" />
+                        <Stop offset="100%" stopColor="rgba(0, 0, 0, 0.03)" />
                       </SvgLinearGradient>
                     )
                   }
@@ -341,7 +335,7 @@ export function EatWellMealContributionDonut({
             ? 'Toque em uma fatia para filtrar a linha do tempo do dia.'
             : 'Todos os horários de refeição aparecem aqui — registre para ver a distribuição.'}
         </Text>
-      </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -355,7 +349,8 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.18)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   header: {
     flexDirection: 'row',
@@ -371,10 +366,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(132, 204, 22, 0.14)',
+    backgroundColor: '#dcfce7',
   },
   clearFilterText: {
-    color: '#a3e635',
+    color: '#15803d',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -409,7 +404,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   centerPct: {
-    color: '#6ee7b7',
+    color: '#15803d',
     fontSize: 12,
     fontWeight: '800',
   },
@@ -435,12 +430,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 7,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.surface,
   },
   legendItemActive: {
-    backgroundColor: 'rgba(132, 204, 22, 0.12)',
+    backgroundColor: '#ecfccb',
     borderWidth: 1,
-    borderColor: 'rgba(132, 204, 22, 0.28)',
+    borderColor: 'rgba(101, 163, 13, 0.35)',
   },
   legendItemPressed: {
     opacity: 0.88,

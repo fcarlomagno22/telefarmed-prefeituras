@@ -205,7 +205,7 @@ export function PosConsultaCheckinDrawer({
     <AppModal visible transparent animationType="none" onRequestClose={handleHeaderClose}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
-          <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
           <Pressable style={StyleSheet.absoluteFillObject} onPress={handleHeaderClose} />
         </Animated.View>
 
@@ -221,7 +221,7 @@ export function PosConsultaCheckinDrawer({
             ]}
           >
             <LinearGradient
-              colors={['rgba(36, 36, 46, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+              colors={[colors.backgroundElevated, '#f0f0f2']}
               style={StyleSheet.absoluteFillObject}
             />
 
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   sheet: {
     flex: 1,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     overflow: 'hidden',
     paddingHorizontal: 16,
     gap: 10,
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   closeButtonPressed: {
     opacity: 0.82,

@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons'
+import { colors } from '../../theme/colors'
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,6 +17,7 @@ import { MY_ROUTINE_TEMPLATES } from '../../utils/myRoutineTemplates'
 import type { ThemeColors } from '../../theme/palettes'
 import { useThemedStyles } from '../../hooks/useThemedStyles'
 import { useTheme } from '../../contexts/ThemeContext'
+import { myRoutineAccent } from '../../theme/myRoutineAccent'
 
 const ACCENT = '#d946ef'
 const ACCENT_LIGHT = '#f0abfc'
@@ -99,8 +101,10 @@ export function MyRoutineWeekTab({
 
   return (
     <ScrollView
+      style={styles.body}
       contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
       showsVerticalScrollIndicator={false}
+      nestedScrollEnabled
     >
       {/* A — Week selector */}
       <Pressable
@@ -147,10 +151,7 @@ export function MyRoutineWeekTab({
         onPress={onOpenWeeklyReview}
         style={({ pressed }) => [styles.reviewCard, pressed && styles.cardPressed]}
       >
-        <LinearGradient
-          colors={['rgba(217, 70, 239, 0.18)', 'rgba(14, 14, 20, 0.98)']}
-          style={styles.reviewCardInner}
-        >
+        <View style={styles.reviewCardInner}>
           <View style={styles.reviewCopy}>
             <Text style={styles.reviewTitle}>Revisão de 5 min</Text>
             <Text style={styles.reviewSub}>
@@ -158,7 +159,7 @@ export function MyRoutineWeekTab({
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.textSubtle} />
-        </LinearGradient>
+        </View>
       </Pressable>
 
       {/* D — 7 day cards */}
@@ -259,9 +260,21 @@ function createStyles(colors: ThemeColors) {
   return {
   loadingWrap: {
     flex: 1,
+    minHeight: 0,
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: 48,
+  },
+  body: {
+    flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      },
+      default: {},
+    }),
   },
   content: {
     paddingTop: 8,
@@ -274,9 +287,9 @@ function createStyles(colors: ThemeColors) {
     gap: 10,
     padding: 12,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   weekNavBtn: {
     width: 36,
@@ -284,7 +297,7 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: myRoutineAccent.nestedSurface,
   },
   weekSelectorCopy: {
     flex: 1,
@@ -312,9 +325,9 @@ function createStyles(colors: ThemeColors) {
     flex: 1,
     padding: 12,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: myRoutineAccent.cardBorder,
     gap: 4,
   },
   summaryValue: {
@@ -336,8 +349,9 @@ function createStyles(colors: ThemeColors) {
     alignItems: 'center',
     gap: 12,
     padding: 14,
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(240, 171, 252, 0.22)',
+    borderColor: myRoutineAccent.cardBorder,
     borderRadius: 16,
   },
   reviewCopy: { flex: 1, gap: 2 },
@@ -366,14 +380,13 @@ function createStyles(colors: ThemeColors) {
   dayCard: {
     padding: 12,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: myRoutineAccent.cardBorder,
     gap: 6,
   },
   dayCardToday: {
-    borderColor: 'rgba(240, 171, 252, 0.35)',
-    backgroundColor: 'rgba(217, 70, 239, 0.06)',
+    borderColor: myRoutineAccent.accentBorder,
   },
   dayHeader: { gap: 2 },
   dayTitleRow: {
@@ -463,9 +476,9 @@ function createStyles(colors: ThemeColors) {
   recurringRow: {
     padding: 12,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: myRoutineAccent.cardBorder,
     gap: 2,
   },
   recurringTitle: {
@@ -483,13 +496,13 @@ function createStyles(colors: ThemeColors) {
     marginHorizontal: 16,
     padding: 14,
     borderRadius: 14,
-    backgroundColor: 'rgba(217, 70, 239, 0.06)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(240, 171, 252, 0.16)',
+    borderColor: myRoutineAccent.cardBorder,
     gap: 4,
   },
   modeEyebrow: {
-    color: ACCENT_LIGHT,
+    color: myRoutineAccent.chipTextSelected,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.4,

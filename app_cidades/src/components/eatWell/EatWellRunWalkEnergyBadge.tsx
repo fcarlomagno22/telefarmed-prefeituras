@@ -1,7 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, StyleSheet, Text, View, type TextStyle } from 'react-native'
 import type { RunWalkDayEnergy } from '../../types/eatWell'
 import { colors } from '../../theme/colors'
 import { formatCalories } from '../../utils/eatWellNutritionStats'
@@ -11,6 +10,17 @@ type EatWellRunWalkEnergyBadgeProps = {
   adjustedCalorieTarget: number
   onPress: () => void
 }
+
+const GRADIENT_TITLE_STYLE: TextStyle =
+  Platform.OS === 'web'
+    ? ({
+        backgroundImage: 'linear-gradient(90deg, #dc2626 0%, #ea580c 45%, #65a30d 100%)',
+        WebkitBackgroundClip: 'text',
+        backgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        color: 'transparent',
+      } as TextStyle)
+    : { color: '#c2410c' }
 
 export function EatWellRunWalkEnergyBadge({
   energy,
@@ -35,6 +45,8 @@ export function EatWellRunWalkEnergyBadge({
     onPress()
   }
 
+  const burnedLabel = formatCalories(energy.totalCaloriesBurned).replace(' kcal', '')
+
   return (
     <View style={styles.wrap}>
       <Pressable
@@ -42,25 +54,19 @@ export function EatWellRunWalkEnergyBadge({
         style={({ pressed }) => [styles.pill, pressed && styles.pillPressed]}
         accessibilityRole="button"
       >
-        <LinearGradient
-          colors={['rgba(239, 68, 68, 0.18)', 'rgba(132, 204, 22, 0.14)']}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={StyleSheet.absoluteFillObject}
-        />
         <View style={styles.iconWrap}>
-          <MaterialCommunityIcons name="run-fast" size={16} color="#fca5a5" />
+          <MaterialCommunityIcons name="run-fast" size={16} color="#dc2626" />
         </View>
         <View style={styles.textCol}>
-          <Text style={styles.title}>
-            Hoje você gastou ~{formatCalories(energy.totalCaloriesBurned).replace(' kcal', '')} kcal
+          <Text style={[styles.title, GRADIENT_TITLE_STYLE]}>
+            Hoje você gastou ~{burnedLabel} kcal
           </Text>
           <Text style={styles.subtitle}>
             Meta ajustada +{Math.round(energy.totalCaloriesBurned)} kcal ·{' '}
             {formatCalories(adjustedCalorieTarget)} total
           </Text>
         </View>
-        <MaterialCommunityIcons name="chevron-right" size={18} color={colors.textSubtle} />
+        <MaterialCommunityIcons name="chevron-right" size={18} color={colors.textMuted} />
       </Pressable>
     </View>
   )
@@ -79,8 +85,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   pillPressed: {
     opacity: 0.9,
@@ -92,9 +98,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   emptyText: {
     color: colors.textSubtle,
@@ -107,14 +113,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.14)',
+    backgroundColor: '#fee2e2',
   },
   textCol: {
     flex: 1,
     gap: 2,
   },
   title: {
-    color: colors.text,
     fontSize: 13,
     fontWeight: '800',
   },

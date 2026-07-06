@@ -1112,7 +1112,7 @@ function MetricsAreaChartComponent({
                   y1={tick.y}
                   x2={Math.min(plotContentWidth, contentScrollX + plotWidth)}
                   y2={tick.y}
-                  stroke="rgba(255, 255, 255, 0.06)"
+                  stroke="rgba(0, 0, 0, 0.08)"
                   strokeWidth={1}
                 />
               ))}
@@ -1124,7 +1124,7 @@ function MetricsAreaChartComponent({
                   y1={PADDING_TOP}
                   x2={x - liveSlotOffset}
                   y2={PADDING_TOP + chartHeight}
-                  stroke="rgba(255, 255, 255, 0.06)"
+                  stroke="rgba(0, 0, 0, 0.08)"
                   strokeWidth={1}
                 />
               ))}
@@ -1152,7 +1152,7 @@ function MetricsAreaChartComponent({
                     cy={point.y}
                     r={isSelected ? 6 : 4}
                     fill={accentColor}
-                    stroke={isSelected ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.7)'}
+                    stroke={isSelected ? colors.backgroundElevated : colors.surfaceBorder}
                     strokeWidth={isSelected ? 2 : 1.2}
                   />
                 )
@@ -1187,7 +1187,7 @@ function MetricsAreaChartComponent({
                       cx={liveHead.x}
                       cy={liveHead.y}
                       fill="none"
-                      stroke="rgba(255, 255, 255, 0.95)"
+                      stroke={colors.backgroundElevated}
                       strokeWidth={1.8}
                       r={mapAnimatedRange(webPulseScale, 1, 1.55, 5.5, 10)}
                       opacity={mapAnimatedRange(webPulseScale, 1, 1.55, 0.9, 0.12)}
@@ -1197,7 +1197,7 @@ function MetricsAreaChartComponent({
                       cy={liveHead.y}
                       r={selectedPointKey === getPointKey(liveHead) ? 6 : 5}
                       fill={accentColor}
-                      stroke="rgba(255, 255, 255, 0.95)"
+                      stroke={colors.backgroundElevated}
                       strokeWidth={mapAnimatedRange(webPulseScale, 1, 1.55, 2, 3.8)}
                     />
                   </>
@@ -1222,7 +1222,7 @@ function MetricsAreaChartComponent({
                       cx={liveHead.x}
                       cy={liveHead.y}
                       fill="none"
-                      stroke="rgba(255, 255, 255, 0.95)"
+                      stroke={colors.backgroundElevated}
                       strokeWidth={1.8}
                       r={pulseScale.interpolate({
                         inputRange: [1, 1.55],
@@ -1238,7 +1238,7 @@ function MetricsAreaChartComponent({
                       cy={liveHead.y}
                       r={selectedPointKey === getPointKey(liveHead) ? 6 : 5}
                       fill={accentColor}
-                      stroke="rgba(255, 255, 255, 0.95)"
+                      stroke={colors.backgroundElevated}
                       strokeWidth={pulseScale.interpolate({
                         inputRange: [1, 1.55],
                         outputRange: [2, 3.8],
@@ -1382,8 +1382,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    backgroundColor: 'rgba(18, 18, 24, 0.82)',
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
+    borderColor: colors.surfaceBorder,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.28,
@@ -1421,7 +1422,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.surface,
   },
   emptyText: {
     color: colors.textMuted,

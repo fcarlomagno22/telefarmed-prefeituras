@@ -5,6 +5,21 @@ export const WEB_CHROME_COLOR = colors.background
 export const WEB_APP_BACKGROUND = colors.background
 const WEB_CHROME_STYLE_ID = 'telefarmed-web-chrome-styles'
 
+export type WebChromeColorScheme = 'light' | 'dark'
+
+type ApplyWebChromeColorOptions = {
+  colorScheme?: WebChromeColorScheme
+  appleStatusBarStyle?: 'default' | 'black-translucent'
+}
+
+function resolveAppleStatusBarStyle(
+  colorScheme: WebChromeColorScheme,
+  override?: ApplyWebChromeColorOptions['appleStatusBarStyle'],
+): NonNullable<ApplyWebChromeColorOptions['appleStatusBarStyle']> {
+  if (override) return override
+  return colorScheme === 'light' ? 'default' : 'black-translucent'
+}
+
 export function isAndroidWeb(): boolean {
   return typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)
 }
@@ -112,7 +127,7 @@ function ensureWebManifestLink() {
   link.href = '/manifest.webmanifest'
 }
 
-function ensureWebChromeStyles(appBackground: string) {
+function ensureWebChromeStyles(appBackground: string, colorScheme: WebChromeColorScheme = 'light') {
   if (typeof document === 'undefined') return
 
   let style = document.getElementById(WEB_CHROME_STYLE_ID) as HTMLStyleElement | null
@@ -125,7 +140,7 @@ function ensureWebChromeStyles(appBackground: string) {
   style.textContent = `
     html {
       background-color: ${appBackground};
-      color-scheme: dark only;
+      color-scheme: ${colorScheme};
     }
     body {
       background-color: ${appBackground} !important;
@@ -168,27 +183,31 @@ function ensureWebChromeStyles(appBackground: string) {
 /**
  * Android PWA standalone:
  * - theme-color → barra de status (topo)
- * - meta color-scheme=dark → barra de navegação com gestos
+ * - meta color-scheme=light → barra de navegação com gestos
  * - navegação 3-botões ignora meta/CSS — use requestAndroidPwaFullscreen()
  */
 export function applyWebChromeColor(
   chromeColor: string = WEB_CHROME_COLOR,
   appBackground: string = WEB_APP_BACKGROUND,
+  options?: ApplyWebChromeColorOptions,
 ) {
   if (typeof document === 'undefined') return
 
+  const colorScheme = options?.colorScheme ?? 'light'
+  const appleStatusBarStyle = resolveAppleStatusBarStyle(colorScheme, options?.appleStatusBarStyle)
+
   removeMediaScopedChromeMetas()
   upsertWebMeta('theme-color', chromeColor)
-  upsertWebMeta('color-scheme', 'dark')
+  upsertWebMeta('color-scheme', colorScheme)
   upsertWebMeta('mobile-web-app-capable', 'yes')
   upsertWebMeta('apple-mobile-web-app-capable', 'yes')
-  upsertWebMeta('apple-mobile-web-app-status-bar-style', 'black-translucent')
+  upsertWebMeta('apple-mobile-web-app-status-bar-style', appleStatusBarStyle)
 
   ensureViewportCoversSafeArea()
   ensureWebManifestLink()
-  ensureWebChromeStyles(appBackground)
+  ensureWebChromeStyles(appBackground, colorScheme)
 
-  document.documentElement.style.colorScheme = 'dark only'
+  document.documentElement.style.colorScheme = colorScheme
   document.documentElement.style.backgroundColor = appBackground
   if (document.body) {
     document.body.style.backgroundColor = appBackground

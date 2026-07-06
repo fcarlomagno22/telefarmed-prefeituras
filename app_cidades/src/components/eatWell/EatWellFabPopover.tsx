@@ -112,7 +112,7 @@ export function EatWellFabPopover({
     <AppModal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.host}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
-          <BlurView intensity={70} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={40} tint="light" style={StyleSheet.absoluteFillObject} />
           <View style={styles.backdropTint} />
           <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
         </Animated.View>
@@ -130,15 +130,13 @@ export function EatWellFabPopover({
           <Animated.View style={[styles.cardClip, { maxHeight: cardHeight }]}>
             <Animated.View style={{ opacity: cardOpacity }}>
             <LinearGradient
-              colors={['rgba(22, 24, 18, 0.98)', 'rgba(12, 13, 10, 0.98)']}
+              colors={['#ecfccb', '#ffffff', '#ffffff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
               style={styles.popoverShell}
             >
               <LinearGradient
-                colors={[
-                  'rgba(163, 230, 53, 0.35)',
-                  'rgba(132, 204, 22, 0.08)',
-                  'rgba(163, 230, 53, 0.2)',
-                ]}
+                colors={['rgba(132, 204, 22, 0.35)', 'rgba(163, 230, 53, 0.12)', 'rgba(132, 204, 22, 0.2)']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.popoverBorder}
@@ -185,7 +183,7 @@ export function EatWellFabPopover({
                             )}
                           </View>
 
-                          <Ionicons name="chevron-forward" size={16} color={colors.textSubtle} />
+                          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
                         </Pressable>
                         {!isLast ? <View style={styles.rowSeparator} /> : null}
                       </View>
@@ -221,7 +219,7 @@ const styles = StyleSheet.create({
   },
   backdropTint: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.58)',
+    backgroundColor: 'rgba(15, 23, 42, 0.18)',
   },
   anchor: {
     position: 'absolute',
@@ -240,9 +238,9 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
     borderBottomRightRadius: 4,
     padding: 1,
-    shadowColor: '#84cc16',
+    shadowColor: '#0f172a',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.12,
     shadowRadius: 16,
     elevation: 14,
   },
@@ -252,7 +250,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 22,
     borderBottomLeftRadius: 4,
     borderBottomRightRadius: 4,
-    opacity: 0.55,
+    opacity: 0.7,
   },
   popoverInner: {
     borderTopLeftRadius: 21,
@@ -260,10 +258,10 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 3,
     borderBottomRightRadius: 3,
     overflow: 'hidden',
-    backgroundColor: 'rgba(14, 15, 12, 0.96)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderBottomWidth: 0,
-    borderColor: 'rgba(163, 230, 53, 0.14)',
+    borderColor: 'rgba(132, 204, 22, 0.22)',
   },
   baseLine: {
     height: BASE_LINE_HEIGHT,
@@ -278,7 +276,7 @@ const styles = StyleSheet.create({
   headerBanner: {
     paddingTop: 12,
     paddingBottom: 10,
-    backgroundColor: 'rgba(132, 204, 22, 0.06)',
+    backgroundColor: '#ecfccb',
   },
   headerBannerContent: {
     paddingHorizontal: 14,
@@ -286,14 +284,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   headerEyebrow: {
-    color: '#a3e635',
+    color: '#4d7c0f',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.4,
     textTransform: 'uppercase',
   },
   headerHint: {
-    color: colors.textSubtle,
+    color: colors.textMuted,
     fontSize: 11,
     fontWeight: '500',
     lineHeight: 15,
@@ -302,9 +300,9 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
   },
   rowSeparator: {
-    height: 0.5,
+    height: StyleSheet.hairlineWidth,
     marginLeft: SEPARATOR_LEFT_INSET,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: colors.surfaceBorder,
   },
   optionRow: {
     flexDirection: 'row',
@@ -315,7 +313,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   optionRowPressed: {
-    backgroundColor: 'rgba(132, 204, 22, 0.06)',
+    backgroundColor: '#f7fee7',
   },
   optionIcon: {
     width: 22,

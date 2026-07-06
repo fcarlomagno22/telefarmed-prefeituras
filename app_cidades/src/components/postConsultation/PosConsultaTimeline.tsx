@@ -5,12 +5,43 @@ import { colors } from '../../theme/colors'
 import type { AppointmentPosConsultaCheckinItem } from '../../types/appointmentPostConsultation'
 import { getEvolucaoBadge } from '../../utils/appointmentPostConsultation'
 
-const AVAILABLE_GRADIENT = ['#7dd3fc', '#0ea5e9', '#0284c7'] as const
-
 type PosConsultaTimelineProps = {
   checkins: AppointmentPosConsultaCheckinItem[]
   availableCheckinId: string | null
   onCheckinPress: (checkin: AppointmentPosConsultaCheckinItem) => void
+}
+
+function getTimelineCardColors(
+  checkin: AppointmentPosConsultaCheckinItem,
+  isAvailable: boolean,
+) {
+  const white = colors.cardBg
+
+  if (isAvailable) {
+    return {
+      gradient: [white, white, 'rgba(14, 165, 233, 0.1)'] as const,
+      border: 'rgba(14, 165, 233, 0.22)',
+    }
+  }
+
+  if (checkin.status === 'respondido') {
+    return {
+      gradient: [white, white, 'rgba(16, 185, 129, 0.05)'] as const,
+      border: 'rgba(16, 185, 129, 0.14)',
+    }
+  }
+
+  if (checkin.status === 'expirado') {
+    return {
+      gradient: [white, white, 'rgba(245, 158, 11, 0.05)'] as const,
+      border: 'rgba(245, 158, 11, 0.14)',
+    }
+  }
+
+  return {
+    gradient: [white, white, 'rgba(0, 0, 0, 0.02)'] as const,
+    border: colors.surfaceBorder,
+  }
 }
 
 function getStatusMeta(checkin: AppointmentPosConsultaCheckinItem, isAvailable: boolean) {
@@ -44,7 +75,7 @@ function getStatusMeta(checkin: AppointmentPosConsultaCheckinItem, isAvailable: 
   }
 
   return {
-    dotColor: 'rgba(255, 255, 255, 0.2)',
+    dotColor: colors.textSubtle,
     title: `Check-in ${checkin.checkinNumber}`,
     subtitle: checkin.scheduledDateLabel
       ? `Previsto para ${checkin.scheduledDateLabel}`
@@ -63,6 +94,7 @@ export function PosConsultaTimeline({
       {checkins.map((checkin, index) => {
         const isAvailable = checkin.id === availableCheckinId
         const meta = getStatusMeta(checkin, isAvailable)
+        const cardColors = getTimelineCardColors(checkin, isAvailable)
         const evolucaoBadge = checkin.evolucaoComparacao
           ? getEvolucaoBadge(checkin.evolucaoComparacao)
           : null
@@ -89,61 +121,65 @@ export function PosConsultaTimeline({
               onPress={() => onCheckinPress(checkin)}
               style={({ pressed }) => [
                 styles.cardWrap,
-                !isAvailable && styles.card,
-                isAvailable && styles.cardAvailableWrap,
                 pressed && pressable && styles.cardPressed,
               ]}
             >
-              {isAvailable ? (
-                <LinearGradient
-                  colors={[...AVAILABLE_GRADIENT]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.cardGradient}
-                >
-                  <MaterialCommunityIcons
-                    name="clipboard-check-outline"
-                    size={20}
-                    color="#fff"
-                  />
-                  <View style={styles.availableTextCol}>
-                    <Text style={styles.availableTitle}>{meta.title}</Text>
+              <LinearGradient
+                colors={[...cardColors.gradient]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={[
+                  styles.card,
+                  { borderColor: cardColors.border },
+                  isAvailable && styles.cardAvailable,
+                ]}
+              >
+                {isAvailable ? (
+                  <>
+                    <MaterialCommunityIcons
+                      name="clipboard-check-outline"
+                      size={20}
+                      color="#0369a1"
+                    />
+                    <View style={styles.availableTextCol}>
+                      <Text style={styles.availableTitle}>{meta.title}</Text>
+                      {meta.subtitle ? (
+                        <Text style={styles.availableSubtitle}>{meta.subtitle}</Text>
+                      ) : null}
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color="#0369a1" />
+                  </>
+                ) : (
+                  <>
+                    <View style={styles.cardHeader}>
+                      <Text style={styles.cardTitle}>{meta.title}</Text>
+                      {evolucaoBadge ? (
+                        <View
+                          style={[
+                            styles.badge,
+                            { backgroundColor: evolucaoBadge.background },
+                          ]}
+                        >
+                          <Text style={[styles.badgeText, { color: evolucaoBadge.text }]}>
+                            {evolucaoBadge.label}
+                          </Text>
+                        </View>
+                      ) : null}
+                    </View>
+
                     {meta.subtitle ? (
-                      <Text style={styles.availableSubtitle}>{meta.subtitle}</Text>
+                      <Text style={styles.cardSubtitle}>{meta.subtitle}</Text>
                     ) : null}
-                  </View>
-                  <Ionicons name="chevron-forward" size={18} color="#fff" />
-                </LinearGradient>
-              ) : (
-                <>
-                  <View style={styles.cardHeader}>
-                    <Text style={styles.cardTitle}>{meta.title}</Text>
-                    {evolucaoBadge ? (
-                      <View
-                        style={[
-                          styles.badge,
-                          { backgroundColor: evolucaoBadge.background },
-                        ]}
-                      >
-                        <Text style={[styles.badgeText, { color: evolucaoBadge.text }]}>
-                          {evolucaoBadge.label}
-                        </Text>
+
+                    {meta.actionLabel ? (
+                      <View style={styles.actionRow}>
+                        <Text style={styles.actionText}>{meta.actionLabel}</Text>
+                        <Ionicons name="chevron-forward" size={14} color="#0369a1" />
                       </View>
                     ) : null}
-                  </View>
-
-                  {meta.subtitle ? (
-                    <Text style={styles.cardSubtitle}>{meta.subtitle}</Text>
-                  ) : null}
-
-                  {meta.actionLabel ? (
-                    <View style={styles.actionRow}>
-                      <Text style={styles.actionText}>{meta.actionLabel}</Text>
-                      <Ionicons name="chevron-forward" size={14} color="#7dd3fc" />
-                    </View>
-                  ) : null}
-                </>
-              )}
+                  </>
+                )}
+              </LinearGradient>
             </Pressable>
           </View>
         )
@@ -172,11 +208,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
   },
   dotAvailable: {
     borderColor: '#fff',
-    shadowColor: 'rgba(14, 165, 233, 0.5)',
+    shadowColor: 'rgba(14, 165, 233, 0.35)',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 8,
@@ -190,7 +226,7 @@ const styles = StyleSheet.create({
   connector: {
     width: 2,
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: colors.surfaceBorder,
     marginTop: 4,
     marginBottom: -4,
     borderRadius: 999,
@@ -198,38 +234,33 @@ const styles = StyleSheet.create({
   cardWrap: {
     flex: 1,
     marginBottom: 12,
+    borderRadius: 14,
+    overflow: 'hidden',
   },
   card: {
     padding: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.cardBg,
     gap: 6,
   },
-  cardAvailableWrap: {
-    borderRadius: 14,
-    overflow: 'hidden',
-  },
-  cardGradient: {
+  cardAvailable: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
   },
   availableTextCol: {
     flex: 1,
     gap: 2,
   },
   availableTitle: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '800',
     lineHeight: 18,
   },
   availableSubtitle: {
-    color: 'rgba(255, 255, 255, 0.82)',
+    color: colors.textMuted,
     fontSize: 11,
     fontWeight: '500',
     lineHeight: 15,
@@ -272,7 +303,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   actionText: {
-    color: '#7dd3fc',
+    color: '#0369a1',
     fontSize: 12,
     fontWeight: '700',
   },

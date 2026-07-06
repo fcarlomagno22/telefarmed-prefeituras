@@ -1,10 +1,11 @@
 import type { AnimationObject } from 'lottie-react-native'
+import { getThemeColors } from '../theme/palettes'
 
-/** Fundo claro do “palco” do Lottie — contraste para figuras escuras dos exercícios. */
-export const FUNCTIONAL_LOTTIE_STAGE = '#f5f5f5'
+/** Fundo claro do palco do Lottie — contraste para figuras dos exercícios. */
+export const FUNCTIONAL_LOTTIE_STAGE = getThemeColors('light').background
 
-/** Borda do palco sobre o fundo escuro do app. */
-export const FUNCTIONAL_LOTTIE_STAGE_BORDER = 'rgba(255, 255, 255, 0.1)'
+/** Borda do palco sobre fundo claro do app. */
+export const FUNCTIONAL_LOTTIE_STAGE_BORDER = getThemeColors('light').surfaceBorder
 
 type LottieLayer = {
   ty?: number
@@ -34,27 +35,57 @@ type LottieComposition = AnimationObject & {
   assets?: LottieComposition[]
 }
 
-const REPLACED_BACKGROUND_COLORS = new Set([
+const LIGHT_STAGE_COLORS = new Set([
   '#ffffff',
   '#fff',
   '#f5f5f5',
-  '#0a0a0c',
-  '#14141a',
+  '#f5f5f7',
+  getThemeColors('light').background.toLowerCase(),
+  getThemeColors('light').backgroundElevated.toLowerCase(),
   FUNCTIONAL_LOTTIE_STAGE.toLowerCase(),
 ])
+
+/** Cores de fundo escuro embutidas nos JSONs de exercício (tema antigo). */
+const DARK_EMBEDDED_LOTTIE_BACKGROUNDS = new Set([
+  '#0a0a0c',
+  '#14141a',
+  '#121218',
+  '#0e0e14',
+  '#050508',
+  '#08080a',
+  '#101018',
+  '#1a1a1f',
+  '#000000',
+  '#000',
+  '#111827',
+  '#1f2937',
+])
+
+function normalizeSolidColor(color: string) {
+  return color.trim().toLowerCase()
+}
+
+function isDarkEmbeddedBackground(color: string) {
+  const normalized = normalizeSolidColor(color)
+  return DARK_EMBEDDED_LOTTIE_BACKGROUNDS.has(normalized)
+}
 
 export function isBackgroundSolidLayer(layer: LottieLayer) {
   if (layer.ty !== 1) return false
 
   const name = (layer.nm ?? '').toLowerCase()
   if (
-    /white solid|pale red solid|^bg$|^background$|^app background$/.test(name)
+    /white solid|pale red solid|black solid|dark solid|^bg$|^background$|^app background$/.test(
+      name,
+    )
   ) {
     return true
   }
 
-  const color = (layer.sc ?? '').toLowerCase()
-  return REPLACED_BACKGROUND_COLORS.has(color)
+  const color = normalizeSolidColor(layer.sc ?? '')
+  if (!color) return false
+
+  return LIGHT_STAGE_COLORS.has(color) || isDarkEmbeddedBackground(color)
 }
 
 function createStageBackgroundLayer(width: number, height: number, outPoint: number) {

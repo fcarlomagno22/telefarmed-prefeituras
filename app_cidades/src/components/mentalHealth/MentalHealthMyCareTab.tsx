@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useMemo, type ReactNode } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { buildWeekOverview } from '../../data/mentalHealthTodayState'
 import type { MentalHealthCheckInEntry } from '../../types/mentalHealth'
 import type { UserClinicalState } from '../../types/mentalHealthEngine'
@@ -62,11 +62,13 @@ export function MentalHealthMyCareTab({
   const previewEntries = checkInEntries.slice(0, 5)
 
   return (
-    <ScrollView
-      style={styles.body}
-      contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={styles.root}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+      >
       <View style={styles.hero}>
         <Text style={styles.eyebrow}>Histórico</Text>
         <Text style={styles.heroTitle}>Seu ritmo ao longo do tempo</Text>
@@ -168,7 +170,8 @@ export function MentalHealthMyCareTab({
           subtle
         />
       </Section>
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
@@ -231,8 +234,35 @@ function ActionChip({
   )
 }
 
+const LIGHT_CARD = {
+  backgroundColor: '#ffffff',
+  borderWidth: 1,
+  borderColor: 'rgba(15, 23, 42, 0.08)',
+} as const
+
 const styles = StyleSheet.create({
-  body: { flex: 1 },
+  root: {
+    flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        height: '100%',
+      },
+      default: {},
+    }),
+  },
+  scroll: {
+    flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        height: '100%',
+      },
+      default: {},
+    }),
+  },
   content: { paddingTop: 8, paddingHorizontal: 20, gap: 22 },
   hero: { gap: 8 },
   eyebrow: {
@@ -259,9 +289,7 @@ const styles = StyleSheet.create({
     gap: 10,
     padding: 16,
     borderRadius: 18,
-    backgroundColor: 'rgba(124, 58, 237, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(196, 181, 253, 0.22)',
+    ...LIGHT_CARD,
   },
   moodHighlightTitle: {
     color: colors.text,
@@ -289,12 +317,12 @@ const styles = StyleSheet.create({
     marginTop: -4,
   },
   sectionBody: { gap: 10, paddingTop: 2 },
-  streakText: { color: '#a5f3fc', fontSize: 13, fontWeight: '600' },
+  streakText: { color: '#0e7490', fontSize: 13, fontWeight: '600' },
   checkInRow: {
     gap: 4,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255,255,255,0.07)',
+    borderBottomColor: 'rgba(15, 23, 42, 0.08)',
   },
   checkInHeader: { flexDirection: 'row', justifyContent: 'space-between' },
   checkInDate: {
@@ -318,9 +346,7 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 16,
     alignItems: 'center',
-    backgroundColor: 'rgba(124, 58, 237, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(196, 181, 253, 0.2)',
+    ...LIGHT_CARD,
   },
   statLabel: {
     color: colors.textSubtle,
@@ -344,7 +370,7 @@ const styles = StyleSheet.create({
   activityRow: {
     padding: 12,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    ...LIGHT_CARD,
     gap: 2,
   },
   activityTitle: { color: colors.text, fontSize: 14, fontWeight: '600' },
@@ -369,9 +395,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#c4b5fd',
   },
   actionChipSubtle: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    ...LIGHT_CARD,
   },
   actionChipText: { color: '#1a1208', fontSize: 14, fontWeight: '700' },
   actionChipTextSubtle: { color: colors.text },

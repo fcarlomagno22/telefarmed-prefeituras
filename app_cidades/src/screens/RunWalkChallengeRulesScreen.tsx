@@ -67,7 +67,7 @@ export function RunWalkChallengeRulesScreen() {
   return (
     <View style={styles.root}>
       <LinearGradient
-        colors={['#0a0a0c', '#101018', '#0a0a0c']}
+        colors={[colors.background, colors.backgroundElevated, colors.background]}
         style={StyleSheet.absoluteFill}
       />
 
@@ -123,14 +123,14 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   ruleRow: {
     gap: 4,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: colors.surfaceBorder,
   },
   ruleLabel: {
     color: '#f9a8d4',
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
-    backgroundColor: 'rgba(10, 10, 12, 0.96)',
+    borderTopColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
 })

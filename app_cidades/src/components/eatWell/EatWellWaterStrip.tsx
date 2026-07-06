@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../theme/colors'
 import { formatLitersFromMl } from '../../utils/eatWellNutritionStats'
@@ -35,15 +34,10 @@ export function EatWellWaterStrip({
 
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(6, 182, 212, 0.16)', 'rgba(14, 14, 20, 0.98)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <View style={styles.headerRow}>
           <View style={styles.titleRow}>
-            <Ionicons name="water" size={18} color="#67e8f9" />
+            <Ionicons name="water" size={18} color="#0891b2" />
             <Text style={styles.title}>Hidratação</Text>
           </View>
           <Text style={styles.value}>
@@ -59,7 +53,7 @@ export function EatWellWaterStrip({
                 key={index}
                 name={filled ? 'water' : 'water-outline'}
                 size={16}
-                color={filled ? '#67e8f9' : 'rgba(103, 232, 249, 0.25)'}
+                color={filled ? '#0891b2' : 'rgba(8, 145, 178, 0.28)'}
               />
             )
           })}
@@ -78,7 +72,7 @@ export function EatWellWaterStrip({
             onPress={handleRegisterPress}
             style={({ pressed }) => [styles.registerBtn, pressed && styles.registerBtnPressed]}
           >
-            <Ionicons name="add-circle-outline" size={16} color="#0a0a0c" />
+            <Ionicons name="add-circle-outline" size={16} color="#0891b2" />
             <Text style={styles.registerBtnText}>Registrar</Text>
           </Pressable>
 
@@ -91,7 +85,7 @@ export function EatWellWaterStrip({
             </Pressable>
           ) : null}
         </View>
-      </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -105,7 +99,8 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 10,
     borderWidth: 1,
-    borderColor: 'rgba(6, 182, 212, 0.2)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   headerRow: {
     flexDirection: 'row',
@@ -123,7 +118,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   value: {
-    color: '#a5f3fc',
+    color: '#0891b2',
     fontSize: 12,
     fontWeight: '800',
   },
@@ -148,13 +143,15 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 11,
     borderRadius: 12,
-    backgroundColor: '#67e8f9',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: 'rgba(8, 145, 178, 0.35)',
   },
   registerBtnPressed: {
     opacity: 0.88,
   },
   registerBtnText: {
-    color: '#0a0a0c',
+    color: '#0891b2',
     fontSize: 13,
     fontWeight: '900',
   },
@@ -164,8 +161,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
 })

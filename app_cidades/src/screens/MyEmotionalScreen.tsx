@@ -1,22 +1,21 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import { useCallback, useState } from 'react'
-import { ImageBackground, StyleSheet, View } from 'react-native'
+import { ImageBackground, Platform, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
 import { EmotionalScreeningHomeContent } from '../components/emotionalScreening/EmotionalScreeningHomeContent'
 import { MenuDrawer } from '../components/MenuDrawer'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
-import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
 
 export function MyEmotionalScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { user, navigateTo, goBack, canGoBack, logout } = useAuth()
   const { requireAuth } = useGuestAuth()
@@ -53,12 +52,20 @@ export function MyEmotionalScreen() {
 
   return (
     <View style={styles.root}>
-      <ImageBackground source={backgroundSource} style={styles.background} resizeMode="cover">
-        <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'rgba(10, 10, 12, 0.92)']}
-          style={StyleSheet.absoluteFillObject}
-        />
+      <ImageBackground
+        source={backgroundSource}
+        style={styles.background}
+        resizeMode="cover"
+        imageStyle={styles.backgroundImage}
+      />
 
+      <LinearGradient
+        colors={[themeColors.screenOverlay[0], 'transparent']}
+        style={styles.screenOverlay}
+        pointerEvents="none"
+      />
+
+      <View style={styles.pageColumn}>
         <ScreenStackHeader
           title="Meu emocional"
           subtitle="Bem-estar emocional"
@@ -75,15 +82,15 @@ export function MyEmotionalScreen() {
         />
 
         <BottomTabBar activeTab={null} onTabPress={handleTabPress} />
+      </View>
 
-        <MenuDrawer
-          visible={menuVisible}
-          onClose={() => setMenuVisible(false)}
-          userName={user?.name}
-          selfieUri={user?.selfieUri}
-          onLogoutPress={() => void logout()}
-        />
-      </ImageBackground>
+      <MenuDrawer
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        userName={user?.name}
+        selfieUri={user?.selfieUri}
+        onLogoutPress={() => void logout()}
+      />
     </View>
   )
 }
@@ -94,6 +101,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   background: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  backgroundImage: {
+    width: '100%',
+    height: '100%',
+  },
+  screenOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  pageColumn: {
     flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        height: '100%',
+        overflow: 'hidden',
+      },
+      default: {},
+    }),
   },
 })

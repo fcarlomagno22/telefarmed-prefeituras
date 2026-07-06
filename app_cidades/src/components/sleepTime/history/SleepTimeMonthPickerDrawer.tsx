@@ -163,9 +163,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   yearNavBtnDisabled: {
     opacity: 0.45,
@@ -193,9 +193,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   monthCellSelected: {
     backgroundColor: 'rgba(99, 102, 241, 0.22)',
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   monthCellTextSelected: {
-    color: '#c7d2fe',
+    color: '#4338ca',
   },
   monthCellTextDisabled: {
     color: colors.textSubtle,

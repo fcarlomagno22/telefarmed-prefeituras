@@ -10,6 +10,7 @@ import {
   CROSSWORD_KEYBOARD_ROWS,
   getCrosswordLetterVariants,
 } from '../../../config/crosswordKeyboard'
+import { activeMindGameChrome } from '../../../theme/activeMindGameChrome'
 import { colors } from '../../../theme/colors'
 import { playPalavrasClickSound } from '../../../utils/appSounds'
 import { AppModal } from '../../AppModal'
@@ -253,9 +254,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: activeMindGameChrome.tileBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: activeMindGameChrome.tileBorder,
   },
   letterButtonWithVariants: {
     borderColor: 'rgba(244, 114, 182, 0.22)',
@@ -296,7 +297,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 8,
     borderRadius: 12,
-    backgroundColor: 'rgba(14, 14, 20, 0.98)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     borderColor: 'rgba(244, 114, 182, 0.45)',
     shadowColor: '#000',
@@ -329,7 +330,7 @@ const styles = StyleSheet.create({
     bottom: -5,
     width: 10,
     height: 10,
-    backgroundColor: 'rgba(14, 14, 20, 0.98)',
+    backgroundColor: colors.backgroundElevated,
     borderBottomWidth: 1,
     borderRightWidth: 1,
     borderColor: 'rgba(244, 114, 182, 0.45)',

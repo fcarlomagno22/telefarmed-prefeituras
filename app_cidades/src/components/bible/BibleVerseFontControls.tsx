@@ -9,6 +9,7 @@ type BibleVerseFontControlsProps = {
   maxSize: number
   onDecrease: () => void
   onIncrease: () => void
+  tone?: 'default' | 'dark'
 }
 
 export function BibleVerseFontControls({
@@ -17,7 +18,10 @@ export function BibleVerseFontControls({
   maxSize,
   onDecrease,
   onIncrease,
+  tone = 'default',
 }: BibleVerseFontControlsProps) {
+  const isDark = tone === 'dark'
+
   return (
     <View style={styles.wrap}>
       <Pressable
@@ -29,13 +33,21 @@ export function BibleVerseFontControls({
         disabled={fontSize <= minSize}
         style={({ pressed }) => [
           styles.button,
+          isDark && styles.buttonDark,
           fontSize <= minSize && styles.buttonDisabled,
           pressed && fontSize > minSize && styles.pressed,
         ]}
         accessibilityRole="button"
         accessibilityLabel="Diminuir texto"
       >
-        <Text style={[styles.buttonLabel, fontSize <= minSize && styles.buttonLabelDisabled]}>
+        <Text
+          style={[
+            styles.buttonLabel,
+            isDark && styles.buttonLabelDark,
+            fontSize <= minSize && styles.buttonLabelDisabled,
+            fontSize <= minSize && isDark && styles.buttonLabelDisabledDark,
+          ]}
+        >
           A-
         </Text>
       </Pressable>
@@ -48,13 +60,21 @@ export function BibleVerseFontControls({
         disabled={fontSize >= maxSize}
         style={({ pressed }) => [
           styles.button,
+          isDark && styles.buttonDark,
           fontSize >= maxSize && styles.buttonDisabled,
           pressed && fontSize < maxSize && styles.pressed,
         ]}
         accessibilityRole="button"
         accessibilityLabel="Aumentar texto"
       >
-        <Text style={[styles.buttonLabel, fontSize >= maxSize && styles.buttonLabelDisabled]}>
+        <Text
+          style={[
+            styles.buttonLabel,
+            isDark && styles.buttonLabelDark,
+            fontSize >= maxSize && styles.buttonLabelDisabled,
+            fontSize >= maxSize && isDark && styles.buttonLabelDisabledDark,
+          ]}
+        >
           A+
         </Text>
       </Pressable>
@@ -75,9 +95,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   buttonDisabled: {
     opacity: 0.45,
@@ -89,6 +109,16 @@ const styles = StyleSheet.create({
   },
   buttonLabelDisabled: {
     color: colors.textSubtle,
+  },
+  buttonDark: {
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+  },
+  buttonLabelDark: {
+    color: '#fafafa',
+  },
+  buttonLabelDisabledDark: {
+    color: 'rgba(255, 255, 255, 0.35)',
   },
   pressed: {
     opacity: 0.82,

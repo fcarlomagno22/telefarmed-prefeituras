@@ -43,12 +43,18 @@ function computeBearingDegrees(from: GeoFix, to: GeoFix): number {
   return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360
 }
 
+const RELAXED_POLL_SETTINGS: PositionOptions = {
+  enableHighAccuracy: false,
+  timeout: 15000,
+  maximumAge: 30000,
+}
+
 function accuracySettings(accuracy?: AppLocationAccuracy): PositionOptions {
   switch (accuracy) {
     case AppLocationAccuracy.BestForNavigation:
     case AppLocationAccuracy.Highest:
     case AppLocationAccuracy.High:
-      return { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+      return { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 }
     case AppLocationAccuracy.Lowest:
     case AppLocationAccuracy.Low:
       return { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
@@ -132,7 +138,7 @@ function shouldEmitUpdate(
 export function startWebPositionWatcher(
   options: AppLocationWatchOptions,
   callback: PositionCallback,
-  errorHandler?: PositionErrorHandler,
+  _errorHandler?: PositionErrorHandler,
 ): WebPositionWatcher {
   const settings = accuracySettings(options.accuracy)
   let watchId: number | null = null
@@ -187,14 +193,14 @@ export function startWebPositionWatcher(
   const refreshPosition = (reason: 'stale' | 'poll' | 'recover') => {
     if (disposed) return
 
+    const requestSettings = reason === 'poll' || reason === 'recover' ? RELAXED_POLL_SETTINGS : settings
+
     navigator.geolocation.getCurrentPosition(
       (position) => deliverPosition(position, reason !== 'poll'),
-      (error) => {
-        if (reason === 'recover' || mode === 'poll') {
-          errorHandler?.(error.message)
-        }
+      () => {
+        // Falhas transitórias (ex.: kCLErrorLocationUnknown) são tratadas silenciosamente.
       },
-      settings,
+      requestSettings,
     )
   }
 

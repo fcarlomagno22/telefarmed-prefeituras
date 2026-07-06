@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
+import { colors } from '../../theme/colors'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
+import { myRoutineAccent } from '../../theme/myRoutineAccent'
 import type { MyRoutineTask } from '../../types/myRoutine'
 import {
   formatPriorityLabel,
@@ -48,16 +49,13 @@ export function MyRoutineTaskDetailDrawer({
       onClose={onClose}
     >
       <View style={styles.content}>
-        <LinearGradient
-          colors={['rgba(240, 171, 252, 0.18)', 'rgba(14, 14, 20, 0.98)']}
-          style={styles.heroCard}
-        >
+        <View style={styles.heroCard}>
           <Text style={styles.title}>{task.title}</Text>
           <Text style={styles.schedule}>{formatTaskScheduleLabel(task)}</Text>
           {task.skipReason ? (
             <Text style={styles.skipReason}>Motivo do pulo: {task.skipReason}</Text>
           ) : null}
-        </LinearGradient>
+        </View>
 
         {!isDone && !isSkipped ? (
           <View style={styles.actionsRow}>
@@ -118,8 +116,9 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 16,
     padding: 16,
     gap: 6,
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(240, 171, 252, 0.22)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   title: {
     color: colors.text,

@@ -97,7 +97,7 @@ export function SleepStoryRandomDrawOverlay({
     <AppModal visible transparent animationType="fade" onRequestClose={handleClose}>
       <View style={[styles.root, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 16 }]}>
         {Platform.OS === 'ios' ? (
-          <BlurView intensity={32} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={32} tint="light" style={StyleSheet.absoluteFillObject} />
         ) : null}
         <View style={styles.backdropTint} />
 
@@ -197,9 +197,9 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
     zIndex: 2,
   },
   content: {
@@ -240,8 +240,8 @@ const styles = StyleSheet.create({
     padding: 18,
     gap: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
     overflow: 'hidden',
     alignItems: 'center',
   },

@@ -95,7 +95,7 @@ export function SudokuVictoryDrawer({
   return (
     <AppModal visible={visible} animationType="fade" onRequestClose={onClose}>
       <LinearGradient
-        colors={['#12121a', '#0a0a0c', '#0a0a0c']}
+        colors={[colors.background, colors.backgroundElevated, colors.background]}
         style={StyleSheet.absoluteFillObject}
       />
 
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 107, 0, 0.22)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -279,9 +279,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 8,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   statIconWrap: {
     width: 36,
@@ -308,9 +308,9 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   chartTitle: {
     color: colors.text,
@@ -351,8 +351,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   secondaryButtonPressed: {
     opacity: 0.85,

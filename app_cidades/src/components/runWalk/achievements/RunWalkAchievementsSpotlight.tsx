@@ -41,7 +41,7 @@ export function RunWalkAchievementsSpotlight({
             style={({ pressed }) => [styles.cardPressable, pressed && styles.pressed]}
           >
             <LinearGradient
-              colors={[`${achievement.accentColor}55`, 'rgba(14, 14, 20, 0.98)', '#0a0a0c']}
+              colors={[`${achievement.accentColor}55`, colors.backgroundElevated, colors.background]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={[styles.card, { borderColor: `${achievement.accentColor}55` }]}
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(251, 191, 36, 0.28)',
   },
   badgeText: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.3,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     minHeight: 36,
   },
   date: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 11,
     fontWeight: '700',
   },

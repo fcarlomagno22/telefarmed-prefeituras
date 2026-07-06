@@ -18,7 +18,7 @@ export {
 } from '../../nearbyUnits/nearbyUnitsMapShared'
 
 export const LIVE_SHARE_MAP_CUSTOM_CSS = `
-  html, body, #map { width: 100%; height: 100%; margin: 0; background: #0b0f14; touch-action: none; }
+  html, body, #map { width: 100%; height: 100%; margin: 0; background: #f5f5f7; touch-action: none; }
   .leaflet-control-attribution, .leaflet-control-zoom { display: none !important; }
   .leaflet-marker-icon.live-pin-wrap {
     background: transparent !important;

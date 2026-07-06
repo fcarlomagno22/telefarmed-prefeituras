@@ -34,7 +34,7 @@ export function EmotionalScreeningResultDrawer({
     >
       <View style={styles.content}>
         <LinearGradient
-          colors={[`${severityColor}33`, 'rgba(16, 16, 20, 0.92)']}
+          colors={[`${severityColor}33`, colors.backgroundElevated]}
           style={styles.hero}
         >
           <Text style={styles.heroLabel}>Indicação</Text>
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     padding: 18,
     gap: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   heroLabel: {
     color: colors.textSubtle,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: colors.surfaceBorder,
   },
   subscaleLabel: {
     color: colors.text,
@@ -150,9 +150,9 @@ const styles = StyleSheet.create({
   disclaimerBox: {
     borderRadius: 14,
     padding: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     gap: 6,
   },
   disclaimerTitle: {

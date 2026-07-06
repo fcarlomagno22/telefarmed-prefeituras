@@ -77,13 +77,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   chipActive: {
-    backgroundColor: 'rgba(168, 85, 247, 0.16)',
-    borderColor: 'rgba(196, 181, 253, 0.35)',
+    backgroundColor: 'rgba(168, 85, 247, 0.12)',
+    borderColor: 'rgba(168, 85, 247, 0.24)',
   },
   chipPressed: {
     opacity: 0.88,
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   chipLabelActive: {
-    color: '#e9d5ff',
+    color: '#7c3aed',
     fontWeight: '700',
   },
   chipCount: {
@@ -103,6 +103,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   chipCountActive: {
-    color: '#ddd6fe',
+    color: '#6d28d9',
   },
 })

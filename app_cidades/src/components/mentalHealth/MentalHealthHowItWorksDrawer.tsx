@@ -45,7 +45,7 @@ function StepSlide({ step, width }: { step: MentalHealthHowItWorksStep; width: n
               end={{ x: 1, y: 1 }}
               style={styles.iconCircle}
             >
-              <Ionicons name={step.icon} size={34} color="#0a0a0c" />
+              <Ionicons name={step.icon} size={34} color={colors.text} />
             </LinearGradient>
           </LinearGradient>
         </View>
@@ -185,7 +185,7 @@ export function MentalHealthHowItWorksDrawer({
           <Ionicons
             name={step >= TOTAL_STEPS ? 'checkmark' : 'chevron-forward'}
             size={18}
-            color="#0a0a0c"
+            color={colors.text}
           />
         </LinearGradient>
       </Pressable>
@@ -368,9 +368,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 10,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   navBtnDisabled: {
     opacity: 0.45,
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   nextBtnText: {
-    color: '#0a0a0c',
+    color: colors.text,
     fontSize: 14,
     fontWeight: '800',
   },

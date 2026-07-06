@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   emptyState: {
     alignItems: 'center',
@@ -460,9 +460,9 @@ const styles = StyleSheet.create({
     paddingVertical: 28,
     paddingHorizontal: 16,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   emptyTitle: {
     color: colors.text,
@@ -481,9 +481,9 @@ const styles = StyleSheet.create({
   },
   contactCard: {
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     overflow: 'hidden',
     position: 'relative',
   },
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   cardActionBtnDanger: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
   },
   contactMainPressed: {
     opacity: 0.88,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
   },
   contactMainSelected: {
     backgroundColor: 'rgba(34, 197, 94, 0.06)',
@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(34, 197, 94, 0.28)',
   },
   avatarText: {
-    color: '#86efac',
+    color: '#15803d',
     fontSize: 16,
     fontWeight: '800',
   },
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(34, 197, 94, 0.3)',
   },
   activeBadgeText: {
-    color: '#86efac',
+    color: '#15803d',
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.2,
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
   },
   checkboxSelected: {
     borderColor: '#86efac',
@@ -626,8 +626,8 @@ const styles = StyleSheet.create({
   input: {
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surface,
     paddingHorizontal: 14,
     paddingVertical: 12,
     color: colors.text,
@@ -640,9 +640,9 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 12,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
     marginTop: 6,
   },
   toggleTextCol: {
@@ -682,7 +682,7 @@ const styles = StyleSheet.create({
     transform: [{ translateX: 18 }],
   },
   error: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 12,
     fontWeight: '600',
   },

@@ -35,7 +35,6 @@ import { RunWalkWeeklyGoalCard } from '../components/runWalk/RunWalkWeeklyGoalCa
 import type { RunWalkWeeklyBarCelebrateDay } from '../components/runWalk/RunWalkWeeklyBarChart'
 import { RunWalkWeeklyGoalDrawer } from '../components/runWalk/RunWalkWeeklyGoalDrawer'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
-import { appEnv } from '../config/env'
 import {
   applyActivityMenuAction,
   findTodayActivityById,
@@ -61,6 +60,7 @@ import {
 import { consumePendingWeeklyGoalCelebration, peekPendingWeeklyGoalCelebration } from '../data/runWalkWeeklyCelebration'
 import { useAuth } from '../contexts/AuthContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
 import type {
@@ -75,13 +75,12 @@ import type {
 import type { ActivityModality } from '../types/auth'
 import { getRunWalkRouteParams } from '../types/auth'
 import { applyWeeklyGoalTargets, hasWeeklyGoal } from '../utils/runWalkWeeklyGoal'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
 const SEGMENT_PAGES: RunWalkTab[] = ['today', 'progress']
 
 export function RunWalkScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { width: screenWidth } = useWindowDimensions()
   const { user, navigateTo, goBack, canGoBack, logout, routeParams } = useAuth()
@@ -745,7 +744,7 @@ export function RunWalkScreen() {
         />
 
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'transparent', 'rgba(10, 10, 12, 0.75)']}
+          colors={[...themeColors.screenOverlay]}
           locations={[0, 0.35, 1]}
           style={styles.screenOverlay}
           pointerEvents="none"

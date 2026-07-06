@@ -73,9 +73,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 14,
     gap: 10,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.07)',
+    borderColor: colors.surfaceBorder,
   },
   header: {
     flexDirection: 'row',
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   calories: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 11,
     fontWeight: '800',
   },

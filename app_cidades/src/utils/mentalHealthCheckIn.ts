@@ -20,7 +20,7 @@ export function getMentalHealthCheckInMoodLabel(mood: MentalHealthMoodLevelId) {
 }
 
 export function getMentalHealthMoodLabel(mood: MentalHealthMoodLevelId) {
-  return MENTAL_HEALTH_MOOD_OPTIONS.find((option) => option.id === mood)?.label ?? mood
+  return MENTAL_HEALTH_CHECKIN_MOOD_LABELS[mood] ?? mood
 }
 
 export function getMentalHealthMoodEmoji(mood: MentalHealthMoodLevelId) {

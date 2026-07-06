@@ -433,8 +433,8 @@ const styles = StyleSheet.create({
   podiumCard: {
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
     paddingHorizontal: 12,
     paddingTop: 14,
     paddingBottom: 18,
@@ -482,15 +482,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    backgroundColor: 'rgba(10, 10, 12, 0.35)',
+    backgroundColor: 'rgba(255, 255, 255, 0.55)',
   },
   avatarImage: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
   },
   avatarFallback: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
   },
   avatarInitials: {
     color: colors.text,
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   podiumScore: {
-    color: '#fbcfe8',
+    color: '#be185d',
     fontSize: 12,
     fontWeight: '800',
     textAlign: 'center',
@@ -558,8 +558,8 @@ const styles = StyleSheet.create({
   listCard: {
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
     paddingHorizontal: 12,
     paddingTop: 14,
     paddingBottom: 6,
@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   rowRankLabelHighlighted: {
-    color: '#fbcfe8',
+    color: '#be185d',
   },
   rowHighlighted: {
     marginHorizontal: -4,
@@ -596,7 +596,7 @@ const styles = StyleSheet.create({
   },
   rowDivider: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: colors.surfaceBorder,
   },
   rowTextCol: {
     flex: 1,
@@ -627,7 +627,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(236, 72, 153, 0.35)',
   },
   youBadgeText: {
-    color: '#fbcfe8',
+    color: '#be185d',
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.3,
@@ -644,7 +644,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   rowScoreHighlighted: {
-    color: '#fbcfe8',
+    color: '#be185d',
   },
   gapWrap: {
     flexDirection: 'row',
@@ -656,7 +656,7 @@ const styles = StyleSheet.create({
   gapLine: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
   },
   gapDots: {
     color: colors.textSubtle,

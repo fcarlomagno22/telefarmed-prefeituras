@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   title: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 14,
     fontWeight: '700',
   },

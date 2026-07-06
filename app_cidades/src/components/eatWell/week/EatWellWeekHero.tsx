@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient'
 import { StyleSheet, Text, View } from 'react-native'
 import type { EatWellWeekSummary } from '../../../types/eatWell'
 import { colors } from '../../../theme/colors'
@@ -13,7 +12,7 @@ type EatWellWeekHeroProps = {
 
 function DeltaText({ deltaPct }: { deltaPct: number | null }) {
   const deltaColor =
-    deltaPct == null ? colors.textSubtle : deltaPct >= 0 ? '#6ee7b7' : '#fca5a5'
+    deltaPct == null ? colors.textSubtle : deltaPct >= 0 ? '#15803d' : '#dc2626'
 
   return <Text style={[styles.metricDelta, { color: deltaColor }]}>{formatDeltaLabel(deltaPct)}</Text>
 }
@@ -23,12 +22,7 @@ export function EatWellWeekHero({ summary, animate = true }: EatWellWeekHeroProp
 
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(132, 204, 22, 0.18)', 'rgba(14, 14, 20, 0.98)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <Text style={styles.weekLabel}>{summary.weekLabel}</Text>
 
         <View style={styles.metricsRow}>
@@ -61,7 +55,7 @@ export function EatWellWeekHero({ summary, animate = true }: EatWellWeekHeroProp
           Média diária · {formatCalories(summary.avgDailyCalories)} ·{' '}
           {formatLitersFromMl(summary.totalWaterMl / activeDays)} água
         </Text>
-      </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -75,7 +69,8 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 12,
     borderWidth: 1,
-    borderColor: 'rgba(132, 204, 22, 0.22)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   weekLabel: {
     color: colors.textMuted,
@@ -106,13 +101,13 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   bigNumberLeft: {
-    color: '#fde68a',
+    color: '#b45309',
     fontSize: 26,
     fontWeight: '900',
     letterSpacing: -0.5,
   },
   bigNumberRight: {
-    color: '#67e8f9',
+    color: '#0891b2',
     fontSize: 26,
     fontWeight: '900',
     letterSpacing: -0.5,

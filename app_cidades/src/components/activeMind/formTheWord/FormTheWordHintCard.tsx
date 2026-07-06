@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native'
+import { activeMindGameChrome } from '../../../theme/activeMindGameChrome'
 import { colors } from '../../../theme/colors'
 
 type FormTheWordHintCardProps = {
@@ -22,12 +23,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: activeMindGameChrome.tileBackground,
     borderWidth: 1,
-    borderColor: 'rgba(103, 232, 249, 0.18)',
+    borderColor: activeMindGameChrome.tileBorder,
   },
   label: {
-    color: '#67e8f9',
+    color: activeMindGameChrome.actionWarm,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ActionToast } from '../ActionToast'
 import { AppModal } from '../AppModal'
 import { useAuth } from '../../contexts/AuthContext'
@@ -23,6 +24,8 @@ import { MyRoutineTodayTab } from './MyRoutineTodayTab'
 import type { ThemeColors } from '../../theme/palettes'
 import { useThemedStyles } from '../../hooks/useThemedStyles'
 
+const TAB_BAR_ESTIMATED_HEIGHT = 78
+
 type DrawerKey =
   | 'dayMap'
   | 'minimalExplain'
@@ -40,6 +43,7 @@ type MyRoutineTodayShellProps = {
   patientCpf: string
   record: MyRoutineOnboardingRecord
   refreshKey?: number
+  isPageActive?: boolean
 }
 
 export function MyRoutineTodayShell({
@@ -47,14 +51,16 @@ export function MyRoutineTodayShell({
   patientCpf,
   record,
   refreshKey = 0,
+  isPageActive = true,
 }: MyRoutineTodayShellProps) {
   const styles = useThemedStyles(createStyles)
+  const insets = useSafeAreaInsets()
   const { navigateTo } = useAuth()
   const { requireAuth } = useGuestAuth()
   const guardRoutine = (action: () => void) => {
     requireAuth('vida:my-routine', action)
   }
-  const fabBottom = Math.max(bottomPadding - 72, 88)
+  const fabBottom = TAB_BAR_ESTIMATED_HEIGHT + Math.max(insets.bottom, 8) + 12
 
   const {
     dayPlan,
@@ -184,20 +190,24 @@ export function MyRoutineTodayShell({
         onNavigateModule={(route) => navigateTo(route)}
       />
 
-      <MyRoutineFab bottom={fabBottom} onPress={() => guardRoutine(() => setFabPopoverVisible(true))} />
+      {isPageActive ? (
+        <>
+          <MyRoutineFab bottom={fabBottom} onPress={() => guardRoutine(() => setFabPopoverVisible(true))} />
 
-      <MyRoutineFabPopover
-        visible={fabPopoverVisible}
-        fabBottom={fabBottom}
-        onClose={() => setFabPopoverVisible(false)}
-        onAction={(action) => {
-          guardRoutine(() => {
-            if (action === 'quick-task') setActiveDrawer('quickTask')
-            if (action === 'reminder') setActiveDrawer('reminder')
-            if (action === 'disruption') setActiveDrawer('disruption')
-          })
-        }}
-      />
+          <MyRoutineFabPopover
+            visible={fabPopoverVisible}
+            fabBottom={fabBottom}
+            onClose={() => setFabPopoverVisible(false)}
+            onAction={(action) => {
+              guardRoutine(() => {
+                if (action === 'quick-task') setActiveDrawer('quickTask')
+                if (action === 'reminder') setActiveDrawer('reminder')
+                if (action === 'disruption') setActiveDrawer('disruption')
+              })
+            }}
+          />
+        </>
+      ) : null}
 
       <MyRoutineDayMapDrawer
         visible={drawerVisible.dayMap}
@@ -323,7 +333,7 @@ export function MyRoutineTodayShell({
 
 function createStyles(colors: ThemeColors) {
   return {
-  root: { flex: 1 },
+  root: { flex: 1, minHeight: 0 },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',

@@ -24,6 +24,7 @@ import type {
 import {
   APP_LOCATION_WEB_LIMITATIONS,
   AppLocationAccuracy,
+  getAppLocationFailureReason,
   type AppLocationFailureReason,
   type AppLocationHeadingSupport,
 } from './appLocation.types'
@@ -90,7 +91,7 @@ function accuracySettings(accuracy?: AppLocationAccuracy): {
     case AppLocationAccuracy.BestForNavigation:
     case AppLocationAccuracy.Highest:
     case AppLocationAccuracy.High:
-      return { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+      return { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 }
     case AppLocationAccuracy.Lowest:
     case AppLocationAccuracy.Low:
       return { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
@@ -163,6 +164,25 @@ export async function enableNetworkProviderAsync(): Promise<void> {
   return undefined
 }
 
+function buildAccuracyFallbackChain(
+  requested: AppLocationAccuracy,
+): AppLocationAccuracy[] {
+  switch (requested) {
+    case AppLocationAccuracy.BestForNavigation:
+    case AppLocationAccuracy.Highest:
+      return [
+        requested,
+        AppLocationAccuracy.High,
+        AppLocationAccuracy.Balanced,
+        AppLocationAccuracy.Low,
+      ]
+    case AppLocationAccuracy.High:
+      return [AppLocationAccuracy.High, AppLocationAccuracy.Balanced, AppLocationAccuracy.Low]
+    default:
+      return [requested, AppLocationAccuracy.Low]
+  }
+}
+
 function getCurrentPosition(options: AppLocationWatchOptions): Promise<AppLocationObject> {
   assertBrowserGeolocation()
   const settings = accuracySettings(options.accuracy)
@@ -179,7 +199,22 @@ function getCurrentPosition(options: AppLocationWatchOptions): Promise<AppLocati
 export async function getCurrentPositionAsync(
   options: AppLocationWatchOptions = {},
 ): Promise<AppLocationObject> {
-  return getCurrentPosition(options)
+  const requestedAccuracy = options.accuracy ?? AppLocationAccuracy.Balanced
+  const chain = buildAccuracyFallbackChain(requestedAccuracy)
+  let lastError: unknown
+
+  for (const accuracy of chain) {
+    try {
+      return await getCurrentPosition({ ...options, accuracy })
+    } catch (error) {
+      lastError = error
+      if (getAppLocationFailureReason(error) === 'permission_denied') {
+        throw error
+      }
+    }
+  }
+
+  throw lastError
 }
 
 export async function watchPositionAsync(

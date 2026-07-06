@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(239, 68, 68, 0.28)',
   },
   stepIndexText: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 11,
     fontWeight: '800',
   },

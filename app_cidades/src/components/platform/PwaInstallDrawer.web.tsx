@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { PwaInstallMode } from '../../utils/pwaInstall.types'
 import { colors } from '../../theme/colors'
+import { drawerChrome } from '../../theme/drawerChrome'
 import { PrimaryButton } from '../PrimaryButton'
 
 type PwaInstallDrawerProps = {
@@ -126,7 +127,7 @@ export function PwaInstallDrawer({
         ]}
       >
         <LinearGradient
-          colors={['#14141c', '#0e0e14', colors.background]}
+          colors={[colors.backgroundElevated, drawerChrome.surfaceBottom, colors.background]}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
           style={styles.sheetGradient}
@@ -237,7 +238,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   closeButtonPressed: {
     opacity: 0.82,
@@ -294,9 +295,9 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 16,
     borderRadius: 16,
-    backgroundColor: 'rgba(14, 14, 20, 0.92)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   stepsTitle: {
     color: colors.primaryLight,

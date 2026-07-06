@@ -84,7 +84,7 @@ export function AppointmentCancelDrawer({
     <AppModal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
-          <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
           <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
         </Animated.View>
 
@@ -174,10 +174,10 @@ const styles = StyleSheet.create({
   sheet: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    backgroundColor: '#121218',
+    backgroundColor: colors.backgroundElevated,
     maxHeight: '88%',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     paddingHorizontal: 16,
     gap: 8,
   },
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginTop: 10,
   },
   iconWrap: {

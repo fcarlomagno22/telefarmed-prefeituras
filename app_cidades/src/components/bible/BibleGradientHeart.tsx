@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { Platform, StyleSheet } from 'react-native'
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg'
 
 type BibleGradientHeartProps = {
@@ -9,11 +10,16 @@ export function BibleGradientHeart({ size = 22 }: BibleGradientHeartProps) {
   const gradientId = useRef(`bibleHeart-${Math.random().toString(36).slice(2, 9)}`).current
 
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      style={styles.svg}
+    >
       <Defs>
-        <LinearGradient id={gradientId} x1="12" y1="3" x2="12" y2="22">
-          <Stop offset="0" stopColor="#fca5a5" />
-          <Stop offset="0.55" stopColor="#ef4444" />
+        <LinearGradient id={gradientId} x1="12" y1="2" x2="12" y2="22">
+          <Stop offset="0" stopColor="#ff8080" />
+          <Stop offset="0.45" stopColor="#ef4444" />
           <Stop offset="1" stopColor="#b91c1c" />
         </LinearGradient>
       </Defs>
@@ -24,3 +30,14 @@ export function BibleGradientHeart({ size = 22 }: BibleGradientHeartProps) {
     </Svg>
   )
 }
+
+const styles = StyleSheet.create({
+  svg: {
+    backgroundColor: 'transparent',
+    ...(Platform.OS === 'web'
+      ? {
+          overflow: 'visible',
+        }
+      : null),
+  },
+})

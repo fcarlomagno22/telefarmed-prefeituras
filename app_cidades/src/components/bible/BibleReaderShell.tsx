@@ -4,11 +4,9 @@ import { ImageBackground, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ScreenStackHeader } from '../ScreenStackHeader'
 import { SpiritualModuleFab } from '../spiritual/SpiritualModuleFab'
-import { appEnv } from '../../config/env'
+import { useTheme } from '../../contexts/ThemeContext'
 import { colors } from '../../theme/colors'
-import { resolveBrandImage } from '../../utils/resolveBrandImage'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const TAB_BAR_ESTIMATED_HEIGHT = 78
 
 type BibleReaderShellProps = {
@@ -30,6 +28,7 @@ export function BibleReaderShell({
   showFab = true,
   headerRight,
 }: BibleReaderShellProps) {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const headerPaddingTop = Math.max(insets.top, 12) + 8
   const fabBottom = TAB_BAR_ESTIMATED_HEIGHT + Math.max(insets.bottom, 8) + 12
@@ -38,7 +37,7 @@ export function BibleReaderShell({
     <View style={styles.root}>
       <ImageBackground source={backgroundSource} style={styles.background} resizeMode="cover">
         <LinearGradient
-          colors={['rgba(10, 10, 12, 0.55)', 'rgba(10, 10, 12, 0.92)']}
+          colors={[themeColors.screenOverlay[0], 'transparent']}
           style={StyleSheet.absoluteFillObject}
         />
 
@@ -50,14 +49,10 @@ export function BibleReaderShell({
           headerRight={headerRight}
         />
 
-        <View style={styles.content}>{children}</View>
+        {children}
 
         {showFab ? (
-          <SpiritualModuleFab
-            bottom={fabBottom}
-            variant="mental-health"
-            onPress={onOpenMentalHealth}
-          />
+          <SpiritualModuleFab bottom={fabBottom} onPress={onOpenMentalHealth} />
         ) : null}
       </ImageBackground>
     </View>
@@ -71,9 +66,5 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
-  },
-  content: {
-    flex: 1,
-    position: 'relative',
   },
 })

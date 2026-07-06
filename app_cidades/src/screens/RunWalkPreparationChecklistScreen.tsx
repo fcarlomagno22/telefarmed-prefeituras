@@ -17,8 +17,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import warmupAnimation from '../../assets/warmup.json'
 import { NeonSectionDivider } from '../components/NeonSectionDivider'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
-import { appEnv } from '../config/env'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { loadActiveLiveShareSession } from '../data/runWalkLiveShareService'
 import { markAppAudioUserGesture } from '../adapters/appAudio'
@@ -36,9 +36,7 @@ import { useRunWalkLocation } from '../hooks/useRunWalkLocation'
 import { colors } from '../theme/colors'
 import { getRunWalkRouteParams } from '../types/auth'
 import { playCheckSound } from '../utils/appSounds'
-import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-const backgroundSource = resolveBrandImage(appEnv.backgroundImageUrl, 'fundo_login.png')
 const REVEAL_STAGGER_MS = 420
 
 function ChecklistRow({
@@ -132,7 +130,7 @@ function ChecklistRow({
     }
   }, [item.ok, visible])
 
-  const borderColor = item.ok ? 'rgba(34, 197, 94, 0.35)' : 'rgba(255, 255, 255, 0.08)'
+  const borderColor = item.ok ? 'rgba(22, 163, 74, 0.45)' : colors.surfaceBorder
   const glowOpacity = glow.interpolate({
     inputRange: [0, 1],
     outputRange: [0, 0.85],
@@ -154,7 +152,7 @@ function ChecklistRow({
         <Ionicons
           name={item.ok ? 'checkmark-circle' : 'ellipse-outline'}
           size={18}
-          color={item.ok ? '#86efac' : colors.textSubtle}
+          color={item.ok ? '#16a34a' : colors.textSubtle}
         />
       </View>
       <View style={styles.textCol}>
@@ -173,6 +171,7 @@ function ChecklistRow({
 }
 
 export function RunWalkPreparationChecklistScreen() {
+  const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { routeParams, navigateTo, goBack, user } = useAuth()
   const { requireAuth } = useGuestAuth()
@@ -288,7 +287,7 @@ export function RunWalkPreparationChecklistScreen() {
       />
 
       <LinearGradient
-        colors={['rgba(10, 10, 12, 0.55)', 'transparent', 'rgba(10, 10, 12, 0.85)']}
+        colors={[themeColors.screenOverlay[0], 'transparent', 'transparent']}
         locations={[0, 0.35, 1]}
         style={styles.screenOverlay}
         pointerEvents="none"
@@ -340,35 +339,41 @@ export function RunWalkPreparationChecklistScreen() {
       </ScrollView>
 
       {showAction ? (
-        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) + 8 }]}>
-          {!canStart ? (
-            <Text style={styles.blockerText}>
-              Aguarde o GPS e verifique a bateria para continuar.
-            </Text>
-          ) : null}
-
-          <Pressable
-            onPress={handleProceed}
-            disabled={!canStart}
-            style={({ pressed }) => [
-              styles.proceedBtn,
-              !canStart && styles.proceedBtnDisabled,
-              pressed && canStart && styles.proceedBtnPressed,
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel="Iniciar contagem regressiva"
-          >
-            <LinearGradient
-              colors={canStart ? ['#86efac', '#22c55e', '#16a34a'] : ['#52525b', '#3f3f46']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.proceedGradient}
-            >
-              <Text style={styles.proceedLabel}>
-                {canStart ? 'Iniciar contagem regressiva' : 'Aguardando requisitos'}
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+          <View style={styles.footerPanel}>
+            {!canStart ? (
+              <Text style={styles.blockerText}>
+                Aguarde o GPS e verifique a bateria para continuar.
               </Text>
-            </LinearGradient>
-          </Pressable>
+            ) : null}
+
+            <Pressable
+              onPress={handleProceed}
+              disabled={!canStart}
+              style={({ pressed }) => [
+                styles.proceedBtn,
+                !canStart && styles.proceedBtnDisabled,
+                pressed && canStart && styles.proceedBtnPressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Iniciar contagem regressiva"
+            >
+              {canStart ? (
+                <LinearGradient
+                  colors={['#4ade80', '#22c55e', '#15803d']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.proceedGradient}
+                >
+                  <Text style={styles.proceedLabel}>Iniciar contagem regressiva</Text>
+                </LinearGradient>
+              ) : (
+                <View style={styles.proceedDisabled}>
+                  <Text style={styles.proceedLabelDisabled}>Aguardando requisitos</Text>
+                </View>
+              )}
+            </Pressable>
+          </View>
         </View>
       ) : null}
     </View>
@@ -427,18 +432,18 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 133, 51, 0.2)',
+    borderColor: colors.surfaceBorder,
   },
   progressFill: {
     height: '100%',
     borderRadius: 999,
-    backgroundColor: '#22c55e',
+    backgroundColor: '#16a34a',
   },
   progressLabel: {
-    color: '#86efac',
+    color: '#15803d',
     fontSize: 11,
     fontWeight: '700',
     textAlign: 'center',
@@ -456,7 +461,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     overflow: 'hidden',
   },
@@ -475,10 +480,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconOk: {
-    backgroundColor: 'rgba(34, 197, 94, 0.18)',
+    backgroundColor: '#dcfce7',
   },
   iconPending: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   textCol: {
     flex: 1,
@@ -499,12 +504,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+    backgroundColor: '#dcfce7',
     borderWidth: 1,
-    borderColor: 'rgba(34, 197, 94, 0.35)',
+    borderColor: 'rgba(22, 163, 74, 0.35)',
   },
   okBadgeText: {
-    color: '#86efac',
+    color: '#15803d',
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.3,
@@ -520,15 +525,19 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    backgroundColor: 'transparent',
+  },
+  footerPanel: {
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: 12,
+    paddingBottom: 8,
     gap: 10,
-    backgroundColor: 'rgba(10, 10, 12, 0.92)',
+    backgroundColor: colors.backgroundElevated,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: colors.surfaceBorder,
   },
   blockerText: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
@@ -539,7 +548,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   proceedBtnDisabled: {
-    opacity: 0.75,
+    opacity: 1,
   },
   proceedBtnPressed: {
     opacity: 0.92,
@@ -551,8 +560,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
+  proceedDisabled: {
+    minHeight: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
   proceedLabel: {
-    color: '#052e16',
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  proceedLabelDisabled: {
+    color: colors.textMuted,
     fontSize: 15,
     fontWeight: '800',
     letterSpacing: -0.2,

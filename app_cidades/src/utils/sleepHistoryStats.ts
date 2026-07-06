@@ -7,6 +7,7 @@ import type {
   SleepQualityDistribution,
   SleepWeekSummary,
 } from '../types/sleepHistory'
+import { colors } from '../theme/colors'
 import {
   buildEatWellMonthDays,
   type EatWellCalendarDay,
@@ -263,20 +264,20 @@ export function getSleepQualityHeatmapColor(
   hasData: boolean,
   isFuture: boolean,
 ) {
-  if (isFuture) return 'rgba(255,255,255,0.04)'
-  if (!hasData || quality == null) return 'rgba(255,255,255,0.07)'
+  if (isFuture) return '#f3f4f6'
+  if (!hasData || quality == null) return colors.surface
 
   switch (quality) {
     case 5:
-      return 'rgba(99, 102, 241, 0.82)'
+      return '#c7d2fe'
     case 4:
-      return 'rgba(129, 140, 248, 0.72)'
+      return '#ddd6fe'
     case 3:
-      return 'rgba(165, 180, 252, 0.58)'
+      return '#fef3c7'
     case 2:
-      return 'rgba(251, 191, 36, 0.58)'
+      return '#fed7aa'
     default:
-      return 'rgba(248, 113, 113, 0.62)'
+      return '#fecaca'
   }
 }
 

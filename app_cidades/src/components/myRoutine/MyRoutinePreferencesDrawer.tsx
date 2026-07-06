@@ -6,8 +6,9 @@ import { PrimaryButton } from '../PrimaryButton'
 import { RunWalkSheetDrawer } from '../runWalk/RunWalkSheetDrawer'
 import type { ThemeColors } from '../../theme/palettes'
 import { useThemedStyles } from '../../hooks/useThemedStyles'
+import { myRoutineAccent } from '../../theme/myRoutineAccent'
 
-const ACCENT_LIGHT = '#f0abfc'
+const ACCENT_LIGHT = myRoutineAccent.accentLight
 
 type MyRoutinePreferencesDrawerProps = {
   visible: boolean
@@ -186,7 +187,9 @@ function createStyles(colors: ThemeColors) {
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
+    borderWidth: 1,
+    borderColor: myRoutineAccent.cardBorder,
   },
   toggleRowDisabled: { opacity: 0.45 },
   toggleLabel: {
@@ -201,13 +204,13 @@ function createStyles(colors: ThemeColors) {
     gap: 12,
     padding: 14,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: myRoutineAccent.cardBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: myRoutineAccent.cardBorder,
   },
   optionSelected: {
-    borderColor: 'rgba(240, 171, 252, 0.35)',
-    backgroundColor: 'rgba(217, 70, 239, 0.1)',
+    borderColor: myRoutineAccent.accentBorder,
+    backgroundColor: myRoutineAccent.cardBackground,
   },
   optionCopy: { flex: 1, gap: 2 },
   optionLabel: {
@@ -215,7 +218,7 @@ function createStyles(colors: ThemeColors) {
     fontSize: 14,
     fontWeight: '700',
   },
-  optionLabelSelected: { color: ACCENT_LIGHT },
+  optionLabelSelected: { color: myRoutineAccent.chipTextSelected },
   optionDescription: {
     color: colors.textMuted,
     fontSize: 12,
@@ -226,7 +229,7 @@ function createStyles(colors: ThemeColors) {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: ACCENT_LIGHT,
+    backgroundColor: myRoutineAccent.chipTextSelected,
   },
   footerBtn: { marginTop: 4 },
 }

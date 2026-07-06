@@ -21,7 +21,7 @@ export function RunWalkAchievementsUpcoming({
   return (
     <View style={styles.wrap}>
       <LinearGradient
-        colors={['rgba(59, 130, 246, 0.16)', 'rgba(14, 14, 20, 0.98)']}
+        colors={['rgba(59, 130, 246, 0.16)', colors.backgroundElevated]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.banner}
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   bannerTitle: {
-    color: '#93c5fd',
+    color: '#2563eb',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.3,

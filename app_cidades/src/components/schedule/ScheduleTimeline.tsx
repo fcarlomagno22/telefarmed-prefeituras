@@ -193,6 +193,6 @@ const styles = StyleSheet.create({
   },
   dotUpcoming: {
     borderColor: 'rgba(255, 255, 255, 0.14)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
   },
 })

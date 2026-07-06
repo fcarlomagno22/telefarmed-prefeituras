@@ -33,32 +33,44 @@ export function RunWalkActivityOnlineBadge({
     : gpsQuality === 'unavailable'
       ? gpsQualityLabel(gpsQuality)
       : 'On-line'
+  const isOnline =
+    !isLocating && (gpsQuality === 'excellent' || gpsQuality === 'good')
 
   return (
-    <View style={styles.root}>
-      <View style={[styles.dot, { backgroundColor: gpsColor }]} />
-      <Text style={styles.label}>{gpsLabel}</Text>
+    <View style={styles.card}>
+      <View style={[styles.dot, { backgroundColor: isOnline ? '#22c55e' : gpsColor }]} />
+      <Text style={[styles.label, { color: isOnline ? '#15803d' : gpsColor }]}>
+        {gpsLabel}
+      </Text>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  root: {
+  card: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: colors.backgroundElevated,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   label: {
-    color: colors.text,
     fontSize: 13,
     fontWeight: '800',
-    textShadowColor: 'rgba(0, 0, 0, 0.85)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 6,
+    letterSpacing: -0.1,
   },
 })

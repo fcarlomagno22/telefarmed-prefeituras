@@ -37,7 +37,7 @@ export function MentalHealthCheckInRecordDrawer({
       subtitle={`Registrado às ${formatMentalHealthCheckInTime(entry.recordedAt)}`}
       onClose={onClose}
     >
-      <DetailLine label="Humor" value={formatMentalHealthMoodDisplay(entry.mood)} />
+      <DetailLine label="Sentimento" value={formatMentalHealthMoodDisplay(entry.mood)} />
       <DetailLine label="Emoções" value={formatMentalHealthEmotions(entry.emotions)} />
       <DetailLine label="Principal influência" value={entry.mainInfluence ?? '—'} />
       <DetailLine

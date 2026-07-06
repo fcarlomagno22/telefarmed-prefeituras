@@ -36,51 +36,57 @@ export function DocumentFlatRow({ item, downloading, onDownload }: DocumentFlatR
   }
 
   return (
-    <View
-      style={[
-        styles.row,
-        { borderColor: palette.cardBorder, backgroundColor: palette.cardBackground },
-      ]}
-    >
-      <LinearGradient colors={[...palette.iconGradient]} style={styles.icon}>
-        <MaterialCommunityIcons name={DOCUMENT_ICONS[document.kind]} size={18} color="#fff" />
-      </LinearGradient>
-
-      <View style={styles.textCol}>
-        <Text style={styles.title}>{document.title}</Text>
-        <Text style={styles.meta}>
-          {formatScheduleDayLabel(appointmentDate)} · {appointment.selectedDoctorName}
-        </Text>
-        <Text style={styles.signedMeta}>
-          PDF · {signedPrefix} às {document.signedAt}
-        </Text>
-      </View>
-
-      <Pressable
-        onPress={handleDownload}
-        disabled={downloading}
-        style={({ pressed }) => [
-          styles.downloadButton,
-          { shadowColor: palette.shadowColor },
-          pressed && !downloading && styles.downloadButtonPressed,
-          downloading && styles.downloadButtonDisabled,
-        ]}
-        accessibilityRole="button"
-        accessibilityLabel={document.downloadLabel}
+    <View style={styles.rowWrap}>
+      <LinearGradient
+        colors={[...palette.cardGradient]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={[styles.row, { borderColor: palette.cardBorder }]}
       >
-        <LinearGradient colors={[...palette.iconGradient]} style={styles.downloadButtonGradient}>
-          {downloading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Ionicons name="download-outline" size={18} color="#fff" />
-          )}
+        <LinearGradient colors={[...palette.iconGradient]} style={styles.icon}>
+          <MaterialCommunityIcons name={DOCUMENT_ICONS[document.kind]} size={18} color="#fff" />
         </LinearGradient>
-      </Pressable>
+
+        <View style={styles.textCol}>
+          <Text style={styles.title}>{document.title}</Text>
+          <Text style={styles.meta}>
+            {formatScheduleDayLabel(appointmentDate)} · {appointment.selectedDoctorName}
+          </Text>
+          <Text style={styles.signedMeta}>
+            PDF · {signedPrefix} às {document.signedAt}
+          </Text>
+        </View>
+
+        <Pressable
+          onPress={handleDownload}
+          disabled={downloading}
+          style={({ pressed }) => [
+            styles.downloadButton,
+            { shadowColor: palette.shadowColor },
+            pressed && !downloading && styles.downloadButtonPressed,
+            downloading && styles.downloadButtonDisabled,
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel={document.downloadLabel}
+        >
+          <LinearGradient colors={[...palette.iconGradient]} style={styles.downloadButtonGradient}>
+            {downloading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Ionicons name="download-outline" size={18} color="#fff" />
+            )}
+          </LinearGradient>
+        </Pressable>
+      </LinearGradient>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
+  rowWrap: {
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -88,6 +94,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 16,
     borderWidth: 1,
+    backgroundColor: colors.cardBg,
   },
   icon: {
     width: 42,

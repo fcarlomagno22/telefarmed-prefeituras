@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
 import { StyleSheet, Text, View } from 'react-native'
 import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
 import { colors } from '../../theme/colors'
@@ -15,10 +14,10 @@ type RunWalkDispositionCardProps = {
 }
 
 function getLevelColor(level: DispositionState['level']) {
-  if (level === 'good') return '#67e8f9'
-  if (level === 'moderate') return '#fde68a'
-  if (level === 'low') return '#fdba74'
-  return '#fca5a5'
+  if (level === 'good') return '#0891b2'
+  if (level === 'moderate') return '#d97706'
+  if (level === 'low') return '#ea580c'
+  return '#dc2626'
 }
 
 export function RunWalkDispositionCard({
@@ -29,12 +28,7 @@ export function RunWalkDispositionCard({
   const accent = getLevelColor(disposition.level)
 
   return (
-    <LinearGradient
-      colors={['rgba(8, 145, 178, 0.22)', 'rgba(14, 116, 144, 0.08)', 'rgba(14, 14, 20, 0.98)']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.card}
-    >
+    <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.iconWrap}>
           <Ionicons name="pulse" size={18} color={accent} />
@@ -63,7 +57,7 @@ export function RunWalkDispositionCard({
           onPress={onCheckinPress}
         />
       </View>
-    </LinearGradient>
+    </View>
   )
 }
 
@@ -74,7 +68,13 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 12,
     borderWidth: 1,
-    borderColor: 'rgba(8, 145, 178, 0.28)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
+    shadowColor: '#0891b2',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+    elevation: 4,
   },
   headerRow: {
     flexDirection: 'row',
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(8, 145, 178, 0.16)',
+    backgroundColor: '#ecfeff',
   },
   headerText: {
     flex: 1,

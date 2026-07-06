@@ -179,10 +179,10 @@ export function HealthIntegrationsCard({
       >
         <View style={styles.cardInner}>
           {Platform.OS === 'ios' ? (
-            <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFillObject} />
+            <BlurView intensity={20} tint="light" style={StyleSheet.absoluteFillObject} />
           ) : null}
           <LinearGradient
-            colors={['rgba(28, 28, 36, 0.96)', 'rgba(14, 14, 20, 0.98)']}
+            colors={[colors.backgroundElevated, '#f0f0f2']}
             style={StyleSheet.absoluteFillObject}
           />
 
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   headerRow: {
     flexDirection: 'row',
@@ -313,9 +313,9 @@ const styles = StyleSheet.create({
   integrationsList: {
     borderRadius: 14,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   integrationRow: {
     flexDirection: 'row',
@@ -373,9 +373,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: colors.surfaceBorder,
   },
   deniedBadgeText: {
     color: colors.textMuted,
@@ -404,6 +404,6 @@ const styles = StyleSheet.create({
   rowDivider: {
     height: 1,
     marginHorizontal: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
 })

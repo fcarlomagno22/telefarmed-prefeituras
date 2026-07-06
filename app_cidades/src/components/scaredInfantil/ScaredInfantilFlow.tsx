@@ -634,7 +634,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   headerText: {
     flex: 1,
@@ -657,7 +657,7 @@ const styles = StyleSheet.create({
     height: 6,
     marginHorizontal: 16,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
     overflow: 'hidden',
   },
   progressFill: {
@@ -688,8 +688,8 @@ const styles = StyleSheet.create({
   input: {
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surface,
     color: colors.text,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -697,7 +697,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   warning: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -712,9 +712,9 @@ const styles = StyleSheet.create({
   consentList: {
     borderRadius: 14,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   consentRow: {
     flexDirection: 'row',
@@ -742,7 +742,7 @@ const styles = StyleSheet.create({
     paddingRight: 2,
   },
   consentRowPressed: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
   },
   consentRowBody: {
     flex: 1,
@@ -762,7 +762,7 @@ const styles = StyleSheet.create({
   },
   consentDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
     marginLeft: 52,
   },
   acceptAllBtn: {
@@ -821,9 +821,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   choiceSelected: {
     backgroundColor: 'rgba(34, 197, 94, 0.18)',

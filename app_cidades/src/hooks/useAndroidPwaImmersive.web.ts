@@ -11,24 +11,33 @@ function isAlreadyFullscreen(): boolean {
   return Boolean(doc.fullscreenElement ?? doc.webkitFullscreenElement)
 }
 
+function applyLightAndroidWebChrome() {
+  applyWebChromeColor(WEB_CHROME_COLOR, WEB_CHROME_COLOR, { colorScheme: 'light' })
+}
+
 export function useAndroidPwaImmersive() {
   useEffect(() => {
     if (!shouldUseAndroidWebImmersive()) return
+
+    applyLightAndroidWebChrome()
 
     const enter = () => {
       if (isAlreadyFullscreen()) return
 
       void requestAndroidPwaFullscreen()
-        .then(() => applyWebChromeColor(WEB_CHROME_COLOR))
+        .then(() => applyLightAndroidWebChrome())
         .catch(() => {})
     }
 
     document.addEventListener('pointerdown', enter, { capture: true, once: true })
 
     const onFullscreenChange = () => {
-      if (!isAlreadyFullscreen()) {
-        document.addEventListener('pointerdown', enter, { capture: true, once: true })
+      if (isAlreadyFullscreen()) {
+        applyLightAndroidWebChrome()
+        return
       }
+
+      document.addEventListener('pointerdown', enter, { capture: true, once: true })
     }
 
     document.addEventListener('fullscreenchange', onFullscreenChange)

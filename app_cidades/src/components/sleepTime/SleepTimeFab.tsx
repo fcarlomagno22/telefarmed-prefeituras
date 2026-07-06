@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Pressable, StyleSheet } from 'react-native'
+import { Platform, Pressable, StyleSheet } from 'react-native'
 import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
+
+const FAB_SIZE = 58
 
 type SleepTimeFabProps = {
   bottom: number
@@ -45,28 +47,40 @@ export function SleepTimeFab({ bottom, onPress }: SleepTimeFabProps) {
 
 const styles = StyleSheet.create({
   wrap: {
-    position: 'absolute',
+    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
     right: 18,
-    zIndex: 20,
-    shadowColor: ACTION_ICON_PALETTES.sleepTime.shadowColor,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.55,
-    shadowRadius: 14,
-    elevation: 12,
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    zIndex: Platform.OS === 'web' ? 1000 : 20,
+    backgroundColor: 'transparent',
   },
   pressed: {
     opacity: 0.9,
     transform: [{ scale: 0.96 }],
   },
   gradient: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    borderRadius: FAB_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.22)',
+    ...Platform.select({
+      web: {
+        boxShadow: 'none',
+        elevation: 0,
+        filter: `drop-shadow(0 8px 14px ${ACTION_ICON_PALETTES.sleepTime.shadowColor})`,
+      },
+      default: {
+        shadowColor: ACTION_ICON_PALETTES.sleepTime.shadowColor,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.55,
+        shadowRadius: 14,
+        elevation: 12,
+      },
+    }),
   },
   gloss: {
     ...StyleSheet.absoluteFillObject,

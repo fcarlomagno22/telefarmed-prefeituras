@@ -154,8 +154,8 @@ const styles = StyleSheet.create({
     minWidth: 72,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
     overflow: 'hidden',
   },
   timeSlotSelected: {

@@ -151,7 +151,8 @@ export function buildGlucoseReportHtml(report: GlucoseReportSummary, meta: Gluco
     * { box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      color: #1f2937;
+      background: #ffffff;
+      color: #1a1a1f;
       margin: 0;
       font-size: 11px;
       line-height: 1.45;

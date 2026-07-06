@@ -120,10 +120,10 @@ export function FeatureAuthDrawer({
             },
           ]}
         >
-          <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
 
           <LinearGradient
-            colors={['rgba(28, 28, 36, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+            colors={[colors.backgroundElevated, '#f0f0f2']}
             style={StyleSheet.absoluteFillObject}
           />
 
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   sheet: {
     borderTopLeftRadius: 28,
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginBottom: 8,
   },
   lottieWrap: {

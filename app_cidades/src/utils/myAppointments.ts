@@ -3,6 +3,7 @@ import {
   MyAppointmentsTab,
   StoredAppointment,
 } from '../types/myAppointments'
+import { colors } from '../theme/colors'
 import { parseScheduleTimeOnDate } from './scheduleCalendarEvent'
 
 export function getAppointmentDateTime(appointment: StoredAppointment): Date {
@@ -85,37 +86,51 @@ export function getAppointmentStatusColors(status: AppointmentStatus): {
   background: string
   border: string
   text: string
+  cardGradient: readonly [string, string, string]
+  cardBorder: string
 } {
+  const white = colors.cardBg
+
   switch (status) {
     case 'confirmed':
       return {
-        background: 'rgba(16, 185, 129, 0.14)',
-        border: 'rgba(16, 185, 129, 0.35)',
-        text: '#6ee7b7',
+        background: 'rgba(16, 185, 129, 0.12)',
+        border: 'rgba(16, 185, 129, 0.24)',
+        text: '#047857',
+        cardGradient: [white, white, 'rgba(16, 185, 129, 0.06)'],
+        cardBorder: 'rgba(16, 185, 129, 0.16)',
       }
     case 'pending':
       return {
-        background: 'rgba(245, 158, 11, 0.14)',
-        border: 'rgba(245, 158, 11, 0.35)',
-        text: '#fde68a',
+        background: 'rgba(245, 158, 11, 0.12)',
+        border: 'rgba(245, 158, 11, 0.24)',
+        text: '#b45309',
+        cardGradient: [white, white, 'rgba(245, 158, 11, 0.06)'],
+        cardBorder: 'rgba(245, 158, 11, 0.16)',
       }
     case 'completed':
       return {
-        background: 'rgba(14, 165, 233, 0.14)',
-        border: 'rgba(14, 165, 233, 0.35)',
-        text: '#7dd3fc',
+        background: 'rgba(14, 165, 233, 0.12)',
+        border: 'rgba(14, 165, 233, 0.24)',
+        text: '#0369a1',
+        cardGradient: [white, white, 'rgba(14, 165, 233, 0.06)'],
+        cardBorder: 'rgba(14, 165, 233, 0.16)',
       }
     case 'cancelled':
       return {
-        background: 'rgba(255, 255, 255, 0.06)',
-        border: 'rgba(255, 255, 255, 0.12)',
-        text: 'rgba(245, 245, 247, 0.55)',
+        background: 'rgba(0, 0, 0, 0.05)',
+        border: 'rgba(0, 0, 0, 0.1)',
+        text: '#52525b',
+        cardGradient: [white, white, 'rgba(0, 0, 0, 0.03)'],
+        cardBorder: colors.surfaceBorder,
       }
     case 'no_show':
       return {
-        background: 'rgba(239, 68, 68, 0.12)',
-        border: 'rgba(239, 68, 68, 0.35)',
-        text: '#fca5a5',
+        background: 'rgba(239, 68, 68, 0.1)',
+        border: 'rgba(239, 68, 68, 0.22)',
+        text: '#b91c1c',
+        cardGradient: [white, white, 'rgba(239, 68, 68, 0.05)'],
+        cardBorder: 'rgba(239, 68, 68, 0.14)',
       }
   }
 }

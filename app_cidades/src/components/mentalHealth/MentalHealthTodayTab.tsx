@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   changeNote: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 14,
     lineHeight: 20,
     paddingTop: 2,
@@ -618,7 +618,7 @@ const styles = StyleSheet.create({
     paddingTop: 2,
   },
   planErrorText: {
-    color: '#fca5a5',
+    color: '#b91c1c',
     fontSize: 14,
     lineHeight: 20,
   },
@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
     marginTop: -4,
   },
   feelingBetterLinkText: {
-    color: '#86efac',
+    color: '#15803d',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -691,11 +691,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   tellUsMoreButtonText: {
-    color: '#a5f3fc',
+    color: '#0e7490',
     fontSize: 14,
     fontWeight: '600',
     textDecorationLine: 'underline',
-    textDecorationColor: 'rgba(103, 232, 249, 0.35)',
+    textDecorationColor: 'rgba(14, 116, 144, 0.45)',
   },
   pressed: {
     opacity: 0.88,

@@ -1,4 +1,6 @@
 import { useThemedStyles } from '../hooks/useThemedStyles'
+import { activeMindGameChrome } from '../theme/activeMindGameChrome'
+import { colors } from '../theme/colors'
 import type { ThemeColors } from '../theme/palettes'
 import { useTheme } from '../contexts/ThemeContext'
 import { Ionicons } from '@expo/vector-icons'
@@ -426,12 +428,12 @@ function createStyles(colors: ThemeColors) {
     gap: 6,
     padding: 14,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   hintLabel: {
-    color: '#fde68a',
+    color: activeMindGameChrome.actionWarm,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1,
@@ -475,7 +477,7 @@ function createStyles(colors: ThemeColors) {
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: activeMindGameChrome.controlBackground,
   },
   newGameButtonPressed: {
     opacity: 0.85,
@@ -491,13 +493,13 @@ function createStyles(colors: ThemeColors) {
     opacity: 0.4,
   },
   revealLink: {
-    color: '#67e8f9',
+    color: activeMindGameChrome.actionLink,
     fontSize: 13,
     fontWeight: '600',
     textDecorationLine: 'underline',
   },
   encerrarLink: {
-    color: '#fde68a',
+    color: activeMindGameChrome.actionWarm,
     fontSize: 13,
     fontWeight: '700',
     textDecorationLine: 'underline',

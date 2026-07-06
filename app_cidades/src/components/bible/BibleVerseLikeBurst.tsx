@@ -57,8 +57,8 @@ export function BibleVerseLikeBurst({ visible, onComplete }: BibleVerseLikeBurst
 
   return (
     <View style={styles.overlay} pointerEvents="none">
-      <Animated.View style={[styles.heartWrap, { opacity, transform: [{ scale }] }]}>
-        <BibleGradientHeart size={88} />
+      <Animated.View style={[styles.heart, { opacity, transform: [{ scale }] }]}>
+        <BibleGradientHeart size={92} />
       </Animated.View>
     </View>
   )
@@ -69,13 +69,10 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
     zIndex: 30,
   },
-  heartWrap: {
-    shadowColor: '#ef4444',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.45,
-    shadowRadius: 24,
-    elevation: 8,
+  heart: {
+    backgroundColor: 'transparent',
   },
 })

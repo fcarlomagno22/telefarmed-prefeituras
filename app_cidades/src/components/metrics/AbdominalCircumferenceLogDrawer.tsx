@@ -49,6 +49,7 @@ type ZoneStyle = {
   color: string
   bg: string
   border: string
+  gradient: readonly [string, string, string]
 }
 
 function clampCm(value: number) {
@@ -69,26 +70,29 @@ function getCircumferenceZone(valueCm: number, gender: string): ZoneStyle {
   if (copy.label === 'Risco elevado') {
     return {
       ...copy,
-      color: '#f87171',
-      bg: 'rgba(239, 68, 68, 0.14)',
-      border: 'rgba(248, 113, 113, 0.35)',
+      color: '#b91c1c',
+      bg: 'rgba(239, 68, 68, 0.12)',
+      border: 'rgba(220, 38, 38, 0.4)',
+      gradient: ['#fee2e2', '#fca5a5', '#f87171'],
     }
   }
 
   if (copy.label === 'Acima do ideal') {
     return {
       ...copy,
-      color: '#fbbf24',
-      bg: 'rgba(245, 158, 11, 0.14)',
-      border: 'rgba(251, 191, 36, 0.35)',
+      color: '#92400e',
+      bg: 'rgba(245, 158, 11, 0.12)',
+      border: 'rgba(217, 119, 6, 0.4)',
+      gradient: ['#fffbeb', '#fde68a', '#fbbf24'],
     }
   }
 
   return {
     ...copy,
-    color: '#34d399',
-    bg: 'rgba(52, 211, 153, 0.14)',
-    border: 'rgba(52, 211, 153, 0.35)',
+    color: '#047857',
+    bg: 'rgba(16, 185, 129, 0.12)',
+    border: 'rgba(5, 150, 105, 0.35)',
+    gradient: ['#ecfdf5', '#6ee7b7', '#34d399'],
   }
 }
 
@@ -301,14 +305,14 @@ export function AbdominalCircumferenceLogDrawer({
             ]}
           >
             <LinearGradient
-              colors={['rgba(36, 36, 46, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+              colors={[colors.backgroundElevated, '#f0f0f2']}
               pointerEvents="none"
               style={StyleSheet.absoluteFillObject}
             />
             {Platform.OS === 'ios' ? (
               <BlurView
                 intensity={28}
-                tint="dark"
+                tint="light"
                 pointerEvents="none"
                 style={StyleSheet.absoluteFillObject}
               />
@@ -371,10 +375,22 @@ export function AbdominalCircumferenceLogDrawer({
                   </Pressable>
                 </View>
 
-                <View style={[styles.zonePill, { backgroundColor: zone.bg, borderColor: zone.border }]}>
+                <LinearGradient
+                  colors={[...zone.gradient]}
+                  start={{ x: 0.12, y: 0 }}
+                  end={{ x: 0.88, y: 1 }}
+                  style={[styles.zonePill, { borderColor: zone.border }]}
+                >
+                  <LinearGradient
+                    colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0)']}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 0.7 }}
+                    style={styles.zonePillGloss}
+                    pointerEvents="none"
+                  />
                   <Text style={[styles.zoneLabel, { color: zone.color }]}>{zone.label}</Text>
                   <Text style={styles.zoneHint}>{zone.hint}</Text>
-                </View>
+                </LinearGradient>
 
                 <View style={styles.inputCard}>
                   <Text style={styles.inputLabel}>Ou digite</Text>
@@ -417,7 +433,7 @@ export function AbdominalCircumferenceLogDrawer({
                     </Pressable>
 
                     <View style={styles.tapeVisual} pointerEvents="none">
-                      <FullBodyFigure size={72} />
+                      <FullBodyFigure size={72} color="rgba(0, 0, 0, 0.16)" />
                       <Text
                         style={[
                           styles.tapeValue,
@@ -463,7 +479,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
   },
   keyboardWrap: {
     flex: 1,
@@ -476,7 +492,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 0,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     maxHeight: '92%',
   },
   scrollContent: {
@@ -495,7 +511,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginTop: 10,
     marginBottom: 14,
   },
@@ -542,7 +558,7 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   closeButtonPressed: {
     opacity: 0.8,
@@ -553,24 +569,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     gap: 4,
+    marginBottom: 12,
+    overflow: 'hidden',
+    alignItems: 'center',
+  },
+  zonePillGloss: {
+    ...StyleSheet.absoluteFillObject,
   },
   zoneLabel: {
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.2,
     textTransform: 'uppercase',
+    textAlign: 'center',
+    width: '100%',
   },
   zoneHint: {
     color: colors.textMuted,
     fontSize: 11,
     lineHeight: 15,
+    textAlign: 'center',
+    width: '100%',
   },
   inputCard: {
     borderRadius: 16,
     padding: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
+    marginBottom: 12,
   },
   inputLabel: {
     color: colors.textMuted,
@@ -581,28 +608,33 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   inputWrap: {
-    flexDirection: 'row',
+    position: 'relative',
     alignItems: 'center',
-    backgroundColor: colors.inputBg,
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.inputBorder,
+    borderColor: colors.surfaceBorder,
     borderRadius: 12,
     paddingHorizontal: 12,
     minHeight: 46,
   },
   input: {
-    flex: 1,
+    width: '100%',
     color: colors.text,
     fontSize: 20,
     fontWeight: '700',
     letterSpacing: -0.3,
     paddingVertical: 8,
+    paddingHorizontal: 28,
+    textAlign: 'center',
+    fontVariant: ['tabular-nums'],
   },
   inputSuffix: {
-    color: '#fb923c',
+    position: 'absolute',
+    right: 12,
+    color: colors.textMuted,
     fontSize: 14,
     fontWeight: '700',
-    marginLeft: 6,
   },
   stepperSection: {
     gap: 8,
@@ -631,9 +663,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   stepperButtonPressed: {
     opacity: 0.8,
@@ -644,9 +676,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     overflow: 'hidden',
   },
   tapeValue: {

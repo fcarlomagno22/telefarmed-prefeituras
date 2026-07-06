@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: colors.surfaceBorder,
   },
   sectionTitle: {
     color: colors.text,

@@ -56,42 +56,49 @@ function DocumentRow({ document, palette, downloading, onDownload }: DocumentRow
   const signedPrefix = document.kind === 'prescription' ? 'Assinada' : 'Assinado'
 
   return (
-    <View style={[styles.documentRow, { borderColor: palette.cardBorder, backgroundColor: palette.cardBackground }]}>
-      <LinearGradient colors={[...palette.iconGradient]} style={styles.documentIcon}>
-        <MaterialCommunityIcons
-          name={DOCUMENT_ICONS[document.kind]}
-          size={18}
-          color="#fff"
-        />
-      </LinearGradient>
-
-      <View style={styles.documentTextCol}>
-        <Text style={styles.documentTitle}>{document.title}</Text>
-        <Text style={styles.documentMeta}>
-          PDF • {signedPrefix} às {document.signedAt}
-        </Text>
-      </View>
-
-      <Pressable
-        onPress={onDownload}
-        disabled={downloading}
-        style={({ pressed }) => [
-          styles.downloadButton,
-          { shadowColor: palette.shadowColor },
-          pressed && !downloading && styles.downloadButtonPressed,
-          downloading && styles.downloadButtonDisabled,
-        ]}
-        accessibilityRole="button"
-        accessibilityLabel={document.downloadLabel}
+    <View style={styles.documentRowWrap}>
+      <LinearGradient
+        colors={[...palette.cardGradient]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={[styles.documentRow, { borderColor: palette.cardBorder }]}
       >
-        <LinearGradient colors={[...palette.iconGradient]} style={styles.downloadButtonGradient}>
-          {downloading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Ionicons name="download-outline" size={18} color="#fff" />
-          )}
+        <LinearGradient colors={[...palette.iconGradient]} style={styles.documentIcon}>
+          <MaterialCommunityIcons
+            name={DOCUMENT_ICONS[document.kind]}
+            size={18}
+            color="#fff"
+          />
         </LinearGradient>
-      </Pressable>
+
+        <View style={styles.documentTextCol}>
+          <Text style={styles.documentTitle}>{document.title}</Text>
+          <Text style={styles.documentMeta}>
+            PDF • {signedPrefix} às {document.signedAt}
+          </Text>
+        </View>
+
+        <Pressable
+          onPress={onDownload}
+          disabled={downloading}
+          style={({ pressed }) => [
+            styles.downloadButton,
+            { shadowColor: palette.shadowColor },
+            pressed && !downloading && styles.downloadButtonPressed,
+            downloading && styles.downloadButtonDisabled,
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel={document.downloadLabel}
+        >
+          <LinearGradient colors={[...palette.iconGradient]} style={styles.downloadButtonGradient}>
+            {downloading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Ionicons name="download-outline" size={18} color="#fff" />
+            )}
+          </LinearGradient>
+        </Pressable>
+      </LinearGradient>
     </View>
   )
 }
@@ -181,7 +188,7 @@ export function AppointmentDocumentsDrawer({
     <AppModal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.root}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
-          <BlurView intensity={28} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
           <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
         </Animated.View>
 
@@ -195,7 +202,7 @@ export function AppointmentDocumentsDrawer({
           ]}
         >
           <LinearGradient
-            colors={['rgba(36, 36, 46, 0.98)', 'rgba(14, 14, 20, 0.99)']}
+            colors={[colors.backgroundElevated, '#f0f0f2']}
             style={StyleSheet.absoluteFillObject}
           />
 
@@ -295,7 +302,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
     overflow: 'hidden',
     paddingHorizontal: 16,
     gap: 12,
@@ -312,7 +319,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginTop: 10,
   },
   headerRow: {
@@ -354,7 +361,7 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
   },
   closeButtonPressed: {
     opacity: 0.82,
@@ -382,6 +389,10 @@ const styles = StyleSheet.create({
   documentsList: {
     gap: 8,
   },
+  documentRowWrap: {
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
   documentRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -389,6 +400,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 16,
     borderWidth: 1,
+    backgroundColor: colors.cardBg,
   },
   documentIcon: {
     width: 42,

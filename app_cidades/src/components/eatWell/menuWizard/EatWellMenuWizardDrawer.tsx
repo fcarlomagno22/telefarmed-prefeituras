@@ -169,7 +169,7 @@ function CheckRow({
       style={({ pressed }) => [styles.checkRow, pressed && styles.checkRowPressed]}
     >
       <View style={[styles.checkBox, checked && styles.checkBoxChecked]}>
-        {checked ? <Ionicons name="checkmark" size={14} color="#0a0a0c" /> : null}
+        {checked ? <Ionicons name="checkmark" size={14} color={colors.text} /> : null}
       </View>
       <Text style={styles.checkLabel}>{label}</Text>
     </Pressable>
@@ -874,7 +874,7 @@ export function EatWellMenuWizardDrawer({
         >
           <View style={styles.greenBtnInner}>
             {isFinishing ? (
-              <ActivityIndicator color="#0a0a0c" size="small" />
+              <ActivityIndicator color={colors.text} size="small" />
             ) : (
               <Text style={styles.greenBtnText}>Concluir</Text>
             )}
@@ -1082,14 +1082,14 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 13,
     color: colors.text,
     fontSize: 15,
     fontWeight: '500',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
   },
   textArea: {
     minHeight: 88,
@@ -1106,8 +1106,8 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   activityRowSelected: {
     borderColor: 'rgba(132, 204, 22, 0.45)',
@@ -1155,8 +1155,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   yesNoBtnSelected: {
     borderColor: 'rgba(132, 204, 22, 0.5)',
@@ -1190,7 +1190,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.18)',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
   },
   checkBoxChecked: {
     borderColor: '#84cc16',
@@ -1245,7 +1245,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: colors.surface,
     overflow: 'hidden',
     marginTop: 8,
   },
@@ -1307,8 +1307,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   backBtnPressed: {
     opacity: 0.86,
@@ -1338,7 +1338,7 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   greenBtnText: {
-    color: '#0a0a0c',
+    color: colors.text,
     fontSize: 15,
     fontWeight: '800',
   },

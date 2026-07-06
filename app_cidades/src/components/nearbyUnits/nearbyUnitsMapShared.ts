@@ -19,15 +19,37 @@ export type NearbyUnitsMapMarker = {
 export const NEARBY_UNITS_LEAFLET_CSS_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
 export const NEARBY_UNITS_LEAFLET_JS_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
 export const NEARBY_UNITS_TILE_URL =
-  'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+  'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+
+export const NEARBY_UNITS_TILE_LAYER_OPTIONS = {
+  maxZoom: 19,
+  subdomains: 'abcd',
+} as const
 
 export const NEARBY_UNITS_MAP_CUSTOM_CSS = `
-  html, body, #map { width: 100%; height: 100%; margin: 0; background: #0b0f14; }
+  html, body, #map { width: 100%; height: 100%; margin: 0; background: #f5f5f7; }
+  .leaflet-container { background: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
   .leaflet-control-attribution { display: none !important; }
   .leaflet-control-zoom a {
-    background: rgba(14, 14, 20, 0.92) !important;
-    color: #f5f5f7 !important;
-    border-color: rgba(255,255,255,0.12) !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    color: #1a1a1f !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+  .leaflet-control-zoom a:hover {
+    background: #ffffff !important;
+    color: #1a1a1f !important;
+  }
+  .leaflet-popup-content-wrapper,
+  .leaflet-popup-tip {
+    background: #ffffff !important;
+    color: #1a1a1f !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14) !important;
+  }
+  .leaflet-popup-content {
+    margin: 10px 12px !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
   }
   .user-pin-wrap, .ubt-pin-wrap { background: transparent; border: none; }
   .user-pin {

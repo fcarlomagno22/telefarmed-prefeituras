@@ -35,7 +35,7 @@ export function RunWalkAchievementTrophyCard({
         colors={
           locked
             ? ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)']
-            : [`${achievement.accentColor}30`, 'rgba(14, 14, 20, 0.98)', 'rgba(10, 10, 12, 0.98)']
+            : [`${achievement.accentColor}30`, colors.backgroundElevated, colors.backgroundElevated]
         }
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -72,7 +72,7 @@ export function RunWalkAchievementTrophyCard({
               </View>
             ) : (
               <View style={[styles.unlockedBadge, { backgroundColor: achievement.accentColor }]}>
-                <MaterialCommunityIcons name="check-bold" size={11} color="#0a0a0c" />
+                <MaterialCommunityIcons name="check-bold" size={11} color={colors.text} />
               </View>
             )}
           </View>
@@ -138,10 +138,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cardUnlocked: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: colors.backgroundElevated,
   },
   cardLocked: {
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   cardFeatured: {
     paddingVertical: 14,
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(100, 116, 139, 0.95)',
     borderWidth: 2,
-    borderColor: '#0a0a0c',
+    borderColor: colors.background,
   },
   unlockedBadge: {
     position: 'absolute',
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#0a0a0c',
+    borderColor: colors.background,
   },
   contentCol: {
     flex: 1,
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(251, 191, 36, 0.24)',
   },
   dateChipText: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 9,
     fontWeight: '800',
     textTransform: 'uppercase',
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   status: {
-    color: '#fde68a',
+    color: '#d97706',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.3,

@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as Haptics from 'expo-haptics'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
 import {
   EMOTIONAL_SCREENING_AUDIENCE_LABELS,
   EMOTIONAL_SCREENING_DISCLAIMER,
@@ -115,10 +115,13 @@ export function EmotionalScreeningTestsTab({
   onSelectInstrument,
 }: EmotionalScreeningTestsTabProps) {
   return (
-    <ScrollView
-      contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={styles.root}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+      >
       <Text style={styles.intro}>
         Escolha um instrumento. O resultado não fecha diagnóstico.
       </Text>
@@ -146,11 +149,32 @@ export function EmotionalScreeningTestsTab({
       })}
 
       <Text style={styles.disclaimer}>{EMOTIONAL_SCREENING_DISCLAIMER}</Text>
-    </ScrollView>
+      </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: { height: '100%' },
+      default: {},
+    }),
+  },
+  scroll: {
+    flex: 1,
+    minHeight: 0,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        height: '100%',
+      },
+      default: {},
+    }),
+  },
   content: {
     paddingHorizontal: 16,
     paddingTop: 4,
@@ -183,13 +207,13 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 14,
     borderRadius: 18,
-    backgroundColor: 'rgba(16, 16, 20, 0.88)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   cardGhost: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.backgroundElevated,
+    borderColor: colors.surfaceBorder,
     opacity: 0.72,
   },
   cardPressed: {
@@ -203,9 +227,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardIconGhost: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   cardBody: {
     flex: 1,
@@ -240,9 +264,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: colors.surfaceBorder,
   },
   soonBadgeText: {
     color: colors.textSubtle,

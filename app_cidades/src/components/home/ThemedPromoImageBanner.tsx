@@ -1,5 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient'
 import { Image, ImageSourcePropType, StyleSheet, Text, View } from 'react-native'
+import { useThemedStyles } from '../../hooks/useThemedStyles'
+import type { ThemeColors } from '../../theme/palettes'
 
 type ThemedPromoImageBannerProps = {
   width: number
@@ -18,15 +20,19 @@ export function ThemedPromoImageBanner({
   title,
   accentColor = '#f97316',
 }: ThemedPromoImageBannerProps) {
+  const styles = useThemedStyles(createStyles)
+
   return (
     <View style={[styles.root, { width, height }]}>
       <Image source={source} style={styles.image} resizeMode="cover" accessibilityIgnoresInvertColors />
 
-      <View style={styles.tint} pointerEvents="none" />
-
       <LinearGradient
-        colors={['rgba(10, 10, 12, 0.08)', 'transparent', 'rgba(10, 10, 12, 0.72)']}
-        locations={[0, 0.42, 1]}
+        colors={[
+          'rgba(255, 255, 255, 0.78)',
+          'rgba(255, 255, 255, 0.08)',
+          'rgba(245, 245, 247, 0.88)',
+        ]}
+        locations={[0, 0.45, 1]}
         style={StyleSheet.absoluteFillObject}
         pointerEvents="none"
       />
@@ -44,59 +50,57 @@ export function ThemedPromoImageBanner({
   )
 }
 
-const styles = StyleSheet.create({
-  root: {
-    overflow: 'hidden',
-    backgroundColor: '#14141a',
-  },
-  image: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
-  },
-  tint: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(10, 10, 12, 0.14)',
-  },
-  copy: {
-    position: 'absolute',
-    left: 14,
-    right: '38%',
-    bottom: 28,
-    gap: 4,
-  },
-  eyebrow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: 5,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 999,
-    backgroundColor: 'rgba(0, 0, 0, 0.28)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-  },
-  eyebrowDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  eyebrowText: {
-    color: 'rgba(255, 255, 255, 0.92)',
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-  },
-  title: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-    lineHeight: 18,
-    textShadowColor: 'rgba(0, 0, 0, 0.45)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-})
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    root: {
+      overflow: 'hidden',
+      backgroundColor: colors.backgroundElevated,
+    },
+    image: {
+      ...StyleSheet.absoluteFillObject,
+      width: '100%',
+      height: '100%',
+    },
+    copy: {
+      position: 'absolute',
+      left: 14,
+      right: '38%',
+      bottom: 28,
+      gap: 4,
+    },
+    eyebrow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      gap: 5,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 999,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.surfaceBorder,
+    },
+    eyebrowDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+    },
+    eyebrowText: {
+      color: colors.text,
+      fontSize: 9,
+      fontWeight: '800',
+      letterSpacing: 0.4,
+      textTransform: 'uppercase',
+    },
+    title: {
+      color: colors.text,
+      fontSize: 15,
+      fontWeight: '800',
+      letterSpacing: -0.2,
+      lineHeight: 18,
+      textShadowColor: 'rgba(255, 255, 255, 0.85)',
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 6,
+    },
+  })
+}

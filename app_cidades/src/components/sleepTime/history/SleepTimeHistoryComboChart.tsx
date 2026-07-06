@@ -1,5 +1,4 @@
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
 import Svg, { Circle, Defs, Line, LinearGradient as SvgLinearGradient, Path, Rect, Stop, Text as SvgText } from 'react-native-svg'
@@ -127,12 +126,7 @@ export function SleepTimeHistoryComboChart({
 
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={['rgba(99, 102, 241, 0.12)', 'rgba(14, 14, 20, 0.98)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
+      <View style={styles.card}>
         <View style={styles.header}>
           <Text style={styles.title}>Esta semana</Text>
           <Text style={styles.subtitle}>Barras = horas dormidas · Linha = qualidade do sono (1–5)</Text>
@@ -298,7 +292,7 @@ export function SleepTimeHistoryComboChart({
           </View>
           <Text style={styles.targetHint}>Meta 8h</Text>
         </View>
-      </LinearGradient>
+      </View>
     </View>
   )
 }
@@ -312,7 +306,8 @@ const styles = StyleSheet.create({
     padding: CARD_PADDING,
     gap: 8,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.16)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
     overflow: 'visible',
   },
   header: {
@@ -341,7 +336,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 12,
-    backgroundColor: 'rgba(14, 14, 20, 0.96)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
     gap: 2,
     shadowColor: '#000',
@@ -357,13 +352,13 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   tooltipValue: {
-    color: '#c7d2fe',
+    color: '#4338ca',
     fontSize: 13,
     fontWeight: '800',
     letterSpacing: -0.2,
   },
   tooltipMeta: {
-    color: '#f0abfc',
+    color: '#7c3aed',
     fontSize: 11,
     fontWeight: '700',
   },

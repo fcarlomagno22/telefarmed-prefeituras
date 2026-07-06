@@ -47,7 +47,7 @@ const TONE_STYLES: Record<
     iconBg: 'rgba(37, 99, 235, 0.12)',
     iconColor: '#93c5fd',
     labelColor: colors.text,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   warning: {
     iconBg: 'rgba(245, 158, 11, 0.16)',
@@ -137,9 +137,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 12,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: colors.surfaceBorder,
   },
   optionWarning: {
     backgroundColor: 'rgba(245, 158, 11, 0.08)',

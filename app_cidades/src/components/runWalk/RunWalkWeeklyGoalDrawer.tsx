@@ -100,7 +100,7 @@ function GoalMetricStepper({
 
   return (
     <LinearGradient
-      colors={['rgba(37, 99, 235, 0.18)', 'rgba(14, 14, 20, 0.92)']}
+      colors={['rgba(37, 99, 235, 0.18)', colors.backgroundElevated]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.metricCard}
@@ -311,8 +311,8 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
     paddingHorizontal: 8,
     paddingVertical: 10,
     gap: 2,
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   presetLabelActive: {
-    color: '#bfdbfe',
+    color: '#1d4ed8',
   },
   presetSubtitle: {
     color: colors.textMuted,

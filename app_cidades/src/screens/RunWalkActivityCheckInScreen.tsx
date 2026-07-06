@@ -239,7 +239,7 @@ export function RunWalkActivityCheckInScreen() {
   return (
     <View style={styles.root}>
       <LinearGradient
-        colors={['#0a0a0c', '#101018', '#0a0a0c']}
+        colors={[colors.background, colors.backgroundElevated, colors.background]}
         style={StyleSheet.absoluteFill}
       />
 
@@ -318,17 +318,20 @@ export function RunWalkActivityCheckInScreen() {
             </Pressable>
 
             {noteVisible ? (
-              <TextInput
-                ref={noteInputRef}
-                value={note}
-                onChangeText={setNote}
-                placeholder="Caminhei bem, mas senti cansaço na subida."
-                placeholderTextColor="rgba(245, 245, 247, 0.34)"
-                multiline
-                textAlignVertical="top"
-                style={styles.noteInput}
-                onLayout={() => scrollRef.current?.scrollToEnd({ animated: true })}
-              />
+              <View style={styles.noteCard}>
+                <Text style={styles.noteCardTitle}>Observação</Text>
+                <TextInput
+                  ref={noteInputRef}
+                  value={note}
+                  onChangeText={setNote}
+                  placeholder="Caminhei bem, mas senti cansaço na subida."
+                  placeholderTextColor={colors.textSubtle}
+                  multiline
+                  textAlignVertical="top"
+                  style={styles.noteInput}
+                  onLayout={() => scrollRef.current?.scrollToEnd({ animated: true })}
+                />
+              </View>
             ) : null}
           </View>
         </ScrollView>
@@ -422,8 +425,8 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   sectionTitle: {
     color: colors.text,
@@ -441,8 +444,8 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   optionChipSelected: {
     borderColor: 'rgba(59, 130, 246, 0.55)',
@@ -454,7 +457,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   optionLabelSelected: {
-    color: '#bfdbfe',
+    color: '#1d4ed8',
   },
   optionPressed: {
     opacity: 0.86,
@@ -476,18 +479,32 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(59, 130, 246, 0.08)',
   },
   noteButtonText: {
-    color: '#93c5fd',
+    color: '#2563eb',
     fontSize: 14,
     fontWeight: '700',
   },
+  noteCard: {
+    gap: 8,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
+  },
+  noteCardTitle: {
+    color: colors.text,
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
   noteInput: {
     minHeight: 96,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surface,
     color: colors.text,
     fontSize: 14,
     lineHeight: 20,
@@ -497,8 +514,8 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     gap: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
-    backgroundColor: 'rgba(10, 10, 12, 0.96)',
+    borderTopColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
   },
   skipButton: {
     alignItems: 'center',

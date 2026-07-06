@@ -46,7 +46,7 @@ export function ScaredInfantilResultView({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <LinearGradient colors={[`${accent}33`, 'rgba(16, 16, 20, 0.94)']} style={styles.hero}>
+        <LinearGradient colors={[`${accent}33`, colors.backgroundElevated]} style={styles.hero}>
           <Text style={styles.heroLabel}>Classificação do rastreio</Text>
           <Text style={[styles.heroValue, { color: accent }]}>{normalized.classificationLabel}</Text>
           <Text style={styles.heroHeadline}>{normalized.headline}</Text>
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     padding: 18,
     gap: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   heroLabel: {
     color: colors.textSubtle,
@@ -193,9 +193,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     gap: 8,
-    backgroundColor: 'rgba(16, 16, 20, 0.88)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   cardTitle: {
     color: colors.text,
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: colors.surfaceBorder,
   },
   domainLabel: {
     color: colors.text,
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   domainValue: {
-    color: '#86efac',
+    color: '#15803d',
     fontSize: 12,
     fontWeight: '800',
     textAlign: 'right',
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     gap: 2,
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: colors.surfaceBorder,
   },
   referralLabel: {
     color: colors.text,
@@ -256,9 +256,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
     gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: colors.surfaceBorder,
   },
   disclaimerTitle: {
     color: colors.text,
@@ -277,6 +277,6 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     backgroundColor: colors.background,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: colors.surfaceBorder,
   },
 })

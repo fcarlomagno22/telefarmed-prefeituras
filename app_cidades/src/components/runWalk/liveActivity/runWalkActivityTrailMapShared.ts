@@ -25,7 +25,7 @@ export {
 } from '../../nearbyUnits/nearbyUnitsMapShared'
 
 export const TRAIL_MAP_BASE_CSS = `
-  html, body, #map { width: 100%; height: 100%; margin: 0; background: #0b0f14; }
+  html, body, #map { width: 100%; height: 100%; margin: 0; background: #f5f5f7; }
   .leaflet-control-attribution, .leaflet-control-zoom { display: none !important; }
 `
 
