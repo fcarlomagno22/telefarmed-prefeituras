@@ -131,10 +131,14 @@ export function HomeHeader({
 }
 
 const AVATAR_SIZE = 52
+const HEADER_BOTTOM_RADIUS = 24
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     wrapper: {
+      overflow: 'hidden',
+      borderBottomLeftRadius: HEADER_BOTTOM_RADIUS,
+      borderBottomRightRadius: HEADER_BOTTOM_RADIUS,
       ...Platform.select({
         web: {
           boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.06)',
@@ -151,6 +155,8 @@ function createStyles(colors: ThemeColors) {
     shell: {
       paddingHorizontal: 20,
       paddingBottom: 20,
+      borderBottomLeftRadius: HEADER_BOTTOM_RADIUS,
+      borderBottomRightRadius: HEADER_BOTTOM_RADIUS,
     },
     row: {
       flexDirection: 'row',
