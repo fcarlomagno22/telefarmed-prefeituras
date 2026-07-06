@@ -90,6 +90,8 @@ type UseRunWalkLocationOptions = {
   enabled?: boolean
   trackHeading?: boolean
   trackingMode?: RunWalkLocationTrackingMode
+  /** Uma leitura inicial: sem watch contínuo e sem re-resolver a cidade. */
+  snapshot?: boolean
 }
 
 const TRACKING_WATCH_OPTIONS: Record<
@@ -105,6 +107,7 @@ export function useRunWalkLocation({
   enabled = true,
   trackHeading = false,
   trackingMode = 'default',
+  snapshot = false,
 }: UseRunWalkLocationOptions) {
   const [state, setState] = useState<RunWalkLocationState>({
     coordinates: null,
@@ -122,6 +125,7 @@ export function useRunWalkLocation({
 
   const watchRef = useRef<AppLocationSubscription | null>(null)
   const headingWatchRef = useRef<AppLocationSubscription | null>(null)
+  const cityResolvedRef = useRef(false)
 
   const stopWatch = useCallback(() => {
     watchRef.current?.remove()
@@ -135,6 +139,8 @@ export function useRunWalkLocation({
 
   const applyPosition = useCallback(
     (latitude: number, longitude: number, accuracy: number | null, heading: number | null, speed: number | null) => {
+      const shouldResolveCity = !snapshot || !cityResolvedRef.current
+
       setState((prev) => ({
         ...prev,
         coordinates: { latitude, longitude },
@@ -147,20 +153,27 @@ export function useRunWalkLocation({
           speed != null && Number.isFinite(speed) && speed >= 0 ? speed : prev.speedMps,
         gpsQuality: accuracyToQuality(accuracy),
         isLocating: false,
-        isResolvingCity: true,
+        isResolvingCity: shouldResolveCity,
         permissionGranted: true,
         permissionDenied: false,
         error: null,
       }))
 
-    void resolveCityLabel(latitude, longitude).then((cityLabel) => {
-      setState((prev) => ({
-        ...prev,
-        cityLabel,
-        isResolvingCity: false,
-      }))
-    })
-  }, [])
+      if (!shouldResolveCity) {
+        return
+      }
+
+      void resolveCityLabel(latitude, longitude).then((cityLabel) => {
+        cityResolvedRef.current = true
+        setState((prev) => ({
+          ...prev,
+          cityLabel,
+          isResolvingCity: false,
+        }))
+      })
+    },
+    [snapshot],
+  )
 
   const applyHeading = useCallback((heading: number) => {
     if (!Number.isFinite(heading) || heading < 0) return
@@ -215,6 +228,11 @@ export function useRunWalkLocation({
         position.coords.speed ?? null,
       )
 
+      if (snapshot) {
+        stopWatch()
+        return
+      }
+
       stopWatch()
       const watchOptions = TRACKING_WATCH_OPTIONS[trackingMode]
       watchRef.current = await watchPositionAsync(
@@ -264,7 +282,7 @@ export function useRunWalkLocation({
         error: 'Não foi possível obter sua localização.',
       }))
     }
-  }, [address, applyPosition, enabled, stopWatch, trackingMode])
+  }, [address, applyPosition, enabled, snapshot, stopWatch, trackingMode])
 
   useEffect(() => {
     if (enabled) {

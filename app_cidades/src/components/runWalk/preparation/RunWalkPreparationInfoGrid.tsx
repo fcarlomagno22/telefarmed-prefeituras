@@ -11,8 +11,10 @@ export type PreparationInfoRow = {
   singleLine?: boolean
 }
 
+export type PreparationInfoRowGroup = PreparationInfoRow | [PreparationInfoRow, PreparationInfoRow]
+
 type RunWalkPreparationInfoGridProps = {
-  rowPairs: PreparationInfoRow[][]
+  rows: PreparationInfoRowGroup[]
 }
 
 function PreparationInfoCell({ row }: { row: PreparationInfoRow }) {
@@ -33,28 +35,37 @@ function PreparationInfoCell({ row }: { row: PreparationInfoRow }) {
   )
 }
 
-export function RunWalkPreparationInfoGrid({ rowPairs }: RunWalkPreparationInfoGridProps) {
-  const lastRowIndex = rowPairs.length - 1
+export function RunWalkPreparationInfoGrid({ rows }: RunWalkPreparationInfoGridProps) {
+  const lastRowIndex = rows.length - 1
 
   return (
     <View style={styles.wrap}>
       <Text style={styles.title}>Informações principais</Text>
       <View style={styles.card}>
-        {rowPairs.map((pair, rowIndex) => (
-          <View
-            key={`row-${rowIndex}`}
-            style={[styles.row, rowIndex < lastRowIndex && styles.rowDivider]}
-          >
-            {pair.map((row, colIndex) => (
-              <View
-                key={row.id}
-                style={[styles.cell, colIndex === 0 && styles.cellDivider]}
-              >
-                <PreparationInfoCell row={row} />
-              </View>
-            ))}
-          </View>
-        ))}
+        {rows.map((group, rowIndex) => {
+          const pair = Array.isArray(group) ? group : [group]
+          const isFullWidth = pair.length === 1
+
+          return (
+            <View
+              key={`row-${pair[0].id}`}
+              style={[styles.row, rowIndex < lastRowIndex && styles.rowDivider]}
+            >
+              {pair.map((row, colIndex) => (
+                <View
+                  key={row.id}
+                  style={[
+                    styles.cell,
+                    isFullWidth && styles.cellFullWidth,
+                    !isFullWidth && colIndex === 0 && styles.cellDivider,
+                  ]}
+                >
+                  <PreparationInfoCell row={row} />
+                </View>
+              ))}
+            </View>
+          )
+        })}
       </View>
     </View>
   )
@@ -96,6 +107,10 @@ const styles = StyleSheet.create({
     gap: 4,
     alignItems: 'center',
     minWidth: 0,
+  },
+  cellFullWidth: {
+    flex: 1,
+    width: '100%',
   },
   cellDivider: {
     borderRightWidth: 1,

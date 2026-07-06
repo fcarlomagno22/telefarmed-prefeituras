@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { RunWalkPreparationInfoGrid } from '../components/runWalk/preparation/RunWalkPreparationInfoGrid'
+import type { PreparationInfoRowGroup } from '../components/runWalk/preparation/RunWalkPreparationInfoGrid'
 import { RunWalkShareLocationDrawer } from '../components/runWalk/preparation/RunWalkShareLocationDrawer'
 import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
@@ -61,11 +62,12 @@ export function RunWalkPreparationScreen() {
 
   const address = user?.address
 
-  const location = useRunWalkLocation({ address, enabled: true })
+  const location = useRunWalkLocation({ address, enabled: true, snapshot: true })
   const battery = useDeviceBattery()
   const weather = useRunWalkWeather(
     location.coordinates?.latitude ?? null,
     location.coordinates?.longitude ?? null,
+    { fetchOnce: true },
   )
 
   const batteryDetail = formatBatteryLevel(
@@ -119,87 +121,58 @@ export function RunWalkPreparationScreen() {
     location.isResolvingCity,
   ])
 
-  const infoRowPairs = useMemo(
+  const infoRows = useMemo<PreparationInfoRowGroup[]>(
     () => [
-      [
-        {
-          id: 'activity',
-          label: 'Atividade',
-          value: activityName,
-          icon: 'flag-outline' as const,
-        },
-        {
-          id: 'modality',
-          label: 'Modalidade',
-          value: ACTIVITY_MODALITY_LABELS[modality],
-          icon: 'footsteps-outline' as const,
-        },
-      ],
-      [
-        {
-          id: 'intensity',
-          label: 'Intensidade',
-          value: intensity,
-          icon: 'speedometer-outline' as const,
-        },
-        {
-          id: 'city',
-          label: 'Cidade',
-          value: cityLabel ?? (location.isLocating || location.isResolvingCity ? 'Localizando...' : '—'),
-          icon: 'location-outline' as const,
-          loading: location.isLocating || location.isResolvingCity,
-        },
-      ],
-      [
-        {
-          id: 'weather',
-          label: 'Clima',
-          value: weather.weather
-            ? formatWeatherLine(weather.weather)
-            : weather.error ?? '—',
-          icon: 'partly-sunny-outline' as const,
-          loading: weather.isLoading,
-          singleLine: true,
-        },
-        {
-          id: 'thermal',
-          label: 'Sensação térmica',
-          value: weather.weather
-            ? formatTemperature(weather.weather.apparentTemperatureC)
-            : weather.error ?? '—',
-          icon: 'thermometer-outline' as const,
-          loading: weather.isLoading,
-        },
-      ],
-      [
-        {
-          id: 'gps',
-          label: 'Qualidade do GPS',
-          value: location.isLocating
-            ? 'Localizando...'
-            : gpsQualityLabel(location.gpsQuality),
-          icon: 'navigate-outline' as const,
-          loading: location.isLocating,
-        },
-        {
-          id: 'battery',
-          label: 'Bateria',
-          value: batteryDetail,
-          icon: 'battery-half-outline' as const,
-          loading: battery.isLoading,
-        },
-      ],
+      {
+        id: 'city',
+        label: 'Cidade',
+        value: cityLabel ?? (location.isLocating || location.isResolvingCity ? 'Localizando...' : '—'),
+        icon: 'location-outline' as const,
+        loading: location.isLocating || location.isResolvingCity,
+      },
+      {
+        id: 'weather',
+        label: 'Clima',
+        value: weather.weather
+          ? formatWeatherLine(weather.weather)
+          : weather.error ?? '—',
+        icon: 'partly-sunny-outline' as const,
+        loading: weather.isLoading,
+        singleLine: true,
+      },
+      {
+        id: 'thermal',
+        label: 'Sensação térmica',
+        value: weather.weather
+          ? formatTemperature(weather.weather.apparentTemperatureC)
+          : weather.error ?? '—',
+        icon: 'thermometer-outline' as const,
+        loading: weather.isLoading,
+      },
+      {
+        id: 'gps',
+        label: 'Qualidade do GPS',
+        value: location.isLocating
+          ? 'Localizando...'
+          : gpsQualityLabel(location.gpsQuality),
+        icon: 'navigate-outline' as const,
+        loading: location.isLocating,
+      },
+      {
+        id: 'battery',
+        label: 'Bateria',
+        value: batteryDetail,
+        icon: 'battery-half-outline' as const,
+        loading: battery.isLoading,
+      },
     ],
     [
-      activityName,
       battery.isLoading,
       batteryDetail,
       cityLabel,
-      intensity,
       location.gpsQuality,
       location.isLocating,
       location.isResolvingCity,
-      modality,
       weather.error,
       weather.isLoading,
       weather.weather,
@@ -304,7 +277,7 @@ export function RunWalkPreparationScreen() {
             <LottieView source={runnerAnimation} autoPlay loop style={styles.runnerLottie} />
           </View>
 
-          <RunWalkPreparationInfoGrid rowPairs={infoRowPairs} />
+          <RunWalkPreparationInfoGrid rows={infoRows} />
         </ScrollView>
 
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
