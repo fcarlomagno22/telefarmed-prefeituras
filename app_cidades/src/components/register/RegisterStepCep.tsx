@@ -150,7 +150,7 @@ export function RegisterStepCep({
         <RegisterTimeline currentStep={1} />
         <LottiePlayer source={sadAnimation} />
         <Text style={formStyles.stepTitle}>Município não atendido</Text>
-        <Text style={styles.notClientText}>
+        <Text style={formStyles.stepSubtitle}>
           O app Telefarmed Sua Cidade é exclusivo para moradores de municípios que possuem
           contrato ativo com a Telefarmed.
           {notClientCity ? `\n\nO CEP informado pertence a ${notClientCity}, que ainda não faz parte da nossa rede.` : ''}
@@ -262,7 +262,9 @@ export function RegisterStepCep({
           {isLoading ? <ActivityIndicator color="#ff6b00" size="small" /> : null}
         </View>
         {isLoading ? (
-          <Text style={styles.loadingHint}>Buscando endereço e validando município...</Text>
+          <Text style={[formStyles.label, { marginTop: 8, textAlign: 'center' }]}>
+            Buscando endereço e validando município...
+          </Text>
         ) : null}
       </View>
 
@@ -282,20 +284,4 @@ function ReadOnlyField({ label, value }: { label: string; value: string }) {
       </View>
     </View>
   )
-}
-
-const styles = {
-  notClientText: {
-    color: 'rgba(245, 245, 247, 0.72)',
-    fontSize: 14,
-    lineHeight: 22,
-    textAlign: 'center' as const,
-    marginBottom: 20,
-  },
-  loadingHint: {
-    color: 'rgba(245, 245, 247, 0.55)',
-    fontSize: 12,
-    marginTop: 8,
-    marginLeft: 4,
-  },
 }
