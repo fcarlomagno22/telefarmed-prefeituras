@@ -10,7 +10,7 @@ import {
 } from '../../../utils/runWalkMusicApps'
 import { colors } from '../../../theme/colors'
 import { RunWalkSheetDrawer } from '../RunWalkSheetDrawer'
-import { RUN_WALK_FLOW_DRAWER_MIN_HEIGHT, RUN_WALK_MUSIC_DRAWER_MIN_HEIGHT } from '../runWalkFlowDrawerLayout'
+import { getRunWalkFlowDrawerMinHeight } from '../runWalkFlowDrawerLayout'
 
 type RunWalkMusicAppsDrawerProps = {
   visible: boolean
@@ -104,7 +104,9 @@ export function RunWalkMusicAppsDrawer({
       }
       onClose={onClose}
       minHeight={
-        showStartActions ? RUN_WALK_FLOW_DRAWER_MIN_HEIGHT : RUN_WALK_MUSIC_DRAWER_MIN_HEIGHT
+        showStartActions
+          ? getRunWalkFlowDrawerMinHeight('flow')
+          : getRunWalkFlowDrawerMinHeight('music')
       }
       footer={
         showStartActions ? (

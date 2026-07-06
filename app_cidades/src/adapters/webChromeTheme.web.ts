@@ -47,7 +47,7 @@ function isAlreadyFullscreen(): boolean {
   return Boolean(doc.fullscreenElement ?? doc.webkitFullscreenElement)
 }
 
-/** Esconde a barra de 3 botões no Android PWA (meta tags não funcionam nesse modo). */
+/** @deprecated PWA usa standalone — não forçar fullscreen (esconde status bar e nav bar). */
 export function requestAndroidPwaFullscreen(): Promise<void> {
   if (typeof document === 'undefined') {
     return Promise.reject(new Error('no document'))
@@ -56,20 +56,7 @@ export function requestAndroidPwaFullscreen(): Promise<void> {
     return Promise.resolve()
   }
 
-  const el = document.documentElement
-  const webkitEl = el as HTMLElement & { webkitRequestFullscreen?: () => Promise<void> }
-  const reqFullscreen =
-    el.requestFullscreen?.bind(el) ?? webkitEl.webkitRequestFullscreen?.bind(el)
-
-  if (!reqFullscreen) {
-    return Promise.reject(new Error('fullscreen unavailable'))
-  }
-
-  try {
-    return reqFullscreen({ navigationUI: 'hide' } as FullscreenOptions)
-  } catch {
-    return reqFullscreen()
-  }
+  return Promise.reject(new Error('fullscreen disabled for pwa standalone'))
 }
 
 export function upsertWebMeta(name: string, content: string) {
@@ -153,11 +140,6 @@ function ensureWebChromeStyles(appBackground: string, colorScheme: WebChromeColo
       min-height: 100%;
       min-height: 100dvh;
     }
-    @media (display-mode: fullscreen) {
-      html {
-        padding-top: env(safe-area-inset-top, 0px);
-      }
-    }
     #root input,
     #root textarea {
       outline: none !important;
@@ -184,7 +166,7 @@ function ensureWebChromeStyles(appBackground: string, colorScheme: WebChromeColo
  * Android PWA standalone:
  * - theme-color → barra de status (topo)
  * - meta color-scheme=light → barra de navegação com gestos
- * - navegação 3-botões ignora meta/CSS — use requestAndroidPwaFullscreen()
+ * - display standalone no manifest (sem fullscreen)
  */
 export function applyWebChromeColor(
   chromeColor: string = WEB_CHROME_COLOR,

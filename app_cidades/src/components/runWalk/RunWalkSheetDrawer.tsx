@@ -26,6 +26,7 @@ import { AppModal } from '../AppModal'
 const SHEET_OFFSET = 720
 const KEYBOARD_EXTRA_SCROLL_PADDING = 24
 const KEYBOARD_FOOTER_CLEARANCE = 12
+const IS_WEB = Platform.OS === 'web'
 
 type RunWalkSheetDrawerProps = {
   visible: boolean
@@ -245,10 +246,12 @@ export function RunWalkSheetDrawer({
     >
       <View style={[styles.host, fullScreen && styles.hostFullScreen, isSleepTone && styles.hostFullScreenSleep]}>
         {!fullScreen ? (
-          <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
+          <Animated.View style={[styles.backdrop, IS_WEB && styles.backdropWeb, { opacity: backdropOpacity }]}>
             <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
             {Platform.OS === 'ios' ? (
               <BlurView intensity={28} tint="light" style={StyleSheet.absoluteFillObject} />
+            ) : IS_WEB ? (
+              <View style={styles.backdropWebTint} pointerEvents="none" />
             ) : null}
           </Animated.View>
         ) : null}
@@ -261,6 +264,7 @@ export function RunWalkSheetDrawer({
           <Animated.View
             style={[
               styles.sheet,
+              IS_WEB && styles.sheetWeb,
               fullScreen && styles.sheetFullScreen,
               effectiveKeyboardInset > 0 && styles.sheetWithKeyboard,
               minHeight != null && { minHeight },
@@ -353,6 +357,13 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.25)',
   },
+  backdropWeb: {
+    backgroundColor: 'rgba(10, 10, 12, 0.42)',
+  },
+  backdropWebTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(245, 245, 247, 0.18)',
+  },
   sheet: {
     maxHeight: '92%',
     borderTopLeftRadius: 24,
@@ -360,6 +371,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
+  },
+  sheetWeb: {
+    width: '100%',
+    maxWidth: 560,
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.14,
+    shadowRadius: 24,
   },
   sheetFullScreen: {
     flex: 1,

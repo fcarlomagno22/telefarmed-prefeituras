@@ -2,51 +2,24 @@ import { useEffect } from 'react'
 import {
   WEB_CHROME_COLOR,
   applyWebChromeColor,
-  requestAndroidPwaFullscreen,
   shouldUseAndroidWebImmersive,
 } from '../adapters/webChromeTheme.web'
 
-function isAlreadyFullscreen(): boolean {
-  const doc = document as Document & { webkitFullscreenElement?: Element | null }
-  return Boolean(doc.fullscreenElement ?? doc.webkitFullscreenElement)
+function exitDocumentFullscreenIfActive() {
+  if (typeof document === 'undefined') return
+
+  const doc = document as Document & { webkitFullscreenElement?: Element | null; webkitExitFullscreen?: () => Promise<void> }
+  if (!doc.fullscreenElement && !doc.webkitFullscreenElement) return
+
+  void (document.exitFullscreen?.() ?? doc.webkitExitFullscreen?.())?.catch(() => undefined)
 }
 
-function applyLightAndroidWebChrome() {
-  applyWebChromeColor(WEB_CHROME_COLOR, WEB_CHROME_COLOR, { colorScheme: 'light' })
-}
-
+/** Aplica theme-color / color-scheme no Android web/PWA, sem entrar em fullscreen. */
 export function useAndroidPwaImmersive() {
   useEffect(() => {
     if (!shouldUseAndroidWebImmersive()) return
 
-    applyLightAndroidWebChrome()
-
-    const enter = () => {
-      if (isAlreadyFullscreen()) return
-
-      void requestAndroidPwaFullscreen()
-        .then(() => applyLightAndroidWebChrome())
-        .catch(() => {})
-    }
-
-    document.addEventListener('pointerdown', enter, { capture: true, once: true })
-
-    const onFullscreenChange = () => {
-      if (isAlreadyFullscreen()) {
-        applyLightAndroidWebChrome()
-        return
-      }
-
-      document.addEventListener('pointerdown', enter, { capture: true, once: true })
-    }
-
-    document.addEventListener('fullscreenchange', onFullscreenChange)
-    document.addEventListener('webkitfullscreenchange', onFullscreenChange)
-
-    return () => {
-      document.removeEventListener('pointerdown', enter, { capture: true })
-      document.removeEventListener('fullscreenchange', onFullscreenChange)
-      document.removeEventListener('webkitfullscreenchange', onFullscreenChange)
-    }
+    exitDocumentFullscreenIfActive()
+    applyWebChromeColor(WEB_CHROME_COLOR, WEB_CHROME_COLOR, { colorScheme: 'light' })
   }, [])
 }

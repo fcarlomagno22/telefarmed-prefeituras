@@ -40,11 +40,16 @@ export type RunWalkLocationState = {
 }
 
 function accuracyToQuality(accuracy: number | null): GpsQuality {
-  if (accuracy == null) return 'unavailable'
+  // Dispositivos e navegadores costumam entregar coordenadas antes da precisão estabilizar.
+  if (accuracy == null) return 'fair'
   if (accuracy <= 10) return 'excellent'
   if (accuracy <= 25) return 'good'
   if (accuracy <= 50) return 'fair'
   return 'poor'
+}
+
+export function isGpsReadyForActivity(gpsLocated: boolean): boolean {
+  return gpsLocated
 }
 
 export function gpsQualityLabel(quality: GpsQuality): string {

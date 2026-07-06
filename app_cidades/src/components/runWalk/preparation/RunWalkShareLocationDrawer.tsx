@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics'
 import LottieView from 'lottie-react-native'
 import { useEffect, useRef, useState } from 'react'
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import {
   createLiveShareSession,
   fetchLiveShareSessionByToken,
@@ -20,7 +20,7 @@ import { shareLiveLocationLink, waitForShareSheet } from '../../../utils/runWalk
 import type { LiveShareSessionSnapshot } from '../../../types/runWalkLiveShare'
 import { PrimaryButton } from '../../PrimaryButton'
 import { RunWalkSheetDrawer } from '../RunWalkSheetDrawer'
-import { RUN_WALK_FLOW_DRAWER_MIN_HEIGHT } from '../runWalkFlowDrawerLayout'
+import { getRunWalkFlowDrawerMinHeight } from '../runWalkFlowDrawerLayout'
 
 const areaMapAnimation = require('../../../../assets/area_map.json')
 
@@ -168,7 +168,9 @@ export function RunWalkShareLocationDrawer({
           : undefined
       }
       onClose={onClose}
-      minHeight={showStartActions ? RUN_WALK_FLOW_DRAWER_MIN_HEIGHT : undefined}
+      scrollable={false}
+      dense
+      minHeight={showStartActions ? getRunWalkFlowDrawerMinHeight('flow') : undefined}
       footer={
         showStartActions ? (
           <View style={styles.footer}>
@@ -214,22 +216,19 @@ export function RunWalkShareLocationDrawer({
 
 const styles = StyleSheet.create({
   content: {
-    flex: 1,
-    gap: 16,
-    paddingBottom: 8,
+    gap: 12,
+    paddingBottom: 4,
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 220,
   },
   lottieWrap: {
     width: '100%',
-    height: 180,
+    height: Platform.OS === 'web' ? 132 : 160,
     alignItems: 'center',
     justifyContent: 'center',
   },
   lottie: {
-    width: 220,
-    height: 180,
+    width: Platform.OS === 'web' ? 168 : 200,
+    height: Platform.OS === 'web' ? 132 : 160,
   },
   hint: {
     color: colors.textMuted,

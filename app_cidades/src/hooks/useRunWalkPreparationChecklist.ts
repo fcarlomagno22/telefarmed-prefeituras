@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { GpsQuality } from './useRunWalkLocation'
+import { isGpsReadyForActivity, type GpsQuality } from './useRunWalkLocation'
 
 export type PreparationChecklistItemId =
   | 'gps'
@@ -32,13 +32,21 @@ export function useRunWalkPreparationChecklist({
   batteryAvailable = true,
   liveShareConfigured,
 }: UseRunWalkPreparationChecklistOptions) {
+  const gpsReady = isGpsReadyForActivity(gpsLocated)
+
   const items = useMemo<PreparationChecklistItem[]>(() => {
+    const gpsDetail = !gpsLocated
+      ? 'Aguardando localização'
+      : gpsQuality === 'poor'
+        ? 'Sinal ativo — precisão baixa'
+        : 'Sinal de localização ativo'
+
     return [
       {
         id: 'gps',
         label: 'GPS localizado',
-        ok: gpsLocated && gpsQuality !== 'unavailable' && gpsQuality !== 'poor',
-        detail: gpsLocated ? 'Sinal de localização ativo' : 'Aguardando localização',
+        ok: gpsReady,
+        detail: gpsDetail,
       },
       {
         id: 'battery',
@@ -70,12 +78,13 @@ export function useRunWalkPreparationChecklist({
     batteryOk,
     gpsLocated,
     gpsQuality,
+    gpsReady,
     liveShareConfigured,
   ])
 
   const requiredItemsOk = items.filter((item) => !item.optional).every((item) => item.ok)
 
-  const canStart = gpsLocated && batteryOk
+  const canStart = requiredItemsOk
 
   return { items, canStart, requiredItemsOk }
 }

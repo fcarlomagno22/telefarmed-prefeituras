@@ -179,7 +179,6 @@ export function RunWalkPreparationChecklistScreen() {
 
   const [liveShareConfigured, setLiveShareConfigured] = useState(false)
   const [revealStarted, setRevealStarted] = useState(false)
-  const [showAction, setShowAction] = useState(false)
   const pulse = useRef(new Animated.Value(0)).current
   const progress = useRef(new Animated.Value(0)).current
 
@@ -217,7 +216,6 @@ export function RunWalkPreparationChecklistScreen() {
 
   useEffect(() => {
     setRevealStarted(true)
-    const actionTimer = setTimeout(() => setShowAction(true), items.length * REVEAL_STAGGER_MS + 500)
 
     Animated.loop(
       Animated.sequence([
@@ -235,9 +233,7 @@ export function RunWalkPreparationChecklistScreen() {
         }),
       ]),
     ).start()
-
-    return () => clearTimeout(actionTimer)
-  }, [items.length, pulse])
+  }, [pulse])
 
   useEffect(() => {
     Animated.timing(progress, {
@@ -338,44 +334,42 @@ export function RunWalkPreparationChecklistScreen() {
         </View>
       </ScrollView>
 
-      {showAction ? (
-        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-          <View style={styles.footerPanel}>
-            {!canStart ? (
-              <Text style={styles.blockerText}>
-                Aguarde o GPS e verifique a bateria para continuar.
-              </Text>
-            ) : null}
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <View style={styles.footerPanel}>
+          {!canStart ? (
+            <Text style={styles.blockerText}>
+              Aguarde o GPS e verifique a bateria para continuar.
+            </Text>
+          ) : null}
 
-            <Pressable
-              onPress={handleProceed}
-              disabled={!canStart}
-              style={({ pressed }) => [
-                styles.proceedBtn,
-                !canStart && styles.proceedBtnDisabled,
-                pressed && canStart && styles.proceedBtnPressed,
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel="Iniciar contagem regressiva"
-            >
-              {canStart ? (
-                <LinearGradient
-                  colors={['#4ade80', '#22c55e', '#15803d']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.proceedGradient}
-                >
-                  <Text style={styles.proceedLabel}>Iniciar contagem regressiva</Text>
-                </LinearGradient>
-              ) : (
-                <View style={styles.proceedDisabled}>
-                  <Text style={styles.proceedLabelDisabled}>Aguardando requisitos</Text>
-                </View>
-              )}
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={handleProceed}
+            disabled={!canStart}
+            style={({ pressed }) => [
+              styles.proceedBtn,
+              !canStart && styles.proceedBtnDisabled,
+              pressed && canStart && styles.proceedBtnPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Iniciar contagem regressiva"
+          >
+            {canStart ? (
+              <LinearGradient
+                colors={['#4ade80', '#22c55e', '#15803d']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.proceedGradient}
+              >
+                <Text style={styles.proceedLabel}>Iniciar contagem regressiva</Text>
+              </LinearGradient>
+            ) : (
+              <View style={styles.proceedDisabled}>
+                <Text style={styles.proceedLabelDisabled}>Aguardando requisitos</Text>
+              </View>
+            )}
+          </Pressable>
         </View>
-      ) : null}
+      </View>
     </View>
   )
 }

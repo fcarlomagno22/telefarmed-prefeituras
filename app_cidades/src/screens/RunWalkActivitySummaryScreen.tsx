@@ -32,8 +32,10 @@ import {
 } from '../data/runWalkWeeklyProgressStorage'
 import { setPendingWeeklyGoalCelebration } from '../data/runWalkWeeklyCelebration'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
+import type { ThemeColors } from '../theme/palettes'
 import { getRunWalkRouteParams } from '../types/auth'
 import { playWinnerSound } from '../utils/appSounds'
 import {
@@ -56,6 +58,7 @@ type SummaryStatProps = {
   value?: string
   metricParts?: ActivityMetricParts
   accent?: string
+  themeColors: ThemeColors
 }
 
 function SummaryStat({
@@ -64,21 +67,30 @@ function SummaryStat({
   value,
   metricParts,
   accent = '#93c5fd',
+  themeColors,
 }: SummaryStatProps) {
   return (
-    <View style={styles.statCard}>
+    <View
+      style={[
+        styles.statCard,
+        {
+          backgroundColor: themeColors.backgroundElevated,
+          borderColor: themeColors.surfaceBorder,
+        },
+      ]}
+    >
       <View style={[styles.statIconWrap, { backgroundColor: `${accent}22` }]}>
         <Ionicons name={icon} size={16} color={accent} />
       </View>
-      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={[styles.statLabel, { color: themeColors.textMuted }]}>{label}</Text>
       {metricParts ? (
         <ActivityMetricValue
           parts={metricParts}
-          valueStyle={styles.statValue}
+          valueStyle={[styles.statValue, { color: themeColors.text }]}
           unitStyle={styles.statUnit}
         />
       ) : (
-        <Text style={styles.statValue}>{value}</Text>
+        <Text style={[styles.statValue, { color: themeColors.text }]}>{value}</Text>
       )}
     </View>
   )
@@ -86,6 +98,7 @@ function SummaryStat({
 
 export function RunWalkActivitySummaryScreen() {
   const insets = useSafeAreaInsets()
+  const { colors: themeColors } = useTheme()
   const { user, navigateTo, routeParams } = useAuth()
   const params = getRunWalkRouteParams(routeParams)
   const summaryId = params.summaryId
@@ -209,9 +222,13 @@ export function RunWalkActivitySummaryScreen() {
   const distanceParts = formatActivityDistanceKmParts(summary.distanceKm)
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: themeColors.background }]}>
       <LinearGradient
-        colors={[colors.background, colors.backgroundElevated, colors.background]}
+        colors={[
+          themeColors.background,
+          themeColors.backgroundElevated,
+          themeColors.background,
+        ]}
         style={StyleSheet.absoluteFill}
       />
 
@@ -230,14 +247,15 @@ export function RunWalkActivitySummaryScreen() {
           disabled={isSharing}
           style={({ pressed }) => [
             styles.shareButton,
+            { backgroundColor: themeColors.backgroundElevated, borderColor: themeColors.surfaceBorder },
             pressed && styles.shareButtonPressed,
             isSharing && styles.shareButtonDisabled,
           ]}
         >
           {isSharing ? (
-            <ActivityIndicator color={colors.primary} size="small" />
+            <ActivityIndicator color={themeColors.primary} size="small" />
           ) : (
-            <Ionicons name="share-outline" size={22} color={colors.primary} />
+            <Ionicons name="share-outline" size={22} color={themeColors.primary} />
           )}
         </Pressable>
       </View>
@@ -254,76 +272,107 @@ export function RunWalkActivitySummaryScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View ref={shareCaptureRef} collapsable={false} style={styles.shareCapture}>
-          <View style={styles.hero}>
-            <View style={styles.lottieWrap}>
-              <LottieView source={winnerAnimation} autoPlay loop={false} style={styles.lottie} />
+        <View
+          ref={shareCaptureRef}
+          collapsable={false}
+          style={[
+            styles.shareCapture,
+            {
+              backgroundColor: themeColors.background,
+              borderColor: themeColors.surfaceBorder,
+            },
+          ]}
+        >
+          <LinearGradient
+            colors={[
+              themeColors.background,
+              themeColors.backgroundElevated,
+              themeColors.background,
+            ]}
+            style={styles.shareCaptureGradient}
+            pointerEvents="none"
+          />
+
+          <LinearGradient
+            colors={['rgba(16, 185, 129, 0.14)', 'transparent', 'rgba(37, 99, 235, 0.1)']}
+            locations={[0, 0.45, 1]}
+            style={styles.shareCaptureGradient}
+            pointerEvents="none"
+          />
+
+          <View style={styles.shareCaptureContent}>
+            <View style={styles.hero}>
+              <View style={styles.lottieWrap}>
+                <LottieView source={winnerAnimation} autoPlay loop={false} style={styles.lottie} />
+              </View>
+
+              <Text style={[styles.title, { color: themeColors.text }]}>Parabéns!</Text>
+              <Text style={[styles.message, { color: themeColors.textSubtle }]}>{SUMMARY_MESSAGE}</Text>
             </View>
 
-            <Text style={styles.title}>Parabéns!</Text>
-            <Text style={styles.message}>{SUMMARY_MESSAGE}</Text>
-          </View>
+            <View style={styles.highlightRow}>
+              <View style={styles.highlightBlock}>
+                <ActivityMetricValue
+                  parts={distanceParts}
+                  valueStyle={[styles.highlightValue, { color: themeColors.text }]}
+                  unitStyle={styles.highlightUnit}
+                />
+                <Text style={[styles.highlightLabel, { color: themeColors.textMuted }]}>Distância</Text>
+              </View>
 
-          <View style={styles.highlightRow}>
-            <View style={styles.highlightBlock}>
-              <ActivityMetricValue
-                parts={distanceParts}
-                valueStyle={styles.highlightValue}
-                unitStyle={styles.highlightUnit}
+              <View style={[styles.highlightDivider, { backgroundColor: themeColors.surface }]} />
+
+              <View style={styles.highlightBlock}>
+                <Text style={[styles.highlightValue, { color: themeColors.text }]}>
+                  {formatElapsedActivityTime(summary.elapsedSeconds)}
+                </Text>
+                <Text style={[styles.highlightLabel, { color: themeColors.textMuted }]}>Tempo</Text>
+              </View>
+
+              <View style={[styles.highlightDivider, { backgroundColor: themeColors.surface }]} />
+
+              <View style={styles.highlightBlock}>
+                <ActivityMetricValue
+                  parts={speedParts}
+                  valueStyle={[styles.highlightValue, { color: themeColors.text }]}
+                  unitStyle={styles.highlightUnit}
+                />
+                <Text style={[styles.highlightLabel, { color: themeColors.textMuted }]}>Vel. média</Text>
+              </View>
+            </View>
+
+            <View style={styles.statsGrid}>
+              <SummaryStat
+                icon="speedometer-outline"
+                label="Vel. média"
+                metricParts={speedParts}
+                accent="#6ee7b7"
+                themeColors={themeColors}
               />
-              <Text style={styles.highlightLabel}>Distância</Text>
-            </View>
-
-            <View style={styles.highlightDivider} />
-
-            <View style={styles.highlightBlock}>
-              <Text style={styles.highlightValue}>
-                {formatElapsedActivityTime(summary.elapsedSeconds)}
-              </Text>
-              <Text style={styles.highlightLabel}>Tempo</Text>
-            </View>
-
-            <View style={styles.highlightDivider} />
-
-            <View style={styles.highlightBlock}>
-              <ActivityMetricValue
-                parts={speedParts}
-                valueStyle={styles.highlightValue}
-                unitStyle={styles.highlightUnit}
+              <SummaryStat
+                icon="flame-outline"
+                label="Calorias"
+                value={formatCaloriesBurned(summary.estimatedCalories)}
+                accent="#fb923c"
+                themeColors={themeColors}
               />
-              <Text style={styles.highlightLabel}>Vel. média</Text>
-            </View>
-          </View>
-
-          <View style={styles.statsGrid}>
-            <SummaryStat
-              icon="speedometer-outline"
-              label="Vel. média"
-              metricParts={speedParts}
-              accent="#6ee7b7"
-            />
-            <SummaryStat
-              icon="flame-outline"
-              label="Calorias"
-              value={formatCaloriesBurned(summary.estimatedCalories)}
-              accent="#fb923c"
-            />
-          </View>
-
-          <View style={styles.mapSection}>
-            <View style={styles.mapHeader}>
-              <Ionicons name="map-outline" size={16} color="#059669" />
-              <Text style={styles.mapTitle}>Seu percurso</Text>
             </View>
 
-            <View style={styles.mapFrame}>
-              <RunWalkActivityTrailMap
-                trail={summary.trail}
-                height={MAP_HEIGHT}
-                interactive
-                profilePhotoUri={user?.selfieUri}
-                onMapInteractionChange={handleMapInteractionChange}
-              />
+            <View style={styles.mapSection}>
+              <View style={styles.mapHeader}>
+                <Ionicons name="map-outline" size={16} color="#059669" />
+                <Text style={[styles.mapTitle, { color: themeColors.text }]}>Seu percurso</Text>
+              </View>
+
+              <View style={[styles.mapFrame, { borderColor: themeColors.surfaceBorder }]}>
+                <RunWalkActivityTrailMap
+                  trail={summary.trail}
+                  height={MAP_HEIGHT}
+                  interactive
+                  profilePhotoUri={user?.selfieUri}
+                  onMapInteractionChange={handleMapInteractionChange}
+                />
+              </View>
             </View>
           </View>
         </View>
@@ -332,7 +381,11 @@ export function RunWalkActivitySummaryScreen() {
       <View
         style={[
           styles.footer,
-          { paddingBottom: Math.max(insets.bottom, 12) },
+          {
+            paddingBottom: Math.max(insets.bottom, 12),
+            backgroundColor: themeColors.backgroundElevated,
+            borderTopColor: themeColors.surfaceBorder,
+          },
         ]}
       >
         <PrimaryButton
@@ -377,9 +430,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: colors.surfaceBorder,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -393,7 +444,19 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   shareCapture: {
+    position: 'relative',
+    overflow: 'hidden',
+    borderRadius: 20,
+    borderWidth: 1,
     gap: 14,
+  },
+  shareCaptureGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  shareCaptureContent: {
+    gap: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
   },
   hero: {
     alignItems: 'center',
@@ -410,13 +473,11 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   title: {
-    color: colors.text,
     fontSize: 32,
     fontWeight: '900',
     letterSpacing: -0.8,
   },
   message: {
-    color: colors.textSubtle,
     fontSize: 13,
     fontWeight: '500',
     lineHeight: 19,
@@ -435,7 +496,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   highlightValue: {
-    color: colors.text,
     fontSize: 22,
     fontWeight: '900',
     letterSpacing: -0.5,
@@ -446,14 +506,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   highlightLabel: {
-    color: colors.textMuted,
     fontSize: 11,
     fontWeight: '700',
   },
   highlightDivider: {
     width: 1,
     height: 42,
-    backgroundColor: colors.surface,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -468,9 +526,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 12,
     gap: 6,
-    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: colors.surfaceBorder,
   },
   statIconWrap: {
     width: 28,
@@ -480,13 +536,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   statLabel: {
-    color: colors.textMuted,
     fontSize: 11,
     fontWeight: '700',
     textAlign: 'center',
   },
   statValue: {
-    color: colors.text,
     fontSize: 18,
     fontWeight: '900',
     letterSpacing: -0.3,
@@ -506,7 +560,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   mapTitle: {
-    color: colors.text,
     fontSize: 14,
     fontWeight: '800',
   },
@@ -514,7 +567,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.surfaceBorder,
   },
   footer: {
     position: 'absolute',
@@ -523,9 +575,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     paddingHorizontal: 16,
     paddingTop: 10,
-    backgroundColor: colors.backgroundElevated,
     borderTopWidth: 1,
-    borderTopColor: colors.surfaceBorder,
   },
   continueButton: {
     marginTop: 0,
