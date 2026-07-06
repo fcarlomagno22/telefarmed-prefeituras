@@ -142,7 +142,7 @@ export function GuestWelcomeCard({ skeleton = false }: { skeleton?: boolean }) {
 const styles = StyleSheet.create({
   wrapper: {
     paddingHorizontal: 16,
-    marginTop: 2,
+    marginTop: 12,
     marginBottom: 4,
   },
   cardBorder: {
