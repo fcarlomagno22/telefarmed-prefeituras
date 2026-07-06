@@ -12,6 +12,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
   type KeyboardEvent,
 } from 'react-native'
@@ -21,9 +22,10 @@ import { colors } from '../../theme/colors'
 import { sleepTimeDrawerTheme } from '../sleepTime/sleepTimeDrawerTheme'
 import { getSheetBottomPadding } from '../../utils/modalSafeArea'
 import { keyboardAvoidingBehavior } from '../../utils/keyboardLayout'
+import { useWebViewportHeight } from '../../hooks/useWebViewportHeight'
 import { AppModal } from '../AppModal'
 
-const SHEET_OFFSET = 720
+const SHEET_OFFSET_FALLBACK = 720
 const KEYBOARD_EXTRA_SCROLL_PADDING = 24
 const KEYBOARD_FOOTER_CLEARANCE = 12
 const IS_WEB = Platform.OS === 'web'
@@ -66,16 +68,24 @@ export function RunWalkSheetDrawer({
   tone = 'default',
 }: RunWalkSheetDrawerProps) {
   const insets = useSafeAreaInsets()
+  const { height: screenHeight } = useWindowDimensions()
+  const webViewportHeight = useWebViewportHeight()
+  const sheetOffset = IS_WEB ? webViewportHeight || screenHeight : SHEET_OFFSET_FALLBACK
   const [isMounted, setIsMounted] = useState(false)
   const [keyboardInset, setKeyboardInset] = useState(0)
   const internalScrollRef = useRef<ScrollView>(null)
   const scrollRef = scrollViewRef ?? internalScrollRef
-  const sheetTranslateY = useRef(new Animated.Value(SHEET_OFFSET)).current
+  const sheetTranslateY = useRef(new Animated.Value(sheetOffset)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    sheetTranslateY.setValue(sheetOffset)
+  }, [sheetOffset, sheetTranslateY])
 
   useEffect(() => {
     if (visible) {
       setIsMounted(true)
+      sheetTranslateY.setValue(sheetOffset)
       Animated.parallel([
         Animated.timing(backdropOpacity, {
           toValue: 1,
@@ -104,7 +114,7 @@ export function RunWalkSheetDrawer({
         useNativeDriver: true,
       }),
       Animated.timing(sheetTranslateY, {
-        toValue: SHEET_OFFSET,
+        toValue: sheetOffset,
         duration: 200,
         easing: Easing.in(Easing.cubic),
         useNativeDriver: true,
@@ -112,7 +122,7 @@ export function RunWalkSheetDrawer({
     ]).start(({ finished }) => {
       if (finished) setIsMounted(false)
     })
-  }, [backdropOpacity, isMounted, sheetTranslateY, visible])
+  }, [backdropOpacity, isMounted, sheetOffset, sheetTranslateY, visible])
 
   useEffect(() => {
     if (!visible) {
@@ -244,7 +254,14 @@ export function RunWalkSheetDrawer({
       navBarUnderlayColor={isSleepTone ? sleepTimeDrawerTheme.surfaceBottom : drawerChrome.surfaceBottom}
       onRequestClose={onClose}
     >
-      <View style={[styles.host, fullScreen && styles.hostFullScreen, isSleepTone && styles.hostFullScreenSleep]}>
+      <View
+        style={[
+          styles.host,
+          IS_WEB && styles.hostWeb,
+          fullScreen && styles.hostFullScreen,
+          isSleepTone && styles.hostFullScreenSleep,
+        ]}
+      >
         {!fullScreen ? (
           <Animated.View style={[styles.backdrop, IS_WEB && styles.backdropWeb, { opacity: backdropOpacity }]}>
             <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
@@ -258,7 +275,11 @@ export function RunWalkSheetDrawer({
 
         <KeyboardAvoidingView
           behavior={keyboardAvoidingBehavior}
-          style={[styles.keyboardWrap, fullScreen && styles.keyboardWrapFullScreen]}
+          style={[
+            styles.keyboardWrap,
+            IS_WEB && styles.keyboardWrapWeb,
+            fullScreen && styles.keyboardWrapFullScreen,
+          ]}
           enabled={keyboardAvoidingEnabled}
         >
           <Animated.View
@@ -337,6 +358,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
   },
+  hostWeb: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    maxHeight: 'var(--app-vh, 100dvh)',
+  },
   hostFullScreen: {
     flex: 1,
     justifyContent: 'flex-start',
@@ -348,6 +379,15 @@ const styles = StyleSheet.create({
   keyboardWrap: {
     justifyContent: 'flex-end',
     flex: 1,
+  },
+  keyboardWrapWeb: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    width: '100%',
+    justifyContent: 'flex-end',
   },
   keyboardWrapFullScreen: {
     flex: 1,
@@ -376,6 +416,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 560,
     alignSelf: 'center',
+    marginBottom: 0,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.14,

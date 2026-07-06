@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useEffect, useRef } from 'react'
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native'
+import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../theme/colors'
 
 type ScrollMoreHintProps = {
@@ -12,6 +12,7 @@ export function ScrollMoreHint({ active, compact = false }: ScrollMoreHintProps)
   const shift = useRef(new Animated.Value(0)).current
   const textOpacity = useRef(new Animated.Value(0.6)).current
   const loopRef = useRef<Animated.CompositeAnimation | null>(null)
+  const useNativeDriver = Platform.OS !== 'web'
 
   useEffect(() => {
     loopRef.current?.stop()
@@ -29,13 +30,13 @@ export function ScrollMoreHint({ active, compact = false }: ScrollMoreHintProps)
             toValue: 1,
             duration: 650,
             easing: Easing.inOut(Easing.quad),
-            useNativeDriver: true,
+            useNativeDriver,
           }),
           Animated.timing(shift, {
             toValue: 0,
             duration: 650,
             easing: Easing.inOut(Easing.quad),
-            useNativeDriver: true,
+            useNativeDriver,
           }),
         ]),
         Animated.sequence([
@@ -43,13 +44,13 @@ export function ScrollMoreHint({ active, compact = false }: ScrollMoreHintProps)
             toValue: 1,
             duration: 650,
             easing: Easing.inOut(Easing.quad),
-            useNativeDriver: true,
+            useNativeDriver,
           }),
           Animated.timing(textOpacity, {
             toValue: 0.6,
             duration: 650,
             easing: Easing.inOut(Easing.quad),
-            useNativeDriver: true,
+            useNativeDriver,
           }),
         ]),
       ]),
@@ -61,7 +62,7 @@ export function ScrollMoreHint({ active, compact = false }: ScrollMoreHintProps)
     return () => {
       animation.stop()
     }
-  }, [active, shift, textOpacity])
+  }, [active, shift, textOpacity, useNativeDriver])
 
   const arrowOneX = shift.interpolate({
     inputRange: [0, 1],

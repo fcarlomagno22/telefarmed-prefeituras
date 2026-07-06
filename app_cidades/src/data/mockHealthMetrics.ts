@@ -280,7 +280,7 @@ function buildHourSlots(capAtCurrentHour: boolean) {
   }
 
   if (hours.length < 2) {
-    return [Math.max(0, maxHour - 1), maxHour]
+    return maxHour < 23 ? [maxHour, maxHour + 1] : [maxHour - 1, maxHour]
   }
 
   return hours

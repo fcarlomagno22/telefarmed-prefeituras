@@ -430,11 +430,23 @@ function buildRenderPoints(
   const isAnimating = mode !== 'idle' && progress < 1
 
   if (mode === 'idle') {
-    const points = nextData.map((point) => ({
+    let points = nextData.map((point) => ({
       ...point,
       x: getPlotXByTime(point, fullPeriod, hourly, contentWidth),
       y: getYPosition(point.value, yRange, chartHeight),
     }))
+
+    if (points.length > 1) {
+      const minX = Math.min(...points.map((point) => point.x))
+      const maxX = Math.max(...points.map((point) => point.x))
+      if (maxX - minX < 1) {
+        points = points.map((point, index) => ({
+          ...point,
+          x: (index / (points.length - 1)) * contentWidth,
+        }))
+      }
+    }
+
     return { points, mode, isAnimating: false }
   }
 
@@ -1093,7 +1105,7 @@ function MetricsAreaChartComponent({
                 )
                 return (
                   <SvgText
-                    key={`xlabel-${point.date}-${point.hour ?? ''}`}
+                    key={`xlabel-${index}`}
                     x={labelLayout.x}
                     y={height - 8}
                     fontSize={9}
@@ -1142,12 +1154,12 @@ function MetricsAreaChartComponent({
                 />
               ) : null}
 
-              {staticPoints.map((point) => {
+              {staticPoints.map((point, pointIndex) => {
                 const key = getPointKey(point)
                 const isSelected = selectedPointKey === key
                 return (
                   <Circle
-                    key={key}
+                    key={`point-${pointIndex}-${key}`}
                     cx={point.x}
                     cy={point.y}
                     r={isSelected ? 6 : 4}
@@ -1252,11 +1264,11 @@ function MetricsAreaChartComponent({
         </View>
       </Animated.View>
 
-      {pointHitTargets.map((point) => {
+      {pointHitTargets.map((point, hitIndex) => {
         const key = getPointKey(point)
         return (
           <Pressable
-            key={`hit-${key}`}
+            key={`hit-${hitIndex}-${key}`}
             onPress={() => selectPoint(point)}
             disabled={interactionPaused || isAnimating}
             hitSlop={4}

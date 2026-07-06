@@ -8,6 +8,7 @@ import { SkeletonBone } from './SkeletonBone'
 
 const ROTATE_MS = 4800
 const FADE_MS = 650
+const useNativeDriver = Platform.OS !== 'web'
 
 export function GuestWelcomeCard({ skeleton = false }: { skeleton?: boolean }) {
   const messages = getGuestWelcomeMessages()
@@ -24,13 +25,13 @@ export function GuestWelcomeCard({ skeleton = false }: { skeleton?: boolean }) {
           toValue: 0,
           duration: FADE_MS,
           easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
+          useNativeDriver,
         }),
         Animated.timing(scale, {
           toValue: 0.98,
           duration: FADE_MS,
           easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
+          useNativeDriver,
         }),
       ]).start(({ finished }) => {
         if (!finished || !active) return
@@ -42,13 +43,13 @@ export function GuestWelcomeCard({ skeleton = false }: { skeleton?: boolean }) {
             toValue: 1,
             duration: FADE_MS,
             easing: Easing.out(Easing.quad),
-            useNativeDriver: true,
+            useNativeDriver,
           }),
           Animated.timing(scale, {
             toValue: 1,
             duration: FADE_MS,
             easing: Easing.out(Easing.quad),
-            useNativeDriver: true,
+            useNativeDriver,
           }),
         ]).start()
       })

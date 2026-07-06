@@ -67,6 +67,9 @@ export function buildPeriodSelection(
 }
 
 export function isHourlyPeriod(period: PeriodSelection) {
+  if (period.preset === 'week' || period.preset === 'month' || period.preset === 'last30days') {
+    return false
+  }
   return formatDateKey(period.start) === formatDateKey(period.end)
 }
 

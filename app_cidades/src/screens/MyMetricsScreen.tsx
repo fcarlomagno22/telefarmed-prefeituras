@@ -2309,9 +2309,16 @@ const styles = StyleSheet.create({
   },
   metricValueSelected: {
     color: '#ffffff',
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    ...Platform.select({
+      web: {
+        textShadow: '0px 1px 2px rgba(0, 0, 0, 0.2)',
+      },
+      default: {
+        textShadowColor: 'rgba(0, 0, 0, 0.2)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
+      },
+    }),
   },
   metricValueHint: {
     color: 'rgba(255, 255, 255, 0.82)',

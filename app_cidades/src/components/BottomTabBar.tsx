@@ -224,8 +224,7 @@ export function BottomTabBar({ activeTab, onTabPress }: BottomTabBarProps) {
           locations={[...TAB_BAR_FADE_LOCATIONS]}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
-          style={StyleSheet.absoluteFillObject}
-          pointerEvents="none"
+          style={[StyleSheet.absoluteFillObject, styles.tabBarFadeGradient]}
         />
 
         <View style={[styles.tabRow, IS_WEB && styles.tabRowWeb, { paddingBottom: bottomInset }]}>
@@ -273,6 +272,9 @@ function createStyles(colors: ThemeColors) {
       borderTopLeftRadius: TOP_RADIUS,
       borderTopRightRadius: TOP_RADIUS,
       overflow: 'hidden',
+    },
+    tabBarFadeGradient: {
+      pointerEvents: 'none',
     },
     tabRow: {
       flexDirection: 'row',

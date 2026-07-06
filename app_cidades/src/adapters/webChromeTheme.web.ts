@@ -114,6 +114,25 @@ function ensureWebManifestLink() {
   link.href = '/manifest.webmanifest'
 }
 
+let visualViewportListenerBound = false
+
+export function syncVisualViewportHeight() {
+  if (typeof window === 'undefined') return
+
+  const height = Math.round(window.visualViewport?.height ?? window.innerHeight)
+  document.documentElement.style.setProperty('--app-vh', `${height}px`)
+}
+
+function bindVisualViewportHeight() {
+  if (typeof window === 'undefined' || visualViewportListenerBound) return
+
+  visualViewportListenerBound = true
+  syncVisualViewportHeight()
+  window.visualViewport?.addEventListener('resize', syncVisualViewportHeight)
+  window.visualViewport?.addEventListener('scroll', syncVisualViewportHeight)
+  window.addEventListener('resize', syncVisualViewportHeight)
+}
+
 function ensureWebChromeStyles(appBackground: string, colorScheme: WebChromeColorScheme = 'light') {
   if (typeof document === 'undefined') return
 
@@ -128,17 +147,29 @@ function ensureWebChromeStyles(appBackground: string, colorScheme: WebChromeColo
     html {
       background-color: ${appBackground};
       color-scheme: ${colorScheme};
+      height: 100%;
+      height: var(--app-vh, 100dvh);
+      max-height: var(--app-vh, 100dvh);
+      overflow: hidden;
+      width: 100%;
     }
     body {
       background-color: ${appBackground} !important;
-      min-height: 100%;
-      min-height: 100dvh;
+      height: 100%;
+      height: var(--app-vh, 100dvh);
+      max-height: var(--app-vh, 100dvh);
+      overflow: hidden;
+      width: 100%;
+      margin: 0;
     }
     #root,
     #root > div {
       background-color: ${appBackground};
-      min-height: 100%;
-      min-height: 100dvh;
+      height: 100%;
+      height: var(--app-vh, 100dvh);
+      max-height: var(--app-vh, 100dvh);
+      width: 100%;
+      overflow: hidden;
     }
     #root input,
     #root textarea {
@@ -187,6 +218,8 @@ export function applyWebChromeColor(
 
   ensureViewportCoversSafeArea()
   ensureWebManifestLink()
+  bindVisualViewportHeight()
+  syncVisualViewportHeight()
   ensureWebChromeStyles(appBackground, colorScheme)
 
   document.documentElement.style.colorScheme = colorScheme

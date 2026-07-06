@@ -71,12 +71,11 @@ export function OverlayPortalProvider({ children }: { children: ReactNode }) {
     <OverlayPortalContext.Provider value={value}>
       <View style={styles.root}>
         {children}
-        <View style={styles.host} pointerEvents="box-none">
+        <View style={styles.host}>
           {layers.map((layer) => (
             <View
               key={layer.id}
               style={[styles.layer, { zIndex: layer.zIndex, elevation: layer.zIndex }]}
-              pointerEvents="box-none"
             >
               {contentRef.current.get(layer.id) ?? null}
             </View>
@@ -103,8 +102,10 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     zIndex: 100000,
     elevation: 100000,
+    pointerEvents: 'box-none',
   },
   layer: {
     ...StyleSheet.absoluteFillObject,
+    pointerEvents: 'box-none',
   },
 })

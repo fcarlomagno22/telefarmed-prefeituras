@@ -90,11 +90,18 @@ const styles = StyleSheet.create({
     maxWidth: 360,
     borderRadius: 28,
     padding: 1,
-    shadowColor: '#ff6b00',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
-    elevation: 12,
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 10px 20px rgba(255, 107, 0, 0.18)',
+      },
+      default: {
+        shadowColor: '#ff6b00',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.18,
+        shadowRadius: 20,
+        elevation: 12,
+      },
+    }),
   },
   cardInner: {
     borderRadius: 27,

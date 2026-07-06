@@ -31,4 +31,20 @@
   if (document.body) {
     document.body.style.backgroundColor = CHROME
   }
+
+  function syncViewportHeight() {
+    var height = Math.round(
+      (window.visualViewport && window.visualViewport.height) || window.innerHeight || 0,
+    )
+    if (height > 0) {
+      root.style.setProperty('--app-vh', height + 'px')
+    }
+  }
+
+  syncViewportHeight()
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', syncViewportHeight)
+    window.visualViewport.addEventListener('scroll', syncViewportHeight)
+  }
+  window.addEventListener('resize', syncViewportHeight)
 })()

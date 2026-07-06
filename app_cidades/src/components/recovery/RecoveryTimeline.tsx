@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
-import { StyleSheet, View } from 'react-native'
+import { Platform, StyleSheet, View } from 'react-native'
 import { colors } from '../../theme/colors'
 
 const DOT_SIZE = 34
@@ -148,11 +148,18 @@ const styles = StyleSheet.create({
     borderRadius: DOT_SIZE / 2,
     borderColor: 'rgba(255, 107, 0, 0.55)',
     backgroundColor: 'rgba(255, 107, 0, 0.12)',
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.45,
-    shadowRadius: 8,
-    elevation: 4,
+    ...Platform.select({
+      web: {
+        boxShadow: '0px 0px 8px rgba(255, 107, 0, 0.45)',
+      },
+      default: {
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.45,
+        shadowRadius: 8,
+        elevation: 4,
+      },
+    }),
   },
   dotCurrentGradient: {
     width: DOT_SIZE,

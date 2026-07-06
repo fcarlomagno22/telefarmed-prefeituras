@@ -91,10 +91,19 @@ export function AppModal({
   )
 }
 
+const IS_WEB = Platform.OS === 'web'
+
 const styles = StyleSheet.create({
   host: {
     flex: 1,
     backgroundColor: colors.background,
+    ...(IS_WEB
+      ? ({
+          width: '100%',
+          height: '100%',
+          minHeight: 'var(--app-vh, 100dvh)',
+        } as object)
+      : null),
   },
   hostTransparent: {
     backgroundColor: 'transparent',
@@ -102,5 +111,11 @@ const styles = StyleSheet.create({
   content: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'transparent',
+    ...(IS_WEB
+      ? ({
+          width: '100%',
+          height: '100%',
+        } as object)
+      : null),
   },
 })

@@ -124,15 +124,15 @@ export default function App() {
       <SafeAreaProvider>
         <AppIntroGate>
           <AuthProvider>
-            <GuestAuthProvider>
-              <ThemeProvider>
-                <OverlayPortalProvider>
+            <OverlayPortalProvider>
+              <GuestAuthProvider>
+                <ThemeProvider>
                   <AppSystemBars style="dark" />
                   <AppRouter />
                   <PwaInstallPrompt />
-                </OverlayPortalProvider>
-              </ThemeProvider>
-            </GuestAuthProvider>
+                </ThemeProvider>
+              </GuestAuthProvider>
+            </OverlayPortalProvider>
           </AuthProvider>
         </AppIntroGate>
       </SafeAreaProvider>

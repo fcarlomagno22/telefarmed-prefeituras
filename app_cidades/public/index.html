@@ -21,17 +21,23 @@
       html,
       body {
         height: 100%;
-        min-height: 100dvh;
+        height: var(--app-vh, 100dvh);
+        max-height: var(--app-vh, 100dvh);
+        overflow: hidden;
+        width: 100%;
         background-color: #f5f5f7;
         color-scheme: light;
       }
       body {
-        overflow: hidden;
+        margin: 0;
       }
       #root {
         display: flex;
         height: 100%;
-        min-height: 100dvh;
+        height: var(--app-vh, 100dvh);
+        max-height: var(--app-vh, 100dvh);
+        width: 100%;
+        overflow: hidden;
         flex: 1;
         background-color: #f5f5f7;
       }
