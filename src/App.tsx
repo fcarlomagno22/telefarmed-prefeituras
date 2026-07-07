@@ -87,8 +87,18 @@ import { EvolucaoCheckinPage } from './pages/EvolucaoCheckinPage'
 import { AtendimentoMedicoPage } from './pages/AtendimentoMedicoPage'
 import { VerificarDocumentoPage } from './pages/VerificarDocumentoPage'
 import { PlantaoAceitePublicPage } from './pages/PlantaoAceitePublicPage'
-import { VidaPlusPage } from './pages/VidaPlusPage'
+import { VidaPlusRedirectPage } from './pages/VidaPlusRedirectPage'
+import { CrmPartnersLoginPage } from './pages/CrmPartnersLoginPage'
+import { CrmPartnersRoutesShell } from './pages/CrmPartnersRoutesShell'
+import { CrmPartnersLayout } from './pages/CrmPartnersLayout'
+import { CrmPartnersDashboardPage } from './pages/CrmPartnersDashboardPage'
+import { CrmPartnersParceirosPage } from './pages/CrmPartnersParceirosPage'
+import { CrmPartnersClientesPage } from './pages/CrmPartnersClientesPage'
+import { CrmPartnersIndicadoresPage } from './pages/CrmPartnersIndicadoresPage'
+import { CrmPartnersPlaceholderPage } from './pages/CrmPartnersPlaceholderPage'
+import { CrmPartnersProtectedRoute } from './components/auth/CrmPartnersProtectedRoute'
 import { vidaPlusRoutes } from './config/vidaPlusRoutes'
+import { crmPartnersRoutes } from './config/crmPartnersRoutes'
 import { adminRoutes } from './config/adminRoutes'
 import { prefeituraRoutes } from './config/prefeituraRoutes'
 import { dedicatedPortalRoutes, LiveShareDedicatedRoutes, SharedPublicRoutes, tenantGestaoHostRoutes } from './routes/DedicatedPortalRoutes'
@@ -175,7 +185,29 @@ function AppRoutes() {
         ) : (
           <>
         <Route path="/" element={<RootPage />} />
-        <Route path={vidaPlusRoutes.home} element={<VidaPlusPage />} />
+        <Route path={vidaPlusRoutes.home} element={<VidaPlusRedirectPage />} />
+        <Route path="/crm-partners" element={<CrmPartnersRoutesShell />}>
+          <Route path="login" element={<CrmPartnersLoginPage />} />
+          <Route element={<CrmPartnersProtectedRoute />}>
+            <Route element={<CrmPartnersLayout />}>
+              <Route index element={<Navigate to={crmPartnersRoutes.dashboard} replace />} />
+              <Route path="dashboard" element={<CrmPartnersDashboardPage />} />
+              <Route path="parceiros" element={<CrmPartnersParceirosPage />} />
+              <Route path="clientes" element={<CrmPartnersClientesPage />} />
+              <Route path="financeiro" element={<CrmPartnersIndicadoresPage />} />
+              <Route
+                path="relatorios"
+                element={
+                  <CrmPartnersPlaceholderPage
+                    title="Relatórios"
+                    description="Exporte análises comerciais e indicadores consolidados da operação."
+                  />
+                }
+              />
+              <Route path="*" element={<Navigate to={crmPartnersRoutes.dashboard} replace />} />
+            </Route>
+          </Route>
+        </Route>
         <Route path="/sala-de-espera" element={<Navigate to={ubtRoutes.salaDeEspera} replace />} />
         <Route path="/atendimento/:attendanceId/*" element={<LegacyAtendimentoRedirect />} />
         <Route path="/login" element={<Navigate to="/ubt/login" replace />} />
