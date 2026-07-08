@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { colors } from '../../../theme/colors'
 import { StyleSheet, View } from 'react-native'
 import {
@@ -20,9 +20,14 @@ import {
   TRAIL_MAP_LEAFLET_CSS_URL,
   TRAIL_MAP_LEAFLET_JS_URL,
   TRAIL_MAP_LIVE_ZOOM,
+  buildTrailSignature,
   trailToLatLngPairs,
   type RunWalkActivityTrailMapProps,
 } from './runWalkActivityTrailMapShared'
+import { useRunWalkLiveMapFeedSync } from './useRunWalkLiveMapFeedSync'
+
+// ~60fps cap for Leaflet DOM updates; keeps follow mode smooth without redundant redraws.
+const LIVE_MAP_INJECT_MIN_INTERVAL_MS = 16
 
 type LeafletNamespace = {
   map: (element: HTMLElement, options: Record<string, unknown>) => unknown
@@ -102,9 +107,11 @@ async function ensureLeaflet(): Promise<LeafletNamespace> {
   return mapAssetsPromise
 }
 
-export function RunWalkActivityTrailMap({
+export const RunWalkActivityTrailMap = memo(function RunWalkActivityTrailMap({
   trail,
   currentPosition = null,
+  liveGpsFeed = null,
+  mapTrailFeed = null,
   height = 180,
   fullscreen = false,
   interactive = false,
@@ -117,6 +124,7 @@ export function RunWalkActivityTrailMap({
   currentSpeedKmh = 0,
   rotateWithHeading = false,
 }: RunWalkActivityTrailMapProps) {
+  const usesLiveFeed = Boolean(liveTracking && liveGpsFeed && mapTrailFeed)
   const mapHostRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<{ remove: () => void } | null>(null)
   const liveControllerRef = useRef<LiveTrailMapController | null>(null)
@@ -128,6 +136,7 @@ export function RunWalkActivityTrailMap({
   const rotateWithHeadingRef = useRef(rotateWithHeading)
   const smoothedHeadingRef = useRef<number | null>(null)
   const lastInjectAtRef = useRef(0)
+  const lastTrailSignatureRef = useRef('')
   const onUserPannedRef = useRef(onUserPanned)
   const onMapInteractionChangeRef = useRef(onMapInteractionChange)
   const [profilePhotoDataUri, setProfilePhotoDataUri] = useState<string | null>(null)
@@ -198,6 +207,7 @@ export function RunWalkActivityTrailMap({
       const host = mapHostRef.current
       if (!host) return
 
+      lastTrailSignatureRef.current = ''
       liveControllerRef.current?.destroy()
       liveControllerRef.current = null
       staticControllerRef.current?.destroy()
@@ -230,7 +240,10 @@ export function RunWalkActivityTrailMap({
         map.whenReady(() => {
           if (disposed) return
           liveControllerRef.current?.invalidateSize()
-          setIsMapReady(true)
+          requestAnimationFrame(() => {
+            if (disposed) return
+            setIsMapReady(true)
+          })
         })
       } else {
         staticControllerRef.current = setupStaticTrailMap({
@@ -255,23 +268,59 @@ export function RunWalkActivityTrailMap({
 
     return () => {
       disposed = true
+      setIsMapReady(false)
       liveControllerRef.current?.destroy()
       liveControllerRef.current = null
       staticControllerRef.current?.destroy()
       staticControllerRef.current = null
       mapRef.current?.remove()
       mapRef.current = null
-      setIsMapReady(false)
     }
-  }, [liveTracking, mapMountSignature, profilePhotoDataUri, trail])
+    // Trail/photo updates go through the live controller — remounting here causes map flash.
+  }, [liveTracking, mapMountSignature])
 
-  const injectLiveUpdate = useCallback(
-    (force = false) => {
+  const injectMapPayload = useCallback(
+    (payload: {
+      trail: typeof trail
+      currentPosition: typeof currentPosition
+      heading: number | null
+      trailChanged: boolean
+    }) => {
       const controller = liveControllerRef.current
       if (!controller) return
 
       const now = Date.now()
-      if (!force && now - lastInjectAtRef.current < 100) return
+      if (now - lastInjectAtRef.current < LIVE_MAP_INJECT_MIN_INTERVAL_MS) return
+      lastInjectAtRef.current = now
+
+      if (payload.trailChanged) {
+        lastTrailSignatureRef.current = buildTrailSignature(payload.trail)
+        controller.updateLiveTrailMap(
+          trailToLatLngPairs(payload.trail),
+          payload.heading,
+          payload.currentPosition?.latitude ?? null,
+          payload.currentPosition?.longitude ?? null,
+        )
+        return
+      }
+
+      controller.updateLivePosition(
+        payload.heading,
+        payload.currentPosition?.latitude ?? null,
+        payload.currentPosition?.longitude ?? null,
+      )
+    },
+    [],
+  )
+
+  const injectLiveUpdate = useCallback(
+    (force = false) => {
+      if (usesLiveFeed) return
+      const controller = liveControllerRef.current
+      if (!controller) return
+
+      const now = Date.now()
+      if (!force && now - lastInjectAtRef.current < LIVE_MAP_INJECT_MIN_INTERVAL_MS) return
       lastInjectAtRef.current = now
 
       const targetHeading = rotateWithHeadingRef.current
@@ -292,6 +341,17 @@ export function RunWalkActivityTrailMap({
         smoothedHeadingRef.current = null
       }
 
+      const trailSignature = buildTrailSignature(trail)
+      if (trailSignature === lastTrailSignatureRef.current) {
+        controller.updateLivePosition(
+          heading,
+          currentPosition?.latitude ?? null,
+          currentPosition?.longitude ?? null,
+        )
+        return
+      }
+
+      lastTrailSignatureRef.current = trailSignature
       controller.updateLiveTrailMap(
         trailToLatLngPairs(trail),
         heading,
@@ -299,13 +359,22 @@ export function RunWalkActivityTrailMap({
         currentPosition?.longitude ?? null,
       )
     },
-    [currentPosition, currentSpeedKmh, deviceHeadingDegrees, trail],
+    [currentPosition, currentSpeedKmh, deviceHeadingDegrees, trail, usesLiveFeed],
   )
 
+  useRunWalkLiveMapFeedSync({
+    enabled: usesLiveFeed && isMapReady,
+    liveGpsFeed,
+    mapTrailFeed,
+    rotateWithHeading,
+    followUser,
+    onUpdate: (payload) => injectMapPayload(payload),
+  })
+
   useEffect(() => {
-    if (!liveTracking || !isMapReady) return
+    if (usesLiveFeed || !liveTracking || !isMapReady) return
     injectLiveUpdate(true)
-  }, [injectLiveUpdate, isMapReady, liveTracking, trail, currentPosition])
+  }, [injectLiveUpdate, isMapReady, liveTracking, trail, currentPosition, usesLiveFeed])
 
   useEffect(() => {
     const controller = liveControllerRef.current
@@ -331,7 +400,7 @@ export function RunWalkActivityTrailMap({
       <View ref={bindMapHostRef} style={styles.mapHost} />
     </View>
   )
-}
+})
 
 const styles = StyleSheet.create({
   wrap: {

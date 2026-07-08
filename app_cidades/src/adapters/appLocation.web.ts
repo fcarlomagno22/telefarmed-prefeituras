@@ -25,6 +25,8 @@ import {
   APP_LOCATION_WEB_LIMITATIONS,
   AppLocationAccuracy,
   getAppLocationFailureReason,
+  normalizeLocationHeadingDegrees,
+  normalizeLocationSpeedMps,
   type AppLocationFailureReason,
   type AppLocationHeadingSupport,
 } from './appLocation.types'
@@ -89,6 +91,7 @@ function accuracySettings(accuracy?: AppLocationAccuracy): {
 } {
   switch (accuracy) {
     case AppLocationAccuracy.BestForNavigation:
+      return { enableHighAccuracy: true, timeout: 20000, maximumAge: 2000 }
     case AppLocationAccuracy.Highest:
     case AppLocationAccuracy.High:
       return { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 }
@@ -121,8 +124,8 @@ function toLocationObject(position: GeolocationPosition): AppLocationObject {
       altitude: position.coords.altitude,
       accuracy: position.coords.accuracy ?? null,
       altitudeAccuracy: position.coords.altitudeAccuracy ?? null,
-      heading: position.coords.heading ?? null,
-      speed: position.coords.speed ?? null,
+      heading: normalizeLocationHeadingDegrees(position.coords.heading),
+      speed: normalizeLocationSpeedMps(position.coords.speed),
     },
   }
 }

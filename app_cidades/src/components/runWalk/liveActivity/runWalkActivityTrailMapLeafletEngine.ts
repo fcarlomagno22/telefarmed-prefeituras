@@ -14,6 +14,11 @@ export type LiveTrailMapController = {
     currentLng: number | null,
     shouldFollow?: boolean,
   ) => void
+  updateLivePosition: (
+    heading: number | null,
+    currentLat: number | null,
+    currentLng: number | null,
+  ) => void
   setFollowUser: (value: boolean, lat?: number | null, lng?: number | null) => void
   recenterOnUser: (lat?: number | null, lng?: number | null) => void
   updatePinPhoto: (src: string | null) => void
@@ -31,6 +36,21 @@ type CreateLiveTrailMapControllerOptions = {
   pinAnchor: number
   liveZoom: number
   callbacks?: LiveTrailMapCallbacks
+}
+
+const FOLLOW_CAMERA_FACTOR = 0.65
+const FOLLOW_CAMERA_SNAP_METERS = 5
+
+function approxDistanceMeters(
+  fromLat: number,
+  fromLng: number,
+  toLat: number,
+  toLng: number,
+): number {
+  const avgLatRad = ((fromLat + toLat) / 2) * (Math.PI / 180)
+  const dLatM = (toLat - fromLat) * 111320
+  const dLngM = (toLng - fromLng) * 111320 * Math.cos(avgLatRad)
+  return Math.sqrt(dLatM * dLatM + dLngM * dLngM)
 }
 
 export function createLiveTrailMapController(
@@ -51,6 +71,33 @@ export function createLiveTrailMapController(
   let lastKnownLatLng = L.latLng(initialLatitude, initialLongitude)
   let followAnimFrame: number | null = null
   let followTargetLatLng: any = null
+  let disposed = false
+
+  function isMapMounted(): boolean {
+    if (disposed) return false
+
+    try {
+      const container = map.getContainer?.() as HTMLElement | undefined
+      return Boolean(container?.isConnected)
+    } catch {
+      return false
+    }
+  }
+
+  function isMapCameraReady(): boolean {
+    if (!isMapMounted()) return false
+
+    try {
+      map.getCenter()
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  function isMapOperational(): boolean {
+    return isMapCameraReady()
+  }
 
   function cancelFollowAnimation() {
     if (followAnimFrame != null) {
@@ -61,24 +108,33 @@ export function createLiveTrailMapController(
 
   function tickFollowAnimation() {
     followAnimFrame = null
-    if (!followUser || !followTargetLatLng) return
+    if (!followUser || !followTargetLatLng || !isMapOperational()) return
 
-    const zoom = map.getZoom()
-    const center = map.getCenter()
-    const tLat = followTargetLatLng.lat
-    const tLng = followTargetLatLng.lng
-    const factor = 0.24
-    const nextLat = center.lat + (tLat - center.lat) * factor
-    const nextLng = center.lng + (tLng - center.lng) * factor
+    try {
+      const zoom = map.getZoom()
+      const center = map.getCenter()
+      const tLat = followTargetLatLng.lat
+      const tLng = followTargetLatLng.lng
+      const centerDistM = approxDistanceMeters(center.lat, center.lng, tLat, tLng)
 
-    programmaticMove = true
-    map.setView(L.latLng(nextLat, nextLng), zoom, { animate: false })
-    programmaticMove = false
-    applyMapRotation()
+      programmaticMove = true
+      if (centerDistM <= FOLLOW_CAMERA_SNAP_METERS) {
+        map.setView(L.latLng(tLat, tLng), zoom, { animate: false })
+      } else {
+        const nextLat = center.lat + (tLat - center.lat) * FOLLOW_CAMERA_FACTOR
+        const nextLng = center.lng + (tLng - center.lng) * FOLLOW_CAMERA_FACTOR
+        map.setView(L.latLng(nextLat, nextLng), zoom, { animate: false })
+      }
+      programmaticMove = false
+      applyMapRotation()
 
-    const remaining = Math.abs(nextLat - tLat) + Math.abs(nextLng - tLng)
-    if (remaining > 0.000002) {
-      followAnimFrame = requestAnimationFrame(tickFollowAnimation)
+      const nextCenter = map.getCenter()
+      const remaining = Math.abs(nextCenter.lat - tLat) + Math.abs(nextCenter.lng - tLng)
+      if (remaining > 0.000002 && isMapOperational()) {
+        followAnimFrame = requestAnimationFrame(tickFollowAnimation)
+      }
+    } catch {
+      cancelFollowAnimation()
     }
   }
 
@@ -137,11 +193,10 @@ export function createLiveTrailMapController(
     applyMapRotation()
   }
 
-  function followMapTo(latlng: any, _forceZoom?: number) {
-    if (!followUser || !latlng) return
+  function followMapTo(latlng: any) {
+    if (!followUser || !latlng || !isMapMounted()) return
     followTargetLatLng = latlng
-    ensureMarker(latlng)
-    if (followAnimFrame == null) {
+    if (followAnimFrame == null && isMapCameraReady()) {
       followAnimFrame = requestAnimationFrame(tickFollowAnimation)
     }
   }
@@ -182,7 +237,7 @@ export function createLiveTrailMapController(
 
   function updateLiveSegment(targetLatLng: unknown) {
     const target = toLatLng(targetLatLng)
-    if (trailCoords.length === 0 || !target) {
+    if (!target) {
       if (liveSegment) {
         map.removeLayer(liveSegment)
         liveSegment = null
@@ -190,7 +245,8 @@ export function createLiveTrailMapController(
       return
     }
 
-    const lastCommitted = trailCoords[trailCoords.length - 1]
+    const lastCommitted =
+      trailCoords.length > 0 ? trailCoords[trailCoords.length - 1] : target
     if (
       Math.abs(lastCommitted.lat - target.lat) < 0.0000005 &&
       Math.abs(lastCommitted.lng - target.lng) < 0.0000005
@@ -264,10 +320,27 @@ export function createLiveTrailMapController(
     }
 
     trailCoords = normalized.slice()
-    if (liveSegment) {
+    if (newPoints.length > 0 && liveSegment) {
       map.removeLayer(liveSegment)
       liveSegment = null
     }
+  }
+
+  function applyLiveViewTarget(target: any, heading: number | null) {
+    if (!target || !isMapMounted()) return
+
+    ensureMarker(target)
+    if (followUser) {
+      followMapTo(target)
+    }
+
+    if (followUser && heading != null && Number.isFinite(Number(heading))) {
+      setMapBearing(Number(heading))
+    } else if (followUser && heading == null) {
+      clearMapRotation()
+    }
+
+    updateLiveSegment(target)
   }
 
   function updateLiveTrailMapInternal(
@@ -277,6 +350,7 @@ export function createLiveTrailMapController(
     currentLng: number | null,
     shouldFollow?: boolean,
   ) {
+    if (!isMapMounted()) return
     appendTrailPoints(trailPoints)
 
     const hasCurrent =
@@ -295,20 +369,28 @@ export function createLiveTrailMapController(
 
     if (typeof shouldFollow === 'boolean') {
       syncFollowMode(shouldFollow, target)
-    } else {
-      ensureMarker(target)
-      if (followUser) {
-        followMapTo(target)
-      }
+      if (!shouldFollow) return
     }
 
-    if (followUser && heading != null && Number.isFinite(Number(heading))) {
-      setMapBearing(Number(heading))
-    } else if (followUser && heading == null) {
-      clearMapRotation()
-    }
+    applyLiveViewTarget(target, heading)
+  }
 
-    updateLiveSegment(target)
+  function updateLivePositionInternal(
+    heading: number | null,
+    currentLat: number | null,
+    currentLng: number | null,
+  ) {
+    if (!isMapMounted()) return
+
+    const hasCurrent =
+      currentLat != null &&
+      currentLng != null &&
+      Number.isFinite(Number(currentLat)) &&
+      Number.isFinite(Number(currentLng))
+
+    if (!hasCurrent) return
+
+    applyLiveViewTarget(L.latLng(Number(currentLat), Number(currentLng)), heading)
   }
 
   function setFollowUser(value: boolean, lat?: number | null, lng?: number | null) {
@@ -322,6 +404,8 @@ export function createLiveTrailMapController(
   }
 
   function recenterOnUser(lat?: number | null, lng?: number | null) {
+    if (!isMapMounted()) return
+
     let target: any = null
     if (lat != null && lng != null && Number.isFinite(Number(lat)) && Number.isFinite(Number(lng))) {
       target = L.latLng(Number(lat), Number(lng))
@@ -339,12 +423,19 @@ export function createLiveTrailMapController(
     followUser = true
     ensureMarker(target)
     followTargetLatLng = target
-    programmaticMove = true
-    map.setView(target, liveZoom, { animate: false })
-    programmaticMove = false
-    applyMapRotation()
+
+    try {
+      programmaticMove = true
+      map.setView(target, liveZoom, { animate: false })
+      programmaticMove = false
+      applyMapRotation()
+    } catch {
+      programmaticMove = false
+      return
+    }
 
     window.requestAnimationFrame(() => {
+      if (!isMapCameraReady()) return
       if (lastMapHeading != null) {
         setMapBearing(lastMapHeading)
       }
@@ -384,6 +475,12 @@ export function createLiveTrailMapController(
       }
       updateLiveTrailMapInternal(trailPoints, heading, currentLat, currentLng, shouldFollow)
     },
+    updateLivePosition(heading, currentLat, currentLng) {
+      if (heading != null && Number.isFinite(Number(heading))) {
+        lastMapHeading = Number(heading)
+      }
+      updateLivePositionInternal(heading, currentLat, currentLng)
+    },
     setFollowUser,
     recenterOnUser,
     updatePinPhoto,
@@ -391,6 +488,9 @@ export function createLiveTrailMapController(
       map.invalidateSize(true)
     },
     destroy() {
+      disposed = true
+      cancelFollowAnimation()
+      followTargetLatLng = null
       map.off('resize')
       map.off('dragstart')
       map.off('zoomstart')

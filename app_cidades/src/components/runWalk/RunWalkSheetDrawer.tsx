@@ -29,6 +29,7 @@ const SHEET_OFFSET_FALLBACK = 720
 const KEYBOARD_EXTRA_SCROLL_PADDING = 24
 const KEYBOARD_FOOTER_CLEARANCE = 12
 const IS_WEB = Platform.OS === 'web'
+const USE_NATIVE_DRIVER = !IS_WEB
 
 type RunWalkSheetDrawerProps = {
   visible: boolean
@@ -91,14 +92,14 @@ export function RunWalkSheetDrawer({
           toValue: 1,
           duration: 220,
           easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
+          useNativeDriver: USE_NATIVE_DRIVER,
         }),
         Animated.spring(sheetTranslateY, {
           toValue: 0,
           damping: 22,
           stiffness: 220,
           mass: 0.9,
-          useNativeDriver: true,
+          useNativeDriver: USE_NATIVE_DRIVER,
         }),
       ]).start()
       return
@@ -111,13 +112,13 @@ export function RunWalkSheetDrawer({
         toValue: 0,
         duration: 180,
         easing: Easing.in(Easing.cubic),
-        useNativeDriver: true,
+        useNativeDriver: USE_NATIVE_DRIVER,
       }),
       Animated.timing(sheetTranslateY, {
         toValue: sheetOffset,
         duration: 200,
         easing: Easing.in(Easing.cubic),
-        useNativeDriver: true,
+        useNativeDriver: USE_NATIVE_DRIVER,
       }),
     ]).start(({ finished }) => {
       if (finished) setIsMounted(false)

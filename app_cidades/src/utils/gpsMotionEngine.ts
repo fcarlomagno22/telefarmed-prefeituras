@@ -31,13 +31,16 @@ export type GpsMotionSnapshot = {
 
 // ~1.8 km/h — Waze treats this as stopped
 const STATIONARY_SPEED_MPS = 0.5
-// ~2.9 km/h — need sustained speed above this to leave stationary
-const MOVING_SPEED_MPS = 0.8
-// Confirm stop after low speed for this long (like Waze traffic-light hold)
-const STATIONARY_HOLD_MS = 2_000
-const MOVING_CONFIRM_MS = 1_500
+// ~1.6 km/h — walking pace counts as moving (Waze-style responsiveness)
+const MOVING_SPEED_MPS = 0.45
+const STATIONARY_HOLD_MS = 1_200
+const MOVING_CONFIRM_MS = 350
 const SPEED_EMA_ALPHA = 0.35
-const MIN_TRAIL_SEGMENT_METERS = 8
+const MIN_TRAIL_SEGMENT_METERS = 2
+const MAX_TRAIL_ACCURACY_FOR_SEGMENT_METERS = 25
+const MAX_TRAIL_SEGMENT_METERS = 5
+const MOVE_DRIFT_ACCURACY_FACTOR = 0.2
+const MOVE_DRIFT_MIN_METERS = 2
 
 export class GpsMotionEngine {
   private trail: ActivityTrailPoint[] = []
@@ -114,7 +117,7 @@ export class GpsMotionEngine {
     if (!this.lastSample) return 0
 
     const elapsedMs = sample.recordedAt - this.lastSample.recordedAt
-    if (elapsedMs < 500 || elapsedMs > 30_000) return 0
+    if (elapsedMs < 200 || elapsedMs > 30_000) return 0
 
     const distanceMeters =
       haversineDistanceKm(
@@ -152,7 +155,10 @@ export class GpsMotionEngine {
       return
     }
 
-    if (speed >= MOVING_SPEED_MPS && driftFromAnchorMeters >= Math.max(accuracy * 1.2, 15)) {
+    if (
+      speed >= MOVING_SPEED_MPS &&
+      driftFromAnchorMeters >= Math.max(accuracy * MOVE_DRIFT_ACCURACY_FACTOR, MOVE_DRIFT_MIN_METERS)
+    ) {
       this.belowThresholdSince = null
 
       if (this.aboveThresholdSince == null) {
@@ -220,9 +226,9 @@ export class GpsMotionEngine {
   }
 
   private maybeAppendTrailPoint(sample: GpsMotionSample): void {
-    if (this.state !== 'moving') return
-
-    this.tickMovingTime(sample.recordedAt)
+    if (this.state === 'moving') {
+      this.tickMovingTime(sample.recordedAt)
+    }
 
     const last = this.trail[this.trail.length - 1]
     if (!last) return
@@ -234,12 +240,17 @@ export class GpsMotionEngine {
     }
 
     const deltaMeters = haversineDistanceKm(last, next) * 1000
-    const accuracy = sample.accuracyMeters ?? 20
-    const minSegmentMeters = Math.max(MIN_TRAIL_SEGMENT_METERS, accuracy * 0.65)
+    const accuracy = Math.min(sample.accuracyMeters ?? 20, MAX_TRAIL_ACCURACY_FOR_SEGMENT_METERS)
+    const minSegmentMeters = Math.min(
+      Math.max(MIN_TRAIL_SEGMENT_METERS, accuracy * 0.12),
+      MAX_TRAIL_SEGMENT_METERS,
+    )
 
     if (deltaMeters < minSegmentMeters) return
 
     this.trail.push(next)
-    this.distanceKm += deltaMeters / 1000
+    if (this.state === 'moving') {
+      this.distanceKm += deltaMeters / 1000
+    }
   }
 }

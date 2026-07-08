@@ -1,8 +1,13 @@
 import type { GeoCoordinates } from '../../../utils/geo'
+import type { RunWalkLiveGpsFeed, RunWalkLiveMapTrailFeed } from '../../../hooks/runWalkLiveGpsFeed'
 
 export type RunWalkActivityTrailMapProps = {
   trail: GeoCoordinates[]
   currentPosition?: GeoCoordinates | null
+  /** High-frequency GPS updates without parent re-renders. */
+  liveGpsFeed?: RunWalkLiveGpsFeed | null
+  /** Trail + display speed snapshots for live map rendering. */
+  mapTrailFeed?: RunWalkLiveMapTrailFeed | null
   height?: number
   fullscreen?: boolean
   interactive?: boolean
@@ -15,10 +20,18 @@ export type RunWalkActivityTrailMapProps = {
   currentSpeedKmh?: number
   /** Quando falso, o mapa fica com o norte para cima. */
   rotateWithHeading?: boolean
+  /** Pausa interpolação live do pin/câmera (native maps). */
+  isPaused?: boolean
 }
 
 export const TRAIL_MAP_DEFAULT_CENTER = { latitude: -23.5505, longitude: -46.6333 }
 export const TRAIL_MAP_LIVE_ZOOM = 17
+/** Approximate region delta for live follow (~zoom 17). */
+export const TRAIL_MAP_LIVE_LATITUDE_DELTA = 0.0025
+export const TRAIL_MAP_LIVE_LONGITUDE_DELTA = 0.0025
+
+export const TRAIL_MAP_POLYLINE_COLOR = '#22c55e'
+export const TRAIL_MAP_LIVE_SEGMENT_OPACITY = 0.72
 
 export {
   NEARBY_UNITS_LEAFLET_CSS_URL as TRAIL_MAP_LEAFLET_CSS_URL,
@@ -119,7 +132,86 @@ export function trailToLatLngPairs(trail: GeoCoordinates[]): [number, number][] 
   return trail.map((point) => [point.latitude, point.longitude])
 }
 
-/** Leaflet live-follow: interpola o centro do mapa entre leituras de GPS. */
+export function buildTrailSignature(trail: GeoCoordinates[]): string {
+  return trail.map((point) => `${point.latitude},${point.longitude}`).join('|')
+}
+
+function formatLiveMapHeadingValue(heading: number | null): string {
+  return heading != null ? String(heading) : 'null'
+}
+
+function formatLiveMapCoordinateValue(value: number | null | undefined): string {
+  return value != null ? String(value) : 'null'
+}
+
+export function buildLivePositionUpdateScript(
+  currentPosition: GeoCoordinates | null | undefined,
+  heading: number | null,
+): string {
+  const headingValue = formatLiveMapHeadingValue(heading)
+  const currentLatValue = formatLiveMapCoordinateValue(currentPosition?.latitude)
+  const currentLngValue = formatLiveMapCoordinateValue(currentPosition?.longitude)
+
+  return `
+    (function () {
+      if (typeof window.updateLivePosition !== 'function') return true;
+      window.updateLivePosition(${currentLatValue}, ${currentLngValue}, ${headingValue});
+      return true;
+    })();
+  `
+}
+
+/** Sends only newly committed trail points (incremental bridge payload). */
+export function buildLiveTrailAppendScript(
+  newTrailPoints: [number, number][],
+  currentPosition: GeoCoordinates | null | undefined,
+  heading: number | null,
+): string {
+  const pointsJson = JSON.stringify(newTrailPoints)
+  const headingValue = formatLiveMapHeadingValue(heading)
+  const currentLatValue = formatLiveMapCoordinateValue(currentPosition?.latitude)
+  const currentLngValue = formatLiveMapCoordinateValue(currentPosition?.longitude)
+
+  return `
+    (function () {
+      if (typeof window.appendLiveTrailPoints !== 'function') return true;
+      window.appendLiveTrailPoints(
+        ${pointsJson},
+        ${headingValue},
+        ${currentLatValue},
+        ${currentLngValue}
+      );
+      return true;
+    })();
+  `
+}
+
+/** Full trail resync when local/WebView state diverges (reset, shorter trail). */
+export function buildLiveTrailResyncScript(
+  trail: GeoCoordinates[],
+  currentPosition: GeoCoordinates | null | undefined,
+  heading: number | null,
+): string {
+  const trailJson = JSON.stringify(trailToLatLngPairs(trail))
+  const headingValue = formatLiveMapHeadingValue(heading)
+  const currentLatValue = formatLiveMapCoordinateValue(currentPosition?.latitude)
+  const currentLngValue = formatLiveMapCoordinateValue(currentPosition?.longitude)
+
+  return `
+    (function () {
+      if (typeof window.updateLiveTrailMap !== 'function') return true;
+      window.updateLiveTrailMap(
+        ${trailJson},
+        ${headingValue},
+        ${currentLatValue},
+        ${currentLngValue}
+      );
+      return true;
+    })();
+  `
+}
+
+/** Leaflet live-follow: pin snaps instantly; camera eases toward GPS (or snaps when close). */
 export const TRAIL_MAP_LIVE_FOLLOW_JS = `
     let followAnimFrame = null;
     let followTargetLatLng = null;
@@ -131,6 +223,13 @@ export const TRAIL_MAP_LIVE_FOLLOW_JS = `
       }
     }
 
+    function approxDistanceMeters(fromLat, fromLng, toLat, toLng) {
+      var avgLatRad = ((fromLat + toLat) / 2) * Math.PI / 180;
+      var dLatM = (toLat - fromLat) * 111320;
+      var dLngM = (toLng - fromLng) * 111320 * Math.cos(avgLatRad);
+      return Math.sqrt(dLatM * dLatM + dLngM * dLngM);
+    }
+
     function tickFollowAnimation() {
       followAnimFrame = null;
       if (!followUser || !followTargetLatLng) return;
@@ -139,16 +238,22 @@ export const TRAIL_MAP_LIVE_FOLLOW_JS = `
       const center = map.getCenter();
       const tLat = followTargetLatLng.lat;
       const tLng = followTargetLatLng.lng;
-      const factor = 0.24;
-      const nextLat = center.lat + (tLat - center.lat) * factor;
-      const nextLng = center.lng + (tLng - center.lng) * factor;
+      const centerDistM = approxDistanceMeters(center.lat, center.lng, tLat, tLng);
 
       programmaticMove = true;
-      map.setView(L.latLng(nextLat, nextLng), zoom, { animate: false });
+      if (centerDistM < 5) {
+        map.setView(L.latLng(tLat, tLng), zoom, { animate: false });
+      } else {
+        const factor = 0.65;
+        const nextLat = center.lat + (tLat - center.lat) * factor;
+        const nextLng = center.lng + (tLng - center.lng) * factor;
+        map.setView(L.latLng(nextLat, nextLng), zoom, { animate: false });
+      }
       programmaticMove = false;
       applyMapRotation();
 
-      const remaining = Math.abs(nextLat - tLat) + Math.abs(nextLng - tLng);
+      const nextCenter = map.getCenter();
+      const remaining = Math.abs(nextCenter.lat - tLat) + Math.abs(nextCenter.lng - tLng);
       if (remaining > 0.000002) {
         followAnimFrame = requestAnimationFrame(tickFollowAnimation);
       }

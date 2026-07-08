@@ -10,7 +10,11 @@ import type {
   AppLocationSubscription,
   AppLocationWatchOptions,
 } from './appLocation.types'
-import { AppLocationAccuracy } from './appLocation.types'
+import {
+  AppLocationAccuracy,
+  normalizeLocationHeadingDegrees,
+  normalizeLocationSpeedMps,
+} from './appLocation.types'
 
 export {
   APP_LOCATION_WEB_LIMITATIONS,
@@ -18,6 +22,8 @@ export {
   getAppLocationFailureMessage,
   getAppLocationFailureReason,
   isAppLocationPermissionDenied,
+  normalizeLocationHeadingDegrees,
+  normalizeLocationSpeedMps,
 } from './appLocation.types'
 export type {
   AppLocationCoords,
@@ -70,8 +76,8 @@ function mapLocationObject(location: Location.LocationObject): AppLocationObject
       altitude: location.coords.altitude,
       accuracy: location.coords.accuracy,
       altitudeAccuracy: location.coords.altitudeAccuracy,
-      heading: location.coords.heading,
-      speed: location.coords.speed,
+      heading: normalizeLocationHeadingDegrees(location.coords.heading),
+      speed: normalizeLocationSpeedMps(location.coords.speed),
     },
   }
 }
@@ -114,6 +120,7 @@ export async function getCurrentPositionAsync(
     accuracy: mapAccuracy(options.accuracy),
     timeInterval: options.timeInterval,
     distanceInterval: options.distanceInterval,
+    mayShowUserSettingsDialog: options.mayShowUserSettingsDialog,
   })
 
   return mapLocationObject(result)
@@ -129,6 +136,7 @@ export async function watchPositionAsync(
       accuracy: mapAccuracy(options.accuracy),
       timeInterval: options.timeInterval,
       distanceInterval: options.distanceInterval,
+      mayShowUserSettingsDialog: options.mayShowUserSettingsDialog,
     },
     (location) => callback(mapLocationObject(location)),
     errorHandler,

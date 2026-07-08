@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ActivityModality } from '../types/auth'
 import type { RunWalkActivityStep } from '../types/runWalk'
 import { GpsMotionEngine } from '../utils/gpsMotionEngine'
-import type { GeoCoordinates } from '../utils/geo'
+import { RunWalkDisplaySpeedTracker } from '../utils/runWalkDisplaySpeed'
 import {
   calculateAverageSpeedKmh,
   estimateHeartRateBpm,
@@ -12,13 +12,21 @@ import {
   resolveCurrentActivityStep,
   type ActivityTrailPoint,
 } from '../utils/runWalkActivityStats'
+import {
+  createListenerRegistry,
+  type RunWalkLiveGpsFeed,
+  type RunWalkLiveMapTrailFeed,
+} from './runWalkLiveGpsFeed'
+
+const METRICS_INGEST_MIN_INTERVAL_MS = 50
+const METRICS_UI_INTERVAL_MS = 500
+const DISPLAY_SPEED_UI_INTERVAL_MS = 200
+const DISPLAY_SPEED_INGEST_PUBLISH_MS = 200
 
 type UseRunWalkActivitySessionOptions = {
   modality: ActivityModality
   durationMinutes: number
-  coordinates: GeoCoordinates | null
-  gpsSpeedMps?: number | null
-  accuracyMeters?: number | null
+  gpsFeed: RunWalkLiveGpsFeed | null
   structure?: RunWalkActivityStep[]
   enabled?: boolean
   gpsRecordingEnabled?: boolean
@@ -28,6 +36,16 @@ type ActivitySessionSnapshot = {
   elapsedSeconds: number
   distanceKm: number
   currentSpeedKmh: number
+  displaySpeedKmh: number
+  averageSpeedKmh: number
+  trail: ActivityTrailPoint[]
+}
+
+type SessionMetricsState = {
+  elapsedSeconds: number
+  distanceKm: number
+  currentSpeedKmh: number
+  displaySpeedKmh: number
   averageSpeedKmh: number
   trail: ActivityTrailPoint[]
 }
@@ -35,35 +53,115 @@ type ActivitySessionSnapshot = {
 export function useRunWalkActivitySession({
   modality,
   durationMinutes,
-  coordinates,
-  gpsSpeedMps = null,
-  accuracyMeters = null,
+  gpsFeed,
   structure,
   enabled = true,
   gpsRecordingEnabled = true,
 }: UseRunWalkActivitySessionOptions) {
   const startedAtRef = useRef(Date.now())
   const motionEngineRef = useRef(new GpsMotionEngine())
-  const [elapsedSeconds, setElapsedSeconds] = useState(0)
-  const [motionSnapshot, setMotionSnapshot] = useState(() => motionEngineRef.current.getSnapshot())
+  const displaySpeedTrackerRef = useRef(new RunWalkDisplaySpeedTracker())
+  const trailRef = useRef<ActivityTrailPoint[]>([])
+  const displaySpeedRef = useRef(0)
+  const trailListenersRef = useRef(createListenerRegistry())
+  const gpsRecordingEnabledRef = useRef(gpsRecordingEnabled)
+  const [metrics, setMetrics] = useState<SessionMetricsState>({
+    elapsedSeconds: 0,
+    distanceKm: 0,
+    currentSpeedKmh: 0,
+    displaySpeedKmh: 0,
+    averageSpeedKmh: 0,
+    trail: [],
+  })
   const [isFinished, setIsFinished] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [frozenSnapshot, setFrozenSnapshot] = useState<ActivitySessionSnapshot | null>(null)
   const elapsedSecondsRef = useRef(0)
   const pausedElapsedRef = useRef(0)
   const lastIngestedAtRef = useRef<number | null>(null)
+  const lastSpeedPublishAtRef = useRef(0)
   const wasRecordingGpsRef = useRef(gpsRecordingEnabled)
+  const isTrackingRef = useRef(false)
 
   const isTracking = enabled && !isFinished && !isPaused
 
   useEffect(() => {
+    isTrackingRef.current = isTracking
+  }, [isTracking])
+
+  useEffect(() => {
+    gpsRecordingEnabledRef.current = gpsRecordingEnabled
+  }, [gpsRecordingEnabled])
+
+  const publishMetrics = useCallback((patch: Partial<SessionMetricsState>) => {
+    setMetrics((prev) => ({ ...prev, ...patch }))
+  }, [])
+
+  const syncMotionMetrics = useCallback(() => {
+    const motion = motionEngineRef.current.getSnapshot()
+    trailRef.current = motion.trail
+    trailListenersRef.current.notify()
+    publishMetrics({
+      elapsedSeconds: elapsedSecondsRef.current,
+      distanceKm: motion.distanceKm,
+      currentSpeedKmh: motion.currentSpeedKmh,
+      averageSpeedKmh: motion.averageSpeedKmh,
+      trail: [...motion.trail],
+    })
+  }, [publishMetrics])
+
+  const ingestGpsFix = useCallback(() => {
+    if (!isTrackingRef.current || !gpsFeed) return
+
+    const fix = gpsFeed.getGpsFix()
+    if (!fix) return
+
+    const now = fix.recordedAt
+    displaySpeedRef.current = displaySpeedTrackerRef.current.ingest({
+      latitude: fix.coordinates.latitude,
+      longitude: fix.coordinates.longitude,
+      speedMps: fix.speedMps,
+      recordedAt: now,
+    })
+
+    if (Date.now() - lastSpeedPublishAtRef.current >= DISPLAY_SPEED_INGEST_PUBLISH_MS) {
+      lastSpeedPublishAtRef.current = Date.now()
+      publishMetrics({ displaySpeedKmh: displaySpeedRef.current })
+    }
+
+    if (!gpsRecordingEnabledRef.current) return
+
+    if (
+      lastIngestedAtRef.current != null &&
+      now - lastIngestedAtRef.current < METRICS_INGEST_MIN_INTERVAL_MS
+    ) {
+      return
+    }
+
+    lastIngestedAtRef.current = now
+    motionEngineRef.current.ingest({
+      latitude: fix.coordinates.latitude,
+      longitude: fix.coordinates.longitude,
+      accuracyMeters: fix.accuracyMeters,
+      speedMps: fix.speedMps,
+      recordedAt: now,
+    })
+    trailRef.current = motionEngineRef.current.getSnapshot().trail
+    trailListenersRef.current.notify()
+  }, [gpsFeed, publishMetrics])
+
+  useEffect(() => {
     if (gpsRecordingEnabled && !wasRecordingGpsRef.current) {
       motionEngineRef.current.reset()
+      displaySpeedTrackerRef.current.reset()
       lastIngestedAtRef.current = null
-      setMotionSnapshot(motionEngineRef.current.getSnapshot())
+      trailRef.current = []
+      displaySpeedRef.current = 0
+      syncMotionMetrics()
+      publishMetrics({ displaySpeedKmh: 0 })
     }
     wasRecordingGpsRef.current = gpsRecordingEnabled
-  }, [gpsRecordingEnabled])
+  }, [gpsRecordingEnabled, publishMetrics, syncMotionMetrics])
 
   const activitySteps = useMemo(
     () => structure ?? getDefaultActivitySteps(modality, durationMinutes),
@@ -77,8 +175,17 @@ export function useRunWalkActivitySession({
     elapsedSecondsRef.current = 0
     lastIngestedAtRef.current = null
     motionEngineRef.current.reset()
-    setMotionSnapshot(motionEngineRef.current.getSnapshot())
-    setElapsedSeconds(0)
+    displaySpeedTrackerRef.current.reset()
+    trailRef.current = []
+    displaySpeedRef.current = 0
+    setMetrics({
+      elapsedSeconds: 0,
+      distanceKm: 0,
+      currentSpeedKmh: 0,
+      displaySpeedKmh: 0,
+      averageSpeedKmh: 0,
+      trail: [],
+    })
     setIsFinished(false)
     setIsPaused(false)
     setFrozenSnapshot(null)
@@ -89,37 +196,49 @@ export function useRunWalkActivitySession({
     if (!isTracking) return
 
     const timer = setInterval(() => {
-      const nextElapsed = Math.floor((Date.now() - startedAtRef.current) / 1000)
-      elapsedSecondsRef.current = nextElapsed
-      setElapsedSeconds(nextElapsed)
-    }, 1000)
+      elapsedSecondsRef.current = Math.floor((Date.now() - startedAtRef.current) / 1000)
+    }, METRICS_UI_INTERVAL_MS)
 
     return () => clearInterval(timer)
   }, [isTracking])
 
   useEffect(() => {
-    if (!isTracking || !coordinates || !gpsRecordingEnabled) return
+    if (!isTracking) return
 
-    const now = Date.now()
-    if (lastIngestedAtRef.current != null && now - lastIngestedAtRef.current < 400) {
-      return
-    }
+    const timer = setInterval(() => {
+      syncMotionMetrics()
+    }, METRICS_UI_INTERVAL_MS)
 
-    lastIngestedAtRef.current = now
-    const snapshot = motionEngineRef.current.ingest({
-      latitude: coordinates.latitude,
-      longitude: coordinates.longitude,
-      accuracyMeters,
-      speedMps: gpsSpeedMps,
-      recordedAt: now,
+    return () => clearInterval(timer)
+  }, [isTracking, syncMotionMetrics])
+
+  useEffect(() => {
+    if (!isTracking) return
+
+    const timer = setInterval(() => {
+      publishMetrics({
+        displaySpeedKmh: displaySpeedRef.current,
+        elapsedSeconds: elapsedSecondsRef.current,
+      })
+    }, DISPLAY_SPEED_UI_INTERVAL_MS)
+
+    return () => clearInterval(timer)
+  }, [isTracking, publishMetrics])
+
+  useEffect(() => {
+    if (!gpsFeed || !isTracking) return
+
+    return gpsFeed.subscribePosition(() => {
+      ingestGpsFix()
     })
-    setMotionSnapshot(snapshot)
-  }, [accuracyMeters, coordinates, gpsRecordingEnabled, gpsSpeedMps, isTracking])
+  }, [gpsFeed, ingestGpsFix, isTracking])
 
-  const liveDistanceKm = motionSnapshot.distanceKm
-  const liveAverageSpeedKmh = motionSnapshot.averageSpeedKmh
-  const liveSpeedKmh = motionSnapshot.currentSpeedKmh
-  const trail = motionSnapshot.trail
+  useEffect(() => {
+    if (!isPaused || isFinished) return
+    displaySpeedTrackerRef.current.reset()
+    displaySpeedRef.current = 0
+    publishMetrics({ displaySpeedKmh: 0 })
+  }, [isFinished, isPaused, publishMetrics])
 
   const finishActivity = () => {
     if (isFinished) return
@@ -135,6 +254,7 @@ export function useRunWalkActivitySession({
       elapsedSeconds: elapsedSecondsRef.current,
       distanceKm: snapshotDistanceKm,
       currentSpeedKmh: motion.currentSpeedKmh,
+      displaySpeedKmh: displaySpeedRef.current,
       averageSpeedKmh: averageSpeed,
       trail: [...motion.trail],
     }
@@ -163,11 +283,25 @@ export function useRunWalkActivitySession({
     else pauseActivity()
   }, [isPaused, pauseActivity, resumeActivity])
 
-  const activeElapsedSeconds = frozenSnapshot?.elapsedSeconds ?? elapsedSeconds
-  const activeDistanceKm = frozenSnapshot?.distanceKm ?? liveDistanceKm
-  const activeAverageSpeedKmh = frozenSnapshot?.averageSpeedKmh ?? liveAverageSpeedKmh
-  const activeSpeedKmh = frozenSnapshot?.currentSpeedKmh ?? liveSpeedKmh
-  const activeTrail = frozenSnapshot?.trail ?? trail
+  const mapTrailFeed = useMemo<RunWalkLiveMapTrailFeed>(
+    () => ({
+      subscribeTrail: (listener) => trailListenersRef.current.subscribe(listener),
+      getTrail: () =>
+        trailRef.current.map((point) => ({
+          latitude: point.latitude,
+          longitude: point.longitude,
+        })),
+      getDisplaySpeedKmh: () => displaySpeedRef.current,
+    }),
+    [],
+  )
+
+  const activeElapsedSeconds = frozenSnapshot?.elapsedSeconds ?? metrics.elapsedSeconds
+  const activeDistanceKm = frozenSnapshot?.distanceKm ?? metrics.distanceKm
+  const activeAverageSpeedKmh = frozenSnapshot?.averageSpeedKmh ?? metrics.averageSpeedKmh
+  const activeSpeedKmh = frozenSnapshot?.currentSpeedKmh ?? metrics.currentSpeedKmh
+  const activeDisplaySpeedKmh = frozenSnapshot?.displaySpeedKmh ?? metrics.displaySpeedKmh
+  const activeTrail = frozenSnapshot?.trail ?? metrics.trail
   const stepCount = estimateStepsFromDistance(activeDistanceKm, modality)
   const heartRateBpm = estimateHeartRateBpm(modality, activeElapsedSeconds)
   const currentStep = resolveCurrentActivityStep(
@@ -179,12 +313,14 @@ export function useRunWalkActivitySession({
   return {
     elapsedSeconds: activeElapsedSeconds,
     distanceKm: activeDistanceKm,
-    currentPaceMinPerKm: liveDistanceKm > 0 ? null : getFallbackPaceMinPerKm(modality),
+    currentPaceMinPerKm: metrics.distanceKm > 0 ? null : getFallbackPaceMinPerKm(modality),
     currentSpeedKmh: activeSpeedKmh,
+    displaySpeedKmh: activeDisplaySpeedKmh,
     averageSpeedKmh: activeAverageSpeedKmh,
     stepCount,
     heartRateBpm,
     trail: activeTrail,
+    mapTrailFeed,
     currentStep,
     activitySteps,
     isFinished,

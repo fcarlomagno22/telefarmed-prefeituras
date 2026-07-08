@@ -7,15 +7,40 @@ import { colors } from '../../../theme/colors'
 type RunWalkActivityGpsNoticeProps = {
   gpsPhase: GpsCalibrationPhase
   gpsQuality: GpsQuality
+  gpsPreCalibrated?: boolean
   isLocating: boolean
   isOffline: boolean
+  hasLiveProgress?: boolean
 }
 
 function resolveMessage(props: RunWalkActivityGpsNoticeProps): string | null {
-  const { gpsPhase, gpsQuality, isLocating, isOffline } = props
+  const {
+    gpsPhase,
+    gpsQuality,
+    gpsPreCalibrated = false,
+    isLocating,
+    isOffline,
+    hasLiveProgress = false,
+  } = props
 
   if (isLocating) {
     return 'Buscando sua localização. O cronômetro já está rodando.'
+  }
+
+  if (hasLiveProgress || gpsPhase === 'recording') {
+    if (isOffline) {
+      return 'Sem internet. Seu treino continua sendo salvo no aparelho.'
+    }
+
+    if (gpsQuality === 'poor' || gpsQuality === 'fair') {
+      return 'Sinal fraco — a distância pode demorar a aparecer.'
+    }
+
+    return null
+  }
+
+  if (!gpsPreCalibrated && gpsPhase === 'awaiting') {
+    return 'GPS ainda estabilizando — o treino já começou; distância e percurso podem demorar um pouco.'
   }
 
   if (gpsPhase === 'awaiting') {

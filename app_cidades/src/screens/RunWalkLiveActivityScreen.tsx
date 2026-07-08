@@ -2,7 +2,8 @@ import {
   activateAppKeepAwakeAsync,
   deactivateAppKeepAwake,
 } from '../adapters/appKeepAwake'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { RunWalkLiveGpsFeed } from '../hooks/runWalkLiveGpsFeed'
 import { saveRunWalkActivitySummary } from '../data/runWalkActivitySummaryStorage'
 import { ACTIVITY_MODALITY_LABELS, MODALITY_DEFAULTS } from '../data/runWalkModalityConfig'
 import {
@@ -31,6 +32,7 @@ import { RunWalkActivityTrailMap } from '../components/runWalk/liveActivity/RunW
 import { RunWalkShareLocationDrawer } from '../components/runWalk/preparation/RunWalkShareLocationDrawer'
 import { RunWalkMusicAppsDrawer } from '../components/runWalk/preparation/RunWalkMusicAppsDrawer'
 import { useAuth } from '../contexts/AuthContext'
+import { consumeRunWalkPreLiveGpsCalibrated } from '../data/runWalkPreLiveGpsCalibration'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useGpsCalibration } from '../hooks/useGpsCalibration'
 import { useRunWalkActivitySession } from '../hooks/useRunWalkActivitySession'
@@ -50,6 +52,12 @@ export function RunWalkLiveActivityScreen() {
   const modality = params.modality ?? 'walk'
   const modalityLabel = ACTIVITY_MODALITY_LABELS[modality]
   const durationMinutes = params.durationMinutes ?? MODALITY_DEFAULTS[modality].durationMinutes
+  const gpsPreCalibratedRef = useRef<boolean | null>(null)
+  if (gpsPreCalibratedRef.current === null) {
+    gpsPreCalibratedRef.current =
+      params.gpsPreCalibrated === true || consumeRunWalkPreLiveGpsCalibrated()
+  }
+  const gpsPreCalibrated = gpsPreCalibratedRef.current
 
   const [isLocked, setIsLocked] = useState(false)
   const [sosDrawerVisible, setSosDrawerVisible] = useState(false)
@@ -58,7 +66,7 @@ export function RunWalkLiveActivityScreen() {
   const [finishDrawerVisible, setFinishDrawerVisible] = useState(false)
   const [followUserOnMap, setFollowUserOnMap] = useState(true)
   const [calibrationPaused, setCalibrationPaused] = useState(false)
-  const [gpsRecordingEnabled, setGpsRecordingEnabled] = useState(false)
+  const [gpsRecordingEnabled] = useState(true)
 
   const {
     location,
@@ -74,23 +82,26 @@ export function RunWalkLiveActivityScreen() {
     activityName: params.activityName ?? modalityLabel,
   })
 
+  const gpsFeed = useMemo<RunWalkLiveGpsFeed>(
+    () => ({
+      subscribePosition: location.subscribePosition,
+      getGpsFix: location.getGpsFix,
+    }),
+    [location.getGpsFix, location.subscribePosition],
+  )
+
   const gpsCalibration = useGpsCalibration({
     accuracyMeters: location.accuracyMeters,
     coordinates: location.coordinates,
     enabled: true,
     isPaused: calibrationPaused,
+    initialPhase: gpsPreCalibrated ? 'recording' : 'awaiting',
   })
-
-  useEffect(() => {
-    setGpsRecordingEnabled(gpsCalibration.isRecording)
-  }, [gpsCalibration.isRecording])
 
   const session = useRunWalkActivitySession({
     modality,
     durationMinutes,
-    coordinates: location.coordinates,
-    gpsSpeedMps: location.speedMps,
-    accuracyMeters: location.accuracyMeters,
+    gpsFeed,
     enabled: true,
     gpsRecordingEnabled,
   })
@@ -100,7 +111,7 @@ export function RunWalkLiveActivityScreen() {
   }, [session.isPaused])
 
   const rotateWithHeading = useStableHeadingRotation(
-    session.currentSpeedKmh,
+    session.displaySpeedKmh,
     gpsCalibration.isRecording,
   )
 
@@ -209,16 +220,16 @@ export function RunWalkLiveActivityScreen() {
       {location.coordinates ? (
         <RunWalkActivityTrailMap
           trail={session.trail}
-          currentPosition={location.coordinates}
+          liveGpsFeed={gpsFeed}
+          mapTrailFeed={session.mapTrailFeed}
           fullscreen
           interactive
           liveTracking
           followUser={followUserOnMap}
           onUserPanned={() => setFollowUserOnMap(false)}
           profilePhotoUri={user?.selfieUri}
-          deviceHeadingDegrees={location.headingDegrees}
-          currentSpeedKmh={session.currentSpeedKmh}
           rotateWithHeading={rotateWithHeading}
+          isPaused={session.isPaused}
         />
       ) : (
         <View style={styles.mapPlaceholder} />
@@ -240,16 +251,20 @@ export function RunWalkLiveActivityScreen() {
         <RunWalkActivityStatusBadge
           gpsPhase={gpsCalibration.phase}
           gpsQuality={location.gpsQuality}
+          gpsPreCalibrated={gpsPreCalibrated}
           isLocating={location.isLocating}
           isOffline={isOffline}
           isSyncing={isSyncing}
           pendingSyncCount={pendingSyncCount}
+          hasLiveProgress={session.trail.length > 1 || session.distanceKm > 0}
         />
         <RunWalkActivityGpsNotice
           gpsPhase={gpsCalibration.phase}
           gpsQuality={location.gpsQuality}
+          gpsPreCalibrated={gpsPreCalibrated}
           isLocating={location.isLocating}
           isOffline={isOffline}
+          hasLiveProgress={session.trail.length > 1 || session.distanceKm > 0}
         />
       </View>
 
@@ -282,7 +297,7 @@ export function RunWalkLiveActivityScreen() {
         <RunWalkActivityMetricsCard
           elapsedSeconds={session.elapsedSeconds}
           distanceKm={session.distanceKm}
-          speedKmh={session.currentSpeedKmh}
+          speedKmh={session.displaySpeedKmh}
           speedLabel="Velocidade"
           isFinished={session.isFinished}
           isPaused={session.isPaused}

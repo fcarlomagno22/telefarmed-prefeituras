@@ -1,5 +1,9 @@
 import type { AppLocationObject, AppLocationWatchOptions } from './appLocation.types'
-import { AppLocationAccuracy } from './appLocation.types'
+import {
+  AppLocationAccuracy,
+  normalizeLocationHeadingDegrees,
+  normalizeLocationSpeedMps,
+} from './appLocation.types'
 
 type PositionCallback = (location: AppLocationObject) => void
 type PositionErrorHandler = (reason: string) => void
@@ -15,7 +19,10 @@ type WebPositionWatcher = {
 
 const MIN_COURSE_HEADING_SPEED_MPS = 0.7
 const MIN_COURSE_HEADING_DISTANCE_METERS = 3
-const MIN_STALE_POLL_MS = 8000
+const MIN_STALE_POLL_MS = 4000
+const MIN_POLL_INTERVAL_MS = 250
+/** Activity / BestForNavigation — fresh fixes, high accuracy. */
+const ACTIVITY_MAXIMUM_AGE_MS = 2000
 
 function haversineMeters(from: GeoFix, to: GeoFix): number {
   const earthRadius = 6371000
@@ -52,6 +59,11 @@ const RELAXED_POLL_SETTINGS: PositionOptions = {
 function accuracySettings(accuracy?: AppLocationAccuracy): PositionOptions {
   switch (accuracy) {
     case AppLocationAccuracy.BestForNavigation:
+      return {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: ACTIVITY_MAXIMUM_AGE_MS,
+      }
     case AppLocationAccuracy.Highest:
     case AppLocationAccuracy.High:
       return { enableHighAccuracy: true, timeout: 20000, maximumAge: 5000 }
@@ -73,10 +85,22 @@ function toLocationObject(position: GeolocationPosition): AppLocationObject {
       altitude: position.coords.altitude,
       accuracy: position.coords.accuracy ?? null,
       altitudeAccuracy: position.coords.altitudeAccuracy ?? null,
-      heading: position.coords.heading ?? null,
-      speed: position.coords.speed ?? null,
+      heading: normalizeLocationHeadingDegrees(position.coords.heading),
+      speed: normalizeLocationSpeedMps(position.coords.speed),
     },
   }
+}
+
+function resolveRequestSettings(
+  reason: 'stale' | 'poll' | 'recover',
+  accuracy?: AppLocationAccuracy,
+): PositionOptions {
+  const preferred = accuracySettings(accuracy)
+  if (reason === 'stale') return preferred
+  if (accuracy === AppLocationAccuracy.BestForNavigation) {
+    return preferred
+  }
+  return reason === 'poll' || reason === 'recover' ? RELAXED_POLL_SETTINGS : preferred
 }
 
 function enrichWithCourseHeading(
@@ -193,7 +217,7 @@ export function startWebPositionWatcher(
   const refreshPosition = (reason: 'stale' | 'poll' | 'recover') => {
     if (disposed) return
 
-    const requestSettings = reason === 'poll' || reason === 'recover' ? RELAXED_POLL_SETTINGS : settings
+    const requestSettings = resolveRequestSettings(reason, options.accuracy)
 
     navigator.geolocation.getCurrentPosition(
       (position) => deliverPosition(position, reason !== 'poll'),
@@ -207,7 +231,7 @@ export function startWebPositionWatcher(
   const startPollLoop = () => {
     if (pollTimer != null) return
 
-    const pollMs = Math.max(options.timeInterval ?? 4000, 5000)
+    const pollMs = Math.max(options.timeInterval ?? 4000, MIN_POLL_INTERVAL_MS)
     pollTimer = window.setInterval(() => {
       refreshPosition('poll')
     }, pollMs)

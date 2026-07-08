@@ -183,7 +183,7 @@ export function RunWalkPreparationChecklistScreen() {
   const progress = useRef(new Animated.Value(0)).current
 
   const address = user?.address
-  const location = useRunWalkLocation({ address, enabled: true })
+  const location = useRunWalkLocation({ address, enabled: true, trackingMode: 'activity' })
   const battery = useDeviceBattery()
 
   const batteryOk = isBatteryReadyForActivity(battery)

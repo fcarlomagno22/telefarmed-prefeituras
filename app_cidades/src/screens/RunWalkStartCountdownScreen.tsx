@@ -5,8 +5,11 @@ import { Animated, Easing, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ExerciseTimerBar } from '../components/functional/ExerciseTimerBar'
 import { useAuth } from '../contexts/AuthContext'
+import { setRunWalkPreLiveGpsCalibrated } from '../data/runWalkPreLiveGpsCalibration'
 import { clearPreparationDraft } from '../data/runWalkPreparationDraftStorage'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
+import { useGpsCalibration } from '../hooks/useGpsCalibration'
+import { gpsQualityLabel, useRunWalkLocation } from '../hooks/useRunWalkLocation'
 import { colors } from '../theme/colors'
 import { getRunWalkRouteParams } from '../types/auth'
 import { playFunctionalCountdownTick } from '../utils/appSounds'
@@ -16,8 +19,24 @@ const TICK_MS = 1000
 
 export function RunWalkStartCountdownScreen() {
   const insets = useSafeAreaInsets()
-  const { routeParams, navigateTo } = useAuth()
+  const { routeParams, navigateTo, user } = useAuth()
   const params = getRunWalkRouteParams(routeParams)
+
+  const location = useRunWalkLocation({
+    address: user?.address,
+    enabled: true,
+    trackingMode: 'activity',
+  })
+  const gpsCalibration = useGpsCalibration({
+    accuracyMeters: location.accuracyMeters,
+    coordinates: location.coordinates,
+    enabled: true,
+  })
+  const gpsCalibratedRef = useRef(false)
+
+  useEffect(() => {
+    gpsCalibratedRef.current = gpsCalibration.isRecording
+  }, [gpsCalibration.isRecording])
 
   const [secondsLeft, setSecondsLeft] = useState(COUNTDOWN_SECONDS)
   const completedRef = useRef(false)
@@ -87,11 +106,14 @@ export function RunWalkStartCountdownScreen() {
 
     const finishTimer = setTimeout(() => {
       void clearPreparationDraft()
+      const gpsPreCalibrated = gpsCalibratedRef.current
+      setRunWalkPreLiveGpsCalibrated(gpsPreCalibrated)
       navigateTo('run-walk-live', {
         modality: params.modality,
         activityName: params.activityName,
         intensity: params.intensity,
         durationMinutes: params.durationMinutes,
+        gpsPreCalibrated,
       })
     }, 280)
 
@@ -130,6 +152,13 @@ export function RunWalkStartCountdownScreen() {
           />
 
           <Text style={styles.hint}>Posicione-se e respire</Text>
+          <Text style={styles.gpsHint}>
+            {gpsCalibration.isRecording
+              ? 'GPS pronto'
+              : location.isLocating
+                ? 'Localizando GPS...'
+                : `GPS: ${gpsQualityLabel(location.gpsQuality)}`}
+          </Text>
         </View>
       </View>
     </View>
@@ -164,5 +193,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.2,
     textTransform: 'uppercase',
+  },
+  gpsHint: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.1,
   },
 })

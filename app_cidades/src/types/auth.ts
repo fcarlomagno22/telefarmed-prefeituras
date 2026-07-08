@@ -66,6 +66,7 @@ export type RunWalkRouteParams = {
   celebrateFromMinutes?: number
   celebrateToMinutes?: number
   myRoutineReturnTaskId?: string
+  gpsPreCalibrated?: boolean
 }
 
 export type FunctionalRouteParams = {
@@ -136,7 +137,8 @@ export function getRunWalkRouteParams(params: AppRouteParams | null): RunWalkRou
     'celebrateWeeklyGoal' in params ||
     'celebrateDateIso' in params ||
     'celebrateFromMinutes' in params ||
-    'celebrateToMinutes' in params
+    'celebrateToMinutes' in params ||
+    'gpsPreCalibrated' in params
   ) {
     return params as RunWalkRouteParams
   }

@@ -1,3 +1,4 @@
+import { Platform } from 'react-native'
 import {
   Accuracy,
   enableNetworkProviderAsync,
@@ -19,6 +20,7 @@ import {
   isValidReverseGeocodeCoordinates,
 } from '../adapters/reverseGeocodeShared'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createListenerRegistry, type RunWalkGpsFix } from './runWalkLiveGpsFeed'
 import { RegistrationAddress } from '../types/auth'
 import { GeoCoordinates } from '../utils/geo'
 import { getMockGpsCoordinates } from '../utils/nearbyUnits'
@@ -93,6 +95,7 @@ async function resolveCityLabel(latitude: number, longitude: number): Promise<st
 }
 
 export type RunWalkLocationTrackingMode = 'default' | 'activity'
+export type RunWalkLocationPositionUpdateMode = 'state' | 'ref'
 
 type UseRunWalkLocationOptions = {
   address?: RegistrationAddress
@@ -103,6 +106,8 @@ type UseRunWalkLocationOptions = {
   snapshot?: boolean
   /** Se falso, só consulta permissão no mount e espera refreshLocation (gesto do usuário). */
   autoRequest?: boolean
+  /** ref: GPS bruto em refs + listeners; state: setState a cada fix (default). */
+  positionUpdateMode?: RunWalkLocationPositionUpdateMode
 }
 
 function permissionDeniedMessage(permission: AppLocationPermissionResponse): string {
@@ -115,11 +120,18 @@ function permissionDeniedMessage(permission: AppLocationPermissionResponse): str
 
 const TRACKING_WATCH_OPTIONS: Record<
   RunWalkLocationTrackingMode,
-  Pick<AppLocationWatchOptions, 'distanceInterval' | 'timeInterval'>
+  Pick<AppLocationWatchOptions, 'distanceInterval' | 'timeInterval' | 'mayShowUserSettingsDialog'>
 > = {
   default: { distanceInterval: 5, timeInterval: 4000 },
-  activity: { distanceInterval: 2, timeInterval: 1000 },
+  activity: {
+    // 0 = emit on time cadence only (Waze-like on web); native still benefits from 1 m filter.
+    distanceInterval: Platform.OS === 'web' ? 0 : 1,
+    timeInterval: Platform.OS === 'web' ? 250 : 300,
+    mayShowUserSettingsDialog: true,
+  },
 }
+
+const REF_MODE_UI_SYNC_MS = 250
 
 export function useRunWalkLocation({
   address,
@@ -128,7 +140,12 @@ export function useRunWalkLocation({
   trackingMode = 'default',
   snapshot = false,
   autoRequest = true,
+  positionUpdateMode = 'state',
 }: UseRunWalkLocationOptions) {
+  const positionFixRef = useRef<RunWalkGpsFix | null>(null)
+  const positionListenersRef = useRef(createListenerRegistry())
+  const lastRefModeUiSyncAtRef = useRef(0)
+  const useRefPositionUpdates = positionUpdateMode === 'ref'
   const [state, setState] = useState<RunWalkLocationState>({
     coordinates: null,
     accuracyMeters: null,
@@ -161,6 +178,55 @@ export function useRunWalkLocation({
   const applyPosition = useCallback(
     (latitude: number, longitude: number, accuracy: number | null, heading: number | null, speed: number | null) => {
       const shouldResolveCity = !snapshot || !cityResolvedRef.current
+      const now = Date.now()
+      const nextHeading =
+        heading != null && Number.isFinite(heading) && heading >= 0
+          ? heading % 360
+          : (positionFixRef.current?.headingDegrees ?? null)
+      const normalizedSpeed =
+        speed != null && Number.isFinite(speed) && speed >= 0 ? speed : null
+      const nextSpeed = normalizedSpeed
+
+      positionFixRef.current = {
+        coordinates: { latitude, longitude },
+        speedMps: nextSpeed,
+        accuracyMeters: accuracy,
+        headingDegrees: nextHeading,
+        recordedAt: now,
+      }
+
+      if (useRefPositionUpdates) {
+        positionListenersRef.current.notify()
+
+        if (now - lastRefModeUiSyncAtRef.current >= REF_MODE_UI_SYNC_MS) {
+          lastRefModeUiSyncAtRef.current = now
+          setState((prev) => ({
+            ...prev,
+            coordinates: { latitude, longitude },
+            accuracyMeters: accuracy,
+            headingDegrees: nextHeading ?? prev.headingDegrees,
+            speedMps: nextSpeed ?? prev.speedMps,
+            gpsQuality: accuracyToQuality(accuracy),
+            isLocating: false,
+            isResolvingCity: shouldResolveCity,
+            permissionGranted: true,
+            permissionDenied: false,
+            error: null,
+          }))
+        }
+
+        if (!shouldResolveCity) return
+
+        void resolveCityLabel(latitude, longitude).then((cityLabel) => {
+          cityResolvedRef.current = true
+          setState((prev) => ({
+            ...prev,
+            cityLabel,
+            isResolvingCity: false,
+          }))
+        })
+        return
+      }
 
       setState((prev) => ({
         ...prev,
@@ -171,7 +237,7 @@ export function useRunWalkLocation({
             ? heading % 360
             : prev.headingDegrees,
         speedMps:
-          speed != null && Number.isFinite(speed) && speed >= 0 ? speed : prev.speedMps,
+          speed != null && Number.isFinite(speed) && speed >= 0 ? speed : null,
         gpsQuality: accuracyToQuality(accuracy),
         isLocating: false,
         isResolvingCity: shouldResolveCity,
@@ -193,17 +259,38 @@ export function useRunWalkLocation({
         }))
       })
     },
-    [snapshot],
+    [snapshot, useRefPositionUpdates],
   )
 
-  const applyHeading = useCallback((heading: number) => {
-    if (!Number.isFinite(heading) || heading < 0) return
-
-    setState((prev) => ({
-      ...prev,
-      headingDegrees: heading % 360,
-    }))
+  const subscribePosition = useCallback((listener: () => void) => {
+    return positionListenersRef.current.subscribe(listener)
   }, [])
+
+  const getGpsFix = useCallback((): RunWalkGpsFix | null => {
+    return positionFixRef.current
+  }, [])
+
+  const applyHeading = useCallback(
+    (heading: number) => {
+      if (!Number.isFinite(heading) || heading < 0) return
+
+      const normalized = heading % 360
+      if (useRefPositionUpdates && positionFixRef.current) {
+        positionFixRef.current = {
+          ...positionFixRef.current,
+          headingDegrees: normalized,
+        }
+        positionListenersRef.current.notify()
+        return
+      }
+
+      setState((prev) => ({
+        ...prev,
+        headingDegrees: normalized,
+      }))
+    },
+    [useRefPositionUpdates],
+  )
 
   const applyPermissionState = useCallback((permission: AppLocationPermissionResponse) => {
     setState((prev) => ({
@@ -256,6 +343,7 @@ export function useRunWalkLocation({
 
       const position = await getCurrentPositionAsync({
         accuracy: initialAccuracy,
+        mayShowUserSettingsDialog: trackingMode === 'activity',
       })
 
       applyPosition(
@@ -397,5 +485,7 @@ export function useRunWalkLocation({
     ...state,
     refreshLocation: requestLocation,
     syncPermissionStatus,
+    subscribePosition,
+    getGpsFix,
   }
 }

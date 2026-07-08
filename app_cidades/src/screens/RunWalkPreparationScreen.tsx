@@ -62,7 +62,13 @@ export function RunWalkPreparationScreen() {
 
   const address = user?.address
 
-  const location = useRunWalkLocation({ address, enabled: true, snapshot: true, autoRequest: false })
+  const location = useRunWalkLocation({
+    address,
+    enabled: true,
+    snapshot: !startFlowActive,
+    trackingMode: startFlowActive ? 'activity' : 'default',
+    autoRequest: false,
+  })
   const battery = useDeviceBattery()
   const weather = useRunWalkWeather(
     location.coordinates?.latitude ?? null,

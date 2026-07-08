@@ -10,7 +10,27 @@ export enum AppLocationAccuracy {
 export type AppLocationWatchOptions = {
   accuracy?: AppLocationAccuracy
   distanceInterval?: number
+  /** Android only — iOS uses distanceInterval + accuracy. */
   timeInterval?: number
+  /**
+   * Android only — prompts to enable device location / high accuracy mode when disabled.
+   * @platform android
+   */
+  mayShowUserSettingsDialog?: boolean
+}
+
+/** iOS returns -1 for invalid speed; treat as null so distance/time fallback runs. */
+export function normalizeLocationSpeedMps(speed: number | null | undefined): number | null {
+  if (speed == null || !Number.isFinite(speed) || speed < 0) return null
+  return speed
+}
+
+/** iOS returns -1 for invalid course heading. */
+export function normalizeLocationHeadingDegrees(
+  heading: number | null | undefined,
+): number | null {
+  if (heading == null || !Number.isFinite(heading) || heading < 0) return null
+  return heading % 360
 }
 
 export type AppLocationCoords = {
@@ -109,8 +129,14 @@ export const APP_LOCATION_WEB_LIMITATIONS = {
   reverseGeocode:
     'Se o reverse geocoding falhar ou não for confiável na web, o app usa coordenadas ou dados já conhecidos do usuário.',
   precision:
-    'No navegador a precisão depende do GPS/Wi‑Fi disponível; localização de rede pode ser imprecisa.',
+    'No navegador a precisão depende do GPS/Wi‑Fi disponível; localização de rede pode ser imprecisa (10–100m+). O app nativo é significativamente mais preciso para corrida/caminhada.',
+  liveTracking:
+    'Tracking live na web degrada gracefully: pin pode saltar, velocidade usa fallback distância/tempo, trail commita com filtros anti-drift. Recomenda-se app nativo para melhor UX.',
+  safariIos:
+    'Safari iOS: permissão de geolocalização via prompt do navegador; DeviceOrientation (bússola) exige gesto do usuário (iOS 13+) e pode falhar — heading cai back para curso GPS.',
   secureContext: 'Localização na web exige HTTPS ou localhost.',
+  map:
+    'Mapa live na web usa Leaflet DOM direto (sem WebView), com follow ~60fps via requestAnimationFrame e cap de inject a 16ms.',
 } as const
 
 export function getAppLocationFailureMessage(reason: AppLocationFailureReason): string {

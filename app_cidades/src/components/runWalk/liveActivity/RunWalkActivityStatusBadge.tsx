@@ -6,16 +6,27 @@ import { colors } from '../../../theme/colors'
 type RunWalkActivityStatusBadgeProps = {
   gpsPhase: GpsCalibrationPhase
   gpsQuality: GpsQuality
+  gpsPreCalibrated?: boolean
   isLocating: boolean
   isOffline: boolean
   isSyncing: boolean
   pendingSyncCount: number
+  hasLiveProgress?: boolean
 }
 
 function resolveBadge(
   props: RunWalkActivityStatusBadgeProps,
 ): { label: string; color: string; dotColor: string } {
-  const { gpsPhase, gpsQuality, isLocating, isOffline, isSyncing, pendingSyncCount } = props
+  const {
+    gpsPhase,
+    gpsQuality,
+    gpsPreCalibrated = false,
+    isLocating,
+    isOffline,
+    isSyncing,
+    pendingSyncCount,
+    hasLiveProgress = false,
+  } = props
 
   if (isSyncing || pendingSyncCount > 0) {
     return {
@@ -41,7 +52,15 @@ function resolveBadge(
     }
   }
 
-  if (gpsPhase === 'awaiting') {
+  if (gpsPhase === 'awaiting' && !hasLiveProgress) {
+    if (!gpsPreCalibrated) {
+      return {
+        label: 'Gravando · GPS estabilizando',
+        color: '#b45309',
+        dotColor: '#fbbf24',
+      }
+    }
+
     return {
       label: 'Calibrando GPS...',
       color: '#b45309',

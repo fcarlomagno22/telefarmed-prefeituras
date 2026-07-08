@@ -177,6 +177,72 @@
         "enforceContrast": false,
         "barStyle": "dark",
         "visibility": "visible"
+      },
+      "nativeMaps": {
+        "provider": "default",
+        "notes": "Live run/walk map uses react-native-maps: Apple Maps on iOS, Google Maps on Android. Location permissions are configured via expo-location (when-in-use + always/when-in-use for live share). For production Android builds with Google Maps, set android.config.googleMaps.apiKey in app.json."
+      },
+      "iosGpsLiveTracking": {
+        "permissions": {
+          "whenInUse": "NSLocationWhenInUseUsageDescription — configured",
+          "alwaysAndWhenInUse": "NSLocationAlwaysAndWhenInUseUsageDescription — configured for live share prompt; app only requests foreground permission today",
+          "backgroundModesLocation": "NOT enabled — UIBackgroundModes has audio only; GPS pauses when app is backgrounded unless background location is added"
+        },
+        "watchOptions": {
+          "accuracy": "BestForNavigation in activity mode",
+          "distanceIntervalMeters": 1,
+          "timeIntervalMs": "500 — Android only; iOS ignores timeInterval in expo-location watchPosition"
+        },
+        "preciseLocation": "Test with Settings > Privacy > Location > Precise Location on/off; reduced accuracy increases horizontalAccuracy and may delay trail commits",
+        "deviceTesting": "Required — iOS Simulator GPS is imprecise and speed is often null",
+        "webviewMap": "Deprecated on iOS native — RunWalkActivityTrailMap uses react-native-maps; WebView fallback kept in .native.webview.tsx for reference only"
+      },
+      "androidGpsLiveTracking": {
+        "permissions": {
+          "fineLocation": "ACCESS_FINE_LOCATION — configured",
+          "coarseLocation": "ACCESS_COARSE_LOCATION — configured",
+          "foregroundService": "FOREGROUND_SERVICE — configured (used by expo-audio background playback)",
+          "foregroundServiceLocation": "NOT configured — add FOREGROUND_SERVICE_LOCATION + expo-location isAndroidForegroundServiceEnabled for background GPS",
+          "backgroundLocation": "NOT configured — ACCESS_BACKGROUND_LOCATION not requested; live tracking is foreground-only today"
+        },
+        "watchOptions": {
+          "accuracy": "BestForNavigation → PRIORITY_HIGH_ACCURACY on Android",
+          "timeIntervalMs": 500,
+          "distanceIntervalMeters": 1,
+          "timeIntervalNote": "Validated in expo-location LocationHelpers.kt — sets FusedLocationProvider interval=500",
+          "mayShowUserSettingsDialog": true,
+          "mayShowUserSettingsDialogNote": "Activity mode prompts user to enable high-accuracy device location when GPS/network provider is off"
+        },
+        "batteryOptimization": "For QA: Settings > Apps > Telefarmed Cidades > Battery > Unrestricted (or disable optimization). Doze may throttle GPS when screen off.",
+        "systemGpsMode": "Settings > Location > Location services > Google Location Accuracy ON; mode High accuracy recommended for QA",
+        "reactNativeMaps": {
+          "provider": "Google Maps via Play Services (default on Android)",
+          "apiKey": "NOT set — add android.config.googleMaps.apiKey before production release (EAS secret + app.config.js or app.json android.config)",
+          "expoGo": "Maps work in Expo Go; dev/prod builds need API key + SHA-1 in Google Cloud Console",
+          "plugin": "No Expo config plugin in react-native-maps@1.20.1 — use android.config.googleMaps.apiKey in app.json for prod Android builds"
+        },
+        "deviceTesting": "Required — emulator GPS is usable but real device recommended for speed/fused location behavior"
+      },
+      "webGpsLiveTracking": {
+        "geolocation": {
+          "enableHighAccuracy": "true in activity mode (BestForNavigation)",
+          "maximumAgeMs": 2000,
+          "timeIntervalMs": 500,
+          "distanceIntervalMeters": 1,
+          "staleRecoveryPollMs": 4000
+        },
+        "heading": {
+          "compass": "DeviceOrientation API with iOS 13+ requestPermission",
+          "safariIos": "Test location prompt + compass after user gesture; fallback to GPS course heading",
+          "fallback": "enrichWithCourseHeading when speed >= 0.7 m/s and moved >= 3m"
+        },
+        "map": {
+          "engine": "Leaflet DOM direct — RunWalkActivityTrailMap.web.tsx (no WebView)",
+          "followFps": "~60fps via requestAnimationFrame in runWalkActivityTrailMapLeafletEngine.ts",
+          "injectCapMs": 16
+        },
+        "limitations": "Web GPS less precise than native — UX degrades gracefully; recommend native app for best live tracking",
+        "secureContext": "Requires HTTPS or localhost"
       }
     },
     "owner": "telefarmeds-team"

@@ -34,6 +34,7 @@ export function useRunWalkLiveSharePublisher({
     enabled,
     trackHeading: enabled,
     trackingMode: enabled ? 'activity' : 'default',
+    positionUpdateMode: enabled ? 'ref' : 'state',
   })
   const { isConnected } = useAppNetwork()
   const [session, setSession] = useState<LiveShareSessionSnapshot | null>(null)
@@ -108,13 +109,16 @@ export function useRunWalkLiveSharePublisher({
 
     let activeSession = await loadActiveLiveShareSession()
 
-    if (shouldReplaceLiveShareSession(activeSession) && location.coordinates) {
+    if (shouldReplaceLiveShareSession(activeSession)) {
+      const fix = location.getGpsFix()
+      if (!fix) return null
+
       activeSession = await createLiveShareSession({
         participantName,
         activityName,
-        latitude: location.coordinates.latitude,
-        longitude: location.coordinates.longitude,
-        accuracyMeters: location.accuracyMeters,
+        latitude: fix.coordinates.latitude,
+        longitude: fix.coordinates.longitude,
+        accuracyMeters: fix.accuracyMeters,
       })
     }
 
@@ -123,13 +127,7 @@ export function useRunWalkLiveSharePublisher({
     setSession(activeSession)
     setShouldPublish(true)
     return activeSession
-  }, [
-    activityName,
-    enabled,
-    location.accuracyMeters,
-    location.coordinates,
-    participantName,
-  ])
+  }, [activityName, enabled, location.getGpsFix, participantName])
 
   useEffect(() => {
     if (!enabled) return
@@ -160,21 +158,26 @@ export function useRunWalkLiveSharePublisher({
   }, [enabled])
 
   useEffect(() => {
-    if (!enabled || !shouldPublish || session?.isActive || !location.coordinates) return
+    if (!enabled || !shouldPublish || session?.isActive) return
 
     let cancelled = false
 
-    void createLiveShareSession({
-      participantName,
-      activityName,
-      latitude: location.coordinates.latitude,
-      longitude: location.coordinates.longitude,
-      accuracyMeters: location.accuracyMeters,
-    }).then((created) => {
+    void (async () => {
+      const fix = location.getGpsFix()
+      if (!fix) return
+
+      const created = await createLiveShareSession({
+        participantName,
+        activityName,
+        latitude: fix.coordinates.latitude,
+        longitude: fix.coordinates.longitude,
+        accuracyMeters: fix.accuracyMeters,
+      })
+
       if (!cancelled) {
         setSession(created)
       }
-    })
+    })()
 
     return () => {
       cancelled = true
@@ -182,17 +185,19 @@ export function useRunWalkLiveSharePublisher({
   }, [
     activityName,
     enabled,
-    location.accuracyMeters,
-    location.coordinates,
+    location.getGpsFix,
     participantName,
     session?.isActive,
     shouldPublish,
   ])
 
   const publishCurrentLocation = useCallback(async () => {
-    if (!enabled || !shouldPublishRef.current || !sessionRef.current?.isActive || !location.coordinates) {
+    if (!enabled || !shouldPublishRef.current || !sessionRef.current?.isActive) {
       return
     }
+
+    const fix = location.getGpsFix()
+    if (!fix) return
 
     const now = Date.now()
     if (now - lastPublishedAtRef.current < MIN_PUBLISH_GAP_MS) return
@@ -200,9 +205,9 @@ export function useRunWalkLiveSharePublisher({
     const activeSession = sessionRef.current
     const pointInput = {
       sessionId: activeSession.id,
-      latitude: location.coordinates.latitude,
-      longitude: location.coordinates.longitude,
-      accuracyMeters: location.accuracyMeters,
+      latitude: fix.coordinates.latitude,
+      longitude: fix.coordinates.longitude,
+      accuracyMeters: fix.accuracyMeters,
     }
 
     const isRemoteSession = !activeSession.id.startsWith('local-')
@@ -238,10 +243,10 @@ export function useRunWalkLiveSharePublisher({
           }
         : current,
     )
-  }, [enabled, isConnected, location.accuracyMeters, location.coordinates, refreshPendingSyncCount])
+  }, [enabled, isConnected, location.getGpsFix, refreshPendingSyncCount])
 
   useEffect(() => {
-    if (!enabled || !shouldPublish || !session?.isActive || !location.coordinates) return
+    if (!enabled || !shouldPublish || !session?.isActive) return
 
     void publishCurrentLocation()
 
@@ -250,14 +255,7 @@ export function useRunWalkLiveSharePublisher({
     }, PUBLISH_INTERVAL_MS)
 
     return () => clearInterval(timer)
-  }, [
-    enabled,
-    location.coordinates,
-    publishCurrentLocation,
-    session?.id,
-    session?.isActive,
-    shouldPublish,
-  ])
+  }, [enabled, publishCurrentLocation, session?.id, session?.isActive, shouldPublish])
 
   const endActiveLiveShareSession = useCallback(async () => {
     const activeSession = sessionRef.current
