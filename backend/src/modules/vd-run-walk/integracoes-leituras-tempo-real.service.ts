@@ -9,7 +9,7 @@ import {
   RUN_WALK_INTEGRACOES_LEITURAS_DEFAULT_MAX_AGE_SECONDS,
   type RunWalkIntegracoesLeiturasTempoRealDto,
 } from './integracoes-leituras-tempo-real.formatters.js'
-import type { VdRunWalkPacienteScope } from './scope.js'
+import type { VdRunWalkPacienteScope } from './types.js'
 
 export type GetRunWalkIntegracoesLeiturasTempoRealQuery = {
   sessionStartedAt?: string

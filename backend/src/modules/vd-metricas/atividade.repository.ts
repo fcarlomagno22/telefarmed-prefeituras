@@ -203,7 +203,7 @@ export async function loadTodayAtividadeTotals(
 
   return {
     passosHoje: day.steps,
-    distanciaKmHoje: day.distanciaKm,
+    distanciaKmHoje: day.distanceKm,
   }
 }
 

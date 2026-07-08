@@ -7,7 +7,6 @@ import {
   createRunWalkLocalBodySchema,
   createRunWalkLocalComentarioBodySchema,
   listRunWalkLocaisQuerySchema,
-  listRunWalkLocalComentariosQuerySchema,
   postRunWalkLocalVotoBodySchema,
   createDisposicaoCheckinBodySchema,
   createLiveSessionBodySchema,

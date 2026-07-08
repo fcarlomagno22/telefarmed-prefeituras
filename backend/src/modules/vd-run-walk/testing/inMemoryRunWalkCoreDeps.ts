@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import type { ListAtividadesRepositoryQuery } from '../atividades.repository.js'
 import { isUniqueViolationError } from '../atividades.repository.js'
-import type { RunWalkAtividadeRow, VdRunWalkPacienteScope } from '../types.js'
+import type { RunWalkAtividadeRow } from '../types.js'
 import type { RunWalkCoreServiceDeps } from '../service.js'
 import {
   syncRunWalkAtividadeToMetricas,
