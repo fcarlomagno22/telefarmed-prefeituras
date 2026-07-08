@@ -18,16 +18,14 @@ import winnerAnimation from '../../assets/Winner.json'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { RunWalkActivityTrailMap } from '../components/runWalk/liveActivity/RunWalkActivityTrailMap'
 import { ActivityMetricValue } from '../components/runWalk/liveActivity/ActivityMetricValue'
-import { getMockRunWalkTodayState } from '../data/mockRunWalk'
 import {
   clearRunWalkActivitySummary,
   loadRunWalkActivitySummary,
   type RunWalkActivitySummary,
 } from '../data/runWalkActivitySummaryStorage'
-import { saveRunWalkHistoryActivity } from '../data/runWalkActivityHistoryStorage'
+import { persistRunWalkHistoryActivity } from '../data/runWalkActivityHistoryStorage'
 import {
-  getMergedDayActiveMinutes,
-  loadWeeklyProgress,
+  loadWeeklyGoalProgress,
   recordRunWalkActivityCompletion,
 } from '../data/runWalkWeeklyProgressStorage'
 import { setPendingWeeklyGoalCelebration } from '../data/runWalkWeeklyCelebration'
@@ -157,29 +155,28 @@ export function RunWalkActivitySummaryScreen() {
     try {
       const patientCpf = user?.cpf ?? summary.patientCpf
       const dateIso = toLocalDateIso(new Date(summary.completedAt))
-      const baseTodayMinutes =
-        getMockRunWalkTodayState().weeklyCalendar.find((day) => day.dateIso === dateIso)
-          ?.activeMinutes ?? 0
-      const existingProgress = await loadWeeklyProgress(patientCpf)
-      const mergedBefore = getMergedDayActiveMinutes(
-        baseTodayMinutes,
-        existingProgress,
-        dateIso,
-      )
+      const weeklyProgress = await loadWeeklyGoalProgress(patientCpf)
+      const todayDay = weeklyProgress.weeklyCalendar.find((day) => day.dateIso === dateIso)
+      let previousTodayMinutes = todayDay?.activeMinutes ?? 0
+      let newTodayMinutes = previousTodayMinutes + summary.activeMinutes
 
-      const { previousTodayMinutes, newTodayMinutes } = await recordRunWalkActivityCompletion(
-        patientCpf,
-        summary.activeMinutes,
-        baseTodayMinutes,
-        dateIso,
-      )
+      if (patientCpf === 'guest') {
+        const completion = await recordRunWalkActivityCompletion(
+          patientCpf,
+          summary.activeMinutes,
+          todayDay?.activeMinutes ?? 0,
+          dateIso,
+        )
+        previousTodayMinutes = completion.previousTodayMinutes
+        newTodayMinutes = completion.newTodayMinutes
+      }
 
-      await saveRunWalkHistoryActivity(patientCpf, summary)
+      await persistRunWalkHistoryActivity(patientCpf, summary)
       await clearRunWalkActivitySummary(summary.id)
 
       setPendingWeeklyGoalCelebration({
         dateIso,
-        fromMinutes: previousTodayMinutes ?? mergedBefore,
+        fromMinutes: previousTodayMinutes,
         toMinutes: newTodayMinutes,
       })
 

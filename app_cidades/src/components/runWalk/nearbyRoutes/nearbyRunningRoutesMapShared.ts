@@ -29,16 +29,7 @@ export const RUNNING_ROUTES_MAP_CUSTOM_CSS = `
   html, body, #map { width: 100%; height: 100%; margin: 0; background: #f5f5f7; }
   .leaflet-container { background: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
   .leaflet-control-attribution { display: none !important; }
-  .leaflet-control-zoom a {
-    background: rgba(255, 255, 255, 0.96) !important;
-    color: #1a1a1f !important;
-    border-color: rgba(0, 0, 0, 0.12) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-  }
-  .leaflet-control-zoom a:hover {
-    background: #ffffff !important;
-    color: #1a1a1f !important;
-  }
+  .leaflet-control-zoom { display: none !important; }
   .leaflet-popup-content-wrapper,
   .leaflet-popup-tip {
     background: #ffffff !important;

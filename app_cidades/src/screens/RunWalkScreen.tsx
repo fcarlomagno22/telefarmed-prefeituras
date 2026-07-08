@@ -16,6 +16,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
+import { ActionToast } from '../components/ActionToast'
 import { MenuDrawer } from '../components/MenuDrawer'
 import { NeonSectionDivider } from '../components/NeonSectionDivider'
 import { RunWalkActivityDetailDrawer } from '../components/runWalk/RunWalkActivityDetailDrawer'
@@ -35,28 +36,26 @@ import { RunWalkWeeklyGoalCard } from '../components/runWalk/RunWalkWeeklyGoalCa
 import type { RunWalkWeeklyBarCelebrateDay } from '../components/runWalk/RunWalkWeeklyBarChart'
 import { RunWalkWeeklyGoalDrawer } from '../components/runWalk/RunWalkWeeklyGoalDrawer'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
-import {
-  applyActivityMenuAction,
-  findTodayActivityById,
-  getMockRunWalkTodayState,
-  getTodayActivityPreset,
-} from '../data/mockRunWalk'
+import { createEmptyRunWalkTodayState } from '../data/mockRunWalk'
 import { MODALITY_DEFAULTS } from '../data/runWalkModalityConfig'
 import { clearPreparationDraft } from '../data/runWalkPreparationDraftStorage'
 import {
-  clearTodayActivitySelection,
-  loadRunWalkDailyRecord,
-  markDispositionPromptHandled,
-  saveTodayActivitySelection,
-} from '../data/runWalkStorage'
+  loadRunWalkDisposition,
+  type SaveRunWalkDispositionCheckinResult,
+} from '../data/runWalkDispositionStorage'
+import {
+  applyRunWalkPlanoMenuAction,
+  findTodayActivityPreset,
+  loadRunWalkPlano,
+  selectRunWalkPlanoPreset,
+  type RunWalkPlanoSnapshot,
+} from '../data/runWalkPlanoStorage'
 import {
   loadWeeklyGoalTargets,
   saveWeeklyGoalTargets,
 } from '../data/runWalkWeeklyGoalStorage'
-import {
-  loadWeeklyProgress,
-  mergeWeeklyProgressIntoState,
-} from '../data/runWalkWeeklyProgressStorage'
+import { loadWeeklyGoalProgress } from '../data/runWalkWeeklyProgressStorage'
+import { useAppNetwork } from '../hooks/useAppNetwork'
 import { consumePendingWeeklyGoalCelebration, peekPendingWeeklyGoalCelebration } from '../data/runWalkWeeklyCelebration'
 import { useAuth } from '../contexts/AuthContext'
 import { useGuestAuth } from '../contexts/GuestAuthContext'
@@ -69,6 +68,7 @@ import type {
   RunWalkQuickShortcutId,
   RunWalkTab,
   TodayActivity,
+  TodayActivityPreset,
   TodayActivityPresetId,
   WeeklyGoalTargets,
 } from '../types/runWalk'
@@ -85,16 +85,18 @@ export function RunWalkScreen() {
   const { width: screenWidth } = useWindowDimensions()
   const { user, navigateTo, goBack, canGoBack, logout, routeParams } = useAuth()
   const { requireAuth } = useGuestAuth()
+  const { isConnected, isReady: isNetworkReady } = useAppNetwork()
+  const wasOfflineRef = useRef(false)
 
   const [segmentTab, setSegmentTab] = useState<RunWalkTab>('today')
   const [menuVisible, setMenuVisible] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isDailyStateReady, setIsDailyStateReady] = useState(false)
 
-  const [todayState, setTodayState] = useState(getMockRunWalkTodayState)
+  const [todayState, setTodayState] = useState(createEmptyRunWalkTodayState)
   const [activity, setActivity] = useState<TodayActivity | null>(null)
+  const [activityPresets, setActivityPresets] = useState<TodayActivityPreset[]>([])
   const [hasTodayActivity, setHasTodayActivity] = useState(false)
-  const [dispositionMessage, setDispositionMessage] = useState(todayState.disposition.message)
 
   const [detailVisible, setDetailVisible] = useState(false)
   const [activityMenuVisible, setActivityMenuVisible] = useState(false)
@@ -108,7 +110,7 @@ export function RunWalkScreen() {
   const [goalDrawerVisible, setGoalDrawerVisible] = useState(false)
   const [modalityDrawerVisible, setModalityDrawerVisible] = useState(false)
   const [weeklyGoalTargets, setWeeklyGoalTargets] = useState<WeeklyGoalTargets | null>(null)
-  const [planNotice, setPlanNotice] = useState<string | null>(null)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [weeklyGoalAnimateRings, setWeeklyGoalAnimateRings] = useState(false)
   const [weeklyGoalAnimateChart, setWeeklyGoalAnimateChart] = useState(false)
   const [celebrateDay, setCelebrateDay] = useState<RunWalkWeeklyBarCelebrateDay | null>(() => {
@@ -217,13 +219,7 @@ export function RunWalkScreen() {
     })
   }, [screenWidth])
 
-  const disposition = useMemo(
-    () => ({
-      ...todayState.disposition,
-      message: dispositionMessage,
-    }),
-    [dispositionMessage, todayState.disposition],
-  )
+  const disposition = todayState.disposition
 
   const weeklyGoalStats = useMemo(
     () => applyWeeklyGoalTargets(todayState.weeklyGoal, weeklyGoalTargets),
@@ -243,37 +239,45 @@ export function RunWalkScreen() {
 
   const patientCpf = user?.cpf ?? 'guest'
 
+  const showToast = useCallback((message: string) => {
+    setToastMessage(message)
+  }, [])
+
+  const applyPlanoSnapshot = useCallback((snapshot: RunWalkPlanoSnapshot) => {
+    setActivity(snapshot.activity)
+    setHasTodayActivity(snapshot.hasTodayActivity)
+    setActivityPresets(snapshot.presets)
+  }, [])
+
   const loadDailyState = useCallback(async () => {
-    const savedGoal = await loadWeeklyGoalTargets(patientCpf)
+    const [savedGoal, weeklyProgress, dispositionSnapshot, planoSnapshot] = await Promise.all([
+      loadWeeklyGoalTargets(patientCpf),
+      loadWeeklyGoalProgress(patientCpf),
+      loadRunWalkDisposition(patientCpf),
+      loadRunWalkPlano(patientCpf),
+    ])
     setWeeklyGoalTargets(savedGoal)
 
-    const weeklyProgress = await loadWeeklyProgress(patientCpf)
-    const mergedState = mergeWeeklyProgressIntoState(getMockRunWalkTodayState(), weeklyProgress)
-    setTodayState(mergedState)
-    setDispositionMessage(mergedState.disposition.message)
+    setTodayState({
+      ...createEmptyRunWalkTodayState(),
+      disposition: dispositionSnapshot.disposition,
+      weeklyGoal: weeklyProgress.weeklyGoal,
+      weeklyCalendar: weeklyProgress.weeklyCalendar,
+    })
+    applyPlanoSnapshot(planoSnapshot)
 
     if (!user) {
       setIsDailyStateReady(true)
       return
     }
 
-    const record = await loadRunWalkDailyRecord(user.cpf)
-
-    if (record.selectedActivityId) {
-      const savedActivity = findTodayActivityById(record.selectedActivityId)
-      if (savedActivity) {
-        setActivity(savedActivity)
-        setHasTodayActivity(true)
-      }
-    }
-
-    if (!record.dispositionPromptHandled) {
+    if (!dispositionSnapshot.checkinCompletedToday) {
       setCheckinAllowSkip(true)
       setCheckinVisible(true)
     }
 
     setIsDailyStateReady(true)
-  }, [patientCpf, user])
+  }, [applyPlanoSnapshot, patientCpf, user])
 
   useEffect(() => {
     void loadDailyState()
@@ -355,12 +359,36 @@ export function RunWalkScreen() {
   }, [loadDailyState, scrollSegmentPagerTo])
 
   const refreshData = useCallback(async () => {
-    const weeklyProgress = await loadWeeklyProgress(patientCpf)
-    const next = mergeWeeklyProgressIntoState(getMockRunWalkTodayState(), weeklyProgress)
-    setTodayState(next)
-    setDispositionMessage(next.disposition.message)
-    setPlanNotice(null)
-  }, [patientCpf])
+    const [savedGoal, weeklyProgress, dispositionSnapshot, planoSnapshot] = await Promise.all([
+      loadWeeklyGoalTargets(patientCpf),
+      loadWeeklyGoalProgress(patientCpf, { forceRefresh: true }),
+      loadRunWalkDisposition(patientCpf, { forceRefresh: true }),
+      loadRunWalkPlano(patientCpf, { forceRefresh: true }),
+    ])
+    setWeeklyGoalTargets(savedGoal)
+
+    setTodayState((prev) => ({
+      ...createEmptyRunWalkTodayState(),
+      disposition: dispositionSnapshot.disposition,
+      weeklyGoal: weeklyProgress.weeklyGoal,
+      weeklyCalendar: weeklyProgress.weeklyCalendar,
+    }))
+    applyPlanoSnapshot(planoSnapshot)
+  }, [applyPlanoSnapshot, patientCpf])
+
+  useEffect(() => {
+    if (!isNetworkReady) return
+
+    if (!isConnected) {
+      wasOfflineRef.current = true
+      return
+    }
+
+    if (wasOfflineRef.current) {
+      wasOfflineRef.current = false
+      void refreshData()
+    }
+  }, [isConnected, isNetworkReady, refreshData])
 
   function handleBack() {
     if (canGoBack()) goBack()
@@ -450,9 +478,7 @@ export function RunWalkScreen() {
     setIsRefreshing(false)
   }
 
-  async function handleDispositionDismiss() {
-    if (!user) return
-    await markDispositionPromptHandled(user.cpf)
+  function handleDispositionDismiss() {
     setCheckinAllowSkip(false)
   }
 
@@ -471,14 +497,14 @@ export function RunWalkScreen() {
   async function handleActivitySelect(presetId: TodayActivityPresetId) {
     requireAuth('vida:run-walk', () => {
       void (async () => {
-        const preset = getTodayActivityPreset(presetId)
-        setActivity(preset.activity)
-        setHasTodayActivity(true)
-        setPlanNotice(`${preset.title} definida como sua atividade de hoje.`)
-
-        if (user) {
-          await saveTodayActivitySelection(user.cpf, preset.activity.id)
-        }
+        const snapshot = await selectRunWalkPlanoPreset(patientCpf, presetId)
+        const preset = findTodayActivityPreset(snapshot.presets, presetId)
+        applyPlanoSnapshot(snapshot)
+        showToast(
+          preset
+            ? `${preset.title} definida como sua atividade de hoje.`
+            : 'Atividade de hoje definida.',
+        )
       })()
     })
   }
@@ -515,7 +541,7 @@ export function RunWalkScreen() {
 
   function navigateToPreparation(modality?: ActivityModality) {
     requireAuth('vida:run-walk', () => {
-      void clearPreparationDraft()
+      void clearPreparationDraft(user?.cpf)
 
       if (activity && !modality) {
         navigateTo('run-walk-preparation', {
@@ -548,50 +574,28 @@ export function RunWalkScreen() {
 
   function handleActivityMenuAction(action: ActivityMenuAction) {
     requireAuth('vida:run-walk', () => {
-      if (!activity) return
-
-      if (action === 'remove-today') {
-        setActivity(null)
-        setHasTodayActivity(false)
-        setPlanNotice('Atividade de hoje removida.')
-        if (user) {
-          void clearTodayActivitySelection(user.cpf)
+      void (async () => {
+        const result = await applyRunWalkPlanoMenuAction(patientCpf, action)
+        applyPlanoSnapshot(result)
+        if (result.notice) {
+          showToast(result.notice)
         }
-        return
-      }
-
-      const nextActivity = applyActivityMenuAction(activity, action)
-      setActivity(nextActivity)
-
-      const notices: Partial<Record<ActivityMenuAction, string>> = {
-        later: 'Atividade movida para mais tarde. Seu plano foi reorganizado.',
-        reschedule: 'Escolha um novo horário em breve. O plano será ajustado automaticamente.',
-        tomorrow: 'Atividade remarcada para amanhã com recuperação leve hoje.',
-        'free-activity': 'Atividade livre disponível nos atalhos rápidos.',
-        'report-tired': 'Registramos seu cansaço e sugerimos uma sessão mais leve.',
-        'report-discomfort': 'Registramos o desconforto. Considere recuperação ou descanso.',
-        skip: 'Atividade de hoje adiada. Seu plano será reorganizado nos próximos dias.',
-      }
-
-    if (notices[action]) {
-      setPlanNotice(notices[action]!)
-    } else if (action === 'swap-walk') {
-      setPlanNotice('Atividade trocada por caminhada. O plano da semana foi ajustado.')
-    } else if (action === 'reduce-duration') {
-      setPlanNotice('Duração reduzida mantendo a regularidade da semana.')
-    } else if (action === 'reduce-intensity') {
-      setPlanNotice('Intensidade reduzida para priorizar bem-estar e consistência.')
-    }
+      })()
     })
   }
 
-  async function handleCheckinComplete(
+  function handleCheckinComplete(
     _answers: DispositionCheckinAnswers,
-    recommendationLabel: string,
+    _recommendationLabel: string,
+    result?: SaveRunWalkDispositionCheckinResult,
   ) {
-    await handleDispositionDismiss()
-    setDispositionMessage(recommendationLabel)
-    setPlanNotice(`Com base no seu check-in: ${recommendationLabel.toLowerCase()}.`)
+    if (result) {
+      setTodayState((prev) => ({
+        ...prev,
+        disposition: result.disposition,
+      }))
+    }
+    setCheckinAllowSkip(false)
   }
 
   async function handleSaveWeeklyGoal(targets: WeeklyGoalTargets) {
@@ -599,7 +603,11 @@ export function RunWalkScreen() {
       void (async () => {
         await saveWeeklyGoalTargets(patientCpf, targets)
         setWeeklyGoalTargets(targets)
-        setPlanNotice('Meta semanal atualizada.')
+        setTodayState((prev) => ({
+          ...prev,
+          weeklyGoal: applyWeeklyGoalTargets(prev.weeklyGoal, targets),
+        }))
+        showToast('Meta semanal atualizada.')
       })()
     })
   }
@@ -613,10 +621,6 @@ export function RunWalkScreen() {
     if (id === 'start-activity') {
       navigateToPreparation()
     }
-  }
-
-  function openRunWalkFeature(screen: 'run-walk-challenges' | 'run-walk-achievements') {
-    requireAuth('vida:run-walk', () => navigateTo(screen))
   }
 
   const renderRunWalkSegmentPage = useCallback(
@@ -641,19 +645,9 @@ export function RunWalkScreen() {
               />
             }
           >
-            {planNotice ? (
-              <View style={styles.notice}>
-                <Text style={styles.noticeText}>{planNotice}</Text>
-              </View>
-            ) : null}
-
             <View style={styles.shortcutsSection}>
               <View style={styles.shortcutsInner}>
-                <RunWalkQuickShortcuts
-                  onShortcutPress={handleShortcutPress}
-                  onChallengesPress={() => openRunWalkFeature('run-walk-challenges')}
-                  onAchievementsPress={() => openRunWalkFeature('run-walk-achievements')}
-                />
+                <RunWalkQuickShortcuts onShortcutPress={handleShortcutPress} />
               </View>
               <NeonSectionDivider embedded />
             </View>
@@ -721,7 +715,6 @@ export function RunWalkScreen() {
       hasTodayActivity,
       isRefreshing,
       patientCpf,
-      planNotice,
       requireAuth,
       segmentTab,
       todayState.weeklyCalendar,
@@ -811,16 +804,24 @@ export function RunWalkScreen() {
         )}
 
         <BottomTabBar activeTab={null} onTabPress={handleTabPress} />
+
+        <ActionToast
+          message={toastMessage}
+          onHidden={() => setToastMessage(null)}
+          bottomOffset={TAB_BAR_ESTIMATED_HEIGHT + Math.max(insets.bottom, 8) + 12}
+        />
       </View>
 
       <RunWalkModalityDrawer
         visible={modalityDrawerVisible}
+        patientCpf={user?.cpf}
         onClose={() => setModalityDrawerVisible(false)}
         onSelect={handleModalitySelect}
       />
 
       <RunWalkActivityPickerDrawer
         visible={activityPickerVisible}
+        presets={activityPresets}
         onClose={() => setActivityPickerVisible(false)}
         onPreview={handleActivityPreview}
       />
@@ -828,6 +829,7 @@ export function RunWalkScreen() {
       <RunWalkActivityPreviewDrawer
         visible={activityPreviewVisible}
         presetId={pendingPresetId}
+        presets={activityPresets}
         onClose={handleCloseActivityPreview}
         onAccept={(presetId) => void handleAcceptActivityPreview(presetId)}
         onChange={handleChangeActivityPreview}
@@ -854,9 +856,10 @@ export function RunWalkScreen() {
       <RunWalkDispositionCheckinDrawer
         visible={checkinVisible}
         allowSkip={checkinAllowSkip}
+        patientCpf={patientCpf}
         onClose={handleCheckinClose}
-        onDismiss={() => void handleDispositionDismiss()}
-        onComplete={(answers, label) => void handleCheckinComplete(answers, label)}
+        onDismiss={handleDispositionDismiss}
+        onComplete={(answers, label, result) => handleCheckinComplete(answers, label, result)}
       />
 
       <RunWalkWeeklyCalendarDrawer
@@ -946,20 +949,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     marginBottom: 7,
-  },
-  notice: {
-    marginHorizontal: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 107, 0, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 107, 0, 0.28)',
-  },
-  noticeText: {
-    color: colors.primaryLight,
-    fontSize: 12,
-    fontWeight: '600',
-    lineHeight: 17,
   },
 })

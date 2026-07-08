@@ -16,9 +16,22 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import {
+  connectBluetoothDevice,
+  disconnectBluetoothDevice,
+  getBluetoothDeviceIcon,
+  getBluetoothState,
+  isBluetoothSupported,
+  openBluetoothSettings,
+  requestBluetoothPermissions,
+  requestEnableBluetooth,
+  rssiToSignalLevel,
+  startBluetoothDeviceScan,
+  type AppBluetoothDevice,
+  type AppBluetoothScanSubscription,
+} from '../../adapters/appBluetooth'
+import {
   DEFAULT_ENABLED_PERMISSIONS,
   HEALTH_PERMISSIONS,
-  MOCK_BLUETOOTH_DEVICES,
 } from '../../config/healthIntegrations'
 import { colors } from '../../theme/colors'
 import {
@@ -32,14 +45,15 @@ import { AppModal } from '../AppModal'
 
 const SHEET_OFFSET = 640
 const MOCK_LOADING_MS = 1600
-const MOCK_SCAN_MS = 2200
-const MOCK_PAIR_MS = 1800
+const BLUETOOTH_SCAN_MS = 12_000
 
 type DrawerStep =
   | 'intro'
   | 'loading'
+  | 'bluetooth-off'
   | 'scanning'
   | 'devices'
+  | 'no-devices'
   | 'pairing'
   | 'success'
   | 'denied'
@@ -164,12 +178,35 @@ export function HealthIntegrationConnectDrawer({
   )
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
   const [successDeviceName, setSuccessDeviceName] = useState<string | null>(null)
+  const [discoveredDevices, setDiscoveredDevices] = useState<AppBluetoothDevice[]>([])
+  const [deniedMessage, setDeniedMessage] = useState<string | null>(null)
+  const [isScanningDevices, setIsScanningDevices] = useState(false)
 
   const sheetTranslateY = useRef(new Animated.Value(SHEET_OFFSET)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
   const pulseAnim = useRef(new Animated.Value(0.6)).current
+  const scanSubscriptionRef = useRef<AppBluetoothScanSubscription | null>(null)
+  const scanTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const discoveredDevicesRef = useRef<AppBluetoothDevice[]>([])
+  const connectedDeviceIdRef = useRef<string | null>(null)
 
   const isDevicesFlow = integration?.id === 'devices'
+
+  function stopBluetoothScan() {
+    scanSubscriptionRef.current?.stop()
+    scanSubscriptionRef.current = null
+    setIsScanningDevices(false)
+    if (scanTimeoutRef.current) {
+      clearTimeout(scanTimeoutRef.current)
+      scanTimeoutRef.current = null
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      stopBluetoothScan()
+    }
+  }, [])
 
   useEffect(() => {
     if (visible && integration) {
@@ -180,6 +217,11 @@ export function HealthIntegrationConnectDrawer({
       )
       setSelectedDeviceId(null)
       setSuccessDeviceName(null)
+      setDiscoveredDevices([])
+      discoveredDevicesRef.current = []
+      setDeniedMessage(null)
+      connectedDeviceIdRef.current = null
+      stopBluetoothScan()
       sheetTranslateY.setValue(SHEET_OFFSET)
       backdropOpacity.setValue(0)
 
@@ -204,7 +246,75 @@ export function HealthIntegrationConnectDrawer({
     }
   }, [visible, integration?.id])
 
-  const selectedDevice = MOCK_BLUETOOTH_DEVICES.find((device) => device.id === selectedDeviceId)
+  const selectedDevice =
+    discoveredDevices.find((device) => device.id === selectedDeviceId) ?? null
+
+  function showDenied(message: string) {
+    setDeniedMessage(message)
+    setStep('denied')
+  }
+
+  function beginBluetoothScan() {
+    stopBluetoothScan()
+    discoveredDevicesRef.current = []
+    setDiscoveredDevices([])
+    setIsScanningDevices(true)
+    setStep('scanning')
+
+    const subscription = startBluetoothDeviceScan((device) => {
+      if (discoveredDevicesRef.current.some((item) => item.id === device.id)) return
+
+      discoveredDevicesRef.current = [...discoveredDevicesRef.current, device].sort(
+        (left, right) => (right.rssi ?? -100) - (left.rssi ?? -100),
+      )
+      setDiscoveredDevices(discoveredDevicesRef.current)
+      setStep((current) => (current === 'scanning' ? 'devices' : current))
+    })
+
+    scanSubscriptionRef.current = subscription
+    scanTimeoutRef.current = setTimeout(() => {
+      stopBluetoothScan()
+      setStep(discoveredDevicesRef.current.length > 0 ? 'devices' : 'no-devices')
+    }, BLUETOOTH_SCAN_MS)
+  }
+
+  async function ensureBluetoothReady(): Promise<boolean> {
+    if (!(await isBluetoothSupported())) {
+      showDenied('Bluetooth não está disponível neste dispositivo.')
+      return false
+    }
+
+    setStep('loading')
+
+    const permitted = await requestBluetoothPermissions()
+    if (!permitted) {
+      showDenied('Precisamos da permissão de Bluetooth para buscar dispositivos próximos.')
+      return false
+    }
+
+    const state = await getBluetoothState()
+    if (state === 'unauthorized') {
+      showDenied('O acesso ao Bluetooth foi negado. Ative a permissão nas configurações do celular.')
+      return false
+    }
+
+    if (state === 'unsupported') {
+      showDenied('Este dispositivo não suporta Bluetooth.')
+      return false
+    }
+
+    if (state === 'poweredOff') {
+      setStep('bluetooth-off')
+      return false
+    }
+
+    if (state !== 'poweredOn') {
+      showDenied('Não foi possível verificar o Bluetooth. Tente novamente.')
+      return false
+    }
+
+    return true
+  }
 
   useEffect(() => {
     if (step !== 'scanning' && step !== 'pairing') return
@@ -288,36 +398,74 @@ export function HealthIntegrationConnectDrawer({
 
   function handleSearchDevices() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-    setStep('scanning')
+    void (async () => {
+      const ready = await ensureBluetoothReady()
+      if (!ready) return
+      beginBluetoothScan()
+    })()
+  }
 
-    setTimeout(() => {
-      setStep('devices')
-    }, MOCK_SCAN_MS)
+  function handleEnableBluetooth() {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+    void (async () => {
+      setStep('loading')
+      const result = await requestEnableBluetooth()
+      if (result === 'enabled') {
+        beginBluetoothScan()
+        return
+      }
+
+      const state = await getBluetoothState()
+      if (state === 'poweredOn') {
+        beginBluetoothScan()
+        return
+      }
+
+      setStep('bluetooth-off')
+    })()
   }
 
   function handleSelectDevice(deviceId: string) {
-    const device = MOCK_BLUETOOTH_DEVICES.find((item) => item.id === deviceId)
+    const device = discoveredDevices.find((item) => item.id === deviceId)
     if (!device || !integration) return
 
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    stopBluetoothScan()
     setSelectedDeviceId(deviceId)
     setStep('pairing')
 
-    setTimeout(() => {
-      finishSuccess({ connectedDeviceName: device.name })
-    }, MOCK_PAIR_MS)
+    void (async () => {
+      try {
+        const connected = await connectBluetoothDevice(deviceId)
+        connectedDeviceIdRef.current = connected.id
+        finishSuccess({ connectedDeviceName: connected.name })
+      } catch {
+        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
+        showDenied(`Não foi possível parear com ${device.name}. Verifique se o dispositivo está ligado e próximo.`)
+      }
+    })()
   }
 
   function handleDisconnect() {
     if (!integration) return
 
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    if (connectedDeviceIdRef.current) {
+      void disconnectBluetoothDevice(connectedDeviceIdRef.current).catch(() => undefined)
+      connectedDeviceIdRef.current = null
+    }
     onConnectionChange(integration.id, { status: 'disconnected' })
     handleDismiss()
   }
 
   function handleRetry() {
+    stopBluetoothScan()
+    setDeniedMessage(null)
     setStep(isDevicesFlow ? 'intro' : 'intro')
+  }
+
+  function handleOpenBluetoothSettings() {
+    openBluetoothSettings()
   }
 
   if (!isMounted || !integration) return null
@@ -405,10 +553,64 @@ export function HealthIntegrationConnectDrawer({
             Sem permissão
           </Text>
           <Text style={styles.stageSubtitle}>
-            Sem acesso autorizado, não conseguimos sincronizar suas métricas automaticamente
+            {deniedMessage ??
+              'Sem acesso autorizado, não conseguimos sincronizar suas métricas automaticamente'}
           </Text>
           <View style={styles.successButtonWrap}>
             <PrimaryButton label="Tentar novamente" onPress={handleRetry} />
+            <Pressable onPress={handleDismiss} style={styles.laterButton}>
+              <Text style={styles.laterButtonText}>Agora não</Text>
+            </Pressable>
+          </View>
+        </View>
+      )
+    }
+
+    if (step === 'bluetooth-off') {
+      return (
+        <View style={styles.centerStage}>
+          <LinearGradient colors={[...integration.gradient]} style={styles.successOrb}>
+            <MaterialCommunityIcons name="bluetooth-off" size={34} color="#fff" />
+          </LinearGradient>
+          <Text style={styles.stageTitle} numberOfLines={1}>
+            Bluetooth desligado
+          </Text>
+          <Text style={styles.stageSubtitle}>
+            {Platform.OS === 'android'
+              ? 'Ative o Bluetooth para buscar pulseiras, relógios e balanças próximos.'
+              : 'Ative o Bluetooth no Centro de Controle ou em Ajustes para continuar.'}
+          </Text>
+          <View style={styles.successButtonWrap}>
+            {Platform.OS === 'android' ? (
+              <PrimaryButton label="Ativar Bluetooth" onPress={handleEnableBluetooth} />
+            ) : (
+              <PrimaryButton label="Abrir Ajustes" onPress={handleOpenBluetoothSettings} />
+            )}
+            <Pressable onPress={handleSearchDevices} style={styles.laterButton}>
+              <Text style={styles.laterButtonText}>Já ativei o Bluetooth</Text>
+            </Pressable>
+            <Pressable onPress={handleDismiss} style={styles.laterButton}>
+              <Text style={styles.laterButtonText}>Agora não</Text>
+            </Pressable>
+          </View>
+        </View>
+      )
+    }
+
+    if (step === 'no-devices') {
+      return (
+        <View style={styles.centerStage}>
+          <LinearGradient colors={[...integration.gradient]} style={styles.successOrb}>
+            <MaterialCommunityIcons name="bluetooth-audio" size={34} color="#fff" />
+          </LinearGradient>
+          <Text style={styles.stageTitle} numberOfLines={1}>
+            Nenhum dispositivo encontrado
+          </Text>
+          <Text style={styles.stageSubtitle}>
+            Deixe o dispositivo ligado, com Bluetooth ativo e perto do celular, depois busque novamente.
+          </Text>
+          <View style={styles.successButtonWrap}>
+            <PrimaryButton label="Buscar novamente" onPress={handleSearchDevices} />
             <Pressable onPress={handleDismiss} style={styles.laterButton}>
               <Text style={styles.laterButtonText}>Agora não</Text>
             </Pressable>
@@ -480,25 +682,31 @@ export function HealthIntegrationConnectDrawer({
     if (step === 'devices') {
       return (
         <View style={styles.devicesContent}>
-          {MOCK_BLUETOOTH_DEVICES.map((device, index) => (
+          {isScanningDevices ? (
+            <View style={styles.scanningHintRow}>
+              <ActivityIndicator size="small" color={integration.accentColor} />
+              <Text style={styles.scanningHintText}>Buscando mais dispositivos próximos…</Text>
+            </View>
+          ) : null}
+          {discoveredDevices.map((device, index) => (
             <Pressable
               key={device.id}
               onPress={() => handleSelectDevice(device.id)}
               style={({ pressed }) => [
                 styles.deviceRow,
-                index < MOCK_BLUETOOTH_DEVICES.length - 1 && styles.deviceRowBorder,
+                index < discoveredDevices.length - 1 && styles.deviceRowBorder,
                 pressed && styles.deviceRowPressed,
               ]}
             >
               <MaterialCommunityIcons
-                name={device.icon as keyof typeof MaterialCommunityIcons.glyphMap}
+                name={getBluetoothDeviceIcon(device.name) as keyof typeof MaterialCommunityIcons.glyphMap}
                 size={20}
                 color={integration.accentColor}
               />
               <View style={styles.deviceTextCol}>
                 <Text style={styles.deviceName}>{device.name}</Text>
               </View>
-              <SignalBars level={device.signal} />
+              <SignalBars level={rssiToSignalLevel(device.rssi)} />
               <Ionicons name="chevron-forward" size={14} color={colors.textSubtle} />
             </Pressable>
           ))}
@@ -592,7 +800,7 @@ export function HealthIntegrationConnectDrawer({
     )
   }
 
-  const showHeader = !['loading', 'scanning', 'pairing', 'success', 'denied'].includes(step)
+  const showHeader = !['loading', 'bluetooth-off', 'scanning', 'pairing', 'success', 'denied', 'no-devices'].includes(step)
 
   return (
     <AppModal visible transparent animationType="none" onRequestClose={handleDismiss}>
@@ -872,6 +1080,18 @@ const styles = StyleSheet.create({
   },
   devicesContent: {
     paddingBottom: 8,
+  },
+  scanningHintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 2,
+  },
+  scanningHintText: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '500',
   },
   deviceRow: {
     flexDirection: 'row',

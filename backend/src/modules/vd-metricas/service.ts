@@ -73,10 +73,10 @@ import {
 import {
   aggregateAtividadeLeituras,
   deriveDistanceKmFromSteps,
-  resolveCaminhadaMetrics,
+  resolveAtividadeMetrics,
 } from './atividade.formatters.js'
 import {
-  insertCaminhadaLeitura,
+  insertManualAtividadeLeitura,
   insertIntegracaoDayLeitura,
   listAtividadeLeituras,
   listAtividadeLeiturasForDate,
@@ -92,6 +92,7 @@ import {
 } from './integracoes.repository.js'
 import {
   createMetricasAtividadeLoteBodySchema,
+  createMetricasAtividadeRegistroBodySchema,
   createMetricasCaminhadaBodySchema,
   createMetricasFrequenciaCardiacaBodySchema,
   createMetricasGlicemiaBodySchema,
@@ -121,6 +122,7 @@ import type {
   MetricasResumoDto,
   MetricDataPointDto,
   RegisterAtividadeLoteResultDto,
+  RegisterAtividadeResultDto,
   RegisterCaminhadaResultDto,
   RegisterFrequenciaCardiacaResultDto,
   RegisterGlicemiaResultDto,
@@ -152,6 +154,9 @@ type CreateMetricasFrequenciaCardiacaInput = z.infer<
   typeof createMetricasFrequenciaCardiacaBodySchema
 >
 type CreateMetricasCaminhadaInput = z.infer<typeof createMetricasCaminhadaBodySchema>
+type CreateMetricasAtividadeRegistroInput = z.infer<
+  typeof createMetricasAtividadeRegistroBodySchema
+>
 type CreateMetricasAtividadeLoteInput = z.infer<typeof createMetricasAtividadeLoteBodySchema>
 type UpdateMetricasIntegracaoInput = z.infer<typeof updateMetricasIntegracaoBodySchema>
 
@@ -368,14 +373,15 @@ export async function getMetricasAtividadeHistorico(
   return aggregateAtividadeLeituras(rows)
 }
 
-export async function registerMetricasCaminhada(
+export async function registerMetricasAtividade(
   scope: VdMetricasPacienteScope,
-  input: CreateMetricasCaminhadaInput,
-): Promise<RegisterCaminhadaResultDto> {
+  input: CreateMetricasAtividadeRegistroInput,
+): Promise<RegisterAtividadeResultDto> {
   const recordedAt = input.recordedAt ?? new Date().toISOString()
-  const metrics = resolveCaminhadaMetrics(input)
+  const metrics = resolveAtividadeMetrics(input, input.kind)
 
-  await insertCaminhadaLeitura(scope, {
+  await insertManualAtividadeLeitura(scope, {
+    kind: input.kind,
     steps: metrics.steps,
     distanceKm: metrics.distanceKm,
     distanceKmExplicit: metrics.distanceKmExplicit,
@@ -396,7 +402,22 @@ export async function registerMetricasCaminhada(
       source: 'manual',
     },
     recordedAt,
+    kind: input.kind,
   }
+}
+
+export async function registerMetricasCaminhada(
+  scope: VdMetricasPacienteScope,
+  input: CreateMetricasCaminhadaInput,
+): Promise<RegisterCaminhadaResultDto> {
+  return registerMetricasAtividade(scope, { ...input, kind: 'caminhada' })
+}
+
+export async function registerMetricasCorrida(
+  scope: VdMetricasPacienteScope,
+  input: CreateMetricasCaminhadaInput,
+): Promise<RegisterAtividadeResultDto> {
+  return registerMetricasAtividade(scope, { ...input, kind: 'corrida' })
 }
 
 export async function registerMetricasAtividadeLote(

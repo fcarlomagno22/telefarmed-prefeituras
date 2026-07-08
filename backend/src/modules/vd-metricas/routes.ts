@@ -3,6 +3,7 @@ import { requireVdAuth } from '../vd-auth/middleware.js'
 import { mapVdMetricasError } from './errors.js'
 import {
   createMetricasAtividadeLoteBodySchema,
+  createMetricasAtividadeRegistroBodySchema,
   createMetricasCaminhadaBodySchema,
   createMetricasFrequenciaCardiacaBodySchema,
   createMetricasGlicemiaBodySchema,
@@ -38,7 +39,9 @@ import {
   getMetricasResumo,
   getUltimoMetricasPeso,
   registerMetricasFrequenciaCardiaca,
+  registerMetricasAtividade,
   registerMetricasCaminhada,
+  registerMetricasCorrida,
   registerMetricasAtividadeLote,
   registerMetricasGlicemia,
   registerMetricasHidratacao,
@@ -380,6 +383,44 @@ export async function registerVdMetricasRoutes(app: FastifyInstance): Promise<vo
     try {
       const scope = getVdMetricasPacienteScopeFromRequest(request)
       const result = await registerMetricasCaminhada(scope, parsed.data)
+      return reply.status(201).send(result)
+    } catch (error) {
+      const mapped = mapVdMetricasError(error)
+      return reply.status(mapped.statusCode).send(mapped.body)
+    }
+  })
+
+  app.post('/atividade/corrida', async (request, reply) => {
+    const parsed = createMetricasCaminhadaBodySchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({
+        error: formatMetricasValidationError(parsed.error),
+        code: 'INVALID_DATA',
+      })
+    }
+
+    try {
+      const scope = getVdMetricasPacienteScopeFromRequest(request)
+      const result = await registerMetricasCorrida(scope, parsed.data)
+      return reply.status(201).send(result)
+    } catch (error) {
+      const mapped = mapVdMetricasError(error)
+      return reply.status(mapped.statusCode).send(mapped.body)
+    }
+  })
+
+  app.post('/atividade/registrar', async (request, reply) => {
+    const parsed = createMetricasAtividadeRegistroBodySchema.safeParse(request.body)
+    if (!parsed.success) {
+      return reply.status(400).send({
+        error: formatMetricasValidationError(parsed.error),
+        code: 'INVALID_DATA',
+      })
+    }
+
+    try {
+      const scope = getVdMetricasPacienteScopeFromRequest(request)
+      const result = await registerMetricasAtividade(scope, parsed.data)
       return reply.status(201).send(result)
     } catch (error) {
       const mapped = mapVdMetricasError(error)

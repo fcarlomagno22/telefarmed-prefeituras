@@ -11,6 +11,7 @@ export type RunningRouteSpotPickerMapProps = {
   initialPin?: { latitude: number; longitude: number } | null
   userLocation?: { latitude: number; longitude: number } | null
   onPick: (coords: { latitude: number; longitude: number }) => void
+  fullBleed?: boolean
 }
 
 export const SPOT_PICKER_LEAFLET_CSS_URL = NEARBY_UNITS_LEAFLET_CSS_URL

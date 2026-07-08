@@ -1,20 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  LIVE_SHARE_MIN_PUBLISH_GAP_MS,
+  LIVE_SHARE_PUBLISH_INTERVAL_MS,
+} from '../constants/runWalkLiveShare'
+import {
   appendLiveSharePoint,
-  createLiveShareSession,
   clearActiveLiveShareSession,
+  createLiveShareSession,
   endLiveShareSession,
+  isRemoteLiveShareSession,
   loadActiveLiveShareSession,
   shouldReplaceLiveShareSession,
 } from '../data/runWalkLiveShareService'
-import { enqueueRunWalkGpsPoint, loadRunWalkGpsQueue, removeRunWalkGpsPoints } from '../data/runWalkGpsPointQueue'
-import { useAppNetwork } from './useAppNetwork'
+import { useRunWalkOfflineGpsQueue } from './useRunWalkOfflineGpsQueue'
 import { useRunWalkLocation } from './useRunWalkLocation'
 import type { RegistrationAddress } from '../types/auth'
 import type { LiveShareSessionSnapshot } from '../types/runWalkLiveShare'
-
-const PUBLISH_INTERVAL_MS = 30 * 1000
-const MIN_PUBLISH_GAP_MS = 10_000
 
 type UseRunWalkLiveSharePublisherOptions = {
   enabled: boolean
@@ -36,15 +37,23 @@ export function useRunWalkLiveSharePublisher({
     trackingMode: enabled ? 'activity' : 'default',
     positionUpdateMode: enabled ? 'ref' : 'state',
   })
-  const { isConnected } = useAppNetwork()
   const [session, setSession] = useState<LiveShareSessionSnapshot | null>(null)
   const [shouldPublish, setShouldPublish] = useState(false)
-  const [pendingSyncCount, setPendingSyncCount] = useState(0)
-  const [isSyncing, setIsSyncing] = useState(false)
   const lastPublishedAtRef = useRef<number>(0)
   const sessionRef = useRef<LiveShareSessionSnapshot | null>(null)
   const shouldPublishRef = useRef(false)
-  const isSyncingRef = useRef(false)
+
+  const {
+    isOffline,
+    isSyncing,
+    pendingCount,
+    queueGpsPoint,
+    flushQueue,
+  } = useRunWalkOfflineGpsQueue({
+    enabled,
+    sessionId: session?.id,
+    shouldPublish,
+  })
 
   useEffect(() => {
     sessionRef.current = session
@@ -54,62 +63,12 @@ export function useRunWalkLiveSharePublisher({
     shouldPublishRef.current = shouldPublish
   }, [shouldPublish])
 
-  const refreshPendingSyncCount = useCallback(async () => {
-    const queue = await loadRunWalkGpsQueue()
-    setPendingSyncCount(queue.length)
-  }, [])
-
-  const flushQueuedPoints = useCallback(async () => {
-    if (!enabled || !isConnected || isSyncingRef.current) return
-
-    const queue = await loadRunWalkGpsQueue()
-    if (queue.length === 0) {
-      setPendingSyncCount(0)
-      return
-    }
-
-    isSyncingRef.current = true
-    setIsSyncing(true)
-
-    const syncedIds: string[] = []
-
-    try {
-      for (const point of queue) {
-        const synced = await appendLiveSharePoint({
-          sessionId: point.sessionId,
-          latitude: point.latitude,
-          longitude: point.longitude,
-          accuracyMeters: point.accuracyMeters,
-        })
-        if (!synced) break
-        syncedIds.push(point.id)
-      }
-
-      if (syncedIds.length > 0) {
-        await removeRunWalkGpsPoints(syncedIds)
-      }
-    } finally {
-      isSyncingRef.current = false
-      setIsSyncing(false)
-      await refreshPendingSyncCount()
-    }
-  }, [enabled, isConnected, refreshPendingSyncCount])
-
-  useEffect(() => {
-    void refreshPendingSyncCount()
-  }, [refreshPendingSyncCount])
-
-  useEffect(() => {
-    if (!enabled || !isConnected) return
-    void flushQueuedPoints()
-  }, [enabled, flushQueuedPoints, isConnected])
-
   const activateSharing = useCallback(async (): Promise<LiveShareSessionSnapshot | null> => {
     if (!enabled) return null
 
     let activeSession = await loadActiveLiveShareSession()
 
-    if (shouldReplaceLiveShareSession(activeSession)) {
+    if (await shouldReplaceLiveShareSession(activeSession)) {
       const fix = location.getGpsFix()
       if (!fix) return null
 
@@ -139,7 +98,7 @@ export function useRunWalkLiveSharePublisher({
 
       if (!active) return
 
-      if (saved?.isActive && shouldReplaceLiveShareSession(saved)) {
+      if (saved?.isActive && (await shouldReplaceLiveShareSession(saved))) {
         await clearActiveLiveShareSession()
         return
       }
@@ -200,7 +159,7 @@ export function useRunWalkLiveSharePublisher({
     if (!fix) return
 
     const now = Date.now()
-    if (now - lastPublishedAtRef.current < MIN_PUBLISH_GAP_MS) return
+    if (now - lastPublishedAtRef.current < LIVE_SHARE_MIN_PUBLISH_GAP_MS) return
 
     const activeSession = sessionRef.current
     const pointInput = {
@@ -210,25 +169,15 @@ export function useRunWalkLiveSharePublisher({
       accuracyMeters: fix.accuracyMeters,
     }
 
-    const isRemoteSession = !activeSession.id.startsWith('local-')
-
-    if (!isConnected && isRemoteSession) {
-      await enqueueRunWalkGpsPoint({
-        ...pointInput,
-        recordedAt: new Date().toISOString(),
-      })
-      await refreshPendingSyncCount()
+    if (isOffline && isRemoteLiveShareSession(activeSession.id)) {
+      await queueGpsPoint(pointInput)
       return
     }
 
     const point = await appendLiveSharePoint(pointInput)
 
-    if (!point && isRemoteSession) {
-      await enqueueRunWalkGpsPoint({
-        ...pointInput,
-        recordedAt: new Date().toISOString(),
-      })
-      await refreshPendingSyncCount()
+    if (!point && isRemoteLiveShareSession(activeSession.id)) {
+      await queueGpsPoint(pointInput)
       return
     }
 
@@ -243,7 +192,7 @@ export function useRunWalkLiveSharePublisher({
           }
         : current,
     )
-  }, [enabled, isConnected, location.getGpsFix, refreshPendingSyncCount])
+  }, [enabled, isOffline, location.getGpsFix, queueGpsPoint])
 
   useEffect(() => {
     if (!enabled || !shouldPublish || !session?.isActive) return
@@ -252,7 +201,7 @@ export function useRunWalkLiveSharePublisher({
 
     const timer = setInterval(() => {
       void publishCurrentLocation()
-    }, PUBLISH_INTERVAL_MS)
+    }, LIVE_SHARE_PUBLISH_INTERVAL_MS)
 
     return () => clearInterval(timer)
   }, [enabled, publishCurrentLocation, session?.id, session?.isActive, shouldPublish])
@@ -260,10 +209,15 @@ export function useRunWalkLiveSharePublisher({
   const endActiveLiveShareSession = useCallback(async () => {
     const activeSession = sessionRef.current
     if (!activeSession?.isActive) return
+
+    if (isRemoteLiveShareSession(activeSession.id)) {
+      await flushQueue()
+    }
+
     await endLiveShareSession(activeSession.id)
     setSession(null)
     setShouldPublish(false)
-  }, [])
+  }, [flushQueue])
 
   return {
     session,
@@ -271,13 +225,13 @@ export function useRunWalkLiveSharePublisher({
     location,
     activateSharing,
     publishCurrentLocation,
-    publishIntervalMs: PUBLISH_INTERVAL_MS,
+    publishIntervalMs: LIVE_SHARE_PUBLISH_INTERVAL_MS,
     endActiveLiveShareSession,
-    isOffline: !isConnected,
+    isOffline,
     isSyncing,
-    pendingSyncCount,
-    flushQueuedPoints,
+    pendingSyncCount: pendingCount,
+    flushQueuedPoints: flushQueue,
   }
 }
 
-export { PUBLISH_INTERVAL_MS as LIVE_SHARE_PUBLISH_INTERVAL_MS }
+export { LIVE_SHARE_PUBLISH_INTERVAL_MS }

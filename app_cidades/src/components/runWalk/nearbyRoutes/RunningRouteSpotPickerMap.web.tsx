@@ -116,6 +116,7 @@ export function RunningRouteSpotPickerMap({
   initialPin = null,
   userLocation = null,
   onPick,
+  fullBleed = false,
 }: RunningRouteSpotPickerMapProps) {
   const mapHostRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<LeafletMap | null>(null)
@@ -223,7 +224,7 @@ export function RunningRouteSpotPickerMap({
   ])
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, fullBleed && styles.containerFullBleed]}>
       <View ref={bindMapHostRef} style={styles.mapHost} />
     </View>
   )
@@ -237,6 +238,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
+  },
+  containerFullBleed: {
+    ...StyleSheet.absoluteFillObject,
+    minHeight: 0,
+    borderRadius: 0,
+    borderWidth: 0,
   },
   mapHost: {
     flex: 1,

@@ -10,18 +10,20 @@ import { RunWalkSheetDrawer } from './RunWalkSheetDrawer'
 
 type RunWalkModalityDrawerProps = {
   visible: boolean
+  patientCpf?: string
   onClose: () => void
   onSelect: (modality: ActivityModality) => void
 }
 
 export function RunWalkModalityDrawer({
   visible,
+  patientCpf,
   onClose,
   onSelect,
 }: RunWalkModalityDrawerProps) {
   function handleSelect(modality: ActivityModality) {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    void clearPreparationDraft()
+    void clearPreparationDraft(patientCpf)
     onSelect(modality)
     onClose()
   }

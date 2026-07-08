@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../theme/colors'
@@ -34,7 +33,6 @@ type MetricConfig = {
   hint: string
   icon: keyof typeof Ionicons.glyphMap
   unit: string
-  gradient: readonly [string, string, string]
   ringId: string
   min: number
   max: number
@@ -48,7 +46,6 @@ const METRICS: MetricConfig[] = [
     hint: 'Quantas sessões você quer completar',
     icon: 'fitness-outline',
     unit: 'por semana',
-    gradient: ['#93c5fd', '#3b82f6', '#1d4ed8'],
     ringId: 'goalDraftActivities',
     min: WEEKLY_GOAL_LIMITS.activities.min,
     max: WEEKLY_GOAL_LIMITS.activities.max,
@@ -60,7 +57,6 @@ const METRICS: MetricConfig[] = [
     hint: 'Tempo total em movimento na semana',
     icon: 'timer-outline',
     unit: 'min/semana',
-    gradient: ['#bfdbfe', '#60a5fa', '#2563eb'],
     ringId: 'goalDraftMinutes',
     min: WEEKLY_GOAL_LIMITS.minutes.min,
     max: WEEKLY_GOAL_LIMITS.minutes.max,
@@ -72,7 +68,6 @@ const METRICS: MetricConfig[] = [
     hint: 'Em quantos dias você quer se movimentar',
     icon: 'footsteps-outline',
     unit: 'dias/semana',
-    gradient: ['#c4b5fd', '#818cf8', '#6366f1'],
     ringId: 'goalDraftDays',
     min: WEEKLY_GOAL_LIMITS.movementDays.min,
     max: WEEKLY_GOAL_LIMITS.movementDays.max,
@@ -99,15 +94,10 @@ function GoalMetricStepper({
   }
 
   return (
-    <LinearGradient
-      colors={['rgba(37, 99, 235, 0.18)', colors.backgroundElevated]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.metricCard}
-    >
+    <View style={styles.metricCard}>
       <View style={styles.metricHeader}>
         <View style={styles.metricIconWrap}>
-          <Ionicons name={metric.icon} size={18} color="#93c5fd" />
+          <Ionicons name={metric.icon} size={18} color={colors.primaryLight} />
         </View>
         <View style={styles.metricHeaderText}>
           <Text style={styles.metricLabel}>{metric.label}</Text>
@@ -127,7 +117,7 @@ function GoalMetricStepper({
             pressed && styles.stepperButtonPressed,
           ]}
         >
-          <Ionicons name="remove" size={20} color="#fff" />
+          <Ionicons name="remove" size={20} color={colors.text} />
         </Pressable>
 
         <View style={styles.valueBlock}>
@@ -146,10 +136,10 @@ function GoalMetricStepper({
             pressed && styles.stepperButtonPressed,
           ]}
         >
-          <Ionicons name="add" size={20} color="#fff" />
+          <Ionicons name="add" size={20} color={colors.text} />
         </Pressable>
       </View>
-    </LinearGradient>
+    </View>
   )
 }
 
@@ -349,8 +339,8 @@ const styles = StyleSheet.create({
   previewBlock: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.22)',
-    backgroundColor: 'rgba(37, 99, 235, 0.08)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
     padding: 12,
     gap: 10,
     marginBottom: 14,
@@ -384,7 +374,8 @@ const styles = StyleSheet.create({
   metricCard: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.2)',
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.backgroundElevated,
     padding: 12,
     gap: 12,
   },
@@ -399,7 +390,7 @@ const styles = StyleSheet.create({
     borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(37, 99, 235, 0.16)',
+    backgroundColor: colors.surface,
   },
   metricHeaderText: {
     flex: 1,
@@ -427,9 +418,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(59, 130, 246, 0.28)',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(147, 197, 253, 0.35)',
+    borderColor: colors.surfaceBorder,
   },
   stepperButtonDisabled: {
     opacity: 0.35,

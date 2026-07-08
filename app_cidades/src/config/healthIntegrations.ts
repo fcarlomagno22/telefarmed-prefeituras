@@ -1,8 +1,4 @@
-import {
-  HealthIntegrationConfig,
-  HealthPermissionConfig,
-  MockBluetoothDevice,
-} from '../types/healthIntegrations'
+import { HealthIntegrationConfig, HealthPermissionConfig } from '../types/healthIntegrations'
 
 export const HEALTH_INTEGRATIONS: HealthIntegrationConfig[] = [
   {
@@ -42,12 +38,6 @@ export const HEALTH_PERMISSIONS: HealthPermissionConfig[] = [
   { id: 'distance', label: 'Distância', icon: 'map-marker-distance' },
   { id: 'heart-rate', label: 'Freq. cardíaca', icon: 'heart-pulse' },
   { id: 'body', label: 'Peso e altura', icon: 'human' },
-]
-
-export const MOCK_BLUETOOTH_DEVICES: MockBluetoothDevice[] = [
-  { id: 'mi-band', name: 'Mi Band 8', signal: 4, icon: 'watch-variant' },
-  { id: 'galaxy-watch', name: 'Galaxy Watch 6', signal: 3, icon: 'watch' },
-  { id: 'garmin', name: 'Garmin Vivosmart', signal: 2, icon: 'watch-export' },
 ]
 
 export const DEFAULT_ENABLED_PERMISSIONS = HEALTH_PERMISSIONS.map((item) => item.id)

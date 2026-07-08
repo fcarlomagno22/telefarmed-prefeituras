@@ -104,8 +104,7 @@ function QuickActionAppIcon({
           colors={['rgba(255, 255, 255, 0.28)', 'rgba(255, 255, 255, 0.06)', 'transparent']}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 0.55 }}
-          style={styles.iconGloss}
-          pointerEvents="none"
+          style={[styles.iconGloss, { pointerEvents: 'none' }]}
         />
 
         <MaterialCommunityIcons name={action.icon} size={ICON_GLYPH_SIZE} color="#fff" />

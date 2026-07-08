@@ -1,5 +1,7 @@
 import type {
   DispositionCheckinAnswers,
+  DispositionLevel,
+  DispositionMood,
   DispositionRecommendation,
   DispositionState,
   RunWalkTodayState,
@@ -153,83 +155,103 @@ const RUNNER_ACTIVITY: TodayActivity = {
   ],
 }
 
-const DEFAULT_DISPOSITION: DispositionState = {
-  level: 'good',
-  message: 'Sua disposição está boa',
-  factors: [
-    { id: 'sleep', label: 'Qualidade do sono', value: 'Boa noite de descanso', considered: true },
-    { id: 'fatigue', label: 'Cansaço informado', value: 'Nenhum registro recente', considered: true },
-    { id: 'recent', label: 'Atividade recente', value: 'Descanso adequado ontem', considered: true },
-    { id: 'heart', label: 'Frequência cardíaca', value: 'Dentro da sua média', considered: true },
-    { id: 'hydration', label: 'Hidratação', value: 'Meta parcialmente atingida', considered: true },
-    { id: 'weather', label: 'Clima', value: 'Temperatura agradável', considered: true },
-    { id: 'pain', label: 'Dores ou desconfortos', value: 'Nenhum relatado', considered: true },
-  ],
-}
-
-const DEFAULT_WEEKLY_GOAL: WeeklyGoalStats = {
-  completedActivities: 3,
-  targetActivities: 0,
-  activeMinutes: 96,
-  targetActiveMinutes: 0,
-  movementDays: 4,
-  targetMovementDays: 0,
-}
-
-export function buildWeeklyCalendar(): WeeklyCalendarDay[] {
-  const today = new Date()
+export function buildEmptyWeeklyCalendar(date = new Date()): WeeklyCalendarDay[] {
+  const today = new Date(date)
   const day = today.getDay()
   const mondayOffset = day === 0 ? -6 : 1 - day
 
-  function startOfDay(date: Date) {
-    const next = new Date(date)
+  function startOfDay(value: Date) {
+    const next = new Date(value)
     next.setHours(0, 0, 0, 0)
     return next
   }
 
   return Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(today)
-    date.setDate(today.getDate() + mondayOffset + index)
+    const calendarDate = new Date(today)
+    calendarDate.setDate(today.getDate() + mondayOffset + index)
 
-    const weekdayShort = date.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')
-    const dayLabel = date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })
-    const isToday = date.toDateString() === today.toDateString()
-    const isFuture = startOfDay(date).getTime() > startOfDay(today).getTime()
-
-    const templates: Array<{
-      activities: WeeklyCalendarDay['activities']
-      activeMinutes: number
-    }> = [
-      { activities: [{ type: 'run-walk', label: 'Corrida e caminhada', completed: true }], activeMinutes: 26 },
-      { activities: [{ type: 'mobility', label: 'Mobilidade', completed: true }], activeMinutes: 18 },
-      { activities: [{ type: 'rest', label: 'Descanso' }], activeMinutes: 0 },
-      { activities: [{ type: 'walk', label: 'Caminhada', completed: true }], activeMinutes: 30 },
-      { activities: [{ type: 'strength', label: 'Fortalecimento', completed: true }], activeMinutes: 22 },
-      { activities: [{ type: 'run', label: 'Corrida leve' }], activeMinutes: 0 },
-      { activities: [{ type: 'free', label: 'Atividade livre' }], activeMinutes: 0 },
-    ]
-
-    const template = templates[index] ?? { activities: [{ type: 'rest', label: 'Descanso' }], activeMinutes: 0 }
+    const weekdayShort = calendarDate
+      .toLocaleDateString('pt-BR', { weekday: 'short' })
+      .replace('.', '')
+    const dayLabel = calendarDate.toLocaleDateString('pt-BR', {
+      day: 'numeric',
+      month: 'short',
+    })
+    const isToday = calendarDate.toDateString() === today.toDateString()
+    const isFuture = startOfDay(calendarDate).getTime() > startOfDay(today).getTime()
 
     return {
-      dateIso: toLocalDateIso(date),
+      dateIso: toLocalDateIso(calendarDate),
       dayLabel,
       weekdayShort,
-      dateShort: formatWeeklyChartDate(date),
+      dateShort: formatWeeklyChartDate(calendarDate),
       isToday,
       isFuture,
-      activeMinutes: isFuture ? 0 : template.activeMinutes,
-      activities: template.activities,
+      activeMinutes: 0,
+      activities: [{ type: 'rest', label: 'Descanso' }],
     }
   })
 }
 
-export function getMockRunWalkTodayState(): RunWalkTodayState {
+export function createEmptyWeeklyGoalStats(): WeeklyGoalStats {
   return {
-    activity: BEGINNER_RUN_WALK,
-    disposition: DEFAULT_DISPOSITION,
-    weeklyGoal: DEFAULT_WEEKLY_GOAL,
-    weeklyCalendar: buildWeeklyCalendar(),
+    completedActivities: 0,
+    targetActivities: 0,
+    activeMinutes: 0,
+    targetActiveMinutes: 0,
+    movementDays: 0,
+    targetMovementDays: 0,
+  }
+}
+
+export function createEmptyDispositionState(): DispositionState {
+  return {
+    level: 'good',
+    message: 'Sua disposição parece equilibrada hoje',
+    factors: [
+      {
+        id: 'sleep',
+        label: 'Qualidade do sono',
+        value: 'Sem registro recente',
+        considered: true,
+      },
+      {
+        id: 'fatigue',
+        label: 'Cansaço informado',
+        value: 'Nenhum registro recente',
+        considered: true,
+      },
+      {
+        id: 'recent',
+        label: 'Atividade recente',
+        value: 'Sem atividades nos últimos dias',
+        considered: true,
+      },
+      {
+        id: 'heart',
+        label: 'Frequência cardíaca',
+        value: 'Sem registro recente',
+        considered: true,
+      },
+      {
+        id: 'hydration',
+        label: 'Hidratação',
+        value: 'Sem registro hoje',
+        considered: true,
+      },
+      {
+        id: 'weather',
+        label: 'Clima',
+        value: 'Indisponível nesta versão',
+        considered: false,
+      },
+      {
+        id: 'pain',
+        label: 'Dores ou desconfortos',
+        value: 'Nenhum relatado',
+        considered: true,
+      },
+    ],
   }
 }
 
@@ -278,6 +300,15 @@ export const TODAY_ACTIVITY_PRESETS: TodayActivityPreset[] = [
   },
 ]
 
+export function createEmptyRunWalkTodayState(): RunWalkTodayState {
+  return {
+    activity: TODAY_ACTIVITY_PRESETS[0].activity,
+    disposition: createEmptyDispositionState(),
+    weeklyGoal: createEmptyWeeklyGoalStats(),
+    weeklyCalendar: buildEmptyWeeklyCalendar(),
+  }
+}
+
 export function getTodayActivityPreset(id: TodayActivityPresetId): TodayActivityPreset {
   const preset = TODAY_ACTIVITY_PRESETS.find((item) => item.id === id)
   if (!preset) return TODAY_ACTIVITY_PRESETS[0]
@@ -305,6 +336,95 @@ export function getDispositionRecommendation(
   if (answers.mood === 'tired' || !answers.sleptWell) return 'reduce-time'
   if (answers.mood === 'good') return 'slower-pace'
   return 'keep'
+}
+
+function resolveLocalDispositionLevel(
+  recommendation: DispositionRecommendation,
+): DispositionLevel {
+  if (recommendation === 'rest') return 'rest'
+  if (
+    recommendation === 'recovery' ||
+    recommendation === 'light-walk' ||
+    recommendation === 'reduce-time'
+  ) {
+    return 'low'
+  }
+  if (recommendation === 'slower-pace' || recommendation === 'swap-walk') {
+    return 'moderate'
+  }
+  return 'good'
+}
+
+const LOCAL_DISPOSITION_MOOD_MESSAGES: Record<DispositionMood, string> = {
+  great: 'Você está com ótima disposição hoje',
+  good: 'Sua disposição está boa',
+  tired: 'Vamos ajustar a atividade ao seu ritmo hoje',
+  'very-tired': 'Priorize descanso ou movimento bem leve',
+  discomfort: 'Escolha uma atividade confortável para o seu corpo',
+}
+
+/** Disposição calculada no app quando a API run-walk está desligada. */
+export function buildLocalDispositionFromCheckin(
+  answers: DispositionCheckinAnswers,
+): DispositionState {
+  const recommendation = getDispositionRecommendation(answers)
+
+  return {
+    level: resolveLocalDispositionLevel(recommendation),
+    message: LOCAL_DISPOSITION_MOOD_MESSAGES[answers.mood],
+    factors: [
+      {
+        id: 'sleep',
+        label: 'Qualidade do sono',
+        value:
+          answers.sleptWell === true
+            ? 'Dormiu bem'
+            : answers.sleptWell === false
+              ? 'Sono prejudicado'
+              : 'Sem registro',
+        considered: answers.sleptWell != null,
+      },
+      {
+        id: 'fatigue',
+        label: 'Cansaço informado',
+        value: answers.lowEnergy ? 'Baixa disposição relatada' : 'Sem queixa de cansaço',
+        considered: answers.lowEnergy != null,
+      },
+      {
+        id: 'recent',
+        label: 'Atividade recente',
+        value: 'Indisponível sem a API de corrida/caminhada',
+        considered: false,
+      },
+      {
+        id: 'heart',
+        label: 'Frequência cardíaca',
+        value: 'Sem registro recente',
+        considered: false,
+      },
+      {
+        id: 'hydration',
+        label: 'Hidratação',
+        value: 'Sem registro hoje',
+        considered: false,
+      },
+      {
+        id: 'weather',
+        label: 'Clima',
+        value: 'Indisponível nesta versão',
+        considered: false,
+      },
+      {
+        id: 'pain',
+        label: 'Dores ou desconfortos',
+        value:
+          answers.hasPain || answers.mood === 'discomfort'
+            ? 'Desconforto relatado no check-in'
+            : 'Nenhum relatado',
+        considered: answers.hasPain != null || answers.mood === 'discomfort',
+      },
+    ],
+  }
 }
 
 export function getRecommendationLabel(recommendation: DispositionRecommendation): string {

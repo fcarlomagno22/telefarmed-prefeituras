@@ -1,17 +1,69 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import type { ActivityModality } from '../types/auth'
+import { isRunWalkApiEnabled } from '../config/runWalkApi'
+import {
+  listAllRunWalkAtividades,
+  patchRunWalkAtividadeCheckin,
+  registerRunWalkAtividade,
+} from '../lib/api/vd/runWalk'
 import type { RunWalkActivitySummary } from './runWalkActivitySummaryStorage'
 import {
-  calculateAveragePaceMinPerKm,
-  calculateAverageSpeedKmh,
-  estimateCaloriesBurned,
-  type ActivityTrailPoint,
-} from '../utils/runWalkActivityStats'
+  mapAtividadeDtoToSummary,
+  mapSummaryToCreateInput,
+  mergeSummaryWithDto,
+} from '../utils/runWalkAtividadeMappers'
 import { toLocalDateIso } from '../utils/runWalkWeeklyChart'
+import {
+  enqueueRunWalkActivitySync,
+  loadRunWalkActivitySyncQueue,
+  removeRunWalkActivitySyncEntries,
+} from './runWalkActivitySyncQueue'
 
 const STORAGE_KEY = '@telefarmed/run-walk-activity-history'
 
 type HistoryStore = Record<string, RunWalkActivitySummary[]>
+
+function sortActivities(entries: RunWalkActivitySummary[]) {
+  return [...entries].sort(
+    (left, right) => new Date(right.completedAt).getTime() - new Date(left.completedAt).getTime(),
+  )
+}
+
+function activityIdentity(activity: RunWalkActivitySummary) {
+  return activity.serverId ?? activity.id
+}
+
+function mergeActivityLists(
+  primary: RunWalkActivitySummary[],
+  secondary: RunWalkActivitySummary[],
+): RunWalkActivitySummary[] {
+  const byIdentity = new Map<string, RunWalkActivitySummary>()
+
+  for (const activity of secondary) {
+    byIdentity.set(activityIdentity(activity), activity)
+  }
+
+  for (const activity of primary) {
+    const key = activityIdentity(activity)
+    const existing = byIdentity.get(key)
+    if (!existing) {
+      byIdentity.set(key, activity)
+      continue
+    }
+
+    byIdentity.set(key, {
+      ...existing,
+      ...activity,
+      trail: activity.trail.length > 0 ? activity.trail : existing.trail,
+      serverId: activity.serverId ?? existing.serverId,
+      checkIn: activity.checkIn ?? existing.checkIn,
+      checkInSkipped: activity.checkInSkipped ?? existing.checkInSkipped,
+      locationCity: activity.locationCity ?? existing.locationCity,
+      locationState: activity.locationState ?? existing.locationState,
+    })
+  }
+
+  return sortActivities([...byIdentity.values()])
+}
 
 async function readStore(): Promise<HistoryStore> {
   try {
@@ -29,180 +81,181 @@ async function writeStore(store: HistoryStore) {
   await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(store))
 }
 
-export async function loadRunWalkActivityHistory(
+export async function loadCachedRunWalkActivityHistory(
   patientCpf: string,
 ): Promise<RunWalkActivitySummary[]> {
   const store = await readStore()
-  const entries = store[patientCpf] ?? []
-  return [...entries].sort(
-    (left, right) => new Date(right.completedAt).getTime() - new Date(left.completedAt).getTime(),
+  return sortActivities(store[patientCpf] ?? [])
+}
+
+async function cacheRunWalkActivityHistory(
+  patientCpf: string,
+  activities: RunWalkActivitySummary[],
+) {
+  const store = await readStore()
+  store[patientCpf] = sortActivities(activities)
+  await writeStore(store)
+}
+
+async function upsertCachedActivity(
+  patientCpf: string,
+  activity: RunWalkActivitySummary,
+): Promise<RunWalkActivitySummary[]> {
+  const current = await loadCachedRunWalkActivityHistory(patientCpf)
+  const withoutDuplicate = current.filter(
+    (entry) =>
+      entry.id !== activity.id &&
+      entry.serverId !== activity.serverId &&
+      activityIdentity(entry) !== activityIdentity(activity),
   )
+  const next = sortActivities([activity, ...withoutDuplicate])
+  await cacheRunWalkActivityHistory(patientCpf, next)
+  return next
+}
+
+function isGuestPatient(patientCpf: string) {
+  return patientCpf === 'guest'
+}
+
+function shouldUseRunWalkApi(patientCpf: string) {
+  return isRunWalkApiEnabled() && !isGuestPatient(patientCpf)
+}
+
+export async function loadLocalRunWalkActivityHistory(
+  patientCpf: string,
+): Promise<RunWalkActivitySummary[]> {
+  const cached = stripLegacyMockActivities(await loadCachedRunWalkActivityHistory(patientCpf))
+  const queue = await loadRunWalkActivitySyncQueue(patientCpf)
+  const pending = queue.map((entry) => entry.activity)
+  return mergeActivityLists(cached, pending)
+}
+
+function stripLegacyMockActivities(activities: RunWalkActivitySummary[]) {
+  return activities.filter((activity) => !activity.id.startsWith('mock-history-'))
+}
+
+export async function flushRunWalkActivitySyncQueue(patientCpf: string): Promise<void> {
+  if (!shouldUseRunWalkApi(patientCpf)) return
+
+  const queue = await loadRunWalkActivitySyncQueue(patientCpf)
+  if (queue.length === 0) return
+
+  const syncedIds: string[] = []
+
+  for (const entry of queue) {
+    try {
+      if (entry.activity.serverId) {
+        if (entry.activity.checkInSkipped) {
+          await patchRunWalkAtividadeCheckin(entry.activity.serverId, { checkInSkipped: true })
+        } else if (entry.activity.checkIn) {
+          await patchRunWalkAtividadeCheckin(entry.activity.serverId, {
+            checkIn: entry.activity.checkIn,
+          })
+        }
+        await upsertCachedActivity(patientCpf, entry.activity)
+        syncedIds.push(entry.id)
+        continue
+      }
+
+      const result = await registerRunWalkAtividade(mapSummaryToCreateInput(entry.activity))
+      const merged = mergeSummaryWithDto(entry.activity, result.activity)
+      await upsertCachedActivity(patientCpf, merged)
+      syncedIds.push(entry.id)
+    } catch {
+      break
+    }
+  }
+
+  if (syncedIds.length > 0) {
+    await removeRunWalkActivitySyncEntries(syncedIds)
+  }
+}
+
+/** Carrega histórico do backend com cache local; em falha usa cache + fila pendente. */
+export async function loadRunWalkActivityHistory(
+  patientCpf: string,
+): Promise<RunWalkActivitySummary[]> {
+  if (!shouldUseRunWalkApi(patientCpf)) {
+    return loadLocalRunWalkActivityHistory(patientCpf)
+  }
+
+  await flushRunWalkActivitySyncQueue(patientCpf)
+
+  try {
+    const remote = await listAllRunWalkAtividades({ period: 'all', sort: 'recent' })
+    const mapped = stripLegacyMockActivities(
+      remote.map((dto) => mapAtividadeDtoToSummary(dto, patientCpf)),
+    )
+    const queue = await loadRunWalkActivitySyncQueue(patientCpf)
+    const pending = queue.map((entry) => entry.activity)
+    const merged = mergeActivityLists(mapped, pending)
+    await cacheRunWalkActivityHistory(patientCpf, merged)
+    return merged
+  } catch {
+    return loadLocalRunWalkActivityHistory(patientCpf)
+  }
+}
+
+/** Persiste atividade no backend com fallback offline (cache + fila de retry). */
+export async function persistRunWalkHistoryActivity(
+  patientCpf: string,
+  activity: RunWalkActivitySummary,
+): Promise<RunWalkActivitySummary[]> {
+  const normalized: RunWalkActivitySummary = {
+    ...activity,
+    patientCpf,
+  }
+
+  let next = await upsertCachedActivity(patientCpf, normalized)
+
+  if (!shouldUseRunWalkApi(patientCpf)) {
+    return next
+  }
+
+  if (normalized.serverId) {
+    try {
+      if (normalized.checkInSkipped) {
+        await patchRunWalkAtividadeCheckin(normalized.serverId, { checkInSkipped: true })
+      } else if (normalized.checkIn) {
+        await patchRunWalkAtividadeCheckin(normalized.serverId, {
+          checkIn: normalized.checkIn,
+        })
+      }
+    } catch {
+      await enqueueRunWalkActivitySync(patientCpf, normalized)
+      return next
+    }
+
+    await removeRunWalkActivitySyncEntries([`sync-${normalized.id}`])
+    return next
+  }
+
+  try {
+    const result = await registerRunWalkAtividade(mapSummaryToCreateInput(normalized))
+    const merged = mergeSummaryWithDto(normalized, result.activity)
+    next = await upsertCachedActivity(patientCpf, merged)
+    await removeRunWalkActivitySyncEntries([`sync-${normalized.id}`])
+    return next
+  } catch {
+    await enqueueRunWalkActivitySync(patientCpf, normalized)
+    return next
+  }
 }
 
 export async function saveRunWalkHistoryActivity(
   patientCpf: string,
   activity: RunWalkActivitySummary,
 ) {
-  const store = await readStore()
-  const current = store[patientCpf] ?? []
-  const withoutDuplicate = current.filter((entry) => entry.id !== activity.id)
-  store[patientCpf] = [activity, ...withoutDuplicate]
-  await writeStore(store)
+  await persistRunWalkHistoryActivity(patientCpf, activity)
 }
 
 export async function deleteRunWalkHistoryActivity(patientCpf: string, activityId: string) {
   const store = await readStore()
   const current = store[patientCpf] ?? []
-  store[patientCpf] = current.filter((entry) => entry.id !== activityId)
-  await writeStore(store)
-}
-
-function generateMockTrail(seed: number, distanceKm: number): ActivityTrailPoint[] {
-  const baseLat = -23.5505 + (seed % 7) * 0.0012
-  const baseLng = -46.6333 + (seed % 5) * 0.001
-  const pointCount = Math.max(8, Math.round(12 + distanceKm * 6))
-  const startedAt = Date.now() - pointCount * 45_000
-
-  return Array.from({ length: pointCount }, (_, index) => ({
-    latitude: baseLat + Math.sin(index * 0.45 + seed) * 0.0018 * Math.max(distanceKm, 0.4),
-    longitude: baseLng + Math.cos(index * 0.38 + seed) * 0.0016 * Math.max(distanceKm, 0.4),
-    recordedAt: startedAt + index * 45_000,
-  }))
-}
-
-const MOCK_CITIES = [
-  { city: 'São Paulo', state: 'SP' },
-  { city: 'Campinas', state: 'SP' },
-  { city: 'Santos', state: 'SP' },
-  { city: 'Guarulhos', state: 'SP' },
-  { city: 'Osasco', state: 'SP' },
-] as const
-
-function buildMockActivity(
-  patientCpf: string,
-  daysAgo: number,
-  modality: ActivityModality,
-  activityName: string,
-  elapsedSeconds: number,
-  distanceKm: number,
-  seed: number,
-): RunWalkActivitySummary {
-  const completedAt = new Date()
-  completedAt.setDate(completedAt.getDate() - daysAgo)
-  completedAt.setHours(7 + (seed % 4) * 2, (seed * 11) % 60, 0, 0)
-
-  const activeMinutes = Math.max(1, Math.round(elapsedSeconds / 60))
-  const mockPlace = MOCK_CITIES[seed % MOCK_CITIES.length]
-
-  return {
-    id: `mock-history-${seed}-${daysAgo}`,
-    patientCpf,
-    modality,
-    activityName,
-    elapsedSeconds,
-    distanceKm,
-    averageSpeedKmh: calculateAverageSpeedKmh(distanceKm, elapsedSeconds),
-    paceMinPerKm: calculateAveragePaceMinPerKm(distanceKm, elapsedSeconds),
-    stepCount: Math.round(distanceKm * 1350),
-    heartRateBpm: 108 + (seed % 28),
-    estimatedCalories: estimateCaloriesBurned(modality, elapsedSeconds),
-    activeMinutes,
-    completedAt: completedAt.toISOString(),
-    trail: generateMockTrail(seed, distanceKm),
-    locationCity: mockPlace.city,
-    locationState: mockPlace.state,
-  }
-}
-
-const MOCK_HISTORY_BLUEPRINT: Array<{
-  daysAgo: number
-  modality: ActivityModality
-  activityName: string
-  elapsedSeconds: number
-  distanceKm: number
-}> = [
-  { daysAgo: 0, modality: 'walk', activityName: 'Caminhada tranquila', elapsedSeconds: 28 * 60, distanceKm: 2.4 },
-  { daysAgo: 1, modality: 'run-walk', activityName: 'Corrida e caminhada', elapsedSeconds: 32 * 60, distanceKm: 3.8 },
-  { daysAgo: 2, modality: 'run', activityName: 'Corrida contínua', elapsedSeconds: 24 * 60, distanceKm: 3.2 },
-  { daysAgo: 4, modality: 'active-walk', activityName: 'Caminhada ativa', elapsedSeconds: 35 * 60, distanceKm: 3.5 },
-  { daysAgo: 5, modality: 'walk', activityName: 'Caminhada leve', elapsedSeconds: 22 * 60, distanceKm: 1.9 },
-  { daysAgo: 7, modality: 'run-walk', activityName: 'Corrida e caminhada', elapsedSeconds: 30 * 60, distanceKm: 3.4 },
-  { daysAgo: 9, modality: 'run', activityName: 'Corrida moderada', elapsedSeconds: 26 * 60, distanceKm: 3.6 },
-  { daysAgo: 11, modality: 'walk', activityName: 'Caminhada tranquila', elapsedSeconds: 25 * 60, distanceKm: 2.1 },
-  { daysAgo: 14, modality: 'run-walk', activityName: 'Intervalado leve', elapsedSeconds: 34 * 60, distanceKm: 4.1 },
-  { daysAgo: 16, modality: 'active-walk', activityName: 'Caminhada ativa', elapsedSeconds: 38 * 60, distanceKm: 4.2 },
-  { daysAgo: 19, modality: 'run', activityName: 'Corrida contínua', elapsedSeconds: 29 * 60, distanceKm: 4.4 },
-  { daysAgo: 22, modality: 'walk', activityName: 'Caminhada leve', elapsedSeconds: 20 * 60, distanceKm: 1.7 },
-  { daysAgo: 25, modality: 'run-walk', activityName: 'Corrida e caminhada', elapsedSeconds: 31 * 60, distanceKm: 3.7 },
-  { daysAgo: 28, modality: 'run', activityName: 'Corrida moderada', elapsedSeconds: 27 * 60, distanceKm: 3.9 },
-  { daysAgo: 33, modality: 'walk', activityName: 'Caminhada tranquila', elapsedSeconds: 26 * 60, distanceKm: 2.3 },
-  { daysAgo: 38, modality: 'run-walk', activityName: 'Intervalado leve', elapsedSeconds: 33 * 60, distanceKm: 3.9 },
-  { daysAgo: 45, modality: 'run', activityName: 'Corrida contínua', elapsedSeconds: 25 * 60, distanceKm: 3.5 },
-  { daysAgo: 52, modality: 'active-walk', activityName: 'Caminhada ativa', elapsedSeconds: 36 * 60, distanceKm: 4.0 },
-  { daysAgo: 61, modality: 'walk', activityName: 'Caminhada leve', elapsedSeconds: 21 * 60, distanceKm: 1.8 },
-  { daysAgo: 74, modality: 'run-walk', activityName: 'Corrida e caminhada', elapsedSeconds: 30 * 60, distanceKm: 3.6 },
-]
-
-export async function ensureRunWalkHistorySeeded(patientCpf: string) {
-  const existing = await loadRunWalkActivityHistory(patientCpf)
-
-  if (existing.length === 0) {
-    const seeded = MOCK_HISTORY_BLUEPRINT.map((item, index) =>
-      buildMockActivity(
-        patientCpf,
-        item.daysAgo,
-        item.modality,
-        item.activityName,
-        item.elapsedSeconds,
-        item.distanceKm,
-        index + 1,
-      ),
-    )
-
-    const store = await readStore()
-    store[patientCpf] = seeded
-    await writeStore(store)
-    return
-  }
-
-  const needsLocationPatch = existing.some(
-    (entry) => !entry.locationCity?.trim() && !entry.locationState?.trim(),
+  store[patientCpf] = current.filter(
+    (entry) => entry.id !== activityId && entry.serverId !== activityId,
   )
-  if (!needsLocationPatch) return
-
-  const patched = existing.map((entry, index) => {
-    if (entry.locationCity?.trim() || entry.locationState?.trim()) return entry
-    const mockPlace = MOCK_CITIES[index % MOCK_CITIES.length]
-    return {
-      ...entry,
-      locationCity: mockPlace.city,
-      locationState: mockPlace.state,
-    }
-  })
-
-  const store = await readStore()
-  store[patientCpf] = patched
   await writeStore(store)
-}
-
-export async function ensureTodayRunWalkActivity(patientCpf: string) {
-  await ensureRunWalkHistorySeeded(patientCpf)
-
-  const todayIso = toLocalDateIso(new Date())
-  const existing = await loadRunWalkActivityHistory(patientCpf)
-  const hasToday = existing.some((activity) => getActivityDateIso(activity) === todayIso)
-  if (hasToday) return
-
-  const todayActivity = buildMockActivity(
-    patientCpf,
-    0,
-    'active-walk',
-    'Caminhada ativa',
-    36 * 60,
-    3.2,
-    42,
-  )
-  await saveRunWalkHistoryActivity(patientCpf, todayActivity)
 }
 
 export function getActivityDateIso(activity: RunWalkActivitySummary) {

@@ -11,7 +11,8 @@ export function getRunningRouteSpotTypeLabel(type: RunningRouteSpotType) {
   if (type === 'track') return 'Pista de cooper'
   if (type === 'waterfront') return 'Orla / margem'
   if (type === 'trail') return 'Trilha urbana'
-  return 'Praça / área aberta'
+  if (type === 'plaza') return 'Praça / área aberta'
+  return 'Outros'
 }
 
 export const RUNNING_ROUTE_SPOT_TYPE_OPTIONS: {
@@ -23,6 +24,7 @@ export const RUNNING_ROUTE_SPOT_TYPE_OPTIONS: {
   { id: 'waterfront', label: 'Orla / margem' },
   { id: 'trail', label: 'Trilha urbana' },
   { id: 'plaza', label: 'Praça / área aberta' },
+  { id: 'other', label: 'Outros' },
 ]
 
 function estimateWalkMinutes(distanceKm: number) {
@@ -50,8 +52,11 @@ export function formatRunningRouteSpotAddress(spot: RunningRouteSpot) {
   return spot.addressLabel?.trim() || 'Endereço não informado'
 }
 
-export async function fetchNearbyRunningRoutes(origin: GeoCoordinates): Promise<RunningRouteSpot[]> {
-  const records = await listRunningRouteSpots()
+export async function fetchNearbyRunningRoutes(
+  origin: GeoCoordinates,
+  options?: { radiusKm?: number },
+): Promise<RunningRouteSpot[]> {
+  const records = await listRunningRouteSpots(origin, options)
   return records
     .map((record) => toNearbySpot(record, origin))
     .sort((a, b) => a.distanceKm - b.distanceKm)

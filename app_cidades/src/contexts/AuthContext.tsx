@@ -39,6 +39,7 @@ import {
   restoreSessionAfterBiometric,
 } from '../lib/vd/vdAuthSession'
 import { getVdAccessToken } from '../lib/vd/vdAccessToken'
+import { loadPersistedRefreshToken } from '../lib/vd/vdRefreshToken'
 import { AppRouteParams, AppScreen, AuthUser, RegistrationData } from '../types/auth'
 import { playLoginSound } from '../utils/appSounds'
 import { cpfDigits } from '../utils/cpf'
@@ -112,6 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     return registerVdAccessTokenRefresh(async () => {
+      await loadPersistedRefreshToken()
       const nextUser = await refreshVdAuthSession()
       setUser(nextUser)
       return getVdAccessToken()

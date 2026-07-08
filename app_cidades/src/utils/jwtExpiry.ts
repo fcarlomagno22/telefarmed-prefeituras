@@ -16,7 +16,7 @@ export function shouldRefreshAccessToken(
   accessToken: string | null | undefined,
   skewMs = 2 * 60 * 1000,
 ): boolean {
-  if (!accessToken) return false
+  if (!accessToken) return true
   const expiresAt = readJwtExpiryMs(accessToken)
   if (!expiresAt) return true
   return Date.now() >= expiresAt - skewMs

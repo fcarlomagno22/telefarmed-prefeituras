@@ -5,6 +5,20 @@ import { formatDateKeyInAppTz } from './peso.formatters.js'
 /** Alinhado a app_cidades/src/data/mockStepsHistory.ts */
 export const ATIVIDADE_STRIDE_KM = 0.000762
 export const ATIVIDADE_STEPS_PER_MINUTE_ESTIMATE = 110
+export const ATIVIDADE_CORRIDA_STEPS_PER_MINUTE_ESTIMATE = 170
+export const ATIVIDADE_CORRIDA_CAMINHADA_STEPS_PER_MINUTE_ESTIMATE = 140
+
+export type AtividadeLeituraKind = 'caminhada' | 'corrida' | 'corrida-caminhada'
+
+const ATIVIDADE_STEPS_PER_MINUTE_BY_KIND: Record<AtividadeLeituraKind, number> = {
+  caminhada: ATIVIDADE_STEPS_PER_MINUTE_ESTIMATE,
+  corrida: ATIVIDADE_CORRIDA_STEPS_PER_MINUTE_ESTIMATE,
+  'corrida-caminhada': ATIVIDADE_CORRIDA_CAMINHADA_STEPS_PER_MINUTE_ESTIMATE,
+}
+
+export function resolveAtividadeStepsPerMinuteEstimate(kind: AtividadeLeituraKind): number {
+  return ATIVIDADE_STEPS_PER_MINUTE_BY_KIND[kind]
+}
 
 export function formatAtividadeSteps(value: number): number {
   return Math.round(Math.max(0, value))
@@ -22,15 +36,23 @@ export function deriveStepsFromDistanceKm(distanceKm: number): number {
   return formatAtividadeSteps(distanceKm / ATIVIDADE_STRIDE_KM)
 }
 
-export function deriveStepsFromDurationMinutes(durationMinutes: number): number {
-  return formatAtividadeSteps(durationMinutes * ATIVIDADE_STEPS_PER_MINUTE_ESTIMATE)
+export function deriveStepsFromDurationMinutes(
+  durationMinutes: number,
+  kind: AtividadeLeituraKind = 'caminhada',
+): number {
+  return formatAtividadeSteps(
+    durationMinutes * resolveAtividadeStepsPerMinuteEstimate(kind),
+  )
 }
 
-export function resolveCaminhadaMetrics(input: {
-  steps?: number
-  distanceKm?: number
-  durationMinutes?: number
-}): {
+export function resolveAtividadeMetrics(
+  input: {
+    steps?: number
+    distanceKm?: number
+    durationMinutes?: number
+  },
+  kind: AtividadeLeituraKind = 'caminhada',
+): {
   steps: number
   distanceKm: number
   distanceKmExplicit: boolean
@@ -42,7 +64,7 @@ export function resolveCaminhadaMetrics(input: {
   const distanceKmExplicit = input.distanceKm != null
 
   if (steps == null && input.durationMinutes != null) {
-    steps = deriveStepsFromDurationMinutes(input.durationMinutes)
+    steps = deriveStepsFromDurationMinutes(input.durationMinutes, kind)
   }
 
   if (steps == null && distanceKm != null) {
@@ -63,6 +85,15 @@ export function resolveCaminhadaMetrics(input: {
     distanceKmExplicit,
     durationMinutes: input.durationMinutes,
   }
+}
+
+/** @deprecated Use resolveAtividadeMetrics */
+export function resolveCaminhadaMetrics(input: {
+  steps?: number
+  distanceKm?: number
+  durationMinutes?: number
+}) {
+  return resolveAtividadeMetrics(input, 'caminhada')
 }
 
 export function buildAtividadeDayId(dateKey: string): string {

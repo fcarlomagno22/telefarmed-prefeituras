@@ -6,8 +6,6 @@ import type { RunWalkQuickShortcutId } from '../../types/runWalk'
 
 type RunWalkQuickShortcutsProps = {
   onShortcutPress: (id: RunWalkQuickShortcutId) => void
-  onChallengesPress: () => void
-  onAchievementsPress: () => void
 }
 
 type ShortcutAccent = {
@@ -16,11 +14,10 @@ type ShortcutAccent = {
 }
 
 type ShortcutButtonConfig = {
-  id: string
+  id: RunWalkQuickShortcutId
   label: string
   icon: keyof typeof MaterialCommunityIcons.glyphMap
   accent: ShortcutAccent
-  onPress: () => void
 }
 
 const START_ACTIVITY_ACCENT: ShortcutAccent = {
@@ -33,25 +30,26 @@ const NEARBY_ROUTES_ACCENT: ShortcutAccent = {
   borderColor: 'rgba(22, 163, 74, 0.28)',
 }
 
-const CHALLENGES_ACCENT: ShortcutAccent = {
-  gradient: ['#9d174d', '#db2777', '#f472b6'],
-  borderColor: 'rgba(190, 24, 93, 0.28)',
-}
-
-const ACHIEVEMENTS_ACCENT: ShortcutAccent = {
-  gradient: ['#92400e', '#d97706', '#f59e0b'],
-  borderColor: 'rgba(180, 83, 9, 0.28)',
-}
-
 const HORIZONTAL_PADDING = 16
 const GAP = 10
 const COLUMNS = 2
 
-export function RunWalkQuickShortcuts({
-  onShortcutPress,
-  onChallengesPress,
-  onAchievementsPress,
-}: RunWalkQuickShortcutsProps) {
+const SHORTCUTS: ShortcutButtonConfig[] = [
+  {
+    id: 'start-activity',
+    label: 'Iniciar atividade',
+    icon: 'play',
+    accent: START_ACTIVITY_ACCENT,
+  },
+  {
+    id: 'nearby-routes',
+    label: 'Onde correr',
+    icon: 'map-marker-radius',
+    accent: NEARBY_ROUTES_ACCENT,
+  },
+]
+
+export function RunWalkQuickShortcuts({ onShortcutPress }: RunWalkQuickShortcutsProps) {
   const { width: screenWidth } = useWindowDimensions()
   const itemWidth =
     (screenWidth - HORIZONTAL_PADDING * 2 - GAP * (COLUMNS - 1)) / COLUMNS
@@ -61,89 +59,42 @@ export function RunWalkQuickShortcuts({
     onShortcutPress(id)
   }
 
-  function handleChallengesPress() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    onChallengesPress()
-  }
-
-  function handleAchievementsPress() {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-    onAchievementsPress()
-  }
-
-  const rows: ShortcutButtonConfig[][] = [
-    [
-      {
-        id: 'start-activity',
-        label: 'Iniciar atividade',
-        icon: 'play',
-        accent: START_ACTIVITY_ACCENT,
-        onPress: () => handlePress('start-activity'),
-      },
-      {
-        id: 'nearby-routes',
-        label: 'Onde correr',
-        icon: 'map-marker-radius',
-        accent: NEARBY_ROUTES_ACCENT,
-        onPress: () => handlePress('nearby-routes'),
-      },
-    ],
-    [
-      {
-        id: 'challenges',
-        label: 'Desafios',
-        icon: 'bullseye-arrow',
-        accent: CHALLENGES_ACCENT,
-        onPress: handleChallengesPress,
-      },
-      {
-        id: 'achievements',
-        label: 'Conquistas',
-        icon: 'medal-outline',
-        accent: ACHIEVEMENTS_ACCENT,
-        onPress: handleAchievementsPress,
-      },
-    ],
-  ]
-
   return (
     <View style={styles.wrap}>
-      {rows.map((row, rowIndex) => (
-        <View key={`row-${rowIndex}`} style={styles.row}>
-          {row.map((shortcut) => (
-            <Pressable
-              key={shortcut.id}
-              onPress={shortcut.onPress}
-              style={({ pressed }) => [
-                styles.item,
-                { width: itemWidth },
-                pressed && styles.itemPressed,
+      <View style={styles.row}>
+        {SHORTCUTS.map((shortcut) => (
+          <Pressable
+            key={shortcut.id}
+            onPress={() => handlePress(shortcut.id)}
+            style={({ pressed }) => [
+              styles.item,
+              { width: itemWidth },
+              pressed && styles.itemPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={shortcut.label}
+          >
+            <LinearGradient
+              colors={[...shortcut.accent.gradient]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={[
+                styles.card,
+                {
+                  borderColor: shortcut.accent.borderColor,
+                },
               ]}
-              accessibilityRole="button"
-              accessibilityLabel={shortcut.label}
             >
-              <LinearGradient
-                colors={[...shortcut.accent.gradient]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={[
-                  styles.card,
-                  {
-                    borderColor: shortcut.accent.borderColor,
-                  },
-                ]}
-              >
-                <View style={styles.iconOrb}>
-                  <MaterialCommunityIcons name={shortcut.icon} size={22} color="#ffffff" />
-                </View>
-                <Text style={styles.label} numberOfLines={2}>
-                  {shortcut.label}
-                </Text>
-              </LinearGradient>
-            </Pressable>
-          ))}
-        </View>
-      ))}
+              <View style={styles.iconOrb}>
+                <MaterialCommunityIcons name={shortcut.icon} size={22} color="#ffffff" />
+              </View>
+              <Text style={styles.label} numberOfLines={2}>
+                {shortcut.label}
+              </Text>
+            </LinearGradient>
+          </Pressable>
+        ))}
+      </View>
     </View>
   )
 }
@@ -151,7 +102,6 @@ export function RunWalkQuickShortcuts({
 const styles = StyleSheet.create({
   wrap: {
     paddingHorizontal: HORIZONTAL_PADDING,
-    gap: GAP,
   },
   row: {
     flexDirection: 'row',

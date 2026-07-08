@@ -456,6 +456,7 @@ export function MentalHealthOnboardingDrawer({
 
         <MentalHealthEmergencyContactsDrawer
           visible={emergencyContactsDrawerVisible}
+          patientCpf={patientCpf}
           onClose={() => {
             Keyboard.dismiss()
             setEmergencyContactsDrawerVisible(false)

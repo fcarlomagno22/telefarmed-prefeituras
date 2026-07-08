@@ -210,10 +210,16 @@ export type AtividadeDayRecordDto = {
   sourceLabel?: string
 }
 
-export type RegisterCaminhadaResultDto = {
+export type AtividadeLeituraKind = 'caminhada' | 'corrida' | 'corrida-caminhada'
+
+export type RegisterAtividadeResultDto = {
   day: AtividadeDayRecordDto
   recordedAt: string
+  kind: AtividadeLeituraKind
 }
+
+/** @deprecated Use RegisterAtividadeResultDto */
+export type RegisterCaminhadaResultDto = RegisterAtividadeResultDto
 
 export type AtividadeIntegracaoDayInputDto = {
   date: string

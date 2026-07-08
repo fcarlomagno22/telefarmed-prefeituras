@@ -19,9 +19,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { useAuth } from '../contexts/AuthContext'
 import {
-  loadRunWalkActivitySummary,
-  updateRunWalkActivitySummary,
-} from '../data/runWalkActivitySummaryStorage'
+  prepareRunWalkActivityCheckin,
+  submitRunWalkActivityCheckin,
+} from '../data/runWalkActivityCheckinStorage'
+import { loadRunWalkActivitySummary } from '../data/runWalkActivitySummaryStorage'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
 import { getRunWalkRouteParams } from '../types/auth'
@@ -154,6 +155,9 @@ export function RunWalkActivityCheckInScreen() {
         return
       }
 
+      await prepareRunWalkActivityCheckin(summaryId)
+      if (!active) return
+
       setIsLoading(false)
     }
 
@@ -181,7 +185,7 @@ export function RunWalkActivityCheckInScreen() {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
 
     try {
-      await updateRunWalkActivitySummary(summaryId, {
+      await submitRunWalkActivityCheckin(summaryId, {
         checkIn: null,
         checkInSkipped: true,
       })
@@ -200,7 +204,7 @@ export function RunWalkActivityCheckInScreen() {
     try {
       const trimmedNote = note.trim()
 
-      await updateRunWalkActivitySummary(summaryId, {
+      await submitRunWalkActivityCheckin(summaryId, {
         checkIn: {
           intensity: intensity!,
           wellbeing: wellbeing!,

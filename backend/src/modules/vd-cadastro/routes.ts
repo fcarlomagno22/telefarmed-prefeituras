@@ -171,6 +171,7 @@ export async function registerVdCadastroRoutes(app: FastifyInstance): Promise<vo
 
         return reply.status(201).send({
           accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
           user: result.user,
           mode: result.mode,
         })

@@ -2,13 +2,13 @@ import { MaterialCommunityIcons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { TODAY_ACTIVITY_PRESETS } from '../../data/mockRunWalk'
 import { colors } from '../../theme/colors'
 import type { TodayActivityPreset, TodayActivityPresetId } from '../../types/runWalk'
 import { RunWalkSheetDrawer } from './RunWalkSheetDrawer'
 
 type RunWalkActivityPickerDrawerProps = {
   visible: boolean
+  presets: TodayActivityPreset[]
   onClose: () => void
   onPreview: (presetId: TodayActivityPresetId) => void
 }
@@ -35,6 +35,7 @@ function getPresetIcon(id: TodayActivityPresetId) {
 
 export function RunWalkActivityPickerDrawer({
   visible,
+  presets,
   onClose,
   onPreview,
 }: RunWalkActivityPickerDrawerProps) {
@@ -51,7 +52,7 @@ export function RunWalkActivityPickerDrawer({
       onClose={onClose}
     >
       <View style={styles.list}>
-        {TODAY_ACTIVITY_PRESETS.map((preset) => (
+        {presets.map((preset) => (
           <Pressable
             key={preset.id}
             onPress={() => handlePreview(preset.id)}

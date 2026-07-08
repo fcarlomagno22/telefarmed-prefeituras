@@ -5,6 +5,10 @@ import {
   getDispositionRecommendation,
   getRecommendationLabel,
 } from '../../data/mockRunWalk'
+import {
+  saveRunWalkDispositionCheckin,
+  type SaveRunWalkDispositionCheckinResult,
+} from '../../data/runWalkDispositionStorage'
 import { colors } from '../../theme/colors'
 import type { DispositionCheckinAnswers, DispositionMood } from '../../types/runWalk'
 import { PrimaryButton } from '../PrimaryButton'
@@ -14,8 +18,13 @@ type RunWalkDispositionCheckinDrawerProps = {
   visible: boolean
   onClose: () => void
   onDismiss?: () => void
-  onComplete: (answers: DispositionCheckinAnswers, recommendationLabel: string) => void
+  onComplete: (
+    answers: DispositionCheckinAnswers,
+    recommendationLabel: string,
+    result?: SaveRunWalkDispositionCheckinResult,
+  ) => void
   allowSkip?: boolean
+  patientCpf?: string
 }
 
 type Step = 'mood' | 'followup' | 'result'
@@ -47,10 +56,12 @@ export function RunWalkDispositionCheckinDrawer({
   onDismiss,
   onComplete,
   allowSkip = false,
+  patientCpf,
 }: RunWalkDispositionCheckinDrawerProps) {
   const [step, setStep] = useState<Step>('mood')
   const [mood, setMood] = useState<DispositionMood | null>(null)
   const [followup, setFollowup] = useState<Partial<Record<FollowupKey, boolean>>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const answers = useMemo<DispositionCheckinAnswers | null>(() => {
     if (!mood) return null
@@ -104,9 +115,24 @@ export function RunWalkDispositionCheckinDrawer({
   }
 
   function handleConfirm() {
-    if (!answers || !recommendation) return
-    onComplete(answers, getRecommendationLabel(recommendation))
-    handleClose()
+    if (!answers || !recommendation || isSubmitting) return
+
+    void (async () => {
+      setIsSubmitting(true)
+      const recommendationLabel = getRecommendationLabel(recommendation)
+
+      try {
+        if (patientCpf && patientCpf !== 'guest') {
+          const result = await saveRunWalkDispositionCheckin(patientCpf, answers)
+          onComplete(answers, result.recommendationLabel, result)
+        } else {
+          onComplete(answers, recommendationLabel)
+        }
+        handleClose()
+      } finally {
+        setIsSubmitting(false)
+      }
+    })()
   }
 
   return (
@@ -135,7 +161,12 @@ export function RunWalkDispositionCheckinDrawer({
         ) : step === 'followup' ? (
           <PrimaryButton label="Ver recomendação" onPress={handleShowResult} />
         ) : step === 'result' ? (
-          <PrimaryButton label="Entendi" onPress={handleConfirm} />
+          <PrimaryButton
+            label="Entendi"
+            onPress={handleConfirm}
+            loading={isSubmitting}
+            disabled={isSubmitting}
+          />
         ) : undefined
       }
     >

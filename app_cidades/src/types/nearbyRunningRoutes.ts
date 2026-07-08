@@ -1,6 +1,6 @@
 import type { GeoCoordinates } from '../utils/geo'
 
-export type RunningRouteSpotType = 'park' | 'track' | 'waterfront' | 'trail' | 'plaza'
+export type RunningRouteSpotType = 'park' | 'track' | 'waterfront' | 'trail' | 'plaza' | 'other'
 
 export type RunningRouteLocationSource = 'gps' | 'address'
 
@@ -38,13 +38,13 @@ export type RunningRoutesOrigin = GeoCoordinates & {
 
 export type SubmitRunningRouteSpotInput = {
   name: string
-  description: string
+  description?: string
   type: RunningRouteSpotType
   latitude: number
   longitude: number
   addressLabel: string
   locationSource: RunningRouteLocationSource
-  coverPhotoUri: string
+  coverPhotoUri?: string | null
   submittedByCpf: string
   submittedByName: string
 }

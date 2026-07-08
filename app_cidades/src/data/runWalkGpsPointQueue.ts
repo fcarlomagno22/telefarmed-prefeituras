@@ -53,3 +53,33 @@ export async function removeRunWalkGpsPoints(ids: string[]) {
 export async function clearRunWalkGpsQueue() {
   await AsyncStorage.removeItem(STORAGE_KEY)
 }
+
+export const LIVE_SHARE_GPS_QUEUE_BATCH_SIZE = 50
+
+/** Sincroniza fila em chunks; `syncChunk` retorna quantos pontos do chunk foram aceitos. */
+export async function flushRunWalkGpsQueue(
+  syncChunk: (chunk: RunWalkQueuedGpsPoint[]) => Promise<number>,
+): Promise<number> {
+  const queue = await loadRunWalkGpsQueue()
+  if (queue.length === 0) return 0
+
+  let totalSynced = 0
+  const syncedIds: string[] = []
+
+  for (let index = 0; index < queue.length; index += LIVE_SHARE_GPS_QUEUE_BATCH_SIZE) {
+    const chunk = queue.slice(index, index + LIVE_SHARE_GPS_QUEUE_BATCH_SIZE)
+    const syncedCount = await syncChunk(chunk)
+    if (syncedCount <= 0) break
+
+    syncedIds.push(...chunk.slice(0, syncedCount).map((point) => point.id))
+    totalSynced += syncedCount
+
+    if (syncedCount < chunk.length) break
+  }
+
+  if (syncedIds.length > 0) {
+    await removeRunWalkGpsPoints(syncedIds)
+  }
+
+  return totalSynced
+}

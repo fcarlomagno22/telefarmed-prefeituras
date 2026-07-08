@@ -1,5 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { appEnv } from '../config/env'
+import { LIVE_SHARE_POINT_BATCH_SIZE } from '../constants/runWalkLiveShare'
+import { fetchPublicLiveShareSession } from '../lib/api/public/runWalkLiveShare'
+import {
+  appendRunWalkLiveSessionPoints,
+  createRunWalkLiveSession,
+  endRunWalkLiveSession,
+  type CreateRunWalkLiveSessionInput,
+} from '../lib/api/vd/runWalkLiveShare'
+import { loadPersistedAccessToken } from '../lib/vd/vdAccessToken'
 import type {
   AppendLiveSharePointInput,
   CreateLiveShareSessionInput,
@@ -12,60 +20,11 @@ import { generateLiveShareToken, normalizeLiveShareToken } from '../utils/runWal
 const LOCAL_STORE_KEY = '@telefarmed/run-walk-live-share-sessions'
 const ACTIVE_SESSION_KEY = '@telefarmed/run-walk-active-live-session'
 
-type RemoteSessionRow = {
-  id: string
-  share_token: string
-  participant_name: string
-  activity_name: string
-  is_active: boolean
-  started_at: string
-  expires_at: string
-}
-
-type RemotePointRow = {
-  id: string
-  session_id: string
-  latitude: number
-  longitude: number
-  accuracy_meters: number | null
-  recorded_at: string
-}
-
 type LocalStore = Record<string, LiveShareSessionSnapshot>
 
-function isRemoteConfigured() {
-  return Boolean(appEnv.supabaseUrl && appEnv.supabaseAnonKey)
-}
-
-function remoteHeaders(prefer?: string) {
-  return {
-    apikey: appEnv.supabaseAnonKey,
-    Authorization: `Bearer ${appEnv.supabaseAnonKey}`,
-    'Content-Type': 'application/json',
-    ...(prefer ? { Prefer: prefer } : {}),
-  }
-}
-
-function mapSession(row: RemoteSessionRow): LiveShareSession {
-  return {
-    id: row.id,
-    shareToken: row.share_token,
-    participantName: row.participant_name,
-    activityName: row.activity_name,
-    isActive: row.is_active,
-    startedAt: row.started_at,
-    expiresAt: row.expires_at,
-  }
-}
-
-function mapPoint(row: RemotePointRow): LiveSharePoint {
-  return {
-    id: row.id,
-    latitude: row.latitude,
-    longitude: row.longitude,
-    accuracyMeters: row.accuracy_meters,
-    recordedAt: row.recorded_at,
-  }
+async function canUseAuthenticatedLiveShare(): Promise<boolean> {
+  const token = await loadPersistedAccessToken()
+  return Boolean(token)
 }
 
 async function readLocalStore(): Promise<LocalStore> {
@@ -120,6 +79,30 @@ async function createLocalSession(input: CreateLiveShareSessionInput): Promise<L
   return snapshot
 }
 
+async function createRemoteSession(
+  input: CreateLiveShareSessionInput,
+): Promise<LiveShareSessionSnapshot> {
+  const body: CreateRunWalkLiveSessionInput = {
+    participantName: input.participantName,
+    activityName: input.activityName,
+  }
+
+  if (input.latitude != null && input.longitude != null) {
+    body.initialPoint = {
+      latitude: input.latitude,
+      longitude: input.longitude,
+      accuracyMeters: input.accuracyMeters ?? null,
+    }
+  }
+
+  const result = await createRunWalkLiveSession(body)
+
+  return {
+    ...result.session,
+    points: result.points,
+  }
+}
+
 async function appendLocalPoint(input: AppendLiveSharePointInput): Promise<LiveSharePoint | null> {
   const store = await readLocalStore()
   const entry = Object.values(store).find((session) => session.id === input.sessionId)
@@ -130,7 +113,7 @@ async function appendLocalPoint(input: AppendLiveSharePointInput): Promise<LiveS
     latitude: input.latitude,
     longitude: input.longitude,
     accuracyMeters: input.accuracyMeters ?? null,
-    recordedAt: new Date().toISOString(),
+    recordedAt: input.recordedAt ?? new Date().toISOString(),
   }
 
   entry.points = [...entry.points, point]
@@ -140,135 +123,117 @@ async function appendLocalPoint(input: AppendLiveSharePointInput): Promise<LiveS
   return point
 }
 
-async function fetchLocalSessionByToken(token: string): Promise<LiveShareSessionSnapshot | null> {
+async function appendRemotePoints(
+  sessionId: string,
+  inputs: AppendLiveSharePointInput[],
+): Promise<LiveSharePoint[]> {
+  const appended: LiveSharePoint[] = []
+
+  for (let index = 0; index < inputs.length; index += LIVE_SHARE_POINT_BATCH_SIZE) {
+    const chunk = inputs.slice(index, index + LIVE_SHARE_POINT_BATCH_SIZE)
+    const result = await appendRunWalkLiveSessionPoints(sessionId, {
+      points: chunk.map((point) => ({
+        latitude: point.latitude,
+        longitude: point.longitude,
+        accuracyMeters: point.accuracyMeters ?? null,
+        recordedAt: point.recordedAt ?? new Date().toISOString(),
+      })),
+    })
+    appended.push(...result.points)
+  }
+
+  return appended
+}
+
+async function appendLocalPoints(inputs: AppendLiveSharePointInput[]): Promise<LiveSharePoint[]> {
+  const appended: LiveSharePoint[] = []
+  for (const input of inputs) {
+    const point = await appendLocalPoint(input)
+    if (point) appended.push(point)
+  }
+  return appended
+}
+
+export async function createLiveShareSession(
+  input: CreateLiveShareSessionInput,
+): Promise<LiveShareSessionSnapshot> {
+  if (await canUseAuthenticatedLiveShare()) {
+    try {
+      const snapshot = await createRemoteSession(input)
+      await saveActiveLiveShareSession(snapshot)
+      return snapshot
+    } catch {
+      // fallback local abaixo
+    }
+  }
+
+  return createLocalSession(input)
+}
+
+export async function appendLiveSharePoint(
+  input: AppendLiveSharePointInput,
+): Promise<LiveSharePoint | null> {
+  const points = await appendLiveSharePoints([input])
+  return points[0] ?? null
+}
+
+export async function appendLiveSharePoints(
+  inputs: AppendLiveSharePointInput[],
+): Promise<LiveSharePoint[]> {
+  if (inputs.length === 0) return []
+
+  const sessionId = inputs[0]?.sessionId
+  if (!sessionId || inputs.some((input) => input.sessionId !== sessionId)) {
+    return []
+  }
+
+  if (sessionId.startsWith('local-')) {
+    return appendLocalPoints(inputs)
+  }
+
+  if (!(await canUseAuthenticatedLiveShare())) {
+    return []
+  }
+
+  return appendRemotePoints(sessionId, inputs)
+}
+
+export async function fetchLocalLiveShareSessionByToken(
+  token: string,
+): Promise<LiveShareSessionSnapshot | null> {
   const normalized = normalizeLiveShareToken(token)
   const store = await readLocalStore()
   return store[normalized] ?? null
 }
 
-async function createRemoteSession(input: CreateLiveShareSessionInput): Promise<LiveShareSessionSnapshot> {
-  const shareToken = generateLiveShareToken()
-  const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString()
-
-  const sessionResponse = await fetch(`${appEnv.supabaseUrl}/rest/v1/run_walk_live_sessions`, {
-    method: 'POST',
-    headers: remoteHeaders('return=representation'),
-    body: JSON.stringify({
-      share_token: shareToken,
-      participant_name: input.participantName,
-      activity_name: input.activityName,
-      is_active: true,
-      expires_at: expiresAt,
-    }),
-  })
-
-  if (!sessionResponse.ok) {
-    const details = await sessionResponse.text().catch(() => '')
-    throw new Error(
-      details
-        ? `Não foi possível iniciar o compartilhamento ao vivo. (${sessionResponse.status})`
-        : 'Não foi possível iniciar o compartilhamento ao vivo.',
-    )
-  }
-
-  const sessionRows = (await sessionResponse.json()) as RemoteSessionRow[]
-  const session = mapSession(sessionRows[0])
-
-  const hasCoordinates = input.latitude != null && input.longitude != null
-  let points: LiveSharePoint[] = []
-
-  if (hasCoordinates) {
-    const pointResponse = await fetch(`${appEnv.supabaseUrl}/rest/v1/run_walk_live_points`, {
-      method: 'POST',
-      headers: remoteHeaders('return=representation'),
-      body: JSON.stringify({
-        session_id: session.id,
-        latitude: input.latitude,
-        longitude: input.longitude,
-        accuracy_meters: input.accuracyMeters ?? null,
-      }),
-    })
-
-    if (!pointResponse.ok) {
-      throw new Error('Não foi possível registrar a primeira localização.')
-    }
-
-    const pointRows = (await pointResponse.json()) as RemotePointRow[]
-    points = pointRows.map(mapPoint)
-  }
-
-  const snapshot: LiveShareSessionSnapshot = {
-    ...session,
-    points,
-  }
-
-  await saveActiveLiveShareSession(snapshot)
-  return snapshot
-}
-
-async function appendRemotePoint(input: AppendLiveSharePointInput): Promise<LiveSharePoint | null> {
-  const response = await fetch(`${appEnv.supabaseUrl}/rest/v1/run_walk_live_points`, {
-    method: 'POST',
-    headers: remoteHeaders('return=representation'),
-    body: JSON.stringify({
-      session_id: input.sessionId,
-      latitude: input.latitude,
-      longitude: input.longitude,
-      accuracy_meters: input.accuracyMeters ?? null,
-    }),
-  })
-
-  if (!response.ok) return null
-  const rows = (await response.json()) as RemotePointRow[]
-  return rows[0] ? mapPoint(rows[0]) : null
-}
-
-async function fetchRemoteSessionByToken(token: string): Promise<LiveShareSessionSnapshot | null> {
+export async function fetchLiveShareSessionByToken(
+  token: string,
+): Promise<LiveShareSessionSnapshot | null> {
   const normalized = normalizeLiveShareToken(token)
-  const sessionUrl =
-    `${appEnv.supabaseUrl}/rest/v1/run_walk_live_sessions` +
-    `?share_token=eq.${encodeURIComponent(normalized)}` +
-    '&select=*'
+  if (!normalized) return null
 
-  const sessionResponse = await fetch(sessionUrl, {
-    headers: remoteHeaders(),
-  })
+  const local = await fetchLocalLiveShareSessionByToken(normalized)
+  if (local) return local
 
-  if (!sessionResponse.ok) return null
-
-  const sessionRows = (await sessionResponse.json()) as RemoteSessionRow[]
-  const sessionRow = sessionRows[0]
-  if (!sessionRow) return null
-
-  const pointsUrl =
-    `${appEnv.supabaseUrl}/rest/v1/run_walk_live_points` +
-    `?session_id=eq.${encodeURIComponent(sessionRow.id)}` +
-    '&select=*&order=recorded_at.asc'
-
-  const pointsResponse = await fetch(pointsUrl, {
-    headers: remoteHeaders(),
-  })
-
-  if (!pointsResponse.ok) {
-    return {
-      ...mapSession(sessionRow),
-      points: [],
-    }
-  }
-
-  const pointRows = (await pointsResponse.json()) as RemotePointRow[]
-  return {
-    ...mapSession(sessionRow),
-    points: pointRows.map(mapPoint),
+  try {
+    return await fetchPublicLiveShareSession(normalized)
+  } catch {
+    return null
   }
 }
 
-async function endRemoteSession(sessionId: string) {
-  await fetch(`${appEnv.supabaseUrl}/rest/v1/run_walk_live_sessions?id=eq.${encodeURIComponent(sessionId)}`, {
-    method: 'PATCH',
-    headers: remoteHeaders('return=minimal'),
-    body: JSON.stringify({ is_active: false }),
-  })
+export async function endLiveShareSession(sessionId: string) {
+  if (!sessionId.startsWith('local-') && (await canUseAuthenticatedLiveShare())) {
+    try {
+      await endRunWalkLiveSession(sessionId)
+    } catch {
+      await endLocalSession(sessionId)
+    }
+  } else {
+    await endLocalSession(sessionId)
+  }
+
+  await clearActiveLiveShareSession()
 }
 
 async function endLocalSession(sessionId: string) {
@@ -279,55 +244,6 @@ async function endLocalSession(sessionId: string) {
   entry.isActive = false
   store[entry.shareToken] = entry
   await writeLocalStore(store)
-}
-
-export async function createLiveShareSession(
-  input: CreateLiveShareSessionInput,
-): Promise<LiveShareSessionSnapshot> {
-  if (isRemoteConfigured()) {
-    return createRemoteSession(input)
-  }
-
-  return createLocalSession(input)
-}
-
-export async function appendLiveSharePoint(
-  input: AppendLiveSharePointInput,
-): Promise<LiveSharePoint | null> {
-  if (isRemoteConfigured() && !input.sessionId.startsWith('local-')) {
-    return appendRemotePoint(input)
-  }
-
-  return appendLocalPoint(input)
-}
-
-export async function fetchLiveShareSessionByToken(
-  token: string,
-): Promise<LiveShareSessionSnapshot | null> {
-  if (isRemoteConfigured()) {
-    try {
-      const remote = await fetchRemoteSessionByToken(token)
-      if (remote) return remote
-    } catch {
-      // fallback below
-    }
-  }
-
-  return fetchLocalSessionByToken(token)
-}
-
-export async function endLiveShareSession(sessionId: string) {
-  if (isRemoteConfigured() && !sessionId.startsWith('local-')) {
-    try {
-      await endRemoteSession(sessionId)
-    } catch {
-      await endLocalSession(sessionId)
-    }
-  } else {
-    await endLocalSession(sessionId)
-  }
-
-  await clearActiveLiveShareSession()
 }
 
 export async function saveActiveLiveShareSession(session: LiveShareSessionSnapshot) {
@@ -348,18 +264,22 @@ export async function clearActiveLiveShareSession() {
   await AsyncStorage.removeItem(ACTIVE_SESSION_KEY)
 }
 
-export function isLocalLiveShareSession(session: Pick<LiveShareSessionSnapshot, 'id'>): boolean {
+export function isLocalLiveShareSession(session: Pick<LiveShareSession, 'id'>): boolean {
   return session.id.startsWith('local-')
 }
 
-export function shouldReplaceLiveShareSession(
+export function isRemoteLiveShareSession(sessionId: string | null | undefined): boolean {
+  return Boolean(sessionId && !sessionId.startsWith('local-'))
+}
+
+export async function shouldReplaceLiveShareSession(
   session: LiveShareSessionSnapshot | null | undefined,
-): boolean {
+): Promise<boolean> {
   if (!session?.isActive) return true
-  if (isRemoteConfigured() && isLocalLiveShareSession(session)) return true
+  if ((await canUseAuthenticatedLiveShare()) && isLocalLiveShareSession(session)) return true
   return false
 }
 
-export function isLiveShareRemoteEnabled() {
-  return isRemoteConfigured()
+export async function isLiveShareRemoteEnabled() {
+  return canUseAuthenticatedLiveShare()
 }

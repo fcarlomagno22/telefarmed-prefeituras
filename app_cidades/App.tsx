@@ -48,10 +48,6 @@ import { RunWalkPreparationScreen } from './src/screens/RunWalkPreparationScreen
 import { RunWalkStartCountdownScreen } from './src/screens/RunWalkStartCountdownScreen'
 import { RunWalkLiveLocationViewerScreen } from './src/screens/RunWalkLiveLocationViewerScreen'
 import { RunWalkLiveActivityScreen } from './src/screens/RunWalkLiveActivityScreen'
-import { RunWalkAchievementDetailScreen } from './src/screens/RunWalkAchievementDetailScreen'
-import { RunWalkAchievementsScreen } from './src/screens/RunWalkAchievementsScreen'
-import { RunWalkChallengeRulesScreen } from './src/screens/RunWalkChallengeRulesScreen'
-import { RunWalkChallengesScreen } from './src/screens/RunWalkChallengesScreen'
 import { RunWalkActivityCheckInScreen } from './src/screens/RunWalkActivityCheckInScreen'
 import { RunWalkActivitySummaryScreen } from './src/screens/RunWalkActivitySummaryScreen'
 import { ScheduleAppointmentScreen } from './src/screens/ScheduleAppointmentScreen'
@@ -87,10 +83,6 @@ function AppRouter() {
   if (screen === 'run-walk-live') return <RunWalkLiveActivityScreen />
   if (screen === 'run-walk-live-viewer') return <RunWalkLiveLocationViewerScreen />
   if (screen === 'run-walk-checkin') return <RunWalkActivityCheckInScreen />
-  if (screen === 'run-walk-challenges') return <RunWalkChallengesScreen />
-  if (screen === 'run-walk-challenge-rules') return <RunWalkChallengeRulesScreen />
-  if (screen === 'run-walk-achievements') return <RunWalkAchievementsScreen />
-  if (screen === 'run-walk-achievement-detail') return <RunWalkAchievementDetailScreen />
   if (screen === 'run-walk-summary') return <RunWalkActivitySummaryScreen />
   if (screen === 'eat-well') return <EatWellScreen />
   if (screen === 'eat-well-menu') return <EatWellMenuDetailScreen />

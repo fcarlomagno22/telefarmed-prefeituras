@@ -1,9 +1,8 @@
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
-import { getTodayActivityPreset } from '../../data/mockRunWalk'
 import { colors } from '../../theme/colors'
-import type { TodayActivityPresetId } from '../../types/runWalk'
+import type { TodayActivityPreset, TodayActivityPresetId } from '../../types/runWalk'
 import { RunWalkActivityDetailContent } from './RunWalkActivityDetailContent'
 import { RunWalkSheetDrawer } from './RunWalkSheetDrawer'
 
@@ -15,6 +14,7 @@ const FOOTER_GAP = 10
 type RunWalkActivityPreviewDrawerProps = {
   visible: boolean
   presetId: TodayActivityPresetId | null
+  presets: TodayActivityPreset[]
   onClose: () => void
   onAccept: (presetId: TodayActivityPresetId) => void
   onChange: () => void
@@ -23,6 +23,7 @@ type RunWalkActivityPreviewDrawerProps = {
 export function RunWalkActivityPreviewDrawer({
   visible,
   presetId,
+  presets,
   onClose,
   onAccept,
   onChange,
@@ -33,7 +34,8 @@ export function RunWalkActivityPreviewDrawer({
 
   if (!presetId) return null
 
-  const preset = getTodayActivityPreset(presetId)
+  const preset = presets.find((item) => item.id === presetId)
+  if (!preset) return null
 
   function handleAccept() {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)

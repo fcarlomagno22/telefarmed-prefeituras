@@ -7,6 +7,7 @@ const STORAGE_KEY = '@telefarmed/run-walk-activity-summary'
 
 export type RunWalkActivitySummary = {
   id: string
+  serverId?: string
   patientCpf: string
   modality: ActivityModality
   activityName: string
@@ -52,7 +53,7 @@ export async function saveRunWalkActivitySummary(summary: RunWalkActivitySummary
 
 export async function updateRunWalkActivitySummary(
   summaryId: string,
-  patch: Partial<Pick<RunWalkActivitySummary, 'checkIn' | 'checkInSkipped'>>,
+  patch: Partial<Pick<RunWalkActivitySummary, 'checkIn' | 'checkInSkipped' | 'serverId'>>,
 ): Promise<RunWalkActivitySummary | null> {
   const store = await readStore()
   const current = store[summaryId]

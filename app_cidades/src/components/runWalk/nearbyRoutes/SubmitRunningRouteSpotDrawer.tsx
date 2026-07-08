@@ -19,6 +19,7 @@ import {
   View,
 } from 'react-native'
 import { submitRunningRouteSpot } from '../../../data/runningRouteSpotsService'
+import { VdApiError } from '../../../lib/api/vd/client'
 import { colors } from '../../../theme/colors'
 import { drawerChrome } from '../../../theme/drawerChrome'
 import type { RegistrationAddress } from '../../../types/auth'
@@ -31,7 +32,10 @@ import {
   geocodeAddressLabel,
   formatRegistrationAddress,
   resolveAddressLabelFromCoordinates,
+  resolveRegistrationAddressFromCoordinates,
 } from '../../../utils/runningRouteGeocoding'
+import { normalizeBrazilianStateUf } from '../../../utils/brazilianStateUf'
+import { GeoCoordinates } from '../../../utils/geo'
 import {
   RUNNING_ROUTE_SPOT_TYPE_OPTIONS,
 } from '../../../utils/nearbyRunningRoutes'
@@ -45,18 +49,46 @@ type SubmitRunningRouteSpotDrawerProps = {
   visible: boolean
   patientCpf: string
   patientName: string
+  /** Endereço do cadastro — usado só se GPS/reverse geocode falhar. */
   defaultAddress: RegistrationAddress
+  /** Localização atual do mapa (GPS), priorizada sobre o cadastro. */
+  initialOrigin: GeoCoordinates | null
   onClose: () => void
   onSubmitted: () => void
 }
 
+const EMPTY_REGISTRATION_ADDRESS: RegistrationAddress = {
+  cep: '',
+  street: '',
+  neighborhood: '',
+  city: '',
+  state: '',
+  number: '',
+  complement: '',
+}
+
 type LocationMode = RunningRouteLocationSource
+
+function getSubmitMissingFields(input: {
+  coordinates: GeoCoordinates | null
+  name: string
+  isLocating: boolean
+}): string[] {
+  const missing: string[] = []
+
+  if (input.isLocating) missing.push('aguardando localização')
+  if (!input.coordinates) missing.push('local no mapa ou GPS')
+  if (input.name.trim().length < 3) missing.push('nome (mín. 3 letras)')
+
+  return missing
+}
 
 export function SubmitRunningRouteSpotDrawer({
   visible,
   patientCpf,
   patientName,
   defaultAddress,
+  initialOrigin,
   onClose,
   onSubmitted,
 }: SubmitRunningRouteSpotDrawerProps) {
@@ -65,7 +97,7 @@ export function SubmitRunningRouteSpotDrawer({
   const [type, setType] = useState<RunningRouteSpotType>('park')
   const [coverPhotoUri, setCoverPhotoUri] = useState<string | null>(null)
   const [locationMode, setLocationMode] = useState<LocationMode>('gps')
-  const [addressDraft, setAddressDraft] = useState(defaultAddress)
+  const [addressDraft, setAddressDraft] = useState<RegistrationAddress>(defaultAddress)
   const [resolvedAddressLabel, setResolvedAddressLabel] = useState<string | null>(null)
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(
     null,
@@ -87,13 +119,19 @@ export function SubmitRunningRouteSpotDrawer({
     setType('park')
     setCoverPhotoUri(null)
     setLocationMode('gps')
-    setAddressDraft(defaultAddress)
     setResolvedAddressLabel(null)
     setCoordinates(null)
     setLocationError(null)
     setMapPickerVisible(false)
     setMapPickerCenter(null)
-  }, [visible, defaultAddress])
+
+    if (initialOrigin) {
+      void applyCoordinatesToForm(initialOrigin)
+    } else {
+      setAddressDraft(defaultAddress)
+      void captureGpsLocation()
+    }
+  }, [visible, defaultAddress, initialOrigin])
 
   async function pickCoverPhoto() {
     const result = await pickAppImage({
@@ -124,6 +162,24 @@ export function SubmitRunningRouteSpotDrawer({
     }
   }
 
+  async function applyCoordinatesToForm(
+    nextCoordinates: GeoCoordinates,
+    options?: { updateAddressDraft?: boolean },
+  ) {
+    setCoordinates(nextCoordinates)
+
+    const [label, address] = await Promise.all([
+      resolveAddressLabelFromCoordinates(nextCoordinates.latitude, nextCoordinates.longitude),
+      resolveRegistrationAddressFromCoordinates(nextCoordinates.latitude, nextCoordinates.longitude),
+    ])
+
+    setResolvedAddressLabel(label)
+
+    if (options?.updateAddressDraft !== false) {
+      setAddressDraft(address ?? EMPTY_REGISTRATION_ADDRESS)
+    }
+  }
+
   async function captureGpsLocation() {
     setIsLocating(true)
     setLocationError(null)
@@ -132,6 +188,9 @@ export function SubmitRunningRouteSpotDrawer({
       const permission = await requestForegroundPermissionsAsync()
       if (isAppLocationPermissionDenied(permission)) {
         setLocationError('Permita o acesso à localização para marcar onde você está.')
+        if (initialOrigin) {
+          await applyCoordinatesToForm(initialOrigin)
+        }
         return
       }
 
@@ -139,22 +198,43 @@ export function SubmitRunningRouteSpotDrawer({
         accuracy: Accuracy.High,
       })
 
-      const nextCoordinates = {
+      await applyCoordinatesToForm({
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
-      }
-
-      setCoordinates(nextCoordinates)
-      const label = await resolveAddressLabelFromCoordinates(
-        nextCoordinates.latitude,
-        nextCoordinates.longitude,
-      )
-      setResolvedAddressLabel(label)
+      })
     } catch {
       setLocationError('Não foi possível obter sua localização.')
+      if (initialOrigin) {
+        await applyCoordinatesToForm(initialOrigin)
+      }
     } finally {
       setIsLocating(false)
     }
+  }
+
+  async function handleLocationModeChange(mode: LocationMode) {
+    setLocationMode(mode)
+
+    if (mode === 'gps') {
+      void captureGpsLocation()
+      return
+    }
+
+    setIsLocating(false)
+
+    const source = coordinates ?? initialOrigin
+    if (!source) return
+
+    const address = await resolveRegistrationAddressFromCoordinates(
+      source.latitude,
+      source.longitude,
+    )
+    if (address) {
+      setAddressDraft(address)
+    }
+
+    const label = await resolveAddressLabelFromCoordinates(source.latitude, source.longitude)
+    setResolvedAddressLabel(label)
   }
 
   async function openAddressMapPicker() {
@@ -174,7 +254,7 @@ export function SubmitRunningRouteSpotDrawer({
     setMapPickerVisible(true)
   }
 
-  function handleMapPickerConfirm(result: {
+  async function handleMapPickerConfirm(result: {
     latitude: number
     longitude: number
     addressLabel: string
@@ -183,23 +263,28 @@ export function SubmitRunningRouteSpotDrawer({
     setResolvedAddressLabel(result.addressLabel)
     setMapPickerVisible(false)
     setLocationError(null)
+    setIsLocating(false)
+
+    const address = await resolveRegistrationAddressFromCoordinates(
+      result.latitude,
+      result.longitude,
+    )
+    if (address) {
+      setAddressDraft(address)
+    }
   }
 
-  useEffect(() => {
-    if (!visible || locationMode !== 'gps') return
-    void captureGpsLocation()
-  }, [visible, locationMode])
+  const submitMissingFields = getSubmitMissingFields({
+    coordinates,
+    name,
+    isLocating,
+  })
 
   const canSubmit =
-    name.trim().length >= 3 &&
-    description.trim().length >= 10 &&
-    Boolean(coverPhotoUri) &&
-    Boolean(coordinates) &&
-    !isSubmitting &&
-    !isLocating
+    submitMissingFields.length === 0 && !isSubmitting
 
   async function handleSubmit() {
-    if (!canSubmit || !coverPhotoUri || !coordinates) return
+    if (!canSubmit || !coordinates) return
 
     setIsSubmitting(true)
 
@@ -215,16 +300,37 @@ export function SubmitRunningRouteSpotDrawer({
             ? resolvedAddressLabel ?? formatRegistrationAddress(defaultAddress)
             : resolvedAddressLabel ?? formatRegistrationAddress(addressDraft),
         locationSource: locationMode,
-        coverPhotoUri,
         submittedByCpf: patientCpf,
         submittedByName: patientName,
+      }
+
+      if (coverPhotoUri) {
+        payload.coverPhotoUri = coverPhotoUri
       }
 
       await submitRunningRouteSpot(payload)
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       onSubmitted()
       onClose()
-    } catch {
+    } catch (error) {
+      if (error instanceof VdApiError && error.status === 401) {
+        Alert.alert(
+          'Sessão expirada',
+          'Faça logout e entre novamente para publicar o local. Se preferir, publique sem foto por enquanto.',
+        )
+        return
+      }
+
+      if (error instanceof VdApiError && (error.status === 503 || error.code === 'STORAGE_UNAVAILABLE')) {
+        Alert.alert(
+          'Foto indisponível',
+          error.message.includes('bucket')
+            ? error.message
+            : 'Não foi possível enviar a foto agora. Tente publicar sem foto ou tente de novo em instantes.',
+        )
+        return
+      }
+
       Alert.alert('Erro', 'Não foi possível cadastrar o local. Tente novamente.')
     } finally {
       setIsSubmitting(false)
@@ -242,6 +348,11 @@ export function SubmitRunningRouteSpotDrawer({
       keyboardAware
       footer={
         <View style={styles.footer}>
+          {!canSubmit && submitMissingFields.length > 0 ? (
+            <Text style={styles.submitHint}>
+              Para publicar, falta: {submitMissingFields.join(', ')}.
+            </Text>
+          ) : null}
           <View style={styles.footerButtonWrap}>
             <PrimaryButton
               label={isSubmitting ? 'Salvando...' : 'Publicar local'}
@@ -256,13 +367,13 @@ export function SubmitRunningRouteSpotDrawer({
         <Text style={styles.label}>Onde fica?</Text>
         <View style={styles.modeRow}>
           <Pressable
-            onPress={() => setLocationMode('gps')}
+            onPress={() => void handleLocationModeChange('gps')}
             style={[styles.modeChip, locationMode === 'gps' && styles.modeChipActive]}
           >
             <Ionicons
               name="locate-outline"
               size={16}
-              color={locationMode === 'gps' ? '#fff' : colors.textMuted}
+              color={locationMode === 'gps' ? colors.primaryDark : colors.textMuted}
             />
             <Text style={[styles.modeChipText, locationMode === 'gps' && styles.modeChipTextActive]}>
               Estou no local
@@ -270,13 +381,13 @@ export function SubmitRunningRouteSpotDrawer({
           </Pressable>
 
           <Pressable
-            onPress={() => setLocationMode('address')}
+            onPress={() => void handleLocationModeChange('address')}
             style={[styles.modeChip, locationMode === 'address' && styles.modeChipActive]}
           >
             <Ionicons
               name="map-outline"
               size={16}
-              color={locationMode === 'address' ? '#fff' : colors.textMuted}
+              color={locationMode === 'address' ? colors.primaryDark : colors.textMuted}
             />
             <Text
               style={[styles.modeChipText, locationMode === 'address' && styles.modeChipTextActive]}
@@ -342,7 +453,12 @@ export function SubmitRunningRouteSpotDrawer({
               />
               <TextInput
                 value={addressDraft.state}
-                onChangeText={(state) => setAddressDraft((current) => ({ ...current, state }))}
+                onChangeText={(state) =>
+                  setAddressDraft((current) => ({
+                    ...current,
+                    state: normalizeBrazilianStateUf(state),
+                  }))
+                }
                 placeholder="UF"
                 placeholderTextColor={colors.textSubtle}
                 style={[styles.input, styles.stateInput]}
@@ -357,7 +473,7 @@ export function SubmitRunningRouteSpotDrawer({
               <Text style={styles.locationActionText}>Localizar endereço no mapa</Text>
             </Pressable>
             {resolvedAddressLabel ? (
-              <Text style={styles.locationText}>{resolvedAddressLabel}</Text>
+              <Text style={styles.locationConfirmedText}>Local marcado: {resolvedAddressLabel}</Text>
             ) : null}
           </View>
         )}
@@ -366,7 +482,7 @@ export function SubmitRunningRouteSpotDrawer({
       </View>
 
       <View style={styles.field}>
-        <Text style={styles.label}>Foto do lugar</Text>
+        <Text style={styles.label}>Foto do lugar (opcional)</Text>
         <Pressable style={styles.coverPicker} onPress={() => void pickCoverPhoto()}>
           {coverPhotoUri ? (
             <Image source={{ uri: coverPhotoUri }} style={styles.coverImage} contentFit="cover" />
@@ -412,7 +528,7 @@ export function SubmitRunningRouteSpotDrawer({
       </View>
 
       <View style={styles.field}>
-        <Text style={styles.label}>Descrição</Text>
+        <Text style={styles.label}>Descrição (opcional)</Text>
         <TextInput
           value={description}
           onChangeText={setDescription}
@@ -447,6 +563,14 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255,255,255,0.08)',
     backgroundColor: drawerChrome.surfaceBottom,
     width: '100%',
+    gap: 8,
+  },
+  submitHint: {
+    color: colors.textMuted,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: '600',
+    paddingHorizontal: 4,
   },
   footerButtonWrap: {
     width: '100%',
@@ -512,8 +636,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.03)',
   },
   typeChipActive: {
-    borderColor: '#ff8533',
-    backgroundColor: 'rgba(255, 107, 0, 0.18)',
+    borderColor: colors.primaryLight,
+    backgroundColor: 'rgba(255, 107, 0, 0.14)',
   },
   typeChipText: {
     color: colors.textMuted,
@@ -521,7 +645,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   typeChipTextActive: {
-    color: '#fff',
+    color: colors.text,
+    fontWeight: '700',
   },
   modeRow: {
     flexDirection: 'row',
@@ -540,8 +665,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.03)',
   },
   modeChipActive: {
-    borderColor: '#ff8533',
-    backgroundColor: 'rgba(255, 107, 0, 0.18)',
+    borderColor: colors.primaryLight,
+    backgroundColor: 'rgba(255, 107, 0, 0.14)',
   },
   modeChipText: {
     color: colors.textMuted,
@@ -549,7 +674,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   modeChipTextActive: {
-    color: '#fff',
+    color: colors.text,
+    fontWeight: '700',
   },
   locationCard: {
     borderRadius: 16,
@@ -569,17 +695,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
   },
+  locationConfirmedText: {
+    color: colors.primaryDark,
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: '600',
+  },
   locationAction: {
     alignSelf: 'flex-start',
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 107, 0, 0.14)',
+    backgroundColor: 'rgba(255, 107, 0, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 133, 51, 0.35)',
+    borderColor: 'rgba(255, 133, 51, 0.45)',
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
   locationActionText: {
-    color: '#ffcc99',
+    color: colors.primaryDark,
     fontSize: 12,
     fontWeight: '700',
   },

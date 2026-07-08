@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { appendLiveSharePoint } from '../data/runWalkLiveShareService'
+import {
+  appendLiveSharePoints,
+  isRemoteLiveShareSession,
+} from '../data/runWalkLiveShareService'
 import {
   enqueueRunWalkGpsPoint,
+  flushRunWalkGpsQueue,
   loadRunWalkGpsQueue,
-  removeRunWalkGpsPoints,
   type RunWalkQueuedGpsPoint,
 } from '../data/runWalkGpsPointQueue'
 import { useAppNetwork } from './useAppNetwork'
@@ -37,50 +40,37 @@ export function useRunWalkOfflineGpsQueue({
   }, [])
 
   const flushQueue = useCallback(async () => {
-    if (!enabled || !isConnected || isSyncingRef.current) return
-
-    const queue = await loadRunWalkGpsQueue()
-    if (queue.length === 0) {
-      setPendingCount(0)
-      return
-    }
+    if (!enabled || !isConnected || isSyncingRef.current) return 0
+    if (!isRemoteLiveShareSession(sessionId)) return 0
 
     isSyncingRef.current = true
     setIsSyncing(true)
 
-    const syncedIds: string[] = []
-
     try {
-      for (const point of queue) {
-        const synced = await appendLiveSharePoint({
-          sessionId: point.sessionId,
-          latitude: point.latitude,
-          longitude: point.longitude,
-          accuracyMeters: point.accuracyMeters,
-        })
+      const synced = await flushRunWalkGpsQueue(async (chunk) => {
+        const points = await appendLiveSharePoints(
+          chunk.map((point) => ({
+            sessionId: point.sessionId,
+            latitude: point.latitude,
+            longitude: point.longitude,
+            accuracyMeters: point.accuracyMeters,
+            recordedAt: point.recordedAt,
+          })),
+        )
+        return points.length
+      })
 
-        if (!synced) break
-        syncedIds.push(point.id)
-      }
-
-      if (syncedIds.length > 0) {
-        await removeRunWalkGpsPoints(syncedIds)
-      }
+      return synced
     } finally {
       isSyncingRef.current = false
       setIsSyncing(false)
       await refreshPendingCount()
     }
-  }, [enabled, isConnected, refreshPendingCount])
+  }, [enabled, isConnected, refreshPendingCount, sessionId])
 
   const queueGpsPoint = useCallback(
     async (input: QueueGpsPointInput) => {
-      if (!enabled || !shouldPublish) return
-
-      if (isConnected) {
-        const synced = await appendLiveSharePoint(input)
-        if (synced) return
-      }
+      if (!enabled || !shouldPublish || !isRemoteLiveShareSession(input.sessionId)) return
 
       await enqueueRunWalkGpsPoint({
         sessionId: input.sessionId,
@@ -91,7 +81,7 @@ export function useRunWalkOfflineGpsQueue({
       })
       await refreshPendingCount()
     },
-    [enabled, isConnected, refreshPendingCount, shouldPublish],
+    [enabled, refreshPendingCount, shouldPublish],
   )
 
   useEffect(() => {

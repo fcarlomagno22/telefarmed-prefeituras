@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -12,10 +13,10 @@ import {
   View,
 } from 'react-native'
 import {
-  addSpotComment,
-  loadSpotEngagement,
-  setSpotVote,
-} from '../../../data/nearbyRunningRoutesStorage'
+  commentRunningRouteSpot,
+  loadRunningRouteSpotEngagement,
+  voteRunningRouteSpot,
+} from '../../../data/runningRouteSpotsService'
 import type {
   RunningRouteSpot,
   RunningRouteSpotComment,
@@ -27,15 +28,17 @@ import {
   getRunningRouteSpotTypeLabel,
 } from '../../../utils/nearbyRunningRoutes'
 import { colors } from '../../../theme/colors'
-import { drawerChrome } from '../../../theme/drawerChrome'
 import { RunWalkSheetDrawer } from '../RunWalkSheetDrawer'
 
 type NearbyRunningRouteSpotDrawerProps = {
   visible: boolean
   spot: RunningRouteSpot | null
-  patientCpf: string
   userName: string
   onClose: () => void
+  onEngagementChange?: (
+    spotId: string,
+    engagement: { recommendCount: number; notRecommendCount: number },
+  ) => void
 }
 
 function formatCommentDate(iso: string) {
@@ -61,13 +64,14 @@ function CommentItem({ comment }: { comment: RunningRouteSpotComment }) {
 export function NearbyRunningRouteSpotDrawer({
   visible,
   spot,
-  patientCpf,
   userName,
   onClose,
+  onEngagementChange,
 }: NearbyRunningRouteSpotDrawerProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isSavingVote, setIsSavingVote] = useState(false)
   const [isPostingComment, setIsPostingComment] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [commentDraft, setCommentDraft] = useState('')
   const [recommendCount, setRecommendCount] = useState(0)
   const [notRecommendCount, setNotRecommendCount] = useState(0)
@@ -82,13 +86,13 @@ export function NearbyRunningRouteSpotDrawer({
 
     async function loadEngagement() {
       setIsLoading(true)
+      setLoadError(null)
+
       try {
-        const engagement = await loadSpotEngagement(
-          patientCpf,
-          activeSpot.id,
-          activeSpot.recommendCount,
-          activeSpot.notRecommendCount,
-        )
+        const engagement = await loadRunningRouteSpotEngagement(activeSpot.id, {
+          recommendCount: activeSpot.recommendCount,
+          notRecommendCount: activeSpot.notRecommendCount,
+        })
         if (cancelled) return
 
         setRecommendCount(engagement.recommendCount)
@@ -96,6 +100,17 @@ export function NearbyRunningRouteSpotDrawer({
         setUserVote(engagement.userVote)
         setComments(engagement.comments)
         setCommentDraft('')
+        onEngagementChange?.(activeSpot.id, {
+          recommendCount: engagement.recommendCount,
+          notRecommendCount: engagement.notRecommendCount,
+        })
+      } catch {
+        if (cancelled) return
+        setLoadError('Não foi possível carregar comentários e votos deste local.')
+        setRecommendCount(activeSpot.recommendCount)
+        setNotRecommendCount(activeSpot.notRecommendCount)
+        setUserVote(null)
+        setComments([])
       } finally {
         if (!cancelled) setIsLoading(false)
       }
@@ -106,11 +121,18 @@ export function NearbyRunningRouteSpotDrawer({
     return () => {
       cancelled = true
     }
-  }, [visible, spot, patientCpf])
+  }, [visible, spot?.id, onEngagementChange])
 
   if (!spot) return null
 
   const activeSpot = spot
+
+  function publishEngagementCounts(nextRecommend: number, nextNotRecommend: number) {
+    onEngagementChange?.(activeSpot.id, {
+      recommendCount: nextRecommend,
+      notRecommendCount: nextNotRecommend,
+    })
+  }
 
   async function handleVote(nextVote: RunningRouteVote) {
     if (isSavingVote) return
@@ -120,16 +142,17 @@ export function NearbyRunningRouteSpotDrawer({
 
     try {
       const toggledVote = userVote === nextVote ? null : nextVote
-      const engagement = await setSpotVote(
-        patientCpf,
-        activeSpot.id,
-        activeSpot.recommendCount,
-        activeSpot.notRecommendCount,
-        toggledVote,
-      )
+      const engagement = await voteRunningRouteSpot(activeSpot.id, toggledVote, {
+        recommendCount: activeSpot.recommendCount,
+        notRecommendCount: activeSpot.notRecommendCount,
+      })
       setRecommendCount(engagement.recommendCount)
       setNotRecommendCount(engagement.notRecommendCount)
       setUserVote(engagement.userVote)
+      setComments(engagement.comments)
+      publishEngagementCounts(engagement.recommendCount, engagement.notRecommendCount)
+    } catch {
+      setLoadError('Não foi possível registrar seu voto. Tente novamente.')
     } finally {
       setIsSavingVote(false)
     }
@@ -142,34 +165,42 @@ export function NearbyRunningRouteSpotDrawer({
     setIsPostingComment(true)
 
     try {
-      const engagement = await addSpotComment(
-        patientCpf,
+      const engagement = await commentRunningRouteSpot(
         activeSpot.id,
-        activeSpot.recommendCount,
-        activeSpot.notRecommendCount,
         userName,
         commentDraft,
+        {
+          recommendCount: recommendCount,
+          notRecommendCount: notRecommendCount,
+        },
       )
       setRecommendCount(engagement.recommendCount)
       setNotRecommendCount(engagement.notRecommendCount)
       setUserVote(engagement.userVote)
       setComments(engagement.comments)
       setCommentDraft('')
+      publishEngagementCounts(engagement.recommendCount, engagement.notRecommendCount)
+    } catch {
+      setLoadError('Não foi possível publicar seu comentário. Tente novamente.')
     } finally {
       setIsPostingComment(false)
     }
   }
 
   const footer = (
-    <View style={styles.commentComposer}>
+    <View style={styles.commentComposer} pointerEvents="box-none">
       <TextInput
         value={commentDraft}
         onChangeText={setCommentDraft}
         placeholder="Compartilhe sua experiência neste local..."
-        placeholderTextColor="rgba(245,245,247,0.45)"
-        style={styles.commentInput}
+        placeholderTextColor={colors.textSubtle}
+        style={[styles.commentInput, Platform.OS === 'web' && styles.commentInputWeb]}
         multiline
         maxLength={280}
+        editable={!isPostingComment}
+        textAlignVertical="top"
+        returnKeyType="default"
+        blurOnSubmit={false}
       />
       <Pressable
         accessibilityRole="button"
@@ -184,7 +215,7 @@ export function NearbyRunningRouteSpotDrawer({
         {isPostingComment ? (
           <ActivityIndicator color="#fff" size="small" />
         ) : (
-          <Ionicons name="send" size={18} color="#fff" />
+          <Ionicons name="paper-plane" size={18} color="#fff" />
         )}
       </Pressable>
     </View>
@@ -197,6 +228,7 @@ export function NearbyRunningRouteSpotDrawer({
       subtitle={`${getRunningRouteSpotTypeLabel(activeSpot.type)} · ${formatRunningRouteSpotMeta(activeSpot)}`}
       onClose={onClose}
       fullScreen
+      keyboardAware
       footer={footer}
     >
       {activeSpot.coverPhotoUri ? (
@@ -212,7 +244,9 @@ export function NearbyRunningRouteSpotDrawer({
         />
       )}
 
-      <Text style={styles.description}>{activeSpot.description}</Text>
+      {activeSpot.description?.trim() ? (
+        <Text style={styles.description}>{activeSpot.description}</Text>
+      ) : null}
 
       <View style={styles.addressCard}>
         <Ionicons name="location-outline" size={16} color="#ff8533" />
@@ -224,6 +258,8 @@ export function NearbyRunningRouteSpotDrawer({
           Cadastrado por {activeSpot.submittedByName}
         </Text>
       ) : null}
+
+      {loadError ? <Text style={styles.errorText}>{loadError}</Text> : null}
 
       <View style={styles.voteSection}>
         <Text style={styles.sectionTitle}>Você recomenda este local?</Text>
@@ -242,12 +278,12 @@ export function NearbyRunningRouteSpotDrawer({
             <Ionicons
               name={userVote === 'recommend' ? 'thumbs-up' : 'thumbs-up-outline'}
               size={18}
-              color={userVote === 'recommend' ? '#fff' : '#4ade80'}
+              color={userVote === 'recommend' ? '#166534' : '#4ade80'}
             />
             <Text
               style={[
                 styles.voteLabel,
-                userVote === 'recommend' && styles.voteLabelActive,
+                userVote === 'recommend' && styles.voteRecommendLabelActive,
               ]}
             >
               Recomendo
@@ -255,7 +291,7 @@ export function NearbyRunningRouteSpotDrawer({
             <Text
               style={[
                 styles.voteCount,
-                userVote === 'recommend' && styles.voteCountActive,
+                userVote === 'recommend' && styles.voteRecommendCountActive,
               ]}
             >
               {recommendCount}
@@ -276,12 +312,12 @@ export function NearbyRunningRouteSpotDrawer({
             <Ionicons
               name={userVote === 'not-recommend' ? 'thumbs-down' : 'thumbs-down-outline'}
               size={18}
-              color={userVote === 'not-recommend' ? '#fff' : '#f87171'}
+              color={userVote === 'not-recommend' ? '#991b1b' : '#f87171'}
             />
             <Text
               style={[
                 styles.voteLabel,
-                userVote === 'not-recommend' && styles.voteLabelActive,
+                userVote === 'not-recommend' && styles.voteNotRecommendLabelActive,
               ]}
             >
               Não recomendo
@@ -289,7 +325,7 @@ export function NearbyRunningRouteSpotDrawer({
             <Text
               style={[
                 styles.voteCount,
-                userVote === 'not-recommend' && styles.voteCountActive,
+                userVote === 'not-recommend' && styles.voteNotRecommendCountActive,
               ]}
             >
               {notRecommendCount}
@@ -355,6 +391,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginBottom: 16,
   },
+  errorText: {
+    color: '#fca5a5',
+    fontSize: 12,
+    lineHeight: 17,
+    marginBottom: 12,
+  },
   voteSection: {
     marginBottom: 20,
   },
@@ -383,7 +425,7 @@ const styles = StyleSheet.create({
   },
   voteRecommendActive: {
     borderColor: '#4ade80',
-    backgroundColor: 'rgba(74, 222, 128, 0.28)',
+    backgroundColor: 'rgba(74, 222, 128, 0.22)',
   },
   voteNotRecommend: {
     borderColor: 'rgba(248, 113, 113, 0.35)',
@@ -391,23 +433,29 @@ const styles = StyleSheet.create({
   },
   voteNotRecommendActive: {
     borderColor: '#f87171',
-    backgroundColor: 'rgba(248, 113, 113, 0.28)',
+    backgroundColor: 'rgba(248, 113, 113, 0.22)',
   },
   voteLabel: {
     color: colors.text,
     fontSize: 13,
     fontWeight: '600',
   },
-  voteLabelActive: {
-    color: '#fff',
+  voteRecommendLabelActive: {
+    color: '#166534',
+  },
+  voteNotRecommendLabelActive: {
+    color: '#991b1b',
   },
   voteCount: {
     color: colors.textMuted,
     fontSize: 12,
     fontWeight: '700',
   },
-  voteCountActive: {
-    color: '#fff',
+  voteRecommendCountActive: {
+    color: '#166534',
+  },
+  voteNotRecommendCountActive: {
+    color: '#991b1b',
   },
   commentsSection: {
     gap: 10,
@@ -451,14 +499,16 @@ const styles = StyleSheet.create({
   },
   commentComposer: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     gap: 10,
+    marginHorizontal: -20,
+    marginTop: -8,
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop: 12,
     paddingBottom: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: drawerChrome.surfaceBottom,
+    backgroundColor: colors.surface,
+    zIndex: 5,
+    elevation: 5,
   },
   commentInput: {
     flex: 1,
@@ -466,21 +516,26 @@ const styles = StyleSheet.create({
     maxHeight: 96,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderColor: colors.inputBorder,
+    backgroundColor: '#ffffff',
     color: colors.text,
     fontSize: 14,
     paddingHorizontal: 12,
     paddingVertical: 10,
     textAlignVertical: 'top',
   },
+  commentInputWeb: {
+    outlineStyle: 'none',
+    cursor: 'text',
+  } as object,
   postButton: {
     width: 44,
     height: 44,
-    borderRadius: 14,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#ff6b00',
+    backgroundColor: colors.primary,
+    flexShrink: 0,
   },
   postButtonDisabled: {
     opacity: 0.45,

@@ -52,7 +52,7 @@ function buildNearbyRunningRoutesMapHtml({
         }
       }
 
-      const map = L.map('map', { zoomControl: true, attributionControl: false })
+      const map = L.map('map', { zoomControl: false, attributionControl: false })
         .setView([${flyLat}, ${flyLng}], ${flyZoom});
 
       L.tileLayer('${RUNNING_ROUTES_TILE_URL}', {

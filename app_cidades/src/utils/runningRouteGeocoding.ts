@@ -2,10 +2,31 @@ import { geocodeAsync, reverseGeocodeAsync } from '../adapters/appLocation'
 import {
   buildAddressLabelFromGeocoded,
   formatCoordinateFallbackLabel,
+  isGeocodedAddressReliable,
   isValidReverseGeocodeCoordinates,
+  mapGeocodedToRegistrationAddress,
 } from '../adapters/reverseGeocodeShared'
 import type { RegistrationAddress } from '../types/auth'
 import { GeoCoordinates } from './geo'
+
+export async function resolveRegistrationAddressFromCoordinates(
+  latitude: number,
+  longitude: number,
+): Promise<RegistrationAddress | null> {
+  if (!isValidReverseGeocodeCoordinates(latitude, longitude)) {
+    return null
+  }
+
+  try {
+    const results = await reverseGeocodeAsync({ latitude, longitude })
+    const place = results[0]
+    if (!place || !isGeocodedAddressReliable(place)) return null
+
+    return mapGeocodedToRegistrationAddress(place)
+  } catch {
+    return null
+  }
+}
 
 export async function resolveAddressLabelFromCoordinates(
   latitude: number,

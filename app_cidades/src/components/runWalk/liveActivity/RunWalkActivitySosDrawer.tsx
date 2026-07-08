@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { openAppPhoneCall } from '../../../adapters/appLinking'
 import {
@@ -11,9 +11,11 @@ import {
 import { colors } from '../../../theme/colors'
 import { maskPhone } from '../../../utils/phone'
 import { RunWalkSheetDrawer } from '../RunWalkSheetDrawer'
+import { RunWalkTrustedContactsDrawer } from '../RunWalkTrustedContactsDrawer'
 
 type RunWalkActivitySosDrawerProps = {
   visible: boolean
+  patientCpf: string
   onClose: () => void
 }
 
@@ -77,14 +79,27 @@ function SosOption({
   )
 }
 
-export function RunWalkActivitySosDrawer({ visible, onClose }: RunWalkActivitySosDrawerProps) {
+export function RunWalkActivitySosDrawer({
+  visible,
+  patientCpf,
+  onClose,
+}: RunWalkActivitySosDrawerProps) {
   const [emergencyContact, setEmergencyContact] = useState<TrustedContact | null>(null)
+  const [trustedContactsDrawerVisible, setTrustedContactsDrawerVisible] = useState(false)
+
+  const loadEmergencyContact = useCallback(async () => {
+    const contact = await loadActiveTrustedContact(patientCpf)
+    setEmergencyContact(contact)
+  }, [patientCpf])
 
   useEffect(() => {
-    if (!visible) return
+    if (!visible) {
+      setTrustedContactsDrawerVisible(false)
+      return
+    }
 
-    void loadActiveTrustedContact().then(setEmergencyContact)
-  }, [visible])
+    void loadEmergencyContact()
+  }, [loadEmergencyContact, visible])
 
   function handleDialEmergency(number: string) {
     onClose()
@@ -97,47 +112,72 @@ export function RunWalkActivitySosDrawer({ visible, onClose }: RunWalkActivitySo
     dialPhone(emergencyContact.phone)
   }
 
+  function handleOpenTrustedContacts() {
+    void Haptics.selectionAsync()
+    setTrustedContactsDrawerVisible(true)
+  }
+
   const contactSubtitle = emergencyContact
     ? `${emergencyContact.name} · ${maskPhone(emergencyContact.phone)}`
     : 'Nenhum contato cadastrado'
 
   return (
-    <RunWalkSheetDrawer
-      visible={visible}
-      title="SOS — Emergência"
-      subtitle="Escolha quem ligar agora"
-      onClose={onClose}
-      scrollable={false}
-      minHeight="46%"
-      extraBottomInset={14}
-    >
-      <View style={styles.options}>
-        <SosOption
-          icon="shield-outline"
-          iconColors={['#60a5fa', '#2563eb']}
-          title="Polícia"
-          subtitle="Ligar para 190"
-          onPress={() => handleDialEmergency('190')}
-        />
+    <>
+      <RunWalkSheetDrawer
+        visible={visible}
+        title="SOS — Emergência"
+        subtitle="Escolha quem ligar agora"
+        onClose={onClose}
+        scrollable={false}
+        minHeight="46%"
+        extraBottomInset={14}
+        footer={
+          <Pressable
+            onPress={handleOpenTrustedContacts}
+            style={({ pressed }) => [styles.manageBtn, pressed && styles.manageBtnPressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Gerenciar contatos de confiança"
+          >
+            <Ionicons name="people-outline" size={16} color="#15803d" />
+            <Text style={styles.manageLabel}>Gerenciar contatos de confiança</Text>
+          </Pressable>
+        }
+      >
+        <View style={styles.options}>
+          <SosOption
+            icon="shield-outline"
+            iconColors={['#60a5fa', '#2563eb']}
+            title="Polícia"
+            subtitle="Ligar para 190"
+            onPress={() => handleDialEmergency('190')}
+          />
 
-        <SosOption
-          icon="medkit-outline"
-          iconColors={['#f87171', '#dc2626']}
-          title="SAMU"
-          subtitle="Ligar para 192"
-          onPress={() => handleDialEmergency('192')}
-        />
+          <SosOption
+            icon="medkit-outline"
+            iconColors={['#f87171', '#dc2626']}
+            title="SAMU"
+            subtitle="Ligar para 192"
+            onPress={() => handleDialEmergency('192')}
+          />
 
-        <SosOption
-          icon="person-outline"
-          iconColors={['#fb923c', '#ea580c']}
-          title="Meu contato de emergência"
-          subtitle={contactSubtitle}
-          onPress={handleDialContact}
-          disabled={!emergencyContact?.phone}
-        />
-      </View>
-    </RunWalkSheetDrawer>
+          <SosOption
+            icon="person-outline"
+            iconColors={['#fb923c', '#ea580c']}
+            title="Meu contato de emergência"
+            subtitle={contactSubtitle}
+            onPress={handleDialContact}
+            disabled={!emergencyContact?.phone}
+          />
+        </View>
+      </RunWalkSheetDrawer>
+
+      <RunWalkTrustedContactsDrawer
+        visible={trustedContactsDrawerVisible}
+        patientCpf={patientCpf}
+        onClose={() => setTrustedContactsDrawerVisible(false)}
+        onContactsChange={() => void loadEmergencyContact()}
+      />
+    </>
   )
 }
 
@@ -183,5 +223,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     lineHeight: 16,
+  },
+  manageBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    minHeight: 46,
+    borderRadius: 14,
+    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.28)',
+  },
+  manageBtnPressed: {
+    opacity: 0.88,
+  },
+  manageLabel: {
+    color: '#15803d',
+    fontSize: 14,
+    fontWeight: '700',
   },
 })

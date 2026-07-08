@@ -29,23 +29,27 @@ function getActivityIcon(type: WeeklyCalendarActivityType) {
   }
 }
 
-function getActivityColor(type: WeeklyCalendarActivityType) {
+function getActivityStyle(type: WeeklyCalendarActivityType) {
   switch (type) {
     case 'walk':
-      return '#fca5a5'
+      return { icon: '#ef4444', bg: '#fef2f2' }
     case 'run':
-      return '#fdba74'
+      return { icon: '#f97316', bg: '#fff7ed' }
     case 'run-walk':
-      return '#6ee7b7'
+      return { icon: '#10b981', bg: '#ecfdf5' }
     case 'strength':
-      return '#c4b5fd'
+      return { icon: '#8b5cf6', bg: '#f5f3ff' }
     case 'mobility':
-      return '#67e8f9'
+      return { icon: '#0891b2', bg: '#ecfeff' }
     case 'free':
-      return '#93c5fd'
+      return { icon: '#3b82f6', bg: '#eff6ff' }
     default:
-      return colors.textSubtle
+      return { icon: '#6366f1', bg: '#eef2ff' }
   }
+}
+
+function isRestDay(day: WeeklyCalendarDay) {
+  return day.activities.every((activity) => activity.type === 'rest')
 }
 
 export function RunWalkWeeklyCalendarDrawer({
@@ -60,10 +64,17 @@ export function RunWalkWeeklyCalendarDrawer({
       subtitle="Caminhadas, corridas, fortalecimento e descanso"
       onClose={onClose}
     >
-      {days.map((day) => (
+      {days.map((day) => {
+        const restDay = isRestDay(day)
+
+        return (
         <View
           key={day.dateIso}
-          style={[styles.dayCard, day.isToday && styles.dayCardToday]}
+          style={[
+            styles.dayCard,
+            restDay && !day.isToday && styles.dayCardRest,
+            day.isToday && styles.dayCardToday,
+          ]}
         >
           <View style={styles.dayHeader}>
             <View>
@@ -79,26 +90,34 @@ export function RunWalkWeeklyCalendarDrawer({
 
           <View style={styles.activitiesCol}>
             {day.activities.map((activity, index) => {
-              const accent = getActivityColor(activity.type)
+              const activityStyle = getActivityStyle(activity.type)
               return (
                 <View key={`${activity.label}-${index}`} style={styles.activityRow}>
-                  <View style={[styles.activityIcon, { backgroundColor: `${accent}22` }]}>
+                  <View style={[styles.activityIcon, { backgroundColor: activityStyle.bg }]}>
                     <MaterialCommunityIcons
                       name={getActivityIcon(activity.type)}
                       size={16}
-                      color={accent}
+                      color={activityStyle.icon}
                     />
                   </View>
-                  <Text style={styles.activityLabel}>{activity.label}</Text>
+                  <Text
+                    style={[
+                      styles.activityLabel,
+                      activity.type === 'rest' && styles.activityLabelRest,
+                    ]}
+                  >
+                    {activity.label}
+                  </Text>
                   {activity.completed ? (
-                    <MaterialCommunityIcons name="check-circle" size={16} color="#6ee7b7" />
+                    <MaterialCommunityIcons name="check-circle" size={16} color="#10b981" />
                   ) : null}
                 </View>
               )
             })}
           </View>
         </View>
-      ))}
+        )
+      })}
     </RunWalkSheetDrawer>
   )
 }
@@ -106,15 +125,26 @@ export function RunWalkWeeklyCalendarDrawer({
 const styles = StyleSheet.create({
   dayCard: {
     gap: 10,
-    padding: 12,
-    borderRadius: 14,
-    backgroundColor: colors.backgroundElevated,
+    padding: 14,
+    borderRadius: 16,
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  dayCardRest: {
+    backgroundColor: '#fafbff',
+    borderColor: 'rgba(99, 102, 241, 0.12)',
   },
   dayCardToday: {
     borderColor: 'rgba(255, 107, 0, 0.35)',
-    backgroundColor: 'rgba(255, 107, 0, 0.08)',
+    backgroundColor: '#fffaf5',
+    shadowColor: '#ff6b00',
+    shadowOpacity: 0.08,
   },
   dayHeader: {
     flexDirection: 'row',
@@ -137,12 +167,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 107, 0, 0.16)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 107, 0, 0.32)',
+    backgroundColor: colors.primary,
   },
   todayBadgeText: {
-    color: colors.primaryLight,
+    color: '#ffffff',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.2,
@@ -157,9 +185,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   activityIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -168,5 +196,9 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 13,
     fontWeight: '600',
+  },
+  activityLabelRest: {
+    color: colors.textMuted,
+    fontWeight: '500',
   },
 })

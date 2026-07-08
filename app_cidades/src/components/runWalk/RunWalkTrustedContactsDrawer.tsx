@@ -7,6 +7,7 @@ import {
   deleteTrustedContact,
   loadSelectedTrustedContactIds,
   loadTrustedContacts,
+  MAX_TRUSTED_CONTACTS,
   setSelectedTrustedContactIds,
   upsertTrustedContact,
   type TrustedContact,
@@ -20,6 +21,7 @@ type DrawerMode = 'list' | 'form'
 
 type RunWalkTrustedContactsDrawerProps = {
   visible: boolean
+  patientCpf: string
   onClose: () => void
   onContactsChange?: () => void
 }
@@ -35,6 +37,7 @@ function createEmptyForm() {
 
 export function RunWalkTrustedContactsDrawer({
   visible,
+  patientCpf,
   onClose,
   onContactsChange,
 }: RunWalkTrustedContactsDrawerProps) {
@@ -47,12 +50,12 @@ export function RunWalkTrustedContactsDrawer({
 
   const loadData = useCallback(async () => {
     const [savedContacts, selectedContactIds] = await Promise.all([
-      loadTrustedContacts(),
-      loadSelectedTrustedContactIds(),
+      loadTrustedContacts(patientCpf),
+      loadSelectedTrustedContactIds(patientCpf),
     ])
     setContacts(savedContacts)
     setSelectedIds(selectedContactIds)
-  }, [])
+  }, [patientCpf])
 
   useEffect(() => {
     if (!visible) {
@@ -85,6 +88,10 @@ export function RunWalkTrustedContactsDrawer({
   })
 
   function openCreateForm() {
+    if (contacts.length >= MAX_TRUSTED_CONTACTS) {
+      setError(`Você pode cadastrar no máximo ${MAX_TRUSTED_CONTACTS} contatos de confiança.`)
+      return
+    }
     setForm(createEmptyForm())
     setError(null)
     setMode('form')
@@ -109,7 +116,7 @@ export function RunWalkTrustedContactsDrawer({
       : [...selectedIds, contact.id]
 
     setSelectedIds(nextIds)
-    await setSelectedTrustedContactIds(nextIds)
+    await setSelectedTrustedContactIds(patientCpf, nextIds)
     onContactsChange?.()
   }
 
@@ -117,7 +124,7 @@ export function RunWalkTrustedContactsDrawer({
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     const nextIds = [contact.id]
     setSelectedIds(nextIds)
-    await setSelectedTrustedContactIds(nextIds)
+    await setSelectedTrustedContactIds(patientCpf, nextIds)
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
     onContactsChange?.()
     onClose()
@@ -134,9 +141,9 @@ export function RunWalkTrustedContactsDrawer({
           style: 'destructive',
           onPress: () => {
             void (async () => {
-              const nextContacts = await deleteTrustedContact(contact.id)
+              const nextContacts = await deleteTrustedContact(patientCpf, contact.id)
               setContacts(nextContacts)
-              const nextSelectedIds = await loadSelectedTrustedContactIds()
+              const nextSelectedIds = await loadSelectedTrustedContactIds(patientCpf)
               setSelectedIds(nextSelectedIds)
               onContactsChange?.()
               void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
@@ -162,16 +169,30 @@ export function RunWalkTrustedContactsDrawer({
     setError(null)
 
     try {
+      const existingContact = form.id
+        ? contacts.find((item) => item.id === form.id)
+        : undefined
+      const clientContactId = existingContact?.clientContactId ?? `contact-${Date.now()}`
+
       const contact: TrustedContact = {
-        id: form.id ?? `contact-${Date.now()}`,
+        id: form.id ?? clientContactId,
+        clientContactId,
         name: trimmedName,
         phone: formattedPhone,
         liveShareEnabled: form.liveShareEnabled,
       }
 
-      const nextContacts = await upsertTrustedContact(contact)
-      const nextSelectedIds = form.id ? selectedIds : [...selectedIds, contact.id]
-      await setSelectedTrustedContactIds(nextSelectedIds)
+      const nextContacts = await upsertTrustedContact(patientCpf, contact)
+      const persistedContact =
+        nextContacts.find((item) => item.clientContactId === clientContactId) ??
+        nextContacts.find((item) => item.id === contact.id)
+
+      const nextSelectedIds =
+        form.id || !persistedContact
+          ? selectedIds
+          : [...new Set([...selectedIds, persistedContact.id])]
+
+      await setSelectedTrustedContactIds(patientCpf, nextSelectedIds)
       setContacts(nextContacts)
       setSelectedIds(nextSelectedIds)
       onContactsChange?.()
@@ -194,7 +215,7 @@ export function RunWalkTrustedContactsDrawer({
   const hasMultipleContacts = contacts.length > 1
   const selectedCount = selectedIds.length
 
-  const listFooter = (
+  const listFooter = contacts.length < MAX_TRUSTED_CONTACTS ? (
     <Pressable
       onPress={openCreateForm}
       style={({ pressed }) => [styles.addBtn, pressed && styles.addBtnPressed]}
@@ -211,6 +232,10 @@ export function RunWalkTrustedContactsDrawer({
         <Text style={styles.addLabel}>Adicionar contato</Text>
       </LinearGradient>
     </Pressable>
+  ) : (
+    <Text style={styles.limitHint}>
+      Limite de {MAX_TRUSTED_CONTACTS} contatos atingido. Edite ou remova um contato para adicionar outro.
+    </Text>
   )
 
   const formFooter = (
@@ -706,5 +731,14 @@ const styles = StyleSheet.create({
     color: '#052e16',
     fontSize: 15,
     fontWeight: '800',
+  },
+  limitHint: {
+    color: colors.textMuted,
+    fontSize: 12,
+    fontWeight: '500',
+    lineHeight: 17,
+    textAlign: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
 })

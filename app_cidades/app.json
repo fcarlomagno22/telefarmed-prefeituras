@@ -40,6 +40,7 @@
         ],
         "NSLocationWhenInUseUsageDescription": "Permitir acesso à localização para monitorar sua atividade, clima e segurança durante caminhadas e corridas.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Permitir compartilhamento de localização ao vivo com seu contato de confiança durante a atividade.",
+        "NSBluetoothAlwaysUsageDescription": "Permitir que o Telefarmed Cidades encontre e conecte pulseiras, relógios e balanças via Bluetooth.",
         "UIBackgroundModes": [
           "audio"
         ]
@@ -62,7 +63,9 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
-        "android.permission.POST_NOTIFICATIONS"
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.BLUETOOTH_SCAN",
+        "android.permission.BLUETOOTH_CONNECT"
       ],
       "package": "com.fcarlomagno2.app_cidades",
       "softwareKeyboardLayoutMode": "resize",
@@ -168,7 +171,15 @@
       ],
       "expo-mail-composer",
       "expo-video",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "react-native-ble-plx",
+        {
+          "isBackgroundEnabled": false,
+          "modes": ["central"],
+          "bluetoothAlwaysPermission": "Permitir que o Telefarmed Cidades encontre e conecte pulseiras, relógios e balanças via Bluetooth."
+        }
+      ]
     ],
     "extra": {
       "eas": {

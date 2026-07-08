@@ -165,6 +165,8 @@ export const ATIVIDADE_DISTANCIA_KM_MIN = 0.01
 export const ATIVIDADE_DISTANCIA_KM_MAX = 200
 export const ATIVIDADE_CAMINHADA_MINUTOS_MIN = 1
 export const ATIVIDADE_CAMINHADA_MINUTOS_MAX = 600
+export const ATIVIDADE_DURACAO_MINUTOS_MIN = ATIVIDADE_CAMINHADA_MINUTOS_MIN
+export const ATIVIDADE_DURACAO_MINUTOS_MAX = ATIVIDADE_CAMINHADA_MINUTOS_MAX
 
 /** Ranges cl?nicos alinhados ao BloodPressureLogDrawer (mmHg). */
 export const PRESSAO_SISTOLICA_MIN = 80
@@ -246,34 +248,58 @@ export const createMetricasFrequenciaCardiacaBodySchema = z.object({
   sourceLabel: z.string().trim().min(1).max(80).optional(),
 })
 
-export const createMetricasCaminhadaBodySchema = z
-  .object({
-    steps: z
-      .number()
-      .int('Informe um n?mero inteiro de passos.')
-      .min(ATIVIDADE_PASSOS_MIN, 'Informe uma quantidade v?lida de passos.')
-      .max(ATIVIDADE_PASSOS_MAX, 'Informe uma quantidade v?lida de passos.')
-      .optional(),
-    distanceKm: z
-      .number()
-      .min(ATIVIDADE_DISTANCIA_KM_MIN, 'Informe uma dist?ncia v?lida.')
-      .max(ATIVIDADE_DISTANCIA_KM_MAX, 'Informe uma dist?ncia v?lida.')
-      .optional(),
-    durationMinutes: z
-      .number()
-      .int('Informe uma dura??o v?lida em minutos.')
-      .min(ATIVIDADE_CAMINHADA_MINUTOS_MIN, 'Informe uma dura??o v?lida em minutos.')
-      .max(ATIVIDADE_CAMINHADA_MINUTOS_MAX, 'Informe uma dura??o v?lida em minutos.')
-      .optional(),
-    recordedAt: z.string().datetime({ offset: true }).optional(),
-  })
-  .refine(
-    (data) =>
-      data.steps !== undefined ||
-      data.distanceKm !== undefined ||
-      data.durationMinutes !== undefined,
-    { message: 'Informe passos, dist?ncia ou dura??o.' },
-  )
+export const metricasAtividadeKindSchema = z.enum([
+  'caminhada',
+  'corrida',
+  'corrida-caminhada',
+])
+
+const createMetricasAtividadeMetricsBodySchema = z.object({
+  steps: z
+    .number()
+    .int('Informe um n?mero inteiro de passos.')
+    .min(ATIVIDADE_PASSOS_MIN, 'Informe uma quantidade v?lida de passos.')
+    .max(ATIVIDADE_PASSOS_MAX, 'Informe uma quantidade v?lida de passos.')
+    .optional(),
+  distanceKm: z
+    .number()
+    .min(ATIVIDADE_DISTANCIA_KM_MIN, 'Informe uma dist?ncia v?lida.')
+    .max(ATIVIDADE_DISTANCIA_KM_MAX, 'Informe uma dist?ncia v?lida.')
+    .optional(),
+  durationMinutes: z
+    .number()
+    .int('Informe uma dura??o v?lida em minutos.')
+    .min(ATIVIDADE_DURACAO_MINUTOS_MIN, 'Informe uma dura??o v?lida em minutos.')
+    .max(ATIVIDADE_DURACAO_MINUTOS_MAX, 'Informe uma dura??o v?lida em minutos.')
+    .optional(),
+  recordedAt: z.string().datetime({ offset: true }).optional(),
+})
+
+const requireAtividadeMetricsRefine = {
+  refine: (data: {
+    steps?: number
+    distanceKm?: number
+    durationMinutes?: number
+  }) =>
+    data.steps !== undefined ||
+    data.distanceKm !== undefined ||
+    data.durationMinutes !== undefined,
+  message: 'Informe passos, dist?ncia ou dura??o.',
+} as const
+
+export const createMetricasAtividadeRegistroBodySchema =
+  createMetricasAtividadeMetricsBodySchema
+    .extend({
+      kind: metricasAtividadeKindSchema,
+    })
+    .refine(requireAtividadeMetricsRefine.refine, {
+      message: requireAtividadeMetricsRefine.message,
+    })
+
+export const createMetricasCaminhadaBodySchema = createMetricasAtividadeMetricsBodySchema.refine(
+  requireAtividadeMetricsRefine.refine,
+  { message: requireAtividadeMetricsRefine.message },
+)
 
 const atividadeDateKeySchema = z
   .string()

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import {
+  createMetricasAtividadeRegistroBodySchema,
   createMetricasCaminhadaBodySchema,
   createMetricasFrequenciaCardiacaBodySchema,
   createMetricasGlicemiaBodySchema,
@@ -316,6 +317,39 @@ describe('createMetricasCaminhadaBodySchema', () => {
 
   it('rejeita body vazio', () => {
     const parsed = createMetricasCaminhadaBodySchema.safeParse({})
+    assert.equal(parsed.success, false)
+  })
+})
+
+describe('createMetricasAtividadeRegistroBodySchema', () => {
+  it('aceita registro de corrida com distância', () => {
+    const parsed = createMetricasAtividadeRegistroBodySchema.safeParse({
+      kind: 'corrida',
+      distanceKm: 5,
+    })
+    assert.equal(parsed.success, true)
+  })
+
+  it('aceita registro de corrida-caminhada com duração', () => {
+    const parsed = createMetricasAtividadeRegistroBodySchema.safeParse({
+      kind: 'corrida-caminhada',
+      durationMinutes: 45,
+    })
+    assert.equal(parsed.success, true)
+  })
+
+  it('rejeita kind inválido', () => {
+    const parsed = createMetricasAtividadeRegistroBodySchema.safeParse({
+      kind: 'natação',
+      steps: 1000,
+    })
+    assert.equal(parsed.success, false)
+  })
+
+  it('rejeita body sem métricas', () => {
+    const parsed = createMetricasAtividadeRegistroBodySchema.safeParse({
+      kind: 'corrida',
+    })
     assert.equal(parsed.success, false)
   })
 })

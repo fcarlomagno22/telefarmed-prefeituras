@@ -1,4 +1,5 @@
 import type { VdLoginResult, VdPacienteUser, VdTenantScope } from '../../../types/vdApi'
+import { getVdRefreshToken } from '../../vd/vdRefreshToken'
 import { vdRequest } from './client'
 import { getVdTenantScope, mergeTenantIntoBody } from './tenantScope'
 
@@ -18,10 +19,15 @@ export async function login(
 
 export async function refresh(scope?: VdTenantScope): Promise<VdLoginResult> {
   const tenantScope = scope ?? getVdTenantScope()
+  const refreshToken = getVdRefreshToken()
+
   return vdRequest<VdLoginResult>({
     method: 'POST',
     path: '/vd/auth/refresh',
-    body: mergeTenantIntoBody({}, tenantScope),
+    body: mergeTenantIntoBody(
+      refreshToken ? { refreshToken } : {},
+      tenantScope,
+    ),
     tenantScope,
     credentials: 'include',
   })
@@ -29,10 +35,15 @@ export async function refresh(scope?: VdTenantScope): Promise<VdLoginResult> {
 
 export async function logout(scope?: VdTenantScope): Promise<void> {
   const tenantScope = scope ?? getVdTenantScope()
+  const refreshToken = getVdRefreshToken()
+
   await vdRequest<{ ok: true }>({
     method: 'POST',
     path: '/vd/auth/logout',
-    body: mergeTenantIntoBody({}, tenantScope),
+    body: mergeTenantIntoBody(
+      refreshToken ? { refreshToken } : {},
+      tenantScope,
+    ),
     tenantScope,
     credentials: 'include',
   })

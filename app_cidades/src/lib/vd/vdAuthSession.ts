@@ -5,15 +5,21 @@ import type { AuthUser } from '../../types/auth'
 import { shouldRefreshAccessToken } from '../../utils/jwtExpiry'
 import { mapVdPacienteUserToAuthUser } from '../../utils/vdAuthMapper'
 import { loadPersistedAccessToken, setVdAccessToken } from './vdAccessToken'
+import { loadPersistedRefreshToken, setVdRefreshToken, getVdRefreshToken } from './vdRefreshToken'
 
 export const SESSION_USER_KEY = '@telefarmed/session'
+
+export type VdAuthSessionResult = VdLoginResult
 
 export async function persistAuthUser(user: AuthUser): Promise<void> {
   await AsyncStorage.setItem(SESSION_USER_KEY, JSON.stringify(user))
 }
 
-export async function applyAuthSession(result: VdLoginResult): Promise<AuthUser> {
+export async function applyAuthSession(result: VdAuthSessionResult): Promise<AuthUser> {
   await setVdAccessToken(result.accessToken)
+  if (result.refreshToken) {
+    await setVdRefreshToken(result.refreshToken)
+  }
   const user = mapVdPacienteUserToAuthUser(result.user)
   await persistAuthUser(user)
   return user
@@ -21,18 +27,8 @@ export async function applyAuthSession(result: VdLoginResult): Promise<AuthUser>
 
 export async function clearAuthSession(): Promise<void> {
   await setVdAccessToken(null)
+  await setVdRefreshToken(null)
   await AsyncStorage.removeItem(SESSION_USER_KEY)
-}
-
-async function restoreStoredUser(): Promise<AuthUser | null> {
-  const storedUser = await AsyncStorage.getItem(SESSION_USER_KEY)
-  if (!storedUser) return null
-
-  try {
-    return JSON.parse(storedUser) as AuthUser
-  } catch {
-    return null
-  }
 }
 
 async function restoreFromAccessToken(token: string): Promise<AuthUser | null> {
@@ -52,13 +48,14 @@ async function restoreFromAccessToken(token: string): Promise<AuthUser | null> {
   try {
     return await applyAuthSession(await refresh())
   } catch {
-    const cachedUser = await restoreStoredUser()
-    if (cachedUser) return cachedUser
     return null
   }
 }
 
 async function tryRefreshSession(): Promise<AuthUser | null> {
+  const refreshToken = getVdRefreshToken()
+  if (!refreshToken) return null
+
   try {
     return await applyAuthSession(await refresh())
   } catch {
@@ -67,6 +64,8 @@ async function tryRefreshSession(): Promise<AuthUser | null> {
 }
 
 export async function restoreAuthSession(): Promise<AuthUser | null> {
+  await loadPersistedRefreshToken()
+
   const refreshed = await tryRefreshSession()
   if (refreshed) return refreshed
 
@@ -76,10 +75,13 @@ export async function restoreAuthSession(): Promise<AuthUser | null> {
     if (restored) return restored
   }
 
-  return restoreStoredUser()
+  await clearAuthSession()
+  return null
 }
 
 export async function restoreSessionAfterBiometric(): Promise<AuthUser | null> {
+  await loadPersistedRefreshToken()
+
   const refreshed = await tryRefreshSession()
   if (refreshed) return refreshed
 

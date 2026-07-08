@@ -1,3 +1,5 @@
+import type { RegistrationAddress } from '../types/auth'
+import { normalizeBrazilianStateUf } from '../utils/brazilianStateUf'
 import type { AppLocationGeocodedAddress } from './appLocation.types'
 
 export function isValidReverseGeocodeCoordinates(
@@ -27,6 +29,20 @@ export function isGeocodedAddressReliable(place: AppLocationGeocodedAddress): bo
       place.region?.trim() ||
       place.subregion?.trim(),
   )
+}
+
+export function mapGeocodedToRegistrationAddress(
+  place: AppLocationGeocodedAddress,
+): RegistrationAddress {
+  return {
+    cep: place.postalCode ?? '',
+    street: place.street ?? '',
+    number: place.streetNumber ?? '',
+    neighborhood: place.district ?? place.subregion ?? '',
+    city: place.city ?? place.subregion ?? '',
+    state: normalizeBrazilianStateUf(place.region),
+    complement: '',
+  }
 }
 
 export function buildAddressLabelFromGeocoded(place: AppLocationGeocodedAddress): string | null {

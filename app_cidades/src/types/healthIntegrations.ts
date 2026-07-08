@@ -29,10 +29,3 @@ export type HealthPermissionConfig = {
   label: string
   icon: string
 }
-
-export type MockBluetoothDevice = {
-  id: string
-  name: string
-  signal: 1 | 2 | 3 | 4
-  icon: string
-}

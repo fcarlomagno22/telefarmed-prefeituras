@@ -3,6 +3,7 @@ import { describe, it } from 'node:test'
 import {
   aggregateAtividadeLeituras,
   deriveDistanceKmFromSteps,
+  resolveAtividadeMetrics,
   resolveCaminhadaMetrics,
 } from './atividade.formatters.js'
 import type { PacienteMetricasLeituraRow } from './types.js'
@@ -34,8 +35,20 @@ describe('atividade.formatters', () => {
     assert.equal(metrics.distanceKmExplicit, false)
   })
 
+  it('resolve corrida com duração em minutos', () => {
+    const metrics = resolveAtividadeMetrics({ durationMinutes: 30 }, 'corrida')
+    assert.equal(metrics.steps, 5100)
+    assert.equal(metrics.distanceKm, deriveDistanceKmFromSteps(5100))
+  })
+
+  it('resolve corrida-caminhada com duração em minutos', () => {
+    const metrics = resolveAtividadeMetrics({ durationMinutes: 30 }, 'corrida-caminhada')
+    assert.equal(metrics.steps, 4200)
+    assert.equal(metrics.distanceKm, deriveDistanceKmFromSteps(4200))
+  })
+
   it('resolve caminhada com duração em minutos', () => {
-    const metrics = resolveCaminhadaMetrics({ durationMinutes: 30 })
+    const metrics = resolveAtividadeMetrics({ durationMinutes: 30 }, 'caminhada')
     assert.equal(metrics.steps, 3300)
     assert.equal(metrics.distanceKm, deriveDistanceKmFromSteps(3300))
   })
@@ -73,5 +86,44 @@ describe('atividade.formatters', () => {
     assert.equal(days[1]?.steps, 1500)
     assert.equal(days[1]?.distanceKm, 1.143)
     assert.equal(days[1]?.source, 'manual')
+  })
+
+  it('agrega todos os kinds no mesmo dia', () => {
+    const days = aggregateAtividadeLeituras([
+      {
+        ...baseRow,
+        metadados: { kind: 'caminhada', distanceKm: 1.524 },
+        valor: 2000,
+      },
+      {
+        ...baseRow,
+        id: '44444444-4444-4444-4444-444444444444',
+        registrado_em: '2026-07-08T12:00:00.000-03:00',
+        origem: 'sistema',
+        valor: 3000,
+        metadados: {
+          kind: 'corrida',
+          distanceKm: 2.286,
+          runWalkActivityId: 'act-1',
+        },
+      },
+      {
+        ...baseRow,
+        id: '55555555-5555-5555-5555-555555555555',
+        registrado_em: '2026-07-08T15:00:00.000-03:00',
+        origem: 'sistema',
+        valor: 1500,
+        metadados: {
+          kind: 'corrida-caminhada',
+          distanceKm: 1.143,
+          runWalkActivityId: 'act-2',
+        },
+      },
+    ])
+
+    assert.equal(days.length, 1)
+    assert.equal(days[0]?.steps, 6500)
+    assert.equal(days[0]?.distanceKm, 4.953)
+    assert.equal(days[0]?.source, 'manual')
   })
 })

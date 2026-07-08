@@ -37,6 +37,9 @@ export function NearbyRunningRoutesScreen() {
     address,
   })
 
+  const patientCpf = user?.cpf ?? 'guest'
+  const userName = user?.name?.split(' ')[0] ?? 'Você'
+
   const [spots, setSpots] = useState<RunningRouteSpot[]>([])
   const [isLoadingSpots, setIsLoadingSpots] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -50,18 +53,35 @@ export function NearbyRunningRoutesScreen() {
     try {
       const result = await fetchNearbyRunningRoutes(origin)
       setSpots(result)
+    } catch {
+      setSpots([])
     } finally {
       setIsLoadingSpots(false)
     }
   }, [origin])
+
+  const handleEngagementChange = useCallback(
+    (spotId: string, engagement: { recommendCount: number; notRecommendCount: number }) => {
+      setSpots((current) =>
+        current.map((spot) =>
+          spot.id === spotId
+            ? {
+                ...spot,
+                recommendCount: engagement.recommendCount,
+                notRecommendCount: engagement.notRecommendCount,
+              }
+            : spot,
+        ),
+      )
+    },
+    [],
+  )
 
   useEffect(() => {
     void loadSpots()
   }, [loadSpots])
 
   const selectedSpot = spots.find((spot) => spot.id === selectedId) ?? null
-  const patientCpf = user?.cpf ?? 'guest'
-  const userName = user?.name?.split(' ')[0] ?? 'Você'
 
   function handleSelectSpot(id: string) {
     requireAuth('vida:run-walk', () => {
@@ -143,14 +163,6 @@ export function NearbyRunningRoutesScreen() {
               </Text>
             </View>
           ) : null}
-
-          {!isBusy && spots.length > 0 ? (
-            <View style={styles.spotsChip}>
-              <Text style={styles.spotsChipText}>
-                {spots.length} {spots.length === 1 ? 'local encontrado' : 'locais encontrados'} perto de você
-              </Text>
-            </View>
-          ) : null}
         </LinearGradient>
       </View>
 
@@ -188,6 +200,7 @@ export function NearbyRunningRoutesScreen() {
         patientCpf={patientCpf}
         patientName={user?.name ?? 'Usuário'}
         defaultAddress={address}
+        initialOrigin={origin}
         onClose={() => setSubmitDrawerVisible(false)}
         onSubmitted={() => void loadSpots()}
       />
@@ -195,9 +208,9 @@ export function NearbyRunningRoutesScreen() {
       <NearbyRunningRouteSpotDrawer
         visible={drawerVisible}
         spot={selectedSpot}
-        patientCpf={patientCpf}
         userName={userName}
         onClose={handleCloseDrawer}
+        onEngagementChange={handleEngagementChange}
       />
     </View>
   )
@@ -229,24 +242,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   locationErrorText: {
-    color: '#fecaca',
+    color: colors.error,
     fontSize: 12,
     lineHeight: 17,
-  },
-  spotsChip: {
-    alignSelf: 'flex-start',
-    marginHorizontal: 16,
-    marginTop: 10,
-    borderRadius: 999,
-    backgroundColor: 'rgba(255, 107, 0, 0.18)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 133, 51, 0.35)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  spotsChipText: {
-    color: '#ffcc99',
-    fontSize: 12,
     fontWeight: '600',
   },
   loadingOverlay: {

@@ -105,7 +105,7 @@ export function RunWalkStartCountdownScreen() {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
 
     const finishTimer = setTimeout(() => {
-      void clearPreparationDraft()
+      void clearPreparationDraft(user?.cpf)
       const gpsPreCalibrated = gpsCalibratedRef.current
       setRunWalkPreLiveGpsCalibrated(gpsPreCalibrated)
       navigateTo('run-walk-live', {

@@ -1231,6 +1231,7 @@ export function MentalHealthHomeContent({
 
       <MentalHealthEmergencyContactsDrawer
         visible={emergencyContactsDrawerVisible}
+        patientCpf={patientCpf}
         onClose={closeEmergencyContactsDrawer}
       />
 

@@ -141,15 +141,9 @@ export async function vdRequest<T>(options: VdRequestOptions): Promise<T> {
     const body = await readResponseBody(response)
     const parsed = await parseErrorResponse(response, body)
 
-    const hadAccessToken = Boolean(options.accessToken ?? getVdAccessToken())
     const isAuthPath = options.path.startsWith('/vd/auth/')
 
-    if (
-      response.status === 401 &&
-      hadAccessToken &&
-      !options.skipAuthRetry &&
-      !isAuthPath
-    ) {
+    if (response.status === 401 && !options.skipAuthRetry && !isAuthPath) {
       const refreshedToken = await tryRefreshVdAccessToken()
       if (refreshedToken) {
         return vdRequest<T>({

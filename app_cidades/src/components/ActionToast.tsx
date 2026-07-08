@@ -13,7 +13,7 @@ type ActionToastProps = {
 }
 
 export function ActionToast({ message, onHidden, bottomOffset = 96 }: ActionToastProps) {
-  const translateX = useRef(new Animated.Value(-360)).current
+  const translateX = useRef(new Animated.Value(360)).current
   const opacity = useRef(new Animated.Value(0)).current
   const messageRef = useRef<string | null>(null)
 
@@ -21,7 +21,7 @@ export function ActionToast({ message, onHidden, bottomOffset = 96 }: ActionToas
     if (!message) return
 
     messageRef.current = message
-    translateX.setValue(-360)
+    translateX.setValue(360)
     opacity.setValue(1)
 
     const enter = Animated.timing(translateX, {

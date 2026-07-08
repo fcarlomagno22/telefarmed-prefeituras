@@ -94,7 +94,7 @@ export function RunWalkPreparationScreen() {
     let active = true
 
     async function hydrateDraft() {
-      const draft = await loadPreparationDraft()
+      const draft = await loadPreparationDraft(user?.cpf)
       if (!active) return
       if (draft) {
         setModality(draft.modality)
@@ -110,18 +110,29 @@ export function RunWalkPreparationScreen() {
     return () => {
       active = false
     }
-  }, [])
+  }, [user?.cpf])
 
   useEffect(() => {
     if (!draftReady) return
-    void savePreparationDraft({
-      modality,
-      activityName,
-      intensity,
-      durationMinutes,
-      audioConfigured,
-    })
-  }, [activityName, audioConfigured, draftReady, durationMinutes, intensity, modality])
+    void savePreparationDraft(
+      {
+        modality,
+        activityName,
+        intensity,
+        durationMinutes,
+        audioConfigured,
+      },
+      user?.cpf,
+    )
+  }, [
+    activityName,
+    audioConfigured,
+    draftReady,
+    durationMinutes,
+    intensity,
+    modality,
+    user?.cpf,
+  ])
 
   const cityLabel = useMemo(() => {
     if (location.isLocating || location.isResolvingCity) return null
@@ -354,6 +365,7 @@ export function RunWalkPreparationScreen() {
 
       <RunWalkShareLocationDrawer
         visible={shareLocationDrawerVisible}
+        patientCpf={user?.cpf ?? 'guest'}
         participantName={user?.name ?? 'Participante'}
         activityName={activityName}
         latitude={location.coordinates?.latitude ?? null}

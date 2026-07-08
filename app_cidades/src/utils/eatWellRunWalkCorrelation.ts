@@ -1,4 +1,4 @@
-import { getActivityDateIso, loadRunWalkActivityHistory, ensureTodayRunWalkActivity } from '../data/runWalkActivityHistoryStorage'
+import { getActivityDateIso, loadRunWalkActivityHistory } from '../data/runWalkActivityHistoryStorage'
 import type { RunWalkDayEnergy } from '../types/eatWell'
 import { toLocalDateIso } from './runWalkWeeklyChart'
 
@@ -6,7 +6,6 @@ export async function loadRunWalkDayEnergy(
   patientCpf: string,
   dateIso: string = toLocalDateIso(new Date()),
 ): Promise<RunWalkDayEnergy> {
-  await ensureTodayRunWalkActivity(patientCpf)
   const history = await loadRunWalkActivityHistory(patientCpf)
   const dayActivities = history.filter((activity) => getActivityDateIso(activity) === dateIso)
 

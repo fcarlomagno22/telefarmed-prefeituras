@@ -23,10 +23,6 @@ export type AppScreen =
   | 'run-walk-live'
   | 'run-walk-live-viewer'
   | 'run-walk-checkin'
-  | 'run-walk-challenges'
-  | 'run-walk-challenge-rules'
-  | 'run-walk-achievements'
-  | 'run-walk-achievement-detail'
   | 'run-walk-summary'
   | 'eat-well'
   | 'eat-well-menu'
@@ -59,8 +55,6 @@ export type RunWalkRouteParams = {
   durationMinutes?: number
   openModalityDrawer?: boolean
   summaryId?: string
-  challengeId?: string
-  achievementId?: string
   celebrateWeeklyGoal?: boolean
   celebrateDateIso?: string
   celebrateFromMinutes?: number
@@ -132,8 +126,6 @@ export function getRunWalkRouteParams(params: AppRouteParams | null): RunWalkRou
     'durationMinutes' in params ||
     'openModalityDrawer' in params ||
     'summaryId' in params ||
-    'challengeId' in params ||
-    'achievementId' in params ||
     'celebrateWeeklyGoal' in params ||
     'celebrateDateIso' in params ||
     'celebrateFromMinutes' in params ||

@@ -114,6 +114,20 @@ describe('registerVdMetricasRoutes', () => {
     })
     assert.equal(caminhadaPost.statusCode, 401)
 
+    const corridaPost = await app.inject({
+      method: 'POST',
+      url: '/api/v1/vd/metricas/atividade/corrida',
+      payload: { distanceKm: 5 },
+    })
+    assert.equal(corridaPost.statusCode, 401)
+
+    const atividadeRegistrarPost = await app.inject({
+      method: 'POST',
+      url: '/api/v1/vd/metricas/atividade/registrar',
+      payload: { kind: 'corrida-caminhada', durationMinutes: 40 },
+    })
+    assert.equal(atividadeRegistrarPost.statusCode, 401)
+
     const atividadeLotePost = await app.inject({
       method: 'POST',
       url: '/api/v1/vd/metricas/atividade/lote',

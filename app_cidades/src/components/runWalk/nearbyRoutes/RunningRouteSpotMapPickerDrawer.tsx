@@ -140,6 +140,11 @@ export function RunningRouteSpotMapPickerDrawer({
 
   const mapReady = !isLocatingUser || userLocation !== null
 
+  const helperText = userLocation
+    ? 'O ponto azul é você. Arraste o mapa, toque no local ou arraste o pin laranja até o lugar certo.'
+    : locationError ??
+      'Você pode arrastar o mapa, tocar para posicionar o pin ou arrastar o pin até o lugar certo.'
+
   return (
     <RunWalkSheetDrawer
       visible={visible}
@@ -148,8 +153,27 @@ export function RunningRouteSpotMapPickerDrawer({
       onClose={onClose}
       fullScreen
       scrollable={false}
+      immersiveBackground={
+        mapReady ? (
+          <RunningRouteSpotPickerMap
+            key={`${mapCenter.latitude},${mapCenter.longitude},${userLocation?.latitude ?? 'none'}`}
+            initialLatitude={mapCenter.latitude}
+            initialLongitude={mapCenter.longitude}
+            initialPin={initialPin}
+            userLocation={userLocation}
+            onPick={handlePick}
+            fullBleed
+          />
+        ) : (
+          <View style={styles.locatingOverlay}>
+            <ActivityIndicator color="#ff8533" size="large" />
+            <Text style={styles.locatingText}>Obtendo sua localização...</Text>
+          </View>
+        )
+      }
       footer={
         <View style={styles.footer}>
+          <Text style={styles.helperText}>{helperText}</Text>
           <View style={styles.previewBox}>
             {pickedCoordinates ? (
               isResolvingAddress ? (
@@ -171,52 +195,18 @@ export function RunningRouteSpotMapPickerDrawer({
         </View>
       }
     >
-      <View style={styles.mapWrap}>
-        {mapReady ? (
-          <RunningRouteSpotPickerMap
-            key={`${mapCenter.latitude},${mapCenter.longitude},${userLocation?.latitude ?? 'none'}`}
-            initialLatitude={mapCenter.latitude}
-            initialLongitude={mapCenter.longitude}
-            initialPin={initialPin}
-            userLocation={userLocation}
-            onPick={handlePick}
-          />
-        ) : (
-          <View style={styles.locatingOverlay}>
-            <ActivityIndicator color="#ff8533" size="large" />
-            <Text style={styles.locatingText}>Obtendo sua localização...</Text>
-          </View>
-        )}
-      </View>
-      {userLocation ? (
-        <Text style={styles.helperText}>
-          O ponto azul é você. Arraste o mapa, toque no local ou arraste o pin laranja até o lugar certo.
-        </Text>
-      ) : (
-        <Text style={styles.helperText}>
-          {locationError ??
-            'Você pode arrastar o mapa, tocar para posicionar o pin ou arrastar o pin até o lugar certo.'}
-        </Text>
-      )}
+      {null}
     </RunWalkSheetDrawer>
   )
 }
 
 const styles = StyleSheet.create({
-  mapWrap: {
-    flex: 1,
-    minHeight: 360,
-  },
   locatingOverlay: {
     flex: 1,
-    minHeight: 360,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: drawerChrome.surfaceBottom,
   },
   locatingText: {
     color: colors.textMuted,
@@ -224,18 +214,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   helperText: {
-    marginTop: 10,
     color: colors.textSubtle,
     fontSize: 12,
     lineHeight: 18,
   },
   footer: {
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop: 12,
     paddingBottom: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: drawerChrome.surfaceBottom,
+    borderTopColor: 'rgba(0, 0, 0, 0.06)',
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
     gap: 10,
   },
   previewBox: {
@@ -243,8 +232,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.88)',
     paddingHorizontal: 12,
     paddingVertical: 10,
   },

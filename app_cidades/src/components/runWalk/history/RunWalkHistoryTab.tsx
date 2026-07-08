@@ -11,10 +11,13 @@ import {
   View,
 } from 'react-native'
 import {
-  ensureRunWalkHistorySeeded,
   getActivityDateIso,
-  loadRunWalkActivityHistory,
 } from '../../../data/runWalkActivityHistoryStorage'
+import {
+  loadRunWalkHistoryActivityDetail,
+  loadRunWalkHistoryBundle,
+  type RunWalkHistoryDashboard,
+} from '../../../data/runWalkHistoryStorage'
 import type { RunWalkActivitySummary } from '../../../data/runWalkActivitySummaryStorage'
 import { colors } from '../../../theme/colors'
 import type { WeeklyGoalStats } from '../../../types/runWalk'
@@ -31,16 +34,12 @@ import { resolveRunWalkHistoryAnimation } from '../../../utils/runWalkHistoryAni
 import {
   buildHistoryChartDaysForPeriod,
   buildHistoryHeatmap,
-  buildHistoryTrendPoints,
-  computeHistoryHighlights,
-  computeHistoryPeriodSummary,
   filterHistoryActivities,
   getHistoryChartSectionTitle,
   sortHistoryActivities,
 } from '../../../utils/runWalkHistoryStats'
 import { RunWalkWeeklyBarChart } from '../RunWalkWeeklyBarChart'
 import { RunWalkHistoryActivityDrawer } from './RunWalkHistoryActivityDrawer'
-import { RunWalkHistoryEmptyState } from './RunWalkHistoryEmptyState'
 import { RunWalkHistoryFeed } from './RunWalkHistoryFeed'
 import { RunWalkHistoryFiltersBar } from './RunWalkHistoryFiltersBar'
 import {
@@ -79,6 +78,8 @@ export function RunWalkHistoryTab({
   const chartWidth = width - 32
 
   const [activities, setActivities] = useState<RunWalkActivitySummary[]>([])
+  const [dashboard, setDashboard] = useState<RunWalkHistoryDashboard | null>(null)
+  const [historyFromApi, setHistoryFromApi] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [exportingReport, setExportingReport] = useState(false)
@@ -105,15 +106,23 @@ export function RunWalkHistoryTab({
   const targetDistanceKm = Math.max(8, (targetActiveMinutes / 30) * 2.5)
 
   const loadHistory = useCallback(async () => {
-    await ensureRunWalkHistorySeeded(patientCpf)
-    const loaded = await loadRunWalkActivityHistory(patientCpf)
-    setActivities(loaded)
+    const bundle = await loadRunWalkHistoryBundle(patientCpf, {
+      period,
+      customDateRange,
+      sort,
+      filters: advancedFilters,
+    })
+    setActivities(bundle.activities)
+    setDashboard(bundle.dashboard)
+    setHistoryFromApi(bundle.fromApi)
     setIsLoading(false)
-  }, [patientCpf])
+  }, [advancedFilters, customDateRange, patientCpf, period, sort])
 
   useEffect(() => {
+    if (!isActive) return
+    setIsLoading(true)
     void loadHistory()
-  }, [loadHistory])
+  }, [isActive, loadHistory])
 
   useEffect(() => {
     return () => {
@@ -126,58 +135,62 @@ export function RunWalkHistoryTab({
     [activities],
   )
 
-  const periodFilteredActivities = useMemo(
-    () =>
-      filterHistoryActivities(
-        activities,
-        period,
-        advancedFilters,
-        selectedDateIso,
-        new Date(),
-        customDateRange,
-      ),
-    [activities, advancedFilters, customDateRange, period, selectedDateIso],
-  )
+  const periodFilteredActivities = useMemo(() => {
+    if (historyFromApi) {
+      if (!selectedDateIso) return activities
+      return activities.filter((activity) => getActivityDateIso(activity) === selectedDateIso)
+    }
 
-  const sortedActivities = useMemo(
-    () => sortHistoryActivities(periodFilteredActivities, sort),
-    [periodFilteredActivities, sort],
-  )
+    return filterHistoryActivities(
+      activities,
+      period,
+      advancedFilters,
+      selectedDateIso,
+      new Date(),
+      customDateRange,
+    )
+  }, [
+    activities,
+    advancedFilters,
+    customDateRange,
+    historyFromApi,
+    period,
+    selectedDateIso,
+  ])
 
-  const summary = useMemo(
-    () => computeHistoryPeriodSummary(activities, period, new Date(), customDateRange),
-    [activities, customDateRange, period],
-  )
+  const sortedActivities = useMemo(() => {
+    if (historyFromApi) return periodFilteredActivities
+    return sortHistoryActivities(periodFilteredActivities, sort)
+  }, [historyFromApi, periodFilteredActivities, sort])
 
-  const chartDays = useMemo(
-    () =>
-      buildHistoryChartDaysForPeriod(
-        filterHistoryActivities(activities, period, advancedFilters, null, new Date(), customDateRange),
-        period,
-        'minutes',
-        new Date(),
-        customDateRange,
-      ),
-    [activities, advancedFilters, customDateRange, period],
-  )
+  const summary = dashboard?.periodSummary ?? {
+    totalDistanceKm: 0,
+    totalActiveMinutes: 0,
+    totalWorkouts: 0,
+    totalCalories: 0,
+    distanceDeltaPct: null,
+    minutesDeltaPct: null,
+    workoutsDeltaPct: null,
+    caloriesDeltaPct: null,
+  }
 
-  const trendPoints = useMemo(
-    () =>
-      buildHistoryTrendPoints(
-        filterHistoryActivities(activities, period, advancedFilters, null, new Date(), customDateRange),
-      ),
-    [activities, advancedFilters, customDateRange, period],
-  )
+  const chartDays = useMemo(() => {
+    if (dashboard?.chartDays?.length) return dashboard.chartDays
+    return buildHistoryChartDaysForPeriod(
+      activities,
+      period,
+      'minutes',
+      new Date(),
+      customDateRange,
+    )
+  }, [activities, customDateRange, dashboard?.chartDays, period])
 
-  const highlights = useMemo(
-    () =>
-      computeHistoryHighlights(
-        filterHistoryActivities(activities, period, advancedFilters, null, new Date(), customDateRange),
-      ),
-    [activities, advancedFilters, customDateRange, period],
-  )
-
-  const heatmapCells = useMemo(() => buildHistoryHeatmap(activities), [activities])
+  const trendPoints = dashboard?.trendPoints ?? []
+  const highlights = dashboard?.highlights ?? []
+  const heatmapCells = useMemo(() => {
+    if (dashboard?.heatmapCells?.length) return dashboard.heatmapCells
+    return buildHistoryHeatmap(activities)
+  }, [activities, dashboard?.heatmapCells])
   const heatmapLabel = new Date().toLocaleDateString('pt-BR', {
     month: 'long',
     year: 'numeric',
@@ -238,10 +251,22 @@ export function RunWalkHistoryTab({
   function openActivity(activity: RunWalkActivitySummary) {
     setSelectedActivity(activity)
     setActivityDrawerVisible(true)
+
+    if (!activity.serverId) return
+
+    void loadRunWalkHistoryActivityDetail(patientCpf, activity).then((detail) => {
+      setSelectedActivity((current) => {
+        if (!current) return current
+        if (current.id !== activity.id && current.serverId !== activity.serverId) return current
+        return detail
+      })
+    })
   }
 
   function openActivityById(activityId: string) {
-    const activity = activities.find((entry) => entry.id === activityId)
+    const activity = activities.find(
+      (entry) => entry.id === activityId || entry.serverId === activityId,
+    )
     if (activity) openActivity(activity)
   }
 
@@ -254,10 +279,6 @@ export function RunWalkHistoryTab({
   function handleChartDaySelect(dateIso: string) {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
     setSelectedDateIso((current) => (current === dateIso ? null : dateIso))
-  }
-
-  if (!isLoading && activities.length === 0) {
-    return <RunWalkHistoryEmptyState onStartPress={onStartActivity} />
   }
 
   return (

@@ -51,9 +51,10 @@ export async function listAtividadeLeiturasForDate(
   return listAtividadeLeituras(pacienteId, bounds)
 }
 
-export async function insertCaminhadaLeitura(
+export async function insertManualAtividadeLeitura(
   scope: VdMetricasPacienteScope,
   input: {
+    kind: RunWalkAtividadeLeituraKind
     steps: number
     distanceKm: number
     distanceKmExplicit: boolean
@@ -62,7 +63,7 @@ export async function insertCaminhadaLeitura(
   },
 ): Promise<PacienteMetricasLeituraRow> {
   const metadados: Record<string, unknown> = {
-    kind: 'caminhada',
+    kind: input.kind,
     distanceKm: input.distanceKm,
     distanceKmExplicit: input.distanceKmExplicit,
   }
@@ -80,6 +81,64 @@ export async function insertCaminhadaLeitura(
       valor: input.steps,
       registrado_em: input.recordedAtIso,
       origem: 'manual',
+      metadados,
+    })
+    .select(ATIVIDADE_LEITURA_SELECT)
+    .single()
+
+  if (error) throw error
+
+  return mapLeituraRow(data as PacienteMetricasLeituraRow)
+}
+
+export async function insertCaminhadaLeitura(
+  scope: VdMetricasPacienteScope,
+  input: {
+    steps: number
+    distanceKm: number
+    distanceKmExplicit: boolean
+    durationMinutes?: number
+    recordedAtIso: string
+  },
+): Promise<PacienteMetricasLeituraRow> {
+  return insertManualAtividadeLeitura(scope, {
+    ...input,
+    kind: 'caminhada',
+  })
+}
+
+export type RunWalkAtividadeLeituraKind = 'caminhada' | 'corrida' | 'corrida-caminhada'
+
+export async function insertRunWalkAtividadeLeitura(
+  scope: VdMetricasPacienteScope,
+  input: {
+    steps: number
+    distanceKm: number
+    durationMinutes: number
+    estimatedCalories: number
+    recordedAtIso: string
+    runWalkActivityId: string
+    kind: RunWalkAtividadeLeituraKind
+  },
+): Promise<PacienteMetricasLeituraRow> {
+  const metadados: Record<string, unknown> = {
+    kind: input.kind,
+    distanceKm: input.distanceKm,
+    distanceKmExplicit: true,
+    durationMinutes: input.durationMinutes,
+    estimatedCalories: input.estimatedCalories,
+    runWalkActivityId: input.runWalkActivityId,
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('paciente_metricas_leituras')
+    .insert({
+      paciente_id: scope.pacienteId,
+      entidade_contratante_id: scope.entidadeContratanteId,
+      tipo: 'passos',
+      valor: input.steps,
+      registrado_em: input.recordedAtIso,
+      origem: 'sistema',
       metadados,
     })
     .select(ATIVIDADE_LEITURA_SELECT)
@@ -144,6 +203,31 @@ export async function loadTodayAtividadeTotals(
 
   return {
     passosHoje: day.steps,
-    distanciaKmHoje: day.distanceKm,
+    distanciaKmHoje: day.distanciaKm,
   }
+}
+
+export async function sumPassosLeiturasSince(
+  pacienteId: string,
+  sinceIso: string,
+): Promise<{ totalSteps: number; latestRecordedAt: string | null }> {
+  const { data, error } = await supabaseAdmin
+    .from('paciente_metricas_leituras')
+    .select('valor, registrado_em')
+    .eq('paciente_id', pacienteId)
+    .eq('tipo', 'passos')
+    .gte('registrado_em', sinceIso)
+    .order('registrado_em', { ascending: true })
+
+  if (error) throw error
+
+  let totalSteps = 0
+  let latestRecordedAt: string | null = null
+
+  for (const row of data ?? []) {
+    totalSteps += Math.max(0, Math.round(Number(row.valor)))
+    latestRecordedAt = String(row.registrado_em)
+  }
+
+  return { totalSteps, latestRecordedAt }
 }

@@ -114,12 +114,14 @@ export type VdPacienteUser = {
 
 export type VdRegisterResult = {
   accessToken: string
+  refreshToken?: string
   user: VdPacienteUser
   mode: 'created' | 'updated' | 'credentials_only'
 }
 
 export type VdLoginResult = {
   accessToken: string
+  refreshToken?: string
   user: VdPacienteUser
 }
 

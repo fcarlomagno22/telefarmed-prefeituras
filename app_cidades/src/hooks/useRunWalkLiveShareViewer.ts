@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { fetchLiveShareSessionByToken } from '../data/runWalkLiveShareService'
+import { LIVE_SHARE_PUBLISH_INTERVAL_MS } from '../constants/runWalkLiveShare'
+import { fetchLocalLiveShareSessionByToken } from '../data/runWalkLiveShareService'
+import {
+  fetchPublicLiveShareSession,
+  isRunWalkLiveSharePublicApiError,
+} from '../lib/api/public/runWalkLiveShare'
 import type { LiveShareSessionSnapshot } from '../types/runWalkLiveShare'
 import { normalizeLiveShareToken } from '../utils/runWalkLiveShareToken'
-import { LIVE_SHARE_PUBLISH_INTERVAL_MS } from './useRunWalkLiveSharePublisher'
 
 type UseRunWalkLiveShareViewerOptions = {
   token: string
@@ -27,16 +31,22 @@ export function useRunWalkLiveShareViewer({ token, enabled }: UseRunWalkLiveShar
     setError(null)
 
     try {
-      const next = await fetchLiveShareSessionByToken(normalized)
-      if (!next) {
-        setSnapshot(null)
-        setError('Sessão não encontrada. O link pode ter expirado ou a atividade ainda não começou.')
+      const local = await fetchLocalLiveShareSessionByToken(normalized)
+      if (local) {
+        setSnapshot(local)
+        setLastUpdatedAt(new Date().toISOString())
         return
       }
 
+      const next = await fetchPublicLiveShareSession(normalized)
       setSnapshot(next)
       setLastUpdatedAt(new Date().toISOString())
-    } catch {
+    } catch (caught) {
+      setSnapshot(null)
+      if (isRunWalkLiveSharePublicApiError(caught)) {
+        setError(caught.message)
+        return
+      }
       setError('Não foi possível carregar a localização.')
     } finally {
       setIsLoading(false)

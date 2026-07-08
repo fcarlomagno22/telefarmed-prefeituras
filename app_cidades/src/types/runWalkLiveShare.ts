@@ -33,4 +33,5 @@ export type AppendLiveSharePointInput = {
   latitude: number
   longitude: number
   accuracyMeters?: number | null
+  recordedAt?: string
 }

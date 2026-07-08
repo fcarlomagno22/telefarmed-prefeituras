@@ -17,6 +17,8 @@ import { resolveRequestHost, resolveVdCadastroEntidadeScopeDetailed } from '../v
 import { mapVdAuthError, requireVdAuth } from './middleware.js'
 import {
   loginBodySchema,
+  logoutBodySchema,
+  refreshBodySchema,
   vdPasswordRecoveryCompleteSchema,
   vdPasswordRecoveryRequestSchema,
   vdPasswordRecoveryVerifySchema,
@@ -69,6 +71,7 @@ export async function registerVdAuthRoutes(app: FastifyInstance): Promise<void> 
 
         return reply.send({
           accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
           user: result.user,
         })
       } catch (error) {
@@ -82,13 +85,21 @@ export async function registerVdAuthRoutes(app: FastifyInstance): Promise<void> 
   app.post('/refresh', {
     config: { rateLimit: { max: 30, timeWindow: '1 minute' } },
     handler: async (request, reply) => {
-      const refreshToken = request.cookies[VD_REFRESH_COOKIE]
+      const parsed = refreshBodySchema.safeParse(request.body ?? {})
+      const refreshToken =
+        parsed.success && parsed.data.refreshToken?.trim()
+          ? parsed.data.refreshToken.trim()
+          : request.cookies[VD_REFRESH_COOKIE]
+
       if (!refreshToken) {
         return reply.status(401).send({ error: 'Sessão expirada.', code: 'INVALID_REFRESH' })
       }
 
       try {
-        const tenantHost = resolveTenantHostHeader(request.headers)
+        const tenantHost = resolveTenantHostHeader(
+          request.headers,
+          parsed.success ? parsed.data.tenantHost : undefined,
+        )
         const result = await refreshVdPacienteSession({
           refreshToken,
           tenantHost,
@@ -111,6 +122,7 @@ export async function registerVdAuthRoutes(app: FastifyInstance): Promise<void> 
 
         return reply.send({
           accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
           user: result.user,
         })
       } catch (error) {
@@ -123,9 +135,14 @@ export async function registerVdAuthRoutes(app: FastifyInstance): Promise<void> 
 
   app.post('/logout', async (request, reply) => {
     const user = request.vdUser
+    const parsed = logoutBodySchema.safeParse(request.body ?? {})
+    const refreshToken =
+      parsed.success && parsed.data.refreshToken?.trim()
+        ? parsed.data.refreshToken.trim()
+        : request.cookies[VD_REFRESH_COOKIE]
 
     try {
-      await logoutVdPaciente(request.cookies[VD_REFRESH_COOKIE])
+      await logoutVdPaciente(refreshToken)
       auditAuthLogout('vd', request, {
         atorId: user?.credencialId ?? null,
         atorNome: user?.nome,

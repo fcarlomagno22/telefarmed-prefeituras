@@ -19,6 +19,7 @@ type DrawerMode = 'list' | 'form'
 
 type MentalHealthEmergencyContactsDrawerProps = {
   visible: boolean
+  patientCpf: string
   onClose: () => void
 }
 
@@ -36,6 +37,7 @@ function createEmptyForm() {
 
 export function MentalHealthEmergencyContactsDrawer({
   visible,
+  patientCpf,
   onClose,
 }: MentalHealthEmergencyContactsDrawerProps) {
   const [mode, setMode] = useState<DrawerMode>('list')
@@ -45,9 +47,9 @@ export function MentalHealthEmergencyContactsDrawer({
   const [error, setError] = useState<string | null>(null)
 
   const loadData = useCallback(async () => {
-    const savedContacts = await loadTrustedContacts()
+    const savedContacts = await loadTrustedContacts(patientCpf)
     setContacts(savedContacts)
-  }, [])
+  }, [patientCpf])
 
   useEffect(() => {
     if (!visible) {
@@ -102,7 +104,7 @@ export function MentalHealthEmergencyContactsDrawer({
           style: 'destructive',
           onPress: () => {
             void (async () => {
-              const nextContacts = await deleteTrustedContact(contact.id)
+              const nextContacts = await deleteTrustedContact(patientCpf, contact.id)
               setContacts(nextContacts)
               void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
             })()
@@ -125,14 +127,20 @@ export function MentalHealthEmergencyContactsDrawer({
     setError(null)
 
     try {
+      const existingContact = form.id
+        ? contacts.find((item) => item.id === form.id)
+        : undefined
+      const clientContactId = existingContact?.clientContactId ?? `contact-${Date.now()}`
+
       const contact: TrustedContact = {
-        id: form.id ?? `contact-${Date.now()}`,
+        id: form.id ?? clientContactId,
+        clientContactId,
         name: trimmedName,
         phone: maskPhone(trimmedPhone),
         liveShareEnabled: true,
       }
 
-      const nextContacts = await upsertTrustedContact(contact)
+      const nextContacts = await upsertTrustedContact(patientCpf, contact)
       setContacts(nextContacts)
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       resetFormMode()

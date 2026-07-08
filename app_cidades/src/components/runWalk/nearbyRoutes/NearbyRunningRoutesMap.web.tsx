@@ -30,9 +30,10 @@ type LeafletNamespace = {
 
 type LeafletMap = {
   remove: () => void
+  stop: () => void
   invalidateSize: () => void
-  setView: (center: [number, number], zoom: number) => void
-  fitBounds: (bounds: unknown) => void
+  setView: (center: [number, number], zoom: number, options?: Record<string, unknown>) => void
+  fitBounds: (bounds: unknown, options?: Record<string, unknown>) => void
 }
 
 type LeafletLayer = {
@@ -120,6 +121,27 @@ async function ensureMapAssets(): Promise<LeafletNamespace> {
   return mapAssetsPromise
 }
 
+function disposeLeafletMap(map: LeafletMap | null, host?: HTMLElement | null) {
+  if (!map) return
+
+  try {
+    map.stop()
+  } catch {
+    // Ignore teardown races while Leaflet finishes pan/zoom transitions.
+  }
+
+  try {
+    map.remove()
+  } catch {
+    // Ignore teardown races when the host node was already unmounted.
+  }
+
+  if (host) {
+    host.replaceChildren()
+    delete (host as HTMLElement & { _leaflet_id?: number })._leaflet_id
+  }
+}
+
 export function NearbyRunningRoutesMap({
   origin,
   spots,
@@ -164,15 +186,17 @@ export function NearbyRunningRoutesMap({
 
   useEffect(() => {
     let disposed = false
+    let renderId = 0
 
     async function renderMap() {
+      const currentRenderId = ++renderId
       const L = await ensureMapAssets()
-      if (disposed) return
+      if (disposed || currentRenderId !== renderId) return
 
       const host = mapHostRef.current
       if (!host) return
 
-      mapRef.current?.remove()
+      disposeLeafletMap(mapRef.current, host)
       mapRef.current = null
 
       const markers = buildNearbyRunningRoutesMapMarkers(spots, selectedId)
@@ -185,10 +209,12 @@ export function NearbyRunningRoutesMap({
       const { size: userPinSize, anchor: userPinAnchor } =
         getNearbyRunningRoutesUserPinMetrics(profilePhotoDataUri)
 
-      const map = L.map(host, { zoomControl: true, attributionControl: false }).setView(
-        [flyLat, flyLng],
-        flyZoom,
-      )
+      const map = L.map(host, {
+        zoomControl: false,
+        attributionControl: false,
+        zoomAnimation: false,
+        fadeAnimation: false,
+      }).setView([flyLat, flyLng], flyZoom, { animate: false })
 
       L.tileLayer(RUNNING_ROUTES_TILE_URL, {
         maxZoom: 19,
@@ -231,7 +257,7 @@ export function NearbyRunningRoutesMap({
 
       if (!hasSelection && layers.length > 1) {
         const group = L.featureGroup(layers)
-        map.fitBounds(group.getBounds().pad(0.18))
+        map.fitBounds(group.getBounds().pad(0.18), { animate: false })
       }
 
       mapRef.current = map
@@ -242,7 +268,7 @@ export function NearbyRunningRoutesMap({
 
     return () => {
       disposed = true
-      mapRef.current?.remove()
+      disposeLeafletMap(mapRef.current, mapHostRef.current)
       mapRef.current = null
     }
   }, [

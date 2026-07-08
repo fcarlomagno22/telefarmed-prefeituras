@@ -8,6 +8,15 @@ export const loginBodySchema = z.object({
   tenantHost: z.string().trim().min(1).max(253).optional(),
 })
 
+export const refreshBodySchema = z.object({
+  refreshToken: z.string().trim().min(16).max(512).optional(),
+  tenantHost: z.string().trim().min(1).max(253).optional(),
+})
+
+export const logoutBodySchema = z.object({
+  refreshToken: z.string().trim().min(16).max(512).optional(),
+})
+
 export const vdPasswordRecoveryRequestSchema = z.object({
   cpf: z.string().trim().min(11).max(14),
   tenantHost: z.string().trim().min(1).max(253).optional(),

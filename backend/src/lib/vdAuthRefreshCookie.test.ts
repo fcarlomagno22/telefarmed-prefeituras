@@ -16,8 +16,10 @@ describe('vdAuthRefreshCookie', () => {
     assert.equal(options.maxAge, VD_REFRESH_TTL_DAYS * 24 * 60 * 60)
   })
 
-  it('usa SameSite none for refresh cross-origin fora de produção', () => {
-    assert.equal(vdAuthRefreshCookieOptions().sameSite, 'none')
+  it('usa SameSite none e Secure em dev cross-origin', () => {
+    const options = vdAuthRefreshCookieOptions()
+    assert.equal(options.sameSite, 'none')
+    assert.equal(options.secure, true)
   })
 
   it('clearCookie usa o mesmo path', () => {

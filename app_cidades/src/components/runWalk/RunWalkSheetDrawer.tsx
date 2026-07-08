@@ -47,6 +47,7 @@ type RunWalkSheetDrawerProps = {
   hideCloseButton?: boolean
   scrollViewRef?: RefObject<ScrollView | null>
   sheetBackground?: ReactNode
+  immersiveBackground?: ReactNode
   tone?: 'default' | 'sleep'
 }
 
@@ -66,6 +67,7 @@ export function RunWalkSheetDrawer({
   hideCloseButton = false,
   scrollViewRef,
   sheetBackground,
+  immersiveBackground,
   tone = 'default',
 }: RunWalkSheetDrawerProps) {
   const insets = useSafeAreaInsets()
@@ -161,6 +163,7 @@ export function RunWalkSheetDrawer({
   if (!isMounted) return null
 
   const isSleepTone = tone === 'sleep'
+  const isImmersive = Boolean(immersiveBackground)
   const chromeTop = isSleepTone ? sleepTimeDrawerTheme.surface : drawerChrome.surface
   const chromeBottom = isSleepTone ? sleepTimeDrawerTheme.surfaceBottom : drawerChrome.surfaceBottom
 
@@ -206,25 +209,45 @@ export function RunWalkSheetDrawer({
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.staticContent, fullScreen && styles.staticContentFullScreen, dense && styles.staticContentDense]}>
+    <View
+      style={[
+        styles.staticContent,
+        fullScreen && styles.staticContentFullScreen,
+        isImmersive && styles.staticContentImmersive,
+        dense && styles.staticContentDense,
+      ]}
+    >
       {children}
     </View>
   )
 
   const sheetBody =
-    fullScreen && footer ? (
-      <View style={styles.fullScreenColumn}>
-        <View style={styles.bodyFill}>{body}</View>
+    fullScreen && footer && isImmersive ? (
+      <View
+        style={[
+          styles.immersiveFooterHost,
+          effectiveKeyboardInset > 0 && styles.footerWithKeyboard,
+          { paddingBottom: footerPaddingBottom },
+        ]}
+        pointerEvents="box-none"
+      >
+        <View pointerEvents="auto">{footer}</View>
+      </View>
+    ) : fullScreen && footer ? (
+      <View style={[styles.fullScreenColumn, isImmersive && styles.fullScreenColumnImmersive]}>
+        <View style={[styles.bodyFill, isImmersive && styles.bodyFillImmersive]}>{body}</View>
         <View
           style={[
             styles.footer,
             dense && styles.footerDense,
             styles.footerFullScreen,
+            isImmersive && styles.footerImmersive,
             effectiveKeyboardInset > 0 && styles.footerWithKeyboard,
             { paddingBottom: footerPaddingBottom },
           ]}
+          pointerEvents="box-none"
         >
-          {footer}
+          <View pointerEvents="auto">{footer}</View>
         </View>
       </View>
     ) : fullScreen ? (
@@ -260,6 +283,7 @@ export function RunWalkSheetDrawer({
           styles.host,
           IS_WEB && styles.hostWeb,
           fullScreen && styles.hostFullScreen,
+          isImmersive && styles.hostImmersive,
           isSleepTone && styles.hostFullScreenSleep,
         ]}
       >
@@ -282,12 +306,14 @@ export function RunWalkSheetDrawer({
             fullScreen && styles.keyboardWrapFullScreen,
           ]}
           enabled={keyboardAvoidingEnabled}
+          pointerEvents={isImmersive ? 'box-none' : 'auto'}
         >
           <Animated.View
             style={[
               styles.sheet,
               IS_WEB && styles.sheetWeb,
               fullScreen && styles.sheetFullScreen,
+              isImmersive && styles.sheetImmersive,
               effectiveKeyboardInset > 0 && styles.sheetWithKeyboard,
               minHeight != null && { minHeight },
               {
@@ -296,11 +322,20 @@ export function RunWalkSheetDrawer({
                 paddingBottom: fullScreen ? 0 : footer ? 0 : bottomInset,
               },
             ]}
+            pointerEvents={isImmersive ? 'box-none' : 'auto'}
           >
-            <LinearGradient
-              colors={[chromeTop, chromeBottom]}
-              style={StyleSheet.absoluteFillObject}
-            />
+            {!isImmersive ? (
+              <LinearGradient
+                colors={[chromeTop, chromeBottom]}
+                style={StyleSheet.absoluteFillObject}
+              />
+            ) : null}
+
+            {immersiveBackground ? (
+              <View style={styles.immersiveBackground} pointerEvents="auto">
+                {immersiveBackground}
+              </View>
+            ) : null}
 
             {sheetBackground ? (
               <View style={styles.sheetBackground} pointerEvents="none">
@@ -314,7 +349,15 @@ export function RunWalkSheetDrawer({
               </View>
             ) : null}
 
-            <View style={[styles.header, dense && styles.headerDense, styles.sheetForeground]}>
+            <View
+              style={[
+                styles.header,
+                dense && styles.headerDense,
+                isImmersive && styles.headerImmersive,
+                styles.sheetForeground,
+              ]}
+              pointerEvents="auto"
+            >
               <View style={styles.headerText}>
                 <Text style={[styles.title, isSleepTone && styles.titleSleep]}>{title}</Text>
                 {subtitle ? (
@@ -342,7 +385,11 @@ export function RunWalkSheetDrawer({
             </View>
 
             {fullScreen ? (
-              <View style={[styles.sheetForeground, styles.fullScreenColumnRoot]}>{sheetBody}</View>
+              isImmersive ? (
+                sheetBody
+              ) : (
+                <View style={[styles.sheetForeground, styles.fullScreenColumnRoot]}>{sheetBody}</View>
+              )
             ) : (
               sheetBody
             )}
@@ -373,6 +420,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     backgroundColor: drawerChrome.surfaceBottom,
+  },
+  hostImmersive: {
+    backgroundColor: '#f0f0f2',
+  },
+  immersiveBackground: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
   },
   hostFullScreenSleep: {
     backgroundColor: sleepTimeDrawerTheme.surfaceBottom,
@@ -432,6 +486,9 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     justifyContent: 'flex-start',
   },
+  sheetImmersive: {
+    backgroundColor: 'transparent',
+  },
   sheetBackground: {
     ...StyleSheet.absoluteFillObject,
   },
@@ -441,6 +498,10 @@ const styles = StyleSheet.create({
   bodyFill: {
     flex: 1,
     minHeight: 0,
+    overflow: 'hidden',
+  },
+  bodyFillImmersive: {
+    pointerEvents: 'box-none',
   },
   fullScreenColumnRoot: {
     flex: 1,
@@ -449,6 +510,9 @@ const styles = StyleSheet.create({
   fullScreenColumn: {
     flex: 1,
     minHeight: 0,
+  },
+  fullScreenColumnImmersive: {
+    pointerEvents: 'box-none',
   },
   sheetWithKeyboard: {
     maxHeight: '100%',
@@ -477,6 +541,12 @@ const styles = StyleSheet.create({
   },
   headerDense: {
     paddingBottom: 8,
+  },
+  headerImmersive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.06)',
+    paddingBottom: 14,
   },
   headerText: {
     flex: 1,
@@ -544,6 +614,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingBottom: 24,
   },
+  staticContentImmersive: {
+    paddingHorizontal: 0,
+    paddingBottom: 0,
+    pointerEvents: 'box-none',
+  },
   footer: {
     paddingHorizontal: 20,
     paddingTop: 8,
@@ -551,6 +626,21 @@ const styles = StyleSheet.create({
   },
   footerFullScreen: {
     flexShrink: 0,
+    zIndex: 4,
+    elevation: 4,
+    position: 'relative',
+  },
+  footerImmersive: {
+    paddingHorizontal: 0,
+    paddingTop: 0,
+    backgroundColor: 'transparent',
+  },
+  immersiveFooterHost: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 2,
   },
   footerDense: {
     paddingTop: 4,

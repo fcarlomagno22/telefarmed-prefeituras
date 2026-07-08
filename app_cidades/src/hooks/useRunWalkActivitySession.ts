@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { loadHealthConnections } from '../data/healthIntegrationsStorage'
+import { getRunWalkIntegracoesLeiturasTempoReal } from '../lib/api/vd/runWalk'
 import type { ActivityModality } from '../types/auth'
 import type { RunWalkActivityStep } from '../types/runWalk'
 import { GpsMotionEngine } from '../utils/gpsMotionEngine'
@@ -12,6 +14,10 @@ import {
   resolveCurrentActivityStep,
   type ActivityTrailPoint,
 } from '../utils/runWalkActivityStats'
+import {
+  hasActiveHealthIntegrationForLiveSession,
+  RUN_WALK_INTEGRATION_READINGS_POLL_MS,
+} from '../utils/runWalkIntegrationReadings'
 import {
   createListenerRegistry,
   type RunWalkLiveGpsFeed,
@@ -30,6 +36,7 @@ type UseRunWalkActivitySessionOptions = {
   structure?: RunWalkActivityStep[]
   enabled?: boolean
   gpsRecordingEnabled?: boolean
+  patientCpf?: string
 }
 
 type ActivitySessionSnapshot = {
@@ -57,8 +64,10 @@ export function useRunWalkActivitySession({
   structure,
   enabled = true,
   gpsRecordingEnabled = true,
+  patientCpf,
 }: UseRunWalkActivitySessionOptions) {
   const startedAtRef = useRef(Date.now())
+  const sessionStartedAtIsoRef = useRef(new Date().toISOString())
   const motionEngineRef = useRef(new GpsMotionEngine())
   const displaySpeedTrackerRef = useRef(new RunWalkDisplaySpeedTracker())
   const trailRef = useRef<ActivityTrailPoint[]>([])
@@ -76,6 +85,9 @@ export function useRunWalkActivitySession({
   const [isFinished, setIsFinished] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [frozenSnapshot, setFrozenSnapshot] = useState<ActivitySessionSnapshot | null>(null)
+  const [integrationPollingEnabled, setIntegrationPollingEnabled] = useState(false)
+  const [integrationHeartRateBpm, setIntegrationHeartRateBpm] = useState<number | null>(null)
+  const [integrationSessionSteps, setIntegrationSessionSteps] = useState<number | null>(null)
   const elapsedSecondsRef = useRef(0)
   const pausedElapsedRef = useRef(0)
   const lastIngestedAtRef = useRef<number | null>(null)
@@ -172,6 +184,7 @@ export function useRunWalkActivitySession({
     if (!enabled) return
 
     startedAtRef.current = Date.now()
+    sessionStartedAtIsoRef.current = new Date().toISOString()
     elapsedSecondsRef.current = 0
     lastIngestedAtRef.current = null
     motionEngineRef.current.reset()
@@ -189,8 +202,72 @@ export function useRunWalkActivitySession({
     setIsFinished(false)
     setIsPaused(false)
     setFrozenSnapshot(null)
+    setIntegrationHeartRateBpm(null)
+    setIntegrationSessionSteps(null)
     pausedElapsedRef.current = 0
   }, [enabled, modality, durationMinutes])
+
+  useEffect(() => {
+    if (!enabled || !patientCpf || patientCpf === 'guest') {
+      setIntegrationPollingEnabled(false)
+      return
+    }
+
+    let cancelled = false
+
+    async function resolveIntegrationPolling() {
+      try {
+        const connections = await loadHealthConnections(patientCpf)
+        if (cancelled) return
+        setIntegrationPollingEnabled(hasActiveHealthIntegrationForLiveSession(connections))
+      } catch {
+        if (!cancelled) setIntegrationPollingEnabled(false)
+      }
+    }
+
+    void resolveIntegrationPolling()
+
+    return () => {
+      cancelled = true
+    }
+  }, [enabled, patientCpf])
+
+  useEffect(() => {
+    if (!enabled || !integrationPollingEnabled || isFinished || patientCpf === 'guest') {
+      return
+    }
+
+    let cancelled = false
+
+    async function pollIntegrationReadings() {
+      try {
+        const result = await getRunWalkIntegracoesLeiturasTempoReal({
+          sessionStartedAt: sessionStartedAtIsoRef.current,
+        })
+        if (cancelled) return
+
+        if (result.heartRate.available && result.heartRate.bpm != null) {
+          setIntegrationHeartRateBpm(result.heartRate.bpm)
+        }
+
+        if (result.steps.available && result.steps.sessionDelta != null) {
+          setIntegrationSessionSteps(result.steps.sessionDelta)
+        }
+      } catch {
+        // Mantém estimativas locais quando o polling falha.
+      }
+    }
+
+    void pollIntegrationReadings()
+    const timer = setInterval(() => {
+      void pollIntegrationReadings()
+    }, RUN_WALK_INTEGRATION_READINGS_POLL_MS)
+
+    return () => {
+      cancelled = true
+      clearInterval(timer)
+    }
+  }, [enabled, integrationPollingEnabled, isFinished, patientCpf])
 
   useEffect(() => {
     if (!isTracking) return
@@ -302,8 +379,15 @@ export function useRunWalkActivitySession({
   const activeSpeedKmh = frozenSnapshot?.currentSpeedKmh ?? metrics.currentSpeedKmh
   const activeDisplaySpeedKmh = frozenSnapshot?.displaySpeedKmh ?? metrics.displaySpeedKmh
   const activeTrail = frozenSnapshot?.trail ?? metrics.trail
-  const stepCount = estimateStepsFromDistance(activeDistanceKm, modality)
-  const heartRateBpm = estimateHeartRateBpm(modality, activeElapsedSeconds)
+  const stepCount = (() => {
+    const estimatedSteps = estimateStepsFromDistance(activeDistanceKm, modality)
+    if (integrationSessionSteps != null && integrationSessionSteps > 0) {
+      return Math.max(estimatedSteps, integrationSessionSteps)
+    }
+    return estimatedSteps
+  })()
+  const heartRateBpm =
+    integrationHeartRateBpm ?? estimateHeartRateBpm(modality, activeElapsedSeconds)
   const currentStep = resolveCurrentActivityStep(
     activitySteps,
     activeElapsedSeconds,
@@ -319,6 +403,8 @@ export function useRunWalkActivitySession({
     averageSpeedKmh: activeAverageSpeedKmh,
     stepCount,
     heartRateBpm,
+    heartRateFromIntegration: integrationHeartRateBpm != null,
+    stepsFromIntegration: integrationSessionSteps != null && integrationSessionSteps > 0,
     trail: activeTrail,
     mapTrailFeed,
     currentStep,

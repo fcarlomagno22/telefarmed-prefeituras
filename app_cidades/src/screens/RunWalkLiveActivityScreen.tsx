@@ -104,6 +104,7 @@ export function RunWalkLiveActivityScreen() {
     gpsFeed,
     enabled: true,
     gpsRecordingEnabled,
+    patientCpf: user?.cpf,
   })
 
   useEffect(() => {
@@ -309,11 +310,13 @@ export function RunWalkLiveActivityScreen() {
 
       <RunWalkActivitySosDrawer
         visible={sosDrawerVisible}
+        patientCpf={user?.cpf ?? 'guest'}
         onClose={() => setSosDrawerVisible(false)}
       />
 
       <RunWalkShareLocationDrawer
         visible={shareLocationDrawerVisible}
+        patientCpf={user?.cpf ?? 'guest'}
         participantName={user?.name ?? 'Participante'}
         activityName={modalityLabel}
         latitude={location.coordinates?.latitude ?? null}

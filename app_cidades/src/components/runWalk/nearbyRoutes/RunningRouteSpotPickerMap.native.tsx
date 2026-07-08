@@ -118,6 +118,7 @@ export function RunningRouteSpotPickerMap({
   initialPin = null,
   userLocation = null,
   onPick,
+  fullBleed = false,
 }: RunningRouteSpotPickerMapProps) {
   const webViewRef = useRef<AppWebViewRef>(null)
 
@@ -144,7 +145,7 @@ export function RunningRouteSpotPickerMap({
   )
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, fullBleed && styles.containerFullBleed]}>
       <AppWebView
         ref={webViewRef}
         originWhitelist={['*']}
@@ -172,6 +173,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
+  },
+  containerFullBleed: {
+    ...StyleSheet.absoluteFillObject,
+    minHeight: 0,
+    borderRadius: 0,
+    borderWidth: 0,
   },
   webView: {
     flex: 1,
