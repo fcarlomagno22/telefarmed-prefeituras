@@ -316,7 +316,6 @@ export function RunWalkLiveActivityScreen() {
 
       <RunWalkShareLocationDrawer
         visible={shareLocationDrawerVisible}
-        patientCpf={user?.cpf ?? 'guest'}
         participantName={user?.name ?? 'Participante'}
         activityName={modalityLabel}
         latitude={location.coordinates?.latitude ?? null}

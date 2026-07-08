@@ -365,7 +365,6 @@ export function RunWalkPreparationScreen() {
 
       <RunWalkShareLocationDrawer
         visible={shareLocationDrawerVisible}
-        patientCpf={user?.cpf ?? 'guest'}
         participantName={user?.name ?? 'Participante'}
         activityName={activityName}
         latitude={location.coordinates?.latitude ?? null}
