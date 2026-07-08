@@ -2,7 +2,7 @@ import Constants from 'expo-constants'
 import * as MailComposer from 'expo-mail-composer'
 import { Platform } from 'react-native'
 import { openAppMailtoUrl, openAppPhoneCall, openAppWhatsAppMessage } from '../adapters/appLinking'
-import { buildSupportMailto, menuSupportConfig } from '../config/menuSupport'
+import { buildSupportMailto, getMenuSupportConfig } from '../config/menuSupport'
 
 export type SupportTopicId =
   | 'appointments'
@@ -68,6 +68,7 @@ function getTopicLabel(topic: SupportTopicId): string {
 }
 
 function buildSupportRequestBody(payload: SupportRequestPayload): string {
+  const config = getMenuSupportConfig()
   const appVersion = Constants.expoConfig?.version ?? '1.0.0'
   const preferenceLabel =
     payload.contactPreference === 'whatsapp'
@@ -89,7 +90,7 @@ function buildSupportRequestBody(payload: SupportRequestPayload): string {
     '---',
     `App: Telefarmed Cidades v${appVersion}`,
     `Plataforma: ${Platform.OS}`,
-    `Município: ${menuSupportConfig.municipalityName}`,
+    `Município: ${config.municipalityName}`,
     payload.userName ? `Nome: ${payload.userName}` : '',
     payload.userEmail ? `E-mail: ${payload.userEmail}` : '',
     payload.userPhone ? `Telefone: ${payload.userPhone}` : '',
@@ -99,19 +100,21 @@ function buildSupportRequestBody(payload: SupportRequestPayload): string {
 }
 
 function buildSupportRequestSubject(topic: SupportTopicId): string {
-  return `Suporte — ${getTopicLabel(topic)} — Telefarmed ${menuSupportConfig.municipalityName}`
+  const config = getMenuSupportConfig()
+  return `Suporte — ${getTopicLabel(topic)} — Telefarmed ${config.municipalityName}`
 }
 
 async function sendSupportViaEmail(
   payload: SupportRequestPayload,
 ): Promise<'sent' | 'saved' | 'opened'> {
+  const config = getMenuSupportConfig()
   const subject = buildSupportRequestSubject(payload.topic)
   const body = buildSupportRequestBody(payload)
   const isMailAvailable = await MailComposer.isAvailableAsync()
 
   if (isMailAvailable) {
     const result = await MailComposer.composeAsync({
-      recipients: [menuSupportConfig.email],
+      recipients: [config.email],
       subject,
       body,
     })
@@ -132,23 +135,24 @@ async function sendSupportViaEmail(
 export async function sendSupportRequest(
   payload: SupportRequestPayload,
 ): Promise<'sent' | 'saved' | 'opened' | 'channel'> {
+  const config = getMenuSupportConfig()
   const body = buildSupportRequestBody(payload)
 
   if (payload.contactPreference === 'whatsapp') {
-    if (!menuSupportConfig.whatsApp) {
+    if (!config.whatsApp) {
       return sendSupportViaEmail(payload)
     }
 
-    await openAppWhatsAppMessage(menuSupportConfig.whatsApp, body)
+    await openAppWhatsAppMessage(config.whatsApp, body)
     return 'channel'
   }
 
   if (payload.contactPreference === 'phone') {
-    if (!menuSupportConfig.phone) {
+    if (!config.phone) {
       return sendSupportViaEmail(payload)
     }
 
-    await openAppPhoneCall(menuSupportConfig.phone)
+    await openAppPhoneCall(config.phone)
     return 'channel'
   }
 

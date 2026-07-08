@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons'
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { appEnv } from '../../config/env'
+import { useTenant } from '../../contexts/TenantContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { colors } from '../../theme/colors'
 import { maskCpf } from '../../utils/cpf'
@@ -70,6 +70,7 @@ export function MenuProfileDrawer({
   userCpf,
   selfieUri,
 }: MenuProfileDrawerProps) {
+  const { branding } = useTenant()
   const { user, updateContact } = useAuth()
   const [editingField, setEditingField] = useState<MenuProfileContactField | null>(null)
 
@@ -104,7 +105,7 @@ export function MenuProfileDrawer({
           <ProfileAvatar selfieUri={resolvedSelfie} />
           <View style={styles.heroCopy}>
             <Text style={styles.heroName}>{resolvedName?.trim() || 'Usuário'}</Text>
-            <Text style={styles.heroSubtitle}>Telefarmed {appEnv.municipalityName}</Text>
+            <Text style={styles.heroSubtitle}>Telefarmed {branding.municipalityName}</Text>
           </View>
         </View>
 

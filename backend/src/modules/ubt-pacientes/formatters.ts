@@ -4,6 +4,10 @@ import {
   genderToSexo,
   parseBirthDateToIso,
 } from '../admin-pacientes/formatters.js'
+import {
+  isPatientIncompleteForUbtFirstVisit,
+  type UbtFirstVisitIncompletenessMeta,
+} from '../../lib/pacienteClinicalCompleteness.js'
 import type { UbtPacienteDto, UbtPatientRegistrationPayload } from './types.js'
 
 function normalizeRegistrationContacts(
@@ -54,13 +58,17 @@ export function mapDetailToRegistrationPayload(
       ? 'masculino'
       : profile?.genderLabel === 'Feminino'
         ? 'feminino'
-        : 'nao_informar'
+        : ''
+
+  const birthDateRaw = detail.birthDate?.trim() ?? ''
+  const birthDate =
+    birthDateRaw && birthDateRaw !== '—' ? parseBirthDateToIso(birthDateRaw) : ''
 
   return {
     fullName: detail.name,
     socialName: profile?.socialName ?? '',
     cpf: detail.cpf.includes('.') ? detail.cpf : formatCpfDisplay(detail.cpf.replace(/\D/g, '')),
-    birthDate: parseBirthDateToIso(detail.birthDate),
+    birthDate,
     gender,
     nationality: profile?.nationality ?? '',
     raceColor: profile?.raceColor ?? '',
@@ -126,8 +134,9 @@ export function preCadastroDadosToRegistrationPayload(
   }
 }
 
-export function isPatientIncompleteForFirstVisit(patient: AdminMunicipalPatientDto): boolean {
-  if (patient.dataQuality === 'incomplete') return true
-  if (!patient.avatarUrl?.trim()) return true
-  return false
+export function isPatientIncompleteForFirstVisit(
+  patient: AdminMunicipalPatientDto,
+  meta?: UbtFirstVisitIncompletenessMeta,
+): boolean {
+  return isPatientIncompleteForUbtFirstVisit(patient, meta)
 }

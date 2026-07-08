@@ -1,4 +1,7 @@
+import type { PacienteCadastroOrigem } from '../../lib/pacienteCadastroOrigem.js'
 import type { TipoEntidade } from '../../lib/entidadeBranding/types.js'
+
+export type { PacienteCadastroOrigem } from '../../lib/pacienteCadastroOrigem.js'
 
 export type AdminContractStatus = 'ativo' | 'encerrado'
 
@@ -270,8 +273,19 @@ export type UpdatePacienteInput = {
   cns?: string
   cnsPendente?: boolean
   registrationConsent?: PatientRegistrationConsentInput
+  consentimentoCadastro?: Record<string, unknown>
+  status?: PacienteStatus
 }
 
-export type CreatePacienteInput = PreCadastroRegistrationInput & {
+export type CreatePacienteInput = Omit<
+  PreCadastroRegistrationInput,
+  'birthDate' | 'gender' | 'nationality' | 'raceColor'
+> & {
+  birthDate?: string
+  gender?: string
+  nationality?: string
+  raceColor?: string
+  consentimentoCadastro?: Record<string, unknown>
+  cadastroOrigem?: PacienteCadastroOrigem
   status?: PacienteStatus
 }

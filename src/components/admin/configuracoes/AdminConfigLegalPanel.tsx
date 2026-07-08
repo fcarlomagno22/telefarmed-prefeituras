@@ -24,6 +24,7 @@ const portalOptions: { value: LegalDocumentPortal; label: string }[] = [
   { value: 'prefeitura', label: 'Prefeitura' },
   { value: 'ubt', label: 'UBT' },
   { value: 'terminal', label: 'Terminal' },
+  { value: 'vd', label: 'APP' },
 ]
 
 const defaultPortals: LegalDocumentPortal[] = ['admin', 'prefeitura', 'ubt', 'terminal']

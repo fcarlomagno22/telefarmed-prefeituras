@@ -3,15 +3,17 @@ import { useState } from 'react'
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { AppShell, formStyles } from '../components/AppShell'
 import { PrimaryButton } from '../components/PrimaryButton'
-import { appEnv } from '../config/env'
+import { useTenant } from '../contexts/TenantContext'
 import { useAuth } from '../contexts/AuthContext'
-import { colors } from '../theme/colors'
+import { useTheme } from '../contexts/ThemeContext'
+import { colors as defaultColors } from '../theme/colors'
 import { isValidCpf, maskCpf } from '../utils/cpf'
 import { resolveBrandImage } from '../utils/resolveBrandImage'
 
-const logoSource = resolveBrandImage(appEnv.logoUrl, 'logo.png')
-
 export function LoginScreen() {
+  const { branding } = useTenant()
+  const { colors } = useTheme()
+  const logoSource = resolveBrandImage(branding.logoUrl ?? '', 'logo.png')
   const { navigateTo, canUseBiometricLogin, loginWithBiometric, loginWithCredentials } = useAuth()
   const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
@@ -45,6 +47,12 @@ export function LoginScreen() {
       if (result === 'invalid') {
         setError('CPF ou senha inválidos.')
       }
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message.trim()
+          ? err.message
+          : 'Não foi possível entrar. Tente novamente.',
+      )
     } finally {
       setIsLoading(false)
     }
@@ -201,7 +209,7 @@ const styles = StyleSheet.create({
     marginTop: -4,
   },
   backButtonText: {
-    color: colors.primaryLight,
+    color: defaultColors.primaryLight,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -222,7 +230,7 @@ const styles = StyleSheet.create({
     marginTop: -4,
   },
   forgotText: {
-    color: colors.primaryLight,
+    color: defaultColors.primaryLight,
     fontSize: 13,
     fontWeight: '600',
   },
@@ -236,10 +244,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.surfaceBorder,
+    backgroundColor: defaultColors.surfaceBorder,
   },
   dividerText: {
-    color: colors.textSubtle,
+    color: defaultColors.textSubtle,
     fontSize: 12,
     fontWeight: '600',
     textTransform: 'uppercase',
@@ -265,7 +273,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   biometricButtonText: {
-    color: colors.primaryLight,
+    color: defaultColors.primaryLight,
     fontSize: 15,
     fontWeight: '700',
   },
@@ -277,18 +285,18 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   signupText: {
-    color: colors.textMuted,
+    color: defaultColors.textMuted,
     fontSize: 14,
   },
   signupLink: {
-    color: colors.primaryLight,
+    color: defaultColors.primaryLight,
     fontSize: 14,
     fontWeight: '700',
   },
   footer: {
     marginTop: 24,
     textAlign: 'center',
-    color: colors.textSubtle,
+    color: defaultColors.textSubtle,
     fontSize: 11,
     lineHeight: 16,
   },

@@ -26,42 +26,42 @@
     },
     {
       "source": "/_expo/:path*",
-      "has": [{ "type": "host", "value": "vd.telefarmed.com.br" }],
+      "has": [{ "type": "host", "value": "^vd(-[^.]+)?\\.telefarmed\\.com\\.br$" }],
       "destination": "/vd-app/_expo/:path*"
     },
     {
       "source": "/assets/:path*",
-      "has": [{ "type": "host", "value": "vd.telefarmed.com.br" }],
+      "has": [{ "type": "host", "value": "^vd(-[^.]+)?\\.telefarmed\\.com\\.br$" }],
       "destination": "/vd-app/assets/:path*"
     },
     {
       "source": "/favicon.ico",
-      "has": [{ "type": "host", "value": "vd.telefarmed.com.br" }],
+      "has": [{ "type": "host", "value": "^vd(-[^.]+)?\\.telefarmed\\.com\\.br$" }],
       "destination": "/vd-app/favicon.ico"
     },
     {
       "source": "/sw.js",
-      "has": [{ "type": "host", "value": "vd.telefarmed.com.br" }],
+      "has": [{ "type": "host", "value": "^vd(-[^.]+)?\\.telefarmed\\.com\\.br$" }],
       "destination": "/vd-app/sw.js"
     },
     {
       "source": "/manifest.webmanifest",
-      "has": [{ "type": "host", "value": "vd.telefarmed.com.br" }],
+      "has": [{ "type": "host", "value": "^vd(-[^.]+)?\\.telefarmed\\.com\\.br$" }],
       "destination": "/vd-app/manifest.webmanifest"
     },
     {
       "source": "/icon-512.png",
-      "has": [{ "type": "host", "value": "vd.telefarmed.com.br" }],
+      "has": [{ "type": "host", "value": "^vd(-[^.]+)?\\.telefarmed\\.com\\.br$" }],
       "destination": "/vd-app/icon-512.png"
     },
     {
       "source": "/metadata.json",
-      "has": [{ "type": "host", "value": "vd.telefarmed.com.br" }],
+      "has": [{ "type": "host", "value": "^vd(-[^.]+)?\\.telefarmed\\.com\\.br$" }],
       "destination": "/vd-app/metadata.json"
     },
     {
       "source": "/(.*)",
-      "has": [{ "type": "host", "value": "vd.telefarmed.com.br" }],
+      "has": [{ "type": "host", "value": "^vd(-[^.]+)?\\.telefarmed\\.com\\.br$" }],
       "destination": "/vd-app/index.html"
     },
     {

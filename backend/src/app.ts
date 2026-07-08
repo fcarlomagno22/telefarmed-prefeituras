@@ -67,6 +67,9 @@ import {
 } from './modules/pos-consulta/routes.js'
 import { registerInternalCronRoutes } from './modules/internal-cron/routes.js'
 import { registerPublicTenantRoutes } from './modules/public-tenant/routes.js'
+import { registerVdPublicTenantRoutes } from './modules/vd-tenant/routes.js'
+import { registerVdCadastroRoutes } from './modules/vd-cadastro/routes.js'
+import { registerVdAuthRoutes } from './modules/vd-auth/routes.js'
 import { registerPublicDemoRoutes } from './modules/public-demo/routes.js'
 import { registerIcdReferenceRoutes } from './modules/icd-reference/routes.js'
 import { registerRh3WebhookRoutes } from './modules/rh3-webhook/routes.js'
@@ -305,6 +308,27 @@ export async function buildApp() {
       await registerPublicTenantRoutes(publicTenant)
     },
     { prefix: '/api/v1/public' },
+  )
+
+  await app.register(
+    async (vdTenant) => {
+      await registerVdPublicTenantRoutes(vdTenant)
+    },
+    { prefix: '/api/v1/vd' },
+  )
+
+  await app.register(
+    async (vdCadastro) => {
+      await registerVdCadastroRoutes(vdCadastro)
+    },
+    { prefix: '/api/v1/vd/cadastro' },
+  )
+
+  await app.register(
+    async (vdAuth) => {
+      await registerVdAuthRoutes(vdAuth)
+    },
+    { prefix: '/api/v1/vd/auth' },
   )
 
   await app.register(

@@ -1,6 +1,6 @@
 import type { ImageSourcePropType } from 'react-native'
 import type { AppColorScheme } from '../data/appColorSchemeStorage'
-import { appEnv } from '../config/env'
+import { getRuntimeBranding } from '../config/runtimeBranding'
 
 const localAssets = {
   'logo.png': require('../../assets/logo.png'),
@@ -41,9 +41,15 @@ export function resolveBrandImage(
   return localAssets[toAssetKey(value) ?? fallback]
 }
 
-export function resolveThemeBackgroundImage(scheme: AppColorScheme): ImageSourcePropType {
+export function resolveThemeBackgroundImage(
+  scheme: AppColorScheme,
+  configuredBackgroundUrl?: string,
+): ImageSourcePropType {
   const fallback = THEME_BACKGROUND_FALLBACK[scheme]
-  const configured = appEnv.backgroundImageUrl.trim()
+  const configured =
+    configuredBackgroundUrl?.trim() ||
+    getRuntimeBranding().loginBackgroundUrl?.trim() ||
+    ''
 
   if (!configured) {
     return localAssets[fallback]

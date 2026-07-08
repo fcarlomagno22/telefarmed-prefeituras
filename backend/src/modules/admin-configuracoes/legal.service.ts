@@ -22,12 +22,13 @@ export const PRESET_LEGAL_DOCUMENT_IDS = [
   'cadastro_autorizacao_teleconsulta',
   'cadastro_ciencia_dados',
   'cadastro_permissao_notificacoes',
+  'vd_cadastro_termos_uso',
 ] as const
 
 const DOCUMENT_COLUMNS =
   'id, titulo, conteudo, versao, rotulo_atualizacao, publicado, portais, ordem'
 
-const VALID_PORTALS = new Set<LegalDocumentPortal>(['admin', 'prefeitura', 'ubt', 'terminal'])
+const VALID_PORTALS = new Set<LegalDocumentPortal>(['admin', 'prefeitura', 'ubt', 'terminal', 'vd'])
 
 type LegalDocumentRow = {
   id: string

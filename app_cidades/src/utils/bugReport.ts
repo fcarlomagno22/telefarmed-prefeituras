@@ -1,6 +1,6 @@
 import Constants from 'expo-constants'
 import { Platform } from 'react-native'
-import { menuSupportConfig } from '../config/menuSupport'
+import { getMenuSupportConfig } from '../config/menuSupport'
 
 export type FeedbackReportType = 'bug' | 'suggestion'
 
@@ -39,7 +39,8 @@ function buildReportBody(payload: BugReportPayload): string {
 
 function buildReportSubject(type: FeedbackReportType): string {
   const prefix = type === 'bug' ? 'Bug report' : 'Sugestão'
-  return `${prefix} — Telefarmed ${menuSupportConfig.municipalityName}`
+  const config = getMenuSupportConfig()
+  return `${prefix} — Telefarmed ${config.municipalityName}`
 }
 
 export async function sendBugReport(payload: BugReportPayload): Promise<'sent'> {

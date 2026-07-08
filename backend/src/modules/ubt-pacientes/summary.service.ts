@@ -7,7 +7,7 @@ import type { UbtPacientesAboutDto, UbtPacientesSummaryDto } from './types.js'
 
 type PatientRow = {
   id: string
-  data_nascimento: string
+  data_nascimento: string | null
   sexo: string
   endereco: Record<string, unknown> | null
   criado_em: string
@@ -99,8 +99,10 @@ export async function getUbtPacientesSummary(
   ])
 
   for (const row of rows) {
-    const age = ageFromBirthDateIso(row.data_nascimento.slice(0, 10))
-    ageBuckets.set(ageBucket(age), (ageBuckets.get(ageBucket(age)) ?? 0) + 1)
+    if (row.data_nascimento?.trim()) {
+      const age = ageFromBirthDateIso(row.data_nascimento.slice(0, 10))
+      ageBuckets.set(ageBucket(age), (ageBuckets.get(ageBucket(age)) ?? 0) + 1)
+    }
 
     if (row.sexo === 'feminino') {
       genderBuckets.set('Feminino', (genderBuckets.get('Feminino') ?? 0) + 1)

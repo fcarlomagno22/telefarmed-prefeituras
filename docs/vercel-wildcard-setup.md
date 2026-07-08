@@ -14,8 +14,12 @@ Passo a passo didático para configurar na Vercel o que **só você** pode fazer
 | `https://ubs-centro-sjc.telefarmed.com.br/login` | Operador do terminal UBT |
 | `https://admin.telefarmed.com.br` | Admin Telefarmed (inalterado) |
 | `https://profissional.telefarmed.com.br` | Médicos (inalterado) |
+| `https://vd.telefarmed.com.br` | App cidadão interno |
+| `https://vd-{slug}.telefarmed.com.br` | App cidadão whitelabel por entidade |
 
 Cada cliente tem **seu próprio subdomínio** com logo e cor na tela de login.
+
+> **App cidadão (`vd` / `vd-{slug}`):** detalhes de rewrite, build único e tenant runtime em [`vercel-vd-app-wildcard.md`](vercel-vd-app-wildcard.md).
 
 ---
 
@@ -79,8 +83,9 @@ Cada cliente tem **seu próprio subdomínio** com logo e cor na tela de login.
    - `profissional.telefarmed.com.br`
    - `ubt.telefarmed.com.br`
    - `seguranca.telefarmed.com.br`
+   - `vd.telefarmed.com.br` (app cidadão interno; opcional como entrada explícita)
 
-   Eles continuam funcionando; o wildcard cobre **todos os outros** slugs de clientes.
+   Eles continuam funcionando; o wildcard cobre **todos os outros** slugs de clientes, incluindo **`vd-{slug}`** para o app cidadão.
 
 ### 1.5 Conferir status
 
@@ -180,6 +185,8 @@ A Vercel só entrega o site; o **slug** vem do banco.
 - [ ] `https://admin.telefarmed.com.br` abre o admin.
 - [ ] `https://{slug-cliente}.telefarmed.com.br/login` mostra logo/cor e tela de login da gestão.
 - [ ] `https://{slug-ubt}.telefarmed.com.br/login` abre o terminal UBT.
+- [ ] `https://vd.telefarmed.com.br` abre o app cidadão (não o portal gestão).
+- [ ] `https://vd-{slug-entidade}.telefarmed.com.br` mostra branding da entidade no app cidadão.
 - [ ] `https://slug-inexistente.telefarmed.com.br` mostra página “Endereço não encontrado”.
 - [ ] Login no slug do cliente **não** funciona em outro slug (sessão isolada por host — evolução futura reforça isso).
 

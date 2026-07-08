@@ -1,4 +1,4 @@
-export type AuditoriaPortal = 'admin' | 'prefeitura' | 'ubt' | 'profissional' | 'atendimento'
+export type AuditoriaPortal = 'admin' | 'prefeitura' | 'ubt' | 'profissional' | 'atendimento' | 'vd'
 
 export type AuditoriaAcessoAcao =
   | 'login_sucesso'

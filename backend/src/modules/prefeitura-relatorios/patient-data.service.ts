@@ -56,6 +56,7 @@ const PATIENT_SELECT = `
 
 export function computeMissingFields(row: PatientListagemRow): string[] {
   const missing: string[] = []
+  if (!row.data_nascimento?.trim()) missing.push('data de nascimento')
   if (!row.telefone?.trim()) missing.push('telefone')
   if (!row.email?.trim()) missing.push('e-mail')
   const contacts = row.contato_emergencia

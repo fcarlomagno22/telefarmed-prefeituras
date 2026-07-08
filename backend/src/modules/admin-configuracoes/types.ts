@@ -104,7 +104,7 @@ export type UpdateExamItemInput = {
   categoryId: string
 }
 
-export type LegalDocumentPortal = 'admin' | 'prefeitura' | 'ubt' | 'terminal'
+export type LegalDocumentPortal = 'admin' | 'prefeitura' | 'ubt' | 'terminal' | 'vd'
 
 export type LegalDocumentDto = {
   id: string

@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BiometricPromptModal } from '../components/BiometricPromptModal'
 import { BottomTabBar, BottomTabId } from '../components/BottomTabBar'
 import { GuestWelcomeCard } from '../components/GuestWelcomeCard'
-import { HealthSummaryCard } from '../components/HealthSummaryCard'
 import { HomeHeader } from '../components/HomeHeader'
 import { HomeQuickActions, HomeQuickActionId } from '../components/HomeQuickActions'
 import { MenuDrawer } from '../components/MenuDrawer'
@@ -222,14 +221,9 @@ export function HomeScreen() {
           nestedScrollEnabled
           keyboardShouldPersistTaps="handled"
         >
-          {isAuthenticated ? (
-            <HealthSummaryCard
-              skeleton={showSkeleton}
-              onPressMetrics={() => navigateTo('my-metrics')}
-            />
-          ) : (
+          {!isAuthenticated ? (
             <GuestWelcomeCard skeleton={showSkeleton} />
-          )}
+          ) : null}
           <HomeQuickActions onActionPress={handleQuickAction} skeleton={showSkeleton} />
           <PromoCarousel
             banners={promoBanners}

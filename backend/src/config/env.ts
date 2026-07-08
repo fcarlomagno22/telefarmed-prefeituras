@@ -54,6 +54,8 @@ const envSchema = z.object({
   CRON_SECRET: z.string().min(16).optional(),
   /** Domínio raiz dos tenants (ex.: telefarmed.com.br). */
   PUBLIC_ROOT_DOMAIN: z.string().min(3).default('telefarmed.com.br'),
+  /** Slug da entidade em vd.telefarmed.com.br (padrão: telefarmed-app). */
+  VD_PLATFORM_ENTITY_SLUG: z.string().min(3).max(50).optional(),
   /** Aceita origens https://{slug}.PUBLIC_ROOT_DOMAIN e http://{slug}.localhost (dev). */
   CORS_ALLOW_TENANT_ORIGINS: z
     .string()
@@ -97,6 +99,7 @@ const parsedEnv = envSchema.parse({
   SMTP_FROM: envValue('SMTP_FROM'),
   CRON_SECRET: envValue('CRON_SECRET'),
   PUBLIC_ROOT_DOMAIN: envValue('PUBLIC_ROOT_DOMAIN'),
+  VD_PLATFORM_ENTITY_SLUG: envValue('VD_PLATFORM_ENTITY_SLUG'),
   CORS_ALLOW_TENANT_ORIGINS: envValue('CORS_ALLOW_TENANT_ORIGINS'),
   WHO_ICD_CLIENT_ID: envValue('WHO_ICD_CLIENT_ID'),
   WHO_ICD_CLIENT_SECRET: envValue('WHO_ICD_CLIENT_SECRET'),

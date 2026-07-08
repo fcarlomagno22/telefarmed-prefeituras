@@ -1,6 +1,6 @@
 import type { EntidadeTerminologia, TipoEntidade } from '../entidadeBranding/types.js'
 
-export type TenantKind = 'gestao' | 'ubt' | 'platform'
+export type TenantKind = 'gestao' | 'ubt' | 'platform' | 'vd'
 
 export type TenantBranding = {
   logoUrl: string | null

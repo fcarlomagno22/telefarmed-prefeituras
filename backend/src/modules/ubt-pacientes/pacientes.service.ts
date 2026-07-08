@@ -1,4 +1,5 @@
 import { normalizeCpf } from '../../lib/cpf.js'
+import { assertEntityContractActive } from '../../lib/entidadeContrato.js'
 import { supabaseAdmin } from '../../db/supabase.js'
 import {
   createPaciente,
@@ -15,6 +16,9 @@ import {
   mapDetailToRegistrationPayload,
   preCadastroDadosToRegistrationPayload,
 } from './formatters.js'
+import {
+  UBT_INCOMPLETE_REGISTRATION_SPECIALTY,
+} from '../../lib/pacienteClinicalCompleteness.js'
 import { assertPacienteBelongsToEntity } from './ownership.js'
 import type {
   UbtPacienteDto,
@@ -27,31 +31,15 @@ import { loadConsultationStats } from './list.service.js'
 
 type UbtAuthScope = Pick<UbtScope, 'entidadeContratanteId' | 'unidadeUbtId'>
 
+const UBT_CONTRACT_INACTIVE_MESSAGE =
+  'Esta entidade ainda não possui contrato ativo. Cadastre o contrato no Admin → Clientes antes de recepcionar pacientes.'
+
 type PreCadastroRow = {
   id: string
   cpf: string
   dados: Record<string, unknown>
   status: string
   paciente_id: string | null
-}
-
-async function assertEntityContractActive(entidadeId: string): Promise<void> {
-  const { data, error } = await supabaseAdmin
-    .from('contratos_entidade')
-    .select('id')
-    .eq('entidade_contratante_id', entidadeId)
-    .eq('status', 'ativo')
-    .limit(1)
-    .maybeSingle()
-
-  if (error) throw error
-  if (!data) {
-    throw new UbtPacientesError(
-      'Esta entidade ainda não possui contrato ativo. Cadastre o contrato no Admin → Clientes antes de recepcionar pacientes.',
-      'CONTRACT_INACTIVE',
-      403,
-    )
-  }
 }
 
 async function isLinkedToUnit(pacienteId: string, unidadeUbtId: string): Promise<boolean> {
@@ -149,7 +137,7 @@ export async function lookupUbtPatient(
   scope: UbtAuthScope,
   query: UbtPatientLookupQuery,
 ): Promise<UbtPatientLookupResult> {
-  await assertEntityContractActive(scope.entidadeContratanteId)
+  await assertEntityContractActive(scope.entidadeContratanteId, UBT_CONTRACT_INACTIVE_MESSAGE)
 
   const cpf = normalizeCpf(query.cpf)
   const contractActive = true
@@ -166,28 +154,32 @@ export async function lookupUbtPatient(
     const patient = mapDetailToRegistrationPayload(detail)
     const linkedToUnit = await isLinkedToUnit(existing.id, scope.unidadeUbtId)
 
-    const { data: statusRow, error: statusError } = await supabaseAdmin
+    const { data: completenessRow, error: completenessError } = await supabaseAdmin
       .from('pacientes')
-      .select('status')
+      .select('status, consentimento_cadastro')
       .eq('id', existing.id)
       .maybeSingle()
 
-    if (statusError) throw statusError
-    const isPreCadastro = statusRow?.status === 'pre_cadastro'
+    if (completenessError) throw completenessError
+    const isPreCadastro = completenessRow?.status === 'pre_cadastro'
 
     const incomplete =
-      existing.dataQuality === 'incomplete' ||
-      isPatientIncompleteForFirstVisit(existing) ||
-      isPreCadastro
+      isPreCadastro ||
+      isPatientIncompleteForFirstVisit(existing, {
+        consentimento_cadastro: completenessRow?.consentimento_cadastro as
+          | Record<string, unknown>
+          | null
+          | undefined,
+      })
 
-    if (incomplete && query.specialtyId && query.specialtyName) {
+    if (incomplete) {
       return {
         status: 'found_pending_first_visit',
         patient,
         patientId: existing.id,
         preCadastroId: pendingPreCadastro?.id,
-        specialtyId: query.specialtyId,
-        specialtyName: query.specialtyName,
+        specialtyId: query.specialtyId ?? UBT_INCOMPLETE_REGISTRATION_SPECIALTY.id,
+        specialtyName: query.specialtyName ?? UBT_INCOMPLETE_REGISTRATION_SPECIALTY.name,
         linkedToUnit,
         contractActive,
       }
@@ -248,13 +240,14 @@ export async function createUbtPaciente(
   scope: UbtAuthScope,
   input: UbtPatientRegistrationPayload,
 ): Promise<UbtPacienteDto> {
-  await assertEntityContractActive(scope.entidadeContratanteId)
+  await assertEntityContractActive(scope.entidadeContratanteId, UBT_CONTRACT_INACTIVE_MESSAGE)
 
   const detail = await createPaciente({
     ...input,
     entidadeContratanteId: scope.entidadeContratanteId,
     unidadeUbtId: scope.unidadeUbtId,
     status: 'ativo',
+    cadastroOrigem: 'ubt',
   })
 
   await concludePreCadastrosForPatient(
@@ -271,7 +264,7 @@ export async function updateUbtPaciente(
   input: Partial<UbtPatientRegistrationPayload>,
   options?: { completeRegistration?: boolean },
 ): Promise<UbtPacienteDto> {
-  await assertEntityContractActive(scope.entidadeContratanteId)
+  await assertEntityContractActive(scope.entidadeContratanteId, UBT_CONTRACT_INACTIVE_MESSAGE)
   await assertPacienteBelongsToEntity(scope.entidadeContratanteId, pacienteId)
 
   await updatePaciente(pacienteId, input)
@@ -302,7 +295,7 @@ export async function linkUbtPacienteToUnit(
   scope: UbtAuthScope,
   pacienteId: string,
 ): Promise<UbtPacienteDto> {
-  await assertEntityContractActive(scope.entidadeContratanteId)
+  await assertEntityContractActive(scope.entidadeContratanteId, UBT_CONTRACT_INACTIVE_MESSAGE)
   await assertPacienteBelongsToEntity(scope.entidadeContratanteId, pacienteId)
   await ensureUbtVinculo(pacienteId, scope.unidadeUbtId)
   return toUbtPatientFromDetail(pacienteId)
@@ -351,6 +344,6 @@ export async function getUbtPatientTerritoryPolicy(
   uf: string
   aceitaPacientesOutrosMunicipios: boolean
 }> {
-  await assertEntityContractActive(scope.entidadeContratanteId)
+  await assertEntityContractActive(scope.entidadeContratanteId, UBT_CONTRACT_INACTIVE_MESSAGE)
   return getEntityPatientTerritoryPolicy(scope.entidadeContratanteId)
 }

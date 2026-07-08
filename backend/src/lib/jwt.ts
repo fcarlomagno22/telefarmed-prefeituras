@@ -34,6 +34,14 @@ export type ProfissionalAccessClaims = {
   nome: string
 }
 
+export type VdPacienteAccessClaims = {
+  sub: string
+  pacienteId: string
+  cpf: string
+  nome: string
+  entidadeContratanteId: string
+}
+
 const ACCESS_TTL = '15m'
 
 export async function signAccessToken(claims: AdminAccessClaims): Promise<string> {
@@ -139,6 +147,35 @@ export async function verifyProfissionalAccessToken(
   return profissionalClaimsFromPayload(payload)
 }
 
+export async function signVdPacienteAccessToken(
+  claims: VdPacienteAccessClaims,
+): Promise<string> {
+  return new SignJWT({
+    cpf: claims.cpf,
+    nome: claims.nome,
+    pacienteId: claims.pacienteId,
+    entidadeContratanteId: claims.entidadeContratanteId,
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setSubject(claims.sub)
+    .setIssuedAt()
+    .setExpirationTime(ACCESS_TTL)
+    .setIssuer('telefarmed-vd')
+    .setAudience('telefarmed-vd-api')
+    .sign(accessSecret)
+}
+
+export async function verifyVdPacienteAccessToken(
+  token: string,
+): Promise<VdPacienteAccessClaims> {
+  const { payload } = await jwtVerify(token, accessSecret, {
+    issuer: 'telefarmed-vd',
+    audience: 'telefarmed-vd-api',
+  })
+
+  return vdPacienteClaimsFromPayload(payload)
+}
+
 function adminClaimsFromPayload(payload: JWTPayload): AdminAccessClaims {
   const sub = payload.sub
   if (!sub || typeof sub !== 'string') {
@@ -224,4 +261,27 @@ function ubtClaimsFromPayload(payload: JWTPayload): UbtAccessClaims {
   }
 
   return { sub, cpf, nome, accessLevel, entidadeContratanteId, unidadeUbtId }
+}
+
+function vdPacienteClaimsFromPayload(payload: JWTPayload): VdPacienteAccessClaims {
+  const sub = payload.sub
+  if (!sub || typeof sub !== 'string') {
+    throw new Error('Token inválido')
+  }
+
+  const cpf = payload.cpf
+  const nome = payload.nome
+  const pacienteId = payload.pacienteId
+  const entidadeContratanteId = payload.entidadeContratanteId
+
+  if (
+    typeof cpf !== 'string' ||
+    typeof nome !== 'string' ||
+    typeof pacienteId !== 'string' ||
+    typeof entidadeContratanteId !== 'string'
+  ) {
+    throw new Error('Token inválido')
+  }
+
+  return { sub, cpf, nome, pacienteId, entidadeContratanteId }
 }

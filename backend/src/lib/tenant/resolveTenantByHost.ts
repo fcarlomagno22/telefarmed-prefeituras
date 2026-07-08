@@ -1,7 +1,14 @@
 import { withCatalogCache } from '../cache/catalogCache.js'
 import { getEntidadeBrandingById } from '../entidadeBranding/branding.service.js'
 import { supabaseAdmin } from '../../db/supabase.js'
+import {
+  extractAppCidadesClientSlug,
+  isAppCidadesDedicatedHost,
+  isVdPlatformHost,
+  normalizeVdTenantEntitySlugInput,
+} from './appCidadesHost.js'
 import { buildPlatformTenantBranding, toTenantBranding } from './branding.js'
+import { resolveVdPlatformEntitySlug } from './vdPlatformEntity.js'
 import {
   extractSubdomainFromHostname,
   isPlatformTenantHost,
@@ -17,16 +24,25 @@ export {
   isPlatformTenantHost,
   PLATFORM_TENANT_HOST_SLUGS,
 } from './hostname.js'
+export {
+  extractAppCidadesClientSlug,
+  isAppCidadesDedicatedHost,
+  normalizeVdTenantEntitySlugInput,
+} from './appCidadesHost.js'
 
 /**
  * Resolve tenant pelo hostname público.
  *
  * Ordem:
- * 1. Hosts fixos admin / profissional → kind platform
- * 2. entidades_contratantes.slug → kind gestao
- * 3. unidades_ubt.slug (+ entidade dona) → kind ubt
+ * 1. App cidadão vd / vd-{entidade} → kind vd
+ * 2. Hosts fixos admin / profissional → kind platform
+ * 3. entidades_contratantes.slug → kind gestao
+ * 4. unidades_ubt.slug (+ entidade dona) → kind ubt
  */
 export async function resolveTenantByHost(hostname: string): Promise<ResolvedTenant | null> {
+  const vdTenant = await resolveVdTenantByHost(hostname)
+  if (vdTenant) return vdTenant
+
   const subdomain = extractSubdomainFromHostname(hostname)
   if (!subdomain) return null
 
@@ -39,6 +55,57 @@ export async function resolveTenantByHost(hostname: string): Promise<ResolvedTen
   }
 
   return resolveTenantBySlug(subdomain)
+}
+
+export async function resolveVdTenantByHost(hostname: string): Promise<ResolvedTenant | null> {
+  if (!isAppCidadesDedicatedHost(hostname)) return null
+
+  if (isVdPlatformHost(hostname)) {
+    return resolveVdTenantByEntitySlug(resolveVdPlatformEntitySlug())
+  }
+
+  const clientSlug = extractAppCidadesClientSlug(hostname)
+  if (!clientSlug) return null
+
+  return resolveVdTenantByEntitySlug(clientSlug)
+}
+
+export async function resolveVdTenantByEntitySlug(
+  slugInput: string,
+): Promise<ResolvedTenant | null> {
+  const entitySlug = normalizeVdTenantEntitySlugInput(slugInput)
+  if (!entitySlug) return null
+
+  const redirectSlug = await lookupTenantSlugRedirect(entitySlug)
+  if (redirectSlug) {
+    return resolveVdTenantByEntitySlug(redirectSlug)
+  }
+
+  return withCatalogCache('tenant', `vd:${entitySlug}`, () =>
+    resolveVdTenantByEntitySlugFromDb(entitySlug),
+  )
+}
+
+async function resolveVdTenantByEntitySlugFromDb(entitySlug: string): Promise<ResolvedTenant | null> {
+  const { data: entidade, error } = await supabaseAdmin
+    .from('entidades_contratantes')
+    .select('id, slug')
+    .eq('slug', entitySlug)
+    .maybeSingle()
+
+  if (error) throw error
+  if (!entidade) return null
+
+  const entidadeId = String(entidade.id)
+  const branding = await getEntidadeBrandingById(entidadeId)
+  if (!branding) return null
+
+  return {
+    kind: 'vd',
+    slug: entitySlug,
+    entidadeId,
+    branding: toTenantBranding(branding),
+  }
 }
 
 export async function resolveTenantBySlug(slugInput: string): Promise<ResolvedTenant | null> {

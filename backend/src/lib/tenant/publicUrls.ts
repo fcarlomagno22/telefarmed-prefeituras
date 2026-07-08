@@ -27,6 +27,11 @@ export function ubtPublicUrl(ubtSlug: string, path = '/login'): string {
   return buildUbtUrl(ubtSlug, path)
 }
 
+/** URL pública HTTPS do app cidadão (VD) por entidade. */
+export function vdPublicUrl(entidadeSlug: string, path = '/login'): string {
+  return buildVdUrl(entidadeSlug, path)
+}
+
 /** https://{entidadeSlug}.telefarmed.com.br{path} (dev: http://{slug}.localhost:5173) */
 export function buildGestaoUrl(entidadeSlug: string, path = '/login'): string {
   const normalizedPath = trimSlashes(path) || '/login'
@@ -41,4 +46,23 @@ export function buildUbtUrl(ubtSlug: string, path = '/login'): string {
   const devBase = resolveDevTenantBaseUrl(ubtSlug)
   if (devBase) return `${devBase}${normalizedPath}`
   return `https://${ubtSlug}.${env.PUBLIC_ROOT_DOMAIN}${normalizedPath}`
+}
+
+function resolveDevVdTenantBaseUrl(entidadeSlug: string): string | null {
+  if (isProduction) return null
+  try {
+    const appUrl = new URL(resolvePublicAppUrl())
+    const port = appUrl.port || '5173'
+    return `http://vd-${entidadeSlug}.localhost:${port}`
+  } catch {
+    return `http://vd-${entidadeSlug}.localhost:5173`
+  }
+}
+
+/** https://vd-{entidadeSlug}.telefarmed.com.br{path} (dev: http://vd-{slug}.localhost:5173) */
+export function buildVdUrl(entidadeSlug: string, path = '/login'): string {
+  const normalizedPath = trimSlashes(path) || '/login'
+  const devBase = resolveDevVdTenantBaseUrl(entidadeSlug)
+  if (devBase) return `${devBase}${normalizedPath}`
+  return `https://vd-${entidadeSlug}.${env.PUBLIC_ROOT_DOMAIN}${normalizedPath}`
 }

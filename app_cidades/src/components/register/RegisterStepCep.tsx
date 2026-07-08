@@ -7,7 +7,7 @@ import { formStyles } from '../AppShell'
 import { RegisterTimeline } from './RegisterTimeline'
 import { LottiePlayer } from '../LottiePlayer'
 import { PrimaryButton } from '../PrimaryButton'
-import { checkMunicipalityClientByCep } from '../../services/mockMunicipalityClient'
+import { checkCepEligibility, VdApiError } from '../../lib/api/vd'
 import { RegistrationAddress } from '../../types/auth'
 import { playFailSound } from '../../utils/appSounds'
 import { cepDigits, isValidCep, maskCep } from '../../utils/cep'
@@ -59,36 +59,43 @@ export function RegisterStepCep({
         return
       }
 
-      const clientStatus = await checkMunicipalityClientByCep(
+      const clientStatus = await checkCepEligibility({
         cep,
-        address.city,
-        address.state,
-      )
+        cidade: address.city,
+        uf: address.state,
+      })
       if (isCancelled?.()) return
 
-      if (!clientStatus.isClient) {
-        const cityLabel = clientStatus.municipality
-          ? `${clientStatus.municipality}/${clientStatus.uf}`
-          : 'esta região'
+      if (!clientStatus.elegivel) {
+        const cityLabel = clientStatus.municipio
+          ? `${clientStatus.municipio}/${clientStatus.uf}`
+          : address.city && address.state
+            ? `${address.city}/${address.state}`
+            : 'esta região'
         setNotClientCity(cityLabel)
         setMode('not_client')
         void playFailSound()
         return
       }
 
+      const apiAddress = clientStatus.endereco
       onChange({
         ...value,
-        cep,
-        street: address.street,
-        neighborhood: address.neighborhood,
-        city: address.city,
-        state: address.state,
-        complement: address.complement || value.complement,
+        cep: apiAddress?.cep ? apiAddress.cep : cep,
+        street: apiAddress?.logradouro?.trim() || address.street,
+        neighborhood: apiAddress?.bairro?.trim() || address.neighborhood,
+        city: apiAddress?.cidade?.trim() || address.city,
+        state: apiAddress?.uf?.trim() || address.state,
+        complement: apiAddress?.complemento?.trim() || address.complement || value.complement,
       })
       setMode('address')
-    } catch {
+    } catch (error) {
       if (isCancelled?.()) return
-      setError('Não foi possível validar o CEP. Tente novamente.')
+      if (error instanceof VdApiError && error.message) {
+        setError(error.message)
+      } else {
+        setError('Não foi possível validar o CEP. Tente novamente.')
+      }
       lastFetchedCepRef.current = ''
     } finally {
       if (!isCancelled?.()) {

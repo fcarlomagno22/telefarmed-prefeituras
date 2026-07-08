@@ -45,14 +45,34 @@ export function RegisterScreen() {
   const [selfieUri, setSelfieUri] = useState<string | null>(null)
   const [legalAcceptances, setLegalAcceptances] = useState(emptyLegalAcceptances)
   const [showPresentationVideo, setShowPresentationVideo] = useState(false)
+  const [skippedProfileAndSelfie, setSkippedProfileAndSelfie] = useState(false)
+
+  function handleSkipToPassword(payload: {
+    profile: RegistrationProfile
+    address?: Partial<RegistrationAddress>
+    selfieUri?: string | null
+  }) {
+    setProfile(payload.profile)
+    if (payload.address) {
+      setAddress((current) => ({ ...current, ...payload.address }))
+    }
+    if (payload.selfieUri !== undefined) {
+      setSelfieUri(payload.selfieUri)
+    }
+    setSkippedProfileAndSelfie(true)
+    setStep(4)
+  }
 
   function handleStartPresentationVideo() {
     markAppVideoUserGesture()
     setShowPresentationVideo(true)
   }
 
+  const [registrationError, setRegistrationError] = useState<string | null>(null)
+
   async function handleFinishRegistration() {
     setIsSubmitting(true)
+    setRegistrationError(null)
 
     try {
       const payload: RegistrationData = {
@@ -67,6 +87,12 @@ export function RegisterScreen() {
       }
 
       await completeRegistration(payload)
+    } catch (error) {
+      setRegistrationError(
+        error instanceof Error && error.message.trim()
+          ? error.message
+          : 'Não foi possível concluir o cadastro. Tente novamente.',
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -108,7 +134,11 @@ export function RegisterScreen() {
         <RegisterStepProfile
           value={profile}
           onChange={setProfile}
-          onContinue={() => setStep(3)}
+          onContinue={() => {
+            setSkippedProfileAndSelfie(false)
+            setStep(3)
+          }}
+          onSkipToPassword={handleSkipToPassword}
           onBack={() => setStep(1)}
         />
       ) : null}
@@ -129,7 +159,7 @@ export function RegisterScreen() {
           onChangePassword={setPassword}
           onChangeConfirmPassword={setConfirmPassword}
           onSubmit={() => setStep(5)}
-          onBack={() => setStep(3)}
+          onBack={() => setStep(skippedProfileAndSelfie ? 2 : 3)}
           isSubmitting={false}
         />
       ) : null}
@@ -141,6 +171,7 @@ export function RegisterScreen() {
           onSubmit={handleStartPresentationVideo}
           onBack={() => setStep(4)}
           isSubmitting={isSubmitting || showPresentationVideo}
+          submitError={registrationError}
         />
       ) : null}
     </AppShell>

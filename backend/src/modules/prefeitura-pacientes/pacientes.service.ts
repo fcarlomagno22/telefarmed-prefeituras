@@ -186,6 +186,7 @@ export async function createPrefeituraPaciente(
   const detail = await createPaciente({
     ...input,
     entidadeContratanteId: entidadeId,
+    cadastroOrigem: 'admin',
   })
   return mapAdminDetailToPrefeituraDetail(detail)
 }

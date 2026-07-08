@@ -1,4 +1,4 @@
-export type AuthPortalScope = 'admin' | 'ubt' | 'prefeitura' | 'profissional'
+export type AuthPortalScope = 'admin' | 'ubt' | 'prefeitura' | 'profissional' | 'vd'
 
 type CacheEntry = {
   expiresAt: number

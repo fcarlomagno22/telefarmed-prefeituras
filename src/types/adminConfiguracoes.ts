@@ -74,11 +74,12 @@ export const PRESET_LEGAL_DOCUMENT_IDS = [
   'cadastro_autorizacao_teleconsulta',
   'cadastro_ciencia_dados',
   'cadastro_permissao_notificacoes',
+  'vd_cadastro_termos_uso',
 ] as const
 
 export type PresetLegalDocumentId = (typeof PRESET_LEGAL_DOCUMENT_IDS)[number]
 
-export type LegalDocumentPortal = 'admin' | 'prefeitura' | 'ubt' | 'terminal'
+export type LegalDocumentPortal = 'admin' | 'prefeitura' | 'ubt' | 'terminal' | 'vd'
 
 export type ConfigLegalDocument = {
   id: string

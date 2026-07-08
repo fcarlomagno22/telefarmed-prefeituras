@@ -1,6 +1,8 @@
 import { rewrite } from '@vercel/functions'
 
 const ROOT_DOMAIN = 'telefarmed.com.br'
+/** Alinhado com vercel.json (has.host.value) — ver docs/vercel-vd-app-wildcard.md */
+const VD_APP_PRODUCTION_HOST_PATTERN = /^vd(-[^.]+)?\.telefarmed\.com\.br$/
 
 function normalizeHostname(hostname) {
   return (hostname || '').toLowerCase().split(':')[0]
@@ -17,10 +19,7 @@ function isAppCidadesHost(hostname) {
   const suffix = `.${ROOT_DOMAIN}`
   if (!host.endsWith(suffix)) return false
 
-  const slug = host.slice(0, -suffix.length)
-  if (!slug || slug.includes('.')) return false
-
-  return slug === 'vd' || slug.startsWith('vd-')
+  return VD_APP_PRODUCTION_HOST_PATTERN.test(host)
 }
 
 function isAppCidadesStaticAsset(pathname) {

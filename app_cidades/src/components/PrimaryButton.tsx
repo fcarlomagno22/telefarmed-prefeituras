@@ -8,7 +8,7 @@ import {
   Text,
   ViewStyle,
 } from 'react-native'
-import { colors } from '../theme/colors'
+import { useTheme } from '../contexts/ThemeContext'
 import { formStyles } from './AppShell'
 
 type PrimaryButtonProps = {
@@ -28,6 +28,8 @@ export function PrimaryButton({
   style,
   gradientStyle,
 }: PrimaryButtonProps) {
+  const { colors } = useTheme()
+
   return (
     <Pressable
       onPress={onPress}
@@ -41,7 +43,7 @@ export function PrimaryButton({
       ]}
     >
       <LinearGradient
-        colors={['#ff8533', '#ff6b00', '#e55f00']}
+        colors={[colors.primaryLight, colors.primary, colors.primaryDark]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[formStyles.primaryButtonGradient, gradientStyle]}
@@ -63,7 +65,7 @@ const styles = StyleSheet.create({
         boxShadow: '0px 4px 10px rgba(255, 107, 0, 0.28)',
       },
       default: {
-        shadowColor: colors.primary,
+        shadowColor: '#ff6b00',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.28,
         shadowRadius: 10,

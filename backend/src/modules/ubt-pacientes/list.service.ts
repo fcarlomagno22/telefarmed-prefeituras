@@ -309,6 +309,7 @@ export async function listDistinctBairros(entidadeId: string): Promise<string[]>
 export { loadConsultationStats }
 
 export function ageFromListagemRow(row: ListagemRow): number {
+  if (!row.data_nascimento?.trim()) return 0
   return ageFromBirthDateIso(row.data_nascimento.slice(0, 10))
 }
 

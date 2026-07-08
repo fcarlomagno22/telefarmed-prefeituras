@@ -181,7 +181,7 @@ export type UpdateExamCategoryBody = z.infer<typeof updateExamCategoryBodySchema
 export type CreateExamItemBody = z.infer<typeof createExamItemBodySchema>
 export type UpdateExamItemBody = z.infer<typeof updateExamItemBodySchema>
 
-const legalDocumentPortalSchema = z.enum(['admin', 'prefeitura', 'ubt', 'terminal'])
+const legalDocumentPortalSchema = z.enum(['admin', 'prefeitura', 'ubt', 'terminal', 'vd'])
 
 const legalDocumentBodySchema = z.object({
   id: catalogIdSchema,
@@ -190,7 +190,7 @@ const legalDocumentBodySchema = z.object({
   version: z.string().trim().min(1, 'Versão obrigatória.').max(20),
   updatedAtLabel: z.string().trim().min(1, 'Rótulo de atualização obrigatório.').max(40),
   published: z.boolean().optional(),
-  portals: z.array(legalDocumentPortalSchema).max(4),
+  portals: z.array(legalDocumentPortalSchema).max(5),
 })
 
 export const createLegalDocumentBodySchema = legalDocumentBodySchema

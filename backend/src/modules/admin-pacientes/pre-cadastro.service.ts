@@ -63,6 +63,7 @@ export async function concludePreCadastro(preCadastroId: string): Promise<AdminM
     entidadeContratanteId: row.entidade_contratante_id,
     unidadeUbtId: row.unidade_ubt_id ?? dados.unidadeUbtId,
     status: 'pre_cadastro',
+    cadastroOrigem: 'admin',
   })
 
   const { error } = await supabaseAdmin

@@ -5,6 +5,7 @@ import type {
   ConfigLegalDocument,
   ConfigProfession,
   ConfigTriageServiceType,
+  LegalDocumentPortal,
   PresetLegalDocumentId,
 } from '../types/adminConfiguracoes'
 
@@ -136,7 +137,7 @@ const legalDocumentTemplates: Record<
 
 function buildLegalDocuments(): ConfigLegalDocument[] {
   const presetIds = Object.keys(legalDocumentTemplates) as PresetLegalDocumentId[]
-  return presetIds.map((id) => ({
+  const base = presetIds.map((id) => ({
     id,
     ...legalDocumentTemplates[id],
     version: '1.0',
@@ -144,9 +145,59 @@ function buildLegalDocuments(): ConfigLegalDocument[] {
     published: true,
     portals:
       id === 'consentimento_informado' || id === 'lgpd'
-        ? ['terminal', 'ubt', 'prefeitura']
-        : ['admin', 'prefeitura', 'ubt', 'terminal'],
+        ? (['terminal', 'ubt', 'prefeitura', 'vd'] as LegalDocumentPortal[])
+        : (['admin', 'prefeitura', 'ubt', 'terminal', 'vd'] as LegalDocumentPortal[]),
   }))
+
+  const appCadastroDocs: ConfigLegalDocument[] = [
+    {
+      id: 'cadastro_conferencia_dados',
+      title: 'Cadastro — conferência de dados',
+      content: 'Texto de conferência de dados do cadastro.',
+      version: '1.0',
+      updatedAtLabel: 'Jun/2026',
+      published: true,
+      portals: ['ubt', 'terminal', 'vd'],
+    },
+    {
+      id: 'cadastro_autorizacao_teleconsulta',
+      title: 'Cadastro — autorização teleconsulta',
+      content: 'Texto de autorização de teleconsulta.',
+      version: '1.0',
+      updatedAtLabel: 'Jun/2026',
+      published: true,
+      portals: ['ubt', 'terminal', 'vd'],
+    },
+    {
+      id: 'cadastro_ciencia_dados',
+      title: 'Cadastro — ciência de uso de dados',
+      content: 'Texto de ciência de dados.',
+      version: '1.0',
+      updatedAtLabel: 'Jun/2026',
+      published: true,
+      portals: ['ubt', 'terminal', 'vd'],
+    },
+    {
+      id: 'cadastro_permissao_notificacoes',
+      title: 'Cadastro — permissão de notificações',
+      content: 'Texto de permissão de notificações.',
+      version: '1.0',
+      updatedAtLabel: 'Jun/2026',
+      published: true,
+      portals: ['ubt', 'terminal', 'vd'],
+    },
+    {
+      id: 'vd_cadastro_termos_uso',
+      title: 'App — Termos de Uso (cadastro)',
+      content: 'Termos de uso do app cidadão.',
+      version: '1.0',
+      updatedAtLabel: 'Jul/2026',
+      published: true,
+      portals: ['vd'],
+    },
+  ]
+
+  return [...base, ...appCadastroDocs]
 }
 
 export const adminConfiguracoesInitial: AdminConfiguracoesState = {

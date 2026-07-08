@@ -14,7 +14,7 @@ import {
 } from 'react-native'
 import { AppModal } from './AppModal'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { appEnv } from '../config/env'
+import { useTenant } from '../contexts/TenantContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { useThemedStyles } from '../hooks/useThemedStyles'
 import type { ThemeColors } from '../theme/palettes'
@@ -27,8 +27,6 @@ import { MenuLegalDrawer } from './menu/MenuLegalDrawer'
 import { MenuNotificationsDrawer } from './menu/MenuNotificationsDrawer'
 import { MenuProfileDrawer } from './menu/MenuProfileDrawer'
 import { MenuSupportDrawer } from './menu/MenuSupportDrawer'
-
-const logoSource = resolveBrandImage(appEnv.logoUrl, 'logo.png')
 
 type MenuSubDrawerId =
   | 'profile'
@@ -106,6 +104,8 @@ export function MenuDrawer({
   onProfilePress,
   onLogoutPress,
 }: MenuDrawerProps) {
+  const { branding } = useTenant()
+  const logoSource = resolveBrandImage(branding.logoUrl ?? '', 'logo.png')
   const insets = useSafeAreaInsets()
   const { height: screenHeight } = useWindowDimensions()
   const { colors } = useTheme()

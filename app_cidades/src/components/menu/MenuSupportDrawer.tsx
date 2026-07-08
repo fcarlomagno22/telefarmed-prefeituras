@@ -12,7 +12,7 @@ import {
 } from 'react-native'
 import successAnimation from '../../../assets/success.json'
 import { openAppPhoneCall } from '../../adapters/appLinking'
-import { menuSupportConfig } from '../../config/menuSupport'
+import { getMenuSupportConfig } from '../../config/menuSupport'
 import { useAuth } from '../../contexts/AuthContext'
 import { colors } from '../../theme/colors'
 import { openWhatsAppMessage } from '../../utils/runWalkLocationShare'
@@ -37,32 +37,6 @@ type MenuSupportDrawerProps = {
 
 type SupportStep = 'form' | 'success'
 
-const CONTACT_OPTIONS: {
-  id: SupportContactPreference
-  label: string
-  icon: keyof typeof Ionicons.glyphMap
-  hint: string
-}[] = [
-  {
-    id: 'whatsapp',
-    label: 'WhatsApp',
-    icon: 'logo-whatsapp',
-    hint: 'Resposta mais rápida',
-  },
-  {
-    id: 'email',
-    label: 'E-mail',
-    icon: 'mail-outline',
-    hint: menuSupportConfig.email,
-  },
-  {
-    id: 'phone',
-    label: 'Telefone',
-    icon: 'call-outline',
-    hint: menuSupportConfig.phone || 'Ligação',
-  },
-]
-
 export function MenuSupportDrawer({
   visible,
   onClose,
@@ -70,6 +44,33 @@ export function MenuSupportDrawer({
   userEmail,
   userPhone,
 }: MenuSupportDrawerProps) {
+  const menuSupportConfig = getMenuSupportConfig()
+  const contactOptions: {
+    id: SupportContactPreference
+    label: string
+    icon: keyof typeof Ionicons.glyphMap
+    hint: string
+  }[] = [
+    {
+      id: 'whatsapp',
+      label: 'WhatsApp',
+      icon: 'logo-whatsapp',
+      hint: 'Resposta mais rápida',
+    },
+    {
+      id: 'email',
+      label: 'E-mail',
+      icon: 'mail-outline',
+      hint: menuSupportConfig.email,
+    },
+    {
+      id: 'phone',
+      label: 'Telefone',
+      icon: 'call-outline',
+      hint: menuSupportConfig.phone || 'Ligação',
+    },
+  ]
+
   const { screen, user } = useAuth()
   const [step, setStep] = useState<SupportStep>('form')
   const [topic, setTopic] = useState<SupportTopicId>('appointments')
@@ -312,7 +313,7 @@ export function MenuSupportDrawer({
           <View style={styles.field}>
             <Text style={styles.label}>Como prefere ser atendido?</Text>
             <View style={styles.contactColumn}>
-              {CONTACT_OPTIONS.map((option) => {
+              {contactOptions.map((option) => {
                 const selected = contactPreference === option.id
                 const disabled =
                   (option.id === 'whatsapp' && !menuSupportConfig.whatsApp) ||

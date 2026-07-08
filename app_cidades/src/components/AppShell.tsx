@@ -263,8 +263,8 @@ function createShellStyles(colors: ThemeColors) {
       paddingBottom: 40,
     },
     scrollContentWeb: {
-      justifyContent: 'flex-start',
-      paddingTop: 20,
+      minHeight: '100%',
+      justifyContent: 'center',
     },
     card: {
       borderRadius: 32,

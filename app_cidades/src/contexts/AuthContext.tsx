@@ -26,10 +26,22 @@ import {
   syncInitialNavigationHistoryState,
 } from '../adapters/webNavigationHistory'
 import type { WebNavigationHistoryEntry } from '../adapters/webNavigationUrl'
+import { login as vdLogin, logout as vdLogout, register as vdRegister } from '../lib/api/vd'
+import { VdApiError } from '../lib/api/vd/client'
+import {
+  applyAuthSession,
+  clearAuthSession,
+  persistAuthUser,
+  restoreAuthSession,
+  restoreSessionAfterBiometric,
+} from '../lib/vd/vdAuthSession'
 import { AppRouteParams, AppScreen, AuthUser, RegistrationData } from '../types/auth'
-import { createMockAuthUser, isValidMockCredentials } from '../config/mockAuth'
 import { playLoginSound } from '../utils/appSounds'
 import { cpfDigits } from '../utils/cpf'
+import { profilePhotoToDataUri } from '../utils/profilePhotoImage'
+import {
+  mapRegistrationDataToVdRegisterInput,
+} from '../utils/vdAuthMapper'
 import { loadActiveLiveShareSession } from '../data/runWalkLiveShareService'
 import {
   resolveIncomingAppLink,
@@ -37,7 +49,6 @@ import {
 } from '../utils/resolveIncomingAppLink'
 import { normalizeLiveShareToken } from '../utils/runWalkLiveShareToken'
 
-const SESSION_KEY = '@telefarmed/session'
 const BIOMETRIC_ENABLED_KEY = '@telefarmed/biometric-enabled'
 const BIOMETRIC_ASKED_KEY = '@telefarmed/biometric-asked'
 const BIOMETRIC_SESSION_KEY = '@telefarmed/biometric-session'
@@ -101,14 +112,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async function bootstrap() {
       try {
         const [
-          storedSession,
+          restoredUser,
           storedBiometric,
           storedAsked,
           storedBiometricSession,
           hasHardware,
           isEnrolled,
         ] = await Promise.all([
-          AsyncStorage.getItem(SESSION_KEY),
+          restoreAuthSession(),
           AsyncStorage.getItem(BIOMETRIC_ENABLED_KEY),
           AsyncStorage.getItem(BIOMETRIC_ASKED_KEY),
           AsyncStorage.getItem(BIOMETRIC_SESSION_KEY),
@@ -118,8 +129,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (!active) return
 
-        if (storedSession) {
-          setUser(JSON.parse(storedSession) as AuthUser)
+        if (restoredUser) {
+          setUser(restoredUser)
           screenHistoryRef.current = []
           setRouteParams(null)
           setScreen('home')
@@ -310,7 +321,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const canGoBack = useCallback(() => screenHistoryRef.current.length > 0, [])
 
   const finalizeLogin = useCallback(async (nextUser: AuthUser) => {
-    await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(nextUser))
+    await persistAuthUser(nextUser)
     setUser(nextUser)
     screenHistoryRef.current = []
     setRouteParams(null)
@@ -328,21 +339,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setBiometricPromptSuppressed(true)
 
-      const nextUser: AuthUser = {
-        name: data.profile.name.trim(),
-        cpf: data.profile.cpf,
-        email: data.profile.email.trim(),
-        phone: data.profile.phone,
-        address: data.address,
-        selfieUri: data.selfieUri,
-      }
+      try {
+        const photoDataUrl = data.selfieUri ? await profilePhotoToDataUri(data.selfieUri) : null
+        const result = await vdRegister(mapRegistrationDataToVdRegisterInput(data, photoDataUrl))
+        const nextUser = await applyAuthSession(result)
 
-      await finalizeLogin(nextUser)
+        await finalizeLogin(nextUser)
 
-      biometricReleaseTimerRef.current = setTimeout(() => {
+        biometricReleaseTimerRef.current = setTimeout(() => {
+          setBiometricPromptSuppressed(false)
+          biometricReleaseTimerRef.current = null
+        }, 500)
+      } catch (error) {
         setBiometricPromptSuppressed(false)
-        biometricReleaseTimerRef.current = null
-      }, 500)
+        throw error
+      }
     },
     [finalizeLogin],
   )
@@ -351,32 +362,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (cpf: string, password: string) => {
       if (!password.trim()) return 'invalid'
 
-      const digits = cpfDigits(cpf)
-
-      if (isValidMockCredentials(cpf, password)) {
-        const storedSession = await AsyncStorage.getItem(SESSION_KEY)
-        const storedUser = storedSession ? (JSON.parse(storedSession) as AuthUser) : null
-        const nextUser =
-          storedUser && cpfDigits(storedUser.cpf) === digits ? storedUser : createMockAuthUser()
-
+      try {
+        const result = await vdLogin({ cpf, password })
+        const nextUser = await applyAuthSession(result)
         await finalizeLogin(nextUser)
         return 'success'
+      } catch (error) {
+        if (error instanceof VdApiError) {
+          if (error.status === 401 || error.status === 403 || error.status === 423) {
+            return 'invalid'
+          }
+        }
+        throw error
       }
-
-      const [storedSession, storedBiometricSession] = await Promise.all([
-        AsyncStorage.getItem(SESSION_KEY),
-        AsyncStorage.getItem(BIOMETRIC_SESSION_KEY),
-      ])
-
-      const candidates = [storedSession, storedBiometricSession].filter(Boolean) as string[]
-      const matchedUser = candidates
-        .map((value) => JSON.parse(value) as AuthUser)
-        .find((candidate) => cpfDigits(candidate.cpf) === digits)
-
-      if (!matchedUser) return 'invalid'
-
-      await finalizeLogin(matchedUser)
-      return 'success'
     },
     [finalizeLogin],
   )
@@ -406,6 +404,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedBiometricSession = await AsyncStorage.getItem(BIOMETRIC_SESSION_KEY)
     if (!storedBiometricSession) return 'failed'
 
+    const biometricUser = JSON.parse(storedBiometricSession) as AuthUser
+
     const result = await authenticateWithBiometricsAsync({
       promptMessage: 'Entrar com biometria',
       cancelLabel: 'Cancelar',
@@ -415,9 +415,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return result.error === 'user_cancel' ? 'cancelled' : 'failed'
     }
 
-    const restoredUser = JSON.parse(storedBiometricSession) as AuthUser
-    await finalizeLogin(restoredUser)
-    return 'success'
+    const restoredUser = await restoreSessionAfterBiometric()
+    if (restoredUser) {
+      if (cpfDigits(restoredUser.cpf) !== cpfDigits(biometricUser.cpf)) {
+        return 'failed'
+      }
+
+      await finalizeLogin(restoredUser)
+      return 'success'
+    }
+
+    return 'failed'
   }, [finalizeLogin])
 
   const dismissBiometricPrompt = useCallback(async () => {
@@ -426,7 +434,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = useCallback(async () => {
-    await AsyncStorage.removeItem(SESSION_KEY)
+    try {
+      await vdLogout()
+    } catch {
+      // Clear local session even when the API logout fails offline.
+    }
+
+    await clearAuthSession()
     setUser(null)
     screenHistoryRef.current = []
     setRouteParams(null)
@@ -442,7 +456,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(nextUser)
 
       void (async () => {
-        await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(nextUser))
+        await persistAuthUser(nextUser)
 
         const storedBiometricSession = await AsyncStorage.getItem(BIOMETRIC_SESSION_KEY)
         if (storedBiometricSession) {
@@ -468,7 +482,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(nextUser)
 
       void (async () => {
-        await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(nextUser))
+        await persistAuthUser(nextUser)
 
         const storedBiometricSession = await AsyncStorage.getItem(BIOMETRIC_SESSION_KEY)
         if (storedBiometricSession) {

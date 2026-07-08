@@ -124,12 +124,29 @@ export function mapPacientesError(error: unknown): {
       rawMessage.includes('paciente_anotacoes') ||
       rawMessage.includes('paciente_registros_contato')
 
+    const missingVdCadastroRpc =
+      rawMessage.includes('vd_criar_credencial_app_sessao') ||
+      rawMessage.includes('vd_recuperacao_senha')
+
     return {
       statusCode: 503,
       body: {
         error: missingActivityTables
           ? 'Módulo de anotações/contatos indisponível: aplique a migration reapply_paciente_operacional_activity no Supabase.'
-          : 'Módulo de pacientes indisponível: aplique a migration reapply_admin_pacientes_schema no Supabase.',
+          : missingVdCadastroRpc
+            ? 'Cadastro do app indisponível: aplique as migrations vd_cadastro_registrar e vd_recuperacao_senha no Supabase.'
+            : 'Módulo de pacientes indisponível: aplique a migration reapply_admin_pacientes_schema no Supabase.',
+        code: 'SERVICE_UNAVAILABLE',
+      },
+    }
+  }
+
+  if (pgCode === 'PGRST202' && rawMessage.includes('vd_criar_credencial_app_sessao')) {
+    return {
+      statusCode: 503,
+      body: {
+        error:
+          'Cadastro do app indisponível: aplique a migration vd_cadastro_registrar no Supabase.',
         code: 'SERVICE_UNAVAILABLE',
       },
     }

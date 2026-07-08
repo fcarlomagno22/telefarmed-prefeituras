@@ -99,3 +99,23 @@ export function buildUbtUrl(ubtSlug: string, path = '/login'): string {
   }
   return `https://${ubtSlug}.${ROOT_DOMAIN}${normalizedPath}`
 }
+
+export function vdPublicUrl(entidadeSlug: string, path = '/login'): string {
+  return buildVdUrl(entidadeSlug, path)
+}
+
+function resolveDevVdServerPort(): string {
+  if (typeof window !== 'undefined' && window.location.port) {
+    return window.location.port
+  }
+  return '8081'
+}
+
+/** App cidadão whitelabel: vd-{slug}.telefarmed.com.br */
+export function buildVdUrl(entidadeSlug: string, path = '/login'): string {
+  const normalizedPath = normalizePublicPath(path)
+  if (import.meta.env.DEV) {
+    return `http://vd-${entidadeSlug}.localhost:${resolveDevVdServerPort()}${normalizedPath}`
+  }
+  return `https://vd-${entidadeSlug}.${ROOT_DOMAIN}${normalizedPath}`
+}

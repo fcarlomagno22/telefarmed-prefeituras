@@ -10,6 +10,7 @@ export const presetLegalDocumentLabels: Record<PresetLegalDocumentId, string> = 
   cadastro_autorizacao_teleconsulta: 'Cadastro — autorização teleconsulta',
   cadastro_ciencia_dados: 'Cadastro — ciência de uso de dados',
   cadastro_permissao_notificacoes: 'Cadastro — permissão de notificações',
+  vd_cadastro_termos_uso: 'App — Termos de Uso (cadastro)',
 }
 
 export function createCustomLegalDocumentId() {

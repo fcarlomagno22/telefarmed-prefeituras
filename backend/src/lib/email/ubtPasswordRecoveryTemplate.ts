@@ -1,3 +1,32 @@
+import {
+  TELEFARMED_BRAND_NAME,
+  TELEFARMED_DEFAULT_LOGO_URL,
+  TELEFARMED_DEFAULT_PRIMARY_COLOR,
+} from './telefarmedBrand.js'
+
+export type PasswordRecoveryEmailBranding = {
+  logoUrl: string
+  brandName: string
+  accentColor: string
+}
+
+function defaultPasswordRecoveryEmailBranding(): PasswordRecoveryEmailBranding {
+  return {
+    logoUrl: TELEFARMED_DEFAULT_LOGO_URL,
+    brandName: TELEFARMED_BRAND_NAME,
+    accentColor: TELEFARMED_DEFAULT_PRIMARY_COLOR,
+  }
+}
+
+function resolvePasswordRecoveryEmailBranding(
+  branding?: Partial<PasswordRecoveryEmailBranding>,
+): PasswordRecoveryEmailBranding {
+  return {
+    ...defaultPasswordRecoveryEmailBranding(),
+    ...branding,
+  }
+}
+
 const RECOVERY_CODE_EMAIL_HTML = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -5,7 +34,7 @@ const RECOVERY_CODE_EMAIL_HTML = `<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="x-apple-disable-message-reformatting">
   <meta name="format-detection" content="telephone=no">
-  <title>Recuperação de acesso — Telefarmed</title>
+  <title>Recuperação de acesso — {{brandName}}</title>
 </head>
 
 <body style="
@@ -25,7 +54,7 @@ const RECOVERY_CODE_EMAIL_HTML = `<!DOCTYPE html>
     font-size: 1px;
     line-height: 1px;
   ">
-    Use o código {{codigo}} para recuperar seu acesso à Telefarmed.
+    Use o código {{codigo}} para recuperar seu acesso à {{brandName}}.
   </div>
 
   <table
@@ -61,7 +90,7 @@ const RECOVERY_CODE_EMAIL_HTML = `<!DOCTYPE html>
               height="5"
               style="
                 height: 5px;
-                background-color: #f97316;
+                background-color: {{accentColor}};
                 font-size: 0;
                 line-height: 0;
               "
@@ -79,8 +108,8 @@ const RECOVERY_CODE_EMAIL_HTML = `<!DOCTYPE html>
               "
             >
               <img
-                src="https://www.telefarmed.com.br/logo_4.png?dpl=dpl_CxfHeaHG8cKm2H49v5o7jdGq66rs"
-                alt="Telefarmed"
+                src="{{logoUrl}}"
+                alt="{{brandName}}"
                 width="180"
                 style="
                   display: block;
@@ -107,7 +136,7 @@ const RECOVERY_CODE_EMAIL_HTML = `<!DOCTYPE html>
 
               <p style="
                 margin: 0;
-                color: #f97316;
+                color: {{accentColor}};
                 font-size: 11px;
                 line-height: 16px;
                 font-weight: 700;
@@ -136,7 +165,7 @@ const RECOVERY_CODE_EMAIL_HTML = `<!DOCTYPE html>
                 line-height: 24px;
               ">
                 Digite o código abaixo para continuar com a recuperação da sua
-                conta Telefarmed.
+                conta {{brandName}}.
               </p>
 
               <table
@@ -158,7 +187,7 @@ const RECOVERY_CODE_EMAIL_HTML = `<!DOCTYPE html>
                     "
                   >
                     <div style="
-                      color: #e85d04;
+                      color: {{accentColor}};
                       font-family: 'Courier New', Courier, monospace;
                       font-size: 40px;
                       line-height: 50px;
@@ -190,7 +219,7 @@ const RECOVERY_CODE_EMAIL_HTML = `<!DOCTYPE html>
                 font-size: 13px;
                 line-height: 21px;
               ">
-                Não compartilhe este código com ninguém. A Telefarmed nunca
+                Não compartilhe este código com ninguém. A {{brandName}} nunca
                 solicitará essa informação por telefone, WhatsApp ou mensagem.
               </p>
 
@@ -224,7 +253,7 @@ const RECOVERY_CODE_EMAIL_HTML = `<!DOCTYPE html>
                 line-height: 20px;
                 font-weight: 700;
               ">
-                Telefarmed
+                {{brandName}}
               </p>
 
               <p style="
@@ -256,7 +285,7 @@ const RECOVERY_CODE_EMAIL_HTML = `<!DOCTYPE html>
           line-height: 16px;
           text-align: center;
         ">
-          © {{ano}} Telefarmed. Todos os direitos reservados.
+          © {{ano}} {{brandName}}. Todos os direitos reservados.
         </p>
 
       </td>
@@ -266,7 +295,12 @@ const RECOVERY_CODE_EMAIL_HTML = `<!DOCTYPE html>
 </body>
 </html>`
 
-export function buildUbtPasswordRecoveryEmailHtml(code: string, portalUrl?: string): string {
+export function buildUbtPasswordRecoveryEmailHtml(
+  code: string,
+  portalUrl?: string,
+  brandingInput?: Partial<PasswordRecoveryEmailBranding>,
+): string {
+  const branding = resolvePasswordRecoveryEmailBranding(brandingInput)
   const year = String(new Date().getFullYear())
   const portalUrlBlock = portalUrl
     ? `<p style="
@@ -275,8 +309,8 @@ export function buildUbtPasswordRecoveryEmailHtml(code: string, portalUrl?: stri
                 font-size: 13px;
                 line-height: 21px;
               ">
-                Acesse o portal em
-                <a href="${portalUrl}" style="color: #f97316; text-decoration: none; font-weight: 700;">${portalUrl}</a>
+                Acesse o app em
+                <a href="${portalUrl}" style="color: ${branding.accentColor}; text-decoration: none; font-weight: 700;">${portalUrl}</a>
                 para concluir a recuperação.
               </p>`
     : ''
@@ -284,15 +318,23 @@ export function buildUbtPasswordRecoveryEmailHtml(code: string, portalUrl?: stri
   return RECOVERY_CODE_EMAIL_HTML.replaceAll('{{codigo}}', code)
     .replaceAll('{{ano}}', year)
     .replaceAll('{{portalUrlBlock}}', portalUrlBlock)
+    .replaceAll('{{logoUrl}}', branding.logoUrl)
+    .replaceAll('{{brandName}}', branding.brandName)
+    .replaceAll('{{accentColor}}', branding.accentColor)
 }
 
-export function buildUbtPasswordRecoveryEmailText(code: string, portalUrl?: string): string {
+export function buildUbtPasswordRecoveryEmailText(
+  code: string,
+  portalUrl?: string,
+  brandingInput?: Partial<PasswordRecoveryEmailBranding>,
+): string {
+  const branding = resolvePasswordRecoveryEmailBranding(brandingInput)
   const lines = [
-    'Recuperação de acesso — Telefarmed',
+    `Recuperação de acesso — ${branding.brandName}`,
     '',
     `Seu código de verificação: ${code}`,
     '',
-    'Digite este código no portal para continuar com a recuperação da sua conta.',
+    `Digite este código no app para continuar com a recuperação da sua conta.`,
     'O código é válido por 15 minutos.',
   ]
 

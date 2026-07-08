@@ -30,7 +30,7 @@ export type UbtTenant = ResolvedTenant & { kind: 'ubt'; ubtId: string }
 
 export class TenantHostMismatchError extends Error {
   constructor(
-    readonly portal: 'gestao' | 'ubt',
+    readonly portal: 'gestao' | 'ubt' | 'vd',
     message: string,
   ) {
     super(message)
@@ -73,5 +73,26 @@ export async function assertUbtSessionMatchesHost(
   const ubtTenant = await resolveUbtTenantFromHost(hostname)
   if (ubtTenant && ubtTenant.ubtId !== unidadeUbtId) {
     throw new TenantHostMismatchError('ubt', 'Use o endereço da sua unidade.')
+  }
+}
+
+export type VdTenant = ResolvedTenant & { kind: 'vd'; entidadeId: string }
+
+export async function resolveVdTenantFromHost(
+  hostname: string | undefined,
+): Promise<VdTenant | null> {
+  if (!hostname) return null
+  const tenant = await resolveTenantByHost(hostname)
+  if (!tenant || tenant.kind !== 'vd' || !tenant.entidadeId) return null
+  return tenant as VdTenant
+}
+
+export async function assertVdSessionMatchesHost(
+  entidadeContratanteId: string,
+  hostname: string | undefined,
+): Promise<void> {
+  const vdTenant = await resolveVdTenantFromHost(hostname)
+  if (vdTenant && vdTenant.entidadeId !== entidadeContratanteId) {
+    throw new TenantHostMismatchError('vd', 'Use o app da sua cidade.')
   }
 }

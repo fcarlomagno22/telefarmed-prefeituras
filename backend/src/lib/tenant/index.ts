@@ -1,14 +1,26 @@
 export {
   resolveTenantByHost,
   resolveTenantBySlug,
+  resolveVdTenantByHost,
+  resolveVdTenantByEntitySlug,
   extractSubdomainFromHostname,
   extractTenantSlugFromHostname,
   isPlatformTenantHost,
   PLATFORM_TENANT_HOST_SLUGS,
+  extractAppCidadesClientSlug,
+  isAppCidadesDedicatedHost,
+  normalizeVdTenantEntitySlugInput,
 } from './resolveTenantByHost.js'
 export type { ResolvedTenant, TenantBranding, TenantKind } from './types.js'
-export { buildGestaoUrl, buildUbtUrl, gestaoPublicUrl, ubtPublicUrl } from './publicUrls.js'
-export { resolveGestaoUrlForEntidade, resolveUbtUrlForUnidade } from './transactionalUrls.js'
+export {
+  buildGestaoUrl,
+  buildUbtUrl,
+  buildVdUrl,
+  gestaoPublicUrl,
+  ubtPublicUrl,
+  vdPublicUrl,
+} from './publicUrls.js'
+export { resolveGestaoUrlForEntidade, resolveUbtUrlForUnidade, resolveVdUrlForEntidade } from './transactionalUrls.js'
 export { checkTenantSlugAvailability } from './slugAvailability.js'
 export type { SlugAvailabilityResult } from './slugAvailability.js'
 export { tenantSlugZodSchema } from './slugSchema.js'

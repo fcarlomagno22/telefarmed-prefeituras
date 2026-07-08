@@ -19,11 +19,11 @@ import {
 } from '../config/passwordRecovery'
 import { useAuth } from '../contexts/AuthContext'
 import {
-  mockCompletePasswordRecovery,
-  mockRequestPasswordRecovery,
-  mockVerifyPasswordRecoveryCode,
+  completePasswordRecovery,
   PasswordRecoveryError,
-} from '../services/mockPasswordRecovery'
+  requestPasswordRecovery,
+  verifyPasswordRecoveryCode,
+} from '../services/passwordRecovery'
 import { colors } from '../theme/colors'
 import { isValidCpf, maskCpf } from '../utils/cpf'
 import { isPasswordValid, passwordRules } from '../utils/password'
@@ -72,7 +72,7 @@ export function ForgotPasswordScreen() {
 
     setIsSubmitting(true)
     try {
-      const result = await mockRequestPasswordRecovery(cpf)
+      const result = await requestPasswordRecovery(cpf)
       setResetToken(result.resetToken)
       setSentToEmail(result.sentTo)
       setCode('')
@@ -100,7 +100,7 @@ export function ForgotPasswordScreen() {
 
     setIsSubmitting(true)
     try {
-      const result = await mockVerifyPasswordRecoveryCode({ resetToken, code })
+      const result = await verifyPasswordRecoveryCode({ resetToken, code })
       setVerificationToken(result.verificationToken)
       setPassword('')
       setConfirmPassword('')
@@ -134,7 +134,7 @@ export function ForgotPasswordScreen() {
 
     setIsSubmitting(true)
     try {
-      await mockCompletePasswordRecovery({ verificationToken, password })
+      await completePasswordRecovery({ verificationToken, password })
       setStep('success')
       void playSuccessPasswordSound()
     } catch (err) {
@@ -154,7 +154,7 @@ export function ForgotPasswordScreen() {
     setCodeError(false)
     setIsSubmitting(true)
     try {
-      const result = await mockRequestPasswordRecovery(cpf)
+      const result = await requestPasswordRecovery(cpf)
       setResetToken(result.resetToken)
       setSentToEmail(result.sentTo)
       setCode('')
@@ -184,6 +184,7 @@ export function ForgotPasswordScreen() {
       setStep('code')
       setPassword('')
       setConfirmPassword('')
+      setVerificationToken(null)
     }
   }
 

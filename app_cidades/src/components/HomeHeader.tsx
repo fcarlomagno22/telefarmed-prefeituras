@@ -2,15 +2,13 @@ import { Ionicons } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { appEnv } from '../config/env'
+import { useTenant } from '../contexts/TenantContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { useThemedStyles } from '../hooks/useThemedStyles'
 import type { ThemeColors } from '../theme/palettes'
 import { resolveBrandImage } from '../utils/resolveBrandImage'
 import { ProfileAvatar } from './profile/ProfileAvatar'
 import { SkeletonBone } from './SkeletonBone'
-
-const logoSource = resolveBrandImage(appEnv.logoUrl, 'logo.png')
 
 /** Topo opaco → base levemente transparente para o fundo aparecer aos poucos. */
 const HEADER_FADE_COLORS = [
@@ -34,10 +32,13 @@ export function HomeHeader({
   isAuthenticated,
   userName,
   selfieUri,
-  municipalityName = appEnv.municipalityName,
+  municipalityName: municipalityNameProp,
   onAuthPress,
   skeleton = false,
 }: HomeHeaderProps) {
+  const { branding } = useTenant()
+  const logoSource = resolveBrandImage(branding.logoUrl ?? '', 'logo.png')
+  const municipalityName = municipalityNameProp ?? branding.municipalityName
   const insets = useSafeAreaInsets()
   const { colors } = useTheme()
   const styles = useThemedStyles(createStyles)

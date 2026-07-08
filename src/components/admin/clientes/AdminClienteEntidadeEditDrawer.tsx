@@ -10,6 +10,7 @@ import {
   EntidadeLogoCropCard,
 } from './cadastro/EntidadeLogoCropCard'
 import { TenantSlugField } from '../../tenant/TenantSlugField'
+import { TenantVdUrlPreview } from '../../tenant/TenantVdUrlPreview'
 import { EntidadeGestaoLoginPreview } from './EntidadeGestaoLoginPreview'
 import { useAdminAuth } from '../../../contexts/AdminAuthContext'
 import { checkClienteSlugAvailability } from '../../../lib/api/admin/clientes'
@@ -419,13 +420,15 @@ export function AdminClienteEntidadeEditDrawer({
               Endereço público
             </h3>
             <p className={sectionHintClass}>
-              Slug único do portal de gestão em{' '}
-              <span className="font-mono text-gray-700">https://{'{slug}'}.telefarmed.com.br</span>.
+              Slug único dos portais: gestão em{' '}
+              <span className="font-mono text-gray-700">https://{'{slug}'}.telefarmed.com.br</span> e app
+              cidadão em{' '}
+              <span className="font-mono text-gray-700">https://vd-{'{slug}'}.telefarmed.com.br</span>.
             </p>
 
-            <div className="mt-4">
+            <div className="mt-4 space-y-3">
               {cliente.slugLocked ? (
-                <p className="mb-3 text-xs text-amber-800">
+                <p className="text-xs text-amber-800">
                   Este portal já está publicado. Se alterar o slug, faça o deploy novamente para o novo
                   endereço entrar em vigor.
                 </p>
@@ -441,6 +444,7 @@ export function AdminClienteEntidadeEditDrawer({
                 onAvailabilityChange={handleSlugAvailabilityChange}
                 hint="Use letras minúsculas, números e hífens."
               />
+              <TenantVdUrlPreview slug={slugDraft} />
             </div>
           </section>
 

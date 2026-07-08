@@ -375,6 +375,7 @@ export async function getEntityPatientTerritoryPolicy(entidadeContratanteId: str
       tipoEntidade,
       aceitaContrato,
     ),
+    contratoAceitaPacientesOutrosMunicipios: aceitaContrato,
   }
 }
 
@@ -410,7 +411,7 @@ function assertPatientAddressInEntityTerritory(
 
 function buildPacienteInsertRow(input: CreatePacienteInput) {
   const cpf = normalizeCpf(input.cpf)
-  const birthDate = parseBirthDateToIso(input.birthDate)
+  const birthDate = input.birthDate?.trim() ? parseBirthDateToIso(input.birthDate) : null
   const cnsFields = resolveCnsFields({ ...input, cpf: input.cpf })
 
   return {
@@ -418,9 +419,9 @@ function buildPacienteInsertRow(input: CreatePacienteInput) {
     nome: input.fullName.trim(),
     nome_social: input.socialName?.trim() || null,
     data_nascimento: birthDate,
-    sexo: genderToSexo(input.gender),
-    nacionalidade: input.nationality,
-    raca_cor: input.raceColor,
+    sexo: genderToSexo(input.gender ?? 'nao_informado'),
+    nacionalidade: input.nationality?.trim() || null,
+    raca_cor: input.raceColor?.trim() || null,
     cns: cnsFields.cns,
     cns_pendente: cnsFields.cns_pendente,
     telefone: input.phone?.trim() || null,
@@ -428,9 +429,11 @@ function buildPacienteInsertRow(input: CreatePacienteInput) {
     endereco: buildEnderecoFromInput(input),
     contato_emergencia: buildContactsFromInput(input.contacts),
     responsavel: buildResponsavelFromInput(input),
-    consentimento_cadastro: buildConsentimentoFromInput(input.registrationConsent),
+    consentimento_cadastro:
+      input.consentimentoCadastro ?? buildConsentimentoFromInput(input.registrationConsent),
     foto_url: input.photoDataUrl?.trim() || null,
     entidade_contratante_id: input.entidadeContratanteId,
+    cadastro_origem: input.cadastroOrigem ?? null,
     status: input.status ?? 'ativo',
   }
 }
@@ -459,7 +462,10 @@ export async function createPaciente(input: CreatePacienteInput): Promise<AdminM
     )
   }
 
-  const insertRow = buildPacienteInsertRow(input)
+  const insertRow = buildPacienteInsertRow({
+    ...input,
+    cadastroOrigem: input.cadastroOrigem ?? 'admin',
+  })
   await assertNoDuplicatePaciente(
     input.entidadeContratanteId,
     insertRow.cpf,
@@ -557,6 +563,14 @@ export async function updatePaciente(
 
   if (input.registrationConsent) {
     patch.consentimento_cadastro = buildConsentimentoFromInput(input.registrationConsent)
+  }
+
+  if (input.consentimentoCadastro !== undefined) {
+    patch.consentimento_cadastro = input.consentimentoCadastro
+  }
+
+  if (input.status !== undefined) {
+    patch.status = input.status
   }
 
   if (input.city !== undefined || input.state !== undefined) {

@@ -13,8 +13,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useAdminAuth } from '../../../../contexts/AdminAuthContext'
 import { checkClienteSlugAvailability } from '../../../../lib/api/admin/clientes'
-import { gestaoPublicUrl } from '../../../../config/tenantHost'
+import { gestaoPublicUrl, vdPublicUrl } from '../../../../config/tenantHost'
 import { TenantSlugField } from '../../../tenant/TenantSlugField'
+import { TenantVdUrlPreview } from '../../../tenant/TenantVdUrlPreview'
 import {
   createIdleSlugAvailability,
   suggestTenantSlugFromText,
@@ -1016,8 +1017,10 @@ export function AdminEntidadeCadastroDrawer({
                   <div className={sectionCardClass}>
                     <p className={sectionTitleClass}>Endereço público</p>
                     <p className={sectionHintClass}>
-                      Slug único do portal de gestão. Será usado em{' '}
-                      <span className="font-mono text-gray-700">https://{'{slug}'}.telefarmed.com.br</span>.
+                      Slug único dos portais públicos: gestão em{' '}
+                      <span className="font-mono text-gray-700">https://{'{slug}'}.telefarmed.com.br</span>{' '}
+                      e app cidadão em{' '}
+                      <span className="font-mono text-gray-700">https://vd-{'{slug}'}.telefarmed.com.br</span>.
                     </p>
                   </div>
 
@@ -1029,6 +1032,8 @@ export function AdminEntidadeCadastroDrawer({
                     onAvailabilityChange={handleSlugAvailabilityChange}
                     hint="Use letras minúsculas, números e hífens."
                   />
+
+                  <TenantVdUrlPreview slug={form.slug} />
                 </div>
               </section>
             ) : null}
@@ -1756,6 +1761,12 @@ export function AdminEntidadeCadastroDrawer({
                     </p>
                     <p className="mt-1 font-mono text-sm font-semibold text-gray-900">
                       {form.slug ? gestaoPublicUrl(form.slug) : '—'}
+                    </p>
+                    <p className="mt-4 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                      App cidadão
+                    </p>
+                    <p className="mt-1 font-mono text-sm font-semibold text-gray-900">
+                      {form.slug ? vdPublicUrl(form.slug) : '—'}
                     </p>
                     <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start">
                       <div className="flex items-center gap-4">

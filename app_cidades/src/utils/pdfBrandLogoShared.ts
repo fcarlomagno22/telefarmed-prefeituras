@@ -1,5 +1,5 @@
 import type { ImageSourcePropType } from 'react-native'
-import { appEnv } from '../config/env'
+import { getRuntimeBranding } from '../config/runtimeBranding'
 import { resolveBrandImage } from './resolveBrandImage'
 
 export const bundledLogo = require('../../assets/logo.png') as ImageSourcePropType
@@ -85,7 +85,7 @@ export async function resolveConfiguredPdfLogoDataUri(
     return cached
   }
 
-  const configured = appEnv.logoUrl.trim()
+  const configured = getRuntimeBranding().logoUrl?.trim() ?? ''
   if (isRemoteUrl(configured)) {
     const dataUri = await readUriAsDataUri(configured)
     setCachedPdfLogoDataUri(dataUri)

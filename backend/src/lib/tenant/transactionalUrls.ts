@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '../../db/supabase.js'
 import { resolvePublicAppUrl } from '../codigoVerificacaoDocumento.js'
-import { buildGestaoUrl, buildUbtUrl } from './publicUrls.js'
+import { buildGestaoUrl, buildUbtUrl, buildVdUrl } from './publicUrls.js'
 
 function legacyGestaoPath(path: string): string {
   const normalized = path.startsWith('/') ? path : `/${path}`
@@ -42,4 +42,25 @@ export async function resolveUbtUrlForUnidade(
   const slug = data?.slug ? String(data.slug) : ''
   if (slug) return buildUbtUrl(slug, path)
   return legacyUbtPath(path)
+}
+
+function legacyVdPath(path: string): string {
+  const normalized = path.startsWith('/') ? path : `/${path}`
+  return `${resolvePublicAppUrl().replace(/\/$/, '')}${normalized}`
+}
+
+export async function resolveVdUrlForEntidade(
+  entidadeId: string,
+  path = '/login',
+): Promise<string> {
+  const { data, error } = await supabaseAdmin
+    .from('entidades_contratantes')
+    .select('slug')
+    .eq('id', entidadeId)
+    .maybeSingle()
+
+  if (error) throw error
+  const slug = data?.slug ? String(data.slug) : ''
+  if (slug) return buildVdUrl(slug, path)
+  return legacyVdPath(path)
 }

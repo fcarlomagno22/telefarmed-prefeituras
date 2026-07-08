@@ -8,8 +8,8 @@ import {
   resolveTenantBySlug,
 } from '../../lib/tenant/resolveTenantByHost.js'
 import { lookupTenantSlugRedirect } from '../../lib/tenant/slugRedirect.js'
-import { gestaoPublicUrl, ubtPublicUrl } from '../../lib/tenant/publicUrls.js'
-import { mapTenantToPortalKind, type PublicTenantPayload } from './serializer.js'
+import { isAppCidadesDedicatedHost } from '../../lib/tenant/appCidadesHost.js'
+import { toPublicTenantPayload } from './serializer.js'
 import { setTenantCacheHeaders } from '../../lib/cache/httpCacheHeaders.js'
 
 const PUBLIC_TENANT_RATE_LIMIT_MAX = 60
@@ -18,38 +18,6 @@ const tenantQuerySchema = z.object({
   host: z.string().trim().optional(),
   slug: z.string().trim().optional(),
 })
-
-function publicUrlForTenant(tenant: NonNullable<Awaited<ReturnType<typeof resolveTenantByHost>>>): string {
-  if (tenant.kind === 'platform') {
-    return `https://${tenant.slug}.${env.PUBLIC_ROOT_DOMAIN}/login`
-  }
-  if (tenant.kind === 'gestao') {
-    return gestaoPublicUrl(tenant.slug)
-  }
-  return ubtPublicUrl(tenant.slug)
-}
-
-function loginPathForTenant(tenant: NonNullable<Awaited<ReturnType<typeof resolveTenantByHost>>>): string {
-  if (tenant.kind === 'platform') {
-    return tenant.slug === 'admin' ? '/admin/login' : '/profissional/login'
-  }
-  return '/login'
-}
-
-function toPublicTenantPayload(
-  tenant: NonNullable<Awaited<ReturnType<typeof resolveTenantByHost>>>,
-): PublicTenantPayload {
-  return {
-    portalKind: mapTenantToPortalKind(tenant),
-    kind: tenant.kind,
-    slug: tenant.slug,
-    entidadeId: tenant.entidadeId ?? null,
-    ubtId: tenant.ubtId ?? null,
-    branding: tenant.branding,
-    loginPath: loginPathForTenant(tenant),
-    publicUrl: publicUrlForTenant(tenant),
-  }
-}
 
 function resolveRequestHost(
   headers: { host?: string; 'x-forwarded-host'?: string | string[] },
@@ -108,7 +76,11 @@ export async function registerPublicTenantRoutes(app: FastifyInstance): Promise<
         return reply.status(400).send({ message: 'Informe o header Host ou o parâmetro host.' })
       }
 
-      if (slugCandidate && (await redirectIfLegacySlug(slugCandidate, reply))) {
+      if (
+        slugCandidate &&
+        !(hostHeader && isAppCidadesDedicatedHost(hostHeader)) &&
+        (await redirectIfLegacySlug(slugCandidate, reply))
+      ) {
         return
       }
 

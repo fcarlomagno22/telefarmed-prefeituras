@@ -1,7 +1,7 @@
 import { formatCpfDisplay, initialsFromName, avatarClassForId } from '../admin-credenciais/formatters.js'
 import { formatCnsDisplay } from '../../lib/cns.js'
-import { isValidCpf } from '../../lib/cpf.js'
 import { enrichEnderecoWithMunicipioIbge } from '../../lib/municipiosIbge.js'
+import { computePatientMissingFields } from '../../lib/pacienteClinicalCompleteness.js'
 import type {
   AdminContractStatus,
   AdminMunicipalPatientDetailDto,
@@ -9,6 +9,7 @@ import type {
   AdminPatientConsultationDto,
   AdminPatientDetailProfileDto,
   AdminPatientUbtVinculoDto,
+  PacienteCadastroOrigem,
   PacienteStatus,
   PreCadastroRegistrationInput,
 } from './types.js'
@@ -20,7 +21,7 @@ export type ListagemRow = {
   cpf: string
   nome: string
   nome_social: string | null
-  data_nascimento: string
+  data_nascimento: string | null
   sexo: string
   cns: string | null
   cns_pendente: boolean
@@ -34,6 +35,7 @@ export type ListagemRow = {
   responsavel: Record<string, unknown> | null
   foto_url: string | null
   status: PacienteStatus
+  cadastro_origem: PacienteCadastroOrigem | null
   criado_em: string
   entidade_contratante_id: string
   entidade_razao_social: string
@@ -144,18 +146,7 @@ function readContacts(contatoEmergencia: unknown): AdminPatientDetailProfileDto[
 }
 
 function computeMissingFields(row: ListagemRow): string[] {
-  const missing: string[] = []
-  const cpfDigits = row.cpf.replace(/\D/g, '')
-  const hasValidCpf = cpfDigits.length === 11 && isValidCpf(cpfDigits)
-  if (!hasValidCpf && (row.cns_pendente || !row.cns?.trim())) missing.push('CNS')
-  if (!row.nacionalidade?.trim()) missing.push('nacionalidade')
-  if (!row.raca_cor?.trim()) missing.push('raça/cor')
-  if (!row.telefone?.trim()) missing.push('telefone')
-  if (!row.email?.trim()) missing.push('e-mail')
-  const contacts = readContacts(row.contato_emergencia)
-  if (!contacts.some((c) => c.name && c.phone)) missing.push('contato de emergência')
-  if (!readEnderecoField(row.endereco, 'cep')) missing.push('CEP')
-  return missing
+  return computePatientMissingFields(row)
 }
 
 export function formatLastAppointmentRelative(iso: string | null): string {
@@ -256,7 +247,7 @@ export function mapListagemToPatient(
   row: ListagemRow,
   stats?: { totalAppointments: number; lastAppointmentIso: string | null },
 ): AdminMunicipalPatientDto {
-  const birthIso = row.data_nascimento.slice(0, 10)
+  const birthIso = row.data_nascimento?.trim()?.slice(0, 10) ?? null
   const missingFields = computeMissingFields(row)
   const contractStatus: AdminContractStatus = row.contrato_ativo ? 'ativo' : 'encerrado'
   const lastIso = stats?.lastAppointmentIso ?? null
@@ -270,8 +261,8 @@ export function mapListagemToPatient(
     bairro: readEnderecoField(row.endereco, 'bairro') || '—',
     phone: row.telefone?.trim() ?? '',
     cpf: formatCpfDisplay(row.cpf),
-    birthDate: formatIsoDateToBrazilian(birthIso),
-    age: ageFromBirthDateIso(birthIso),
+    birthDate: birthIso ? formatIsoDateToBrazilian(birthIso) : '—',
+    age: birthIso ? ageFromBirthDateIso(birthIso) : 0,
     lastAppointmentDate: lastIso ? formatIsoDateToBrazilian(lastIso) : '—',
     lastAppointmentRelative: formatLastAppointmentRelative(lastIso),
     totalAppointments: stats?.totalAppointments ?? 0,
@@ -384,6 +375,8 @@ export function buildConsentimentoFromInput(
     ...(consent.operatorAdminId ? { operador_admin_id: consent.operatorAdminId } : {}),
   }
 }
+
+export { buildConsentimentoCadastroFromAppRegistration } from '../../lib/patientRegistrationAppConsent.js'
 
 export function buildContactsFromInput(
   contacts?: PreCadastroRegistrationInput['contacts'],

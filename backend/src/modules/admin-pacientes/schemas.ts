@@ -5,6 +5,12 @@ import {
   isValidPacienteNacionalidade,
   isValidPacienteRacaCor,
 } from '../../lib/pacienteDemografia.js'
+import {
+  appLegalAcceptancesSchema,
+  appRegistrationConsentInputSchema,
+  appRegistrationConsentSchema,
+  registrationConsentSelfServiceInputSchema,
+} from '../../lib/patientRegistrationAppConsent.js'
 
 const contactSchema = z.object({
   id: z.string().optional(),
@@ -292,4 +298,11 @@ export {
   refineCnsOnUpdate,
   refinePacienteRegistrationOnCreate,
   refinePacienteRegistrationOnUpdate,
+}
+
+export {
+  appLegalAcceptancesSchema,
+  appRegistrationConsentInputSchema,
+  appRegistrationConsentSchema,
+  registrationConsentSelfServiceInputSchema,
 }

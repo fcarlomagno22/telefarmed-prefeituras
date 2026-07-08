@@ -6,6 +6,7 @@ import { AppIntroGate } from './src/components/platform/AppIntroGate'
 import { PwaInstallPrompt } from './src/components/platform/PwaInstallPrompt'
 import { AuthProvider, useAuth } from './src/contexts/AuthContext'
 import { GuestAuthProvider } from './src/contexts/GuestAuthContext'
+import { TenantBootstrapGate, TenantProvider } from './src/contexts/TenantContext'
 import { ThemeProvider } from './src/contexts/ThemeContext'
 import { OverlayPortalProvider } from './src/contexts/OverlayPortalContext'
 import { useAndroidBackHandler } from './src/hooks/useAndroidBackHandler'
@@ -123,17 +124,21 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
       <SafeAreaProvider>
         <AppIntroGate>
-          <AuthProvider>
-            <OverlayPortalProvider>
-              <GuestAuthProvider>
-                <ThemeProvider>
-                  <AppSystemBars style="dark" />
-                  <AppRouter />
-                  <PwaInstallPrompt />
-                </ThemeProvider>
-              </GuestAuthProvider>
-            </OverlayPortalProvider>
-          </AuthProvider>
+          <TenantProvider>
+            <TenantBootstrapGate>
+              <AuthProvider>
+                <OverlayPortalProvider>
+                  <GuestAuthProvider>
+                    <ThemeProvider>
+                      <AppSystemBars style="dark" />
+                      <AppRouter />
+                      <PwaInstallPrompt />
+                    </ThemeProvider>
+                  </GuestAuthProvider>
+                </OverlayPortalProvider>
+              </AuthProvider>
+            </TenantBootstrapGate>
+          </TenantProvider>
         </AppIntroGate>
       </SafeAreaProvider>
     </GestureHandlerRootView>
