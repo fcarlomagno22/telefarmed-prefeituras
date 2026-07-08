@@ -48,7 +48,7 @@ export function mapAppPacienteRegistrationToCreatePacienteInput(
       state: input.address.uf,
       residenceMunicipalityIbgeCode: input.address.codigoIbgeMunicipio,
       photoDataUrl: resolvePhotoDataUrl(input),
-      gender: APP_PACIENTE_REGISTRATION_DEFAULTS.gender,
+      gender: input.gender ?? APP_PACIENTE_REGISTRATION_DEFAULTS.gender,
       cnsPendente: APP_PACIENTE_REGISTRATION_DEFAULTS.cnsPendente,
       status: APP_PACIENTE_REGISTRATION_DEFAULTS.status,
       cadastroOrigem: APP_PACIENTE_REGISTRATION_DEFAULTS.cadastroOrigem,

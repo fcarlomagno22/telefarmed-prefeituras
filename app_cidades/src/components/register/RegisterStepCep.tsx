@@ -270,7 +270,7 @@ export function RegisterStepCep({
         </View>
         {isLoading ? (
           <Text style={[formStyles.label, { marginTop: 8, textAlign: 'center' }]}>
-            Buscando endereço e validando município...
+            Buscando endereço...
           </Text>
         ) : null}
       </View>

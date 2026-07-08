@@ -107,7 +107,11 @@ export function HealthIntegrationsCard({
 }: {
   skeleton?: boolean
   connections?: Record<string, IntegrationConnectionState>
-  onConnectionsChange?: (next: Record<string, IntegrationConnectionState>) => void
+  onConnectionsChange?: (
+    integrationId: string,
+    connection: IntegrationConnectionState,
+    connections: Record<string, IntegrationConnectionState>,
+  ) => void
   connectRequestId?: IntegrationId | null
   onConnectRequestHandled?: () => void
 }) {
@@ -119,16 +123,20 @@ export function HealthIntegrationsCard({
 
   const connections = controlledConnections ?? internalConnections
 
-  function updateConnections(next: Record<string, IntegrationConnectionState>) {
+  function updateConnections(
+    integrationId: string,
+    connection: IntegrationConnectionState,
+    merged: Record<string, IntegrationConnectionState>,
+  ) {
     if (onConnectionsChange) {
-      onConnectionsChange(next)
+      onConnectionsChange(integrationId, connection, merged)
       return
     }
-    setInternalConnections(next)
+    setInternalConnections(merged)
   }
 
   function setConnection(integrationId: string, next: IntegrationConnectionState) {
-    updateConnections({ ...connections, [integrationId]: next })
+    updateConnections(integrationId, next, { ...connections, [integrationId]: next })
   }
 
   const visibleIntegrations = useMemo(

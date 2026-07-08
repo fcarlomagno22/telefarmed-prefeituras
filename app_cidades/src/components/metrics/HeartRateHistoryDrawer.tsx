@@ -20,7 +20,7 @@ import {
   getHeartRateContextLabel,
   getHeartRateZone,
   summarizeHeartRate,
-} from '../../data/mockHeartRateHistory'
+} from '../../utils/heartRate'
 import { colors } from '../../theme/colors'
 import { HeartRateReading } from '../../types/heartRate'
 import { PrimaryButton } from '../PrimaryButton'

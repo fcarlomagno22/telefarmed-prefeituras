@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '../../../config/api'
 import { getVdAccessToken } from '../../vd/vdAccessToken'
 import type { VdTenantScope } from '../../../types/vdApi'
+import { tryRefreshVdAccessToken } from './vdAuthRefresh'
 import {
   buildTenantHeaders,
   getVdTenantScope,
@@ -28,6 +29,8 @@ type VdRequestOptions = {
   tenantScope?: VdTenantScope
   credentials?: RequestCredentials
   redirect?: RequestRedirect
+  /** Evita loop infinito após tentativa de refresh. */
+  skipAuthRetry?: boolean
 }
 
 async function readResponseBody(response: Response): Promise<string> {
@@ -137,6 +140,26 @@ export async function vdRequest<T>(options: VdRequestOptions): Promise<T> {
   if (!response.ok) {
     const body = await readResponseBody(response)
     const parsed = await parseErrorResponse(response, body)
+
+    const hadAccessToken = Boolean(options.accessToken ?? getVdAccessToken())
+    const isAuthPath = options.path.startsWith('/vd/auth/')
+
+    if (
+      response.status === 401 &&
+      hadAccessToken &&
+      !options.skipAuthRetry &&
+      !isAuthPath
+    ) {
+      const refreshedToken = await tryRefreshVdAccessToken()
+      if (refreshedToken) {
+        return vdRequest<T>({
+          ...options,
+          accessToken: refreshedToken,
+          skipAuthRetry: true,
+        })
+      }
+    }
+
     throw new VdApiError(parsed.message, response.status, parsed.code)
   }
 

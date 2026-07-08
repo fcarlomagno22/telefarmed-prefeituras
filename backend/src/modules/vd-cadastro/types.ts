@@ -66,6 +66,8 @@ export type VdPacienteUserPublic = {
   phone: string
   entidadeContratanteId: string
   avatarUrl?: string
+  birthDate?: string | null
+  genderLabel?: string | null
   address: {
     cep: string
     logradouro: string

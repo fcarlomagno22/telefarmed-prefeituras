@@ -7,6 +7,7 @@ export function mapLookupPatientToProfile(patient: VdCadastroLookupPatient): Reg
     cpf: patient.cpf.trim(),
     email: patient.email.trim(),
     phone: patient.phone.trim(),
+    gender: '',
   }
 }
 

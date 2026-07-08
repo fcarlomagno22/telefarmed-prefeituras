@@ -123,6 +123,15 @@ export function genderToSexo(gender: string): 'masculino' | 'feminino' | 'nao_in
   const normalized = gender.trim().toLowerCase()
   if (normalized === 'masculino' || normalized === 'm') return 'masculino'
   if (normalized === 'feminino' || normalized === 'f') return 'feminino'
+  if (normalized === 'outros' || normalized === 'outro') return 'nao_informado'
+  if (
+    normalized === 'prefiro_nao_informar' ||
+    normalized === 'prefiro não informar' ||
+    normalized === 'nao_informado' ||
+    normalized === 'não informado'
+  ) {
+    return 'nao_informado'
+  }
   return 'nao_informado'
 }
 

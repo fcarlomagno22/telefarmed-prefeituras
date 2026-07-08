@@ -82,6 +82,7 @@ export type VdRegisterInput = {
   cpf: string
   email: string
   phone: string
+  gender?: 'masculino' | 'feminino' | 'outros' | 'prefiro_nao_informar'
   address: VdRegisterAddressInput
   registrationConsent: VdRegistrationConsentInput
   password: string
@@ -98,6 +99,8 @@ export type VdPacienteUser = {
   phone: string
   entidadeContratanteId: string
   avatarUrl?: string
+  birthDate?: string | null
+  genderLabel?: string | null
   address: {
     cep: string
     logradouro: string

@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { syncPosConsultaVitalsToMetricas } from '../vd-metricas/pos-consulta-sync.service.js'
 import { POS_CONSULTA_PLAN_TOTAL_DAYS } from './config.js'
 import { PosConsultaError } from './errors.js'
 import {
@@ -23,6 +24,8 @@ type CheckinJoinRow = {
   status: string
   pos_consulta_planos: {
     id: string
+    paciente_id: string
+    entidade_contratante_id: string
     inicio_em: string
     fim_em: string
     status: string
@@ -62,6 +65,8 @@ async function loadCheckinByToken(token: string): Promise<CheckinJoinRow> {
       status,
       pos_consulta_planos!inner (
         id,
+        paciente_id,
+        entidade_contratante_id,
         inicio_em,
         fim_em,
         status,
@@ -195,7 +200,28 @@ export async function submitPublicPosConsultaCheckin(
 
   if (checkinError) throw checkinError
 
-  const nextDate = await loadNextCheckinDate(row.pos_consulta_planos.id, row.numero_checkin)
+  const plano = row.pos_consulta_planos
+  try {
+    await syncPosConsultaVitalsToMetricas({
+      scope: {
+        pacienteId: plano.paciente_id,
+        entidadeContratanteId: plano.entidade_contratante_id,
+        cpf: '',
+      },
+      checkinId: row.id,
+      numeroCheckin: row.numero_checkin,
+      respostas,
+      recordedAtIso: now,
+    })
+  } catch (error) {
+    console.error(
+      '[pos-consulta] Falha ao sincronizar vitais do check-in para Minhas Métricas.',
+      row.id,
+      error,
+    )
+  }
+
+  const nextDate = await loadNextCheckinDate(plano.id, row.numero_checkin)
   const totalCheckins = getPosConsultaTotalCheckins()
 
   return {

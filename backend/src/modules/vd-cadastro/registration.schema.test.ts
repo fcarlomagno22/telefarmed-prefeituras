@@ -18,6 +18,7 @@ const validPayload = {
   cpf: '39053344705',
   email: 'maria@example.com',
   phone: '(11) 98765-4321',
+  gender: 'feminino' as const,
   address: {
     cep: '01310-100',
     logradouro: 'Avenida Paulista',
@@ -35,6 +36,20 @@ describe('appPacienteRegistrationSchema', () => {
   it('aceita cadastro subset sem demografia clínica', () => {
     const parsed = appPacienteRegistrationSchema.safeParse(validPayload)
     assert.equal(parsed.success, true)
+  })
+
+  it('aceita cadastro sem gênero explícito (credenciais prefeitura)', () => {
+    const { gender: _gender, ...withoutGender } = validPayload
+    const parsed = appPacienteRegistrationSchema.safeParse(withoutGender)
+    assert.equal(parsed.success, true)
+  })
+
+  it('rejeita gênero inválido', () => {
+    const parsed = appPacienteRegistrationSchema.safeParse({
+      ...validPayload,
+      gender: 'invalido',
+    })
+    assert.equal(parsed.success, false)
   })
 
   it('rejeita CPF inválido e senha fraca', () => {
@@ -75,7 +90,7 @@ describe('mapAppPacienteRegistrationToCreatePacienteInput', () => {
     })
 
     assert.equal(mapped.paciente.status, APP_PACIENTE_REGISTRATION_DEFAULTS.status)
-    assert.equal(mapped.paciente.gender, APP_PACIENTE_REGISTRATION_DEFAULTS.gender)
+    assert.equal(mapped.paciente.gender, 'feminino')
     assert.equal(mapped.paciente.cnsPendente, APP_PACIENTE_REGISTRATION_DEFAULTS.cnsPendente)
     assert.equal(mapped.paciente.cadastroOrigem, APP_PACIENTE_REGISTRATION_DEFAULTS.cadastroOrigem)
     assert.equal(mapped.paciente.birthDate, undefined)
@@ -89,5 +104,16 @@ describe('mapAppPacienteRegistrationToCreatePacienteInput', () => {
     assert.equal(consentimento.canal, 'app_vd')
     assert.equal(consentimento.operador_nome, 'Autoatendimento')
     assert.equal(consentimento.paciente_nome, 'Maria Silva')
+  })
+
+  it('usa default de gênero quando não informado', () => {
+    const { gender: _gender, ...withoutGender } = validPayload
+    const input = appPacienteRegistrationSchema.parse(withoutGender)
+    const mapped = mapAppPacienteRegistrationToCreatePacienteInput(input, {
+      entidadeContratanteId: '11111111-1111-4111-8111-111111111111',
+      entityDisplayName: 'Prefeitura de Exemplo',
+    })
+
+    assert.equal(mapped.paciente.gender, APP_PACIENTE_REGISTRATION_DEFAULTS.gender)
   })
 })

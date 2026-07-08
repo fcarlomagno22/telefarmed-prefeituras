@@ -70,6 +70,7 @@ import { registerPublicTenantRoutes } from './modules/public-tenant/routes.js'
 import { registerVdPublicTenantRoutes } from './modules/vd-tenant/routes.js'
 import { registerVdCadastroRoutes } from './modules/vd-cadastro/routes.js'
 import { registerVdAuthRoutes } from './modules/vd-auth/routes.js'
+import { registerVdMetricasRoutes } from './modules/vd-metricas/routes.js'
 import { registerPublicDemoRoutes } from './modules/public-demo/routes.js'
 import { registerIcdReferenceRoutes } from './modules/icd-reference/routes.js'
 import { registerRh3WebhookRoutes } from './modules/rh3-webhook/routes.js'
@@ -329,6 +330,13 @@ export async function buildApp() {
       await registerVdAuthRoutes(vdAuth)
     },
     { prefix: '/api/v1/vd/auth' },
+  )
+
+  await app.register(
+    async (vdMetricas) => {
+      await registerVdMetricasRoutes(vdMetricas)
+    },
+    { prefix: '/api/v1/vd/metricas' },
   )
 
   await app.register(

@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useAuth } from '../contexts/AuthContext'
 import {
   loadHomeHealthSummary,
   type HomeHealthMetric,
@@ -62,18 +63,22 @@ function MetricPillSkeleton() {
 }
 
 export function HealthSummaryCard({ skeleton = false, onPressMetrics }: HealthSummaryCardProps) {
+  const { user } = useAuth()
   const [metrics, setMetrics] = useState<HomeHealthMetric[] | null>(null)
+  const patientCpf = user?.cpf ?? 'guest'
 
   useEffect(() => {
     if (skeleton) return
     let cancelled = false
-    void loadHomeHealthSummary().then((summary) => {
+
+    void loadHomeHealthSummary(patientCpf).then((summary) => {
       if (!cancelled) setMetrics(summary)
     })
+
     return () => {
       cancelled = true
     }
-  }, [skeleton])
+  }, [patientCpf, skeleton])
 
   const filledCount = metrics?.filter((metric) => !metric.empty).length ?? 0
   const hint =

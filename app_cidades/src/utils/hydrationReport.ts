@@ -1,4 +1,4 @@
-import { DEFAULT_HYDRATION_GOAL_ML } from '../data/mockHydrationHistory'
+import { DEFAULT_HYDRATION_GOAL_ML } from '../utils/hydration'
 import {
   HydrationDayHighlight,
   HydrationDayRecord,
@@ -14,7 +14,7 @@ import {
   formatHydrationMl,
   isBelowHydrationGoal,
   mlToLiters,
-} from '../data/mockHydrationHistory'
+} from '../utils/hydration'
 import { formatPeriodLabel, formatDateKey, parseDateKey } from './metricsPeriod'
 
 function formatDayBucketLabel(dateKey: string) {

@@ -31,6 +31,9 @@ export function mapRegistrationDataToVdRegisterInput(
     cpf: data.profile.cpf,
     email: data.profile.email.trim(),
     phone: data.profile.phone,
+    ...(data.profile.gender
+      ? { gender: data.profile.gender as VdRegisterInput['gender'] }
+      : {}),
     address: {
       cep: data.address.cep.trim(),
       logradouro: data.address.street.trim(),

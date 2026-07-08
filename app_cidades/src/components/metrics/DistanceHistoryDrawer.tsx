@@ -20,6 +20,7 @@ import {
   formatStepsDayLabel,
   getDistanceGoalStatus,
   getDistanceRecordSourceLabel,
+  getRecordDistanceKm,
   getTodayDistanceKm,
   getTodayDistanceSourceLabel,
   getTodaySteps,
@@ -99,7 +100,7 @@ function DayRow({
   record: StepsDayRecord
   hasDistanceSync: boolean
 }) {
-  const distanceKm = estimateDistanceKm(record.steps)
+  const distanceKm = getRecordDistanceKm(record)
 
   return (
     <View style={styles.historyRow}>

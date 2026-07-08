@@ -11,6 +11,7 @@ export type StepsDayRecord = {
   id: string
   date: Date
   steps: number
+  distanceKm?: number
   source: StepsSource
   peakHourStart?: number
   peakHourEnd?: number

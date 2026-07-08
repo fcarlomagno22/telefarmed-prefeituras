@@ -36,6 +36,10 @@ export function estimateDistanceKm(steps: number) {
   return Number((steps * STRIDE_KM).toFixed(2))
 }
 
+export function getRecordDistanceKm(record: StepsDayRecord) {
+  return record.distanceKm ?? estimateDistanceKm(record.steps)
+}
+
 export function formatDistanceKm(value: number, decimals = 1) {
   return value.toFixed(decimals).replace('.', ',')
 }
@@ -45,7 +49,10 @@ export function formatDistanceKmLabel(value: number, decimals = 1) {
 }
 
 export function getTodayDistanceKm(records: StepsDayRecord[]) {
-  return estimateDistanceKm(getTodaySteps(records))
+  const today = startOfDay(new Date())
+  const record = records.find((entry) => isSameDay(entry.date, today))
+  if (!record || record.steps === 0) return 0
+  return getRecordDistanceKm(record)
 }
 
 export type DistanceGoalStatusLabel = 'Abaixo da meta' | 'Na meta' | 'Meta batida'
@@ -113,13 +120,13 @@ export function summarizeDistancePeriod(
     return { min: 0, avg: 0, max: 0, total: 0, daysHitGoal: 0, daysInPeriod, count: 0 }
   }
 
-  const values = filtered.map((record) => estimateDistanceKm(record.steps))
+  const values = filtered.map((record) => getRecordDistanceKm(record))
   const min = Math.min(...values)
   const max = Math.max(...values)
   const total = Number(values.reduce((sum, value) => sum + value, 0).toFixed(2))
   const avg = Number((total / filtered.length).toFixed(2))
   const daysHitGoal = filtered.filter(
-    (record) => estimateDistanceKm(record.steps) >= goal,
+    (record) => getRecordDistanceKm(record) >= goal,
   ).length
   const daysInPeriod = period === 'today' ? 1 : period === 'week' ? 7 : 30
 
@@ -317,7 +324,10 @@ export function createMockStepsHistory(): StepsDayRecord[] {
     const peakStart = 17 + (index % 3)
     const peakEnd = peakStart + 1
 
-    return buildDayRecord(daysAgo, steps, source, peakStart, peakEnd)
+    return {
+      ...buildDayRecord(daysAgo, steps, source, peakStart, peakEnd),
+      distanceKm: estimateDistanceKm(steps),
+    }
   }).sort((a, b) => b.date.getTime() - a.date.getTime())
 }
 
@@ -328,36 +338,4 @@ export function hasStepsIntegration(
     (connection) =>
       connection.status === 'connected' && connection.enabledPermissions?.includes('steps'),
   )
-}
-
-export function addManualWalkToRecords(
-  records: StepsDayRecord[],
-  entry: ManualWalkEntry,
-): StepsDayRecord[] {
-  const today = startOfDay(new Date())
-  const existing = records.find((record) => isSameDay(record.date, today))
-
-  if (existing) {
-    return records.map((record) =>
-      record.id === existing.id
-        ? {
-            ...record,
-            steps: record.steps + entry.steps,
-            source: record.source === 'Manual' ? 'Manual' : record.source,
-          }
-        : record,
-    )
-  }
-
-  return [
-    {
-      id: `manual-${Date.now()}`,
-      date: today,
-      steps: entry.steps,
-      source: 'Manual',
-      peakHourStart: new Date().getHours(),
-      peakHourEnd: new Date().getHours() + 1,
-    },
-    ...records,
-  ]
 }

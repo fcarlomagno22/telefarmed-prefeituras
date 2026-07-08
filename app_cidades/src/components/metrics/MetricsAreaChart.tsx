@@ -49,6 +49,35 @@ type YRange = {
   paddedRange: number
 }
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
+}
+
+function normalizePointValue(value: unknown): number | null {
+  if (isFiniteNumber(value)) return value
+  if (typeof value === 'string') {
+    const parsed = Number.parseFloat(value.trim().replace(',', '.'))
+    return Number.isFinite(parsed) ? parsed : null
+  }
+  return null
+}
+
+function sanitizeChartPoints(data: ChartPoint[]): ChartPoint[] {
+  const sanitized: ChartPoint[] = []
+
+  for (const point of data) {
+    const value = normalizePointValue(point.value)
+    if (value === null) continue
+    sanitized.push({ ...point, value })
+  }
+
+  return sanitized
+}
+
+function isFiniteCoordinate(value: number) {
+  return isFiniteNumber(value)
+}
+
 type LiveAnimMode = 'slide' | 'extend' | 'idle'
 
 type MetricsAreaChartProps = {
@@ -72,6 +101,7 @@ const HOURLY_VIEWPORT_SIZE = 10
 const PAN_ACTIVATION_PX = 6
 const HIT_RADIUS_PX = 26
 const X_LABEL_EDGE_INSET = 8
+const MIN_FIRST_POINT_X = 20
 const TOOLTIP_ESTIMATED_WIDTH = 148
 
 const PADDING_LEFT = 42
@@ -220,17 +250,29 @@ function clampScrollX(value: number, maxScroll: number) {
 }
 
 function getYRange(points: ChartPoint[]): YRange {
-  const values = points.map((point) => point.value)
+  const values = points.map((point) => point.value).filter(isFiniteNumber)
+  if (values.length === 0) {
+    return { paddedMin: 0, paddedRange: 1 }
+  }
+
   const minValue = Math.min(...values)
   const maxValue = Math.max(...values)
   const valueRange = Math.max(maxValue - minValue, 1.2)
   const paddedMin = minValue - valueRange * 0.15
   const paddedMax = maxValue + valueRange * 0.15
-  return { paddedMin, paddedRange: paddedMax - paddedMin }
+  const paddedRange = Math.max(paddedMax - paddedMin, 1)
+  return { paddedMin, paddedRange }
 }
 
 function getYPosition(value: number, range: YRange, chartHeight: number) {
-  return PADDING_TOP + chartHeight - ((value - range.paddedMin) / range.paddedRange) * chartHeight
+  if (!isFiniteNumber(value) || !isFiniteNumber(chartHeight) || chartHeight <= 0) {
+    return PADDING_TOP + Math.max(chartHeight, 1) / 2
+  }
+
+  const paddedMin = isFiniteNumber(range.paddedMin) ? range.paddedMin : 0
+  const paddedRange = isFiniteNumber(range.paddedRange) && range.paddedRange > 0 ? range.paddedRange : 1
+  const y = PADDING_TOP + chartHeight - ((value - paddedMin) / paddedRange) * chartHeight
+  return isFiniteNumber(y) ? y : PADDING_TOP + chartHeight / 2
 }
 
 function getVisiblePoints(points: RenderPoint[], scrollX: number, plotWidth: number) {
@@ -504,15 +546,19 @@ function buildRenderPoints(
 }
 
 function buildPaths(points: RenderPoint[], bottomY: number) {
-  if (points.length === 0) {
+  const validPoints = points.filter(
+    (point) => isFiniteCoordinate(point.x) && isFiniteCoordinate(point.y),
+  )
+
+  if (validPoints.length === 0) {
     return { linePath: '', areaPath: '' }
   }
 
-  const linePath = points
+  const linePath = validPoints
     .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
     .join(' ')
 
-  const areaPath = `${linePath} L ${points[points.length - 1].x} ${bottomY} L ${points[0].x} ${bottomY} Z`
+  const areaPath = `${linePath} L ${validPoints[validPoints.length - 1].x} ${bottomY} L ${validPoints[0].x} ${bottomY} Z`
   return { linePath, areaPath }
 }
 
@@ -593,10 +639,11 @@ function MetricsAreaChartComponent({
   interactionPaused = false,
   emptyMessage = 'Sem dados para o período selecionado',
 }: MetricsAreaChartProps) {
+  const safeData = useMemo(() => sanitizeChartPoints(data), [data])
   const revealWidth = useRef(new Animated.Value(width)).current
   const liveProgress = useRef(new Animated.Value(1)).current
   const pulseScale = useRef(new Animated.Value(1)).current
-  const prevDataRef = useRef<ChartPoint[]>(data)
+  const prevDataRef = useRef<ChartPoint[]>(safeData)
   const prevScrollToken = useRef(0)
   const prevAnimateKey = useRef(animateKey)
   const didInitialReveal = useRef(false)
@@ -624,10 +671,10 @@ function MetricsAreaChartComponent({
   const plotWidth = getPlotWidth(chartWidth)
   const hourly = !forceDailyAxis && isHourlyPeriod(period)
   const viewportSize = hourly ? HOURLY_VIEWPORT_SIZE : DAILY_VIEWPORT_SIZE
-  const fullPeriod = useMemo(() => buildViewportPeriod(data, hourly), [data, hourly])
+  const fullPeriod = useMemo(() => buildViewportPeriod(safeData, hourly), [safeData, hourly])
   const contentWidth = useMemo(
-    () => getContentWidth(data, plotWidth, viewportSize, hourly),
-    [data, plotWidth, viewportSize, hourly],
+    () => getContentWidth(safeData, plotWidth, viewportSize, hourly),
+    [safeData, plotWidth, viewportSize, hourly],
   )
   const maxScrollX = Math.max(0, contentWidth - plotWidth)
   const canPan = maxScrollX > 0
@@ -669,7 +716,7 @@ function MetricsAreaChartComponent({
       useNativeDriver: false,
     }).start(({ finished }) => {
       if (finished) {
-        prevDataRef.current = data
+        prevDataRef.current = safeData
         liveAnimActiveRef.current = false
         setAnimFromData(null)
         setLockedYRange(null)
@@ -732,7 +779,7 @@ function MetricsAreaChartComponent({
     if (!didInitialReveal.current) {
       didInitialReveal.current = true
       revealWidth.setValue(width)
-      prevDataRef.current = data
+      prevDataRef.current = safeData
       setAnimFromData(null)
       setLockedYRange(null)
       liveAnimActiveRef.current = false
@@ -741,22 +788,22 @@ function MetricsAreaChartComponent({
     }
 
     if (animateKeyChanged) {
-      prevDataRef.current = data
+      prevDataRef.current = safeData
       setAnimFromData(null)
       setLockedYRange(null)
       liveAnimActiveRef.current = false
       prevScrollToken.current = scrollToken
       runRevealAnimation()
     }
-  }, [width, accentColor, animateKey, scrollToken, data, skeleton, revealWidth])
+  }, [width, accentColor, animateKey, scrollToken, safeData, skeleton, revealWidth])
 
   useLayoutEffect(() => {
     if (skeleton || !didInitialReveal.current) return
-    if (scrollToken <= 0 || scrollToken === prevScrollToken.current || data.length === 0) return
+    if (scrollToken <= 0 || scrollToken === prevScrollToken.current || safeData.length === 0) return
 
     prevScrollToken.current = scrollToken
     runLiveAnimation([...prevDataRef.current])
-  }, [scrollToken, data, skeleton, width])
+  }, [scrollToken, safeData, skeleton, width])
 
   useEffect(() => {
     if (liveAnimActiveRef.current) return
@@ -777,10 +824,10 @@ function MetricsAreaChartComponent({
     prevDataRef.current.length > 0
   const snapshotData = prevDataRef.current
   const isLiveFrame = !holdPreviousFrame && frameProgress < 1 && animFromData !== null
-  const toData = holdPreviousFrame ? snapshotData : data
+  const toData = holdPreviousFrame ? snapshotData : safeData
   const fromData =
     animFromData ??
-    (holdPreviousFrame || liveAnimActiveRef.current ? snapshotData : data)
+    (holdPreviousFrame || liveAnimActiveRef.current ? snapshotData : safeData)
   const snapshotPeriod = useMemo(
     () => buildViewportPeriod(snapshotData, hourly),
     [snapshotData, hourly],
@@ -806,8 +853,8 @@ function MetricsAreaChartComponent({
   )
   const liveMode = useMemo((): LiveAnimMode => {
     if (!isLiveFrame || !animFromData) return 'idle'
-    return detectLiveMode(animFromData, data)
-  }, [isLiveFrame, animFromData, data])
+    return detectLiveMode(animFromData, safeData)
+  }, [isLiveFrame, animFromData, safeData])
   const { scroll: scrollPhase, drawX: drawXPhase, drawY: drawYPhase } = getAnimPhases(
     frameProgress,
     isLiveFrame ? liveMode : 'idle',
@@ -893,9 +940,19 @@ function MetricsAreaChartComponent({
   isAnimatingRef.current = isAnimating
   pointsRef.current = points
 
+  const displayPoints = useMemo(() => {
+    if (points.length === 0 || points[0].x >= MIN_FIRST_POINT_X) {
+      return points
+    }
+
+    const adjusted = [...points]
+    adjusted[0] = { ...adjusted[0], x: MIN_FIRST_POINT_X }
+    return adjusted
+  }, [points])
+
   const visiblePlotPoints = useMemo(
-    () => getVisiblePoints(points, contentScrollX, plotWidth),
-    [points, contentScrollX, plotWidth],
+    () => getVisiblePoints(displayPoints, contentScrollX, plotWidth),
+    [displayPoints, contentScrollX, plotWidth],
   )
 
   const visiblePeriod = useMemo(
@@ -903,7 +960,7 @@ function MetricsAreaChartComponent({
     [visiblePlotPoints, hourly],
   )
   const xLabelIndexes = getXLabelIndexes(visiblePlotPoints, visiblePeriod, hourly)
-  const viewportHint = getViewportHint(points, contentScrollX, plotWidth, hourly)
+  const viewportHint = getViewportHint(displayPoints, contentScrollX, plotWidth, hourly)
 
   function selectPoint(point: RenderPoint) {
     if (isAnimatingRef.current || interactionPaused) return
@@ -992,7 +1049,7 @@ function MetricsAreaChartComponent({
     )
   }
 
-  if (data.length === 0) {
+  if (safeData.length === 0) {
     return (
       <View style={[styles.emptyWrap, { width, height }]}>
         <Text style={styles.emptyText}>{emptyMessage}</Text>
@@ -1001,9 +1058,14 @@ function MetricsAreaChartComponent({
   }
 
   const bottomY = PADDING_TOP + chartHeight
-  const { linePath, areaPath } = buildPaths(points, bottomY)
-  const liveHead = points.length > 0 ? points[points.length - 1] : null
-  const staticPoints = liveHead ? points.slice(0, -1) : points
+  const { linePath, areaPath } = buildPaths(displayPoints, bottomY)
+  const liveHead =
+    displayPoints.length > 0 &&
+    isFiniteCoordinate(displayPoints[displayPoints.length - 1].x) &&
+    isFiniteCoordinate(displayPoints[displayPoints.length - 1].y)
+      ? displayPoints[displayPoints.length - 1]
+      : null
+  const staticPoints = liveHead ? displayPoints.slice(0, -1) : displayPoints
 
   const yTicks = Array.from({ length: 4 }, (_, index) => {
     const ratio = index / 3
@@ -1014,7 +1076,8 @@ function MetricsAreaChartComponent({
 
   const gradientId = `areaFill-${accentColor.replace('#', '')}`
   const strokeId = `lineStroke-${accentColor.replace('#', '')}`
-  const selectedPoint = points.find((point) => getPointKey(point) === selectedPointKey) ?? null
+  const selectedPoint =
+    displayPoints.find((point) => getPointKey(point) === selectedPointKey) ?? null
   const tooltipAnchor = selectedPoint ? getTooltipAnchor(selectedPoint, contentScrollX) : null
   const tooltipWidth = tooltipMeasuredWidth || TOOLTIP_ESTIMATED_WIDTH
   const tooltipLeft = tooltipAnchor
@@ -1157,6 +1220,7 @@ function MetricsAreaChartComponent({
               {staticPoints.map((point, pointIndex) => {
                 const key = getPointKey(point)
                 const isSelected = selectedPointKey === key
+                if (!isFiniteCoordinate(point.x) || !isFiniteCoordinate(point.y)) return null
                 return (
                   <Circle
                     key={`point-${pointIndex}-${key}`}

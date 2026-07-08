@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-nativ
 import avatarAnimation from '../../../assets/avatar.json'
 import { formStyles } from '../AppShell'
 import { RegisterTimeline } from './RegisterTimeline'
+import { RegisterGenderSelectDrawer } from './RegisterGenderSelectDrawer'
 import { LottiePlayer } from '../LottiePlayer'
 import { PrimaryButton } from '../PrimaryButton'
 import { lookupCpf, VdApiError } from '../../lib/api/vd'
@@ -16,6 +17,7 @@ import {
 } from '../../utils/vdCadastroLookup'
 import { cpfDigits, isValidCpf, maskCpf } from '../../utils/cpf'
 import { isValidPhone, maskPhone } from '../../utils/phone'
+import { registrationGenderLabel } from '../../utils/registrationGender'
 
 type RegisterStepProfileProps = {
   value: RegistrationProfile
@@ -63,6 +65,7 @@ export function RegisterStepProfile({
 }: RegisterStepProfileProps) {
   const [error, setError] = useState<string | null>(null)
   const [cpfStatus, setCpfStatus] = useState<CpfStatus>('idle')
+  const [genderDrawerVisible, setGenderDrawerVisible] = useState(false)
   const lastLookupCpfRef = useRef('')
   const completePatientRef = useRef<VdCadastroLookupPatient | null>(null)
 
@@ -174,13 +177,20 @@ export function RegisterStepProfile({
       return
     }
 
+    if (!value.gender) {
+      setError('Selecione seu gênero.')
+      return
+    }
+
     setError(null)
     onContinue()
   }
 
   const cpfMessage = cpfStatusMessage(cpfStatus)
   const cpfFieldError = cpfStatus === 'invalid' || cpfStatus === 'already_registered'
+  const cpfFieldSuccess = cpfStatus === 'valid' || cpfStatus === 'complete_credentials'
   const fieldsLocked = cpfStatus === 'complete_credentials'
+  const genderLabel = registrationGenderLabel(value.gender)
   const continueDisabled =
     cpfStatus === 'checking' ||
     cpfStatus === 'invalid' ||
@@ -206,6 +216,42 @@ export function RegisterStepProfile({
       ) : null}
 
       <View style={formStyles.fieldGroup}>
+        <Text style={formStyles.label}>CPF</Text>
+        <View
+          style={[
+            formStyles.inputWrapper,
+            cpfFieldError && formStyles.inputWrapperError,
+            cpfFieldSuccess && styles.inputWrapperSuccess,
+          ]}
+        >
+          <Ionicons
+            name="card-outline"
+            size={20}
+            color={cpfFieldError ? colors.error : cpfFieldSuccess ? CPF_SUCCESS_COLOR : colors.primary}
+            style={formStyles.inputIcon}
+          />
+          <TextInput
+            value={value.cpf}
+            onChangeText={(cpf) => {
+              patch({ cpf: maskCpf(cpf) })
+              setError(null)
+            }}
+            placeholder="000.000.000-00"
+            placeholderTextColor="rgba(245, 245, 247, 0.35)"
+            keyboardType="number-pad"
+            maxLength={14}
+            style={formStyles.input}
+          />
+          {cpfStatus === 'checking' ? (
+            <ActivityIndicator color={colors.primary} size="small" />
+          ) : cpfFieldSuccess ? (
+            <Ionicons name="checkmark-circle" size={20} color={CPF_SUCCESS_COLOR} />
+          ) : null}
+        </View>
+        {cpfMessage ? <Text style={formStyles.fieldError}>{cpfMessage}</Text> : null}
+      </View>
+
+      <View style={formStyles.fieldGroup}>
         <Text style={formStyles.label}>Nome completo</Text>
         <View
           style={[
@@ -224,42 +270,6 @@ export function RegisterStepProfile({
             style={[formStyles.input, fieldsLocked && formStyles.inputReadOnly]}
           />
         </View>
-      </View>
-
-      <View style={formStyles.fieldGroup}>
-        <Text style={formStyles.label}>CPF</Text>
-        <View
-          style={[
-            formStyles.inputWrapper,
-            cpfFieldError && formStyles.inputWrapperError,
-            (cpfStatus === 'valid' || cpfStatus === 'complete_credentials') && styles.inputWrapperSuccess,
-          ]}
-        >
-          <Ionicons
-            name="card-outline"
-            size={20}
-            color={cpfFieldError ? colors.error : colors.primary}
-            style={formStyles.inputIcon}
-          />
-          <TextInput
-            value={value.cpf}
-            onChangeText={(cpf) => {
-              patch({ cpf: maskCpf(cpf) })
-              setError(null)
-            }}
-            placeholder="000.000.000-00"
-            placeholderTextColor="rgba(245, 245, 247, 0.35)"
-            keyboardType="number-pad"
-            maxLength={14}
-            style={formStyles.input}
-          />
-          {cpfStatus === 'checking' ? (
-            <ActivityIndicator color={colors.primary} size="small" />
-          ) : cpfStatus === 'valid' || cpfStatus === 'complete_credentials' ? (
-            <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
-          ) : null}
-        </View>
-        {cpfMessage ? <Text style={formStyles.fieldError}>{cpfMessage}</Text> : null}
       </View>
 
       <View style={formStyles.fieldGroup}>
@@ -306,6 +316,38 @@ export function RegisterStepProfile({
         </View>
       </View>
 
+      {!fieldsLocked ? (
+        <View style={formStyles.fieldGroup}>
+          <Text style={formStyles.label}>Gênero</Text>
+          <Pressable
+            onPress={() => setGenderDrawerVisible(true)}
+            style={({ pressed }) => [
+              formStyles.inputWrapper,
+              pressed && styles.selectPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={genderLabel ? `Gênero: ${genderLabel}` : 'Selecionar gênero'}
+          >
+            <Ionicons
+              name="male-female-outline"
+              size={20}
+              color="#ff6b00"
+              style={formStyles.inputIcon}
+            />
+            <Text
+              style={[
+                formStyles.input,
+                !genderLabel && styles.selectPlaceholder,
+              ]}
+              numberOfLines={1}
+            >
+              {genderLabel || 'Selecione seu gênero'}
+            </Text>
+            <Ionicons name="chevron-down" size={18} color={colors.textMuted} />
+          </Pressable>
+        </View>
+      ) : null}
+
       <PrimaryButton
         label={fieldsLocked ? 'Definir senha' : 'Continuar'}
         onPress={handleContinue}
@@ -314,13 +356,31 @@ export function RegisterStepProfile({
       <Pressable onPress={onBack} style={formStyles.secondaryButton}>
         <Text style={formStyles.secondaryButtonText}>Voltar</Text>
       </Pressable>
+
+      <RegisterGenderSelectDrawer
+        visible={genderDrawerVisible}
+        value={value.gender}
+        onClose={() => setGenderDrawerVisible(false)}
+        onSelect={(gender) => {
+          patch({ gender })
+          setError(null)
+        }}
+      />
     </>
   )
 }
 
+const CPF_SUCCESS_COLOR = '#16a34a'
+
 const styles = {
   inputWrapperSuccess: {
-    borderColor: 'rgba(255, 107, 0, 0.45)',
-    backgroundColor: 'rgba(255, 107, 0, 0.06)',
+    borderColor: 'rgba(22, 163, 74, 0.55)',
+    backgroundColor: 'rgba(22, 163, 74, 0.08)',
+  },
+  selectPressed: {
+    opacity: 0.9,
+  },
+  selectPlaceholder: {
+    color: 'rgba(245, 245, 247, 0.35)',
   },
 }

@@ -1,36 +1,23 @@
 import {
   BodyMeasurementHistory,
   BodyMeasurementId,
-  StorableBodyMeasurementId,
 } from '../types/bodyMeasurements'
 import { MetricDataPoint, PeriodSelection, ProfileSnapshot } from '../types/metrics'
 import {
-  BODY_MEASUREMENT_CONFIGS,
   buildWaistHipRatioSeries,
   getBodyMeasurementConfig,
   isStorableBodyMeasurementId,
 } from '../utils/bodyMeasurements'
 import { parseWeightKg } from '../utils/bmi'
 import { filterSeriesByPeriod, formatDateKey } from '../utils/metricsPeriod'
-import { createExtendedWeightHistory } from './mockHealthMetrics'
+import { sortWeightHistory } from '../utils/weightHistory'
 
 const HISTORY_DAYS = 90
 
 export const BODY_MEASUREMENT_CHART_PERIOD = 'last30days' as const
 
-function seededNoise(seed: number) {
-  const value = Math.sin(seed * 12.9898) * 43758.5453
-  return value - Math.floor(value)
-}
-
 function sortSeries(points: MetricDataPoint[]) {
   return [...points].sort((left, right) => left.date.localeCompare(right.date))
-}
-
-function formatStoredValue(id: StorableBodyMeasurementId, raw: number) {
-  const config = getBodyMeasurementConfig(id)
-  const decimals = config.step < 1 ? 1 : 0
-  return Number(Math.max(config.min, Math.min(config.max, raw)).toFixed(decimals))
 }
 
 function createPesoMeasurementSeries(
@@ -38,69 +25,14 @@ function createPesoMeasurementSeries(
   profile: ProfileSnapshot,
   days = HISTORY_DAYS,
 ): MetricDataPoint[] {
-  return createExtendedWeightHistory(weightHistory, profile, days)
-}
+  void profile
+  const sorted = sortWeightHistory(weightHistory)
+  if (sorted.length <= days) return sorted
 
-function generateSeedSeries(id: StorableBodyMeasurementId, days = HISTORY_DAYS): MetricDataPoint[] {
-  const config = getBodyMeasurementConfig(id)
-  const today = new Date()
-  today.setHours(12, 0, 0, 0)
-
-  return Array.from({ length: days }, (_, index) => {
-    const date = new Date(today)
-    date.setDate(today.getDate() - (days - 1 - index))
-    const noise = seededNoise(index + id.length * 5) - 0.5
-    const wave = Math.sin(index / 5) * config.step * 2
-    const trend = (index - days / 2) * (config.step * 0.04)
-    const raw = config.defaultValue + wave + trend + noise * config.step
-
-    return {
-      date: formatDateKey(date),
-      value: formatStoredValue(id, raw),
-    }
-  })
-}
-
-export function createInitialBodyMeasurementHistory(): BodyMeasurementHistory {
-  const history: BodyMeasurementHistory = {}
-
-  for (const config of BODY_MEASUREMENT_CONFIGS) {
-    if (!isStorableBodyMeasurementId(config.id)) continue
-    history[config.id] = generateSeedSeries(config.id)
-  }
-
-  return history
-}
-
-function upsertDailyPoint(series: MetricDataPoint[], point: MetricDataPoint) {
-  const next = [...series]
-  const existingIndex = next.findIndex((entry) => entry.date === point.date)
-
-  if (existingIndex >= 0) {
-    next[existingIndex] = point
-  } else {
-    next.push(point)
-  }
-
-  return sortSeries(next)
-}
-
-export function registerBodyMeasurementInHistory(
-  history: BodyMeasurementHistory,
-  id: StorableBodyMeasurementId,
-  value: number,
-  _period: PeriodSelection,
-  at: Date = new Date(),
-): BodyMeasurementHistory {
-  const point: MetricDataPoint = {
-    date: formatDateKey(at),
-    value: formatStoredValue(id, value),
-  }
-
-  return {
-    ...history,
-    [id]: upsertDailyPoint(history[id] ?? [], point),
-  }
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - (days - 1))
+  const cutoffKey = formatDateKey(cutoff)
+  return sorted.filter((point) => point.date >= cutoffKey)
 }
 
 function applyMeasurementOverride(series: MetricDataPoint[], override?: number) {
@@ -124,7 +56,7 @@ function getWaistSeries(
   overrides?: Partial<Record<BodyMeasurementId, number>>,
 ): MetricDataPoint[] {
   const cintura = applyMeasurementOverride(history.cintura ?? [], overrides?.cintura)
-  const abdomen = applyMeasurementOverride(history.abdomen ?? generateSeedSeries('abdomen'), overrides?.abdomen)
+  const abdomen = applyMeasurementOverride(history.abdomen ?? [], overrides?.abdomen)
 
   if (cintura.length === 0) return abdomen
   if (abdomen.length === 0) return cintura
@@ -155,13 +87,13 @@ export function getBodyMeasurementSeries(
   if (id === 'cintura_quadril') {
     return buildWaistHipRatioSeries(
       getWaistSeries(history, overrides),
-      applyMeasurementOverride(history.quadril ?? generateSeedSeries('quadril'), overrides?.quadril),
+      applyMeasurementOverride(history.quadril ?? [], overrides?.quadril),
     )
   }
 
   if (!isStorableBodyMeasurementId(id)) return []
 
-  return applyMeasurementOverride(history[id] ?? generateSeedSeries(id), overrides?.[id])
+  return applyMeasurementOverride(history[id] ?? [], overrides?.[id])
 }
 
 export function getBodyMeasurementSeriesForPeriod(
@@ -195,7 +127,7 @@ export function getLatestBodyMeasurementValue(
   if (id === 'cintura_quadril') {
     const ratioSeries = buildWaistHipRatioSeries(
       getWaistSeries(history, overrides),
-      applyMeasurementOverride(history.quadril ?? generateSeedSeries('quadril'), overrides?.quadril),
+      applyMeasurementOverride(history.quadril ?? [], overrides?.quadril),
     )
     return ratioSeries[ratioSeries.length - 1]?.value ?? getBodyMeasurementConfig(id).defaultValue
   }
@@ -204,6 +136,6 @@ export function getLatestBodyMeasurementValue(
     return getBodyMeasurementConfig(id).defaultValue
   }
 
-  const series = history[id] ?? generateSeedSeries(id)
+  const series = history[id] ?? []
   return series[series.length - 1]?.value ?? getBodyMeasurementConfig(id).defaultValue
 }

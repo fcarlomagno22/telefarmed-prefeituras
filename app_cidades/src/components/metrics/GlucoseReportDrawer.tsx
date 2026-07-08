@@ -8,6 +8,7 @@ import { AppModal } from '../AppModal'
 import { ScrollView } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
+import { loadGlucoseHistory } from '../../data/glucoseHistoryStorage'
 import { GlucoseHistoryEntry } from '../../types/glucose'
 import { PeriodSelection } from '../../types/metrics'
 import {
@@ -28,7 +29,7 @@ const BLOOD_GRADIENT = ['#fca5a5', '#ef4444', '#991b1b'] as const
 type GlucoseReportDrawerProps = {
   visible: boolean
   onClose: () => void
-  history: GlucoseHistoryEntry[]
+  patientCpf: string
   period: PeriodSelection
   patientName?: string
 }
@@ -127,7 +128,7 @@ function ReadingRow({ entry }: { entry: GlucoseHistoryEntry }) {
 export function GlucoseReportDrawer({
   visible,
   onClose,
-  history,
+  patientCpf,
   period,
   patientName,
 }: GlucoseReportDrawerProps) {
@@ -135,6 +136,8 @@ export function GlucoseReportDrawer({
   const { width: screenWidth } = useWindowDimensions()
   const [isMounted, setIsMounted] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [history, setHistory] = useState<GlucoseHistoryEntry[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
 
   const sheetTranslateX = useRef(new Animated.Value(screenWidth)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
@@ -143,6 +146,23 @@ export function GlucoseReportDrawer({
     () => buildGlucoseReport(history, period),
     [history, period.end, period.preset, period.start],
   )
+
+  useEffect(() => {
+    if (!visible) return
+
+    let cancelled = false
+    setLoadingHistory(true)
+
+    void loadGlucoseHistory(patientCpf, period).then((entries) => {
+      if (cancelled) return
+      setHistory(entries)
+      setLoadingHistory(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [visible, patientCpf, period.end, period.preset, period.start])
 
   useEffect(() => {
     sheetTranslateX.setValue(screenWidth)
@@ -290,7 +310,12 @@ export function GlucoseReportDrawer({
             nestedScrollEnabled
             contentContainerStyle={styles.scrollContent}
           >
-            {report.totalReadings === 0 ? (
+            {loadingHistory ? (
+              <View style={styles.emptyState}>
+                <MaterialCommunityIcons name="blood-bag" size={42} color="#fca5a5" />
+                <Text style={styles.emptyTitle}>Carregando medições…</Text>
+              </View>
+            ) : report.totalReadings === 0 ? (
               <View style={styles.emptyState}>
                 <MaterialCommunityIcons name="blood-bag" size={42} color="#fca5a5" />
                 <Text style={styles.emptyTitle}>Nenhuma medição no período</Text>
@@ -418,7 +443,7 @@ export function GlucoseReportDrawer({
               label={exporting ? 'Gerando PDF…' : 'Compartilhar PDF'}
               onPress={handleShare}
               loading={exporting}
-              disabled={report.totalReadings === 0}
+              disabled={report.totalReadings === 0 || loadingHistory}
             />
           </View>
         </Animated.View>

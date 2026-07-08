@@ -7,6 +7,8 @@ import { Alert, Animated, Easing, Platform, Pressable, StyleSheet, Text, useWind
 import { AppModal } from '../AppModal'
 import { ScrollView } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { colors } from '../../theme/colors'
+import { loadHydrationHistory } from '../../data/hydrationHistoryStorage'
 import { HydrationDayRecord } from '../../types/hydration'
 import { PeriodSelection } from '../../types/metrics'
 import {
@@ -17,7 +19,6 @@ import {
   getHydrationTrendDirectionLabel,
 } from '../../utils/hydrationReport'
 import { shareHydrationReportPdf } from '../../utils/hydrationReportPdf'
-import { colors } from '../../theme/colors'
 import { PrimaryButton } from '../PrimaryButton'
 import { GlucoseTrendLineChart } from './GlucoseTrendLineChart'
 import { getModalFooterPadding } from '../../utils/modalSafeArea'
@@ -28,7 +29,7 @@ const HYDRATION_GRADIENT = ['#7dd3fc', '#0ea5e9', '#0369a1'] as const
 type HydrationReportDrawerProps = {
   visible: boolean
   onClose: () => void
-  history: HydrationDayRecord[]
+  patientCpf: string
   period: PeriodSelection
   patientName?: string
 }
@@ -72,7 +73,7 @@ function DayRow({ date, totalMl, goalMl }: { date: string; totalMl: number; goal
 export function HydrationReportDrawer({
   visible,
   onClose,
-  history,
+  patientCpf,
   period,
   patientName,
 }: HydrationReportDrawerProps) {
@@ -80,14 +81,33 @@ export function HydrationReportDrawer({
   const { width: screenWidth } = useWindowDimensions()
   const [isMounted, setIsMounted] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [history, setHistory] = useState<HydrationDayRecord[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
 
   const sheetTranslateX = useRef(new Animated.Value(screenWidth)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
 
   const report = useMemo(
     () => buildHydrationReport(history, period),
-    [history, period],
+    [history, period.end, period.preset, period.start],
   )
+
+  useEffect(() => {
+    if (!visible) return
+
+    let cancelled = false
+    setLoadingHistory(true)
+
+    void loadHydrationHistory(patientCpf, period).then((entries) => {
+      if (cancelled) return
+      setHistory(entries)
+      setLoadingHistory(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [visible, patientCpf, period.end, period.preset, period.start])
 
   useEffect(() => {
     sheetTranslateX.setValue(screenWidth)
@@ -229,7 +249,12 @@ export function HydrationReportDrawer({
             nestedScrollEnabled
             contentContainerStyle={styles.scrollContent}
           >
-            {report.daysTracked === 0 ? (
+            {loadingHistory ? (
+              <View style={styles.emptyState}>
+                <MaterialCommunityIcons name="cup-water" size={42} color="#7dd3fc" />
+                <Text style={styles.emptyTitle}>Carregando registros…</Text>
+              </View>
+            ) : report.daysTracked === 0 ? (
               <View style={styles.emptyState}>
                 <MaterialCommunityIcons name="cup-water" size={42} color="#7dd3fc" />
                 <Text style={styles.emptyTitle}>Nenhum registro no período</Text>
@@ -334,7 +359,7 @@ export function HydrationReportDrawer({
               label={exporting ? 'Gerando PDF…' : 'Compartilhar PDF'}
               onPress={handleShare}
               loading={exporting}
-              disabled={report.daysTracked === 0}
+              disabled={report.daysTracked === 0 || loadingHistory}
             />
           </View>
         </Animated.View>

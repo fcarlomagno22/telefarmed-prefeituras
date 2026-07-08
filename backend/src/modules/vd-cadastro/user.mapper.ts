@@ -1,4 +1,5 @@
 import { formatCpfDisplay } from '../admin-credenciais/formatters.js'
+import { parseBirthDateToIso } from '../admin-pacientes/formatters.js'
 import { resolvePacienteFotoPublicUrl } from '../../lib/pacienteFoto.js'
 import type { AdminMunicipalPatientDetailDto } from '../admin-pacientes/types.js'
 import type { VdPacienteUserPublic } from './types.js'
@@ -15,6 +16,11 @@ export async function mapPatientDetailToVdUserPublic(
 ): Promise<VdPacienteUserPublic> {
   const profile = detail.profile
   const cpfDigits = detail.cpf.replace(/\D/g, '')
+  const birthDate =
+    detail.birthDate && detail.birthDate !== '—'
+      ? parseBirthDateToIso(detail.birthDate)
+      : null
+  const genderLabel = profile?.genderLabel?.trim() || null
 
   return {
     id: detail.id,
@@ -25,6 +31,8 @@ export async function mapPatientDetailToVdUserPublic(
     phone: detail.phone?.trim() ?? '',
     entidadeContratanteId: detail.contractingEntityId,
     avatarUrl: await resolvePacienteFotoPublicUrl(detail.avatarUrl),
+    birthDate,
+    genderLabel,
     address: {
       cep: formatZipCode(profile?.zipCode),
       logradouro: profile?.street?.trim() ?? '',

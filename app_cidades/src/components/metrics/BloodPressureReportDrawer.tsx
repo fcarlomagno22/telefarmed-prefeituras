@@ -8,6 +8,7 @@ import { AppModal } from '../AppModal'
 import { ScrollView } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../../theme/colors'
+import { loadBloodPressureHistory } from '../../data/bloodPressureHistoryStorage'
 import { BloodPressureHistoryEntry } from '../../types/bloodPressure'
 import { PeriodSelection } from '../../types/metrics'
 import {
@@ -34,7 +35,7 @@ const BP_GRADIENT = ['#fbbf24', '#f59e0b', '#d97706'] as const
 type BloodPressureReportDrawerProps = {
   visible: boolean
   onClose: () => void
-  history: BloodPressureHistoryEntry[]
+  patientCpf: string
   period: PeriodSelection
   patientName?: string
 }
@@ -142,7 +143,7 @@ function ReadingRow({ entry }: { entry: BloodPressureHistoryEntry }) {
 export function BloodPressureReportDrawer({
   visible,
   onClose,
-  history,
+  patientCpf,
   period,
   patientName,
 }: BloodPressureReportDrawerProps) {
@@ -150,6 +151,8 @@ export function BloodPressureReportDrawer({
   const { width: screenWidth } = useWindowDimensions()
   const [isMounted, setIsMounted] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [history, setHistory] = useState<BloodPressureHistoryEntry[]>([])
+  const [loadingHistory, setLoadingHistory] = useState(false)
 
   const sheetTranslateX = useRef(new Animated.Value(screenWidth)).current
   const backdropOpacity = useRef(new Animated.Value(0)).current
@@ -158,6 +161,23 @@ export function BloodPressureReportDrawer({
     () => buildBloodPressureReport(history, period),
     [history, period.end, period.preset, period.start],
   )
+
+  useEffect(() => {
+    if (!visible) return
+
+    let cancelled = false
+    setLoadingHistory(true)
+
+    void loadBloodPressureHistory(patientCpf, period).then((entries) => {
+      if (cancelled) return
+      setHistory(entries)
+      setLoadingHistory(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [visible, patientCpf, period.end, period.preset, period.start])
 
   useEffect(() => {
     sheetTranslateX.setValue(screenWidth)
@@ -306,7 +326,12 @@ export function BloodPressureReportDrawer({
             nestedScrollEnabled
             contentContainerStyle={styles.scrollContent}
           >
-            {report.totalReadings === 0 ? (
+            {loadingHistory ? (
+              <View style={styles.emptyState}>
+                <MaterialCommunityIcons name="heart-pulse" size={42} color="#fbbf24" />
+                <Text style={styles.emptyTitle}>Carregando medições…</Text>
+              </View>
+            ) : report.totalReadings === 0 ? (
               <View style={styles.emptyState}>
                 <MaterialCommunityIcons name="heart-pulse" size={42} color="#fbbf24" />
                 <Text style={styles.emptyTitle}>Nenhuma medição no período</Text>
@@ -485,7 +510,7 @@ export function BloodPressureReportDrawer({
               label={exporting ? 'Gerando PDF…' : 'Compartilhar PDF'}
               onPress={handleShare}
               loading={exporting}
-              disabled={report.totalReadings === 0}
+              disabled={report.totalReadings === 0 || loadingHistory}
             />
           </View>
         </Animated.View>

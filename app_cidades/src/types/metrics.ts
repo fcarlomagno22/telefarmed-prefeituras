@@ -26,6 +26,7 @@ export type EditableProfileFieldId = 'height' | 'weight' | 'gender'
 export type ProfileSnapshot = {
   height: string
   weight: string
+  birthDate: string
   age: string
   gender: string
 }

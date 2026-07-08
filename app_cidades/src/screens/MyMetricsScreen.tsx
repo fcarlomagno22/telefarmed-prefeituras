@@ -37,6 +37,7 @@ import { HeartRateHistoryDrawer } from '../components/metrics/HeartRateHistoryDr
 import { HeartRateReportDrawer } from '../components/metrics/HeartRateReportDrawer'
 import { StepsHistoryDrawer } from '../components/metrics/StepsHistoryDrawer'
 import { ProfileFieldEditDrawer } from '../components/metrics/ProfileFieldEditDrawer'
+import { MetricsProfileOnboardingDrawer } from '../components/metrics/MetricsProfileOnboardingDrawer'
 import { ImcDrawer } from '../components/metrics/ImcDrawer'
 import { DistanceHistoryDrawer } from '../components/metrics/DistanceHistoryDrawer'
 import { BodyMeasurementsDrawer } from '../components/metrics/BodyMeasurementsDrawer'
@@ -44,56 +45,62 @@ import { BodyMeasurementLogDrawer } from '../components/metrics/BodyMeasurementL
 import { NeonSectionDivider } from '../components/NeonSectionDivider'
 import {
   applyLiveRegistrationSliding,
-  createExtendedWeightHistory,
-  createInitialWeightHistory,
   createLiveRegistrationPoint,
-  formatBloodPressureValue,
   formatMetricValue,
-  generateDailyMetricSeries,
-  generateMetricSeriesForPeriod,
-  getLatestMetricPoint,
-  getLatestMetricValue,
-  getWeightSeriesForPeriod,
-  PROFILE_SNAPSHOT,
-  registerWeightInHistory,
-  ensureSevenDayWeightHistory,
-} from '../data/mockHealthMetrics'
-import { loadWeightHistory, saveWeightHistory } from '../data/weightHistoryStorage'
+  getMetricCardNumericValue,
+} from '../utils/metricFormatting'
 import {
-  appendBloodPressureReading,
-  loadBloodPressureHistory,
-  saveBloodPressureHistory,
+  loadWeightHistoryDays,
+  registerWeightReading,
+} from '../data/weightHistoryStorage'
+import {
+  createDefaultMetricsProfile,
+  saveMetricsProfile,
+} from '../data/metricsProfileStorage'
+import { loadMetricsResumo } from '../data/metricsResumoStorage'
+import {
+  loadBloodPressureHistoryDays,
+  registerBloodPressureReading,
 } from '../data/bloodPressureHistoryStorage'
 import {
-  loadHydrationHistory,
-  registerHydrationLog,
-  saveHydrationHistory,
+  loadHydrationHistoryDays,
+  registerHydrationReading,
 } from '../data/hydrationHistoryStorage'
-import { appendGlucoseReading, loadGlucoseHistory, saveGlucoseHistory } from '../data/glucoseHistoryStorage'
-import { getTodayHydrationLiters } from '../data/mockHydrationHistory'
+import {
+  loadGlucoseHistoryDays,
+  registerGlucoseReading,
+} from '../data/glucoseHistoryStorage'
+import { getTodayHydrationLiters, getTodayHydrationRecord } from '../utils/hydration'
+import {
+  getHydrationSeriesForPeriod,
+  hydrationHistoryToMetricPoints,
+} from '../utils/hydrationHistory'
 import {
   BODY_MEASUREMENT_CHART_PERIOD,
   getBodyMeasurementSeries,
   getBodyMeasurementSeriesForPeriod,
   getLatestBodyMeasurementValue,
-  registerBodyMeasurementInHistory,
 } from '../data/bodyMeasurements'
 import {
-  loadBodyMeasurementHistory,
-  saveBodyMeasurementHistory,
+  loadBodyMeasurementHistoryDays,
+  registerBodyMeasurementReading,
 } from '../data/bodyMeasurementsStorage'
 import {
-  appendHeartRateReading,
-  loadHeartRateHistory,
-  saveHeartRateHistory,
+  loadHeartRateHistoryDays,
+  registerHeartRateReading,
+  seedIntegrationHeartRateReadings,
 } from '../data/heartRateHistoryStorage'
 import {
-  createMockHeartRateHistory,
-  hasHeartRateIntegration,
-} from '../data/mockHeartRateHistory'
+  loadHealthConnections,
+  saveHealthConnection,
+} from '../data/healthIntegrationsStorage'
 import {
-  addManualWalkToRecords,
-  createMockStepsHistory,
+  loadStepsDayRecordsDays,
+  registerManualWalk,
+  seedIntegrationStepsDayRecords,
+} from '../data/stepsHistoryStorage'
+import { hasHeartRateIntegration } from '../data/mockHeartRateHistory'
+import {
   DEFAULT_STEPS_GOAL,
   formatStepsCount,
   getTodayDistanceKm,
@@ -117,12 +124,40 @@ import {
   getMeasurementDeltaSummary,
   isStorableBodyMeasurementId,
 } from '../utils/bodyMeasurements'
+import { getLatestBodyMeasurementSeriesValue } from '../utils/bodyMeasurementHistory'
+import { getLatestHeartRateReading } from '../utils/heartRateHistory'
 import { HeartRateReading } from '../types/heartRate'
 import { HydrationDayRecord } from '../types/hydration'
 import { ManualWalkEntry, StepsDayRecord } from '../types/steps'
 import { IntegrationConnectionState, IntegrationId } from '../types/healthIntegrations'
 import { buildPeriodSelection, formatPeriodLabel, isHourlyPeriod } from '../utils/metricsPeriod'
 import { parseWeightKg } from '../utils/bmi'
+import {
+  buildImcSeriesFromWeightHistory,
+  ensureMinimumWeightChartPoints,
+  getWeightSeriesForPeriod,
+} from '../utils/weightHistory'
+import { DEFAULT_WEIGHT_HISTORY_DAYS } from '../utils/weightHistoryQuery'
+import {
+  getBloodPressureSeriesForPeriod,
+  getLatestBloodPressureEntry,
+  bloodPressureHistoryToMetricPoints,
+} from '../utils/bloodPressureHistory'
+import { getLatestGlucoseEntry, getGlucoseSeriesForPeriod } from '../utils/glucoseHistory'
+import { formatBloodPressureShort } from '../utils/bloodPressure'
+import { getHeartRateSeriesForPeriod } from '../utils/heartRateHistory'
+import {
+  getDistanceSeriesForPeriod,
+  getStepsSeriesForPeriod,
+} from '../utils/stepsHistory'
+import type { MetricsResumoLatestDto } from '../lib/api/vd/metricas'
+import { metricsResumoToProfileSnapshot } from '../utils/metricsResumo'
+import {
+  needsMetricsProfileOnboarding,
+  onboardingProfileSnapshot,
+  onboardingToUpdateInput,
+  profileFieldToUpdateInput,
+} from '../utils/metricsProfile'
 import { SkeletonBone } from '../components/SkeletonBone'
 
 const TAB_BAR_ESTIMATED_HEIGHT = 78
@@ -291,13 +326,11 @@ function ProfileKpiStrip({
   profile,
   onEditField,
   onWeightPress,
-  weightChartSelected = false,
   skeleton = false,
 }: {
   profile: ProfileSnapshot
   onEditField: (field: EditableProfileFieldId) => void
   onWeightPress: () => void
-  weightChartSelected?: boolean
   skeleton?: boolean
 }) {
   function handleLongPress(field: EditableProfileFieldId) {
@@ -328,7 +361,7 @@ function ProfileKpiStrip({
               <>
                 <Text style={styles.profileLabel}>{field.label}</Text>
                 <Text style={styles.profileValue} numberOfLines={1}>
-                  {profile[field.id]}
+                  {profile[field.id]?.trim() || '—'}
                 </Text>
               </>
             )
@@ -344,7 +377,6 @@ function ProfileKpiStrip({
                     delayLongPress={PROFILE_LONG_PRESS_MS}
                     style={({ pressed }) => [
                       styles.profileStripPressable,
-                      weightChartSelected && styles.profileStripSelected,
                       pressed && styles.profileStripPressed,
                     ]}
                     accessibilityRole="button"
@@ -382,6 +414,7 @@ function SelectableMetricCard({
   selected,
   width,
   profile,
+  resumoLatest,
   valueOverride,
   displayLabelOverride,
   onPress,
@@ -392,26 +425,32 @@ function SelectableMetricCard({
   selected: boolean
   width: number
   profile: ProfileSnapshot
+  resumoLatest: MetricsResumoLatestDto | null
   valueOverride?: number
   displayLabelOverride?: string
   onPress: () => void
   onLongPress?: () => void
   skeleton?: boolean
 }) {
-  const latestValue = valueOverride ?? getLatestMetricValue(metric.id, profile)
+  const resolvedValue = valueOverride ?? getMetricCardNumericValue(metric.id, profile, resumoLatest)
+  const latestValue = resolvedValue ?? 0
   const isCorporais = metric.id === 'corporais'
   const isImc = metric.id === 'imc'
   const isHeartRate = metric.id === 'frequencia'
   const valueLabel =
     displayLabelOverride ??
-    (isCorporais ? 'Ver detalhes' : formatMetricValue(metric.id, latestValue))
+    (isCorporais
+      ? 'Ver detalhes'
+      : resolvedValue === undefined
+        ? '—'
+        : formatMetricValue(metric.id, latestValue))
 
   const prevImcRef = useRef<number | null>(null)
   const valueScale = useRef(new Animated.Value(1)).current
   const [displayedImc, setDisplayedImc] = useState(latestValue)
 
   useEffect(() => {
-    if (!isImc) return
+    if (!isImc || resolvedValue === undefined) return
 
     const previousValue = prevImcRef.current
     if (previousValue === null) {
@@ -470,7 +509,7 @@ function SelectableMetricCard({
     }, 58)
 
     return () => clearInterval(timer)
-  }, [isImc, latestValue, valueScale])
+  }, [isImc, latestValue, resolvedValue, valueScale])
 
   const imcValueLabel = formatMetricValue('imc', displayedImc)
 
@@ -586,6 +625,7 @@ export function MyMetricsScreen() {
   const { width: screenWidth } = useWindowDimensions()
   const { user, navigateTo, logout, isBootstrapping } = useAuth()
   const { requireAuth } = useGuestAuth()
+  const patientCpf = user?.cpf ?? 'guest'
   const withMetricsAuth = (action: () => void) => {
     requireAuth('vida:my-metrics', action)
   }
@@ -596,26 +636,21 @@ export function MyMetricsScreen() {
   const [selectedMetricId, setSelectedMetricId] = useState<ChartableMetricId>('peso')
   const [period, setPeriod] = useState<PeriodSelection>(() => buildPeriodSelection('week'))
   const [periodDrawerVisible, setPeriodDrawerVisible] = useState(false)
-  const [profile, setProfile] = useState<ProfileSnapshot>(PROFILE_SNAPSHOT)
+  const [profile, setProfile] = useState<ProfileSnapshot>(() => createDefaultMetricsProfile())
+  const [profileReady, setProfileReady] = useState(false)
   const [editingProfileField, setEditingProfileField] = useState<EditableProfileFieldId | null>(null)
   const [hydrationDrawerVisible, setHydrationDrawerVisible] = useState(false)
   const [hydrationReportDrawerVisible, setHydrationReportDrawerVisible] = useState(false)
   const [hydrationHistory, setHydrationHistory] = useState<HydrationDayRecord[]>([])
-  const [hydrationHistoryReady, setHydrationHistoryReady] = useState(false)
   const [glucoseDrawerVisible, setGlucoseDrawerVisible] = useState(false)
   const [glucoseReportDrawerVisible, setGlucoseReportDrawerVisible] = useState(false)
-  const [loggedGlucose, setLoggedGlucose] = useState<GlucoseReading | null>(null)
   const [glucoseHistory, setGlucoseHistory] = useState<GlucoseHistoryEntry[]>([])
-  const [glucoseHistoryReady, setGlucoseHistoryReady] = useState(false)
   const [bloodPressureDrawerVisible, setBloodPressureDrawerVisible] = useState(false)
   const [bloodPressureReportDrawerVisible, setBloodPressureReportDrawerVisible] = useState(false)
-  const [loggedBloodPressure, setLoggedBloodPressure] = useState<BloodPressureReading | null>(null)
   const [bloodPressureHistory, setBloodPressureHistory] = useState<BloodPressureHistoryEntry[]>([])
-  const [bloodPressureHistoryReady, setBloodPressureHistoryReady] = useState(false)
   const [heartRateDrawerVisible, setHeartRateDrawerVisible] = useState(false)
   const [heartRateReportDrawerVisible, setHeartRateReportDrawerVisible] = useState(false)
   const [heartRateReadings, setHeartRateReadings] = useState<HeartRateReading[]>([])
-  const [heartRateHistoryReady, setHeartRateHistoryReady] = useState(false)
   const [stepsDrawerVisible, setStepsDrawerVisible] = useState(false)
   const [stepsDayRecords, setStepsDayRecords] = useState<StepsDayRecord[]>([])
   const [healthConnections, setHealthConnections] = useState<
@@ -633,133 +668,153 @@ export function MyMetricsScreen() {
   const [bodyCompositionReportDrawerVisible, setBodyCompositionReportDrawerVisible] = useState(false)
   const [bodyMeasurementsReportDrawerVisible, setBodyMeasurementsReportDrawerVisible] = useState(false)
   const [distanceDrawerVisible, setDistanceDrawerVisible] = useState(false)
-  const [loggedCircumference, setLoggedCircumference] = useState<number | null>(null)
   const [bodyMeasurementHistory, setBodyMeasurementHistory] = useState<BodyMeasurementHistory>({})
-  const [bodyMeasurementHistoryReady, setBodyMeasurementHistoryReady] = useState(false)
   const [activeBodyMeasurementId, setActiveBodyMeasurementId] = useState<BodyMeasurementId>('peso')
   const [bodyMeasurementsDrawerVisible, setBodyMeasurementsDrawerVisible] = useState(false)
   const [bodyMeasurementLogTarget, setBodyMeasurementLogTarget] = useState<BodyMeasurementId | null>(
     null,
   )
-  const [weightHistory, setWeightHistory] = useState<MetricDataPoint[]>(() =>
-    createInitialWeightHistory(PROFILE_SNAPSHOT),
-  )
-  const [weightHistoryReady, setWeightHistoryReady] = useState(false)
+  const [weightHistory, setWeightHistory] = useState<MetricDataPoint[]>([])
+  const [resumoLatest, setResumoLatest] = useState<MetricsResumoLatestDto | null>(null)
   const [pageScrolling, setPageScrolling] = useState(false)
 
+  const profileOnboardingVisible = profileReady && needsMetricsProfileOnboarding(profile)
+
   useEffect(() => {
     let cancelled = false
 
-    void loadWeightHistory(profile).then((entries) => {
+    void loadMetricsResumo(patientCpf).then((resumo) => {
+      if (cancelled) return
+
+      setProfile(metricsResumoToProfileSnapshot(resumo))
+      setResumoLatest(resumo.latest)
+      setProfileReady(true)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [patientCpf])
+
+  useEffect(() => {
+    if (!profileReady) return
+
+    let cancelled = false
+
+    void loadWeightHistoryDays(patientCpf, DEFAULT_WEIGHT_HISTORY_DAYS).then((entries) => {
       if (cancelled) return
       setWeightHistory(entries)
-      setWeightHistoryReady(true)
     })
 
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [patientCpf, profileReady])
 
   useEffect(() => {
-    if (!weightHistoryReady) return
-    void saveWeightHistory(weightHistory)
-  }, [weightHistory, weightHistoryReady])
+    if (!profileReady) return
 
-  useEffect(() => {
     let cancelled = false
 
-    void loadGlucoseHistory().then((entries) => {
+    void loadGlucoseHistoryDays(patientCpf, DEFAULT_WEIGHT_HISTORY_DAYS).then((entries) => {
       if (cancelled) return
       setGlucoseHistory(entries)
-      setGlucoseHistoryReady(true)
     })
 
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [patientCpf, profileReady])
 
   useEffect(() => {
-    if (!glucoseHistoryReady) return
-    void saveGlucoseHistory(glucoseHistory)
-  }, [glucoseHistory, glucoseHistoryReady])
+    if (!profileReady) return
 
-  useEffect(() => {
     let cancelled = false
 
-    void loadHydrationHistory().then((entries) => {
+    void loadHydrationHistoryDays(patientCpf, DEFAULT_WEIGHT_HISTORY_DAYS).then((entries) => {
       if (cancelled) return
       setHydrationHistory(entries)
-      setHydrationHistoryReady(true)
     })
 
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [patientCpf, profileReady])
 
   useEffect(() => {
-    if (!hydrationHistoryReady) return
-    void saveHydrationHistory(hydrationHistory)
-  }, [hydrationHistory, hydrationHistoryReady])
+    if (!profileReady) return
 
-  useEffect(() => {
     let cancelled = false
 
-    void loadBloodPressureHistory().then((entries) => {
+    void loadBloodPressureHistoryDays(patientCpf, DEFAULT_WEIGHT_HISTORY_DAYS).then((entries) => {
       if (cancelled) return
       setBloodPressureHistory(entries)
-      setBloodPressureHistoryReady(true)
     })
 
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [patientCpf, profileReady])
 
   useEffect(() => {
-    if (!bloodPressureHistoryReady) return
-    void saveBloodPressureHistory(bloodPressureHistory)
-  }, [bloodPressureHistory, bloodPressureHistoryReady])
+    if (!profileReady) return
 
-  useEffect(() => {
     let cancelled = false
 
-    void loadHeartRateHistory().then((entries) => {
+    void loadHeartRateHistoryDays(patientCpf, DEFAULT_WEIGHT_HISTORY_DAYS).then((entries) => {
       if (cancelled) return
       setHeartRateReadings(entries)
-      setHeartRateHistoryReady(true)
     })
 
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [patientCpf, profileReady])
 
   useEffect(() => {
-    if (!heartRateHistoryReady) return
-    void saveHeartRateHistory(heartRateReadings)
-  }, [heartRateReadings, heartRateHistoryReady])
+    if (!profileReady) return
 
-  useEffect(() => {
     let cancelled = false
 
-    void loadBodyMeasurementHistory().then((entries) => {
+    void loadBodyMeasurementHistoryDays(patientCpf, DEFAULT_WEIGHT_HISTORY_DAYS).then((entries) => {
       if (cancelled) return
       setBodyMeasurementHistory(entries)
-      setBodyMeasurementHistoryReady(true)
     })
 
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [patientCpf, profileReady])
 
   useEffect(() => {
-    if (!bodyMeasurementHistoryReady) return
-    void saveBodyMeasurementHistory(bodyMeasurementHistory)
-  }, [bodyMeasurementHistory, bodyMeasurementHistoryReady])
+    if (!profileReady) return
+
+    let cancelled = false
+
+    void loadStepsDayRecordsDays(patientCpf, DEFAULT_WEIGHT_HISTORY_DAYS).then((records) => {
+      if (cancelled) return
+      setStepsDayRecords(records)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [patientCpf, profileReady])
+
+  useEffect(() => {
+    if (!profileReady) return
+
+    let cancelled = false
+
+    void loadHealthConnections(patientCpf).then((connections) => {
+      if (cancelled) return
+      setHealthConnections(connections)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [patientCpf, profileReady])
 
   const bottomContentPadding =
     TAB_BAR_ESTIMATED_HEIGHT + Math.max(insets.bottom, 8) + 24
@@ -767,8 +822,6 @@ export function MyMetricsScreen() {
   const selectedMetric =
     CHARTABLE_METRICS.find((metric) => metric.id === selectedMetricId) ?? CHART_METRICS[0]
   const activeBodyMeasurement = getBodyMeasurementConfig(activeBodyMeasurementId)
-  const bodyMeasurementOverrides =
-    loggedCircumference !== null ? { abdomen: loggedCircumference } : undefined
   const chartMetricLabel =
     selectedMetricId === 'corporais' ? activeBodyMeasurement.label : selectedMetric.label
   const chartMetricUnit =
@@ -793,7 +846,13 @@ export function MyMetricsScreen() {
 
   const chartExtendedData = useMemo(() => {
     if (selectedMetricId === 'peso') {
-      return createExtendedWeightHistory(weightHistory, profile, 90)
+      return ensureMinimumWeightChartPoints(weightHistory, profile)
+    }
+    if (selectedMetricId === 'imc') {
+      return buildImcSeriesFromWeightHistory(
+        ensureMinimumWeightChartPoints(weightHistory, profile),
+        profile,
+      )
     }
     if (selectedMetricId === 'corporais') {
       return getBodyMeasurementSeries(
@@ -801,7 +860,6 @@ export function MyMetricsScreen() {
         bodyMeasurementHistory,
         weightHistory,
         profile,
-        bodyMeasurementOverrides,
       )
     }
     if (selectedMetricId === 'circunferencia') {
@@ -810,13 +868,30 @@ export function MyMetricsScreen() {
         bodyMeasurementHistory,
         weightHistory,
         profile,
-        bodyMeasurementOverrides,
       )
     }
-    if (!isHourlyPeriod(period)) {
-      return generateDailyMetricSeries(selectedMetricId, 90, profile)
+    if (selectedMetricId === 'pressao') {
+      return bloodPressureHistoryToMetricPoints(
+        bloodPressureHistory,
+        isHourlyPeriod(period),
+      )
     }
-    return generateMetricSeriesForPeriod(selectedMetricId, period, profile)
+    if (selectedMetricId === 'hidratacao') {
+      return hydrationHistoryToMetricPoints(hydrationHistory)
+    }
+    if (selectedMetricId === 'glicemia') {
+      return getGlucoseSeriesForPeriod(glucoseHistory, period)
+    }
+    if (selectedMetricId === 'frequencia') {
+      return getHeartRateSeriesForPeriod(heartRateReadings, period)
+    }
+    if (selectedMetricId === 'passos') {
+      return getStepsSeriesForPeriod(stepsDayRecords, period)
+    }
+    if (selectedMetricId === 'distancia') {
+      return getDistanceSeriesForPeriod(stepsDayRecords, period)
+    }
+    return []
   }, [
     selectedMetricId,
     period,
@@ -824,12 +899,28 @@ export function MyMetricsScreen() {
     weightHistory,
     activeBodyMeasurementId,
     bodyMeasurementHistory,
-    loggedCircumference,
+    bloodPressureHistory,
+    hydrationHistory,
+    glucoseHistory,
+    heartRateReadings,
+    stepsDayRecords,
   ])
 
   const baseChartData = useMemo(() => {
     if (selectedMetricId === 'peso') {
-      return getWeightSeriesForPeriod(weightHistory, period, profile)
+      return getWeightSeriesForPeriod(
+        ensureMinimumWeightChartPoints(weightHistory, profile),
+        period,
+      )
+    }
+    if (selectedMetricId === 'imc') {
+      return getWeightSeriesForPeriod(
+        buildImcSeriesFromWeightHistory(
+          ensureMinimumWeightChartPoints(weightHistory, profile),
+          profile,
+        ),
+        period,
+      )
     }
     if (selectedMetricId === 'corporais') {
       return getBodyMeasurementSeriesForPeriod(
@@ -838,7 +929,6 @@ export function MyMetricsScreen() {
         weightHistory,
         profile,
         period,
-        bodyMeasurementOverrides,
       )
     }
     if (selectedMetricId === 'circunferencia') {
@@ -848,10 +938,27 @@ export function MyMetricsScreen() {
         weightHistory,
         profile,
         period,
-        bodyMeasurementOverrides,
       )
     }
-    return generateMetricSeriesForPeriod(selectedMetricId, period, profile)
+    if (selectedMetricId === 'pressao') {
+      return getBloodPressureSeriesForPeriod(bloodPressureHistory, period)
+    }
+    if (selectedMetricId === 'hidratacao') {
+      return getHydrationSeriesForPeriod(hydrationHistory, period)
+    }
+    if (selectedMetricId === 'glicemia') {
+      return getGlucoseSeriesForPeriod(glucoseHistory, period)
+    }
+    if (selectedMetricId === 'frequencia') {
+      return getHeartRateSeriesForPeriod(heartRateReadings, period)
+    }
+    if (selectedMetricId === 'passos') {
+      return getStepsSeriesForPeriod(stepsDayRecords, period)
+    }
+    if (selectedMetricId === 'distancia') {
+      return getDistanceSeriesForPeriod(stepsDayRecords, period)
+    }
+    return []
   }, [
     selectedMetricId,
     period,
@@ -859,7 +966,11 @@ export function MyMetricsScreen() {
     weightHistory,
     activeBodyMeasurementId,
     bodyMeasurementHistory,
-    loggedCircumference,
+    bloodPressureHistory,
+    hydrationHistory,
+    glucoseHistory,
+    heartRateReadings,
+    stepsDayRecords,
   ])
 
   const bodyMeasurementSummary = useMemo(() => {
@@ -870,7 +981,6 @@ export function MyMetricsScreen() {
       weightHistory,
       profile,
       period,
-      bodyMeasurementOverrides,
     )
     return getMeasurementDeltaSummary(activeBodyMeasurementId, series)
   }, [
@@ -880,20 +990,23 @@ export function MyMetricsScreen() {
     weightHistory,
     profile,
     period,
-    loggedCircumference,
   ])
 
   const chartData = useMemo(() => {
     if (
       selectedMetricId === 'peso' ||
+      selectedMetricId === 'imc' ||
       selectedMetricId === 'corporais' ||
       selectedMetricId === 'circunferencia'
     ) {
       return chartExtendedData
     }
+    if (selectedMetricId === 'pressao' || selectedMetricId === 'hidratacao') {
+      return baseChartData
+    }
     const livePoints = liveRegistrations[selectedMetricId] ?? []
     return applyLiveRegistrationSliding(chartExtendedData, livePoints)
-  }, [chartExtendedData, liveRegistrations, selectedMetricId])
+  }, [baseChartData, chartExtendedData, liveRegistrations, selectedMetricId])
 
   const hasHeartRateSync = hasHeartRateIntegration(healthConnections)
   const hasStepsSync = hasStepsIntegration(healthConnections)
@@ -921,25 +1034,31 @@ export function MyMetricsScreen() {
 
   const chartDataForDisplay = isSelectedMetricChartUnavailable ? [] : chartData
 
-  function handleHealthConnectionsChange(next: Record<string, IntegrationConnectionState>) {
+  function handleHealthConnectionsChange(
+    integrationId: string,
+    connection: IntegrationConnectionState,
+    merged: Record<string, IntegrationConnectionState>,
+  ) {
     withMetricsAuth(() => {
       const wasHeartRateSynced = hasHeartRateIntegration(healthConnections)
-      const nowHeartRateSynced = hasHeartRateIntegration(next)
+      const nowHeartRateSynced = hasHeartRateIntegration(merged)
       const wasStepsSynced = hasStepsIntegration(healthConnections)
-      const nowStepsSynced = hasStepsIntegration(next)
-      setHealthConnections(next)
+      const nowStepsSynced = hasStepsIntegration(merged)
+      setHealthConnections(merged)
+
+      void saveHealthConnection(patientCpf, integrationId, connection, merged).then((persisted) => {
+        setHealthConnections(persisted)
+      })
 
       if (!wasHeartRateSynced && nowHeartRateSynced) {
-        setHeartRateReadings((prev) => {
-          if (prev.some((reading) => reading.source !== 'Manual')) return prev
-          return [...createMockHeartRateHistory(), ...prev.filter((reading) => reading.source === 'Manual')]
+        void seedIntegrationHeartRateReadings(patientCpf).then((entries) => {
+          setHeartRateReadings(entries)
         })
       }
 
       if (!wasStepsSynced && nowStepsSynced) {
-        setStepsDayRecords((prev) => {
-          if (prev.some((record) => record.source !== 'Manual')) return prev
-          return [...createMockStepsHistory(), ...prev.filter((record) => record.source === 'Manual')]
+        void seedIntegrationStepsDayRecords(patientCpf).then((records) => {
+          setStepsDayRecords(records)
         })
       }
     })
@@ -983,6 +1102,10 @@ export function MyMetricsScreen() {
   }
 
   useAndroidBackHandler(() => {
+    if (profileOnboardingVisible) {
+      return true
+    }
+
     if (bodyMeasurementLogTarget !== null) {
       setBodyMeasurementLogTarget(null)
       return true
@@ -1086,25 +1209,50 @@ export function MyMetricsScreen() {
     return false
   })
 
+  function applyWeightHistoryUpdate(weight: string) {
+    const weightKg = parseWeightKg(weight)
+    if (weightKg === null) return
+
+    setSelectedMetricId('peso')
+    void registerWeightReading(patientCpf, weightKg).then((entries) => {
+      setWeightHistory(entries)
+      setChartScrollToken((token) => token + 1)
+    })
+  }
+
+  function refreshResumoLatest() {
+    void loadMetricsResumo(patientCpf).then((resumo) => {
+      setProfile(metricsResumoToProfileSnapshot(resumo))
+      setResumoLatest(resumo.latest)
+    })
+  }
+
+  function handleProfileOnboardingComplete(height: string, weight: string, birthDate: string) {
+    const fallback = onboardingProfileSnapshot(height, weight, birthDate)
+
+    void saveMetricsProfile(
+      patientCpf,
+      onboardingToUpdateInput(height, weight, birthDate),
+      fallback,
+    ).then((next) => {
+      setProfile(next)
+      refreshResumoLatest()
+      applyWeightHistoryUpdate(weight)
+    })
+  }
+
   function handleSaveProfileField(field: EditableProfileFieldId, value: string) {
     withMetricsAuth(() => {
-      if (field === 'weight') {
-        const weightKg = parseWeightKg(value)
-        setProfile((prev) => {
-          const next = { ...prev, [field]: value }
-          if (weightKg !== null) {
-            setSelectedMetricId('peso')
-            setWeightHistory((hist) =>
-              ensureSevenDayWeightHistory(registerWeightInHistory(hist, weightKg, period), next),
-            )
-            setChartScrollToken((token) => token + 1)
-          }
-          return next
-        })
-        return
-      }
+      const fallback: ProfileSnapshot = { ...profile, [field]: value }
+      const input = profileFieldToUpdateInput(field, value)
 
-      setProfile((prev) => ({ ...prev, [field]: value }))
+      void saveMetricsProfile(patientCpf, input, fallback).then((next) => {
+        setProfile(next)
+        refreshResumoLatest()
+        if (field === 'weight') {
+          applyWeightHistoryUpdate(value)
+        }
+      })
     })
   }
 
@@ -1143,12 +1291,9 @@ export function MyMetricsScreen() {
 
   function handleRegisterHydration(amountMl: number) {
     withMetricsAuth(() => {
-      setHydrationHistory((prev) => {
-        const next = registerHydrationLog(prev, amountMl)
-        const todayLiters = getTodayHydrationLiters(next, getLatestMetricValue('hidratacao', profile))
-        setSelectedMetricId('hidratacao')
-        pushLiveRegistration('hidratacao', todayLiters)
-        return next
+      setSelectedMetricId('hidratacao')
+      void registerHydrationReading(patientCpf, amountMl).then((entries) => {
+        setHydrationHistory(entries)
       })
     })
   }
@@ -1195,21 +1340,23 @@ export function MyMetricsScreen() {
 
   function handleRegisterGlucose(reading: GlucoseReading) {
     withMetricsAuth(() => {
-      setLoggedGlucose(reading)
       setSelectedMetricId('glicemia')
-      pushLiveRegistration('glicemia', reading.amountMg)
-      setGlucoseHistory((prev) => appendGlucoseReading(prev, reading.amountMg, reading.context))
+      void registerGlucoseReading(patientCpf, reading.amountMg, reading.context).then((entries) => {
+        setGlucoseHistory(entries)
+      })
     })
   }
 
   function handleRegisterBloodPressure(reading: BloodPressureReading) {
     withMetricsAuth(() => {
-      setLoggedBloodPressure(reading)
       setSelectedMetricId('pressao')
-      pushLiveRegistration('pressao', reading.systolic, { diastolic: reading.diastolic })
-      setBloodPressureHistory((prev) =>
-        appendBloodPressureReading(prev, reading.systolic, reading.diastolic),
-      )
+      void registerBloodPressureReading(
+        patientCpf,
+        reading.systolic,
+        reading.diastolic,
+      ).then((entries) => {
+        setBloodPressureHistory(entries)
+      })
     })
   }
 
@@ -1235,9 +1382,11 @@ export function MyMetricsScreen() {
 
   function handleManualHeartRateReading(reading: HeartRateReading) {
     withMetricsAuth(() => {
-      setHeartRateReadings((prev) => appendHeartRateReading(prev, reading))
       setSelectedMetricId('frequencia')
       pushLiveRegistration('frequencia', reading.bpm)
+      void registerHeartRateReading(patientCpf, reading).then((entries) => {
+        setHeartRateReadings(entries)
+      })
     })
   }
 
@@ -1253,12 +1402,13 @@ export function MyMetricsScreen() {
 
   function handleManualWalk(entry: ManualWalkEntry) {
     withMetricsAuth(() => {
-      const nextRecords = addManualWalkToRecords(stepsDayRecords, entry)
-      setStepsDayRecords(nextRecords)
-      const todaySteps = getTodaySteps(nextRecords)
-      setSelectedMetricId('passos')
-      pushLiveRegistration('passos', todaySteps)
-      pushLiveRegistration('distancia', getTodayDistanceKm(nextRecords))
+      void registerManualWalk(patientCpf, entry).then((nextRecords) => {
+        setStepsDayRecords(nextRecords)
+        const todaySteps = getTodaySteps(nextRecords)
+        setSelectedMetricId('passos')
+        pushLiveRegistration('passos', todaySteps)
+        pushLiveRegistration('distancia', getTodayDistanceKm(nextRecords))
+      })
     })
   }
 
@@ -1332,12 +1482,12 @@ export function MyMetricsScreen() {
 
   function handleRegisterCircumference(valueCm: number) {
     withMetricsAuth(() => {
-      setLoggedCircumference(valueCm)
       setSelectedMetricId('circunferencia')
       pushLiveRegistration('circunferencia', valueCm)
-      setBodyMeasurementHistory((prev) =>
-        registerBodyMeasurementInHistory(prev, 'abdomen', valueCm, period),
-      )
+      void registerBodyMeasurementReading(patientCpf, 'abdomen', valueCm).then((history) => {
+        setBodyMeasurementHistory(history)
+        setChartScrollToken((token) => token + 1)
+      })
     })
   }
 
@@ -1373,30 +1523,31 @@ export function MyMetricsScreen() {
 
     if (id === 'peso') {
       const formattedWeight = `${value.toFixed(1).replace('.', ',')} kg`
-      setProfile((prev) => {
-        const next = { ...prev, weight: formattedWeight }
-        setWeightHistory((hist) =>
-          ensureSevenDayWeightHistory(registerWeightInHistory(hist, value, period), next),
-        )
-        return next
+      setProfile((prev) => ({ ...prev, weight: formattedWeight }))
+      void registerWeightReading(patientCpf, value).then((entries) => {
+        setWeightHistory(entries)
+        setChartScrollToken((token) => token + 1)
       })
       return
     }
 
     if (id === 'abdomen') {
-      setLoggedCircumference(value)
       setSelectedMetricId('corporais')
       setActiveBodyMeasurementId('abdomen')
       pushLiveRegistration('circunferencia', value)
-      setBodyMeasurementHistory((prev) =>
-        registerBodyMeasurementInHistory(prev, 'abdomen', value, period),
-      )
+      void registerBodyMeasurementReading(patientCpf, 'abdomen', value).then((history) => {
+        setBodyMeasurementHistory(history)
+        setChartScrollToken((token) => token + 1)
+      })
       return
     }
 
     if (!isStorableBodyMeasurementId(id)) return
 
-    setBodyMeasurementHistory((prev) => registerBodyMeasurementInHistory(prev, id, value, period))
+    void registerBodyMeasurementReading(patientCpf, id, value).then((history) => {
+      setBodyMeasurementHistory(history)
+      setChartScrollToken((token) => token + 1)
+    })
     })
   }
 
@@ -1408,43 +1559,55 @@ export function MyMetricsScreen() {
           bodyMeasurementHistory,
           weightHistory,
           profile,
-          bodyMeasurementOverrides,
         )
 
-  const hydrationDisplayValue = getTodayHydrationLiters(
-    hydrationHistory,
-    getLatestMetricValue('hidratacao', profile),
+  const latestAbdomenValue = useMemo(
+    () => getLatestBodyMeasurementSeriesValue(bodyMeasurementHistory, 'abdomen'),
+    [bodyMeasurementHistory],
   )
 
-  const glucoseDisplayValue = loggedGlucose?.amountMg ?? getLatestMetricValue('glicemia', profile)
+  const todayHydrationRecord = useMemo(
+    () => getTodayHydrationRecord(hydrationHistory),
+    [hydrationHistory],
+  )
+  const hydrationDisplayValue = todayHydrationRecord
+    ? getTodayHydrationLiters(hydrationHistory)
+    : resumoLatest?.hidratacaoMlHoje != null && resumoLatest.hidratacaoMlHoje > 0
+      ? resumoLatest.hidratacaoMlHoje / 1000
+      : undefined
 
-  const bloodPressureDisplayLabel = useMemo(() => {
-    if (loggedBloodPressure) {
-      return formatBloodPressureValue(
-        loggedBloodPressure.systolic,
-        loggedBloodPressure.diastolic,
+  const latestGlucoseEntry = useMemo(() => getLatestGlucoseEntry(glucoseHistory), [glucoseHistory])
+  const glucoseDisplayValue =
+    latestGlucoseEntry?.amountMg ?? resumoLatest?.glicemiaMgDl ?? undefined
+
+  const latestBloodPressureEntry = useMemo(
+    () => getLatestBloodPressureEntry(bloodPressureHistory),
+    [bloodPressureHistory],
+  )
+  const bloodPressureDisplayLabel = latestBloodPressureEntry
+    ? formatBloodPressureShort(
+        latestBloodPressureEntry.systolic,
+        latestBloodPressureEntry.diastolic,
       )
-    }
+    : resumoLatest?.pressaoSistolica != null && resumoLatest.pressaoDiastolica != null
+      ? formatBloodPressureShort(
+          resumoLatest.pressaoSistolica,
+          resumoLatest.pressaoDiastolica,
+        )
+      : undefined
 
-    const livePoints = liveRegistrations.pressao ?? []
-    if (livePoints.length > 0) {
-      const last = livePoints[livePoints.length - 1]
-      return formatBloodPressureValue(last.value, last.diastolic)
-    }
-
-    const latest = getLatestMetricPoint('pressao', profile)
-    return formatBloodPressureValue(latest.value, latest.diastolic)
-  }, [loggedBloodPressure, liveRegistrations.pressao, profile])
-
-  const heartRateDisplayValue = heartRateReadings[0]?.bpm
+  const heartRateDisplayValue =
+    getLatestHeartRateReading(heartRateReadings)?.bpm ?? resumoLatest?.frequenciaBpm ?? undefined
 
   const circumferenceDisplayValue =
-    loggedCircumference ?? getLatestMetricValue('circunferencia', profile)
+    latestAbdomenValue ?? resumoLatest?.circunferenciaAbdomenCm ?? undefined
 
   const todaySteps = getTodaySteps(stepsDayRecords)
   const todayDistanceKm = getTodayDistanceKm(stepsDayRecords)
-  const stepsDisplayValue = todaySteps > 0 ? todaySteps : undefined
-  const distanceDisplayValue = todayDistanceKm > 0 ? todayDistanceKm : undefined
+  const stepsDisplayValue =
+    todaySteps > 0 ? todaySteps : resumoLatest?.passosHoje ?? undefined
+  const distanceDisplayValue =
+    todayDistanceKm > 0 ? todayDistanceKm : resumoLatest?.distanciaKmHoje ?? undefined
   const stepsDisplayLabel =
     !hasStepsSync && stepsDayRecords.length === 0
       ? 'Conectar'
@@ -1545,7 +1708,6 @@ export function MyMetricsScreen() {
             profile={profile}
             onEditField={handleEditProfileField}
             onWeightPress={handleWeightChartPress}
-            weightChartSelected={selectedMetricId === 'peso'}
             skeleton={showSkeleton}
           />
 
@@ -1723,6 +1885,7 @@ export function MyMetricsScreen() {
                   period={period}
                   forceDailyAxis={
                     selectedMetricId === 'peso' ||
+                    selectedMetricId === 'imc' ||
                     selectedMetricId === 'corporais' ||
                     selectedMetricId === 'circunferencia'
                   }
@@ -1743,6 +1906,7 @@ export function MyMetricsScreen() {
                   <Text style={styles.chartAxisHint}>
                     Toque nos pontos · arraste ↔ para navegar no tempo · Eixo horizontal:{' '}
                     {selectedMetricId === 'peso' ||
+                    selectedMetricId === 'imc' ||
                     selectedMetricId === 'corporais' ||
                     selectedMetricId === 'circunferencia' ||
                     !isHourlyPeriod(period)
@@ -1769,24 +1933,31 @@ export function MyMetricsScreen() {
                     metric={metric}
                     width={metricCardWidth}
                     profile={profile}
+                    resumoLatest={resumoLatest}
                     skeleton={showSkeleton}
                     valueOverride={
                       metric.id === 'hidratacao'
                         ? hydrationDisplayValue
                         : metric.id === 'glicemia'
                           ? glucoseDisplayValue
-                          : metric.id === 'frequencia' && heartRateDisplayValue !== undefined
-                              ? heartRateDisplayValue
-                              : metric.id === 'passos' && stepsDisplayValue !== undefined
-                                ? stepsDisplayValue
-                                : metric.id === 'distancia' && distanceDisplayValue !== undefined
-                                  ? distanceDisplayValue
-                                  : metric.id === 'circunferencia' && loggedCircumference !== null
-                                  ? loggedCircumference
+                          : metric.id === 'frequencia'
+                            ? heartRateDisplayValue
+                            : metric.id === 'passos'
+                              ? stepsDisplayValue
+                              : metric.id === 'distancia'
+                                ? distanceDisplayValue
+                                : metric.id === 'circunferencia'
+                                  ? circumferenceDisplayValue
                                   : undefined
                     }
                     displayLabelOverride={
-                      metric.id === 'pressao'
+                      metric.id === 'glicemia' && glucoseDisplayValue === undefined
+                        ? '—'
+                        : metric.id === 'hidratacao' && hydrationDisplayValue === undefined
+                        ? '—'
+                        : metric.id === 'pressao' && !bloodPressureDisplayLabel
+                        ? '—'
+                        : metric.id === 'pressao'
                         ? bloodPressureDisplayLabel
                         : metric.id === 'frequencia' && !hasHeartRateSync && heartRateReadings.length === 0
                           ? 'Conectar'
@@ -1862,6 +2033,12 @@ export function MyMetricsScreen() {
         onApply={setPeriod}
       />
 
+      <MetricsProfileOnboardingDrawer
+        visible={profileOnboardingVisible}
+        profile={profile}
+        onComplete={handleProfileOnboardingComplete}
+      />
+
       <ProfileFieldEditDrawer
         visible={editingProfileField !== null}
         field={editingProfileField}
@@ -1879,7 +2056,7 @@ export function MyMetricsScreen() {
       <HydrationReportDrawer
         visible={hydrationReportDrawerVisible}
         onClose={() => setHydrationReportDrawerVisible(false)}
-        history={hydrationHistory}
+        patientCpf={patientCpf}
         period={period}
         patientName={user?.name}
       />
@@ -1893,7 +2070,7 @@ export function MyMetricsScreen() {
       <GlucoseReportDrawer
         visible={glucoseReportDrawerVisible}
         onClose={() => setGlucoseReportDrawerVisible(false)}
-        history={glucoseHistory}
+        patientCpf={patientCpf}
         period={period}
         patientName={user?.name}
       />
@@ -1907,7 +2084,7 @@ export function MyMetricsScreen() {
       <BloodPressureReportDrawer
         visible={bloodPressureReportDrawerVisible}
         onClose={() => setBloodPressureReportDrawerVisible(false)}
-        history={bloodPressureHistory}
+        patientCpf={patientCpf}
         period={period}
         patientName={user?.name}
       />
@@ -1963,7 +2140,6 @@ export function MyMetricsScreen() {
         weightHistory={weightHistory}
         bodyMeasurementHistory={bodyMeasurementHistory}
         period={period}
-        abdomenOverride={loggedCircumference}
         patientName={user?.name}
       />
 
@@ -1974,7 +2150,6 @@ export function MyMetricsScreen() {
         weightHistory={weightHistory}
         profile={profile}
         period={period}
-        measurementOverrides={bodyMeasurementOverrides}
         activeMeasurementId={activeBodyMeasurementId}
         patientName={user?.name}
       />
@@ -1996,7 +2171,6 @@ export function MyMetricsScreen() {
         history={bodyMeasurementHistory}
         weightHistory={weightHistory}
         activeMeasurementId={activeBodyMeasurementId}
-        measurementOverrides={bodyMeasurementOverrides}
         onClose={() => setBodyMeasurementsDrawerVisible(false)}
         onSelectMeasurement={handleSelectBodyMeasurement}
         onRegisterMeasurement={handleOpenBodyMeasurementLog}
@@ -2107,12 +2281,6 @@ const styles = StyleSheet.create({
   profileStripPressed: {
     opacity: 0.72,
     transform: [{ scale: 0.97 }],
-  },
-  profileStripSelected: {
-    backgroundColor: 'rgba(255, 107, 0, 0.08)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 107, 0, 0.22)',
   },
   profileDivider: {
     position: 'absolute',

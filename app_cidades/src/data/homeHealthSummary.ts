@@ -1,12 +1,8 @@
-import { loadBloodPressureHistory } from './bloodPressureHistoryStorage'
-import { PROFILE_SNAPSHOT } from './mockHealthMetrics'
-import { loadHydrationHistory } from './hydrationHistoryStorage'
-import { loadGlucoseHistory } from './glucoseHistoryStorage'
-import { formatBloodPressureValue } from './mockHealthMetrics'
-import { getTodayHydrationLiters } from './mockHydrationHistory'
+import type { MetricsResumoDto } from '../lib/api/vd/metricas'
+import { loadMetricsResumo } from './metricsResumoStorage'
+import { formatBloodPressureShort } from '../utils/bloodPressure'
+import { formatImcValue } from '../utils/bmi'
 import { ACTION_ICON_PALETTES } from '../theme/actionIconColors'
-import type { ProfileSnapshot } from '../types/metrics'
-import { calculateImc, formatImcValue, hasImcInputs } from '../utils/bmi'
 
 export type HomeHealthMetricId = 'imc' | 'glicemia' | 'pressao' | 'hidratacao'
 
@@ -41,64 +37,54 @@ export const HOME_METRIC_VISUALS: Record<
   },
 }
 
-function latestByDate<T extends { recordedAt: string }>(entries: T[]): T | null {
-  if (!entries.length) return null
-  return [...entries].sort(
-    (left, right) => new Date(right.recordedAt).getTime() - new Date(left.recordedAt).getTime(),
-  )[0]
-}
-
-export async function loadHomeHealthSummary(
-  profile: ProfileSnapshot = PROFILE_SNAPSHOT,
-): Promise<HomeHealthMetric[]> {
-  const [glucoseHistory, bloodPressureHistory, hydrationHistory] = await Promise.all([
-    loadGlucoseHistory(),
-    loadBloodPressureHistory(),
-    loadHydrationHistory(),
-  ])
-
-  const imc = hasImcInputs(profile) ? calculateImc(profile) : null
-  const latestGlucose = latestByDate(glucoseHistory)
-  const latestPressure = latestByDate(bloodPressureHistory)
-  const hydrationLiters = getTodayHydrationLiters(hydrationHistory)
+export function buildHomeHealthMetricsFromResumo(resumo: MetricsResumoDto): HomeHealthMetric[] {
+  const { latest } = resumo
+  const hydrationLiters =
+    latest.hidratacaoMlHoje != null && latest.hidratacaoMlHoje > 0
+      ? latest.hidratacaoMlHoje / 1000
+      : 0
 
   return [
     {
       id: 'imc',
       label: 'IMC',
-      value: imc !== null ? formatImcValue(imc) : '—',
+      value: latest.imc != null ? formatImcValue(latest.imc) : '—',
       unit: HOME_METRIC_VISUALS.imc.unit,
-      empty: imc === null,
+      empty: latest.imc == null,
       gradient: HOME_METRIC_VISUALS.imc.gradient,
     },
     {
       id: 'glicemia',
       label: 'Glicemia',
-      value: latestGlucose ? `${Math.round(latestGlucose.amountMg)}` : '—',
+      value: latest.glicemiaMgDl != null ? `${Math.round(latest.glicemiaMgDl)}` : '—',
       unit: HOME_METRIC_VISUALS.glicemia.unit,
-      empty: latestGlucose == null,
+      empty: latest.glicemiaMgDl == null,
       gradient: HOME_METRIC_VISUALS.glicemia.gradient,
     },
     {
       id: 'pressao',
       label: 'Pressão',
-      value: latestPressure
-        ? formatBloodPressureValue(latestPressure.systolic, latestPressure.diastolic)
-        : '—',
+      value:
+        latest.pressaoSistolica != null && latest.pressaoDiastolica != null
+          ? formatBloodPressureShort(latest.pressaoSistolica, latest.pressaoDiastolica)
+          : '—',
       unit: HOME_METRIC_VISUALS.pressao.unit,
-      empty: latestPressure == null,
+      empty: latest.pressaoSistolica == null || latest.pressaoDiastolica == null,
       gradient: HOME_METRIC_VISUALS.pressao.gradient,
     },
     {
       id: 'hidratacao',
       label: 'Hidratação',
-      value:
-        hydrationLiters > 0
-          ? hydrationLiters.toFixed(1).replace('.', ',')
-          : '—',
+      value: hydrationLiters > 0 ? hydrationLiters.toFixed(1).replace('.', ',') : '—',
       unit: HOME_METRIC_VISUALS.hidratacao.unit,
       empty: hydrationLiters <= 0,
       gradient: HOME_METRIC_VISUALS.hidratacao.gradient,
     },
   ]
+}
+
+/** Carrega cards da home via GET /vd/metricas/resumo (1 request). */
+export async function loadHomeHealthSummary(patientCpf = 'guest'): Promise<HomeHealthMetric[]> {
+  const resumo = await loadMetricsResumo(patientCpf)
+  return buildHomeHealthMetricsFromResumo(resumo)
 }

@@ -189,11 +189,14 @@ export type RegistrationAddress = {
   complement: string
 }
 
+export type { RegistrationGender } from '../utils/registrationGender'
+
 export type RegistrationProfile = {
   name: string
   cpf: string
   email: string
   phone: string
+  gender: RegistrationGender | ''
 }
 
 export type RegistrationData = {

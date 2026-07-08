@@ -1,6 +1,7 @@
 import { getBodyMeasurementSeriesForPeriod } from '../data/bodyMeasurements'
-import { getWeightSeriesForPeriod } from '../data/mockHealthMetrics'
 import { BodyMeasurementHistory, BodyMeasurementId } from '../types/bodyMeasurements'
+import { MetricDataPoint, PeriodSelection, ProfileSnapshot } from '../types/metrics'
+import { getWeightSeriesForPeriod } from '../utils/weightHistory'
 import {
   AbdomenReading,
   BodyCompositionReportSummary,
@@ -10,7 +11,6 @@ import {
   ImcReading,
   WeightReading,
 } from '../types/bodyComposition'
-import { MetricDataPoint, PeriodSelection, ProfileSnapshot } from '../types/metrics'
 import {
   getAbdominalCircumferenceZoneCopy,
   getAbdominalHighRiskFromCm,
@@ -127,7 +127,7 @@ export function buildBodyCompositionReport(
       ? ({ abdomen: abdomenOverride } as Partial<Record<BodyMeasurementId, number>>)
       : undefined
 
-  const weightPoints = getWeightSeriesForPeriod(weightHistory, period, profile)
+  const weightPoints = getWeightSeriesForPeriod(weightHistory, period)
   const abdomenPoints = getBodyMeasurementSeriesForPeriod(
     'abdomen',
     bodyMeasurementHistory,

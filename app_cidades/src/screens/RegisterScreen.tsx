@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import { AppShell } from '../components/AppShell'
+import { RegisterFinishingOverlay } from '../components/register/RegisterFinishingOverlay'
 import { RegisterStepCep } from '../components/register/RegisterStepCep'
 import { RegisterStepFaceScan } from '../components/register/RegisterStepFaceScan'
 import {
@@ -13,7 +13,6 @@ import { RegisterStepProfile } from '../components/register/RegisterStepProfile'
 import { markAppVideoUserGesture } from '../adapters/appVideo'
 import { useAuth } from '../contexts/AuthContext'
 import { RegistrationAddress, RegistrationData, RegistrationProfile } from '../types/auth'
-import { colors } from '../theme/colors'
 
 const VIDEO_MODAL_CLOSE_MS = 400
 
@@ -32,6 +31,7 @@ const emptyProfile = (): RegistrationProfile => ({
   cpf: '',
   email: '',
   phone: '',
+  gender: '',
 })
 
 export function RegisterScreen() {
@@ -115,11 +115,7 @@ export function RegisterScreen() {
         <RegisterPresentationVideoOverlay onComplete={handlePresentationVideoComplete} />
       ) : null}
 
-      {isSubmitting && !showPresentationVideo ? (
-        <View style={styles.finishingWrap}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      ) : null}
+      {isSubmitting && !showPresentationVideo ? <RegisterFinishingOverlay /> : null}
 
       {!hideRegistrationSteps && step === 1 ? (
         <RegisterStepCep
@@ -177,12 +173,3 @@ export function RegisterScreen() {
     </AppShell>
   )
 }
-
-const styles = StyleSheet.create({
-  finishingWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 240,
-  },
-})

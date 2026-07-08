@@ -50,7 +50,6 @@ const VISUAL_HEIGHT = LOTTIE_HEIGHT + 36
 const CONTENT_MIN_HEIGHT = VISUAL_HEIGHT + 32
 
 const BP_GRADIENT = ['#fbbf24', '#f59e0b', '#d97706'] as const
-const BP_MEASUREMENT_GRADIENT = ['#fffbeb', '#fde68a', '#fbbf24'] as const
 const BP_CHIP_SELECTED_TEXT = '#92400e'
 
 export type BloodPressureReading = {
@@ -59,13 +58,6 @@ export type BloodPressureReading = {
 }
 
 type AdjustTarget = 'systolic' | 'diastolic'
-
-type ZoneStyle = {
-  label: string
-  color: string
-  bg: string
-  border: string
-}
 
 function clampSystolic(value: number) {
   const stepped = Math.round(value / STEP) * STEP
@@ -93,33 +85,6 @@ function formatTickLabel(value: number, target: AdjustTarget) {
   if (rounded <= min) return String(min)
   if (rounded >= max) return String(max)
   return String(rounded)
-}
-
-function getBloodPressureZone(systolic: number, diastolic: number): ZoneStyle {
-  if (systolic >= 140 || diastolic >= 90) {
-    return {
-      label: 'Alta',
-      color: '#f87171',
-      bg: 'rgba(239, 68, 68, 0.14)',
-      border: 'rgba(248, 113, 113, 0.35)',
-    }
-  }
-
-  if (systolic >= 130 || diastolic >= 80 || systolic >= 120) {
-    return {
-      label: 'Elevada',
-      color: '#fbbf24',
-      bg: 'rgba(245, 158, 11, 0.14)',
-      border: 'rgba(251, 191, 36, 0.35)',
-    }
-  }
-
-  return {
-    label: 'Normal',
-    color: '#34d399',
-    bg: 'rgba(52, 211, 153, 0.14)',
-    border: 'rgba(52, 211, 153, 0.35)',
-  }
 }
 
 type BloodPressureLogDrawerProps = {
@@ -344,7 +309,6 @@ export function BloodPressureLogDrawer({
   const rulerStep = (activeMax - activeMin) / RULER_SEGMENTS
   const fillRatio = (activeValue - activeMin) / (activeMax - activeMin)
   const fillIndicatorTop = (1 - fillRatio) * (LOTTIE_HEIGHT - 12) + 4
-  const zone = getBloodPressureZone(systolic, diastolic)
   const isValidReading = diastolic < systolic
   const keyboardLift = getDrawerKeyboardLift(keyboardInset, insets.bottom)
 
@@ -509,33 +473,12 @@ export function BloodPressureLogDrawer({
                   >
                     <Text style={styles.amountLabel}>Medição</Text>
 
-                    <LinearGradient
-                      colors={[...BP_MEASUREMENT_GRADIENT]}
-                      start={{ x: 0.15, y: 0 }}
-                      end={{ x: 0.85, y: 1 }}
-                      style={styles.amountDisplayCard}
-                    >
-                      <LinearGradient
-                        colors={['rgba(255,255,255,0.5)', 'rgba(255,255,255,0)']}
-                        start={{ x: 0.5, y: 0 }}
-                        end={{ x: 0.5, y: 1 }}
-                        style={styles.cardGloss}
-                        pointerEvents="none"
-                      />
+                    <View style={styles.amountDisplayCard}>
                       <Text style={styles.amountValue}>
                         {formatReadingLabel(systolic, diastolic)}
                       </Text>
                       <Text style={styles.amountUnit}>mmHg</Text>
-                      <View
-                        style={[
-                          styles.zoneBadge,
-                          { backgroundColor: zone.bg, borderColor: zone.border },
-                        ]}
-                      >
-                        <View style={[styles.zoneDot, { backgroundColor: zone.color }]} />
-                        <Text style={[styles.zoneLabel, { color: zone.color }]}>{zone.label}</Text>
-                      </View>
-                    </LinearGradient>
+                    </View>
 
                     <View style={styles.inputCard}>
                       <Text style={styles.inputLabel}>Ou digite</Text>
@@ -858,16 +801,13 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingVertical: 14,
     paddingHorizontal: 14,
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
-    borderColor: 'rgba(217, 119, 6, 0.35)',
+    borderColor: colors.surfaceBorder,
     alignItems: 'center',
     minHeight: 108,
     justifyContent: 'center',
     gap: 2,
-    overflow: 'hidden',
-  },
-  cardGloss: {
-    ...StyleSheet.absoluteFillObject,
   },
   amountValue: {
     color: colors.text,
@@ -881,26 +821,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 11,
     fontWeight: '600',
-    marginBottom: 4,
-  },
-  zoneBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 999,
-    borderWidth: 1,
-    marginTop: 2,
-  },
-  zoneDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  zoneLabel: {
-    fontSize: 11,
-    fontWeight: '700',
   },
   inputCard: {
     borderRadius: 16,

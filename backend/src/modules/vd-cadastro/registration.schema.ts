@@ -37,6 +37,13 @@ export const appPacienteRegistrationAddressSchema = z.object({
 /** 5 checkboxes do app → mapeados para appRegistrationConsentSchema (4 literais UBT) no mapper. */
 export const appPacienteRegistrationConsentSchema = appLegalAcceptancesSchema
 
+export const appPacienteRegistrationGenderSchema = z.enum(
+  ['masculino', 'feminino', 'outros', 'prefiro_nao_informar'],
+  {
+    message: 'Selecione o gênero.',
+  },
+)
+
 export const appPacienteRegistrationObjectSchema = z.object({
   fullName: z.string().trim().min(1, 'Informe o nome completo.'),
   cpf: z
@@ -56,6 +63,7 @@ export const appPacienteRegistrationObjectSchema = z.object({
     .refine((value) => phoneDigits(value).length >= 10, {
       message: 'Informe um telefone válido com DDD.',
     }),
+  gender: appPacienteRegistrationGenderSchema.optional(),
   address: appPacienteRegistrationAddressSchema,
   registrationConsent: appPacienteRegistrationConsentSchema,
   password: z

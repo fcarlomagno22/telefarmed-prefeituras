@@ -28,13 +28,17 @@ import {
 import type { WebNavigationHistoryEntry } from '../adapters/webNavigationUrl'
 import { login as vdLogin, logout as vdLogout, register as vdRegister } from '../lib/api/vd'
 import { VdApiError } from '../lib/api/vd/client'
+import { registerVdAccessTokenRefresh } from '../lib/api/vd/vdAuthRefresh'
+import { useVdAuthSessionGuard } from '../hooks/useVdAuthSessionGuard'
 import {
   applyAuthSession,
   clearAuthSession,
   persistAuthUser,
+  refreshVdAuthSession,
   restoreAuthSession,
   restoreSessionAfterBiometric,
 } from '../lib/vd/vdAuthSession'
+import { getVdAccessToken } from '../lib/vd/vdAccessToken'
 import { AppRouteParams, AppScreen, AuthUser, RegistrationData } from '../types/auth'
 import { playLoginSound } from '../utils/appSounds'
 import { cpfDigits } from '../utils/cpf'
@@ -105,6 +109,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [])
+
+  useEffect(() => {
+    return registerVdAccessTokenRefresh(async () => {
+      const nextUser = await refreshVdAuthSession()
+      setUser(nextUser)
+      return getVdAccessToken()
+    })
+  }, [])
+
+  const refreshAccessToken = useCallback(async () => {
+    const nextUser = await refreshVdAuthSession()
+    setUser(nextUser)
+    const token = getVdAccessToken()
+    if (!token) throw new Error('Sessão não renovada.')
+    return token
+  }, [])
+
+  useVdAuthSessionGuard({
+    isAuthenticated: user !== null,
+    refreshAccessToken,
+  })
 
   useEffect(() => {
     let active = true
