@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { LinearGradient } from 'expo-linear-gradient'
 import {
   ImageBackground,
@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useTheme } from '../contexts/ThemeContext'
 import { useThemedStyles } from '../hooks/useThemedStyles'
+import { useWebKeyboardInset } from '../hooks/useWebKeyboardInset'
 import { getThemeColors, type ThemeColors } from '../theme/palettes'
 import { keyboardAvoidingBehavior } from '../utils/keyboardLayout'
 
@@ -24,6 +25,25 @@ type AppShellProps = {
 export function AppShell({ children, footer, contentStyle }: AppShellProps) {
   const { backgroundSource, colors } = useTheme()
   const styles = useThemedStyles(createShellStyles)
+  const keyboardInset = useWebKeyboardInset()
+  const isWeb = Platform.OS === 'web'
+
+  useEffect(() => {
+    if (!isWeb) return
+
+    function handleFocusIn(event: FocusEvent) {
+      const target = event.target
+      if (!(target instanceof HTMLElement)) return
+      if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') return
+
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+      })
+    }
+
+    document.addEventListener('focusin', handleFocusIn)
+    return () => document.removeEventListener('focusin', handleFocusIn)
+  }, [isWeb])
 
   return (
     <View style={styles.root}>
@@ -45,9 +65,17 @@ export function AppShell({ children, footer, contentStyle }: AppShellProps) {
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={keyboardAvoidingBehavior}
+          enabled={!isWeb}
         >
           <ScrollView
-            contentContainerStyle={[styles.scrollContent, contentStyle]}
+            contentContainerStyle={[
+              styles.scrollContent,
+              isWeb && styles.scrollContentWeb,
+              isWeb && keyboardInset > 0
+                ? { paddingBottom: Math.max(keyboardInset, 16) + 16 }
+                : null,
+              contentStyle,
+            ]}
             keyboardShouldPersistTaps="handled"
             automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
             keyboardDismissMode="interactive"
@@ -233,6 +261,10 @@ function createShellStyles(colors: ThemeColors) {
       paddingHorizontal: 20,
       paddingVertical: 28,
       paddingBottom: 40,
+    },
+    scrollContentWeb: {
+      justifyContent: 'flex-start',
+      paddingTop: 20,
     },
     card: {
       borderRadius: 32,

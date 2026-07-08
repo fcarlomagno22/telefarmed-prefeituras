@@ -98,6 +98,9 @@ function ensureViewportCoversSafeArea() {
   if (!viewport.content.includes('viewport-fit=cover')) {
     viewport.content = `${viewport.content}, viewport-fit=cover`
   }
+  if (!viewport.content.includes('interactive-widget=resizes-content')) {
+    viewport.content = `${viewport.content}, interactive-widget=resizes-content`
+  }
 }
 
 function ensureWebManifestLink() {
@@ -119,7 +122,7 @@ let visualViewportListenerBound = false
 export function syncVisualViewportHeight() {
   if (typeof window === 'undefined') return
 
-  const height = Math.round(window.visualViewport?.height ?? window.innerHeight)
+  const height = Math.round(window.innerHeight)
   document.documentElement.style.setProperty('--app-vh', `${height}px`)
 }
 
@@ -221,7 +224,6 @@ export function applyWebChromeColor(
   bindVisualViewportHeight()
   syncVisualViewportHeight()
   ensureWebChromeStyles(appBackground, colorScheme)
-
   document.documentElement.style.colorScheme = colorScheme
   document.documentElement.style.backgroundColor = appBackground
   if (document.body) {
