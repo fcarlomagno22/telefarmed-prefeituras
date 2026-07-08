@@ -17,6 +17,7 @@ import {
   loadRunWalkActivitySyncQueue,
   removeRunWalkActivitySyncEntries,
 } from './runWalkActivitySyncQueue'
+import { invalidateWeeklyGoalProgressCache } from './runWalkWeeklyProgressStorage'
 
 const STORAGE_KEY = '@telefarmed/run-walk-activity-history'
 
@@ -161,6 +162,7 @@ export async function flushRunWalkActivitySyncQueue(patientCpf: string): Promise
       const merged = mergeSummaryWithDto(entry.activity, result.activity)
       await upsertCachedActivity(patientCpf, merged)
       syncedIds.push(entry.id)
+      await invalidateWeeklyGoalProgressCache(patientCpf)
     } catch {
       break
     }
@@ -235,6 +237,7 @@ export async function persistRunWalkHistoryActivity(
     const merged = mergeSummaryWithDto(normalized, result.activity)
     next = await upsertCachedActivity(patientCpf, merged)
     await removeRunWalkActivitySyncEntries([`sync-${normalized.id}`])
+    await invalidateWeeklyGoalProgressCache(patientCpf)
     return next
   } catch {
     await enqueueRunWalkActivitySync(patientCpf, normalized)

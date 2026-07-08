@@ -279,6 +279,24 @@ export function RunWalkScreen() {
     setIsDailyStateReady(true)
   }, [applyPlanoSnapshot, patientCpf, user])
 
+  const refreshData = useCallback(async () => {
+    const [savedGoal, weeklyProgress, dispositionSnapshot, planoSnapshot] = await Promise.all([
+      loadWeeklyGoalTargets(patientCpf),
+      loadWeeklyGoalProgress(patientCpf, { forceRefresh: true }),
+      loadRunWalkDisposition(patientCpf, { forceRefresh: true }),
+      loadRunWalkPlano(patientCpf, { forceRefresh: true }),
+    ])
+    setWeeklyGoalTargets(savedGoal)
+
+    setTodayState((prev) => ({
+      ...createEmptyRunWalkTodayState(),
+      disposition: dispositionSnapshot.disposition,
+      weeklyGoal: weeklyProgress.weeklyGoal,
+      weeklyCalendar: weeklyProgress.weeklyCalendar,
+    }))
+    applyPlanoSnapshot(planoSnapshot)
+  }, [applyPlanoSnapshot, patientCpf])
+
   useEffect(() => {
     void loadDailyState()
   }, [loadDailyState])
@@ -324,7 +342,7 @@ export function RunWalkScreen() {
     let active = true
 
     void (async () => {
-      await loadDailyState()
+      await refreshData()
       if (!active) return
 
       setSegmentTab('today')
@@ -356,25 +374,7 @@ export function RunWalkScreen() {
       celebrationTimersRef.current.forEach(clearTimeout)
       celebrationTimersRef.current = []
     }
-  }, [loadDailyState, scrollSegmentPagerTo])
-
-  const refreshData = useCallback(async () => {
-    const [savedGoal, weeklyProgress, dispositionSnapshot, planoSnapshot] = await Promise.all([
-      loadWeeklyGoalTargets(patientCpf),
-      loadWeeklyGoalProgress(patientCpf, { forceRefresh: true }),
-      loadRunWalkDisposition(patientCpf, { forceRefresh: true }),
-      loadRunWalkPlano(patientCpf, { forceRefresh: true }),
-    ])
-    setWeeklyGoalTargets(savedGoal)
-
-    setTodayState((prev) => ({
-      ...createEmptyRunWalkTodayState(),
-      disposition: dispositionSnapshot.disposition,
-      weeklyGoal: weeklyProgress.weeklyGoal,
-      weeklyCalendar: weeklyProgress.weeklyCalendar,
-    }))
-    applyPlanoSnapshot(planoSnapshot)
-  }, [applyPlanoSnapshot, patientCpf])
+  }, [refreshData, scrollSegmentPagerTo])
 
   useEffect(() => {
     if (!isNetworkReady) return

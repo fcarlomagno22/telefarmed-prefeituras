@@ -25,6 +25,7 @@ import {
 } from '../data/runWalkActivitySummaryStorage'
 import { persistRunWalkHistoryActivity } from '../data/runWalkActivityHistoryStorage'
 import {
+  invalidateWeeklyGoalProgressCache,
   loadWeeklyGoalProgress,
   recordRunWalkActivityCompletion,
 } from '../data/runWalkWeeklyProgressStorage'
@@ -155,12 +156,16 @@ export function RunWalkActivitySummaryScreen() {
     try {
       const patientCpf = user?.cpf ?? summary.patientCpf
       const dateIso = toLocalDateIso(new Date(summary.completedAt))
-      const weeklyProgress = await loadWeeklyGoalProgress(patientCpf)
-      const todayDay = weeklyProgress.weeklyCalendar.find((day) => day.dateIso === dateIso)
-      let previousTodayMinutes = todayDay?.activeMinutes ?? 0
-      let newTodayMinutes = previousTodayMinutes + summary.activeMinutes
+
+      await persistRunWalkHistoryActivity(patientCpf, summary)
+      await invalidateWeeklyGoalProgressCache(patientCpf)
+
+      let previousTodayMinutes = 0
+      let newTodayMinutes = summary.activeMinutes
 
       if (patientCpf === 'guest') {
+        const weeklyProgress = await loadWeeklyGoalProgress(patientCpf)
+        const todayDay = weeklyProgress.weeklyCalendar.find((day) => day.dateIso === dateIso)
         const completion = await recordRunWalkActivityCompletion(
           patientCpf,
           summary.activeMinutes,
@@ -169,9 +174,13 @@ export function RunWalkActivitySummaryScreen() {
         )
         previousTodayMinutes = completion.previousTodayMinutes
         newTodayMinutes = completion.newTodayMinutes
+      } else {
+        const weeklyProgress = await loadWeeklyGoalProgress(patientCpf, { forceRefresh: true })
+        const todayDay = weeklyProgress.weeklyCalendar.find((day) => day.dateIso === dateIso)
+        newTodayMinutes = todayDay?.activeMinutes ?? summary.activeMinutes
+        previousTodayMinutes = Math.max(0, newTodayMinutes - summary.activeMinutes)
       }
 
-      await persistRunWalkHistoryActivity(patientCpf, summary)
       await clearRunWalkActivitySummary(summary.id)
 
       setPendingWeeklyGoalCelebration({

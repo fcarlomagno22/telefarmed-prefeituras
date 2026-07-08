@@ -81,6 +81,14 @@ async function writeProgressCache(store: CachedProgressStore) {
   await AsyncStorage.setItem(PROGRESS_CACHE_KEY, JSON.stringify(store))
 }
 
+export async function invalidateWeeklyGoalProgressCache(patientCpf: string): Promise<void> {
+  const cache = await readProgressCache()
+  if (!cache[patientCpf]) return
+
+  delete cache[patientCpf]
+  await writeProgressCache(cache)
+}
+
 function createEmptyRecord(weekStartIso: string): RunWalkWeeklyProgressRecord {
   return {
     weekStartIso,
