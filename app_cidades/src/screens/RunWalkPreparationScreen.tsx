@@ -33,6 +33,7 @@ import { useRunWalkWeather } from '../hooks/useRunWalkWeather'
 import { colors } from '../theme/colors'
 import { getRunWalkRouteParams, type ActivityModality } from '../types/auth'
 import { formatTemperature, formatWeatherLine } from '../utils/runWalkWeather'
+import { getHomeCoordinatesFromAddress } from '../utils/mockHomeLocation'
 
 const runnerAnimation = require('../../assets/runner.json')
 
@@ -62,19 +63,26 @@ export function RunWalkPreparationScreen() {
 
   const address = user?.address
 
+  const addressCoords = useMemo(
+    () => (address ? getHomeCoordinatesFromAddress(address) : null),
+    [address],
+  )
+
   const location = useRunWalkLocation({
     address,
     enabled: true,
     snapshot: !startFlowActive,
     trackingMode: startFlowActive ? 'activity' : 'default',
-    autoRequest: false,
+    autoRequest: true,
   })
   const battery = useDeviceBattery()
-  const weather = useRunWalkWeather(
-    location.coordinates?.latitude ?? null,
-    location.coordinates?.longitude ?? null,
-    { fetchOnce: true },
-  )
+
+  const weatherLatitude =
+    location.coordinates?.latitude ?? addressCoords?.latitude ?? null
+  const weatherLongitude =
+    location.coordinates?.longitude ?? addressCoords?.longitude ?? null
+
+  const weather = useRunWalkWeather(weatherLatitude, weatherLongitude)
 
   const batteryDetail = formatBatteryLevel(
     battery.levelPercent,
@@ -303,6 +311,17 @@ export function RunWalkPreparationScreen() {
                   : 'Toque para abrir as configurações'}
               </Text>
             </Pressable>
+          ) : !location.coordinates && !location.isLocating ? (
+            <Pressable
+              style={styles.locationPrompt}
+              onPress={() => void location.refreshLocation()}
+            >
+              <Text style={styles.locationPromptTitle}>Ative a localização</Text>
+              <Text style={styles.locationPromptText}>
+                Toque aqui para permitir o GPS e carregar clima, cidade e qualidade do sinal em tempo
+                real.
+              </Text>
+            </Pressable>
           ) : null}
 
           <View style={styles.runnerHero}>
@@ -400,6 +419,25 @@ const styles = StyleSheet.create({
   alertAction: {
     color: colors.textMuted,
     fontSize: 11,
+    fontWeight: '500',
+  },
+  locationPrompt: {
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 133, 51, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 133, 51, 0.35)',
+    gap: 4,
+  },
+  locationPromptTitle: {
+    color: '#ea580c',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  locationPromptText: {
+    color: colors.textMuted,
+    fontSize: 12,
+    lineHeight: 17,
     fontWeight: '500',
   },
   runnerHero: {

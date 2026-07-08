@@ -8,6 +8,12 @@
   "orientation": "portrait",
   "background_color": "#f5f5f7",
   "theme_color": "#f5f5f7",
+  "permissions": [
+    {
+      "name": "geolocation",
+      "description": "Monitorar atividade, clima e qualidade do GPS durante corridas e caminhadas."
+    }
+  ],
   "icons": [
     {
       "src": "/icon-512.png",
