@@ -106,7 +106,6 @@ import {
   metricasMedidasCorporaisQuerySchema,
   metricasPesoQuerySchema,
   metricasPressaoQuerySchema,
-  metricasIntegracaoIdParamsSchema,
   updateMetricasIntegracaoBodySchema,
   updateMetricasPerfilBodySchema,
 } from './schemas.js'
