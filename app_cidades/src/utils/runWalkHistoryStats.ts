@@ -454,6 +454,15 @@ export function buildHistoryTrendGeometry(
   } L ${coords[0]?.x ?? plotLeft} ${plotTop + plotHeight} Z`
 
   const tickValues = [yMin, yMin + (yMax - yMin) / 2, yMax]
+  const seenTickValues = new Set<number>()
+  const yTicks: Array<{ value: number; y: number }> = []
+
+  for (const rawValue of tickValues) {
+    const value = Math.round(rawValue * 10) / 10
+    if (seenTickValues.has(value)) continue
+    seenTickValues.add(value)
+    yTicks.push({ value, y: scaleY(rawValue) })
+  }
 
   return {
     plotLeft,
@@ -463,10 +472,7 @@ export function buildHistoryTrendGeometry(
     linePath,
     areaPath,
     points: coords,
-    yTicks: tickValues.map((value) => ({
-      value: Math.round(value * 10) / 10,
-      y: scaleY(value),
-    })),
+    yTicks,
   }
 }
 

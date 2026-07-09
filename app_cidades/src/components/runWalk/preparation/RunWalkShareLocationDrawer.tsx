@@ -22,6 +22,7 @@ const areaMapAnimation = require('../../../../assets/area_map.json')
 type RunWalkShareLocationDrawerProps = {
   visible: boolean
   participantName: string
+  participantPhotoUrl?: string | null
   activityName: string
   latitude: number | null
   longitude: number | null
@@ -35,6 +36,7 @@ type RunWalkShareLocationDrawerProps = {
 export function RunWalkShareLocationDrawer({
   visible,
   participantName,
+  participantPhotoUrl,
   activityName,
   latitude,
   longitude,
@@ -71,6 +73,7 @@ export function RunWalkShareLocationDrawer({
       if (await shouldReplaceLiveShareSession(activeSession)) {
         activeSession = await createLiveShareSession({
           participantName,
+          participantPhotoUrl,
           activityName,
           latitude,
           longitude,

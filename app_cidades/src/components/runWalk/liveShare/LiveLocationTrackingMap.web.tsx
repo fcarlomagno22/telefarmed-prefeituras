@@ -8,6 +8,7 @@ import {
   type LiveShareTrackingMapController,
 } from './liveLocationTrackingMapLeafletEngine'
 import {
+  buildLiveShareMapParticipantPinHtml,
   getLiveShareMapInitialView,
   LIVE_SHARE_MAP_CUSTOM_CSS,
   LIVE_SHARE_MAP_LEAFLET_CSS_URL,
@@ -95,11 +96,17 @@ async function ensureLeaflet(): Promise<LeafletNamespace> {
 export function LiveLocationTrackingMap({
   points,
   participantLabel: _participantLabel,
+  participantName,
+  participantPhotoUrl,
   activityLabel: _activityLabel,
   fullscreen = false,
   bottomInsetPx = 220,
   topInsetPx = 56,
 }: LiveLocationTrackingMapProps) {
+  const participantPinHtml = buildLiveShareMapParticipantPinHtml(
+    participantName,
+    participantPhotoUrl,
+  )
   const mapHostRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<{ remove: () => void } | null>(null)
   const controllerRef = useRef<LiveShareTrackingMapController | null>(null)
@@ -134,6 +141,7 @@ export function LiveLocationTrackingMap({
         L,
         map,
         initialTrail: liveSharePointsToTrail(points),
+        participantPinHtml,
         bottomInsetPx,
         topInsetPx,
         callbacks: {
@@ -156,7 +164,7 @@ export function LiveLocationTrackingMap({
       mapRef.current = null
       setIsMapReady(false)
     }
-  }, [])
+  }, [participantPinHtml])
 
   useEffect(() => {
     const controller = controllerRef.current

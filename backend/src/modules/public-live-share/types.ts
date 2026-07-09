@@ -10,6 +10,7 @@ export type LiveShareSessionPublicDto = {
   id: string
   shareToken: string
   participantName: string
+  participantPhotoUrl?: string | null
   activityName: string
   isActive: boolean
   startedAt: string

@@ -22,6 +22,7 @@ type CreateLiveShareTrackingMapOptions = {
   L: any
   map: any
   initialTrail: [number, number][]
+  participantPinHtml: string
   bottomInsetPx: number
   topInsetPx: number
   callbacks?: LiveShareTrackingCallbacks
@@ -30,7 +31,7 @@ type CreateLiveShareTrackingMapOptions = {
 export function createLiveShareTrackingMapController(
   options: CreateLiveShareTrackingMapOptions,
 ): LiveShareTrackingMapController {
-  const { L, map, initialTrail, bottomInsetPx: initialBottomInset, topInsetPx: initialTopInset, callbacks } =
+  const { L, map, initialTrail, participantPinHtml, bottomInsetPx: initialBottomInset, topInsetPx: initialTopInset, callbacks } =
     options
 
   let polyline: any = null
@@ -65,9 +66,9 @@ export function createLiveShareTrackingMapController(
   function ensureMarker(latlng: any) {
     const icon = L.divIcon({
       className: 'live-pin-wrap',
-      html: '<div class="live-pin-shell"><div class="live-pin-pulse"></div><div class="live-pin-body"></div></div>',
-      iconSize: [30, 30],
-      iconAnchor: [15, 15],
+      html: participantPinHtml,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
     })
 
     if (!marker) {

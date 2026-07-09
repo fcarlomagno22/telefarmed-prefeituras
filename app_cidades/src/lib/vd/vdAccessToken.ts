@@ -7,17 +7,35 @@ const WEB_ACCESS_TOKEN_KEY = 'vd-access-token'
 let memoryAccessToken: string | null = null
 
 function readWebAccessToken(): string | null {
-  if (typeof sessionStorage === 'undefined') return null
-  return sessionStorage.getItem(WEB_ACCESS_TOKEN_KEY)
+  if (typeof localStorage === 'undefined') return null
+
+  const stored = localStorage.getItem(WEB_ACCESS_TOKEN_KEY)
+  if (stored) return stored
+
+  // Migra tokens legados do sessionStorage (perdidos ao fechar o PWA).
+  if (typeof sessionStorage !== 'undefined') {
+    const legacy = sessionStorage.getItem(WEB_ACCESS_TOKEN_KEY)
+    if (legacy) {
+      localStorage.setItem(WEB_ACCESS_TOKEN_KEY, legacy)
+      sessionStorage.removeItem(WEB_ACCESS_TOKEN_KEY)
+      return legacy
+    }
+  }
+
+  return null
 }
 
 function writeWebAccessToken(token: string | null): void {
-  if (typeof sessionStorage === 'undefined') return
+  if (typeof localStorage === 'undefined') return
   if (token) {
-    sessionStorage.setItem(WEB_ACCESS_TOKEN_KEY, token)
-    return
+    localStorage.setItem(WEB_ACCESS_TOKEN_KEY, token)
+  } else {
+    localStorage.removeItem(WEB_ACCESS_TOKEN_KEY)
   }
-  sessionStorage.removeItem(WEB_ACCESS_TOKEN_KEY)
+
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.removeItem(WEB_ACCESS_TOKEN_KEY)
+  }
 }
 
 export function getVdAccessToken(): string | null {

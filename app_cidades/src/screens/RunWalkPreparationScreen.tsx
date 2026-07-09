@@ -366,6 +366,7 @@ export function RunWalkPreparationScreen() {
       <RunWalkShareLocationDrawer
         visible={shareLocationDrawerVisible}
         participantName={user?.name ?? 'Participante'}
+        participantPhotoUrl={user?.selfieUri}
         activityName={activityName}
         latitude={location.coordinates?.latitude ?? null}
         longitude={location.coordinates?.longitude ?? null}

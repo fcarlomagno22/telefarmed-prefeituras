@@ -105,6 +105,7 @@ export function RunWalkLiveActivityScreen() {
     enabled: true,
     address: user?.address,
     participantName: user?.name ?? 'Participante',
+    participantPhotoUrl: user?.selfieUri,
     activityName: params.activityName ?? modalityLabel,
   })
 
@@ -369,6 +370,7 @@ export function RunWalkLiveActivityScreen() {
       <RunWalkShareLocationDrawer
         visible={shareLocationDrawerVisible}
         participantName={user?.name ?? 'Participante'}
+        participantPhotoUrl={user?.selfieUri}
         activityName={modalityLabel}
         latitude={location.coordinates?.latitude ?? null}
         longitude={location.coordinates?.longitude ?? null}

@@ -25,6 +25,7 @@ type LiveShareSessionPublicDto = {
   id: string
   shareToken: string
   participantName: string
+  participantPhotoUrl?: string | null
   activityName: string
   isActive: boolean
   startedAt: string
@@ -72,6 +73,7 @@ function mapPublicSession(result: LiveShareSessionPublicResult): LiveShareSessio
     id: session.id,
     shareToken: session.shareToken,
     participantName: session.participantName,
+    participantPhotoUrl: session.participantPhotoUrl ?? null,
     activityName: session.activityName,
     isActive: session.isActive,
     startedAt: session.startedAt,

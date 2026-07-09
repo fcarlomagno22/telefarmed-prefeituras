@@ -66,6 +66,7 @@ async function createLocalSession(input: CreateLiveShareSessionInput): Promise<L
     id: sessionId,
     shareToken,
     participantName: input.participantName,
+    participantPhotoUrl: input.participantPhotoUrl?.trim() || null,
     activityName: input.activityName,
     isActive: true,
     startedAt: now.toISOString(),

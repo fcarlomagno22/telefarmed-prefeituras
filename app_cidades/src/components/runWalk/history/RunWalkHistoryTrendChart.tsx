@@ -153,9 +153,9 @@ export function RunWalkHistoryTrendChart({
   return (
     <View style={[styles.root, { width, height }]}>
       <Svg width={width} height={height} pointerEvents="none">
-        {geometry.yTicks.map((tick) => (
+        {geometry.yTicks.map((tick, index) => (
           <Line
-            key={`grid-${tick.value}`}
+            key={`grid-${index}`}
             x1={geometry.plotLeft}
             y1={tick.y}
             x2={geometry.plotLeft + geometry.plotWidth}
@@ -165,9 +165,9 @@ export function RunWalkHistoryTrendChart({
           />
         ))}
 
-        {geometry.yTicks.map((tick) => (
+        {geometry.yTicks.map((tick, index) => (
           <SvgText
-            key={`ylabel-${tick.value}`}
+            key={`ylabel-${index}`}
             x={geometry.plotLeft - 8}
             y={tick.y + 3}
             fill={colors.textSubtle}

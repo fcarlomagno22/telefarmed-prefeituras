@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../../db/supabase.js'
+import { resolvePacienteFotoPublicUrl } from '../../lib/pacienteFoto.js'
 import { PublicLiveShareError } from './errors.js'
 import type { LiveShareSessionPublicResultDto } from './types.js'
 
@@ -10,6 +11,7 @@ type SessionRow = {
   is_active: boolean
   started_at: string
   expires_at: string
+  paciente_id: string | null
 }
 
 type PointRow = {
@@ -25,7 +27,9 @@ export async function getLiveShareSessionByToken(
 ): Promise<LiveShareSessionPublicResultDto> {
   const { data: sessionRow, error: sessionError } = await supabaseAdmin
     .from('run_walk_live_sessions')
-    .select('id, share_token, participant_name, activity_name, is_active, started_at, expires_at')
+    .select(
+      'id, share_token, participant_name, activity_name, is_active, started_at, expires_at, paciente_id',
+    )
     .eq('share_token', token)
     .maybeSingle()
 
@@ -66,11 +70,28 @@ export async function getLiveShareSessionByToken(
     recordedAt: point.recorded_at,
   }))
 
+  let participantPhotoUrl: string | null = null
+  if (row.paciente_id) {
+    const { data: pacienteRow, error: pacienteError } = await supabaseAdmin
+      .from('pacientes')
+      .select('foto_url')
+      .eq('id', row.paciente_id)
+      .maybeSingle()
+
+    if (pacienteError) throw pacienteError
+
+    participantPhotoUrl =
+      (await resolvePacienteFotoPublicUrl(
+        (pacienteRow as { foto_url: string | null } | null)?.foto_url,
+      )) ?? null
+  }
+
   return {
     session: {
       id: row.id,
       shareToken: row.share_token,
       participantName: row.participant_name,
+      participantPhotoUrl,
       activityName: row.activity_name,
       isActive: row.is_active && !isExpired,
       startedAt: row.started_at,

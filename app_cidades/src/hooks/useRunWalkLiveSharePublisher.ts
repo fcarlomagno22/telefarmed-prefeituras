@@ -21,6 +21,7 @@ type UseRunWalkLiveSharePublisherOptions = {
   enabled: boolean
   address?: RegistrationAddress
   participantName: string
+  participantPhotoUrl?: string | null
   activityName: string
 }
 
@@ -28,6 +29,7 @@ export function useRunWalkLiveSharePublisher({
   enabled,
   address,
   participantName,
+  participantPhotoUrl,
   activityName,
 }: UseRunWalkLiveSharePublisherOptions) {
   const location = useRunWalkLocation({
@@ -74,6 +76,7 @@ export function useRunWalkLiveSharePublisher({
 
       activeSession = await createLiveShareSession({
         participantName,
+        participantPhotoUrl,
         activityName,
         latitude: fix.coordinates.latitude,
         longitude: fix.coordinates.longitude,
@@ -86,7 +89,7 @@ export function useRunWalkLiveSharePublisher({
     setSession(activeSession)
     setShouldPublish(true)
     return activeSession
-  }, [activityName, enabled, location.getGpsFix, participantName])
+  }, [activityName, enabled, location.getGpsFix, participantName, participantPhotoUrl])
 
   useEffect(() => {
     if (!enabled) return
@@ -127,6 +130,7 @@ export function useRunWalkLiveSharePublisher({
 
       const created = await createLiveShareSession({
         participantName,
+        participantPhotoUrl,
         activityName,
         latitude: fix.coordinates.latitude,
         longitude: fix.coordinates.longitude,
@@ -146,6 +150,7 @@ export function useRunWalkLiveSharePublisher({
     enabled,
     location.getGpsFix,
     participantName,
+    participantPhotoUrl,
     session?.isActive,
     shouldPublish,
   ])
@@ -207,7 +212,10 @@ export function useRunWalkLiveSharePublisher({
   }, [enabled, publishCurrentLocation, session?.id, session?.isActive, shouldPublish])
 
   const endActiveLiveShareSession = useCallback(async () => {
-    const activeSession = sessionRef.current
+    let activeSession = sessionRef.current
+    if (!activeSession?.isActive) {
+      activeSession = await loadActiveLiveShareSession()
+    }
     if (!activeSession?.isActive) return
 
     if (isRemoteLiveShareSession(activeSession.id)) {

@@ -10,6 +10,7 @@ export type LiveShareSession = {
   id: string
   shareToken: string
   participantName: string
+  participantPhotoUrl?: string | null
   activityName: string
   isActive: boolean
   startedAt: string
@@ -22,6 +23,7 @@ export type LiveShareSessionSnapshot = LiveShareSession & {
 
 export type CreateLiveShareSessionInput = {
   participantName: string
+  participantPhotoUrl?: string | null
   activityName: string
   latitude?: number | null
   longitude?: number | null

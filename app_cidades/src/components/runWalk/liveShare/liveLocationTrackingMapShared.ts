@@ -1,8 +1,11 @@
 import type { LiveSharePoint } from '../../../types/runWalkLiveShare'
+import { buildLiveShareParticipantPinHtml } from './LiveShareParticipantAvatar'
 
 export type LiveLocationTrackingMapProps = {
   points: LiveSharePoint[]
   participantLabel: string
+  participantName: string
+  participantPhotoUrl?: string | null
   activityLabel: string
   fullscreen?: boolean
   bottomInsetPx?: number
@@ -33,6 +36,17 @@ export const LIVE_SHARE_MAP_CUSTOM_CSS = `
     background: #22c55e; border: 3px solid #fff;
     box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.22);
   }
+  .live-pin-shell-photo { width: 36px; height: 36px; }
+  .live-pin-body-photo {
+    width: 36px; height: 36px; overflow: hidden; padding: 0;
+  }
+  .live-pin-body-photo img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .live-pin-body-initials {
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font: 800 9px/1 system-ui, sans-serif;
+  }
   .live-pin-pulse {
     position: absolute; left: 50%; top: 50%; width: 22px; height: 22px;
     margin-left: -11px; margin-top: -11px; border-radius: 50%;
@@ -46,8 +60,12 @@ export const LIVE_SHARE_MAP_CUSTOM_CSS = `
   }
 `
 
-export const LIVE_SHARE_PIN_ICON_HTML =
-  '<div class="live-pin-shell"><div class="live-pin-pulse"></div><div class="live-pin-body"></div></div>'
+export function buildLiveShareMapParticipantPinHtml(
+  participantName: string,
+  participantPhotoUrl?: string | null,
+): string {
+  return buildLiveShareParticipantPinHtml(participantPhotoUrl, participantName)
+}
 
 export function liveSharePointsToTrail(points: LiveSharePoint[]): [number, number][] {
   return points.map((point) => [point.latitude, point.longitude])

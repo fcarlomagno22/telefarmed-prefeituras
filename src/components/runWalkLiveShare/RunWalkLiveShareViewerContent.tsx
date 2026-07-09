@@ -130,7 +130,6 @@ export function RunWalkLiveShareViewerContent({
                   />
                   <div className="min-w-0 space-y-1">
                     <h1 className="text-[28px] font-black tracking-tight">{firstName}</h1>
-                    <p className="text-sm font-semibold text-white/65">{session.activityName}</p>
                   </div>
                 </div>
 

@@ -3,6 +3,7 @@ import { colors } from '../../../theme/colors'
 import { StyleSheet, View } from 'react-native'
 import { AppWebView, type AppWebViewRef } from '../../../adapters/AppWebView'
 import {
+  buildLiveShareMapParticipantPinHtml,
   buildLiveShareUpdateScript,
   getLiveShareMapInitialView,
   LIVE_SHARE_MAP_CUSTOM_CSS,
@@ -15,12 +16,12 @@ import {
 
 function buildLiveLocationTrackingMapHtml({
   points,
+  participantPinHtml,
   bottomInsetPx,
   topInsetPx,
 }: {
   points: LiveLocationTrackingMapProps['points']
-  participantLabel: string
-  activityLabel: string
+  participantPinHtml: string
   bottomInsetPx: number
   topInsetPx: number
 }) {
@@ -86,9 +87,9 @@ function buildLiveLocationTrackingMapHtml({
       function ensureMarker(latlng) {
         const icon = L.divIcon({
           className: 'live-pin-wrap',
-          html: '<div class="live-pin-shell"><div class="live-pin-pulse"></div><div class="live-pin-body"></div></div>',
-          iconSize: [30, 30],
-          iconAnchor: [15, 15],
+          html: ${JSON.stringify(participantPinHtml)},
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
         });
 
         if (!marker) {
@@ -148,6 +149,8 @@ function buildLiveLocationTrackingMapHtml({
 export function LiveLocationTrackingMap({
   points,
   participantLabel,
+  participantName,
+  participantPhotoUrl,
   activityLabel,
   fullscreen = false,
   bottomInsetPx = 220,
@@ -155,17 +158,20 @@ export function LiveLocationTrackingMap({
 }: LiveLocationTrackingMapProps) {
   const webViewRef = useRef<AppWebViewRef>(null)
   const [isMapReady, setIsMapReady] = useState(false)
+  const participantPinHtml = buildLiveShareMapParticipantPinHtml(
+    participantName,
+    participantPhotoUrl,
+  )
 
   const html = useMemo(
     () =>
       buildLiveLocationTrackingMapHtml({
         points,
-        participantLabel,
-        activityLabel,
+        participantPinHtml,
         bottomInsetPx,
         topInsetPx,
       }),
-    [activityLabel, bottomInsetPx, participantLabel, points, topInsetPx],
+    [bottomInsetPx, participantPinHtml, points, topInsetPx],
   )
 
   const injectUpdate = useCallback(() => {

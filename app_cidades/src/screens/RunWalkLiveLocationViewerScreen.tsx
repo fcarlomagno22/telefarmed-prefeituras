@@ -17,6 +17,7 @@ import {
 } from '../adapters/navigationBar'
 import { AppSystemBars } from '../components/platform/AppSystemBars'
 import { LiveLocationTrackingMap } from '../components/runWalk/liveShare/LiveLocationTrackingMap'
+import { LiveShareParticipantAvatar } from '../components/runWalk/liveShare/LiveShareParticipantAvatar'
 import { useAuth } from '../contexts/AuthContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useRunWalkLiveShareViewer } from '../hooks/useRunWalkLiveShareViewer'
@@ -100,6 +101,8 @@ export function RunWalkLiveLocationViewerScreen() {
           <LiveLocationTrackingMap
             points={snapshot!.points}
             participantLabel={firstName}
+            participantName={snapshot!.participantName}
+            participantPhotoUrl={snapshot!.participantPhotoUrl}
             activityLabel={snapshot!.activityName}
             fullscreen
             bottomInsetPx={bottomInsetPx}
@@ -178,7 +181,8 @@ export function RunWalkLiveLocationViewerScreen() {
               <BlurView intensity={36} tint="light" style={styles.statsCard}>
                 <StatsContent
                   firstName={firstName}
-                  activityName={snapshot.activityName}
+                  participantName={snapshot.participantName}
+                  participantPhotoUrl={snapshot.participantPhotoUrl}
                   averageSpeedLabel={averageSpeedLabel}
                   lastUpdatedLabel={formatUpdatedAt(lastUpdatedAt)}
                   isActive={snapshot.isActive}
@@ -188,7 +192,8 @@ export function RunWalkLiveLocationViewerScreen() {
               <View style={[styles.statsCard, styles.statsCardAndroid]}>
                 <StatsContent
                   firstName={firstName}
-                  activityName={snapshot.activityName}
+                  participantName={snapshot.participantName}
+                  participantPhotoUrl={snapshot.participantPhotoUrl}
                   averageSpeedLabel={averageSpeedLabel}
                   lastUpdatedLabel={formatUpdatedAt(lastUpdatedAt)}
                   isActive={snapshot.isActive}
@@ -224,22 +229,28 @@ export function RunWalkLiveLocationViewerScreen() {
 
 function StatsContent({
   firstName,
-  activityName,
+  participantName,
+  participantPhotoUrl,
   averageSpeedLabel,
   lastUpdatedLabel,
   isActive,
 }: {
   firstName: string
-  activityName: string
+  participantName: string
+  participantPhotoUrl?: string | null
   averageSpeedLabel: string
   lastUpdatedLabel: string
   isActive: boolean
 }) {
   return (
     <View style={styles.statsContent}>
-      <View style={styles.statsMain}>
+      <View style={styles.statsHeaderRow}>
+        <LiveShareParticipantAvatar
+          name={participantName}
+          photoUrl={participantPhotoUrl}
+          size={48}
+        />
         <Text style={styles.firstName}>{firstName}</Text>
-        <Text style={styles.activityName}>{activityName}</Text>
       </View>
 
       <View style={styles.statsMetrics}>
@@ -393,19 +404,17 @@ const styles = StyleSheet.create({
     padding: 18,
     gap: 14,
   },
-  statsMain: {
-    gap: 4,
+  statsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   firstName: {
+    flex: 1,
     color: colors.text,
     fontSize: 28,
     fontWeight: '900',
     letterSpacing: -0.6,
-  },
-  activityName: {
-    color: colors.textMuted,
-    fontSize: 14,
-    fontWeight: '600',
   },
   statsMetrics: {
     flexDirection: 'row',
