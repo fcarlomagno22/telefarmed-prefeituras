@@ -122,7 +122,7 @@ export function mapAppSleepLogEntryToCreateInput(entry: AppSleepLogEntry): Creat
     wakeAt: buildSleepAtIsoFromParts(entry.wakeDateIso, entry.wakeTimeMinutes),
     quality: entry.quality,
     wakeCount: entry.wakeCount,
-    notes: entry.notes,
+    notes: entry.notes ?? null,
   }
 }
 
