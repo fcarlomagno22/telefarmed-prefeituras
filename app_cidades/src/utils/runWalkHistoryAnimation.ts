@@ -9,6 +9,6 @@ export function resolveRunWalkHistoryAnimation(
 ): RunWalkHistoryAnimationState {
   return {
     animate: isActive && revealed,
-    preserveFinal: false,
+    preserveFinal: true,
   }
 }

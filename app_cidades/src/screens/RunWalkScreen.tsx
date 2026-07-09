@@ -131,6 +131,7 @@ export function RunWalkScreen() {
 
   const scrollRef = useRef<ScrollView>(null)
   const segmentPagerRef = useRef<FlatList<RunWalkTab>>(null)
+  const segmentPagerWebRef = useRef<ScrollView>(null)
   const segmentPagerIndexRef = useRef(0)
   const segmentPagerProgrammaticScrollRef = useRef(false)
   const weeklyGoalSectionY = useRef(0)
@@ -148,16 +149,16 @@ export function RunWalkScreen() {
       segmentPagerIndexRef.current = index
 
       if (Platform.OS === 'web') {
-        if (!animated) {
-          segmentPagerProgrammaticScrollRef.current = false
-        }
-        return
+        segmentPagerWebRef.current?.scrollTo({
+          x: index * screenWidth,
+          animated,
+        })
+      } else {
+        segmentPagerRef.current?.scrollToOffset({
+          offset: index * screenWidth,
+          animated,
+        })
       }
-
-      segmentPagerRef.current?.scrollToOffset({
-        offset: index * screenWidth,
-        animated,
-      })
 
       if (!animated) {
         segmentPagerProgrammaticScrollRef.current = false
@@ -214,7 +215,13 @@ export function RunWalkScreen() {
   )
 
   useEffect(() => {
-    if (Platform.OS === 'web') return
+    if (Platform.OS === 'web') {
+      segmentPagerWebRef.current?.scrollTo({
+        x: segmentPagerIndexRef.current * screenWidth,
+        animated: false,
+      })
+      return
+    }
 
     segmentPagerRef.current?.scrollToOffset({
       offset: segmentPagerIndexRef.current * screenWidth,
@@ -768,11 +775,27 @@ export function RunWalkScreen() {
         <RunWalkSegmentTabs activeTab={segmentTab} onChange={handleSegmentTabChange} />
 
         {Platform.OS === 'web' ? (
-          <View style={styles.segmentPagerWeb}>
-            <View style={[styles.segmentPage, { width: screenWidth }]}>
-              {renderRunWalkSegmentPage(segmentTab)}
-            </View>
-          </View>
+          <ScrollView
+            ref={segmentPagerWebRef}
+            horizontal
+            pagingEnabled
+            scrollEnabled={segmentPagerScrollEnabled}
+            nestedScrollEnabled
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            scrollEventThrottle={16}
+            onScroll={handleSegmentPagerScroll}
+            onMomentumScrollEnd={handleSegmentPagerScrollEnd}
+            onScrollEndDrag={handleSegmentPagerScrollEnd}
+            style={styles.segmentPagerWeb}
+          >
+            {SEGMENT_PAGES.map((tab) => (
+              <View key={tab} style={[styles.segmentPage, { width: screenWidth, height: '100%' }]}>
+                {renderRunWalkSegmentPage(tab)}
+              </View>
+            ))}
+          </ScrollView>
         ) : (
           <FlatList
             ref={segmentPagerRef}
