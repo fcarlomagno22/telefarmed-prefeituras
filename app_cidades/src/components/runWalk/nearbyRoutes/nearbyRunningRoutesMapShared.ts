@@ -36,20 +36,43 @@ export const RUNNING_ROUTES_MAP_CUSTOM_CSS = `
     color: #1a1a1f !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14) !important;
   }
+  .leaflet-marker-icon.user-pin-wrap,
+  .leaflet-marker-icon.spot-pin-wrap {
+    background: transparent !important;
+    border: none !important;
+    overflow: visible !important;
+  }
   .user-pin-wrap, .spot-pin-wrap { background: transparent; border: none; }
+  .user-pin-shell {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    box-sizing: border-box;
+  }
   .user-pin {
     width: 18px; height: 18px; border-radius: 50%;
     background: #38bdf8; border: 3px solid #fff;
     box-shadow: 0 0 0 6px rgba(56,189,248,0.25), 0 4px 14px rgba(0,0,0,0.45);
     position: relative;
+    box-sizing: border-box;
   }
-  .user-pin-photo {
-    width: 36px; height: 36px; overflow: hidden;
+  .user-pin-body.is-photo {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
     background: #38bdf8;
+    border: 3px solid #fff;
+    box-sizing: border-box;
     box-shadow: 0 0 0 5px rgba(56,189,248,0.25), 0 4px 14px rgba(0,0,0,0.45);
   }
-  .user-pin-photo img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
+  .user-pin-body.is-photo img {
+    width: 100%;
+    height: 100%;
+    max-width: 36px;
+    max-height: 36px;
+    object-fit: cover;
+    display: block;
   }
   .user-pulse {
     position: absolute; inset: -14px; border-radius: 50%;
@@ -107,9 +130,12 @@ export function getNearbyRunningRoutesMapView(
   }
 }
 
+const USER_PIN_PHOTO_SIZE = 36
+
 export function buildNearbyRunningRoutesUserPinHtml(profilePhotoDataUri: string | null): string {
   if (profilePhotoDataUri) {
-    return `<div class="user-pin user-pin-photo"><img src="${profilePhotoDataUri.replace(/"/g, '&quot;')}" alt="" /></div>`
+    const safeSrc = profilePhotoDataUri.replace(/"/g, '&quot;')
+    return `<div class="user-pin-shell"><div class="user-pin-body is-photo"><img src="${safeSrc}" alt="" width="${USER_PIN_PHOTO_SIZE}" height="${USER_PIN_PHOTO_SIZE}" style="width:${USER_PIN_PHOTO_SIZE}px;height:${USER_PIN_PHOTO_SIZE}px;max-width:${USER_PIN_PHOTO_SIZE}px;max-height:${USER_PIN_PHOTO_SIZE}px;object-fit:cover;display:block;" /></div></div>`
   }
 
   return '<div class="user-pin"><div class="user-pulse"></div></div>'

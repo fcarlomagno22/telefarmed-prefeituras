@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { colors } from '../../../theme/colors'
 import { StyleSheet, View } from 'react-native'
 import { AppWebView, type AppWebViewRef, type WebViewMessageEvent } from '../../../adapters/AppWebView'
+import { resizeImageByLongEdge } from '../../../adapters/imageManipulation'
 import { profilePhotoToDataUri } from '../../../utils/profilePhotoImage'
 import {
   buildNearbyRunningRoutesMapMarkers,
@@ -118,7 +119,13 @@ export function NearbyRunningRoutesMap({
     let active = true
 
     async function loadPhoto() {
-      const dataUri = await profilePhotoToDataUri(trimmed!)
+      if (trimmed.startsWith('data:') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        if (active) setProfilePhotoDataUri(trimmed)
+        return
+      }
+
+      const resized = await resizeImageByLongEdge({ uri: trimmed }, { maxLongEdge: 72, compress: 0.82 })
+      const dataUri = await profilePhotoToDataUri(resized.uri)
       if (active) {
         setProfilePhotoDataUri(dataUri)
       }

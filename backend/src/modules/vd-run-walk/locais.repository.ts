@@ -16,7 +16,7 @@ export type ListLocaisRepositoryQuery = {
 }
 
 export async function listRunningRouteSpotsInBounds(
-  scope: VdRunWalkPacienteScope,
+  _scope: VdRunWalkPacienteScope,
   query: ListLocaisRepositoryQuery,
 ): Promise<RunningRouteSpotRow[]> {
   const bounds = resolveBoundingBox(query.latitude, query.longitude, query.radiusKm)
@@ -28,9 +28,6 @@ export async function listRunningRouteSpotsInBounds(
     .lte('latitude', bounds.maxLat)
     .gte('longitude', bounds.minLng)
     .lte('longitude', bounds.maxLng)
-    .or(
-      `entidade_contratante_id.is.null,entidade_contratante_id.eq.${scope.entidadeContratanteId}`,
-    )
     .order('created_at', { ascending: false })
 
   if (error) throw error
@@ -70,16 +67,13 @@ export async function insertRunningRouteSpot(
 }
 
 export async function findRunningRouteSpotById(
-  scope: VdRunWalkPacienteScope,
+  _scope: VdRunWalkPacienteScope,
   id: string,
 ): Promise<RunningRouteSpotRow | null> {
   const { data, error } = await supabaseAdmin
     .from('running_route_spots')
     .select(LOCAIS_SELECT)
     .eq('id', id)
-    .or(
-      `entidade_contratante_id.is.null,entidade_contratante_id.eq.${scope.entidadeContratanteId}`,
-    )
     .maybeSingle()
 
   if (error) throw error
