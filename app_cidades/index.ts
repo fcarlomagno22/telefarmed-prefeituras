@@ -1,4 +1,5 @@
 import 'react-native-gesture-handler'
+import './src/tasks/runWalkBackgroundLocationTask'
 
 import { registerRootComponent } from 'expo';
 

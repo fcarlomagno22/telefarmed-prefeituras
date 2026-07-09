@@ -37,6 +37,24 @@ function isRecordStale(record: RunWalkActiveActivityRecord) {
   return Date.now() - updatedAt > MAX_AGE_MS
 }
 
+export function adjustSessionSnapshotForRestore(
+  session: RunWalkActiveActivitySessionSnapshot,
+  updatedAtIso: string,
+): RunWalkActiveActivitySessionSnapshot {
+  if (session.isPaused) return session
+
+  const updatedAt = Date.parse(updatedAtIso)
+  if (Number.isNaN(updatedAt)) return session
+
+  const gapSeconds = Math.max(0, Math.floor((Date.now() - updatedAt) / 1000))
+  if (gapSeconds <= 0) return session
+
+  return {
+    ...session,
+    elapsedSeconds: session.elapsedSeconds + gapSeconds,
+  }
+}
+
 export async function loadRunWalkActiveActivity(
   patientCpf?: string,
 ): Promise<RunWalkActiveActivityRecord | null> {
@@ -51,7 +69,11 @@ export async function loadRunWalkActiveActivity(
       await AsyncStorage.removeItem(STORAGE_KEY)
       return null
     }
-    return record
+
+    return {
+      ...record,
+      session: adjustSessionSnapshotForRestore(record.session, record.updatedAtIso),
+    }
   } catch {
     return null
   }

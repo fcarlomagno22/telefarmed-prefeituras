@@ -20,6 +20,7 @@ import {
 } from '../utils/runWalkIntegrationReadings'
 import {
   createListenerRegistry,
+  type RunWalkGpsFix,
   type RunWalkLiveGpsFeed,
   type RunWalkLiveMapTrailFeed,
 } from './runWalkLiveGpsFeed'
@@ -135,45 +136,65 @@ export function useRunWalkActivitySession({
     })
   }, [publishMetrics])
 
+  const ingestGpsSample = useCallback(
+    (fix: RunWalkGpsFix) => {
+      if (!gpsRecordingEnabledRef.current) return
+
+      const now = fix.recordedAt
+      displaySpeedRef.current = displaySpeedTrackerRef.current.ingest({
+        latitude: fix.coordinates.latitude,
+        longitude: fix.coordinates.longitude,
+        speedMps: fix.speedMps,
+        recordedAt: now,
+      })
+
+      if (Date.now() - lastSpeedPublishAtRef.current >= DISPLAY_SPEED_INGEST_PUBLISH_MS) {
+        lastSpeedPublishAtRef.current = Date.now()
+        publishMetrics({ displaySpeedKmh: displaySpeedRef.current })
+      }
+
+      if (
+        lastIngestedAtRef.current != null &&
+        now - lastIngestedAtRef.current < METRICS_INGEST_MIN_INTERVAL_MS
+      ) {
+        return
+      }
+
+      lastIngestedAtRef.current = now
+      motionEngineRef.current.ingest({
+        latitude: fix.coordinates.latitude,
+        longitude: fix.coordinates.longitude,
+        accuracyMeters: fix.accuracyMeters,
+        speedMps: fix.speedMps,
+        recordedAt: now,
+      })
+      trailRef.current = motionEngineRef.current.getSnapshot().trail
+      trailListenersRef.current.notify()
+    },
+    [publishMetrics],
+  )
+
   const ingestGpsFix = useCallback(() => {
     if (!isTrackingRef.current || !gpsFeed) return
 
     const fix = gpsFeed.getGpsFix()
     if (!fix) return
 
-    const now = fix.recordedAt
-    displaySpeedRef.current = displaySpeedTrackerRef.current.ingest({
-      latitude: fix.coordinates.latitude,
-      longitude: fix.coordinates.longitude,
-      speedMps: fix.speedMps,
-      recordedAt: now,
-    })
+    ingestGpsSample(fix)
+  }, [gpsFeed, ingestGpsSample])
 
-    if (Date.now() - lastSpeedPublishAtRef.current >= DISPLAY_SPEED_INGEST_PUBLISH_MS) {
-      lastSpeedPublishAtRef.current = Date.now()
-      publishMetrics({ displaySpeedKmh: displaySpeedRef.current })
-    }
+  const ingestBackgroundGpsFixes = useCallback(
+    (fixes: RunWalkGpsFix[]) => {
+      if (fixes.length === 0 || isFinished) return
 
-    if (!gpsRecordingEnabledRef.current) return
+      for (const fix of fixes) {
+        ingestGpsSample(fix)
+      }
 
-    if (
-      lastIngestedAtRef.current != null &&
-      now - lastIngestedAtRef.current < METRICS_INGEST_MIN_INTERVAL_MS
-    ) {
-      return
-    }
-
-    lastIngestedAtRef.current = now
-    motionEngineRef.current.ingest({
-      latitude: fix.coordinates.latitude,
-      longitude: fix.coordinates.longitude,
-      accuracyMeters: fix.accuracyMeters,
-      speedMps: fix.speedMps,
-      recordedAt: now,
-    })
-    trailRef.current = motionEngineRef.current.getSnapshot().trail
-    trailListenersRef.current.notify()
-  }, [gpsFeed, publishMetrics])
+      syncMotionMetrics()
+    },
+    [ingestGpsSample, isFinished, syncMotionMetrics],
+  )
 
   useEffect(() => {
     if (gpsRecordingEnabled && !wasRecordingGpsRef.current) {
@@ -490,5 +511,6 @@ export function useRunWalkActivitySession({
     resumeActivity,
     togglePauseActivity,
     getPersistSnapshot,
+    ingestBackgroundGpsFixes,
   }
 }

@@ -38,8 +38,7 @@ export function useRunWalkActiveActivityPersistence({
     getPersistSnapshotRef.current = getPersistSnapshot
   }, [getPersistSnapshot])
 
-  const persistActiveActivity = useCallback(
-    (options?: { forcePaused?: boolean }) => {
+  const persistActiveActivity = useCallback(() => {
       if (!enabled || isFinished) return
 
       const snapshot = getPersistSnapshotRef.current()
@@ -53,10 +52,7 @@ export function useRunWalkActiveActivityPersistence({
           durationMinutes,
           gpsPreCalibrated,
         },
-        session: {
-          ...snapshot,
-          isPaused: options?.forcePaused ? true : snapshot.isPaused,
-        },
+        session: snapshot,
       })
     },
     [
@@ -88,7 +84,7 @@ export function useRunWalkActiveActivityPersistence({
 
     const subscription = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'background' || nextState === 'inactive') {
-        persistActiveActivity({ forcePaused: true })
+        persistActiveActivity()
       }
     })
 
@@ -99,7 +95,7 @@ export function useRunWalkActiveActivityPersistence({
     if (Platform.OS !== 'web' || !enabled || isFinished) return
 
     const persistOnHide = () => {
-      persistActiveActivity({ forcePaused: true })
+      persistActiveActivity()
     }
 
     window.addEventListener('pagehide', persistOnHide)

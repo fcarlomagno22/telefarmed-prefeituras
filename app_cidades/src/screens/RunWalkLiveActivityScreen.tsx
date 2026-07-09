@@ -3,6 +3,7 @@ import {
   deactivateAppKeepAwake,
 } from '../adapters/appKeepAwake'
 import { loadRunWalkActiveActivity } from '../data/runWalkActiveActivityStorage'
+import { stopRunWalkBackgroundLocationUpdatesAsync } from '../adapters/appBackgroundLocation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { RunWalkLiveGpsFeed } from '../hooks/runWalkLiveGpsFeed'
 import { saveRunWalkActivitySummary } from '../data/runWalkActivitySummaryStorage'
@@ -39,6 +40,7 @@ import { useGpsCalibration } from '../hooks/useGpsCalibration'
 import { useRunWalkActivitySession } from '../hooks/useRunWalkActivitySession'
 import type { RunWalkActivitySessionRestore } from '../hooks/useRunWalkActivitySession'
 import { useRunWalkActiveActivityPersistence } from '../hooks/useRunWalkActiveActivityPersistence'
+import { useRunWalkBackgroundLocation } from '../hooks/useRunWalkBackgroundLocation'
 import { useRunWalkLiveSharePublisher } from '../hooks/useRunWalkLiveSharePublisher'
 import { useStableHeadingRotation } from '../hooks/useStableHeadingRotation'
 import { colors } from '../theme/colors'
@@ -144,6 +146,13 @@ export function RunWalkLiveActivityScreen() {
     getPersistSnapshot: session.getPersistSnapshot,
   })
 
+  useRunWalkBackgroundLocation({
+    enabled: restoreReady && !session.isFinished,
+    isPaused: session.isPaused,
+    isFinished: session.isFinished,
+    onBackgroundFixes: session.ingestBackgroundGpsFixes,
+  })
+
   useEffect(() => {
     setCalibrationPaused(session.isPaused)
   }, [session.isPaused])
@@ -204,6 +213,7 @@ export function RunWalkLiveActivityScreen() {
     session.finishActivity()
     await endActiveLiveShareSession()
     await clearActiveActivity()
+    await stopRunWalkBackgroundLocationUpdatesAsync()
 
     const summaryId = `run-walk-${Date.now()}`
     const activeMinutes = Math.max(1, Math.round(elapsedSeconds / 60))

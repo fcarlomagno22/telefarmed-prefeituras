@@ -39,10 +39,11 @@
           "amznmp3"
         ],
         "NSLocationWhenInUseUsageDescription": "Permitir acesso à localização para monitorar sua atividade, clima e segurança durante caminhadas e corridas.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Permitir compartilhamento de localização ao vivo com seu contato de confiança durante a atividade.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Permitir localização em segundo plano para continuar registrando tempo, distância e rota durante caminhadas e corridas mesmo com o app minimizado.",
         "NSBluetoothAlwaysUsageDescription": "Permitir que o Telefarmed Cidades encontre e conecte pulseiras, relógios e balanças via Bluetooth.",
         "UIBackgroundModes": [
-          "audio"
+          "audio",
+          "location"
         ]
       },
       "bundleIdentifier": "com.fcarlomagno2.app-cidades"
@@ -61,7 +62,9 @@
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
         "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.BLUETOOTH_SCAN",
@@ -166,7 +169,9 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "Permitir acesso à localização para monitorar sua atividade, clima e segurança durante caminhadas e corridas.",
-          "locationAlwaysAndWhenInUsePermission": "Permitir compartilhamento de localização ao vivo com seu contato de confiança durante a atividade."
+          "locationAlwaysAndWhenInUsePermission": "Permitir localização em segundo plano para continuar registrando tempo, distância e rota durante caminhadas e corridas mesmo com o app minimizado.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ],
       "expo-mail-composer",
@@ -197,8 +202,8 @@
       "iosGpsLiveTracking": {
         "permissions": {
           "whenInUse": "NSLocationWhenInUseUsageDescription — configured",
-          "alwaysAndWhenInUse": "NSLocationAlwaysAndWhenInUseUsageDescription — configured for live share prompt; app only requests foreground permission today",
-          "backgroundModesLocation": "NOT enabled — UIBackgroundModes has audio only; GPS pauses when app is backgrounded unless background location is added"
+          "alwaysAndWhenInUse": "NSLocationAlwaysAndWhenInUseUsageDescription — configured; background permission requested when live activity starts",
+          "backgroundModesLocation": "enabled — UIBackgroundModes includes location + TaskManager background updates"
         },
         "watchOptions": {
           "accuracy": "BestForNavigation in activity mode",
@@ -214,8 +219,8 @@
           "fineLocation": "ACCESS_FINE_LOCATION — configured",
           "coarseLocation": "ACCESS_COARSE_LOCATION — configured",
           "foregroundService": "FOREGROUND_SERVICE — configured (used by expo-audio background playback)",
-          "foregroundServiceLocation": "NOT configured — add FOREGROUND_SERVICE_LOCATION + expo-location isAndroidForegroundServiceEnabled for background GPS",
-          "backgroundLocation": "NOT configured — ACCESS_BACKGROUND_LOCATION not requested; live tracking is foreground-only today"
+          "foregroundServiceLocation": "FOREGROUND_SERVICE_LOCATION — configured via expo-location isAndroidForegroundServiceEnabled",
+          "backgroundLocation": "ACCESS_BACKGROUND_LOCATION — configured; requested when live activity starts on native"
         },
         "watchOptions": {
           "accuracy": "BestForNavigation → PRIORITY_HIGH_ACCURACY on Android",
