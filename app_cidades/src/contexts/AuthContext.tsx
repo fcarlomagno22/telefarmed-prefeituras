@@ -49,6 +49,10 @@ import {
 } from '../utils/vdAuthMapper'
 import { loadActiveLiveShareSession } from '../data/runWalkLiveShareService'
 import {
+  buildRunWalkActiveActivityRouteParams,
+  loadRunWalkActiveActivity,
+} from '../data/runWalkActiveActivityStorage'
+import {
   resolveIncomingAppLink,
   type ResolvedIncomingAppLink,
 } from '../utils/resolveIncomingAppLink'
@@ -158,10 +162,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (restoredUser) {
           setUser(restoredUser)
-          screenHistoryRef.current = []
-          setRouteParams(null)
-          setScreen('home')
-          resetNavigationHistoryState('home', null)
+
+          const activeActivity = await loadRunWalkActiveActivity(restoredUser.cpf)
+          if (activeActivity) {
+            const liveParams = buildRunWalkActiveActivityRouteParams(activeActivity)
+            screenHistoryRef.current = []
+            setRouteParams(liveParams)
+            routeParamsRef.current = liveParams
+            setScreen('run-walk-live')
+            resetNavigationHistoryState('run-walk-live', liveParams)
+          } else {
+            screenHistoryRef.current = []
+            setRouteParams(null)
+            setScreen('home')
+            resetNavigationHistoryState('home', null)
+          }
         }
 
         setBiometricEnabled(storedBiometric === 'true')

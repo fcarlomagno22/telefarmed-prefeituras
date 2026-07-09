@@ -1,7 +1,16 @@
 import { Ionicons } from '@expo/vector-icons'
 import * as Haptics from 'expo-haptics'
 import { useEffect, useRef } from 'react'
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
+import {
+  Animated,
+  Easing,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type GestureResponderEvent,
+} from 'react-native'
 import { colors } from '../../../theme/colors'
 
 type RunWalkActivityLockOverlayProps = {
@@ -14,11 +23,15 @@ const HOLD_MS = 1200
 export function RunWalkActivityLockOverlay({ visible, onUnlock }: RunWalkActivityLockOverlayProps) {
   const progress = useRef(new Animated.Value(0)).current
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isHoldingRef = useRef(false)
+  const unlockedRef = useRef(false)
 
   useEffect(() => {
     if (!visible) {
       progress.stopAnimation()
       progress.setValue(0)
+      isHoldingRef.current = false
+      unlockedRef.current = false
       if (holdTimerRef.current) {
         clearTimeout(holdTimerRef.current)
         holdTimerRef.current = null
@@ -28,36 +41,115 @@ export function RunWalkActivityLockOverlay({ visible, onUnlock }: RunWalkActivit
 
   if (!visible) return null
 
-  function clearHold() {
-    if (holdTimerRef.current) {
-      clearTimeout(holdTimerRef.current)
-      holdTimerRef.current = null
-    }
+  function resetProgressAnimation() {
     progress.stopAnimation()
     Animated.timing(progress, {
       toValue: 0,
       duration: 180,
       easing: Easing.out(Easing.cubic),
-      useNativeDriver: false,
+      useNativeDriver: Platform.OS === 'web',
     }).start()
   }
 
+  function clearHold() {
+    if (!isHoldingRef.current) return
+
+    isHoldingRef.current = false
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current)
+      holdTimerRef.current = null
+    }
+    resetProgressAnimation()
+  }
+
+  function completeUnlock() {
+    if (unlockedRef.current) return
+
+    unlockedRef.current = true
+    isHoldingRef.current = false
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current)
+      holdTimerRef.current = null
+    }
+    progress.stopAnimation()
+    progress.setValue(1)
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    onUnlock()
+  }
+
   function startHold() {
-    clearHold()
+    if (isHoldingRef.current || unlockedRef.current) return
+
+    isHoldingRef.current = true
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current)
+      holdTimerRef.current = null
+    }
+
+    progress.stopAnimation()
+    progress.setValue(0)
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
 
     Animated.timing(progress, {
       toValue: 1,
       duration: HOLD_MS,
       easing: Easing.linear,
-      useNativeDriver: false,
-    }).start()
+      useNativeDriver: Platform.OS === 'web',
+    }).start(({ finished }) => {
+      if (finished && isHoldingRef.current) {
+        completeUnlock()
+      }
+    })
 
     holdTimerRef.current = setTimeout(() => {
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-      onUnlock()
+      if (isHoldingRef.current) {
+        completeUnlock()
+      }
     }, HOLD_MS)
   }
+
+  function handleWebPointerDown(event: GestureResponderEvent) {
+    event.preventDefault?.()
+
+    const target = event.currentTarget as unknown as HTMLElement | null
+    const pointerId = event.nativeEvent.pointerId
+    if (target?.setPointerCapture && pointerId != null) {
+      try {
+        target.setPointerCapture(pointerId)
+      } catch {
+        // Ignore capture failures on unsupported browsers.
+      }
+    }
+
+    startHold()
+  }
+
+  function handleWebPointerEnd(event: GestureResponderEvent) {
+    const target = event.currentTarget as unknown as HTMLElement | null
+    const pointerId = event.nativeEvent.pointerId
+    if (target?.releasePointerCapture && pointerId != null) {
+      try {
+        target.releasePointerCapture(pointerId)
+      } catch {
+        // Ignore release failures when capture was not set.
+      }
+    }
+
+    clearHold()
+  }
+
+  const holdHandlers =
+    Platform.OS === 'web'
+      ? {
+          onPointerDown: handleWebPointerDown,
+          onPointerUp: handleWebPointerEnd,
+          onPointerCancel: handleWebPointerEnd,
+          onContextMenu: (event: GestureResponderEvent) => event.preventDefault?.(),
+        }
+      : {
+          onPressIn: startHold,
+          onPressOut: clearHold,
+        }
 
   return (
     <View style={styles.overlay} pointerEvents="box-none">
@@ -69,19 +161,31 @@ export function RunWalkActivityLockOverlay({ visible, onUnlock }: RunWalkActivit
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Segure para desbloquear"
-          onPressIn={startHold}
-          onPressOut={clearHold}
           style={({ pressed }) => [styles.unlockButton, pressed && styles.unlockButtonPressed]}
+          {...holdHandlers}
         >
           <Animated.View
+            pointerEvents="none"
             style={[
               styles.unlockFill,
-              {
-                width: progress.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ['0%', '100%'],
-                }),
-              },
+              Platform.OS === 'web'
+                ? {
+                    transform: [
+                      {
+                        scaleX: progress.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.001, 1],
+                        }),
+                      },
+                    ],
+                  }
+                : {
+                    width: progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['0%', '100%'],
+                    }),
+                  },
+              Platform.OS === 'web' ? styles.unlockFillWeb : null,
             ]}
           />
           <Text style={styles.unlockLabel}>Segure aqui</Text>
@@ -139,6 +243,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
+    ...(Platform.OS === 'web'
+      ? ({
+          cursor: 'pointer',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          touchAction: 'none',
+        } as object)
+      : null),
   },
   unlockButtonPressed: {
     opacity: 0.95,
@@ -148,8 +260,12 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
+    width: '100%',
     backgroundColor: 'rgba(34, 197, 94, 0.35)',
   },
+  unlockFillWeb: {
+    transformOrigin: 'left center',
+  } as object,
   unlockLabel: {
     color: colors.text,
     fontSize: 15,

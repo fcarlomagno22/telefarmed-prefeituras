@@ -2,6 +2,7 @@ import {
   activateAppKeepAwakeAsync,
   deactivateAppKeepAwake,
 } from '../adapters/appKeepAwake'
+import { loadRunWalkActiveActivity } from '../data/runWalkActiveActivityStorage'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { RunWalkLiveGpsFeed } from '../hooks/runWalkLiveGpsFeed'
 import { saveRunWalkActivitySummary } from '../data/runWalkActivitySummaryStorage'
@@ -36,6 +37,8 @@ import { consumeRunWalkPreLiveGpsCalibrated } from '../data/runWalkPreLiveGpsCal
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useGpsCalibration } from '../hooks/useGpsCalibration'
 import { useRunWalkActivitySession } from '../hooks/useRunWalkActivitySession'
+import type { RunWalkActivitySessionRestore } from '../hooks/useRunWalkActivitySession'
+import { useRunWalkActiveActivityPersistence } from '../hooks/useRunWalkActiveActivityPersistence'
 import { useRunWalkLiveSharePublisher } from '../hooks/useRunWalkLiveSharePublisher'
 import { useStableHeadingRotation } from '../hooks/useStableHeadingRotation'
 import { colors } from '../theme/colors'
@@ -67,6 +70,27 @@ export function RunWalkLiveActivityScreen() {
   const [followUserOnMap, setFollowUserOnMap] = useState(true)
   const [calibrationPaused, setCalibrationPaused] = useState(false)
   const [gpsRecordingEnabled] = useState(true)
+  const [restoredSession, setRestoredSession] = useState<RunWalkActivitySessionRestore | null>(
+    null,
+  )
+  const [restoreReady, setRestoreReady] = useState(false)
+
+  useEffect(() => {
+    let active = true
+
+    async function loadRestoredSession() {
+      const record = await loadRunWalkActiveActivity(user?.cpf)
+      if (!active) return
+      setRestoredSession(record?.session ?? null)
+      setRestoreReady(true)
+    }
+
+    void loadRestoredSession()
+
+    return () => {
+      active = false
+    }
+  }, [user?.cpf])
 
   const {
     location,
@@ -102,9 +126,22 @@ export function RunWalkLiveActivityScreen() {
     modality,
     durationMinutes,
     gpsFeed,
-    enabled: true,
+    enabled: restoreReady,
     gpsRecordingEnabled,
     patientCpf: user?.cpf,
+    restoredSession,
+  })
+
+  const { clearActiveActivity } = useRunWalkActiveActivityPersistence({
+    patientCpf: user?.cpf,
+    modality,
+    activityName: params.activityName ?? modalityLabel,
+    intensity: params.intensity,
+    durationMinutes,
+    gpsPreCalibrated,
+    enabled: restoreReady && !session.isFinished,
+    isFinished: session.isFinished,
+    getPersistSnapshot: session.getPersistSnapshot,
   })
 
   useEffect(() => {
@@ -166,6 +203,7 @@ export function RunWalkLiveActivityScreen() {
 
     session.finishActivity()
     await endActiveLiveShareSession()
+    await clearActiveActivity()
 
     const summaryId = `run-walk-${Date.now()}`
     const activeMinutes = Math.max(1, Math.round(elapsedSeconds / 60))
@@ -215,6 +253,10 @@ export function RunWalkLiveActivityScreen() {
   const bottomInset = Math.max(insets.bottom, 14) + 8
   const sideActionsBottom =
     bottomInset + METRICS_CARD_ESTIMATED_HEIGHT + SIDE_ACTIONS_GAP_ABOVE_METRICS
+
+  if (!restoreReady) {
+    return <View style={styles.root} />
+  }
 
   return (
     <View style={styles.root}>

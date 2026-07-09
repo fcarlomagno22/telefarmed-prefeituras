@@ -69,6 +69,18 @@ export class GpsMotionEngine {
     this.lastMovingTickAt = null
   }
 
+  restoreSnapshot(snapshot: { trail: ActivityTrailPoint[]; distanceKm: number }): void {
+    this.reset()
+    this.trail = snapshot.trail.map((point) => ({ ...point }))
+    this.distanceKm = snapshot.distanceKm
+
+    if (this.trail.length === 0) return
+
+    const last = this.trail[this.trail.length - 1]
+    this.anchor = { latitude: last.latitude, longitude: last.longitude }
+    this.hasEverMoved = this.distanceKm > 0 || this.trail.length > 1
+  }
+
   ingest(sample: GpsMotionSample): GpsMotionSnapshot {
     const rawSpeedMps = this.resolveRawSpeedMps(sample)
     this.smoothedSpeedMps = this.smoothSpeed(rawSpeedMps)

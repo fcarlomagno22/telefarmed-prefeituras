@@ -7,6 +7,7 @@ import { ExerciseTimerBar } from '../components/functional/ExerciseTimerBar'
 import { useAuth } from '../contexts/AuthContext'
 import { setRunWalkPreLiveGpsCalibrated } from '../data/runWalkPreLiveGpsCalibration'
 import { clearPreparationDraft } from '../data/runWalkPreparationDraftStorage'
+import { clearRunWalkActiveActivity } from '../data/runWalkActiveActivityStorage'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { useGpsCalibration } from '../hooks/useGpsCalibration'
 import { gpsQualityLabel, useRunWalkLocation } from '../hooks/useRunWalkLocation'
@@ -106,6 +107,7 @@ export function RunWalkStartCountdownScreen() {
 
     const finishTimer = setTimeout(() => {
       void clearPreparationDraft(user?.cpf)
+      void clearRunWalkActiveActivity()
       const gpsPreCalibrated = gpsCalibratedRef.current
       setRunWalkPreLiveGpsCalibrated(gpsPreCalibrated)
       navigateTo('run-walk-live', {

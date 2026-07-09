@@ -29,6 +29,15 @@ const METRICS_UI_INTERVAL_MS = 500
 const DISPLAY_SPEED_UI_INTERVAL_MS = 200
 const DISPLAY_SPEED_INGEST_PUBLISH_MS = 200
 
+export type RunWalkActivitySessionRestore = {
+  sessionStartedAtIso: string
+  elapsedSeconds: number
+  isPaused: boolean
+  distanceKm: number
+  averageSpeedKmh: number
+  trail: ActivityTrailPoint[]
+}
+
 type UseRunWalkActivitySessionOptions = {
   modality: ActivityModality
   durationMinutes: number
@@ -37,6 +46,7 @@ type UseRunWalkActivitySessionOptions = {
   enabled?: boolean
   gpsRecordingEnabled?: boolean
   patientCpf?: string
+  restoredSession?: RunWalkActivitySessionRestore | null
 }
 
 type ActivitySessionSnapshot = {
@@ -65,6 +75,7 @@ export function useRunWalkActivitySession({
   enabled = true,
   gpsRecordingEnabled = true,
   patientCpf,
+  restoredSession = null,
 }: UseRunWalkActivitySessionOptions) {
   const startedAtRef = useRef(Date.now())
   const sessionStartedAtIsoRef = useRef(new Date().toISOString())
@@ -84,6 +95,8 @@ export function useRunWalkActivitySession({
   })
   const [isFinished, setIsFinished] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
+  const isPausedRef = useRef(false)
+  const restoredOnceRef = useRef(false)
   const [frozenSnapshot, setFrozenSnapshot] = useState<ActivitySessionSnapshot | null>(null)
   const [integrationPollingEnabled, setIntegrationPollingEnabled] = useState(false)
   const [integrationHeartRateBpm, setIntegrationHeartRateBpm] = useState<number | null>(null)
@@ -183,6 +196,44 @@ export function useRunWalkActivitySession({
   useEffect(() => {
     if (!enabled) return
 
+    if (restoredSession && !restoredOnceRef.current) {
+      restoredOnceRef.current = true
+      sessionStartedAtIsoRef.current = restoredSession.sessionStartedAtIso
+      elapsedSecondsRef.current = restoredSession.elapsedSeconds
+      pausedElapsedRef.current = restoredSession.elapsedSeconds
+      isPausedRef.current = restoredSession.isPaused
+
+      if (restoredSession.isPaused) {
+        startedAtRef.current = Date.now() - restoredSession.elapsedSeconds * 1000
+        setIsPaused(true)
+      } else {
+        startedAtRef.current = Date.now() - restoredSession.elapsedSeconds * 1000
+        setIsPaused(false)
+      }
+
+      motionEngineRef.current.restoreSnapshot({
+        trail: restoredSession.trail,
+        distanceKm: restoredSession.distanceKm,
+      })
+      trailRef.current = restoredSession.trail.map((point) => ({ ...point }))
+      displaySpeedRef.current = 0
+      setMetrics({
+        elapsedSeconds: restoredSession.elapsedSeconds,
+        distanceKm: restoredSession.distanceKm,
+        currentSpeedKmh: 0,
+        displaySpeedKmh: 0,
+        averageSpeedKmh: restoredSession.averageSpeedKmh,
+        trail: restoredSession.trail.map((point) => ({ ...point })),
+      })
+      setIsFinished(false)
+      setFrozenSnapshot(null)
+      setIntegrationHeartRateBpm(null)
+      setIntegrationSessionSteps(null)
+      return
+    }
+
+    if (restoredOnceRef.current) return
+
     startedAtRef.current = Date.now()
     sessionStartedAtIsoRef.current = new Date().toISOString()
     elapsedSecondsRef.current = 0
@@ -191,6 +242,7 @@ export function useRunWalkActivitySession({
     displaySpeedTrackerRef.current.reset()
     trailRef.current = []
     displaySpeedRef.current = 0
+    isPausedRef.current = false
     setMetrics({
       elapsedSeconds: 0,
       distanceKm: 0,
@@ -205,7 +257,7 @@ export function useRunWalkActivitySession({
     setIntegrationHeartRateBpm(null)
     setIntegrationSessionSteps(null)
     pausedElapsedRef.current = 0
-  }, [enabled, modality, durationMinutes])
+  }, [enabled, modality, durationMinutes, restoredSession])
 
   useEffect(() => {
     if (!enabled || !patientCpf || patientCpf === 'guest') {
@@ -345,6 +397,7 @@ export function useRunWalkActivitySession({
     if (isFinished || isPaused) return
 
     pausedElapsedRef.current = elapsedSecondsRef.current
+    isPausedRef.current = true
     setIsPaused(true)
   }, [isFinished, isPaused])
 
@@ -352,6 +405,7 @@ export function useRunWalkActivitySession({
     if (isFinished || !isPaused) return
 
     startedAtRef.current = Date.now() - pausedElapsedRef.current * 1000
+    isPausedRef.current = false
     setIsPaused(false)
   }, [isFinished, isPaused])
 
@@ -394,6 +448,25 @@ export function useRunWalkActivitySession({
     durationMinutes,
   )
 
+  const getPersistSnapshot = useCallback((): RunWalkActivitySessionRestore => {
+    const motion = motionEngineRef.current.getSnapshot()
+    const averageSpeed =
+      motion.movingTimeSeconds >= 3 && motion.distanceKm > 0
+        ? motion.averageSpeedKmh
+        : calculateAverageSpeedKmh(motion.distanceKm, motion.movingTimeSeconds) ?? 0
+
+    return {
+      sessionStartedAtIso: sessionStartedAtIsoRef.current,
+      elapsedSeconds: isPausedRef.current
+        ? pausedElapsedRef.current
+        : elapsedSecondsRef.current,
+      isPaused: isPausedRef.current,
+      distanceKm: motion.distanceKm,
+      averageSpeedKmh: averageSpeed,
+      trail: trailRef.current.map((point) => ({ ...point })),
+    }
+  }, [])
+
   return {
     elapsedSeconds: activeElapsedSeconds,
     distanceKm: activeDistanceKm,
@@ -416,5 +489,6 @@ export function useRunWalkActivitySession({
     pauseActivity,
     resumeActivity,
     togglePauseActivity,
+    getPersistSnapshot,
   }
 }
