@@ -47,7 +47,46 @@ export {
   createRunWalkLiveSession,
   endRunWalkLiveSession,
 } from './runWalkLiveShare'
-export { getMetricsProfile, updateMetricsProfile, getLatestWeight, getMetricsResumo, listActivityHistory, listBodyMeasurements, listHealthIntegrations, listHeartRateHistory, listHydrationHistory, listBloodPressureHistory, listGlucoseHistory, listWeightHistory, registerBodyMeasurement, registerHeartRate, registerHydration, registerBloodPressure, registerGlucose, registerWalk, registerWeight, syncActivityDaysBatch, updateHealthIntegration } from './metricas'
+export {
+  addFunctionalTrainingFavorito,
+  getFunctionalTrainingEstatisticasSemanais,
+  getFunctionalTrainingFavoritos,
+  listFunctionalTrainingSessoes,
+  registerFunctionalTrainingSessao,
+  removeFunctionalTrainingFavorito,
+} from './functionalTraining'
+export { deleteSleepLog, listSleepLogs, registerSleepLog } from './sleepTime'
+export {
+  createActiveMindSession,
+  deleteActiveMindSession,
+  getActiveMindWeeklyStats,
+  listActiveMindSessions,
+  mapActiveMindSessaoDtoToSession,
+  mapActiveMindSessionToCreateInput,
+} from './activeMind'
+export {
+  getMetricsProfile,
+  updateMetricsProfile,
+  getLatestWeight,
+  getMetricsResumo,
+  listActivityHistory,
+  listBodyMeasurements,
+  listHealthIntegrations,
+  listHeartRateHistory,
+  listHydrationHistory,
+  listBloodPressureHistory,
+  listGlucoseHistory,
+  listWeightHistory,
+  registerBodyMeasurement,
+  registerHeartRate,
+  registerHydration,
+  registerBloodPressure,
+  registerGlucose,
+  registerWalk,
+  registerWeight,
+  syncActivityDaysBatch,
+  updateHealthIntegration,
+} from './metricas'
 export {
   completePasswordRecovery,
   forgotPassword,
@@ -110,6 +149,31 @@ export type {
   WeeklyGoalStatsDto,
   WeeklyGoalTargetsDto,
 } from './runWalk'
+export type {
+  CreateFunctionalTrainingSessaoInput,
+  FunctionalTrainingFavoritosDto,
+  FunctionalTrainingSessaoDto,
+  FunctionalTrainingSessaoListResultDto,
+  ListFunctionalTrainingSessoesQuery,
+  RegisterFunctionalTrainingSessaoResult,
+  WeeklyTrainingStatsDto,
+} from './functionalTraining'
+export type {
+  CreateSleepTimeRegistroInput,
+  ListSleepTimeRegistrosQuery,
+  RegisterSleepTimeRegistroResult,
+  SleepTimeRegistroDto,
+  SleepTimeRegistroListResultDto,
+} from './sleepTime'
+export type {
+  ActiveMindSessionListResultDto,
+  ActiveMindSessaoDto,
+  CreateActiveMindSessionInput,
+  ListActiveMindSessionsQuery,
+  RegisterActiveMindSessionResult,
+  WeeklyActiveMindStatsByGameDto,
+  WeeklyActiveMindStatsDto,
+} from './activeMind'
 export type {
   AtividadeDayRecordDto,
   BloodPressureHistoryEntryDto,

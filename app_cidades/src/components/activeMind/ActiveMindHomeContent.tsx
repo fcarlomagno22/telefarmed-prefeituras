@@ -1,19 +1,29 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { colors } from '../../theme/colors'
 import { LinearGradient } from 'expo-linear-gradient'
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native'
+import { AppLoadingState } from '../AppLoadingState'
 import { filterActiveMindGames } from '../../config/activeMindGames'
+import { useAuth } from '../../contexts/AuthContext'
+import {
+  emptyActiveMindWeeklyStats,
+  loadActiveMindWeeklyStats,
+  type ActiveMindWeeklyStats,
+} from '../../data/activeMindWeeklyStats'
 import { ACTION_ICON_PALETTES } from '../../theme/actionIconColors'
 import type { ActiveMindGame, ActiveMindGameCategory } from '../../types/activeMind'
 import { ActiveMindCategoryChips } from './ActiveMindCategoryChips'
 import { ActiveMindGameCard } from './ActiveMindGameCard'
+import { ActiveMindWeeklyStatsCard } from './ActiveMindWeeklyStatsCard'
+import { ActiveMindHistoryDrawer } from './history/ActiveMindHistoryDrawer'
 import type { ThemeColors } from '../../theme/palettes'
 import { useThemedStyles } from '../../hooks/useThemedStyles'
 import { useTheme } from '../../contexts/ThemeContext'
@@ -26,15 +36,51 @@ type ActiveMindHomeContentProps = {
 export function ActiveMindHomeContent({ bottomPadding, onGamePress }: ActiveMindHomeContentProps) {
   const { colors } = useTheme()
   const styles = useThemedStyles(createStyles)
+  const { user } = useAuth()
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<ActiveMindGameCategory>('all')
+  const [weeklyStats, setWeeklyStats] = useState<ActiveMindWeeklyStats | null>(null)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [historyVisible, setHistoryVisible] = useState(false)
+  const patientCpf = user?.cpf ?? 'guest'
 
   const filteredGames = useMemo(
     () => filterActiveMindGames(category, query),
     [category, query],
   )
 
+  const refreshWeeklyStats = useCallback(async (options?: { initial?: boolean }) => {
+    const isInitial = options?.initial === true
+    if (isInitial) setInitialLoading(true)
+
+    try {
+      const stats = await loadActiveMindWeeklyStats(patientCpf)
+      setWeeklyStats(stats)
+    } catch {
+      setWeeklyStats(emptyActiveMindWeeklyStats())
+    } finally {
+      if (isInitial) setInitialLoading(false)
+    }
+  }, [patientCpf])
+
+  useEffect(() => {
+    void refreshWeeklyStats({ initial: true })
+  }, [refreshWeeklyStats])
+
+  const handleSessionsChanged = useCallback(() => {
+    void refreshWeeklyStats()
+  }, [refreshWeeklyStats])
+
+  if (initialLoading) {
+    return (
+      <View style={[styles.loadingWrap, { paddingBottom: bottomPadding }]}>
+        <AppLoadingState message="Carregando Ativa Mente..." />
+      </View>
+    )
+  }
+
   return (
+    <>
     <ScrollView
       style={styles.scroll}
       contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
@@ -66,6 +112,19 @@ export function ActiveMindHomeContent({ bottomPadding, onGamePress }: ActiveMind
           </Text>
         </View>
       </LinearGradient>
+
+      <ActiveMindWeeklyStatsCard stats={weeklyStats} />
+
+      <Pressable
+        onPress={() => setHistoryVisible(true)}
+        style={({ pressed }) => [styles.historyLink, pressed && styles.historyLinkPressed]}
+        accessibilityRole="button"
+        accessibilityLabel="Abrir histórico de sessões"
+      >
+        <MaterialCommunityIcons name="history" size={18} color="#be185d" />
+        <Text style={styles.historyLinkText}>Ver histórico de sessões</Text>
+        <MaterialCommunityIcons name="chevron-right" size={18} color={colors.textMuted} />
+      </Pressable>
 
       <View style={styles.searchWrap}>
         <MaterialCommunityIcons name="magnify" size={18} color={colors.textMuted} />
@@ -102,6 +161,14 @@ export function ActiveMindHomeContent({ bottomPadding, onGamePress }: ActiveMind
         )}
       </View>
     </ScrollView>
+
+    <ActiveMindHistoryDrawer
+      visible={historyVisible}
+      patientCpf={patientCpf}
+      onClose={() => setHistoryVisible(false)}
+      onSessionsChanged={handleSessionsChanged}
+    />
+    </>
   )
 }
 
@@ -109,6 +176,10 @@ function createStyles(colors: ThemeColors) {
   return {
   scroll: {
     flex: 1,
+  },
+  loadingWrap: {
+    flex: 1,
+    justifyContent: 'center',
   },
   content: {
     gap: 16,
@@ -152,6 +223,27 @@ function createStyles(colors: ThemeColors) {
     color: colors.textMuted,
     fontSize: 12,
     lineHeight: 17,
+  },
+  historyLink: {
+    marginHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: colors.cardBg,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  historyLinkPressed: {
+    opacity: 0.88,
+  },
+  historyLinkText: {
+    flex: 1,
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '700',
   },
   searchWrap: {
     flexDirection: 'row',

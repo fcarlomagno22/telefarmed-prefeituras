@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { CrosswordBoard } from '../components/activeMind/crosswords/CrosswordBoard'
 import { CrosswordLetterPad } from '../components/activeMind/crosswords/CrosswordLetterPad'
-import { SudokuVictoryDrawer } from '../components/activeMind/sudoku/SudokuVictoryDrawer'
+import { ActiveMindVictoryDrawer } from '../components/activeMind/ActiveMindVictoryDrawer'
 import { NeonSectionDivider } from '../components/NeonSectionDivider'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { getActiveMindDifficultyLabel } from '../config/activeMindDifficulty'
@@ -38,6 +38,7 @@ import {
 } from '../data/crosswordPuzzles'
 import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
+import { useActiveMindSessionCompletion } from '../hooks/useActiveMindSessionCompletion'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { activeMindGameChrome } from '../theme/activeMindGameChrome'
 import { colors } from '../theme/colors'
@@ -83,6 +84,7 @@ export function ActiveMindCrosswordsScreen() {
   const { routeParams, goBack, canGoBack, navigateTo } = useAuth()
   const activeMindParams = getActiveMindRouteParams(routeParams)
   const difficulty = activeMindParams.difficulty ?? 'facil'
+  const { completeSession, resetSessionClock } = useActiveMindSessionCompletion('crosswords')
 
   const [session, setSession] = useState<CrosswordSession>(() => buildSession(difficulty))
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null)
@@ -97,6 +99,8 @@ export function ActiveMindCrosswordsScreen() {
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const checkingRef = useRef(false)
   const lastTappedCellRef = useRef<string | null>(null)
+  const sessionStatsRef = useRef(sessionStats)
+  sessionStatsRef.current = sessionStats
 
   const headerPaddingTop = Math.max(insets.top, 12) + 8
   const bottomInset = Math.max(insets.bottom, 8)
@@ -237,13 +241,17 @@ export function ActiveMindCrosswordsScreen() {
     [clearFeedbackTimeout, difficulty, ensureInitialSelection, resetFeedback],
   )
 
-  const showPuzzleVictory = useCallback(() => {
-    clearFeedbackTimeout()
-    checkingRef.current = false
-    setCellFeedback({})
-    setVictoryVisible(true)
-    setCelebrationSeed((current) => current + 1)
-  }, [clearFeedbackTimeout])
+  const showPuzzleVictory = useCallback(
+    (stats: CrosswordSessionStats, puzzleId: string) => {
+      clearFeedbackTimeout()
+      checkingRef.current = false
+      setCellFeedback({})
+      setVictoryVisible(true)
+      setCelebrationSeed((current) => current + 1)
+      completeSession(difficulty, puzzleId, stats)
+    },
+    [clearFeedbackTimeout, completeSession, difficulty],
+  )
 
   const scheduleWrongFeedback = useCallback(
     (entryId: string) => {
@@ -267,10 +275,11 @@ export function ActiveMindCrosswordsScreen() {
 
     checkingRef.current = true
 
-    setSessionStats((current) => ({
-      ...current,
-      attempts: current.attempts + 1,
-    }))
+    const attemptedStats: CrosswordSessionStats = {
+      ...sessionStatsRef.current,
+      attempts: sessionStatsRef.current.attempts + 1,
+    }
+    setSessionStats(attemptedStats)
 
     if (isCrosswordEntryCorrect(session, activeEntryId)) {
       playFormTheWordCorrectSound()
@@ -283,16 +292,17 @@ export function ActiveMindCrosswordsScreen() {
       }
       setCellFeedback(nextCellFeedback)
 
-      setSessionStats((current) => ({
-        ...current,
-        correct: current.correct + 1,
-      }))
+      const nextStats: CrosswordSessionStats = {
+        ...attemptedStats,
+        correct: attemptedStats.correct + 1,
+      }
+      setSessionStats(nextStats)
 
       setSession((current) => markCrosswordEntrySolved(current, activeEntryId))
 
       const solvedIds = new Set([...session.solvedEntryIds, activeEntryId])
       if (isCrosswordSolved({ ...session, solvedEntryIds: solvedIds })) {
-        showPuzzleVictory()
+        showPuzzleVictory(nextStats, session.puzzleId)
       } else {
         const nextEntry = session.entries.find((entry) => !solvedIds.has(entry.id))
         if (nextEntry) {
@@ -314,10 +324,10 @@ export function ActiveMindCrosswordsScreen() {
       nextCellFeedback[key] = 'wrong'
     }
 
-    setSessionStats((current) => ({
-      ...current,
-      errors: current.errors + 1,
-    }))
+    setSessionStats({
+      ...attemptedStats,
+      errors: attemptedStats.errors + 1,
+    })
     setFeedback({
       active: true,
       kind: 'wrong',
@@ -359,8 +369,9 @@ export function ActiveMindCrosswordsScreen() {
     setSession(nextSession)
     setVictoryVisible(false)
     setSessionStats(emptyCrosswordSessionStats())
+    resetSessionClock()
     ensureInitialSelection(nextSession)
-  }, [difficulty, ensureInitialSelection, resetFeedback])
+  }, [difficulty, ensureInitialSelection, resetFeedback, resetSessionClock])
 
   useEffect(() => {
     validateActiveEntryIfComplete()
@@ -404,6 +415,7 @@ export function ActiveMindCrosswordsScreen() {
     checkingRef.current = false
     setVictoryVisible(false)
     setSessionStats(emptyCrosswordSessionStats())
+    resetSessionClock()
     advanceToNextPuzzle(session.puzzleId)
   }
 
@@ -677,12 +689,12 @@ export function ActiveMindCrosswordsScreen() {
         </View>
       </ImageBackground>
 
-      <SudokuVictoryDrawer
+      <ActiveMindVictoryDrawer
         visible={victoryVisible}
         difficulty={difficulty}
         stats={sessionStats}
         celebrationSeed={celebrationSeed}
-        completionKicker="Cruzadinha completa!"
+        gameTitle="Cruzadinha completa!"
         onPlayAgain={handleNewGame}
         onClose={handleVictoryClose}
       />

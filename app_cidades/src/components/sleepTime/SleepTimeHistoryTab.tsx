@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useEffect, useMemo, useState } from 'react'
 import { RefreshControl, ScrollView, StyleSheet, Text, useWindowDimensions, View, Platform } from 'react-native'
-import { ensureSleepHistorySeeded, loadSleepLogs } from '../../data/sleepLogStorage'
+import { isSleepTimeApiEnabled } from '../../config/sleepTimeApi'
+import { ensureSleepLogsLoadedForMonth, loadSleepLogData, syncSleepLogs } from '../../data/sleepLogStorage'
 import { colors } from '../../theme/colors'
 import type { SleepCalendarDay } from '../../types/sleepHistory'
 import type { SleepLogEntry } from '../../types/sleepLog'
@@ -25,6 +26,10 @@ import { SleepTimeHistoryQualityHeatmap } from './history/SleepTimeHistoryQualit
 import { SleepTimeHistoryQualityRing } from './history/SleepTimeHistoryQualityRing'
 
 const SLEEP_TARGET_MINUTES = 8 * 60
+
+function shouldUseSleepTimeApi(patientCpf: string) {
+  return isSleepTimeApiEnabled() && patientCpf !== 'guest'
+}
 
 type SleepTimeHistoryTabProps = {
   bottomPadding: number
@@ -55,15 +60,26 @@ export function SleepTimeHistoryTab({
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   useEffect(() => {
+    if (!isActive) return
+
     let cancelled = false
 
     async function load() {
       setIsLoading(true)
-      await ensureSleepHistorySeeded(patientCpf)
-      const nextEntries = await loadSleepLogs(patientCpf)
-      if (cancelled) return
-      setEntries(nextEntries)
-      setIsLoading(false)
+
+      try {
+        if (shouldUseSleepTimeApi(patientCpf)) {
+          await ensureSleepLogsLoadedForMonth(patientCpf, calendarMonthKey)
+        }
+
+        const nextEntries = await loadSleepLogData(patientCpf)
+        if (cancelled) return
+        setEntries(nextEntries)
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false)
+        }
+      }
     }
 
     void load()
@@ -71,7 +87,7 @@ export function SleepTimeHistoryTab({
     return () => {
       cancelled = true
     }
-  }, [patientCpf, refreshKey])
+  }, [patientCpf, refreshKey, isActive, calendarMonthKey])
 
   const calendarDays = useMemo<SleepCalendarDay[]>(() => {
     const days = buildSleepMonthDays(calendarMonthKey)
@@ -100,10 +116,15 @@ export function SleepTimeHistoryTab({
 
   async function handleRefresh() {
     setIsRefreshing(true)
-    await ensureSleepHistorySeeded(patientCpf)
-    const nextEntries = await loadSleepLogs(patientCpf)
-    setEntries(nextEntries)
-    setIsRefreshing(false)
+    try {
+      if (shouldUseSleepTimeApi(patientCpf)) {
+        await syncSleepLogs(patientCpf, { force: true })
+      }
+      const nextEntries = await loadSleepLogData(patientCpf)
+      setEntries(nextEntries)
+    } finally {
+      setIsRefreshing(false)
+    }
   }
 
   function handleSelectDay(dateIso: string) {

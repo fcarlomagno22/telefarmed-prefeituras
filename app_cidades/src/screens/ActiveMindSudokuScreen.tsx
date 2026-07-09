@@ -13,7 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { SudokuBoard } from '../components/activeMind/sudoku/SudokuBoard'
 import { SudokuNumberPad } from '../components/activeMind/sudoku/SudokuNumberPad'
-import { SudokuVictoryDrawer } from '../components/activeMind/sudoku/SudokuVictoryDrawer'
+import { ActiveMindVictoryDrawer } from '../components/activeMind/ActiveMindVictoryDrawer'
 import { NeonSectionDivider } from '../components/NeonSectionDivider'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { getActiveMindDifficultyLabel } from '../config/activeMindDifficulty'
@@ -34,6 +34,7 @@ import {
 } from '../data/sudokuPuzzles'
 import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
+import { useActiveMindSessionCompletion } from '../hooks/useActiveMindSessionCompletion'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { activeMindGameChrome } from '../theme/activeMindGameChrome'
 import { colors } from '../theme/colors'
@@ -70,6 +71,7 @@ export function ActiveMindSudokuScreen() {
   const { routeParams, goBack, canGoBack, navigateTo } = useAuth()
   const activeMindParams = getActiveMindRouteParams(routeParams)
   const difficulty = activeMindParams.difficulty ?? 'facil'
+  const { completeSession, resetSessionClock } = useActiveMindSessionCompletion('sudoku')
 
   const [session, setSession] = useState<SudokuSession>(() => buildSession(difficulty))
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
@@ -78,6 +80,8 @@ export function ActiveMindSudokuScreen() {
   const [sessionStats, setSessionStats] = useState<SudokuSessionStats>(emptySudokuSessionStats)
   const [feedback, setFeedback] = useState<SudokuFeedbackState>(emptySudokuFeedbackState)
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sessionStatsRef = useRef(sessionStats)
+  sessionStatsRef.current = sessionStats
 
   const headerPaddingTop = Math.max(insets.top, 12) + 8
   const bottomInset = Math.max(insets.bottom, 8)
@@ -161,7 +165,8 @@ export function ActiveMindSudokuScreen() {
     setSelectedIndex(null)
     setCompleted(false)
     setSessionStats(emptySudokuSessionStats())
-  }, [difficulty, resetFeedback])
+    resetSessionClock()
+  }, [difficulty, resetFeedback, resetSessionClock])
 
   useEffect(() => {
     if (!isSudokuComplete(session.values)) return
@@ -171,7 +176,8 @@ export function ActiveMindSudokuScreen() {
 
     setCompleted(true)
     setCelebrationSeed((current) => current + 1)
-  }, [session.values, hasConflicts, session, completed])
+    completeSession(difficulty, session.puzzleId, sessionStatsRef.current)
+  }, [session.values, hasConflicts, session, completed, completeSession, difficulty])
 
   useAndroidBackHandler(
     useCallback(() => {
@@ -202,6 +208,7 @@ export function ActiveMindSudokuScreen() {
     setSelectedIndex(null)
     setCompleted(false)
     setSessionStats(emptySudokuSessionStats())
+    resetSessionClock()
   }
 
   function handleSelectCell(index: number) {
@@ -384,11 +391,12 @@ export function ActiveMindSudokuScreen() {
         </View>
       </ImageBackground>
 
-      <SudokuVictoryDrawer
+      <ActiveMindVictoryDrawer
         visible={completed}
         difficulty={difficulty}
         stats={sessionStats}
         celebrationSeed={celebrationSeed}
+        gameTitle="Sudoku completo"
         onPlayAgain={handleNewGame}
         onClose={handleBack}
       />

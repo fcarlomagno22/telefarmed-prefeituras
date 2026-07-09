@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LogicSequenceOptionsGrid } from '../components/activeMind/logicSequence/LogicSequenceOptionsGrid'
 import { LogicSequencePromptCard } from '../components/activeMind/logicSequence/LogicSequencePromptCard'
 import { LogicSequenceRow } from '../components/activeMind/logicSequence/LogicSequenceRow'
-import { SudokuVictoryDrawer } from '../components/activeMind/sudoku/SudokuVictoryDrawer'
+import { ActiveMindVictoryDrawer } from '../components/activeMind/ActiveMindVictoryDrawer'
 import { NeonSectionDivider } from '../components/NeonSectionDivider'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
@@ -33,6 +33,7 @@ import {
   setLogicSequenceSelectedOption,
 } from '../data/logicSequencePuzzles'
 import { useAuth } from '../contexts/AuthContext'
+import { useActiveMindSessionCompletion } from '../hooks/useActiveMindSessionCompletion'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { getActiveMindRouteParams } from '../types/auth'
 import type { ActiveMindPlayDifficulty } from '../types/activeMind'
@@ -71,6 +72,7 @@ export function ActiveMindLogicSequenceScreen() {
   const { routeParams, goBack, canGoBack, navigateTo } = useAuth()
   const activeMindParams = getActiveMindRouteParams(routeParams)
   const difficulty = activeMindParams.difficulty ?? 'facil'
+  const { completeSession, resetSessionClock } = useActiveMindSessionCompletion('logic-sequence')
 
   const [session, setSession] = useState<LogicSequenceSession>(() => buildSession(difficulty))
   const [victoryVisible, setVictoryVisible] = useState(false)
@@ -79,6 +81,8 @@ export function ActiveMindLogicSequenceScreen() {
   const [feedback, setFeedback] = useState<LogicSequenceFeedbackState>(emptyLogicSequenceFeedbackState)
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const checkingRef = useRef(false)
+  const sessionStatsRef = useRef(sessionStats)
+  sessionStatsRef.current = sessionStats
 
   const headerPaddingTop = Math.max(insets.top, 12) + 8
   const bottomInset = Math.max(insets.bottom, 8)
@@ -196,7 +200,8 @@ export function ActiveMindLogicSequenceScreen() {
     setSession(buildSession(difficulty))
     setVictoryVisible(false)
     setSessionStats(emptyLogicSequenceSessionStats())
-  }, [difficulty, resetFeedback])
+    resetSessionClock()
+  }, [difficulty, resetFeedback, resetSessionClock])
 
   useEffect(() => {
     submitAnswer(session)
@@ -240,6 +245,7 @@ export function ActiveMindLogicSequenceScreen() {
     setSession(buildSession(difficulty))
     setVictoryVisible(false)
     setSessionStats(emptyLogicSequenceSessionStats())
+    resetSessionClock()
   }
 
   function handleEncerrar() {
@@ -248,6 +254,7 @@ export function ActiveMindLogicSequenceScreen() {
     resetFeedback()
     setVictoryVisible(true)
     setCelebrationSeed((current) => current + 1)
+    completeSession(difficulty, session.puzzleId, sessionStatsRef.current)
   }
 
   function handlePickOption(option: LogicSequenceItem) {
@@ -336,12 +343,12 @@ export function ActiveMindLogicSequenceScreen() {
         </View>
       </ImageBackground>
 
-      <SudokuVictoryDrawer
+      <ActiveMindVictoryDrawer
         visible={victoryVisible}
         difficulty={difficulty}
         stats={sessionStats}
         celebrationSeed={celebrationSeed}
-        completionKicker="Sequência concluída"
+        gameTitle="Sequência concluída"
         onPlayAgain={handleNewGame}
         onClose={handleVictoryClose}
       />

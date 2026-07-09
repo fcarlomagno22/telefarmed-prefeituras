@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import winnerAnimation from '../../assets/Winner.json'
 import { PrimaryButton } from '../components/PrimaryButton'
+import { AppLoadingState } from '../components/AppLoadingState'
 import { RunWalkActivityTrailMap } from '../components/runWalk/liveActivity/RunWalkActivityTrailMap'
 import { ActivityMetricValue } from '../components/runWalk/liveActivity/ActivityMetricValue'
 import {
@@ -219,7 +220,7 @@ export function RunWalkActivitySummaryScreen() {
   if (isLoading || !summary) {
     return (
       <View style={[styles.loadingRoot, { paddingTop: insets.top }]}>
-        <ActivityIndicator color={colors.primaryLight} size="large" />
+        <AppLoadingState />
       </View>
     )
   }

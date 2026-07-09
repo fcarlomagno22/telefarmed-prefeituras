@@ -39,7 +39,7 @@ type SleepTimeLogDrawerProps = {
   visible: boolean
   patientCpf: string
   onClose: () => void
-  onRegistered: () => void
+  onRegistered: (wakeDateIso: string) => void
 }
 
 type TimeStepperProps = {
@@ -199,13 +199,16 @@ export function SleepTimeLogDrawer({
 
     try {
       const entry = buildSleepLogEntryFromDraft(draft)
+      // saveSleepLog: write-through no cache local + sync API (ou fila offline se sem rede).
       await saveSleepLog(patientCpf, entry)
-      onRegistered()
+      onRegistered(entry.wakeDateIso)
       setShowSuccess(true)
       clearSuccessTimer()
       successTimerRef.current = setTimeout(() => {
         handleSuccessDismiss()
       }, SUCCESS_DISMISS_MS)
+    } catch {
+      // Falha inesperada no cache local; mantém o drawer aberto para nova tentativa.
     } finally {
       setIsSaving(false)
     }

@@ -5,16 +5,38 @@ type CalculationsBank = {
   calculos: CalculationsEntry[]
 }
 
-const CALCULATIONS_BANKS: Record<ActiveMindPlayDifficulty, CalculationsBank> = {
-  facil: require('../../assets/calculos_faceis_telefarmed_5000.json'),
-  medio: require('../../assets/calculos_medios_telefarmed_5000.json'),
-  dificil: require('../../assets/calculos_dificeis_telefarmed_5000.json'),
+const calculationsBankCache: Partial<Record<ActiveMindPlayDifficulty, CalculationsBank>> = {}
+
+/** Lazy require por dificuldade — evita carregar os 3 bancos (~2.2MB) de uma vez. */
+function getCalculationsBank(difficulty: ActiveMindPlayDifficulty): CalculationsBank {
+  const cached = calculationsBankCache[difficulty]
+  if (cached) return cached
+
+  let bank: CalculationsBank
+  switch (difficulty) {
+    case 'facil':
+      bank = require('../../assets/calculos_faceis_telefarmed_5000.json')
+      break
+    case 'medio':
+      bank = require('../../assets/calculos_medios_telefarmed_5000.json')
+      break
+    case 'dificil':
+      bank = require('../../assets/calculos_dificeis_telefarmed_5000.json')
+      break
+    default: {
+      const _exhaustive: never = difficulty
+      throw new Error(`Dificuldade de cálculos inválida: ${_exhaustive}`)
+    }
+  }
+
+  calculationsBankCache[difficulty] = bank
+  return bank
 }
 
 export const MAX_CALCULATIONS_ANSWER_LENGTH = 6
 
 function getCalculationsEntries(difficulty: ActiveMindPlayDifficulty): CalculationsEntry[] {
-  return CALCULATIONS_BANKS[difficulty]?.calculos ?? []
+  return getCalculationsBank(difficulty).calculos ?? []
 }
 
 function pickRandomEntry(difficulty: ActiveMindPlayDifficulty, excludeId?: string): CalculationsEntry {

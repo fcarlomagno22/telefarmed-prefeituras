@@ -19,10 +19,32 @@ type CrosswordBank = {
   palavras?: CrosswordBankWord[]
 }
 
-const CROSSWORD_BANKS: Record<ActiveMindPlayDifficulty, CrosswordBank> = {
-  facil: require('../../assets/palavras_cruzadas_facil.json'),
-  medio: require('../../assets/palavras_cruzadas_medio.json'),
-  dificil: require('../../assets/palavras_cruzadas_dificil.json'),
+const crosswordBankCache: Partial<Record<ActiveMindPlayDifficulty, CrosswordBank>> = {}
+
+/** Lazy require por dificuldade. */
+function getCrosswordBank(difficulty: ActiveMindPlayDifficulty): CrosswordBank {
+  const cached = crosswordBankCache[difficulty]
+  if (cached) return cached
+
+  let bank: CrosswordBank
+  switch (difficulty) {
+    case 'facil':
+      bank = require('../../assets/palavras_cruzadas_facil.json')
+      break
+    case 'medio':
+      bank = require('../../assets/palavras_cruzadas_medio.json')
+      break
+    case 'dificil':
+      bank = require('../../assets/palavras_cruzadas_dificil.json')
+      break
+    default: {
+      const _exhaustive: never = difficulty
+      throw new Error(`Dificuldade de palavras cruzadas inválida: ${_exhaustive}`)
+    }
+  }
+
+  crosswordBankCache[difficulty] = bank
+  return bank
 }
 
 function parseCrosswordEntry(entry: CrosswordBankWord): CrosswordWordInput | null {
@@ -42,7 +64,7 @@ function parseCrosswordEntry(entry: CrosswordBankWord): CrosswordWordInput | nul
 function getWordPool(difficulty: ActiveMindPlayDifficulty): CrosswordWordInput[] {
   const seen = new Set<string>()
   const words: CrosswordWordInput[] = []
-  const bank = CROSSWORD_BANKS[difficulty]
+  const bank = getCrosswordBank(difficulty)
 
   for (const item of bank.palavras ?? []) {
     const parsed = parseCrosswordEntry(item)

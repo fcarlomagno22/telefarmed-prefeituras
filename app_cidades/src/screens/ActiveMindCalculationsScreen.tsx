@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { CalculationsAnswerRow } from '../components/activeMind/calculations/CalculationsAnswerRow'
 import { CalculationsNumberPad } from '../components/activeMind/calculations/CalculationsNumberPad'
 import { CalculationsQuestionCard } from '../components/activeMind/calculations/CalculationsQuestionCard'
-import { SudokuVictoryDrawer } from '../components/activeMind/sudoku/SudokuVictoryDrawer'
+import { ActiveMindVictoryDrawer } from '../components/activeMind/ActiveMindVictoryDrawer'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { getActiveMindDifficultyLabel } from '../config/activeMindDifficulty'
@@ -33,6 +33,7 @@ import {
   removeLastCalculationsDigit,
 } from '../data/calculosPuzzles'
 import { useAuth } from '../contexts/AuthContext'
+import { useActiveMindSessionCompletion } from '../hooks/useActiveMindSessionCompletion'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { getActiveMindRouteParams } from '../types/auth'
 import type { ActiveMindPlayDifficulty } from '../types/activeMind'
@@ -72,6 +73,7 @@ export function ActiveMindCalculationsScreen() {
   const { routeParams, goBack, canGoBack, navigateTo } = useAuth()
   const activeMindParams = getActiveMindRouteParams(routeParams)
   const difficulty = activeMindParams.difficulty ?? 'facil'
+  const { completeSession, resetSessionClock } = useActiveMindSessionCompletion('calculations')
 
   const [session, setSession] = useState<CalculationsSession>(() => buildSession(difficulty))
   const [victoryVisible, setVictoryVisible] = useState(false)
@@ -80,6 +82,8 @@ export function ActiveMindCalculationsScreen() {
   const [feedback, setFeedback] = useState<CalculationsFeedbackState>(emptyCalculationsFeedbackState)
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const checkingRef = useRef(false)
+  const sessionStatsRef = useRef(sessionStats)
+  sessionStatsRef.current = sessionStats
 
   const headerPaddingTop = Math.max(insets.top, 12) + 8
   const bottomInset = Math.max(insets.bottom, 8)
@@ -161,7 +165,8 @@ export function ActiveMindCalculationsScreen() {
     setSession(buildSession(difficulty))
     setVictoryVisible(false)
     setSessionStats(emptyCalculationsSessionStats())
-  }, [difficulty, resetFeedback])
+    resetSessionClock()
+  }, [difficulty, resetFeedback, resetSessionClock])
 
   useEffect(() => {
     if (!isCalculationsAnswerComplete(session)) return
@@ -248,6 +253,7 @@ export function ActiveMindCalculationsScreen() {
     setSession(buildSession(difficulty))
     setVictoryVisible(false)
     setSessionStats(emptyCalculationsSessionStats())
+    resetSessionClock()
   }
 
   function handleEncerrar() {
@@ -256,6 +262,7 @@ export function ActiveMindCalculationsScreen() {
     resetFeedback()
     setVictoryVisible(true)
     setCelebrationSeed((current) => current + 1)
+    completeSession(difficulty, session.puzzleId, sessionStatsRef.current)
   }
 
   function handlePickNumber(value: number) {
@@ -369,12 +376,12 @@ export function ActiveMindCalculationsScreen() {
         </View>
       </ImageBackground>
 
-      <SudokuVictoryDrawer
+      <ActiveMindVictoryDrawer
         visible={victoryVisible}
         difficulty={difficulty}
         stats={sessionStats}
         celebrationSeed={celebrationSeed}
-        completionKicker="Desafio concluído"
+        gameTitle="Desafio concluído"
         onPlayAgain={handleNewGame}
         onClose={handleVictoryClose}
       />

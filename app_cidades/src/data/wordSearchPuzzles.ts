@@ -17,10 +17,32 @@ type WordSearchBank = {
   palavras?: WordSearchBankWord[]
 }
 
-const WORD_SEARCH_BANKS: Record<ActiveMindPlayDifficulty, WordSearchBank> = {
-  facil: require('../../assets/palavras_cruzadas_facil.json'),
-  medio: require('../../assets/palavras_cruzadas_medio.json'),
-  dificil: require('../../assets/palavras_cruzadas_dificil.json'),
+const wordSearchBankCache: Partial<Record<ActiveMindPlayDifficulty, WordSearchBank>> = {}
+
+/** Lazy require por dificuldade. */
+function getWordSearchBank(difficulty: ActiveMindPlayDifficulty): WordSearchBank {
+  const cached = wordSearchBankCache[difficulty]
+  if (cached) return cached
+
+  let bank: WordSearchBank
+  switch (difficulty) {
+    case 'facil':
+      bank = require('../../assets/palavras_cruzadas_facil.json')
+      break
+    case 'medio':
+      bank = require('../../assets/palavras_cruzadas_medio.json')
+      break
+    case 'dificil':
+      bank = require('../../assets/palavras_cruzadas_dificil.json')
+      break
+    default: {
+      const _exhaustive: never = difficulty
+      throw new Error(`Dificuldade de caça-palavras inválida: ${_exhaustive}`)
+    }
+  }
+
+  wordSearchBankCache[difficulty] = bank
+  return bank
 }
 
 function parseWordSearchEntry(entry: WordSearchBankWord): WordSearchWordInput | null {
@@ -40,7 +62,7 @@ function parseWordSearchEntry(entry: WordSearchBankWord): WordSearchWordInput | 
 function getWordPool(difficulty: ActiveMindPlayDifficulty): WordSearchWordInput[] {
   const seen = new Set<string>()
   const words: WordSearchWordInput[] = []
-  const bank = WORD_SEARCH_BANKS[difficulty]
+  const bank = getWordSearchBank(difficulty)
 
   for (const item of bank.palavras ?? []) {
     const parsed = parseWordSearchEntry(item)

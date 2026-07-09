@@ -4,22 +4,23 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { getActiveMindDifficultyLabel } from '../../../config/activeMindDifficulty'
-import { pickRandomSudokuCelebrationLottie } from '../../../config/sudokuCelebrationLotties'
-import { colors } from '../../../theme/colors'
-import type { ActiveMindPlayDifficulty } from '../../../types/activeMind'
-import type { SudokuSessionStats } from '../../../types/sudoku'
-import { playSudokuCelebrationSound } from '../../../utils/appSounds'
-import { AppModal } from '../../AppModal'
-import { LottiePlayer } from '../../LottiePlayer'
-import { PrimaryButton } from '../../PrimaryButton'
-import { SudokuVictoryPieChart } from './SudokuVictoryPieChart'
+import { getActiveMindDifficultyLabel } from '../../config/activeMindDifficulty'
+import { pickRandomSudokuCelebrationLottie } from '../../config/sudokuCelebrationLotties'
+import { colors } from '../../theme/colors'
+import type { ActiveMindPlayDifficulty } from '../../types/activeMind'
+import type { SudokuSessionStats } from '../../types/sudoku'
+import { playSudokuCelebrationSound } from '../../utils/appSounds'
+import { AppModal } from '../AppModal'
+import { LottiePlayer } from '../LottiePlayer'
+import { PrimaryButton } from '../PrimaryButton'
+import { ActiveMindVictoryPieChart } from './ActiveMindVictoryPieChart'
 
-type SudokuVictoryDrawerProps = {
+type ActiveMindVictoryDrawerProps = {
   visible: boolean
   difficulty: ActiveMindPlayDifficulty
   stats: SudokuSessionStats
   celebrationSeed: number
+  gameTitle?: string
   onPlayAgain: () => void
   onClose: () => void
 }
@@ -43,14 +44,15 @@ function StatCard({ icon, label, value, accent }: StatCardProps) {
   )
 }
 
-export function SudokuVictoryDrawer({
+export function ActiveMindVictoryDrawer({
   visible,
   difficulty,
   stats,
   celebrationSeed,
+  gameTitle,
   onPlayAgain,
   onClose,
-}: SudokuVictoryDrawerProps) {
+}: ActiveMindVictoryDrawerProps) {
   const insets = useSafeAreaInsets()
 
   const lottieSource = useMemo(
@@ -60,6 +62,7 @@ export function SudokuVictoryDrawer({
 
   const neutralAttempts = Math.max(0, stats.attempts - stats.correct - stats.errors)
   const difficultyLabel = getActiveMindDifficultyLabel(difficulty)
+  const kickerText = gameTitle ?? 'Jogo completo'
 
   const pieSlices = useMemo(
     () => [
@@ -114,7 +117,7 @@ export function SudokuVictoryDrawer({
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.hero}>
-          <Text style={styles.kicker}>Sudoku completo</Text>
+          <Text style={styles.kicker}>{kickerText}</Text>
           <Text style={styles.title}>Parabéns!</Text>
           <Text style={styles.subtitle}>
             Você finalizou o nível {difficultyLabel}. Veja como foi sua partida.
@@ -159,7 +162,7 @@ export function SudokuVictoryDrawer({
 
         <View style={styles.chartCard}>
           <Text style={styles.chartTitle}>Distribuição das jogadas</Text>
-          <SudokuVictoryPieChart slices={pieSlices} />
+          <ActiveMindVictoryPieChart slices={pieSlices} />
           <View style={styles.legend}>
             {pieSlices.map((slice) => (
               <View key={slice.id} style={styles.legendItem}>

@@ -16,7 +16,6 @@ import { FunctionalDifficultyFilterChips } from '../components/functional/Functi
 import { FunctionalEmptyState } from '../components/functional/FunctionalEmptyState'
 import { FunctionalExerciseListRow } from '../components/functional/FunctionalExerciseListRow'
 import { FunctionalExerciseSearchBar } from '../components/functional/FunctionalExerciseSearchBar'
-import { FunctionalQuickWorkoutCard } from '../components/functional/FunctionalQuickWorkoutCard'
 import { FunctionalSegmentTabs } from '../components/functional/FunctionalSegmentTabs'
 import { FunctionalWeeklyStatsCard } from '../components/functional/FunctionalWeeklyStatsCard'
 import { MenuDrawer } from '../components/MenuDrawer'
@@ -30,9 +29,7 @@ import {
   buildQuickWorkoutExercises,
 } from '../utils/functionalTraining'
 import {
-  computeWeeklyStats,
-  loadFavoriteExerciseIds,
-  loadWorkoutHistory,
+  loadFunctionalTrainingData,
   saveWorkoutSession,
   toggleFavoriteExerciseId,
 } from '../data/functionalTrainingStorage'
@@ -78,13 +75,9 @@ export function FunctionalTrainingScreen() {
   const loadData = useCallback(async () => {
     if (!user) return
 
-    const [favorites, history] = await Promise.all([
-      loadFavoriteExerciseIds(user.cpf),
-      loadWorkoutHistory(user.cpf),
-    ])
-
-    setFavoriteIds(favorites)
-    setWeeklyStats(computeWeeklyStats(history))
+    const data = await loadFunctionalTrainingData(user.cpf)
+    setFavoriteIds(data.favoriteIds)
+    setWeeklyStats(data.weeklyStats)
   }, [user])
 
   useEffect(() => {
@@ -221,7 +214,7 @@ export function FunctionalTrainingScreen() {
 
         <ScreenStackHeader
           title="Treino Funcional"
-          subtitle="21 exercícios guiados com timer e animações"
+          subtitle="20 exercícios guiados com timer e animações"
           paddingTop={insets.top + 8}
           onBack={() => {
             if (canGoBack()) goBack()
@@ -244,9 +237,6 @@ export function FunctionalTrainingScreen() {
           }
         >
           <FunctionalWeeklyStatsCard stats={weeklyStats} />
-
-          <View style={styles.sectionGap} />
-          <FunctionalQuickWorkoutCard onStart={startCircuitSession} />
 
           <View style={styles.sectionGap} />
           <FunctionalSegmentTabs

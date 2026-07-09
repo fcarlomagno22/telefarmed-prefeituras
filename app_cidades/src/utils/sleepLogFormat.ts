@@ -121,6 +121,23 @@ export function buildSleepLogEntryFromDraft(draft: SleepLogDraft): SleepLogEntry
   }
 }
 
+export function buildSleepAtIsoFromParts(dateIso: string, timeMinutes: number): string {
+  const date = parseSleepDateIso(dateIso)
+  date.setHours(Math.floor(timeMinutes / 60), timeMinutes % 60, 0, 0)
+  return date.toISOString()
+}
+
+export function extractSleepDatePartsFromIso(iso: string): {
+  dateIso: string
+  timeMinutes: number
+} {
+  const date = new Date(iso)
+  return {
+    dateIso: toLocalDateIso(date),
+    timeMinutes: date.getHours() * 60 + date.getMinutes(),
+  }
+}
+
 export function isFutureSleepDateIso(dateIso: string, referenceDate = new Date()) {
   const date = parseSleepDateIso(dateIso)
   const today = new Date(referenceDate)

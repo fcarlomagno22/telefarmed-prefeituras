@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native'
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg'
-import { colors } from '../../../theme/colors'
+import { colors } from '../../theme/colors'
 
 type PieSlice = {
   id: string
@@ -10,7 +10,7 @@ type PieSlice = {
   gradient: readonly [string, string, string]
 }
 
-type SudokuVictoryPieChartProps = {
+type ActiveMindVictoryPieChartProps = {
   slices: PieSlice[]
   size?: number
 }
@@ -51,7 +51,7 @@ function describeDonutSlice(
   ].join(' ')
 }
 
-export function SudokuVictoryPieChart({ slices, size = 220 }: SudokuVictoryPieChartProps) {
+export function ActiveMindVictoryPieChart({ slices, size = 220 }: ActiveMindVictoryPieChartProps) {
   const progress = useRef(new Animated.Value(0)).current
   const [sweepProgress, setSweepProgress] = useState(0)
 
@@ -141,7 +141,7 @@ export function SudokuVictoryPieChart({ slices, size = 220 }: SudokuVictoryPieCh
           {renderedSlices.map((slice) => (
             <LinearGradient
               key={`grad-${slice.id}`}
-              id={`sudoku-pie-${slice.id}`}
+              id={`active-mind-pie-${slice.id}`}
               x1="0%"
               y1="0%"
               x2="100%"
@@ -159,7 +159,7 @@ export function SudokuVictoryPieChart({ slices, size = 220 }: SudokuVictoryPieCh
             <Path
               key={slice.id}
               d={slice.path}
-              fill={`url(#sudoku-pie-${slice.id})`}
+              fill={`url(#active-mind-pie-${slice.id})`}
               stroke="rgba(0, 0, 0, 0.12)"
               strokeWidth={0.75}
               strokeLinejoin="round"

@@ -1,14 +1,32 @@
 import type { ActiveMindPlayDifficulty } from '../types/activeMind'
 import type { SudokuCellValue, SudokuGrid, SudokuPuzzleBank, SudokuPuzzleEntry, SudokuSession } from '../types/sudoku'
 
-const SUDOKU_BANKS: Record<ActiveMindPlayDifficulty, SudokuPuzzleBank> = {
-  facil: require('../../content/activeMind/sudoku/sudoku_facil.json'),
-  medio: require('../../content/activeMind/sudoku/sudoku_medio.json'),
-  dificil: require('../../content/activeMind/sudoku/sudoku_dificil.json'),
-}
+const sudokuBankCache: Partial<Record<ActiveMindPlayDifficulty, SudokuPuzzleBank>> = {}
 
+/** Lazy require por dificuldade — evita carregar os 3 bancos (~0.65MB) de uma vez. */
 export function getSudokuBank(difficulty: ActiveMindPlayDifficulty): SudokuPuzzleBank {
-  return SUDOKU_BANKS[difficulty]
+  const cached = sudokuBankCache[difficulty]
+  if (cached) return cached
+
+  let bank: SudokuPuzzleBank
+  switch (difficulty) {
+    case 'facil':
+      bank = require('../../content/activeMind/sudoku/sudoku_facil.json')
+      break
+    case 'medio':
+      bank = require('../../content/activeMind/sudoku/sudoku_medio.json')
+      break
+    case 'dificil':
+      bank = require('../../content/activeMind/sudoku/sudoku_dificil.json')
+      break
+    default: {
+      const _exhaustive: never = difficulty
+      throw new Error(`Dificuldade de sudoku inválida: ${_exhaustive}`)
+    }
+  }
+
+  sudokuBankCache[difficulty] = bank
+  return bank
 }
 
 export function pickRandomSudokuPuzzle(

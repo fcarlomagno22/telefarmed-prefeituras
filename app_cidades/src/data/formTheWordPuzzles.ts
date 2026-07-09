@@ -16,10 +16,32 @@ type RawFormTheWordEntry =
       hint?: string
     }
 
-const FORM_THE_WORD_LISTS: Record<ActiveMindPlayDifficulty, RawFormTheWordEntry[]> = {
-  facil: require('../../assets/palavras-faceis.json'),
-  medio: require('../../assets/palavras-medias.json'),
-  dificil: require('../../assets/palavras-dificeis.json'),
+const formTheWordListCache: Partial<Record<ActiveMindPlayDifficulty, RawFormTheWordEntry[]>> = {}
+
+/** Lazy require por dificuldade. */
+function getFormTheWordList(difficulty: ActiveMindPlayDifficulty): RawFormTheWordEntry[] {
+  const cached = formTheWordListCache[difficulty]
+  if (cached) return cached
+
+  let list: RawFormTheWordEntry[]
+  switch (difficulty) {
+    case 'facil':
+      list = require('../../assets/palavras-faceis.json')
+      break
+    case 'medio':
+      list = require('../../assets/palavras-medias.json')
+      break
+    case 'dificil':
+      list = require('../../assets/palavras-dificeis.json')
+      break
+    default: {
+      const _exhaustive: never = difficulty
+      throw new Error(`Dificuldade de forme a palavra inválida: ${_exhaustive}`)
+    }
+  }
+
+  formTheWordListCache[difficulty] = list
+  return list
 }
 
 function capitalizeWord(word: string): string {
@@ -59,7 +81,7 @@ function parseFormTheWordEntry(entry: RawFormTheWordEntry): FormTheWordWordEntry
 }
 
 function getWordEntries(difficulty: ActiveMindPlayDifficulty): FormTheWordWordEntry[] {
-  const raw = FORM_THE_WORD_LISTS[difficulty] ?? []
+  const raw = getFormTheWordList(difficulty)
   const seen = new Set<string>()
   const entries: FormTheWordWordEntry[] = []
 

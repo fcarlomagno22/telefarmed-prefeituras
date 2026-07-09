@@ -5,12 +5,13 @@ import {
   requestForegroundPermissionsAsync,
 } from '../../../adapters/appLocation'
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../../theme/colors'
 import { drawerChrome } from '../../../theme/drawerChrome'
 import { resolveAddressLabelFromCoordinates } from '../../../utils/runningRouteGeocoding'
 import { PrimaryButton } from '../../PrimaryButton'
 import { RunWalkSheetDrawer } from '../RunWalkSheetDrawer'
+import { AppLoadingState } from '../../AppLoadingState'
 import { RunningRouteSpotPickerMap } from './RunningRouteSpotPickerMap'
 
 type RunningRouteSpotMapPickerDrawerProps = {
@@ -166,8 +167,7 @@ export function RunningRouteSpotMapPickerDrawer({
           />
         ) : (
           <View style={styles.locatingOverlay}>
-            <ActivityIndicator color="#ff8533" size="large" />
-            <Text style={styles.locatingText}>Obtendo sua localização...</Text>
+            <AppLoadingState />
           </View>
         )
       }
@@ -177,7 +177,7 @@ export function RunningRouteSpotMapPickerDrawer({
           <View style={styles.previewBox}>
             {pickedCoordinates ? (
               isResolvingAddress ? (
-                <ActivityIndicator color="#ff8533" size="small" />
+                <Text style={styles.previewText}>Carregando...</Text>
               ) : (
                 <Text style={styles.previewText}>
                   {addressPreview ?? 'Endereço aproximado será exibido aqui'}
@@ -205,13 +205,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
     backgroundColor: drawerChrome.surfaceBottom,
-  },
-  locatingText: {
-    color: colors.textMuted,
-    fontSize: 13,
-    fontWeight: '600',
   },
   helperText: {
     color: colors.textSubtle,

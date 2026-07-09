@@ -29,6 +29,7 @@ import { SleepTimeSoundPlayerDrawer } from '../components/sleepTime/SleepTimeSou
 import { SleepTimeSoundsExplainDrawer } from '../components/sleepTime/SleepTimeSoundsExplainDrawer'
 import type { SleepTimerMinutes } from '../components/sleepTime/sleepTimeSoundTypes'
 import { getSleepSoundById } from '../config/sleepSounds'
+import { startSleepLogsBackgroundSync } from '../data/sleepLogStorage'
 import { markAppAudioUserGesture } from '../adapters/appAudio'
 import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
@@ -106,8 +107,6 @@ export function SleepTimeScreen() {
   const segmentPagerWebRef = useRef<ScrollView>(null)
   const segmentPagerIndexRef = useRef(0)
   const segmentPagerProgrammaticScrollRef = useRef(false)
-  const [historyTabMounted, setHistoryTabMounted] = useState(segmentTab === 'history')
-  const [historyTabFocused, setHistoryTabFocused] = useState(segmentTab === 'history')
 
   const showMiniPlayer =
     (sessionSoundId != null || engine.isActive()) && drawerSoundId == null
@@ -117,6 +116,10 @@ export function SleepTimeScreen() {
 
   const headerPaddingTop = Math.max(insets.top, 12) + 8
   const patientCpf = user?.cpf ?? 'guest'
+
+  useEffect(() => {
+    startSleepLogsBackgroundSync(patientCpf)
+  }, [patientCpf])
 
   const fabBottomOffset = TAB_BAR_ESTIMATED_HEIGHT + Math.max(insets.bottom, 8) + 12
   const bottomContentPadding = fabBottomOffset + 88
@@ -244,10 +247,6 @@ export function SleepTimeScreen() {
   const handleSegmentTabChange = useCallback(
     (tab: SleepTimeTab) => {
       setSegmentTab(tab)
-      setHistoryTabFocused(tab === 'history')
-      if (tab === 'history') {
-        setHistoryTabMounted(true)
-      }
       scrollSegmentPagerTo(tab)
     },
     [scrollSegmentPagerTo],
@@ -287,13 +286,7 @@ export function SleepTimeScreen() {
       segmentPagerProgrammaticScrollRef.current = false
 
       const nextIndex = Math.round(event.nativeEvent.contentOffset.x / screenWidth)
-      const nextTab = SEGMENT_PAGES[Math.min(Math.max(nextIndex, 0), SEGMENT_PAGES.length - 1)] ?? 'general'
-
       handleSegmentPagerIndexChange(nextIndex, { haptic: !wasProgrammatic })
-      setHistoryTabFocused(nextTab === 'history')
-      if (nextTab === 'history') {
-        setHistoryTabMounted(true)
-      }
     },
     [handleSegmentPagerIndexChange, screenWidth],
   )
@@ -395,8 +388,12 @@ export function SleepTimeScreen() {
     })
   }
 
-  function handleSleepLogRegistered() {
+  function handleSleepLogRegistered(wakeDateIso?: string) {
     setSleepLogRefreshKey((current) => current + 1)
+    if (wakeDateIso) {
+      setSelectedDateIso(wakeDateIso)
+      setCalendarMonthKey(getMonthKeyFromDateIso(wakeDateIso))
+    }
   }
 
   function handleHistorySelectDate(dateIso: string) {
@@ -457,16 +454,12 @@ export function SleepTimeScreen() {
       )
     }
 
-    if (!historyTabMounted) {
-      return <View style={styles.segmentPlaceholder} />
-    }
-
     return (
       <SleepTimeHistoryTab
         bottomPadding={bottomContentPadding}
         patientCpf={patientCpf}
         refreshKey={sleepLogRefreshKey}
-        isActive={historyTabFocused}
+        isActive={segmentTab === 'history'}
         calendarMonthKey={calendarMonthKey}
         selectedDateIso={selectedDateIso}
         onSelectDate={handleHistorySelectDate}
@@ -665,8 +658,5 @@ const styles = StyleSheet.create({
       },
       default: {},
     }),
-  },
-  segmentPlaceholder: {
-    flex: 1,
   },
 })

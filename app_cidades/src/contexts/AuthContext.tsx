@@ -52,6 +52,8 @@ import {
   buildRunWalkActiveActivityRouteParams,
   loadRunWalkActiveActivity,
 } from '../data/runWalkActiveActivityStorage'
+import { startActiveMindSessionBackgroundSync } from '../data/activeMindSessionSyncQueue'
+import { startSleepLogsBackgroundSync } from '../data/sleepLogStorage'
 import {
   resolveIncomingAppLink,
   type ResolvedIncomingAppLink,
@@ -162,6 +164,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (restoredUser) {
           setUser(restoredUser)
+          startSleepLogsBackgroundSync(restoredUser.cpf)
+          startActiveMindSessionBackgroundSync(restoredUser.cpf)
 
           const activeActivity = await loadRunWalkActiveActivity(restoredUser.cpf)
           if (activeActivity) {
@@ -365,6 +369,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const finalizeLogin = useCallback(async (nextUser: AuthUser) => {
     await persistAuthUser(nextUser)
     setUser(nextUser)
+    startSleepLogsBackgroundSync(nextUser.cpf)
+    startActiveMindSessionBackgroundSync(nextUser.cpf)
     screenHistoryRef.current = []
     setRouteParams(null)
     setScreen('home')

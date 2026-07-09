@@ -1,8 +1,9 @@
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { AppLoadingState } from '../components/AppLoadingState'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { NearbyRunningRouteSpotDrawer } from '../components/runWalk/nearbyRoutes/NearbyRunningRouteSpotDrawer'
 import { NearbyRunningRoutesMap } from '../components/runWalk/nearbyRoutes/NearbyRunningRoutesMap'
@@ -168,10 +169,7 @@ export function NearbyRunningRoutesScreen() {
 
       {isBusy ? (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator color="#ff8533" size="large" />
-          <Text style={styles.loadingText}>
-            {isLocating ? 'Obtendo sua localização...' : 'Carregando locais da comunidade...'}
-          </Text>
+          <AppLoadingState />
         </View>
       ) : null}
 
@@ -253,11 +251,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.55)',
     zIndex: 5,
-    gap: 12,
-  },
-  loadingText: {
-    color: colors.textMuted,
-    fontSize: 13,
   },
   emptyChip: {
     marginHorizontal: 16,

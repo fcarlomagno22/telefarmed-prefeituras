@@ -72,6 +72,9 @@ import { registerVdCadastroRoutes } from './modules/vd-cadastro/routes.js'
 import { registerVdAuthRoutes } from './modules/vd-auth/routes.js'
 import { registerVdMetricasRoutes } from './modules/vd-metricas/routes.js'
 import { registerVdRunWalkRoutes } from './modules/vd-run-walk/routes.js'
+import { registerVdFunctionalTrainingRoutes } from './modules/vd-functional-training/routes.js'
+import { registerVdSleepTimeRoutes } from './modules/vd-sleep-time/routes.js'
+import { registerVdActiveMindRoutes } from './modules/vd-active-mind/routes.js'
 import { registerPublicDemoRoutes } from './modules/public-demo/routes.js'
 import { registerIcdReferenceRoutes } from './modules/icd-reference/routes.js'
 import { registerRh3WebhookRoutes } from './modules/rh3-webhook/routes.js'
@@ -345,6 +348,27 @@ export async function buildApp() {
       await registerVdRunWalkRoutes(vdRunWalk)
     },
     { prefix: '/api/v1/vd/run-walk' },
+  )
+
+  await app.register(
+    async (vdFunctionalTraining) => {
+      await registerVdFunctionalTrainingRoutes(vdFunctionalTraining)
+    },
+    { prefix: '/api/v1/vd/functional-training' },
+  )
+
+  await app.register(
+    async (vdSleepTime) => {
+      await registerVdSleepTimeRoutes(vdSleepTime)
+    },
+    { prefix: '/api/v1/vd/sleep-time' },
+  )
+
+  await app.register(
+    async (vdActiveMind) => {
+      await registerVdActiveMindRoutes(vdActiveMind)
+    },
+    { prefix: '/api/v1/vd/active-mind' },
   )
 
   await app.register(

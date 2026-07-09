@@ -3,7 +3,6 @@ import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  ActivityIndicator,
   Dimensions,
   Keyboard,
   KeyboardAvoidingView,
@@ -17,6 +16,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { PrimaryButton } from '../components/PrimaryButton'
+import { AppLoadingState } from '../components/AppLoadingState'
 import { useAuth } from '../contexts/AuthContext'
 import {
   prepareRunWalkActivityCheckin,
@@ -235,7 +235,7 @@ export function RunWalkActivityCheckInScreen() {
   if (isLoading) {
     return (
       <View style={[styles.loadingRoot, { paddingTop: insets.top }]}>
-        <ActivityIndicator color={colors.primaryLight} size="large" />
+        <AppLoadingState />
       </View>
     )
   }

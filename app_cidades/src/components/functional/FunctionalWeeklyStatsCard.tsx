@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
 import { StyleSheet, Text, View } from 'react-native'
 import { colors } from '../../theme/colors'
 import type { WeeklyTrainingStats } from '../../types/functionalTraining'
@@ -10,12 +9,7 @@ type FunctionalWeeklyStatsCardProps = {
 
 export function FunctionalWeeklyStatsCard({ stats }: FunctionalWeeklyStatsCardProps) {
   return (
-    <LinearGradient
-      colors={['#c7d2fe', '#e0e7ff', '#ffffff']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.wrap}
-    >
+    <View style={styles.wrap}>
       <View style={styles.headerRow}>
         <View style={styles.iconWrap}>
           <Ionicons name="flame" size={18} color="#4338ca" />
@@ -42,7 +36,7 @@ export function FunctionalWeeklyStatsCard({ stats }: FunctionalWeeklyStatsCardPr
           <Text style={styles.metricLabel}>exercícios</Text>
         </View>
       </View>
-    </LinearGradient>
+    </View>
   )
 }
 
@@ -51,8 +45,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     borderRadius: 18,
     padding: 16,
+    backgroundColor: colors.cardBg,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.28)',
+    borderColor: colors.surfaceBorder,
     gap: 14,
   },
   headerRow: {

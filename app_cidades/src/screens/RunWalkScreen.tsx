@@ -24,15 +24,11 @@ import { RunWalkActivityMenuDrawer } from '../components/runWalk/RunWalkActivity
 import { RunWalkActivityPickerDrawer } from '../components/runWalk/RunWalkActivityPickerDrawer'
 import { RunWalkActivityPreviewDrawer } from '../components/runWalk/RunWalkActivityPreviewDrawer'
 import { RunWalkModalityDrawer } from '../components/runWalk/RunWalkModalityDrawer'
-import { RunWalkDispositionCard } from '../components/runWalk/RunWalkDispositionCard'
-import { RunWalkDispositionCheckinDrawer } from '../components/runWalk/RunWalkDispositionCheckinDrawer'
-import { RunWalkDispositionExplainDrawer } from '../components/runWalk/RunWalkDispositionExplainDrawer'
 import { RunWalkHistoryTab } from '../components/runWalk/history/RunWalkHistoryTab'
 import { RunWalkQuickShortcuts } from '../components/runWalk/RunWalkQuickShortcuts'
 import { RunWalkSegmentTabs } from '../components/runWalk/RunWalkSegmentTabs'
 import { RunWalkTodayActivityCard } from '../components/runWalk/RunWalkTodayActivityCard'
 import {
-  RunWalkDispositionCardSkeleton,
   RunWalkWeeklyGoalCardSkeleton,
 } from '../components/runWalk/RunWalkTodayTabSkeleton'
 import { RunWalkWeeklyCalendarDrawer } from '../components/runWalk/RunWalkWeeklyCalendarDrawer'
@@ -43,10 +39,6 @@ import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { createEmptyRunWalkTodayState } from '../data/mockRunWalk'
 import { MODALITY_DEFAULTS } from '../data/runWalkModalityConfig'
 import { clearPreparationDraft } from '../data/runWalkPreparationDraftStorage'
-import {
-  loadRunWalkDisposition,
-  type SaveRunWalkDispositionCheckinResult,
-} from '../data/runWalkDispositionStorage'
 import {
   applyRunWalkPlanoMenuAction,
   findTodayActivityPreset,
@@ -68,7 +60,6 @@ import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
 import type {
   ActivityMenuAction,
-  DispositionCheckinAnswers,
   RunWalkQuickShortcutId,
   RunWalkTab,
   TodayActivity,
@@ -107,9 +98,6 @@ export function RunWalkScreen() {
   const [activityPickerVisible, setActivityPickerVisible] = useState(false)
   const [activityPreviewVisible, setActivityPreviewVisible] = useState(false)
   const [pendingPresetId, setPendingPresetId] = useState<TodayActivityPresetId | null>(null)
-  const [explainVisible, setExplainVisible] = useState(false)
-  const [checkinVisible, setCheckinVisible] = useState(false)
-  const [checkinAllowSkip, setCheckinAllowSkip] = useState(false)
   const [weekCalendarVisible, setWeekCalendarVisible] = useState(false)
   const [goalDrawerVisible, setGoalDrawerVisible] = useState(false)
   const [modalityDrawerVisible, setModalityDrawerVisible] = useState(false)
@@ -229,8 +217,6 @@ export function RunWalkScreen() {
     })
   }, [screenWidth])
 
-  const disposition = todayState.disposition
-
   const weeklyGoalStats = useMemo(
     () => applyWeeklyGoalTargets(todayState.weeklyGoal, weeklyGoalTargets),
     [todayState.weeklyGoal, weeklyGoalTargets],
@@ -263,45 +249,34 @@ export function RunWalkScreen() {
     setIsDailyStateReady(false)
 
     try {
-      const [savedGoal, weeklyProgress, dispositionSnapshot, planoSnapshot] = await Promise.all([
+      const [savedGoal, weeklyProgress, planoSnapshot] = await Promise.all([
         loadWeeklyGoalTargets(patientCpf),
         loadWeeklyGoalProgress(patientCpf),
-        loadRunWalkDisposition(patientCpf),
         loadRunWalkPlano(patientCpf),
       ])
       setWeeklyGoalTargets(savedGoal)
 
       setTodayState({
         ...createEmptyRunWalkTodayState(),
-        disposition: dispositionSnapshot.disposition,
         weeklyGoal: weeklyProgress.weeklyGoal,
         weeklyCalendar: weeklyProgress.weeklyCalendar,
       })
       applyPlanoSnapshot(planoSnapshot)
-
-      if (!user) return
-
-      if (!dispositionSnapshot.checkinCompletedToday) {
-        setCheckinAllowSkip(true)
-        setCheckinVisible(true)
-      }
     } finally {
       setIsDailyStateReady(true)
     }
-  }, [applyPlanoSnapshot, patientCpf, user])
+  }, [applyPlanoSnapshot, patientCpf])
 
   const refreshData = useCallback(async () => {
-    const [savedGoal, weeklyProgress, dispositionSnapshot, planoSnapshot] = await Promise.all([
+    const [savedGoal, weeklyProgress, planoSnapshot] = await Promise.all([
       loadWeeklyGoalTargets(patientCpf),
       loadWeeklyGoalProgress(patientCpf, { forceRefresh: true }),
-      loadRunWalkDisposition(patientCpf, { forceRefresh: true }),
       loadRunWalkPlano(patientCpf, { forceRefresh: true }),
     ])
     setWeeklyGoalTargets(savedGoal)
 
     setTodayState((prev) => ({
       ...createEmptyRunWalkTodayState(),
-      disposition: dispositionSnapshot.disposition,
       weeklyGoal: weeklyProgress.weeklyGoal,
       weeklyCalendar: weeklyProgress.weeklyCalendar,
     }))
@@ -427,17 +402,6 @@ export function RunWalkScreen() {
       setActivityPickerVisible(false)
       return true
     }
-    if (checkinVisible) {
-      if (checkinAllowSkip) {
-        void handleDispositionDismiss()
-      }
-      handleCheckinClose()
-      return true
-    }
-    if (explainVisible) {
-      setExplainVisible(false)
-      return true
-    }
     if (activityMenuVisible) {
       setActivityMenuVisible(false)
       return true
@@ -487,22 +451,6 @@ export function RunWalkScreen() {
     await new Promise((resolve) => setTimeout(resolve, 500))
     await refreshData()
     setIsRefreshing(false)
-  }
-
-  function handleDispositionDismiss() {
-    setCheckinAllowSkip(false)
-  }
-
-  function handleOpenManualCheckin() {
-    requireAuth('vida:run-walk', () => {
-      setCheckinAllowSkip(false)
-      setCheckinVisible(true)
-    })
-  }
-
-  function handleCheckinClose() {
-    setCheckinVisible(false)
-    setCheckinAllowSkip(false)
   }
 
   async function handleActivitySelect(presetId: TodayActivityPresetId) {
@@ -595,20 +543,6 @@ export function RunWalkScreen() {
     })
   }
 
-  function handleCheckinComplete(
-    _answers: DispositionCheckinAnswers,
-    _recommendationLabel: string,
-    result?: SaveRunWalkDispositionCheckinResult,
-  ) {
-    if (result) {
-      setTodayState((prev) => ({
-        ...prev,
-        disposition: result.disposition,
-      }))
-    }
-    setCheckinAllowSkip(false)
-  }
-
   async function handleSaveWeeklyGoal(targets: WeeklyGoalTargets) {
     requireAuth('vida:run-walk', () => {
       void (async () => {
@@ -685,28 +619,16 @@ export function RunWalkScreen() {
               )}
             </View>
 
-            {!isDailyStateReady ? (
-              <RunWalkDispositionCardSkeleton />
-            ) : (
-              <>
-                <RunWalkDispositionCard
-                  disposition={disposition}
-                  onExplainPress={() => setExplainVisible(true)}
-                  onCheckinPress={handleOpenManualCheckin}
-                />
-
-                {hasTodayActivity && activity ? (
-                  <RunWalkTodayActivityCard
-                    activity={activity}
-                    onStartPress={handleStartActivity}
-                    onDetailsPress={() => setDetailVisible(true)}
-                    onMenuPress={() =>
-                      requireAuth('vida:run-walk', () => setActivityMenuVisible(true))
-                    }
-                  />
-                ) : null}
-              </>
-            )}
+            {!isDailyStateReady ? null : hasTodayActivity && activity ? (
+              <RunWalkTodayActivityCard
+                activity={activity}
+                onStartPress={handleStartActivity}
+                onDetailsPress={() => setDetailVisible(true)}
+                onMenuPress={() =>
+                  requireAuth('vida:run-walk', () => setActivityMenuVisible(true))
+                }
+              />
+            ) : null}
           </ScrollView>
         )
       }
@@ -728,8 +650,6 @@ export function RunWalkScreen() {
       activity,
       bottomContentPadding,
       celebrateDay,
-      disposition,
-      handleOpenManualCheckin,
       handleRefresh,
       handleShortcutPress,
       handleStartActivity,
@@ -867,21 +787,6 @@ export function RunWalkScreen() {
         visible={activityMenuVisible}
         onClose={() => setActivityMenuVisible(false)}
         onAction={handleActivityMenuAction}
-      />
-
-      <RunWalkDispositionExplainDrawer
-        visible={explainVisible}
-        disposition={disposition}
-        onClose={() => setExplainVisible(false)}
-      />
-
-      <RunWalkDispositionCheckinDrawer
-        visible={checkinVisible}
-        allowSkip={checkinAllowSkip}
-        patientCpf={patientCpf}
-        onClose={handleCheckinClose}
-        onDismiss={handleDispositionDismiss}
-        onComplete={(answers, label, result) => handleCheckinComplete(answers, label, result)}
       />
 
       <RunWalkWeeklyCalendarDrawer

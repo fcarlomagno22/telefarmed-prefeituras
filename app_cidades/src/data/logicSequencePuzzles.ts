@@ -21,14 +21,36 @@ type LogicSequenceBank = {
   sequencias: LogicSequenceEntry[]
 }
 
-const LOGIC_SEQUENCE_BANKS: Record<ActiveMindPlayDifficulty, LogicSequenceBank> = {
-  facil: require('../../assets/sequencia_logica_facil_telefarmed_5000.json'),
-  medio: require('../../assets/sequencia_logica_medio_telefarmed_5000.json'),
-  dificil: require('../../assets/sequencia_logica_dificil_telefarmed_5000.json'),
+const logicSequenceBankCache: Partial<Record<ActiveMindPlayDifficulty, LogicSequenceBank>> = {}
+
+/** Lazy require por dificuldade — evita carregar os 3 bancos (~7MB) de uma vez. */
+function getLogicSequenceBank(difficulty: ActiveMindPlayDifficulty): LogicSequenceBank {
+  const cached = logicSequenceBankCache[difficulty]
+  if (cached) return cached
+
+  let bank: LogicSequenceBank
+  switch (difficulty) {
+    case 'facil':
+      bank = require('../../assets/sequencia_logica_facil_telefarmed_5000.json')
+      break
+    case 'medio':
+      bank = require('../../assets/sequencia_logica_medio_telefarmed_5000.json')
+      break
+    case 'dificil':
+      bank = require('../../assets/sequencia_logica_dificil_telefarmed_5000.json')
+      break
+    default: {
+      const _exhaustive: never = difficulty
+      throw new Error(`Dificuldade de sequência lógica inválida: ${_exhaustive}`)
+    }
+  }
+
+  logicSequenceBankCache[difficulty] = bank
+  return bank
 }
 
 function getLogicSequenceEntries(difficulty: ActiveMindPlayDifficulty): LogicSequenceEntry[] {
-  return LOGIC_SEQUENCE_BANKS[difficulty]?.sequencias ?? []
+  return getLogicSequenceBank(difficulty).sequencias ?? []
 }
 
 function shuffleOptions<T>(items: readonly T[]): T[] {
@@ -37,8 +59,8 @@ function shuffleOptions<T>(items: readonly T[]): T[] {
   for (let index = copy.length - 1; index > 0; index -= 1) {
     const swapIndex = Math.floor(Math.random() * (index + 1))
     const current = copy[index]
-    copy[index] = copy[swapIndex]
-    copy[swapIndex] = current
+    copy[index] = copy[swapIndex]!
+    copy[swapIndex] = current!
   }
 
   return copy

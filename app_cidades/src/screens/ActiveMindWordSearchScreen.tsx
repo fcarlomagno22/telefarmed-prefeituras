@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { WordSearchBoard } from '../components/activeMind/wordSearch/WordSearchBoard'
 import { WordSearchHintList } from '../components/activeMind/wordSearch/WordSearchHintList'
-import { SudokuVictoryDrawer } from '../components/activeMind/sudoku/SudokuVictoryDrawer'
+import { ActiveMindVictoryDrawer } from '../components/activeMind/ActiveMindVictoryDrawer'
 import { NeonSectionDivider } from '../components/NeonSectionDivider'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { getActiveMindDifficultyLabel } from '../config/activeMindDifficulty'
@@ -25,6 +25,7 @@ import {
 } from '../data/wordSearchPuzzles'
 import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
+import { useActiveMindSessionCompletion } from '../hooks/useActiveMindSessionCompletion'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { activeMindGameChrome } from '../theme/activeMindGameChrome'
 import { colors } from '../theme/colors'
@@ -61,6 +62,7 @@ export function ActiveMindWordSearchScreen() {
   const { routeParams, goBack, canGoBack, navigateTo } = useAuth()
   const activeMindParams = getActiveMindRouteParams(routeParams)
   const difficulty = activeMindParams.difficulty ?? 'facil'
+  const { completeSession, resetSessionClock } = useActiveMindSessionCompletion('word-search')
 
   const [session, setSession] = useState<WordSearchSession>(() => buildSession(difficulty))
   const [activeSelectionKeys, setActiveSelectionKeys] = useState<Set<string>>(new Set())
@@ -68,6 +70,8 @@ export function ActiveMindWordSearchScreen() {
   const [victoryVisible, setVictoryVisible] = useState(false)
   const [celebrationSeed, setCelebrationSeed] = useState(0)
   const [sessionStats, setSessionStats] = useState<WordSearchSessionStats>(emptyWordSearchSessionStats)
+  const sessionStatsRef = useRef(sessionStats)
+  sessionStatsRef.current = sessionStats
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
   const [tapAnchor, setTapAnchor] = useState<{ row: number; col: number } | null>(null)
   const wrongFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -108,16 +112,20 @@ export function ActiveMindWordSearchScreen() {
     tapValidateTimeoutRef.current = null
   }, [])
 
-  const showPuzzleVictory = useCallback(() => {
-    setCelebrationSeed((current) => current + 1)
-    setVictoryVisible(true)
-    validatingRef.current = false
-    setTapAnchor(null)
-    setActiveSelectionKeys(new Set())
-    setWrongSelectionKeys(new Set())
-    setFeedbackMessage(null)
-    clearTapValidateTimeout()
-  }, [clearTapValidateTimeout])
+  const showPuzzleVictory = useCallback(
+    (stats: WordSearchSessionStats, puzzleId: string) => {
+      setCelebrationSeed((current) => current + 1)
+      setVictoryVisible(true)
+      validatingRef.current = false
+      setTapAnchor(null)
+      setActiveSelectionKeys(new Set())
+      setWrongSelectionKeys(new Set())
+      setFeedbackMessage(null)
+      clearTapValidateTimeout()
+      completeSession(difficulty, puzzleId, stats)
+    },
+    [clearTapValidateTimeout, completeSession, difficulty],
+  )
 
   const advanceToNextPuzzle = useCallback((excludeId: string) => {
     setSession(buildSession(difficulty, excludeId))
@@ -157,7 +165,8 @@ export function ActiveMindWordSearchScreen() {
     setWrongSelectionKeys(new Set())
     setFeedbackMessage(null)
     validatingRef.current = false
-  }, [clearTapValidateTimeout, clearWrongFeedbackTimeout, difficulty])
+    resetSessionClock()
+  }, [clearTapValidateTimeout, clearWrongFeedbackTimeout, difficulty, resetSessionClock])
 
   const handleSelectionChange = useCallback((cellKeys: string[]) => {
     if (victoryVisible) return
@@ -183,27 +192,29 @@ export function ActiveMindWordSearchScreen() {
       validatingRef.current = true
 
       const matchedEntry = findWordSearchEntryForSelection(session, cellKeys)
+      const attemptedStats: WordSearchSessionStats = {
+        ...sessionStatsRef.current,
+        attempts: sessionStatsRef.current.attempts + 1,
+      }
 
-      setSessionStats((current) => ({
-        ...current,
-        attempts: current.attempts + 1,
-      }))
+      setSessionStats(attemptedStats)
 
       if (matchedEntry) {
         playFormTheWordCorrectSound()
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
 
-        setSessionStats((current) => ({
-          ...current,
-          correct: current.correct + 1,
-        }))
+        const nextStats: WordSearchSessionStats = {
+          ...attemptedStats,
+          correct: attemptedStats.correct + 1,
+        }
+        setSessionStats(nextStats)
 
         const nextSession = markWordSearchEntryFound(session, matchedEntry.id)
         setSession(nextSession)
         setFeedbackMessage(`Palavra encontrada: ${matchedEntry.word}`)
 
         if (isWordSearchSolved(nextSession)) {
-          showPuzzleVictory()
+          showPuzzleVictory(nextStats, nextSession.puzzleId)
         } else {
           validatingRef.current = false
         }
@@ -214,10 +225,10 @@ export function ActiveMindWordSearchScreen() {
       playFormTheWordWrongSound()
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
 
-      setSessionStats((current) => ({
-        ...current,
-        errors: current.errors + 1,
-      }))
+      setSessionStats({
+        ...attemptedStats,
+        errors: attemptedStats.errors + 1,
+      })
       setWrongSelectionKeys(new Set(cellKeys))
       setFeedbackMessage('Essa seleção não corresponde a nenhuma palavra.')
 
@@ -326,6 +337,7 @@ export function ActiveMindWordSearchScreen() {
     setActiveSelectionKeys(new Set())
     setWrongSelectionKeys(new Set())
     setFeedbackMessage(null)
+    resetSessionClock()
     advanceToNextPuzzle(session.puzzleId)
   }
 
@@ -387,12 +399,12 @@ export function ActiveMindWordSearchScreen() {
         </View>
       </ImageBackground>
 
-      <SudokuVictoryDrawer
+      <ActiveMindVictoryDrawer
         visible={victoryVisible}
         difficulty={difficulty}
         stats={sessionStats}
         celebrationSeed={celebrationSeed}
-        completionKicker="Caça-palavras completo!"
+        gameTitle="Caça-palavras completo!"
         onPlayAgain={handleNewGame}
         onClose={handleVictoryClose}
       />

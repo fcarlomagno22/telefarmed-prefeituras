@@ -3,7 +3,6 @@ import { BlurView } from 'expo-blur'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useMemo, useState } from 'react'
 import {
-  ActivityIndicator,
   Platform,
   Pressable,
   StyleSheet,
@@ -16,6 +15,7 @@ import {
   setNavigationBarButtonStyleAsync,
 } from '../adapters/navigationBar'
 import { AppSystemBars } from '../components/platform/AppSystemBars'
+import { AppLoadingState } from '../components/AppLoadingState'
 import { LiveLocationTrackingMap } from '../components/runWalk/liveShare/LiveLocationTrackingMap'
 import { LiveShareParticipantAvatar } from '../components/runWalk/liveShare/LiveShareParticipantAvatar'
 import { useAuth } from '../contexts/AuthContext'
@@ -170,8 +170,7 @@ export function RunWalkLiveLocationViewerScreen() {
 
         {hasValidLink && isLoading && !snapshot ? (
           <View style={styles.messageCard}>
-            <ActivityIndicator color={colors.primaryLight} />
-            <Text style={styles.loadingText}>Carregando localização...</Text>
+            <AppLoadingState style={styles.inlineLoading} />
           </View>
         ) : null}
 
@@ -386,10 +385,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 17,
   },
-  loadingText: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '600',
+  inlineLoading: {
+    paddingVertical: 12,
   },
   statsCard: {
     borderRadius: 22,

@@ -17,7 +17,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FormTheWordAnswerRow } from '../components/activeMind/formTheWord/FormTheWordAnswerRow'
 import { FormTheWordScramblePool } from '../components/activeMind/formTheWord/FormTheWordScramblePool'
-import { SudokuVictoryDrawer } from '../components/activeMind/sudoku/SudokuVictoryDrawer'
+import { ActiveMindVictoryDrawer } from '../components/activeMind/ActiveMindVictoryDrawer'
 import { NeonSectionDivider } from '../components/NeonSectionDivider'
 import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { getActiveMindDifficultyLabel } from '../config/activeMindDifficulty'
@@ -35,6 +35,7 @@ import {
   revealNextFormTheWordChunk,
 } from '../data/formTheWordPuzzles'
 import { useAuth } from '../contexts/AuthContext'
+import { useActiveMindSessionCompletion } from '../hooks/useActiveMindSessionCompletion'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { getActiveMindRouteParams } from '../types/auth'
 import type { ActiveMindPlayDifficulty } from '../types/activeMind'
@@ -72,6 +73,7 @@ export function ActiveMindFormTheWordScreen() {
   const { routeParams, goBack, canGoBack, navigateTo } = useAuth()
   const activeMindParams = getActiveMindRouteParams(routeParams)
   const difficulty = activeMindParams.difficulty ?? 'facil'
+  const { completeSession, resetSessionClock } = useActiveMindSessionCompletion('form-the-word')
 
   const [session, setSession] = useState<FormTheWordSession>(() => buildSession(difficulty))
   const [victoryVisible, setVictoryVisible] = useState(false)
@@ -80,6 +82,8 @@ export function ActiveMindFormTheWordScreen() {
   const [feedback, setFeedback] = useState<FormTheWordFeedbackState>(emptyFormTheWordFeedbackState)
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const checkingRef = useRef(false)
+  const sessionStatsRef = useRef(sessionStats)
+  sessionStatsRef.current = sessionStats
 
   const headerPaddingTop = Math.max(insets.top, 12) + 8
   const bottomInset = Math.max(insets.bottom, 8)
@@ -158,7 +162,8 @@ export function ActiveMindFormTheWordScreen() {
     setSession(buildSession(difficulty))
     setVictoryVisible(false)
     setSessionStats(emptyFormTheWordSessionStats())
-  }, [difficulty, resetFeedback])
+    resetSessionClock()
+  }, [difficulty, resetFeedback, resetSessionClock])
 
   useEffect(() => {
     if (!isFormTheWordAnswerComplete(session)) return
@@ -229,6 +234,7 @@ export function ActiveMindFormTheWordScreen() {
     setSession(buildSession(difficulty))
     setVictoryVisible(false)
     setSessionStats(emptyFormTheWordSessionStats())
+    resetSessionClock()
   }
 
   function handleEncerrar() {
@@ -237,6 +243,7 @@ export function ActiveMindFormTheWordScreen() {
     resetFeedback()
     setVictoryVisible(true)
     setCelebrationSeed((current) => current + 1)
+    completeSession(difficulty, session.puzzleId, sessionStatsRef.current)
   }
 
   function handlePickChunk(poolIndex: number) {
@@ -393,12 +400,12 @@ export function ActiveMindFormTheWordScreen() {
         </View>
       </ImageBackground>
 
-      <SudokuVictoryDrawer
+      <ActiveMindVictoryDrawer
         visible={victoryVisible}
         difficulty={difficulty}
         stats={sessionStats}
         celebrationSeed={celebrationSeed}
-        completionKicker="Palavra formada"
+        gameTitle="Palavra formada"
         onPlayAgain={handleNewGame}
         onClose={handleBack}
       />
