@@ -36,6 +36,7 @@ type RunWalkWeeklyBarChartProps = {
   showLegend?: boolean
   animate?: boolean
   preserveFinal?: boolean
+  onHorizontalScrollActive?: (active: boolean) => void
 }
 
 const PADDING_TOP = 12
@@ -75,6 +76,7 @@ export function RunWalkWeeklyBarChart({
   showLegend = false,
   animate = false,
   preserveFinal = true,
+  onHorizontalScrollActive,
 }: RunWalkWeeklyBarChartProps) {
   const scrollRef = useRef<ScrollView>(null)
   const entranceLockedRef = useRef(Boolean(celebrateDay))
@@ -634,6 +636,10 @@ export function RunWalkWeeklyBarChart({
           showsHorizontalScrollIndicator={false}
           decelerationRate="fast"
           contentContainerStyle={styles.scrollContent}
+          onScrollBeginDrag={() => onHorizontalScrollActive?.(true)}
+          onScrollEndDrag={() => onHorizontalScrollActive?.(false)}
+          onMomentumScrollEnd={() => onHorizontalScrollActive?.(false)}
+          onTouchCancel={() => onHorizontalScrollActive?.(false)}
         >
           {chartBody}
         </ScrollView>

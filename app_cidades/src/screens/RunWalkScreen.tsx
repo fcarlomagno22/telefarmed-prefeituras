@@ -31,6 +31,10 @@ import { RunWalkHistoryTab } from '../components/runWalk/history/RunWalkHistoryT
 import { RunWalkQuickShortcuts } from '../components/runWalk/RunWalkQuickShortcuts'
 import { RunWalkSegmentTabs } from '../components/runWalk/RunWalkSegmentTabs'
 import { RunWalkTodayActivityCard } from '../components/runWalk/RunWalkTodayActivityCard'
+import {
+  RunWalkDispositionCardSkeleton,
+  RunWalkWeeklyGoalCardSkeleton,
+} from '../components/runWalk/RunWalkTodayTabSkeleton'
 import { RunWalkWeeklyCalendarDrawer } from '../components/runWalk/RunWalkWeeklyCalendarDrawer'
 import { RunWalkWeeklyGoalCard } from '../components/runWalk/RunWalkWeeklyGoalCard'
 import type { RunWalkWeeklyBarCelebrateDay } from '../components/runWalk/RunWalkWeeklyBarChart'
@@ -127,7 +131,6 @@ export function RunWalkScreen() {
 
   const scrollRef = useRef<ScrollView>(null)
   const segmentPagerRef = useRef<FlatList<RunWalkTab>>(null)
-  const segmentPagerWebRef = useRef<ScrollView>(null)
   const segmentPagerIndexRef = useRef(0)
   const segmentPagerProgrammaticScrollRef = useRef(false)
   const weeklyGoalSectionY = useRef(0)
@@ -145,16 +148,16 @@ export function RunWalkScreen() {
       segmentPagerIndexRef.current = index
 
       if (Platform.OS === 'web') {
-        segmentPagerWebRef.current?.scrollTo({
-          x: index * screenWidth,
-          animated,
-        })
-      } else {
-        segmentPagerRef.current?.scrollToOffset({
-          offset: index * screenWidth,
-          animated,
-        })
+        if (!animated) {
+          segmentPagerProgrammaticScrollRef.current = false
+        }
+        return
       }
+
+      segmentPagerRef.current?.scrollToOffset({
+        offset: index * screenWidth,
+        animated,
+      })
 
       if (!animated) {
         segmentPagerProgrammaticScrollRef.current = false
@@ -211,10 +214,10 @@ export function RunWalkScreen() {
   )
 
   useEffect(() => {
-    if (Platform.OS !== 'web') return
+    if (Platform.OS === 'web') return
 
-    segmentPagerWebRef.current?.scrollTo({
-      x: segmentPagerIndexRef.current * screenWidth,
+    segmentPagerRef.current?.scrollToOffset({
+      offset: segmentPagerIndexRef.current * screenWidth,
       animated: false,
     })
   }, [screenWidth])
@@ -250,33 +253,34 @@ export function RunWalkScreen() {
   }, [])
 
   const loadDailyState = useCallback(async () => {
-    const [savedGoal, weeklyProgress, dispositionSnapshot, planoSnapshot] = await Promise.all([
-      loadWeeklyGoalTargets(patientCpf),
-      loadWeeklyGoalProgress(patientCpf),
-      loadRunWalkDisposition(patientCpf),
-      loadRunWalkPlano(patientCpf),
-    ])
-    setWeeklyGoalTargets(savedGoal)
+    setIsDailyStateReady(false)
 
-    setTodayState({
-      ...createEmptyRunWalkTodayState(),
-      disposition: dispositionSnapshot.disposition,
-      weeklyGoal: weeklyProgress.weeklyGoal,
-      weeklyCalendar: weeklyProgress.weeklyCalendar,
-    })
-    applyPlanoSnapshot(planoSnapshot)
+    try {
+      const [savedGoal, weeklyProgress, dispositionSnapshot, planoSnapshot] = await Promise.all([
+        loadWeeklyGoalTargets(patientCpf),
+        loadWeeklyGoalProgress(patientCpf),
+        loadRunWalkDisposition(patientCpf),
+        loadRunWalkPlano(patientCpf),
+      ])
+      setWeeklyGoalTargets(savedGoal)
 
-    if (!user) {
+      setTodayState({
+        ...createEmptyRunWalkTodayState(),
+        disposition: dispositionSnapshot.disposition,
+        weeklyGoal: weeklyProgress.weeklyGoal,
+        weeklyCalendar: weeklyProgress.weeklyCalendar,
+      })
+      applyPlanoSnapshot(planoSnapshot)
+
+      if (!user) return
+
+      if (!dispositionSnapshot.checkinCompletedToday) {
+        setCheckinAllowSkip(true)
+        setCheckinVisible(true)
+      }
+    } finally {
       setIsDailyStateReady(true)
-      return
     }
-
-    if (!dispositionSnapshot.checkinCompletedToday) {
-      setCheckinAllowSkip(true)
-      setCheckinVisible(true)
-    }
-
-    setIsDailyStateReady(true)
   }, [applyPlanoSnapshot, patientCpf, user])
 
   const refreshData = useCallback(async () => {
@@ -657,35 +661,45 @@ export function RunWalkScreen() {
                 weeklyGoalSectionY.current = event.nativeEvent.layout.y
               }}
             >
-              <RunWalkWeeklyGoalCard
-                stats={weeklyGoalStats}
-                days={todayState.weeklyCalendar}
-                onViewWeekPress={() => setWeekCalendarVisible(true)}
-                onGoalActionPress={() =>
-                  requireAuth('vida:run-walk', () => setGoalDrawerVisible(true))
-                }
-                celebrateDay={celebrateDay}
-                animateRings={weeklyGoalAnimateRings}
-                animateChart={weeklyGoalAnimateChart}
-              />
+              {!isDailyStateReady ? (
+                <RunWalkWeeklyGoalCardSkeleton />
+              ) : (
+                <RunWalkWeeklyGoalCard
+                  stats={weeklyGoalStats}
+                  days={todayState.weeklyCalendar}
+                  onViewWeekPress={() => setWeekCalendarVisible(true)}
+                  onGoalActionPress={() =>
+                    requireAuth('vida:run-walk', () => setGoalDrawerVisible(true))
+                  }
+                  celebrateDay={celebrateDay}
+                  animateRings={weeklyGoalAnimateRings}
+                  animateChart={weeklyGoalAnimateChart}
+                />
+              )}
             </View>
 
-            <RunWalkDispositionCard
-              disposition={disposition}
-              onExplainPress={() => setExplainVisible(true)}
-              onCheckinPress={handleOpenManualCheckin}
-            />
+            {!isDailyStateReady ? (
+              <RunWalkDispositionCardSkeleton />
+            ) : (
+              <>
+                <RunWalkDispositionCard
+                  disposition={disposition}
+                  onExplainPress={() => setExplainVisible(true)}
+                  onCheckinPress={handleOpenManualCheckin}
+                />
 
-            {hasTodayActivity && activity ? (
-              <RunWalkTodayActivityCard
-                activity={activity}
-                onStartPress={handleStartActivity}
-                onDetailsPress={() => setDetailVisible(true)}
-                onMenuPress={() =>
-                  requireAuth('vida:run-walk', () => setActivityMenuVisible(true))
-                }
-              />
-            ) : null}
+                {hasTodayActivity && activity ? (
+                  <RunWalkTodayActivityCard
+                    activity={activity}
+                    onStartPress={handleStartActivity}
+                    onDetailsPress={() => setDetailVisible(true)}
+                    onMenuPress={() =>
+                      requireAuth('vida:run-walk', () => setActivityMenuVisible(true))
+                    }
+                  />
+                ) : null}
+              </>
+            )}
           </ScrollView>
         )
       }
@@ -713,6 +727,7 @@ export function RunWalkScreen() {
       handleShortcutPress,
       handleStartActivity,
       hasTodayActivity,
+      isDailyStateReady,
       isRefreshing,
       patientCpf,
       requireAuth,
@@ -753,27 +768,11 @@ export function RunWalkScreen() {
         <RunWalkSegmentTabs activeTab={segmentTab} onChange={handleSegmentTabChange} />
 
         {Platform.OS === 'web' ? (
-          <ScrollView
-            ref={segmentPagerWebRef}
-            horizontal
-            pagingEnabled
-            scrollEnabled={segmentPagerScrollEnabled}
-            nestedScrollEnabled
-            bounces={false}
-            showsHorizontalScrollIndicator={false}
-            decelerationRate="fast"
-            scrollEventThrottle={16}
-            onScroll={handleSegmentPagerScroll}
-            onMomentumScrollEnd={handleSegmentPagerScrollEnd}
-            onScrollEndDrag={handleSegmentPagerScrollEnd}
-            style={styles.segmentPagerWeb}
-          >
-            {SEGMENT_PAGES.map((tab) => (
-              <View key={tab} style={[styles.segmentPage, { width: screenWidth }]}>
-                {renderRunWalkSegmentPage(tab)}
-              </View>
-            ))}
-          </ScrollView>
+          <View style={styles.segmentPagerWeb}>
+            <View style={[styles.segmentPage, { width: screenWidth }]}>
+              {renderRunWalkSegmentPage(segmentTab)}
+            </View>
+          </View>
         ) : (
           <FlatList
             ref={segmentPagerRef}

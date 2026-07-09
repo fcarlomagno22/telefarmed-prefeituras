@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useEffect, useRef } from 'react'
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Animated, Easing, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { colors } from '../../../theme/colors'
 import type { RunWalkHistoryHighlight } from '../../../types/runWalkHistory'
@@ -126,30 +126,57 @@ export function RunWalkHistoryHighlightsRow({
   return (
     <View style={styles.wrap}>
       <Text style={styles.title}>Destaques pessoais</Text>
-      <FlatList
-        horizontal
-        data={highlights}
-        keyExtractor={(item) => item.id}
-        showsHorizontalScrollIndicator={false}
-        nestedScrollEnabled
-        directionalLockEnabled
-        decelerationRate="fast"
-        scrollEventThrottle={16}
-        contentContainerStyle={styles.row}
-        onScrollBeginDrag={lockSegmentPager}
-        onScrollEndDrag={unlockSegmentPager}
-        onMomentumScrollEnd={unlockSegmentPager}
-        onTouchCancel={unlockSegmentPager}
-        renderItem={({ item: highlight, index }) => (
-          <HighlightCard
-            highlight={highlight}
-            animate={animate}
-            preserveFinal={preserveFinal}
-            index={index}
-            onPress={() => onPress?.(highlight)}
-          />
-        )}
-      />
+      {Platform.OS === 'web' ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled
+          directionalLockEnabled
+          decelerationRate="fast"
+          scrollEventThrottle={16}
+          contentContainerStyle={styles.row}
+          onScrollBeginDrag={lockSegmentPager}
+          onScrollEndDrag={unlockSegmentPager}
+          onMomentumScrollEnd={unlockSegmentPager}
+          onTouchCancel={unlockSegmentPager}
+        >
+          {highlights.map((highlight, index) => (
+            <HighlightCard
+              key={highlight.id}
+              highlight={highlight}
+              animate={animate}
+              preserveFinal={preserveFinal}
+              index={index}
+              onPress={() => onPress?.(highlight)}
+            />
+          ))}
+        </ScrollView>
+      ) : (
+        <FlatList
+          horizontal
+          data={highlights}
+          keyExtractor={(item) => item.id}
+          showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled
+          directionalLockEnabled
+          decelerationRate="fast"
+          scrollEventThrottle={16}
+          contentContainerStyle={styles.row}
+          onScrollBeginDrag={lockSegmentPager}
+          onScrollEndDrag={unlockSegmentPager}
+          onMomentumScrollEnd={unlockSegmentPager}
+          onTouchCancel={unlockSegmentPager}
+          renderItem={({ item: highlight, index }) => (
+            <HighlightCard
+              highlight={highlight}
+              animate={animate}
+              preserveFinal={preserveFinal}
+              index={index}
+              onPress={() => onPress?.(highlight)}
+            />
+          )}
+        />
+      )}
     </View>
   )
 }

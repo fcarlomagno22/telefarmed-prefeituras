@@ -354,6 +354,7 @@ export function RunWalkHistoryTab({
                     showLegend
                     animate={animation.animate}
                     preserveFinal={animation.preserveFinal}
+                    onHorizontalScrollActive={onSegmentPagerLockChange}
                   />
                 </View>
               )
