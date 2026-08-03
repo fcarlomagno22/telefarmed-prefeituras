@@ -1,18 +1,27 @@
 import { z } from 'zod'
 import { isValidCpf } from '../../lib/cpf.js'
+import { isClinicaGeralSpecialtyName } from '../../lib/rh3/walkInSpecialty.js'
 
 const formacaoSchema = z.enum(['medicina', 'psicologia', 'nutricao', 'fonoaudiologia'])
 
-const medicalSpecialtySchema = z.object({
-  specialty: z.string().trim().min(1, 'Selecione a especialidade.'),
-  rqe: z
-    .string()
-    .trim()
-    .refine((value) => {
-      const digits = value.replace(/\D/g, '')
-      return digits.length >= 3 && digits.length <= 8
-    }, 'Informe o RQE com 3 a 8 dígitos.'),
-})
+const medicalSpecialtySchema = z
+  .object({
+    specialty: z.string().trim().min(1, 'Selecione a especialidade.'),
+    rqe: z.string().trim().optional().default(''),
+  })
+  .superRefine((data, ctx) => {
+    // Clínica Geral (médico generalista) não exige RQE.
+    if (isClinicaGeralSpecialtyName(data.specialty)) return
+
+    const digits = data.rqe.replace(/\D/g, '')
+    if (digits.length < 3 || digits.length > 8) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Informe o RQE com 3 a 8 dígitos.',
+        path: ['rqe'],
+      })
+    }
+  })
 
 const enderecoSchema = z.object({
   cep: z.string().trim().min(8, 'CEP inválido.'),
@@ -128,7 +137,7 @@ const candidaturaDadosFieldsSchema = z
     if (data.medicalSpecialties.length === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Informe ao menos uma especialidade com RQE.',
+        message: 'Informe ao menos uma especialidade.',
         path: ['medicalSpecialties'],
       })
       return
@@ -169,10 +178,15 @@ export const candidaturaDadosSchema = z.preprocess(
     formacao: data.formation,
     especialidadesMedicas:
       data.formation === 'medicina'
-        ? data.medicalSpecialties.map((item) => ({
-            especialidadeNome: item.specialty.trim(),
-            rqe: item.rqe.replace(/\D/g, ''),
-          }))
+        ? data.medicalSpecialties.map((item) => {
+            const digits = item.rqe.replace(/\D/g, '')
+            return {
+              especialidadeNome: item.specialty.trim(),
+              rqe: isClinicaGeralSpecialtyName(item.specialty)
+                ? digits || null
+                : digits,
+            }
+          })
         : undefined,
     conselhoNumero: data.crm.replace(/\D/g, ''),
     conselhoUf: data.uf,

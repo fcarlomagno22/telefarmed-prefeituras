@@ -14,7 +14,7 @@ export type CandidaturaEndereco = {
 
 export type CandidaturaEspecialidadeMedicaInput = {
   especialidadeNome: string
-  rqe: string
+  rqe: string | null
 }
 
 export type SubmitCandidaturaInput = {

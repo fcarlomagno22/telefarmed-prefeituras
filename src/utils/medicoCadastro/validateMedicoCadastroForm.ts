@@ -1,3 +1,4 @@
+import { isClinicaGeralSpecialtyName } from '../../config/rh3WalkInSpecialty'
 import {
   getMedicoCadastroConselhoLabel,
   getMedicoCadastroDocumentFields,
@@ -100,7 +101,7 @@ export function validateMedicoCadastroSpecialtiesStep(
   }
 
   if (values.medicalSpecialties.length === 0) {
-    errors.medicalSpecialties = 'Informe ao menos uma especialidade com RQE.'
+    errors.medicalSpecialties = 'Informe ao menos uma especialidade.'
   }
 
   if (values.medicalSpecialties.length > MEDICO_CADASTRO_MAX_MEDICAL_SPECIALTIES) {
@@ -121,6 +122,9 @@ export function validateMedicoCadastroSpecialtiesStep(
       }
       seen.add(normalized)
     }
+
+    // Clínica Geral (médico generalista) não exige RQE.
+    if (isClinicaGeralSpecialtyName(item.specialty)) continue
 
     const rqeDigits = item.rqe.replace(/\D/g, '')
     if (rqeDigits.length < 3) {

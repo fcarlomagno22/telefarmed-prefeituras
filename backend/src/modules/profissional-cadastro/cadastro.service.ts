@@ -37,7 +37,7 @@ type IncomingDocument = {
 
 type ResolvedEspecialidadeMedica = {
   especialidadeId: string
-  rqe: string
+  rqe: string | null
 }
 
 async function resolveEspecialidadesMedicas(
@@ -49,7 +49,7 @@ async function resolveEspecialidadesMedicas(
     const especialidadeId = await resolveEspecialidadeIdByName(item.especialidadeNome)
     resolved.push({
       especialidadeId,
-      rqe: item.rqe,
+      rqe: item.rqe?.trim() ? item.rqe.trim() : null,
     })
   }
 
@@ -65,7 +65,7 @@ async function resolvePrimaryEspecialidadeId(input: SubmitCandidaturaInput): Pro
     const items = input.especialidadesMedicas ?? []
     if (items.length === 0) {
       throw new ProfissionalCadastroError(
-        'Informe ao menos uma especialidade com RQE.',
+        'Informe ao menos uma especialidade.',
         'INVALID_DATA',
         400,
       )

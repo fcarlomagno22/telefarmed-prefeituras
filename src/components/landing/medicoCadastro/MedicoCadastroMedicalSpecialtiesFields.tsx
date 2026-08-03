@@ -4,6 +4,7 @@ import {
   createMedicoCadastroMedicalSpecialty,
   MEDICO_CADASTRO_MAX_MEDICAL_SPECIALTIES,
 } from '../../../config/medicoCadastroForm'
+import { isClinicaGeralSpecialtyName } from '../../../config/rh3WalkInSpecialty'
 import type {
   MedicoCadastroFormErrors,
   MedicoCadastroMedicalSpecialty,
@@ -31,9 +32,9 @@ function specialtyErrorKey(
 }
 
 function isSpecialtyComplete(item: MedicoCadastroMedicalSpecialty): boolean {
-  return (
-    item.specialty.trim().length > 0 && item.rqe.replace(/\D/g, '').length >= 3
-  )
+  if (!item.specialty.trim()) return false
+  if (isClinicaGeralSpecialtyName(item.specialty)) return true
+  return item.rqe.replace(/\D/g, '').length >= 3
 }
 
 export function MedicoCadastroMedicalSpecialtiesFields({
@@ -143,13 +144,14 @@ export function MedicoCadastroMedicalSpecialtiesFields({
     ? errors[specialtyErrorKey(activeSpecialty.id, 'rqe')]
     : undefined
   const activeCardTitle = isPrincipalCard ? 'Especialidade principal' : 'Nova especialidade'
+  const isActiveClinicaGeral = isClinicaGeralSpecialtyName(activeSpecialty.specialty)
 
   return (
     <div className="space-y-3">
       <div className="flex items-start gap-2 rounded-xl border border-sky-100 bg-sky-50/90 px-3 py-2.5 text-xs leading-relaxed text-sky-900">
         <p>
-          Informe todas as especialidades em que você possui RQE. A primeira é considerada sua
-          especialidade principal.
+          Informe suas especialidades. O RQE é obrigatório, exceto para Clínica Geral. A primeira é
+          considerada sua especialidade principal.
         </p>
       </div>
 
@@ -170,7 +172,14 @@ export function MedicoCadastroMedicalSpecialtiesFields({
                   ) : null}
                 </div>
                 <p className="mt-0.5 text-xs text-gray-600">
-                  RQE <span className="font-medium tabular-nums text-gray-800">{item.rqe}</span>
+                  {isClinicaGeralSpecialtyName(item.specialty) || !item.rqe.trim() ? (
+                    'RQE não aplicável'
+                  ) : (
+                    <>
+                      RQE{' '}
+                      <span className="font-medium tabular-nums text-gray-800">{item.rqe}</span>
+                    </>
+                  )}
                 </p>
               </div>
 
@@ -208,7 +217,12 @@ export function MedicoCadastroMedicalSpecialtiesFields({
             <MedicoCadastroFormField label="Especialidade" error={activeSpecialtyError}>
               <CustomSelect
                 value={activeSpecialty.specialty}
-                onChange={(value) => patchActiveSpecialty({ specialty: value })}
+                onChange={(value) =>
+                  patchActiveSpecialty({
+                    specialty: value,
+                    ...(isClinicaGeralSpecialtyName(value) ? { rqe: '' } : {}),
+                  })
+                }
                 options={optionsForActiveRow()}
                 placeholder="Selecione"
                 required
@@ -219,11 +233,16 @@ export function MedicoCadastroMedicalSpecialtiesFields({
 
             <MedicoCadastroFormField label="RQE" error={activeRqeError}>
               <input
-                className={medicoCadastroInputClass(Boolean(activeRqeError))}
+                className={`${medicoCadastroInputClass(Boolean(activeRqeError))} ${
+                  isActiveClinicaGeral ? 'cursor-not-allowed bg-gray-100 text-gray-400' : ''
+                }`}
                 type="text"
                 inputMode="numeric"
-                placeholder="Número do RQE"
-                value={activeSpecialty.rqe}
+                placeholder={
+                  isActiveClinicaGeral ? 'Não necessário para Clínica Geral' : 'Número do RQE'
+                }
+                value={isActiveClinicaGeral ? '' : activeSpecialty.rqe}
+                disabled={isActiveClinicaGeral}
                 onChange={(e) =>
                   patchActiveSpecialty({
                     rqe: e.target.value.replace(/\D/g, '').slice(0, 8),
@@ -248,14 +267,18 @@ export function MedicoCadastroMedicalSpecialtiesFields({
 
       {isPrincipalCard && showDraftCard ? (
         <p className="text-center text-[11px] text-gray-500">
-          Selecione sua especialidade principal e informe o RQE para continuar.
+          {isActiveClinicaGeral
+            ? 'Clínica Geral não exige RQE. Selecione a especialidade para continuar.'
+            : 'Selecione sua especialidade principal e informe o RQE para continuar.'}
         </p>
       ) : null}
 
       {canCloseDraft && hasIncompleteLast ? (
         <p className="text-center text-[11px] text-gray-500">
-          Preencha a especialidade e o RQE, ou clique em <span className="font-medium">Fechar</span>{' '}
-          para descartar.
+          {isActiveClinicaGeral
+            ? 'Selecione a especialidade, ou clique em '
+            : 'Preencha a especialidade e o RQE, ou clique em '}
+          <span className="font-medium">Fechar</span> para descartar.
         </p>
       ) : null}
     </div>
