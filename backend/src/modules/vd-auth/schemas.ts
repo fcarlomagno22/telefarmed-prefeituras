@@ -36,3 +36,7 @@ export const vdPasswordRecoveryCompleteSchema = z.object({
   verificationToken: z.string().trim().min(16).max(512),
   password: z.string().trim().min(8).max(128),
 })
+
+export const vdUpdateFotoSchema = z.object({
+  fotoDataUrl: z.string().trim().min(1).max(8_000_000),
+})

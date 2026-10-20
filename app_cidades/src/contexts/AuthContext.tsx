@@ -26,7 +26,13 @@ import {
   syncInitialNavigationHistoryState,
 } from '../adapters/webNavigationHistory'
 import type { WebNavigationHistoryEntry } from '../adapters/webNavigationUrl'
-import { login as vdLogin, logout as vdLogout, register as vdRegister } from '../lib/api/vd'
+import {
+  deleteProfileFoto,
+  login as vdLogin,
+  logout as vdLogout,
+  register as vdRegister,
+  updateProfileFoto,
+} from '../lib/api/vd'
 import { VdApiError } from '../lib/api/vd/client'
 import { registerVdAccessTokenRefresh } from '../lib/api/vd/vdAuthRefresh'
 import { useVdAuthSessionGuard } from '../hooks/useVdAuthSessionGuard'
@@ -496,26 +502,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetNavigationHistoryState('home', null)
   }, [])
 
+  const persistLocalUserSession = useCallback(async (nextUser: AuthUser) => {
+    await persistAuthUser(nextUser)
+
+    const storedBiometricSession = await AsyncStorage.getItem(BIOMETRIC_SESSION_KEY)
+    if (!storedBiometricSession) return
+
+    const biometricUser = JSON.parse(storedBiometricSession) as AuthUser
+    if (cpfDigits(biometricUser.cpf) === cpfDigits(nextUser.cpf)) {
+      await AsyncStorage.setItem(BIOMETRIC_SESSION_KEY, JSON.stringify(nextUser))
+    }
+  }, [])
+
   const updateSelfie = useCallback(
     async (selfieUri: string | null) => {
       if (!user) return
 
-      const nextUser: AuthUser = { ...user, selfieUri }
-      setUser(nextUser)
+      const previousUser = user
+      const hasAccessToken = Boolean(getVdAccessToken())
 
-      void (async () => {
-        await persistAuthUser(nextUser)
+      // Sem token (convidado): só estado local.
+      if (!hasAccessToken) {
+        const nextUser: AuthUser = { ...user, selfieUri }
+        setUser(nextUser)
+        await persistLocalUserSession(nextUser)
+        return
+      }
 
-        const storedBiometricSession = await AsyncStorage.getItem(BIOMETRIC_SESSION_KEY)
-        if (storedBiometricSession) {
-          const biometricUser = JSON.parse(storedBiometricSession) as AuthUser
-          if (cpfDigits(biometricUser.cpf) === cpfDigits(user.cpf)) {
-            await AsyncStorage.setItem(BIOMETRIC_SESSION_KEY, JSON.stringify(nextUser))
-          }
+      if (selfieUri === null) {
+        const nextUser: AuthUser = { ...user, selfieUri: null }
+        setUser(nextUser)
+        try {
+          await deleteProfileFoto()
+          await persistLocalUserSession(nextUser)
+        } catch (error) {
+          setUser(previousUser)
+          await persistLocalUserSession(previousUser)
+          throw error
         }
-      })()
+        return
+      }
+
+      const optimisticUser: AuthUser = { ...user, selfieUri }
+      setUser(optimisticUser)
+
+      try {
+        const photoDataUrl = await profilePhotoToDataUri(selfieUri)
+        if (!photoDataUrl) {
+          throw new VdApiError('Não foi possível processar a foto.', 400, 'INVALID_PHOTO')
+        }
+
+        const { avatarUrl } = await updateProfileFoto(photoDataUrl)
+        const nextUser: AuthUser = { ...user, selfieUri: avatarUrl }
+        setUser(nextUser)
+        await persistLocalUserSession(nextUser)
+      } catch (error) {
+        setUser(previousUser)
+        await persistLocalUserSession(previousUser)
+        throw error
+      }
     },
-    [user],
+    [persistLocalUserSession, user],
   )
 
   const updateContact = useCallback(
@@ -528,20 +575,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...(patch.phone !== undefined ? { phone: patch.phone } : {}),
       }
       setUser(nextUser)
-
-      void (async () => {
-        await persistAuthUser(nextUser)
-
-        const storedBiometricSession = await AsyncStorage.getItem(BIOMETRIC_SESSION_KEY)
-        if (storedBiometricSession) {
-          const biometricUser = JSON.parse(storedBiometricSession) as AuthUser
-          if (cpfDigits(biometricUser.cpf) === cpfDigits(user.cpf)) {
-            await AsyncStorage.setItem(BIOMETRIC_SESSION_KEY, JSON.stringify(nextUser))
-          }
-        }
-      })()
+      void persistLocalUserSession(nextUser)
     },
-    [user],
+    [persistLocalUserSession, user],
   )
 
   const canUseBiometricLogin =

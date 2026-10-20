@@ -117,22 +117,27 @@ export function ProfileAvatar({ selfieUri, embedded = false }: ProfileAvatarProp
   }
 
   async function handleDeleteConfirm() {
-    await updateSelfie(null)
+    try {
+      await updateSelfie(null)
+    } catch {
+      Alert.alert('Erro', 'Não foi possível excluir a foto. Tente novamente.')
+    }
   }
 
   async function handleCropConfirm(uri: string) {
     setCropVisible(false)
     setPendingCropUri(null)
     setPendingCropSize(null)
-    void updateSelfie(uri)
 
     try {
       const savedUri = await persistProfilePhoto(uri, selfieUri)
-      if (savedUri !== uri) {
-        void updateSelfie(savedUri)
-      }
+      await updateSelfie(savedUri)
     } catch {
-      // Mantém a URI temporária se a persistência falhar.
+      try {
+        await updateSelfie(uri)
+      } catch {
+        Alert.alert('Erro', 'Não foi possível salvar a foto. Tente novamente.')
+      }
     }
   }
 

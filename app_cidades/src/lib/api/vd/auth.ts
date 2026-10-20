@@ -59,3 +59,25 @@ export async function fetchMe(accessToken: string, scope?: VdTenantScope): Promi
   })
   return result.user
 }
+
+export async function updateProfileFoto(
+  fotoDataUrl: string,
+  scope?: VdTenantScope,
+): Promise<{ avatarUrl: string }> {
+  return vdRequest<{ avatarUrl: string }>({
+    method: 'PUT',
+    path: '/vd/auth/me/foto',
+    body: { fotoDataUrl },
+    tenantScope: scope,
+    credentials: 'include',
+  })
+}
+
+export async function deleteProfileFoto(scope?: VdTenantScope): Promise<void> {
+  await vdRequest<{ ok: true; avatarUrl: null }>({
+    method: 'DELETE',
+    path: '/vd/auth/me/foto',
+    tenantScope: scope,
+    credentials: 'include',
+  })
+}

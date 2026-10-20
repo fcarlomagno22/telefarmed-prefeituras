@@ -14,6 +14,8 @@ import {
   VD_REFRESH_COOKIE,
 } from '../../lib/vdAuthSession.js'
 import { resolveRequestHost, resolveVdCadastroEntidadeScopeDetailed } from '../vd-cadastro/scope.js'
+import { mapVdCadastroError, VdCadastroError } from '../vd-cadastro/errors.js'
+import { deleteVdPacienteFoto, updateVdPacienteFoto } from '../vd-cadastro/foto.service.js'
 import { mapVdAuthError, requireVdAuth } from './middleware.js'
 import {
   loginBodySchema,
@@ -22,6 +24,7 @@ import {
   vdPasswordRecoveryCompleteSchema,
   vdPasswordRecoveryRequestSchema,
   vdPasswordRecoveryVerifySchema,
+  vdUpdateFotoSchema,
 } from './schemas.js'
 import {
   completeVdPasswordRecovery,
@@ -169,6 +172,57 @@ export async function registerVdAuthRoutes(app: FastifyInstance): Promise<void> 
       const mapped = mapVdAuthError(error)
       return reply.status(mapped.statusCode).send(mapped.body)
     }
+  })
+
+  app.put('/me/foto', {
+    preHandler: requireVdAuth,
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    handler: async (request, reply) => {
+      const user = request.vdUser
+      if (!user) {
+        return reply.status(401).send({ error: 'Não autenticado.' })
+      }
+
+      const parsed = vdUpdateFotoSchema.safeParse(request.body ?? {})
+      if (!parsed.success) {
+        return reply.status(400).send({ error: 'Foto inválida.' })
+      }
+
+      try {
+        const result = await updateVdPacienteFoto(user.pacienteId, parsed.data.fotoDataUrl)
+        return reply.send(result)
+      } catch (error) {
+        if (error instanceof VdCadastroError) {
+          const mapped = mapVdCadastroError(error)
+          return reply.status(mapped.statusCode).send(mapped.body)
+        }
+        const mapped = mapVdAuthError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
+  })
+
+  app.delete('/me/foto', {
+    preHandler: requireVdAuth,
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    handler: async (request, reply) => {
+      const user = request.vdUser
+      if (!user) {
+        return reply.status(401).send({ error: 'Não autenticado.' })
+      }
+
+      try {
+        await deleteVdPacienteFoto(user.pacienteId)
+        return reply.send({ ok: true, avatarUrl: null })
+      } catch (error) {
+        if (error instanceof VdCadastroError) {
+          const mapped = mapVdCadastroError(error)
+          return reply.status(mapped.statusCode).send(mapped.body)
+        }
+        const mapped = mapVdAuthError(error)
+        return reply.status(mapped.statusCode).send(mapped.body)
+      }
+    },
   })
 
   app.post('/recuperacao-senha/solicitar', {

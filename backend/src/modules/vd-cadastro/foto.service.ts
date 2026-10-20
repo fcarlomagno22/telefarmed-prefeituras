@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../../db/supabase.js'
 import {
+  resolvePacienteFotoPublicUrl,
   resolvePacienteFotoStoragePath,
   toStoredPacienteFotoReference,
 } from '../../lib/pacienteFoto.js'
@@ -79,6 +80,48 @@ export async function uploadVdPacienteFoto(
   }
 
   return storedReference
+}
+
+/** Upload + URL pública assinada (perfil autenticado no app VD). */
+export async function updateVdPacienteFoto(
+  pacienteId: string,
+  photoDataUrl: string,
+): Promise<{ avatarUrl: string }> {
+  const storedReference = await uploadVdPacienteFoto(pacienteId, photoDataUrl)
+  const avatarUrl = await resolvePacienteFotoPublicUrl(storedReference)
+  if (!avatarUrl) {
+    throw new VdCadastroError('Não foi possível gerar URL da foto.', 'INVALID_DATA', 500)
+  }
+  return { avatarUrl }
+}
+
+/** Remove foto do storage e limpa `pacientes.foto_url`. */
+export async function deleteVdPacienteFoto(pacienteId: string): Promise<void> {
+  const { data: currentRow, error: currentError } = await supabaseAdmin
+    .from('pacientes')
+    .select('foto_url')
+    .eq('id', pacienteId)
+    .maybeSingle()
+
+  if (currentError) throw currentError
+  if (!currentRow) {
+    throw new VdCadastroError('Paciente não encontrado.', 'NOT_FOUND', 404)
+  }
+
+  const previousPath = resolvePacienteFotoStoragePath(
+    currentRow.foto_url ? String(currentRow.foto_url) : null,
+  )
+
+  const { error: updateError } = await supabaseAdmin
+    .from('pacientes')
+    .update({ foto_url: null })
+    .eq('id', pacienteId)
+
+  if (updateError) throw updateError
+
+  if (previousPath) {
+    await supabaseAdmin.storage.from(FOTOS_BUCKET).remove([previousPath])
+  }
 }
 
 export function isPacientePhotoDataUrl(value: string | undefined): boolean {

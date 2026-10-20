@@ -9,7 +9,7 @@ export {
 
 export { fetchTenant, fetchVdPublicTenant } from './tenant'
 export { checkCepEligibility, lookupCpf, register } from './cadastro'
-export { fetchMe, login, logout, refresh } from './auth'
+export { deleteProfileFoto, fetchMe, login, logout, refresh, updateProfileFoto } from './auth'
 export {
   activateRunWalkContatoConfiancaSos,
   createRunWalkLocalComentario,
