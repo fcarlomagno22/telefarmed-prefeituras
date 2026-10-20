@@ -1,7 +1,8 @@
 import { colors } from '../theme/colors'
 
-/** Cor das barras do sistema (status + navegação Android em PWA). */
-export const WEB_CHROME_COLOR = colors.background
+/** Cor das barras do sistema (status / theme-color no topo do PWA). */
+export const WEB_CHROME_COLOR = '#ffffff'
+/** Fundo da página (abaixo do chrome). */
 export const WEB_APP_BACKGROUND = colors.background
 const WEB_CHROME_STYLE_ID = 'telefarmed-web-chrome-styles'
 

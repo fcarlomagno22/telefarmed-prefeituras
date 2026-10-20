@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import {
+  WEB_APP_BACKGROUND,
   WEB_CHROME_COLOR,
   applyWebChromeColor,
   shouldUseAndroidWebImmersive,
@@ -20,6 +21,6 @@ export function useAndroidPwaImmersive() {
     if (!shouldUseAndroidWebImmersive()) return
 
     exitDocumentFullscreenIfActive()
-    applyWebChromeColor(WEB_CHROME_COLOR, WEB_CHROME_COLOR, { colorScheme: 'light' })
+    applyWebChromeColor(WEB_CHROME_COLOR, WEB_APP_BACKGROUND, { colorScheme: 'light' })
   }, [])
 }

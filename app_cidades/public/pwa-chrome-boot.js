@@ -1,11 +1,12 @@
 (function () {
   'use strict'
 
-  var CHROME = '#f5f5f7'
+  var CHROME = '#ffffff'
+  var APP_BG = '#f5f5f7'
   var root = document.documentElement
 
   root.style.colorScheme = 'light'
-  root.style.backgroundColor = CHROME
+  root.style.backgroundColor = APP_BG
 
   function upsertMeta(name, content) {
     var meta = document.querySelector('meta[name="' + name + '"]:not([media])')
@@ -29,7 +30,7 @@
   upsertMeta('color-scheme', 'light')
 
   if (document.body) {
-    document.body.style.backgroundColor = CHROME
+    document.body.style.backgroundColor = APP_BG
   }
 
   function syncViewportHeight() {

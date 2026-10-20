@@ -4,7 +4,7 @@ import type { AppColorScheme } from '../data/appColorSchemeStorage'
 import { useTenant } from './TenantContext'
 import { buildThemeColorsFromPrimary } from '../theme/buildPaletteFromPrimary'
 import { getThemeColors, type ThemeColors } from '../theme/palettes'
-import { applyWebChromeColor } from '../adapters/webChromeTheme'
+import { WEB_CHROME_COLOR, applyWebChromeColor } from '../adapters/webChromeTheme'
 import { resolveThemeBackgroundImage } from '../utils/resolveBrandImage'
 
 type ThemeContextValue = {
@@ -40,7 +40,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   )
 
   useEffect(() => {
-    applyWebChromeColor(colors.background, colors.background, {
+    applyWebChromeColor(WEB_CHROME_COLOR, colors.background, {
       colorScheme: DEFAULT_COLOR_SCHEME,
     })
   }, [colors.background])

@@ -61,10 +61,15 @@ html = html.replace(
   '',
 )
 
+html = html.replace(
+  /<meta name="theme-color"[^>]*>/g,
+  '<meta name="theme-color" content="#ffffff" />',
+)
+
 if (!html.includes('name="theme-color"')) {
   html = html.replace(
     '<meta charset="utf-8" />',
-    '<meta charset="utf-8" />\n    <meta name="theme-color" content="#f5f5f7" />',
+    '<meta charset="utf-8" />\n    <meta name="theme-color" content="#ffffff" />',
   )
 }
 
