@@ -114,8 +114,9 @@ function buildLiveMapHtml(options: {
     L.tileLayer('${TRAIL_MAP_TILE_URL}', {
       maxZoom: ${MAP_TILE_LAYER_OPTIONS.maxZoom},
       subdomains: '${MAP_TILE_LAYER_OPTIONS.subdomains}',
-      updateWhenIdle: ${MAP_TILE_LAYER_OPTIONS.updateWhenIdle},
-      keepBuffer: ${MAP_TILE_LAYER_OPTIONS.keepBuffer},
+      updateWhenIdle: false,
+      updateWhenZooming: true,
+      keepBuffer: 6,
     }).addTo(map);
 
     let polyline = null;

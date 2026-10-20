@@ -157,5 +157,8 @@ export function createLiveShareTrackingLeafletMap(L: any, host: HTMLElement) {
 export function addLiveShareTrackingTileLayer(L: any, map: any) {
   return L.tileLayer(NEARBY_UNITS_TILE_URL, {
     ...NEARBY_UNITS_TILE_LAYER_OPTIONS,
+    updateWhenIdle: false,
+    updateWhenZooming: true,
+    keepBuffer: 6,
   }).addTo(map)
 }

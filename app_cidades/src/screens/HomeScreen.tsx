@@ -45,7 +45,7 @@ export function HomeScreen() {
 
   function handleQuickAction(actionId: HomeQuickActionId) {
     if (actionId === 'schedule') {
-      navigateTo('schedule-appointment')
+      requireAuth('quick:schedule', () => navigateTo('schedule-appointment'))
       return
     }
 
@@ -92,7 +92,7 @@ export function HomeScreen() {
 
   function handleVidaAction(actionId: VidaSaudavelActionId) {
     if (actionId === 'my-metrics') {
-      navigateTo('my-metrics')
+      requireAuth('vida:my-metrics', () => navigateTo('my-metrics'))
       return
     }
 
@@ -138,20 +138,26 @@ export function HomeScreen() {
 
   function handleTabPress(tab: BottomTabId) {
     if (tab === 'menu') {
-      setMenuVisible(true)
-      setActiveTab('menu')
+      requireAuth('tab:menu', () => {
+        setMenuVisible(true)
+        setActiveTab('menu')
+      })
       return
     }
 
     if (tab === 'agendar') {
-      setMenuVisible(false)
-      navigateTo('schedule-appointment')
+      requireAuth('tab:agendar', () => {
+        setMenuVisible(false)
+        navigateTo('schedule-appointment')
+      })
       return
     }
 
     if (tab === 'my-metrics') {
-      setMenuVisible(false)
-      navigateTo('my-metrics')
+      requireAuth('vida:my-metrics', () => {
+        setMenuVisible(false)
+        navigateTo('my-metrics')
+      })
       return
     }
 

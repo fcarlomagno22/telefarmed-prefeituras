@@ -361,15 +361,17 @@ export function MenuDrawer({
               >
                 <View style={styles.footerDivider} />
 
-                <Pressable
-                  onPress={handleLogoutPress}
-                  style={({ pressed }) => [styles.logoutLine, pressed && styles.menuLinePressed]}
-                  accessibilityRole="button"
-                  accessibilityLabel="Sair"
-                >
-                  <Ionicons name="log-out-outline" size={20} color={colors.error} />
-                  <Text style={styles.logoutText}>Sair</Text>
-                </Pressable>
+                {isAuthenticated ? (
+                  <Pressable
+                    onPress={handleLogoutPress}
+                    style={({ pressed }) => [styles.logoutLine, pressed && styles.menuLinePressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Sair"
+                  >
+                    <Ionicons name="log-out-outline" size={20} color={colors.error} />
+                    <Text style={styles.logoutText}>Sair</Text>
+                  </Pressable>
+                ) : null}
 
                 <View style={styles.logoWrap}>
                   <Image source={logoSource} style={styles.logo} contentFit="contain" />

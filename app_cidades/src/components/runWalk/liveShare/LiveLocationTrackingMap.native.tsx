@@ -55,6 +55,9 @@ function buildLiveLocationTrackingMapHtml({
       L.tileLayer('${LIVE_SHARE_MAP_TILE_URL}', {
         maxZoom: ${MAP_TILE_LAYER_OPTIONS.maxZoom},
         subdomains: '${MAP_TILE_LAYER_OPTIONS.subdomains}',
+        updateWhenIdle: false,
+        updateWhenZooming: true,
+        keepBuffer: 6,
       }).addTo(map);
 
       let polyline = null;

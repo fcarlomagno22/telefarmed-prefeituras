@@ -468,14 +468,18 @@ export function MyAppointmentsScreen() {
     }
 
     if (tab === 'menu') {
-      setMenuVisible(true)
-      setBottomTab('menu')
+      requireAuth('tab:menu', () => {
+        setMenuVisible(true)
+        setBottomTab('menu')
+      })
       return
     }
 
     if (tab === 'agendar') {
-      setMenuVisible(false)
-      navigateTo('schedule-appointment')
+      requireAuth('tab:agendar', () => {
+        setMenuVisible(false)
+        navigateTo('schedule-appointment')
+      })
       return
     }
 

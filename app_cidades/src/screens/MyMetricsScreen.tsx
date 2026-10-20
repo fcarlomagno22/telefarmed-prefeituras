@@ -1623,14 +1623,18 @@ export function MyMetricsScreen() {
     }
 
     if (tab === 'menu') {
-      setMenuVisible(true)
-      setActiveTab('menu')
+      requireAuth('tab:menu', () => {
+        setMenuVisible(true)
+        setActiveTab('menu')
+      })
       return
     }
 
     if (tab === 'agendar') {
-      setMenuVisible(false)
-      navigateTo('schedule-appointment')
+      requireAuth('tab:agendar', () => {
+        setMenuVisible(false)
+        navigateTo('schedule-appointment')
+      })
       return
     }
 

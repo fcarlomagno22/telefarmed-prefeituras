@@ -27,6 +27,7 @@ import {
   setSleepStoryRead,
 } from '../data/sleepStoriesReadStorage'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
@@ -40,6 +41,7 @@ export function SleepStoriesScreen() {
   const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { user, navigateTo, goBack, canGoBack, logout } = useAuth()
+  const { requireAuth } = useGuestAuth()
 
   const [menuVisible, setMenuVisible] = useState(false)
   const [filterVisible, setFilterVisible] = useState(false)
@@ -80,15 +82,17 @@ export function SleepStoriesScreen() {
 
   function handleTabPress(tab: BottomTabId) {
     if (tab === 'menu') {
-      setMenuVisible(true)
+      requireAuth('tab:menu', () => {
+        setMenuVisible(true)
+      })
       return
     }
 
     setMenuVisible(false)
 
     if (tab === 'home') navigateTo('home')
-    else if (tab === 'my-metrics') navigateTo('my-metrics')
-    else if (tab === 'agendar') navigateTo('schedule-appointment')
+    else if (tab === 'my-metrics') requireAuth('vida:my-metrics', () => navigateTo('my-metrics'))
+    else if (tab === 'agendar') requireAuth('tab:agendar', () => navigateTo('schedule-appointment'))
     else if (tab === 'pos-consulta') navigateTo('post-consultation')
   }
 

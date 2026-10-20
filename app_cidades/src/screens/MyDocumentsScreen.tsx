@@ -296,19 +296,25 @@ export function MyDocumentsScreen() {
     }
 
     if (tab === 'menu') {
-      setMenuVisible(true)
+      requireAuth('tab:menu', () => {
+        setMenuVisible(true)
+      })
       return
     }
 
     if (tab === 'agendar') {
-      setMenuVisible(false)
-      navigateTo('schedule-appointment')
+      requireAuth('tab:agendar', () => {
+        setMenuVisible(false)
+        navigateTo('schedule-appointment')
+      })
       return
     }
 
     if (tab === 'my-metrics') {
-      setMenuVisible(false)
-      navigateTo('my-metrics')
+      requireAuth('vida:my-metrics', () => {
+        setMenuVisible(false)
+        navigateTo('my-metrics')
+      })
       return
     }
 

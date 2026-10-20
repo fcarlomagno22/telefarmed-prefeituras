@@ -177,7 +177,9 @@ export function FunctionalTrainingScreen() {
 
   function handleTabPress(tab: BottomTabId) {
     if (tab === 'menu') {
-      setMenuVisible(true)
+      requireAuth('tab:menu', () => {
+        setMenuVisible(true)
+      })
       return
     }
 
@@ -189,12 +191,12 @@ export function FunctionalTrainingScreen() {
     }
 
     if (tab === 'agendar') {
-      navigateTo('schedule-appointment')
+      requireAuth('tab:agendar', () => navigateTo('schedule-appointment'))
       return
     }
 
     if (tab === 'my-metrics') {
-      navigateTo('my-metrics')
+      requireAuth('vida:my-metrics', () => navigateTo('my-metrics'))
       return
     }
 

@@ -23,6 +23,7 @@ import { ScreenStackHeader } from '../components/ScreenStackHeader'
 import { ACTIVE_MIND_DIFFICULTY_OPTIONS } from '../config/activeMindDifficulty'
 import { getActiveMindGameById } from '../config/activeMindGames'
 import { useAuth } from '../contexts/AuthContext'
+import { useGuestAuth } from '../contexts/GuestAuthContext'
 import { useTheme } from '../contexts/ThemeContext'
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler'
 import { colors } from '../theme/colors'
@@ -35,6 +36,7 @@ export function ActiveMindDifficultyScreen() {
   const { backgroundSource, colors: themeColors } = useTheme()
   const insets = useSafeAreaInsets()
   const { user, routeParams, goBack, canGoBack, navigateTo, logout } = useAuth()
+  const { requireAuth } = useGuestAuth()
   const activeMindParams = getActiveMindRouteParams(routeParams)
 
   const [menuVisible, setMenuVisible] = useState(false)
@@ -71,15 +73,17 @@ export function ActiveMindDifficultyScreen() {
 
   function handleTabPress(tab: BottomTabId) {
     if (tab === 'menu') {
-      setMenuVisible(true)
+      requireAuth('tab:menu', () => {
+        setMenuVisible(true)
+      })
       return
     }
 
     setMenuVisible(false)
 
     if (tab === 'home') navigateTo('home')
-    else if (tab === 'my-metrics') navigateTo('my-metrics')
-    else if (tab === 'agendar') navigateTo('schedule-appointment')
+    else if (tab === 'my-metrics') requireAuth('vida:my-metrics', () => navigateTo('my-metrics'))
+    else if (tab === 'agendar') requireAuth('tab:agendar', () => navigateTo('schedule-appointment'))
     else if (tab === 'pos-consulta') navigateTo('post-consultation')
   }
 

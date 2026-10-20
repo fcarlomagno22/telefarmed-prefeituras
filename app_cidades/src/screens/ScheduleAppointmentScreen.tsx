@@ -453,8 +453,10 @@ export function ScheduleAppointmentScreen() {
     }
 
     if (tab === 'menu') {
-      setMenuVisible(true)
-      setBottomTab('menu')
+      requireAuth('tab:menu', () => {
+        setMenuVisible(true)
+        setBottomTab('menu')
+      })
       return
     }
 
@@ -465,8 +467,10 @@ export function ScheduleAppointmentScreen() {
     }
 
     if (tab === 'my-metrics') {
-      closeMenu()
-      navigateTo('my-metrics')
+      requireAuth('vida:my-metrics', () => {
+        closeMenu()
+        navigateTo('my-metrics')
+      })
       return
     }
 

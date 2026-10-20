@@ -10,6 +10,8 @@ export const MAP_TILE_PREFETCH_SUBDOMAINS = ['a', 'b', 'c', 'd'] as const
 export const MAP_TILE_LAYER_OPTIONS = {
   maxZoom: 20,
   subdomains: 'abcd',
-  updateWhenIdle: true,
-  keepBuffer: 2,
+  /** false: carrega tiles durante o pan (necessário no GPS ao vivo; true deixa quadrados cinza). */
+  updateWhenIdle: false,
+  updateWhenZooming: true,
+  keepBuffer: 4,
 } as const
