@@ -10,6 +10,7 @@ import {
   SPOT_PICKER_USER_PIN_HTML,
   type RunningRouteSpotPickerMapProps,
 } from './runningRouteSpotPickerMapShared'
+import { MAP_TILE_LAYER_OPTIONS } from '../../../config/mapTiles'
 
 type LeafletNamespace = {
   map: (element: HTMLElement, options: Record<string, unknown>) => LeafletMap
@@ -149,7 +150,7 @@ export function RunningRouteSpotPickerMap({
       }).setView([initialLatitude, initialLongitude], initialZoom)
 
       L.tileLayer(SPOT_PICKER_TILE_URL, {
-        maxZoom: 19,
+        ...MAP_TILE_LAYER_OPTIONS,
       }).addTo(map)
 
       const pickIcon = L.divIcon({

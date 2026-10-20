@@ -1,0 +1,18 @@
+# Self-host de tiles raster para o Leaflet do app_cidades (sem API key / sem limite por request).
+#
+# 1) Coloque um arquivo .mbtiles em ./data (ex.: extrato Brasil do OpenFreeMap / OpenMapTiles)
+# 2) docker compose up -d
+# 3) No app_cidades/.env:
+#    EXPO_PUBLIC_MAP_TILE_URL=http://localhost:8082/styles/basic-preview/{z}/{x}/{y}.png
+#    (ajuste o nome do style conforme o TileServer listar em http://localhost:8082)
+#
+# Em produção, publique este serviço atrás de um domínio (CDN) e use a mesma env na Vercel.
+
+services:
+  map-tiles:
+    image: maptiler/tileserver-gl:latest
+    ports:
+      - '8082:8080'
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

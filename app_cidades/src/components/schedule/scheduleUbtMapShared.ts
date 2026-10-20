@@ -1,3 +1,4 @@
+import { MAP_TILE_URL } from '../../config/mapTiles'
 import type { ScheduleUbtWithDistance } from '../../types/scheduleUbt'
 import type { GeoCoordinates } from '../../utils/geo'
 
@@ -21,7 +22,7 @@ export type ScheduleUbtMapMarker = {
 export const SCHEDULE_UBT_LEAFLET_CSS_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
 export const SCHEDULE_UBT_LEAFLET_JS_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
 
-export const SCHEDULE_UBT_STREET_TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+export const SCHEDULE_UBT_STREET_TILE_URL = MAP_TILE_URL
 export const SCHEDULE_UBT_SATELLITE_TILE_URL =
   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
 export const SCHEDULE_UBT_LABELS_TILE_URL =

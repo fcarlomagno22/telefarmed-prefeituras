@@ -8,6 +8,7 @@ import {
   NEARBY_UNITS_LEAFLET_CSS_URL,
   NEARBY_UNITS_LEAFLET_JS_URL,
   NEARBY_UNITS_MAP_CUSTOM_CSS,
+  NEARBY_UNITS_TILE_LAYER_OPTIONS,
   NEARBY_UNITS_TILE_URL,
   type NearbyUnitsMapProps,
 } from './nearbyUnitsMapShared'
@@ -43,8 +44,8 @@ function buildNearbyUnitsMapHtml({
         .setView([${flyLat}, ${flyLng}], ${flyZoom});
 
       L.tileLayer('${NEARBY_UNITS_TILE_URL}', {
-        maxZoom: 19,
-        subdomains: 'abcd',
+        maxZoom: ${NEARBY_UNITS_TILE_LAYER_OPTIONS.maxZoom},
+        subdomains: '${NEARBY_UNITS_TILE_LAYER_OPTIONS.subdomains}',
       }).addTo(map);
 
       const userIcon = L.divIcon({

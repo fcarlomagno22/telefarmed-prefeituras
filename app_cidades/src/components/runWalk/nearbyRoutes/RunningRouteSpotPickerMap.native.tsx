@@ -12,6 +12,7 @@ import {
   SPOT_PICKER_USER_PIN_HTML,
   type RunningRouteSpotPickerMapProps,
 } from './runningRouteSpotPickerMapShared'
+import { MAP_TILE_LAYER_OPTIONS } from '../../../config/mapTiles'
 
 function buildPickerMapHtml(
   initialLatitude: number,
@@ -53,7 +54,8 @@ function buildPickerMapHtml(
     }).setView([initialLat, initialLng], initialZoom);
 
     L.tileLayer('${SPOT_PICKER_TILE_URL}', {
-      maxZoom: 19,
+      maxZoom: ${MAP_TILE_LAYER_OPTIONS.maxZoom},
+      subdomains: '${MAP_TILE_LAYER_OPTIONS.subdomains}',
     }).addTo(map);
 
     const pickIcon = L.divIcon({

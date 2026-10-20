@@ -13,6 +13,7 @@ import {
   liveSharePointsToTrail,
   type LiveLocationTrackingMapProps,
 } from './liveLocationTrackingMapShared'
+import { MAP_TILE_LAYER_OPTIONS } from '../../../config/mapTiles'
 
 function buildLiveLocationTrackingMapHtml({
   points,
@@ -52,8 +53,8 @@ function buildLiveLocationTrackingMapHtml({
       }).setView([${centerLat}, ${centerLng}], ${initialZoom});
 
       L.tileLayer('${LIVE_SHARE_MAP_TILE_URL}', {
-        maxZoom: 19,
-        subdomains: 'abcd',
+        maxZoom: ${MAP_TILE_LAYER_OPTIONS.maxZoom},
+        subdomains: '${MAP_TILE_LAYER_OPTIONS.subdomains}',
       }).addTo(map);
 
       let polyline = null;

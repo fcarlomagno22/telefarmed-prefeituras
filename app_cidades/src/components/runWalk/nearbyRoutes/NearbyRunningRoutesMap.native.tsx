@@ -16,6 +16,7 @@ import {
   RUNNING_ROUTES_TILE_URL,
   type NearbyRunningRoutesMapProps,
 } from './nearbyRunningRoutesMapShared'
+import { MAP_TILE_LAYER_OPTIONS } from '../../../config/mapTiles'
 
 function buildNearbyRunningRoutesMapHtml({
   origin,
@@ -57,8 +58,8 @@ function buildNearbyRunningRoutesMapHtml({
         .setView([${flyLat}, ${flyLng}], ${flyZoom});
 
       L.tileLayer('${RUNNING_ROUTES_TILE_URL}', {
-        maxZoom: 19,
-        subdomains: 'abcd',
+        maxZoom: ${MAP_TILE_LAYER_OPTIONS.maxZoom},
+        subdomains: '${MAP_TILE_LAYER_OPTIONS.subdomains}',
       }).addTo(map);
 
       const userIcon = L.divIcon({

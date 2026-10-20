@@ -1,3 +1,4 @@
+import { MAP_TILE_LAYER_OPTIONS, MAP_TILE_URL } from '../../config/mapTiles'
 import type { NearbyOrigin, NearbyUbt } from '../../types/nearbyUnits'
 
 export type NearbyUnitsMapProps = {
@@ -18,15 +19,9 @@ export type NearbyUnitsMapMarker = {
 
 export const NEARBY_UNITS_LEAFLET_CSS_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
 export const NEARBY_UNITS_LEAFLET_JS_URL = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-export const NEARBY_UNITS_TILE_URL =
-  'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
 
-export const NEARBY_UNITS_TILE_LAYER_OPTIONS = {
-  maxZoom: 19,
-  subdomains: 'abcd',
-  updateWhenIdle: true,
-  keepBuffer: 4,
-} as const
+export const NEARBY_UNITS_TILE_URL = MAP_TILE_URL
+export const NEARBY_UNITS_TILE_LAYER_OPTIONS = MAP_TILE_LAYER_OPTIONS
 
 export const NEARBY_UNITS_MAP_CUSTOM_CSS = `
   html, body, #map { width: 100%; height: 100%; margin: 0; background: #f5f5f7; }

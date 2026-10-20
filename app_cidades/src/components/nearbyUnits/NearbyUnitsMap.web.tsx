@@ -7,6 +7,7 @@ import {
   NEARBY_UNITS_LEAFLET_CSS_URL,
   NEARBY_UNITS_LEAFLET_JS_URL,
   NEARBY_UNITS_MAP_CUSTOM_CSS,
+  NEARBY_UNITS_TILE_LAYER_OPTIONS,
   NEARBY_UNITS_TILE_URL,
   type NearbyUnitsMapProps,
 } from './nearbyUnitsMapShared'
@@ -156,8 +157,7 @@ export function NearbyUnitsMap({ origin, ubts, selectedId, onSelectUbt }: Nearby
       )
 
       L.tileLayer(NEARBY_UNITS_TILE_URL, {
-        maxZoom: 19,
-        subdomains: 'abcd',
+        ...NEARBY_UNITS_TILE_LAYER_OPTIONS,
       }).addTo(map)
 
       const userIcon = L.divIcon({

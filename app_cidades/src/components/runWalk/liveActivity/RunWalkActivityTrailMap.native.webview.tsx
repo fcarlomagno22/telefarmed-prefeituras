@@ -25,6 +25,7 @@ import {
   trailToLatLngPairs,
   type RunWalkActivityTrailMapProps,
 } from './runWalkActivityTrailMapShared'
+import { MAP_TILE_LAYER_OPTIONS } from '../../../config/mapTiles'
 import { useRunWalkLiveMapFeedSync } from './useRunWalkLiveMapFeedSync'
 import { RunWalkLiveMapWebViewInjector } from './runWalkLiveMapWebViewInjector'
 
@@ -111,10 +112,10 @@ function buildLiveMapHtml(options: {
     }).setView([${initialLatitude}, ${initialLongitude}], ${TRAIL_MAP_LIVE_ZOOM});
 
     L.tileLayer('${TRAIL_MAP_TILE_URL}', {
-      maxZoom: 19,
-      subdomains: 'abcd',
-      updateWhenIdle: true,
-      keepBuffer: 4,
+      maxZoom: ${MAP_TILE_LAYER_OPTIONS.maxZoom},
+      subdomains: '${MAP_TILE_LAYER_OPTIONS.subdomains}',
+      updateWhenIdle: ${MAP_TILE_LAYER_OPTIONS.updateWhenIdle},
+      keepBuffer: ${MAP_TILE_LAYER_OPTIONS.keepBuffer},
     }).addTo(map);
 
     let polyline = null;
@@ -562,7 +563,10 @@ function buildStaticMapHtml(
   <script src="${TRAIL_MAP_LEAFLET_JS_URL}" crossorigin=""></script>
   <script>
     const map = L.map('map', ${mapOptions}).setView([${centerLat}, ${centerLng}], ${hasTrail ? 16 : 14});
-    L.tileLayer('${TRAIL_MAP_TILE_URL}', { maxZoom: 19, subdomains: 'abcd' }).addTo(map);
+    L.tileLayer('${TRAIL_MAP_TILE_URL}', {
+      maxZoom: ${MAP_TILE_LAYER_OPTIONS.maxZoom},
+      subdomains: '${MAP_TILE_LAYER_OPTIONS.subdomains}',
+    }).addTo(map);
 
     const trailCoords = ${trailJson}.map(function(point) { return L.latLng(point[0], point[1]); });
     if (trailCoords.length > 1) {

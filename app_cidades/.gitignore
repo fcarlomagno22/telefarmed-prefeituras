@@ -39,3 +39,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Self-host map tiles (arquivos .mbtiles são grandes)
+docker/map-tiles/data/*
+!docker/map-tiles/data/.gitkeep

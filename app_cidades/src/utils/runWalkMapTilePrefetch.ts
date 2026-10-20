@@ -1,6 +1,4 @@
-import { NEARBY_UNITS_TILE_URL } from '../components/nearbyUnits/nearbyUnitsMapShared'
-
-const TILE_SUBDOMAINS = ['a', 'b', 'c', 'd']
+import { MAP_TILE_PREFETCH_SUBDOMAINS, MAP_TILE_URL } from '../config/mapTiles'
 
 function lngToTileX(lng: number, zoom: number) {
   return Math.floor(((lng + 180) / 360) * 2 ** zoom)
@@ -14,8 +12,9 @@ function latToTileY(lat: number, zoom: number) {
 }
 
 function buildTileUrl(zoom: number, x: number, y: number) {
-  const subdomain = TILE_SUBDOMAINS[(x + y) % TILE_SUBDOMAINS.length]
-  return NEARBY_UNITS_TILE_URL.replace('{s}', subdomain)
+  const subdomain =
+    MAP_TILE_PREFETCH_SUBDOMAINS[(x + y) % MAP_TILE_PREFETCH_SUBDOMAINS.length]
+  return MAP_TILE_URL.replace('{s}', subdomain)
     .replace('{z}', String(zoom))
     .replace('{x}', String(x))
     .replace('{y}', String(y))

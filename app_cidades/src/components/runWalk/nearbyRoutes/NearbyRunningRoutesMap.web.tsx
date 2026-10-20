@@ -15,6 +15,7 @@ import {
   RUNNING_ROUTES_TILE_URL,
   type NearbyRunningRoutesMapProps,
 } from './nearbyRunningRoutesMapShared'
+import { MAP_TILE_LAYER_OPTIONS } from '../../../config/mapTiles'
 
 type LeafletNamespace = {
   map: (element: HTMLElement, options: Record<string, unknown>) => LeafletMap
@@ -224,8 +225,7 @@ export function NearbyRunningRoutesMap({
       }).setView([flyLat, flyLng], flyZoom, { animate: false })
 
       L.tileLayer(RUNNING_ROUTES_TILE_URL, {
-        maxZoom: 19,
-        subdomains: 'abcd',
+        ...MAP_TILE_LAYER_OPTIONS,
       }).addTo(map)
 
       const userIcon = L.divIcon({
